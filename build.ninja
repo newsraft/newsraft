@@ -1,0 +1,15 @@
+gcc = gcc -fanalyzer -O3 -Wall -fdiagnostics-color=always -iquotesrc
+clang = clang -O3 -Isrc
+rule compile
+  command = $gcc $arg -o $out -c $in
+rule link
+  command = $gcc $arg -o $out $in
+
+build obj/feedeater.o:   compile src/feedeater.c
+build obj/feeds.o:       compile src/feeds.c
+build obj/config-path.o: compile src/config-path.c
+
+build feedeater: link obj/feedeater.o $
+                      obj/feeds.o $
+                      obj/config-path.o
+  arg = -lncurses

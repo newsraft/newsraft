@@ -7,9 +7,11 @@ rule link
 
 build obj/feedeater.o:   compile src/feedeater.c
 build obj/feeds.o:       compile src/feeds.c
+build obj/config.o:      compile src/config.c
 build obj/config-path.o: compile src/config-path.c
 
 build feedeater: link obj/feedeater.o $
+                      obj/config.o $
                       obj/feeds.o $
                       obj/config-path.o
   arg = -lncurses

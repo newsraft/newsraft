@@ -83,5 +83,10 @@ get_config_file_path(char *file_name)
 	strcat(path, "/");
 	strcat(path, file_name);
 
-	return path;
+	if (access(path, R_OK) == 0) {
+		return path;
+	}
+
+	free(path);
+	return NULL;
 }

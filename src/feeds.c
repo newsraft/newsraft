@@ -5,17 +5,14 @@
 #include "feedeater.h"
 #define MAX_NAME_SIZE 128
 #define MAX_URL_SIZE 128
-#define DEFAULT_CAPACITY 10
 struct feed_entry {
 	char *name;
 	char *url;
-	int capacity;
 	WINDOW *window;
 };
 static struct feed_entry *feed_list = NULL;
-static int feed_sel = 0;
+static int feed_sel = -1;
 static int feed_count = 0;
-void skip_chars(FILE *file, char *cur_char, char *list);
 
 int
 load_feeds(void)
@@ -35,19 +32,30 @@ load_feeds(void)
 	}
 	while (1) {
 		c = fgetc(f);
-		skip_chars(f, &c, " \n");
+		skip_chars(f, &c, " \t\n");
 		if (c == EOF) break;
+		if (c == '#') {
+			do { c = fgetc(f); } while ((c != '\n') && (c != EOF)); continue;
+		}
+		letter = 0;
 		feed_index = feed_count++;
 		feed_list = realloc(feed_list, sizeof(struct feed_entry) * feed_count);
+		if (c == '@') {
+			feed_list[feed_index].name = malloc(sizeof(char) * MAX_NAME_SIZE);
+			c = fgetc(f);
+			do { feed_list[feed_index].name[letter++] = c; c = fgetc(f); } while ((c != '\n') && (c != EOF));
+			feed_list[feed_index].name[letter] = '\0';
+			feed_list[feed_index].url = NULL;
+			continue;
+		}
 		feed_list[feed_index].name = NULL;
 		feed_list[feed_index].url = malloc(sizeof(char) * MAX_URL_SIZE);
-		feed_list[feed_index].capacity = DEFAULT_CAPACITY;
-		letter = 0;
 		while (1) {
 			feed_list[feed_index].url[letter++] = c;
 			c = fgetc(f);
-			if (c == ' ' || c == '\n' || c == EOF) {
+			if (c == ' ' || c == '\n' || c == '\t' || c == EOF) {
 				feed_list[feed_index].url[letter] = '\0';
+				if (feed_sel == -1) feed_sel = feed_index;
 				break;
 			}
 		}
@@ -107,13 +115,33 @@ close_feeds(void)
 void
 feed_select(int i)
 {
-	int new_sel = i;
+	int new_sel = i, j;
 	if (new_sel < 0) {
 		new_sel = 0;
 	} else if (new_sel >= feed_count) {
 		new_sel = feed_count - 1;
+		if (new_sel < 0) return;
 	}
-	if (new_sel == -1) return;
+	if (new_sel > feed_sel && feed_list[new_sel].url == NULL) {
+		for (j = new_sel; (j < feed_count) && (feed_list[j].url == NULL); ++j);
+		if (j < feed_count) {
+			new_sel = j;
+		} else {
+			for (j = feed_sel; j < feed_count; ++j) {
+				if (feed_list[j].url != NULL) new_sel = j;
+			}
+		}
+	} else if (new_sel < feed_sel && feed_list[new_sel].url == NULL) {
+		for (j = new_sel; (j > -1) && (feed_list[j].url == NULL); --j);
+		if (j > -1) {
+			new_sel = j;
+		} else {
+			for (j = feed_sel; j > -1; --j) {
+				if (feed_list[j].url != NULL) new_sel = j;
+			}
+		}
+	}
+	if (feed_list[new_sel].url == NULL) return;
 	if (new_sel != feed_sel) {
 		mvwprintw(feed_list[feed_sel].window, 0, 0, "%s\n", feed_list[feed_sel].name ? feed_list[feed_sel].name : feed_list[feed_sel].url);
 		wrefresh(feed_list[feed_sel].window);

@@ -4,8 +4,6 @@ simple feed reader for terminal (work in progress)
 
 ## Dependencies
 
-* gcc >= 10.2.0
-
 * ncurses >= 6.2
 
 * libcurl >= 7.75.0
@@ -13,6 +11,10 @@ simple feed reader for terminal (work in progress)
 * sqlite >= 3.34.1
 
 * libxml2 >= 2.9.10
+
+* gcc >= 10.2.0 *(build-time)*
+
+* ninja >= 1.10.2 *(build-time)*
 
 TODO: lower the requirments
 

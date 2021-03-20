@@ -10,6 +10,8 @@ simple feed reader for terminal (work in progress)
 
 * libcurl >= 7.75.0
 
+* sqlite >= 3.34.1
+
 * libxml2 >= 2.9.10
 
 TODO: lower the requirments

@@ -163,10 +163,14 @@ menu_feeds(void)
 	while (1) {
 		ch = wgetch(input_win);
 		wrefresh(input_win);
-		if      (ch == 'j' || ch == KEY_DOWN)           { feed_select(feed_sel + 1); }
-		else if (ch == 'k' || ch == KEY_UP)             { feed_select(feed_sel - 1); }
-		else if (ch == 'G')                             { feed_select(feed_count - 1); }
+		if      (ch == 'j'  || ch == KEY_DOWN)          { feed_select(feed_sel + 1); }
+		else if (ch == 'k'  || ch == KEY_UP)            { feed_select(feed_sel - 1); }
+		else if (ch == 'l'  || ch == KEY_RIGHT ||
+		         ch == '\n' || ch == KEY_ENTER)         { feed_view(feed_list[feed_sel].url); }
+		else if (ch == 'd')                             { feed_download(feed_list[feed_sel].url); }
+		else if (ch == 'D')                             { feed_download_all(); }
 		else if (ch == 'g' && wgetch(input_win) == 'g') { feed_select(0); }
+		else if (ch == 'G')                             { feed_select(feed_count - 1); }
 		else if (isdigit(ch)) {
 			q = 0;
 			while (1) {

@@ -22,11 +22,12 @@ TODO: lower the requirments
 
 Directory with configuration files is searched in the following order:
 
-	$FEEDEATER_HOME
+1. **$FEEDEATER_HOME**
 
-	$XDG_CONFIG_HOME/feedeater
+2. **$XDG_CONFIG_HOME**/feedeater
 
-	$HOME/.config/feedeater
+3. **$HOME**/.config/feedeater
 
-	$HOME/.feedeater
+4. **$HOME**/.feedeater
 
+5. /etc/feedeater

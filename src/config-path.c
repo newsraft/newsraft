@@ -58,6 +58,13 @@ get_config_dir(void)
 		}
 	}
 
+	strcpy(path, "/etc/feedeater");
+	d = opendir(path);
+	if (d != NULL) {
+		closedir(d);
+		return path;
+	}
+
 	fprintf(stderr, "failed to find config directory\n");
 	free(path);
 	return NULL;

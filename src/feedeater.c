@@ -3,7 +3,8 @@
 int main (int argc, char **argv) {
 	initscr(); // initialize curses mode
 	noecho(); // do not print characters typed be the user
-	//raw(); noecho(); keypad(stdscr, TRUE); getmaxyx(stdscr, row, col);
+	cbreak(); // disable line buffering and erase/kill character-processing
+	//raw(); keypad(stdscr, TRUE);
 	load_feeds();
 	show_feeds();
 	menu_feeds();

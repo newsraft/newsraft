@@ -1,23 +1,27 @@
 http://feed1.org
-# this is comment, cool
+# lines with # at start are comments
 #I Can TYpe HeRe whAtEveR i WAnT
 http://feed2.com
 https://feed3.ru
 http://feed4.net
 http://feed5.co
-# this feed will have nifty name
+# text inside double quotes after the feed url is a custom feed name
 https://feed6.net "My GNU/Linux distribution news"
 http://feed7.sh
 http://feed8.com
 http://feed9.org
 https://feed10.net
-# this is empty item for decoration purposes
+# lines with @ at start are decorations
+@
 @[podcasts]
 https://feed11.net
 https://feed12.net
-https://feed13.net "Politics rambling"
-https://feed14.net
-https://feed15.net
-@> feeds i like the least :-(
+# you can use any amount of spaces (and tabs) to align fields nicely
+https://feed13.net                   "Politics rambling"
+https://feed14withlonglongdomain.net "Local weather report"
+https://feed15withshortdomain.net    "My city news"
 https://feed16.net
+@
+@> feeds i like the least :-(
 https://feed17.net
+https://feed18.net

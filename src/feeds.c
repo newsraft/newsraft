@@ -43,7 +43,7 @@ load_feeds(void)
 		if (c == '@') {
 			feed_list[feed_index].name = malloc(sizeof(char) * MAX_NAME_SIZE);
 			c = fgetc(f);
-			do { feed_list[feed_index].name[letter++] = c; c = fgetc(f); } while ((c != '\n') && (c != EOF));
+			while ((c != '\n') && (c != EOF)) { feed_list[feed_index].name[letter++] = c; c = fgetc(f); }
 			feed_list[feed_index].name[letter] = '\0';
 			feed_list[feed_index].url = NULL;
 			continue;
@@ -53,14 +53,14 @@ load_feeds(void)
 		while (1) {
 			feed_list[feed_index].url[letter++] = c;
 			c = fgetc(f);
-			if (c == ' ' || c == '\n' || c == '\t' || c == EOF) {
+			if (c == ' ' || c == '\t' || c == '\n' || c == EOF) {
 				feed_list[feed_index].url[letter] = '\0';
 				if (feed_sel == -1) feed_sel = feed_index;
 				break;
 			}
 		}
-		if (c != ' ') continue;
-		skip_chars(f, &c, " ");
+		if (c != ' ' && c != '\t') continue;
+		skip_chars(f, &c, " \t");
 		if (c == '\n' || c == EOF) break;
 		if (c == '"') {
 			letter = 0;

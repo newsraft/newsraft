@@ -87,26 +87,28 @@ feed_process(struct string *buf, char *url)
 {
 	xmlDocPtr doc = xmlReadMemory(buf->ptr, buf->len, url, NULL, XML_PARSE_RECOVER | XML_PARSE_NOERROR | XML_PARSE_NOWARNING);
 	if (doc == NULL) {
-		STATUS_MSG("Failed to parse %s contents", url);
+		STATUS_MSG("Unable to parse: %s", url);
 		return;
 	}
 	xmlNodePtr node = xmlDocGetRootElement(doc);
 	if (node == NULL) {
-		STATUS_MSG("Empty - %s", url);
+		STATUS_MSG("Empty contents: %s", url);
 		return;
 	}
-	if (node->name == NULL || node->type != XML_ELEMENT_NODE) {
-		STATUS_MSG("Invalid feed in %s", url);
+	if ((node->name == NULL) || (node->type != XML_ELEMENT_NODE)) {
+		STATUS_MSG("Unknown format: %s", url);
 		return;
 	}
 	if (strcmp((char *)node->name, "rss") == 0) {
 		char *version = (char *)xmlGetProp(node, (xmlChar *)"version");
 		STATUS_MSG("RSS VERSION: %s", version);
-	} else if (strcmp((const char*)node->name, "RDF")) {
-		STATUS_MSG("RSS VERSION: 1.0");
 	} else if (strcmp((char *)node->name, "feed") == 0) {
 		char *version = (char *)xmlGetProp(node, (xmlChar *)"version");
 		STATUS_MSG("ATOM VERSION: %s", version);
+	} else if (strcmp((const char*)node->name, "RDF") == 0) {
+		STATUS_MSG("RSS VERSION: 1.0");
+	} else {
+		STATUS_MSG("Invalid format: %s", url);
 	}
 	xmlFreeNode(node);
 	//xmlFreeDoc(doc);
@@ -117,7 +119,9 @@ feed_reload(char *url)
 {
 	struct string *buf = feed_download(url);
 	if (buf == NULL) return;
+	if (buf->ptr == NULL) { free(buf); return; }
 	feed_process(buf, url);
+	free(buf->ptr);
 	free(buf);
 }
 

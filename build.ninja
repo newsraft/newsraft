@@ -16,4 +16,4 @@ build feedeater: link obj/feedeater.o $
                       obj/feeds.o $
                       obj/items.o $
                       obj/path.o
-  arg = -lncurses -lcurl -lssl -lcrypto
+  arg = -lncurses -lcurl -lssl -lcrypto -lxml2

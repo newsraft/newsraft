@@ -27,9 +27,9 @@ load_feeds(void)
 		return 0;
 	}
 	FILE *f = fopen(path, "r");
+	free(path);
 	if (f == NULL) {
 		fprintf(stderr, "could not open feeds file!\n");
-		free(path);
 		return 0;
 	}
 	while (1) {
@@ -57,29 +57,51 @@ load_feeds(void)
 			c = fgetc(f);
 			if (c == ' ' || c == '\t' || c == '\n' || c == EOF) {
 				feed_list[feed_index].url[letter] = '\0';
-				if (feed_sel == -1) feed_sel = feed_index;
 				break;
 			}
 		}
 		if (c != ' ' && c != '\t') continue;
 		skip_chars(f, &c, " \t");
-		if (c == '\n' || c == EOF) break;
+		if (c == EOF) break;
+		if (c == '\n') continue;
 		if (c == '"') {
 			letter = 0;
 			feed_list[feed_index].name = malloc(sizeof(char) * MAX_NAME_SIZE);
 			while (1) {
 				c = fgetc(f);
-				if (c == '"') {
-					feed_list[feed_index].name[letter] = '\0';
-					break;
-				}
+				if (c == '"') { feed_list[feed_index].name[letter] = '\0'; break; }
 				feed_list[feed_index].name[letter++] = c;
 			}
 		}
+		// move to the end of line or file
+		while ((c != '\n') && (c != EOF)) c = fgetc(f);
 	}
 	fclose(f);
-	free(path);
+
+	// put first non-decorative item in selection
+	for (feed_index = 0; feed_index < feed_count; ++feed_index) {
+		if (feed_list[feed_index].url != NULL) {
+			feed_sel = feed_index;
+			break;
+		}
+	}
+
+	if (feed_sel == -1) {
+		fprintf(stderr, "none of feeds loaded!\n");
+		return 0;
+	}
+
 	return 1;
+}
+
+void
+close_feeds(void)
+{
+	for (int i = 0; i < feed_count; ++i) {
+		if (feed_list[i].url != NULL) free(feed_list[i].url);
+		if (feed_list[i].name != NULL) free(feed_list[i].name);
+	}
+	if (feed_list != NULL) free(feed_list);
 }
 
 void
@@ -96,13 +118,10 @@ show_feeds(void)
 }
 
 void
-close_feeds(void)
+hide_feeds(void)
 {
-	for (int i = 0; i < feed_count; ++i) {
-		if (feed_list[i].url != NULL) free(feed_list[i].url);
-		if (feed_list[i].name != NULL) free(feed_list[i].name);
-	}
-	free(feed_list);
+	for (int i = 0; i < feed_count; ++i) delwin(feed_list[i].window);
+	clear();
 }
 
 void

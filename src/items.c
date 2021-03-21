@@ -6,6 +6,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <dirent.h>
+#include <libxml/tree.h>
+#include <libxml/parser.h>
 #include "feedeater.h"
 
 struct string {
@@ -20,7 +22,7 @@ new_string(void) {
 	s->len = 0;
 	s->ptr = malloc(s->len+1);
 	if (s->ptr == NULL) { free(s); return NULL; }
-  s->ptr[0] = '\0';
+	s->ptr[0] = '\0';
 	return s;
 }
 
@@ -81,10 +83,33 @@ feed_download(char *url)
 }
 
 void
-feed_process(struct string *buf)
+feed_process(struct string *buf, char *url)
 {
-	// under construction
-	fprintf(stderr, "%100s\n", buf->ptr);
+	xmlDocPtr doc = xmlReadMemory(buf->ptr, buf->len, url, NULL, XML_PARSE_RECOVER | XML_PARSE_NOERROR | XML_PARSE_NOWARNING);
+	if (doc == NULL) {
+		STATUS_MSG("Failed to parse %s contents", url);
+		return;
+	}
+	xmlNodePtr node = xmlDocGetRootElement(doc);
+	if (node == NULL) {
+		STATUS_MSG("Empty - %s", url);
+		return;
+	}
+	if (node->name == NULL || node->type != XML_ELEMENT_NODE) {
+		STATUS_MSG("Invalid feed in %s", url);
+		return;
+	}
+	if (strcmp((char *)node->name, "rss") == 0) {
+		char *version = (char *)xmlGetProp(node, (xmlChar *)"version");
+		STATUS_MSG("RSS VERSION: %s", version);
+	} else if (strcmp((const char*)node->name, "RDF")) {
+		STATUS_MSG("RSS VERSION: 1.0");
+	} else if (strcmp((char *)node->name, "feed") == 0) {
+		char *version = (char *)xmlGetProp(node, (xmlChar *)"version");
+		STATUS_MSG("ATOM VERSION: %s", version);
+	}
+	xmlFreeNode(node);
+	//xmlFreeDoc(doc);
 }
 
 void
@@ -92,7 +117,7 @@ feed_reload(char *url)
 {
 	struct string *buf = feed_download(url);
 	if (buf == NULL) return;
-	feed_process(buf);
+	feed_process(buf, url);
 	free(buf);
 }
 

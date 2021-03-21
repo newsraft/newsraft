@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdint.h>
+
 void
 skip_chars(FILE *file, char *cur_char, char *list)
 {

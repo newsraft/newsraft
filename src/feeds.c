@@ -5,11 +5,13 @@
 #include "feedeater.h"
 #define MAX_NAME_SIZE 128
 #define MAX_URL_SIZE 128
+
 struct feed_entry {
 	char *name;
 	char *url;
 	WINDOW *window;
 };
+
 static struct feed_entry *feed_list = NULL;
 static int feed_sel = -1;
 static int feed_count = 0;
@@ -18,7 +20,7 @@ int
 load_feeds(void)
 {
 	int feed_index, letter;
-	char c, *path, word[40];
+	char c, *path;
 	path = get_config_file_path("feeds");
 	if (path == NULL) {
 		fprintf(stderr, "could not find feeds file!\n");
@@ -74,15 +76,6 @@ load_feeds(void)
 				feed_list[feed_index].name[letter++] = c;
 			}
 		}
-		/*letter = 0;*/
-		/*while (1) {*/
-			/*word[letter++] = c;*/
-			/*c = fgetc(f);*/
-			/*if (c == ' ' || c == '\n' || c == EOF) {*/
-				/*word[letter] = '\0';*/
-				/*break;*/
-			/*}*/
-		/*}*/
 	}
 	fclose(f);
 	free(path);
@@ -156,7 +149,7 @@ feed_select(int i)
 void
 menu_feeds(void)
 {
-	WINDOW *input_win = newwin(1,COLS,LINES,0);
+	WINDOW *input_win = newwin(1,1,LINES,COLS);
 	keypad(input_win, TRUE); // used to recognize arrow keys
 	int ch, q;
 	char cmd[7];
@@ -167,8 +160,8 @@ menu_feeds(void)
 		else if (ch == 'k'  || ch == KEY_UP)            { feed_select(feed_sel - 1); }
 		else if (ch == 'l'  || ch == KEY_RIGHT ||
 		         ch == '\n' || ch == KEY_ENTER)         { feed_view(feed_list[feed_sel].url); }
-		else if (ch == 'd')                             { feed_download(feed_list[feed_sel].url); }
-		else if (ch == 'D')                             { feed_download_all(); }
+		else if (ch == 'd')                             { feed_reload(feed_list[feed_sel].url); }
+		else if (ch == 'D')                             { feed_reload_all(); }
 		else if (ch == 'g' && wgetch(input_win) == 'g') { feed_select(0); }
 		else if (ch == 'G')                             { feed_select(feed_count - 1); }
 		else if (isdigit(ch)) {

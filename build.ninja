@@ -5,15 +5,15 @@ rule compile
 rule link
   command = $gcc $arg -o $out $in
 
-build obj/feedeater.o:   compile src/feedeater.c
-build obj/feeds.o:       compile src/feeds.c
-build obj/items.o:       compile src/items.c
-build obj/config.o:      compile src/config.c
-build obj/config-path.o: compile src/config-path.c
+build obj/feedeater.o: compile src/feedeater.c
+build obj/feeds.o:     compile src/feeds.c
+build obj/items.o:     compile src/items.c
+build obj/config.o:    compile src/config.c
+build obj/path.o:      compile src/path.c
 
 build feedeater: link obj/feedeater.o $
                       obj/config.o $
                       obj/feeds.o $
                       obj/items.o $
-                      obj/config-path.o
-  arg = -lncurses -lcurl -lsqlite3
+                      obj/path.o
+  arg = -lncurses -lcurl -lssl -lcrypto

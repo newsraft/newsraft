@@ -9,6 +9,7 @@
 #include <libxml/tree.h>
 #include <libxml/parser.h>
 #include "feedeater.h"
+#include "parsers/parsers.h"
 
 struct string {
 	char *ptr;
@@ -101,12 +102,28 @@ feed_process(struct string *buf, char *url)
 	}
 	if (strcmp((char *)node->name, "rss") == 0) {
 		char *version = (char *)xmlGetProp(node, (xmlChar *)"version");
-		STATUS_MSG("RSS VERSION: %s", version);
+		if (strcmp(version, "2.0") == 0) {
+			parse_rss20(node);
+		} else if (strcmp(version, "1.1") == 0) {
+			parse_rss11(node);
+		} else if (strcmp(version, "1.0") == 0) {
+			parse_rss10(node);
+		} else if (strcmp(version, "0.94") == 0) {
+			parse_rss094(node);
+		} else if (strcmp(version, "0.92") == 0) {
+			parse_rss092(node);
+		} else if (strcmp(version, "0.91") == 0) {
+			parse_rss091(node);
+		} else if (strcmp(version, "0.90") == 0) {
+			parse_rss090(node);
+		} else {
+			STATUS_MSG("Unsupported RSS version (%s): %s", version, url);
+		}
 	} else if (strcmp((char *)node->name, "feed") == 0) {
 		char *version = (char *)xmlGetProp(node, (xmlChar *)"version");
 		STATUS_MSG("ATOM VERSION: %s", version);
 	} else if (strcmp((const char*)node->name, "RDF") == 0) {
-		STATUS_MSG("RSS VERSION: 1.0");
+		parse_rss10(node);
 	} else {
 		STATUS_MSG("Invalid format: %s", url);
 	}

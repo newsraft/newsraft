@@ -1,19 +1,37 @@
-gcc = gcc -fanalyzer -O3 -Wall -fdiagnostics-color=always -iquotesrc
+gcc = gcc -fanalyzer -O3 -Wall -fdiagnostics-color=always -iquotesrc -iquotesrc/parsers
 clang = clang -O3 -Isrc
 rule compile
   command = $gcc $arg -o $out -c $in
 rule link
   command = $gcc $arg -o $out $in
 
-build obj/feedeater.o: compile src/feedeater.c
-build obj/feeds.o:     compile src/feeds.c
-build obj/items.o:     compile src/items.c
-build obj/config.o:    compile src/config.c
-build obj/path.o:      compile src/path.c
+build obj/feedeater.o:            compile src/feedeater.c
+build obj/feeds.o:                compile src/feeds.c
+build obj/items.o:                compile src/items.c
+build obj/config.o:               compile src/config.c
+build obj/path.o:                 compile src/path.c
+build obj/parsers/parse_atom03.o: compile src/parsers/parse_atom03.c
+build obj/parsers/parse_atom10.o: compile src/parsers/parse_atom10.c
+build obj/parsers/parse_rss090.o: compile src/parsers/parse_rss090.c
+build obj/parsers/parse_rss091.o: compile src/parsers/parse_rss091.c
+build obj/parsers/parse_rss092.o: compile src/parsers/parse_rss092.c
+build obj/parsers/parse_rss094.o: compile src/parsers/parse_rss094.c
+build obj/parsers/parse_rss10.o:  compile src/parsers/parse_rss10.c
+build obj/parsers/parse_rss11.o:  compile src/parsers/parse_rss11.c
+build obj/parsers/parse_rss20.o:  compile src/parsers/parse_rss20.c
 
 build feedeater: link obj/feedeater.o $
                       obj/config.o $
                       obj/feeds.o $
                       obj/items.o $
-                      obj/path.o
+                      obj/path.o $
+                      obj/parsers/parse_atom03.o $
+                      obj/parsers/parse_atom10.o $
+                      obj/parsers/parse_rss090.o $
+                      obj/parsers/parse_rss091.o $
+                      obj/parsers/parse_rss092.o $
+                      obj/parsers/parse_rss094.o $
+                      obj/parsers/parse_rss10.o $
+                      obj/parsers/parse_rss11.o $
+                      obj/parsers/parse_rss20.o
   arg = -lncurses -lcurl -lssl -lcrypto -lxml2

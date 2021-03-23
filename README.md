@@ -24,9 +24,11 @@ TODO: lower the requirments
 
 ## Configuration
 
+### Search order of the essential files
+
 Directory with configuration files is searched in the following order:
 
-1. **$FEEDEATER_HOME**
+1. **$FEEDEATER_CONFIG**
 
 2. **$XDG_CONFIG_HOME**/feedeater
 
@@ -35,3 +37,11 @@ Directory with configuration files is searched in the following order:
 4. **$HOME**/.feedeater
 
 5. /etc/feedeater
+
+Directory with data files is searched in the following order:
+
+1. **$FEEDEATER_DATA**
+
+2. **$XDG_DATA_HOME**/feedeater
+
+3. **$HOME**/.local/share/feedeater

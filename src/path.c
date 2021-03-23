@@ -22,7 +22,7 @@ get_config_dir(void)
 	}
 
 	DIR *d;
-	char *env_var = getenv("FEEDEATER_HOME");
+	char *env_var = getenv("FEEDEATER_CONFIG");
 	if (env_var != NULL) {
 		strcpy(path, env_var);
 		d = opendir(path);

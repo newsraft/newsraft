@@ -17,7 +17,7 @@ static int feed_sel = -1;
 static int feed_count = 0;
 
 int
-load_feeds(void)
+load_feed_list(void)
 {
 	int feed_index, letter;
 	char c, *path;
@@ -95,7 +95,7 @@ load_feeds(void)
 }
 
 void
-close_feeds(void)
+free_feed_list(void)
 {
 	for (int i = 0; i < feed_count; ++i) {
 		if (feed_list[i].url != NULL) free(feed_list[i].url);

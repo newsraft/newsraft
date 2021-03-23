@@ -16,12 +16,17 @@ https://feed10.net
 @[podcasts]
 https://feed11.net
 https://feed12.net
-# you can use any amount of spaces (and tabs) to align fields nicely
-https://feed13.net                   "Politics rambling"
+# you can use any amount of spaces (and tabs) to align fields nicely (or the ugly way)
+      https://feed13.net             "Politics rambling"
 https://feed14withlonglongdomain.net "Local weather report"
-https://feed15withshortdomain.net    "My city news"
+  https://feed15withshortdomain.net  "My city news"
+                        # this also works for comments
+         @ and decorations
 https://feed16.net
-@
-@> feeds i like the least :-(
 https://feed17.net
 https://feed18.net
+https://feed19.net
+@
+@> feeds i like the least :-(
+https://feed20.net
+https://feed21.net

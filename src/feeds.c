@@ -6,12 +6,6 @@
 #define MAX_NAME_SIZE 128
 #define MAX_URL_SIZE 128
 
-struct feed_entry {
-	char *name;
-	char *url;
-	WINDOW *window;
-};
-
 static struct feed_entry *feed_list = NULL;
 static int feed_sel = -1;
 static int feed_count = 0;
@@ -179,7 +173,7 @@ menu_feeds(void)
 		else if (ch == 'k'  || ch == KEY_UP)            { feed_select(feed_sel - 1); }
 		else if (ch == 'l'  || ch == KEY_RIGHT ||
 		         ch == '\n' || ch == KEY_ENTER)         { feed_view(feed_list[feed_sel].url); }
-		else if (ch == 'd')                             { feed_reload(feed_list[feed_sel].url); }
+		else if (ch == 'd')                             { feed_reload(&feed_list[feed_sel]); }
 		else if (ch == 'D')                             { feed_reload_all(); }
 		else if (ch == 'g' && wgetch(input_win) == 'g') { feed_select(0); }
 		else if (ch == 'G')                             { feed_select(feed_count - 1); }

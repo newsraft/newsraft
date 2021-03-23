@@ -1,137 +1,105 @@
 #include <unistd.h>
-#include <ncurses.h>
-#include <curl/curl.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <dirent.h>
-#include <libxml/tree.h>
-#include <libxml/parser.h>
+#include <ncurses.h>
+#include <expat.h>
 #include "feedeater.h"
 #include "parsers/parsers.h"
+#ifdef XML_LARGE_SIZE
+#  define XML_FMT_INT_MOD "ll"
+#else
+#  define XML_FMT_INT_MOD "l"
+#endif
 
-struct string {
-	char *ptr;
-	size_t len;
+#ifdef XML_UNICODE_WCHAR_T
+#  include <wchar.h>
+#  define XML_FMT_STR "ls"
+#else
+#  define XML_FMT_STR "s"
+#endif
+
+struct parsing_buffer {
+	int depth;
+	struct feed_entry *(*parser)(struct string *buf);
 };
 
-struct string *
-new_string(void) {
-	struct string *s = malloc(sizeof(struct string));
-	if (s == NULL) return NULL;
-	s->len = 0;
-	s->ptr = malloc(s->len+1);
-	if (s->ptr == NULL) { free(s); return NULL; }
-	s->ptr[0] = '\0';
-	return s;
-}
+static void XMLCALL
+startElement(void *userData, const XML_Char *name, const XML_Char **atts) {
+	/*(void)atts;*/
+	uint8_t i;
+	struct parsing_buffer *data = userData;
 
-size_t
-string_write_func(void *ptr, size_t size, size_t nmemb, struct string *s)
-{
-	size_t new_len = s->len + size * nmemb;
-	s->ptr = realloc(s->ptr, new_len + 1);
-	if (s->ptr == NULL) return 0;
-	memcpy(s->ptr + s->len, ptr, size * nmemb);
-	s->ptr[new_len] = '\0';
-	s->len = new_len;
-	return size * nmemb;
-}
-
-static struct string *
-feed_download(char *url)
-{
-	status_write("Downloading %s", url);
-
-	struct string *buf = new_string();
-	if (buf == NULL) {
-		status_write("Failed to allocate memory for %s", url);
-		return NULL;
-	}
-
-	CURL *curl = curl_easy_init();
-	curl_easy_setopt(curl, CURLOPT_URL, url);
-	curl_easy_setopt(curl, CURLOPT_FAILONERROR, 1);
-	curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1);
-	curl_easy_setopt(curl, CURLOPT_MAXREDIRS, 10);
-	/* enable all supported built-in encodings with empty string */
-	/* curl 7.72.0 has: identity, deflate, gzip, br, zstd */
-	curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "");
-	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, string_write_func);
-	curl_easy_setopt(curl, CURLOPT_WRITEDATA, buf);
-	curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1L);
-	curl_easy_setopt(curl, CURLOPT_VERBOSE, 0L);
-	curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1L);
-	/*char curl_errbuf[CURL_ERROR_SIZE];*/
-	/*curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, curl_errbuf);*/
-	int error = curl_easy_perform(curl);
-
-	if (error != CURLE_OK) {
-		status_write("Failed to retrieve %s", url);
-		free(buf->ptr);
-		free(buf);
-		return NULL;
-	}
-
-	return buf;
-}
-
-void
-feed_process(struct string *buf, char *url)
-{
-	xmlDocPtr doc = xmlReadMemory(buf->ptr, buf->len, url, NULL, XML_PARSE_RECOVER | XML_PARSE_NOERROR | XML_PARSE_NOWARNING);
-	if (doc == NULL) {
-		status_write("Unable to parse: %s", url);
-		return;
-	}
-	xmlNodePtr node = xmlDocGetRootElement(doc);
-	if (node == NULL) {
-		status_write("Empty contents: %s", url);
-		return;
-	}
-	if ((node->name == NULL) || (node->type != XML_ELEMENT_NODE)) {
-		status_write("Unknown format: %s", url);
-		return;
-	}
-	if (strcmp((char *)node->name, "rss") == 0) {
-		char *version = (char *)xmlGetProp(node, (xmlChar *)"version");
-		if (strcmp(version, "2.0") == 0) {
-			parse_rss20(node);
-		} else if (strcmp(version, "1.1") == 0) {
-			parse_rss11(node);
-		} else if (strcmp(version, "1.0") == 0) {
-			parse_rss10(node);
-		} else if (strcmp(version, "0.94") == 0) {
-			parse_rss094(node);
-		} else if (strcmp(version, "0.92") == 0) {
-			parse_rss092(node);
-		} else if (strcmp(version, "0.91") == 0) {
-			parse_rss091(node);
-		} else if (strcmp(version, "0.90") == 0) {
-			parse_rss090(node);
-		} else {
-			status_write("Unsupported RSS version (%s): %s", version, url);
+	data->depth += 1;
+	if (data->depth == 1) {
+		if (strcmp(name, "rss") == 0) {
+			for (i = 0; atts[i] != NULL && strcmp(atts[i], "version") != 0; ++i);
+			++i;
+			if (atts[i] != NULL) {
+				if      (strcmp(atts[i], "2.0") == 0)  data->parser = &parse_rss20;
+				else if (strcmp(atts[i], "1.1") == 0)  data->parser = &parse_rss11;
+				else if (strcmp(atts[i], "1.0") == 0)  data->parser = &parse_rss10;
+				else if (strcmp(atts[i], "0.94") == 0) data->parser = &parse_rss094;
+				else if (strcmp(atts[i], "0.92") == 0) data->parser = &parse_rss092;
+				else if (strcmp(atts[i], "0.91") == 0) data->parser = &parse_rss091;
+				else if (strcmp(atts[i], "0.90") == 0) data->parser = &parse_rss090;
+			}
+		} else if (strcmp(name, "feed") == 0) {
+			for (i = 0; atts[i] != NULL && strcmp(atts[i], "xmlns") != 0; ++i);
+			++i;
+			if (atts[i] == NULL) {
+				for (i = 0; atts[i] != NULL && strcmp(atts[i], "xmlns:atom") != 0; ++i);
+				++i;
+			}
+			if (atts[i] != NULL) {
+				if      (strcmp(atts[i], "http://www.w3.org/2005/Atom") == 0) data->parser = &parse_atom10;
+				else if (strcmp(atts[i], "http://purl.org/atom/ns#") == 0)    data->parser = &parse_atom03;
+			}
+		} else if (strcmp(name, "RDF") == 0) {
+			data->parser = &parse_rss10;
 		}
-	} else if (strcmp((char *)node->name, "feed") == 0) {
-		char *version = (char *)xmlGetProp(node, (xmlChar *)"version");
-		status_write("ATOM VERSION: %s", version);
-	} else if (strcmp((const char*)node->name, "RDF") == 0) {
-		parse_rss10(node);
-	} else {
-		status_write("Invalid format: %s", url);
 	}
-	xmlFreeNode(node);
-	//xmlFreeDoc(doc);
+}
+
+static void XMLCALL
+endElement(void *userData, const XML_Char *name) {
+	struct parsing_buffer *data = userData;
+	/*(void)name;*/
+	data->depth -= 1;
 }
 
 void
-feed_reload(char *url)
+feed_process(struct string *buf, struct feed_entry *feed)
 {
-	struct string *buf = feed_download(url);
+	struct parsing_buffer parser_data = {0, NULL};
+	XML_Parser parser = XML_ParserCreate(NULL);
+	XML_SetUserData(parser, &parser_data);
+	XML_SetElementHandler(parser, startElement, endElement);
+	
+	if (XML_Parse(parser, buf->ptr, buf->len, 1) == XML_STATUS_ERROR) {
+		fprintf(stderr, "%" XML_FMT_STR " at line %" XML_FMT_INT_MOD "u\n",
+						XML_ErrorString(XML_GetErrorCode(parser)),
+						XML_GetCurrentLineNumber(parser));
+	}
+	XML_ParserFree(parser);
+	if (parser_data.parser == NULL) {
+		status_write("Unknown format %s", feed->url);
+		return;
+	}
+
+	struct feed_entry *remote_feed_ver = parser_data.parser(buf);
+}
+
+void
+feed_reload(struct feed_entry *feed)
+{
+	struct string *buf = feed_download(feed->url);
 	if (buf == NULL) return;
 	if (buf->ptr == NULL) { free(buf); return; }
-	feed_process(buf, url);
+	feed_process(buf, feed);
 	free(buf->ptr);
 	free(buf);
 }

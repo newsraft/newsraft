@@ -1,5 +1,17 @@
 #include <ncurses.h>
 #define MAXPATH 512
+
+struct string {
+	char *ptr;
+	size_t len;
+};
+
+struct feed_entry {
+	char *name;
+	char *url;
+	WINDOW *window;
+};
+
 int load_feed_list(void);  // load feeds information in memory
 void free_feed_list(void); // unload all feeds information (call this before exitting)
 void show_feeds(void);    // display feeds in an interactive list
@@ -9,8 +21,10 @@ char *get_config_file_path(char *file_name);
 char *get_data_dir_for_url(char *url);
 
 // try to reload feeds
-void feed_reload(char *url);
+void feed_reload(struct feed_entry *);
 void feed_reload_all(void);
+
+struct string *feed_download(char *url);
 
 // try to list items of the feed url
 void feed_view(char *url);

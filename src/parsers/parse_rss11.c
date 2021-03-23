@@ -1,9 +1,10 @@
 #include <stdio.h>
+#include "feedeater.h"
 #include "parsers/parsers.h"
 
-int
-parse_rss11(xmlNodePtr node)
+struct feed_entry *
+parse_rss11(struct string *buf)
 {
-	fprintf(stderr, "rss11 under_construction\n");
+	status_write("rss11 under_construction");
 	return 0;
 }

@@ -10,7 +10,7 @@ simple feed reader for terminal (work in progress)
 
 * openssl >= 1.1.1.j
 
-* libxml2 >= 2.9.10
+* expat >= 2.2.10
 
 * gcc >= 10.2.0 *(build-time)*
 

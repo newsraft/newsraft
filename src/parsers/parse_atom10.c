@@ -1,9 +1,10 @@
 #include <stdio.h>
+#include "feedeater.h"
 #include "parsers/parsers.h"
 
-int
-parse_atom10(xmlNodePtr node)
+struct feed_entry *
+parse_atom10(struct string *buf)
 {
-	fprintf(stderr, "atom10 under_construction\n");
+	status_write("atom10 under_construction");
 	return 0;
 }

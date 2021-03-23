@@ -1,5 +1,5 @@
-gcc = gcc -fanalyzer -O3 -Wall -fdiagnostics-color=always -iquotesrc -iquotesrc/parsers
-clang = clang -O3 -Isrc
+gcc = gcc -fanalyzer -Wall -fdiagnostics-color=always -iquotesrc -iquotesrc/parsers
+clang = clang -Isrc -Isrc/parsers
 rule compile
   command = $gcc $arg -o $out -c $in
 rule link
@@ -8,9 +8,10 @@ rule link
 build obj/feedeater.o:            compile src/feedeater.c
 build obj/feeds.o:                compile src/feeds.c
 build obj/items.o:                compile src/items.c
+build obj/status.o:               compile src/status.c
 build obj/config.o:               compile src/config.c
 build obj/path.o:                 compile src/path.c
-build obj/status.o:               compile src/status.c
+build obj/download.o:             compile src/download.c
 build obj/parsers/parse_atom03.o: compile src/parsers/parse_atom03.c
 build obj/parsers/parse_atom10.o: compile src/parsers/parse_atom10.c
 build obj/parsers/parse_rss090.o: compile src/parsers/parse_rss090.c
@@ -22,11 +23,12 @@ build obj/parsers/parse_rss11.o:  compile src/parsers/parse_rss11.c
 build obj/parsers/parse_rss20.o:  compile src/parsers/parse_rss20.c
 
 build feedeater: link obj/feedeater.o $
-                      obj/config.o $
                       obj/feeds.o $
                       obj/items.o $
                       obj/status.o $
+                      obj/config.o $
                       obj/path.o $
+                      obj/download.o $
                       obj/parsers/parse_atom03.o $
                       obj/parsers/parse_atom10.o $
                       obj/parsers/parse_rss090.o $
@@ -36,4 +38,4 @@ build feedeater: link obj/feedeater.o $
                       obj/parsers/parse_rss10.o $
                       obj/parsers/parse_rss11.o $
                       obj/parsers/parse_rss20.o
-  arg = -lncurses -lcurl -lssl -lcrypto -lxml2
+  arg = -lncurses -lcurl -lssl -lcrypto -lexpat

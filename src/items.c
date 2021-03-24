@@ -34,7 +34,7 @@ startElement(void *userData, const XML_Char *name, const XML_Char **atts) {
 	struct parsing_buffer *data = userData;
 
 	data->depth += 1;
-	if (data->depth == 1) {
+	if (data->depth == 1 && data->parser == NULL) {
 		if (strcmp(name, "rss") == 0) {
 			for (i = 0; atts[i] != NULL && strcmp(atts[i], "version") != 0; ++i);
 			++i;
@@ -80,9 +80,12 @@ feed_process(struct string *buf, struct feed_entry *feed)
 	XML_SetElementHandler(parser, startElement, endElement);
 	
 	if (XML_Parse(parser, buf->ptr, buf->len, 1) == XML_STATUS_ERROR) {
-		fprintf(stderr, "%" XML_FMT_STR " at line %" XML_FMT_INT_MOD "u\n",
-						XML_ErrorString(XML_GetErrorCode(parser)),
-						XML_GetCurrentLineNumber(parser));
+		/*status_write("%" XML_FMT_STR " at line %" XML_FMT_INT_MOD "u\n",*/
+								 /*XML_ErrorString(XML_GetErrorCode(parser)),*/
+								 /*XML_GetCurrentLineNumber(parser));*/
+		status_write("Invalid format %s", feed->url);
+		XML_ParserFree(parser);
+		return;
 	}
 	XML_ParserFree(parser);
 	if (parser_data.parser == NULL) {
@@ -90,7 +93,15 @@ feed_process(struct string *buf, struct feed_entry *feed)
 		return;
 	}
 
-	struct feed_entry *remote_feed_ver = parser_data.parser(buf);
+	struct feed_entry *remote_feed = parser_data.parser(buf);
+	if (remote_feed == NULL) {
+		status_write("Incorrect format %s", feed->url);
+		return;
+	}
+
+	if (feed->name == NULL && remote_feed->name != NULL) {
+		feed->name = remote_feed->name;
+	}
 }
 
 void

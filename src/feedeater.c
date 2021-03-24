@@ -23,8 +23,10 @@ int main (int argc, char **argv) {
 undo3:
 	status_delete();
 undo2:
-	endwin(); // end curses mode
+	// end curses mode
+	endwin();
 undo1:
 	free_feed_list();
+
 	return error;
 }

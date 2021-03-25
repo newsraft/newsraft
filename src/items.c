@@ -52,6 +52,7 @@ start_element(void *userData, const XML_Char *name, const XML_Char **atts) {
 		} else if (strcmp(name, "RDF") == 0) {
 			parser_data->parser_func = &parse_rss10;
 		}
+		if (parser_data->parser_func != NULL) XML_StopParser(*(parser_data->xml_parser), (XML_Bool)1);
 	}
 	++(parser_data->depth);
 }
@@ -70,42 +71,43 @@ feed_process(struct string *buf, struct feed_entry *feed)
 	XML_SetUserData(parser, &parser_data);
 	XML_SetElementHandler(parser, start_element, end_element);
 	
-	if (XML_Parse(parser, buf->ptr, buf->len, 1) == XML_STATUS_ERROR) {
+	if (XML_Parse(parser, buf->ptr, buf->len, 0) == XML_STATUS_ERROR) {
 		/*status_write("%" XML_FMT_STR " at line %" XML_FMT_INT_MOD "u\n",*/
 								 /*XML_ErrorString(XML_GetErrorCode(parser)),*/
 								 /*XML_GetCurrentLineNumber(parser));*/
-		status_write("[invalid format] %s", feed->url); // bad xml document
+		status_write("[invalid format] %s", feed->lurl); // bad xml document
 		XML_ParserFree(parser);
 		return;
 	}
-	XML_ParserFree(parser);
 	if (parser_data.parser_func == NULL) {
-		status_write("[unknown format] %s", feed->url);
+		status_write("[unknown format] %s", feed->lurl);
 		return;
 	}
 
-	struct feed_entry *remote_feed = parser_data.parser_func(buf);
+	struct feed_entry *remote_feed = parser_data.parser_func(&parser, buf);
+	XML_ParserFree(parser);
 	if (remote_feed == NULL) {
-		/*status_write("[incorrect format] %s", feed->url);*/
+		/*status_write("[incorrect format] %s", feed->lurl);*/
 		return;
 	}
 
-	if (feed->remote_name == NULL && remote_feed->remote_name != NULL) {
-		feed->remote_name = remote_feed->remote_name;
-	} else if (feed->remote_name != NULL && remote_feed->remote_name != NULL &&
-	           strcmp(feed->remote_name, remote_feed->remote_name) != 0)
+	if (feed->rname == NULL && remote_feed->rname != NULL) {
+		feed->rname = remote_feed->rname;
+	} else if (feed->rname != NULL && remote_feed->rname != NULL &&
+	           strcmp(feed->rname, remote_feed->rname) != 0)
 	{
-		free(feed->remote_name);
-		feed->remote_name = remote_feed->remote_name;
+		free(feed->rname);
+		feed->rname = remote_feed->rname;
 	}
 
-	status_write("Parsed %s", feed->url);
+	free_feed_entry(remote_feed);
+	status_write("Parsed %s", feed->lurl);
 }
 
 void
 feed_reload(struct feed_entry *feed)
 {
-	struct string *buf = feed_download(feed->url);
+	struct string *buf = feed_download(feed->lurl);
 	if (buf == NULL) return;
 	if (buf->ptr == NULL) { free(buf); return; }
 	feed_process(buf, feed);

@@ -2,7 +2,7 @@
 #include "feedeater.h"
 
 struct feed_entry *
-parse_rss10(struct string *buf)
+parse_rss10(XML_Parser *parser, struct string *buf)
 {
 	status_write("rss10 under_construction");
 	return 0;

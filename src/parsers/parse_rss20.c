@@ -22,6 +22,8 @@ endElement(void *userData, const XML_Char *name) {
 struct feed_entry *
 parse_rss20(struct string *buf)
 {
+	/*status_write("rss20 under construction");*/
+	/*return NULL;*/
 	struct feed_entry *feed = calloc(1, sizeof(struct feed_entry));
 	if (feed == NULL) {
 		status_write("calloc on feed buffer failed\n"); return NULL;

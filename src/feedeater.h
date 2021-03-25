@@ -1,4 +1,5 @@
 #include <ncurses.h>
+#include <expat.h>
 #define MAXPATH 512
 
 struct string {
@@ -11,6 +12,12 @@ struct feed_entry {
 	char *remote_name; // name of feed set by author
 	char *url;
 	WINDOW *window;
+};
+
+struct init_parser_data {
+	int depth;
+	XML_Parser *xml_parser;
+	struct feed_entry *(*parser_func)(struct string *buf);
 };
 
 int load_feed_list(void);  // load feeds information in memory

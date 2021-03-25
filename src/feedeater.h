@@ -7,7 +7,8 @@ struct string {
 };
 
 struct feed_entry {
-	char *name;
+	char *custom_name; // name of feed set by user
+	char *remote_name; // name of feed set by author
 	char *url;
 	WINDOW *window;
 };
@@ -36,3 +37,19 @@ void skip_chars(FILE *file, char *cur_char, char *list);
 int status_create(void);
 void status_write(char *format, ...);
 int status_delete(void);
+
+struct parsing_buffer2 {
+	int depth;
+	struct feed_entry *feed;
+};
+
+struct feed_entry *parse_rss20(struct string *buf);  // RSS 2.0
+struct feed_entry *parse_rss11(struct string *buf);  // RSS 1.1
+struct feed_entry *parse_rss10(struct string *buf);  // RSS 1.0
+struct feed_entry *parse_rss094(struct string *buf); // RSS 0.94
+struct feed_entry *parse_rss092(struct string *buf); // RSS 0.92
+struct feed_entry *parse_rss091(struct string *buf); // RSS 0.91
+struct feed_entry *parse_rss090(struct string *buf); // RSS 0.90
+struct feed_entry *parse_atom10(struct string *buf); // Atom 1.0
+struct feed_entry *parse_atom03(struct string *buf); // Atom 0.3
+struct feed_entry *parse_json11(struct string *buf); // JSON 1.1

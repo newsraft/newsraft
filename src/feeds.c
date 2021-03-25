@@ -37,14 +37,14 @@ load_feed_list(void)
 		feed_index = feed_count++;
 		feed_list = realloc(feed_list, sizeof(struct feed_entry) * feed_count);
 		if (c == '@') {
-			feed_list[feed_index].name = malloc(sizeof(char) * MAX_NAME_SIZE);
+			feed_list[feed_index].custom_name = malloc(sizeof(char) * MAX_NAME_SIZE);
 			c = fgetc(f);
-			while ((c != '\n') && (c != EOF)) { feed_list[feed_index].name[letter++] = c; c = fgetc(f); }
-			feed_list[feed_index].name[letter] = '\0';
+			while ((c != '\n') && (c != EOF)) { feed_list[feed_index].custom_name[letter++] = c; c = fgetc(f); }
+			feed_list[feed_index].custom_name[letter] = '\0';
 			feed_list[feed_index].url = NULL;
 			continue;
 		}
-		feed_list[feed_index].name = NULL;
+		feed_list[feed_index].custom_name = NULL;
 		feed_list[feed_index].url = malloc(sizeof(char) * MAX_URL_SIZE);
 		while (1) {
 			feed_list[feed_index].url[letter++] = c;
@@ -60,11 +60,11 @@ load_feed_list(void)
 		if (c == '\n') continue;
 		if (c == '"') {
 			letter = 0;
-			feed_list[feed_index].name = malloc(sizeof(char) * MAX_NAME_SIZE);
+			feed_list[feed_index].custom_name = malloc(sizeof(char) * MAX_NAME_SIZE);
 			while (1) {
 				c = fgetc(f);
-				if (c == '"') { feed_list[feed_index].name[letter] = '\0'; break; }
-				feed_list[feed_index].name[letter++] = c;
+				if (c == '"') { feed_list[feed_index].custom_name[letter] = '\0'; break; }
+				feed_list[feed_index].custom_name[letter++] = c;
 			}
 		}
 		// move to the end of line or file
@@ -93,7 +93,7 @@ free_feed_list(void)
 {
 	for (int i = 0; i < feed_count; ++i) {
 		if (feed_list[i].url != NULL) free(feed_list[i].url);
-		if (feed_list[i].name != NULL) free(feed_list[i].name);
+		if (feed_list[i].custom_name != NULL) free(feed_list[i].custom_name);
 	}
 	if (feed_list != NULL) free(feed_list);
 }
@@ -105,7 +105,7 @@ show_feeds(void)
 	for (int i = 0; i < feed_count; ++i) {
 		feed_list[i].window = newwin(1, COLS, i, 0);
 		if (i == feed_sel) wattron(feed_list[i].window, A_REVERSE);
-		mvwprintw(feed_list[i].window, 0, 0, "%s\n", feed_list[i].name ? feed_list[i].name : feed_list[i].url);
+		mvwprintw(feed_list[i].window, 0, 0, "%s\n", feed_list[i].custom_name ? feed_list[i].custom_name : feed_list[i].url);
 		if (i == feed_sel) wattroff(feed_list[i].window, A_REVERSE);
 		wrefresh(feed_list[i].window);
 	}
@@ -149,11 +149,11 @@ feed_select(int i)
 	}
 	if (feed_list[new_sel].url == NULL) return;
 	if (new_sel != feed_sel) {
-		mvwprintw(feed_list[feed_sel].window, 0, 0, "%s\n", feed_list[feed_sel].name ? feed_list[feed_sel].name : feed_list[feed_sel].url);
+		mvwprintw(feed_list[feed_sel].window, 0, 0, "%s\n", feed_list[feed_sel].custom_name ? feed_list[feed_sel].custom_name : feed_list[feed_sel].url);
 		wrefresh(feed_list[feed_sel].window);
 		feed_sel = new_sel;
 		wattron(feed_list[feed_sel].window, A_REVERSE);
-		mvwprintw(feed_list[feed_sel].window, 0, 0, "%s\n", feed_list[feed_sel].name ? feed_list[feed_sel].name : feed_list[feed_sel].url);
+		mvwprintw(feed_list[feed_sel].window, 0, 0, "%s\n", feed_list[feed_sel].custom_name ? feed_list[feed_sel].custom_name : feed_list[feed_sel].url);
 		wattroff(feed_list[feed_sel].window, A_REVERSE);
 		wrefresh(feed_list[feed_sel].window);
 	}

@@ -1,5 +1,5 @@
-gcc = gcc -fanalyzer -Wall -fdiagnostics-color=always -iquotesrc -iquotesrc/parsers
-clang = clang -Isrc -Isrc/parsers
+gcc = gcc -fanalyzer -Wall -fdiagnostics-color=always -iquotesrc
+clang = clang -Isrc
 rule compile
   command = $gcc $arg -o $out -c $in
 rule link

@@ -8,7 +8,6 @@
 #include <ncurses.h>
 #include <expat.h>
 #include "feedeater.h"
-#include "parsers/parsers.h"
 #ifdef XML_LARGE_SIZE
 #  define XML_FMT_INT_MOD "ll"
 #else
@@ -22,7 +21,7 @@
 #  define XML_FMT_STR "s"
 #endif
 
-struct parsing_buffer {
+struct parsing_buffer1 {
 	int depth;
 	struct feed_entry *(*parser)(struct string *buf);
 };
@@ -31,7 +30,7 @@ static void XMLCALL
 startElement(void *userData, const XML_Char *name, const XML_Char **atts) {
 	/*(void)atts;*/
 	uint8_t i;
-	struct parsing_buffer *data = userData;
+	struct parsing_buffer1 *data = userData;
 
 	data->depth += 1;
 	if (data->depth == 1 && data->parser == NULL) {
@@ -66,7 +65,7 @@ startElement(void *userData, const XML_Char *name, const XML_Char **atts) {
 
 static void XMLCALL
 endElement(void *userData, const XML_Char *name) {
-	struct parsing_buffer *data = userData;
+	struct parsing_buffer1 *data = userData;
 	/*(void)name;*/
 	data->depth -= 1;
 }
@@ -74,7 +73,7 @@ endElement(void *userData, const XML_Char *name) {
 void
 feed_process(struct string *buf, struct feed_entry *feed)
 {
-	struct parsing_buffer parser_data = {0, NULL};
+	struct parsing_buffer1 parser_data = {0, NULL};
 	XML_Parser parser = XML_ParserCreate(NULL);
 	XML_SetUserData(parser, &parser_data);
 	XML_SetElementHandler(parser, startElement, endElement);
@@ -99,9 +98,16 @@ feed_process(struct string *buf, struct feed_entry *feed)
 		return;
 	}
 
-	if (feed->name == NULL && remote_feed->name != NULL) {
-		feed->name = remote_feed->name;
+	if (feed->remote_name == NULL && remote_feed->remote_name != NULL) {
+		feed->remote_name = remote_feed->remote_name;
+	} else if (feed->remote_name != NULL && remote_feed->remote_name != NULL &&
+	           strcmp(feed->remote_name, remote_feed->remote_name) != 0)
+	{
+		free(feed->remote_name);
+		feed->remote_name = remote_feed->remote_name;
 	}
+
+	status_write("Parsed %s", feed->url);
 }
 
 void

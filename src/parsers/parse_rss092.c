@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include "feedeater.h"
-#include "parsers/parsers.h"
 
 struct feed_entry *
 parse_rss092(struct string *buf)

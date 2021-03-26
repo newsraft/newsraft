@@ -1,12 +1,10 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include <dirent.h>
 #include <unistd.h>
 #include <string.h>
-#include <stdio.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <dirent.h>
-#include <openssl/sha.h>
 #include "feedeater.h"
 
 static char *config_dir_path = NULL;
@@ -112,6 +110,7 @@ get_data_dir(void)
 	char *env_var = getenv("FEEDEATER_DATA");
 	if (env_var != NULL) {
 		strcpy(path, env_var);
+		mkdir(path, 0777);
 		d = opendir(path);
 		if (d != NULL) {
 			closedir(d);
@@ -123,6 +122,7 @@ get_data_dir(void)
 	if (env_var != NULL) {
 		strcpy(path, env_var);
 		strcat(path, "/feedeater");
+		mkdir(path, 0777);
 		d = opendir(path);
 		if (d != NULL) {
 			closedir(d);
@@ -134,6 +134,7 @@ get_data_dir(void)
 	if (env_var != NULL) {
 		strcpy(path, env_var);
 		strcat(path, "/.local/share/feedeater");
+		mkdir(path, 0777);
 		d = opendir(path);
 		if (d != NULL) {
 			closedir(d);
@@ -154,26 +155,38 @@ get_data_dir_path_for_url(char *url)
 		if (data_dir_path == NULL) return NULL;
 	}
 
+	char *file_name = malloc(MAXPATH * sizeof(char));
+	if (file_name == NULL) {
+		status_write("failed to allocate memory for file name string for \"%s\"\n", url);
+		return NULL;
+	}
+	strcpy(file_name, url);
+
+	// store all https links as http
+	if (strncmp(file_name, "https://", 8) == 0) {
+		for (int i = 4; file_name[i] != '\0'; ++i) {
+			file_name[i] = file_name[i + 1];
+		}
+	}
+
+	char *c;
+	// replace all slashes with spaces
+	while ((c = strchr(file_name, '/')) != NULL) *c = ' ';
+
 	char *path = malloc(MAXPATH * sizeof(char));
 	if (path == NULL) {
-		fprintf(stderr, "failed to allocate memory for path to \"%s\" data directory\n", url);
+		free(file_name);
+		status_write("failed to allocate memory for path to \"%s\" data directory\n", url);
 		return NULL;
 	}
 
-	SHA256_CTX c;
-	unsigned char out[SHA256_DIGEST_LENGTH];
-	char byte[3];
-
-	SHA256_Init(&c);
-	SHA256_Update(&c, url, strlen(url));
-	SHA256_Final(out, &c);
-
 	strcpy(path, data_dir_path);
 	strcat(path, "/");
-	for (int n = 0; n < SHA256_DIGEST_LENGTH; ++n) {
-		sprintf(byte, "%02x", out[n]);
-		strcat(path, byte);
-	}
+	strcat(path, file_name);
+	strcat(path, "/");
 
+	mkdir(path, 0777);
+
+	free(file_name);
 	return path;
 }

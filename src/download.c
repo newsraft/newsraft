@@ -33,7 +33,7 @@ feed_download(char *url)
 
 	struct string *buf = new_string();
 	if (buf == NULL) {
-		status_write("Failed to allocate memory for %s", url);
+		status_write("[insufficient memory] %s", url);
 		return NULL;
 	}
 
@@ -55,7 +55,7 @@ feed_download(char *url)
 	int error = curl_easy_perform(curl);
 
 	if (error != CURLE_OK) {
-		status_write("Failed to retrieve %s", url);
+		status_write("[download failed] %s", url);
 		free(buf->ptr);
 		free(buf);
 		return NULL;

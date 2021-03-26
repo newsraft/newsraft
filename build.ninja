@@ -7,7 +7,7 @@ rule link
 
 build obj/feedeater.o:            compile src/feedeater.c
 build obj/feeds.o:                compile src/feeds.c
-build obj/items.o:                compile src/items.c
+build obj/parse.o:                compile src/parse.c
 build obj/status.o:               compile src/status.c
 build obj/config.o:               compile src/config.c
 build obj/path.o:                 compile src/path.c
@@ -24,7 +24,7 @@ build obj/parsers/parse_rss20.o:  compile src/parsers/parse_rss20.c
 
 build feedeater: link obj/feedeater.o $
                       obj/feeds.o $
-                      obj/items.o $
+                      obj/parse.o $
                       obj/status.o $
                       obj/config.o $
                       obj/path.o $
@@ -38,4 +38,4 @@ build feedeater: link obj/feedeater.o $
                       obj/parsers/parse_rss10.o $
                       obj/parsers/parse_rss11.o $
                       obj/parsers/parse_rss20.o
-  arg = -lncurses -lcurl -lssl -lcrypto -lexpat
+  arg = -lncurses -lcurl -lexpat

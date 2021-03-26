@@ -1,7 +1,10 @@
 #include <ncurses.h>
 #include <ctype.h>
 #include <stdlib.h>
+#include <string.h>
 #include <stdint.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include "feedeater.h"
 #define MAX_NAME_SIZE 128
 #define MAX_URL_SIZE 128
@@ -36,22 +39,22 @@ load_feed_list(void)
 		letter = 0;
 		feed_index = feed_count++;
 		feed_list = realloc(feed_list, sizeof(struct feed_window) * feed_count);
-		feed_list[feed_index].feed = malloc(sizeof(struct feed_entry));
+		feed_list[feed_index].feed = calloc(1, sizeof(struct feed_entry));
 		if (c == '@') {
 			feed_list[feed_index].feed->lname = malloc(sizeof(char) * MAX_NAME_SIZE);
 			c = fgetc(f);
 			while ((c != '\n') && (c != EOF)) { feed_list[feed_index].feed->lname[letter++] = c; c = fgetc(f); }
 			feed_list[feed_index].feed->lname[letter] = '\0';
-			feed_list[feed_index].feed->lurl = NULL;
 			continue;
 		}
-		feed_list[feed_index].feed->lname = NULL;
-		feed_list[feed_index].feed->lurl = malloc(sizeof(char) * MAX_URL_SIZE);
+		feed_list[feed_index].feed->feed_url = malloc(sizeof(char) * MAX_URL_SIZE);
 		while (1) {
-			feed_list[feed_index].feed->lurl[letter++] = c;
+			feed_list[feed_index].feed->feed_url[letter++] = c;
 			c = fgetc(f);
 			if (c == ' ' || c == '\t' || c == '\n' || c == EOF) {
-				feed_list[feed_index].feed->lurl[letter] = '\0';
+				feed_list[feed_index].feed->feed_url[letter] = '\0';
+				feed_list[feed_index].feed->rname = export_feed_value(feed_list[feed_index].feed->feed_url, "title");
+				feed_list[feed_index].feed->site_url = export_feed_value(feed_list[feed_index].feed->feed_url, "link");
 				break;
 			}
 		}
@@ -75,7 +78,7 @@ load_feed_list(void)
 
 	// put first non-decorative item in selection
 	for (feed_index = 0; feed_index < feed_count; ++feed_index) {
-		if (feed_list[feed_index].feed->lurl != NULL) {
+		if (feed_list[feed_index].feed->feed_url != NULL) {
 			feed_sel = feed_index;
 			break;
 		}
@@ -86,7 +89,7 @@ load_feed_list(void)
 		return 0;
 	}
 
-	return 1;
+	return 1; // success
 }
 
 void
@@ -95,20 +98,22 @@ free_feed_list(void)
 	if (feed_list == NULL) return;
 	for (int i = 0; i < feed_count; ++i) {
 		if (feed_list[i].feed != NULL) {
-			if (feed_list[i].feed->lurl != NULL) free(feed_list[i].feed->lurl);
 			if (feed_list[i].feed->lname != NULL) free(feed_list[i].feed->lname);
-			if (feed_list[i].feed->rurl != NULL) free(feed_list[i].feed->rurl);
 			if (feed_list[i].feed->rname != NULL) free(feed_list[i].feed->rname);
+			if (feed_list[i].feed->feed_url != NULL) free(feed_list[i].feed->feed_url);
+			if (feed_list[i].feed->site_url != NULL) free(feed_list[i].feed->site_url);
 			free(feed_list[i].feed);
 		}
-		// core dumped with this :(
-		/*if (feed_list[i].window != NULL) {*/
-			/*free(feed_list[i].window);*/
-		/*}*/
 	}
 	feed_sel = -1;
 	feed_count = 0;
 	free(feed_list);
+}
+
+// return most sensible string for feed title
+static char *
+feed_image(struct feed_entry *feed) {
+	return feed->lname ? feed->lname : (feed->rname ? feed->rname : feed->feed_url);
 }
 
 void
@@ -131,7 +136,7 @@ hide_feeds(void)
 	clear();
 }
 
-void
+static void
 feed_select(int i)
 {
 	int new_sel = i, j;
@@ -141,26 +146,26 @@ feed_select(int i)
 		new_sel = feed_count - 1;
 		if (new_sel < 0) return;
 	}
-	if (new_sel > feed_sel && feed_list[new_sel].feed->lurl == NULL) {
-		for (j = new_sel; (j < feed_count) && (feed_list[j].feed->lurl == NULL); ++j);
+	if (new_sel > feed_sel && feed_list[new_sel].feed->feed_url == NULL) {
+		for (j = new_sel; (j < feed_count) && (feed_list[j].feed->feed_url == NULL); ++j);
 		if (j < feed_count) {
 			new_sel = j;
 		} else {
 			for (j = feed_sel; j < feed_count; ++j) {
-				if (feed_list[j].feed->lurl != NULL) new_sel = j;
+				if (feed_list[j].feed->feed_url != NULL) new_sel = j;
 			}
 		}
-	} else if (new_sel < feed_sel && feed_list[new_sel].feed->lurl == NULL) {
-		for (j = new_sel; (j > -1) && (feed_list[j].feed->lurl == NULL); --j);
+	} else if (new_sel < feed_sel && feed_list[new_sel].feed->feed_url == NULL) {
+		for (j = new_sel; (j > -1) && (feed_list[j].feed->feed_url == NULL); --j);
 		if (j > -1) {
 			new_sel = j;
 		} else {
 			for (j = feed_sel; j > -1; --j) {
-				if (feed_list[j].feed->lurl != NULL) new_sel = j;
+				if (feed_list[j].feed->feed_url != NULL) new_sel = j;
 			}
 		}
 	}
-	if (feed_list[new_sel].feed->lurl == NULL) return;
+	if (feed_list[new_sel].feed->feed_url == NULL) return;
 	if (new_sel != feed_sel) {
 		mvwprintw(feed_list[feed_sel].window, 0, 0, "%s\n", feed_image(feed_list[feed_sel].feed));
 		wrefresh(feed_list[feed_sel].window);
@@ -172,10 +177,35 @@ feed_select(int i)
 	}
 }
 
+static void
+feed_reload(struct feed_window *feedwin)
+{
+	struct string *buf = feed_download(feedwin->feed->feed_url);
+	if (buf == NULL) return;
+	if (buf->ptr == NULL) { free(buf); return; }
+	feed_process(buf, feedwin->feed);
+	free(buf->ptr);
+	free(buf);
+}
+
+static void
+feed_reload_all(void)
+{
+	//under construction
+	return;
+}
+
+static void
+feed_view(char *url)
+{
+	//under construction
+	return;
+}
+
 void
 menu_feeds(void)
 {
-	WINDOW *input_win = newwin(1,1,LINES,COLS);
+	WINDOW *input_win = newwin(1, 1, LINES, COLS);
 	keypad(input_win, TRUE); // used to recognize arrow keys
 	int ch, q;
 	char cmd[7];
@@ -185,8 +215,8 @@ menu_feeds(void)
 		if      (ch == 'j'  || ch == KEY_DOWN)          { feed_select(feed_sel + 1); }
 		else if (ch == 'k'  || ch == KEY_UP)            { feed_select(feed_sel - 1); }
 		else if (ch == 'l'  || ch == KEY_RIGHT ||
-		         ch == '\n' || ch == KEY_ENTER)         { feed_view(feed_list[feed_sel].feed->lurl); }
-		else if (ch == 'd')                             { feed_reload(feed_list[feed_sel].feed); }
+		         ch == '\n' || ch == KEY_ENTER)         { feed_view(feed_list[feed_sel].feed->feed_url); }
+		else if (ch == 'd')                             { feed_reload(&feed_list[feed_sel]); }
 		else if (ch == 'D')                             { feed_reload_all(); }
 		else if (ch == 'g' && wgetch(input_win) == 'g') { feed_select(0); }
 		else if (ch == 'G')                             { feed_select(feed_count - 1); }
@@ -214,10 +244,6 @@ menu_feeds(void)
 	delwin(input_win);
 }
 
-char *
-feed_image(struct feed_entry *feed) {
-	return feed->lname ? feed->lname : (feed->rname ? feed->rname : feed->lurl);
-}
 
 void
 free_feed_entry(struct feed_entry *feed)
@@ -225,7 +251,74 @@ free_feed_entry(struct feed_entry *feed)
 	if (feed == NULL) return;
 	if (feed->lname != NULL) free(feed->lname);
 	if (feed->rname != NULL) free(feed->rname);
-	if (feed->lurl != NULL) free(feed->lurl);
-	if (feed->rurl != NULL) free(feed->rurl);
+	if (feed->feed_url != NULL) free(feed->feed_url);
+	if (feed->site_url != NULL) free(feed->site_url);
 	free(feed);
+}
+
+int
+import_feed_value(char *url, char *element, char *value)
+{
+	char *path = get_data_dir_path_for_url(url);
+	if (path == NULL) return 0;
+	strcat(path, "/elements/");
+	mkdir(path, 0777);
+	strcat(path, element);
+	FILE *f = fopen(path, "w");
+	free(path);
+	if (f == NULL) return 0;
+	fputs(value, f);
+	fclose(f);
+	return 1; // success
+}
+
+char *
+export_feed_value(char *url, char *element)
+{
+	char *path = get_data_dir_path_for_url(url);
+	if (path == NULL) return NULL;
+	strcat(path, "/elements/");
+	mkdir(path, 0777);
+	strcat(path, element);
+	FILE *f = fopen(path, "r");
+	free(path);
+	if (f == NULL) return NULL;
+	int size = 32, count = 0;
+	char *value = malloc(sizeof(char) * size);
+	char c;
+	while ((c = fgetc(f)) != EOF) {
+		value[count++] = c;
+		if (count == size) {
+			size *= 2;
+			value = realloc(value, sizeof(char) * size);
+		}
+	}
+	value[count] = '\0';
+	fclose(f);
+	return value;
+}
+
+char *
+feed_item_data_path(char *url, int num)
+{
+	char *path = get_data_dir_path_for_url(url);
+	if (path == NULL) return NULL;
+	char dir_name[6];
+	sprintf(dir_name, "%d", num);
+	strcat(path, dir_name);
+	strcat(path, "/");
+	mkdir(path, 0777);
+	return path;
+}
+
+void
+write_feed_item_elem(char *item_path, char *item_name, void *data, size_t size)
+{
+	char *item = malloc(sizeof(char) * MAXPATH);
+	if (item == NULL) return;
+	strcpy(item, item_path);
+	strcat(item, item_name);
+	FILE *f = fopen(item, "w");
+	fwrite(data, size, 1, f);
+	fclose(f);
 }

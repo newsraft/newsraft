@@ -7,18 +7,6 @@
 #include <dirent.h>
 #include <ncurses.h>
 #include "feedeater.h"
-#ifdef XML_LARGE_SIZE
-#  define XML_FMT_INT_MOD "ll"
-#else
-#  define XML_FMT_INT_MOD "l"
-#endif
-
-#ifdef XML_UNICODE_WCHAR_T
-#  include <wchar.h>
-#  define XML_FMT_STR "ls"
-#else
-#  define XML_FMT_STR "s"
-#endif
 
 static void XMLCALL
 start_element(void *userData, const XML_Char *name, const XML_Char **atts) {
@@ -63,9 +51,10 @@ end_element(void *userData, const XML_Char *name) {
 	--(parser_data->depth);
 }
 
-void
+int
 feed_process(struct string *buf, struct feed_entry *feed)
 {
+	int do_reload_win = 0;
 	XML_Parser parser = XML_ParserCreate(NULL);
 	struct init_parser_data parser_data = {0, &parser, NULL};
 	XML_SetUserData(parser, &parser_data);
@@ -75,56 +64,37 @@ feed_process(struct string *buf, struct feed_entry *feed)
 		/*status_write("%" XML_FMT_STR " at line %" XML_FMT_INT_MOD "u\n",*/
 								 /*XML_ErrorString(XML_GetErrorCode(parser)),*/
 								 /*XML_GetCurrentLineNumber(parser));*/
-		status_write("[invalid format] %s", feed->lurl); // bad xml document
+		status_write("[invalid format] %s", feed->feed_url); // bad xml document
 		XML_ParserFree(parser);
-		return;
+		return 0;
 	}
 	if (parser_data.parser_func == NULL) {
-		status_write("[unknown format] %s", feed->lurl);
-		return;
+		status_write("[unknown format] %s", feed->feed_url);
+		return 0;
 	}
 
-	struct feed_entry *remote_feed = parser_data.parser_func(&parser, buf);
+	struct feed_entry *remote_feed = parser_data.parser_func(&parser, feed->feed_url);
 	XML_ParserFree(parser);
 	if (remote_feed == NULL) {
-		/*status_write("[incorrect format] %s", feed->lurl);*/
-		return;
+		/*status_write("[incorrect format] %s", feed->feed_url);*/
+		return 0;
 	}
 
+	if (remote_feed->rname != NULL) import_feed_value(feed->feed_url, "title", remote_feed->rname);
+	if (remote_feed->site_url != NULL) import_feed_value(feed->feed_url, "link", remote_feed->site_url);
 	if (feed->rname == NULL && remote_feed->rname != NULL) {
-		feed->rname = remote_feed->rname;
+		feed->rname = malloc(strlen(remote_feed->rname) + 1);
+		strcpy(feed->rname, remote_feed->rname);
+		do_reload_win = 1;
 	} else if (feed->rname != NULL && remote_feed->rname != NULL &&
 	           strcmp(feed->rname, remote_feed->rname) != 0)
 	{
-		free(feed->rname);
-		feed->rname = remote_feed->rname;
+		feed->rname = realloc(feed->rname, strlen(remote_feed->rname) + 1);
+		strcpy(feed->rname, remote_feed->rname);
+		do_reload_win = 1;
 	}
 
 	free_feed_entry(remote_feed);
-	status_write("Parsed %s", feed->lurl);
-}
-
-void
-feed_reload(struct feed_entry *feed)
-{
-	struct string *buf = feed_download(feed->lurl);
-	if (buf == NULL) return;
-	if (buf->ptr == NULL) { free(buf); return; }
-	feed_process(buf, feed);
-	free(buf->ptr);
-	free(buf);
-}
-
-void
-feed_reload_all(void)
-{
-	//under construction
-	return;
-}
-
-void
-feed_view(char *url)
-{
-	//under construction
-	return;
+	status_write("Parsed %s", feed->feed_url);
+	return do_reload_win;
 }

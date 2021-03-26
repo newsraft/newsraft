@@ -2,27 +2,43 @@
 
 simple feed reader for terminal (work in progress)
 
+## Description
+
+Command line based application for reading feed channels in RSS & Atom formats. User interface is implemented in ncurses. Configuration is done through files.
+
+Project **non-goals** are:
+
+* support for third-party feed services
+
+* utilization of large number of libraries
+
 ## Dependencies
 
 * ncurses >= 6.2
 
 * libcurl >= 7.75.0
 
-* openssl >= 1.1.1.j
-
 * expat >= 2.2.10
 
-* gcc >= 10.2.0 *(build-time)*
+* gcc >= 10.2.0 (build-time)
 
-* ninja >= 1.10.2 *(build-time)*
-
-TODO: lower the requirments
+* ninja >= 1.10.2 (build-time)
 
 ## Building
 
 	ninja
 
 ## Configuration
+
+### Files
+
+* `feeds` is file that contains list of feed URLs you want to process (mandatory)
+
+* `config` is file that contains custom settings (optional)
+
+#### `feeds` file syntax
+
+#### `config` file syntax
 
 ### Search order of the essential files
 
@@ -45,3 +61,7 @@ Directory with data files is searched in the following order:
 2. **$XDG_DATA_HOME**/feedeater
 
 3. **$HOME**/.local/share/feedeater
+
+## License
+
+See LICENSE file in repository root.

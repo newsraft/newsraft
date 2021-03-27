@@ -4,7 +4,8 @@
 
 static WINDOW *status_win = NULL; 
 
-int status_create(void)
+int
+status_create(void)
 {
 	status_win = newwin(1, COLS, LINES - 1, 0); // create status window
 	if (status_win == NULL) {
@@ -33,7 +34,8 @@ status_clean(void)
 	wrefresh(status_win);
 }
 
-int status_delete(void)
+void
+status_delete(void)
 {
-	return delwin(status_win);
+	delwin(status_win);
 }

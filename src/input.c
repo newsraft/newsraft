@@ -18,11 +18,8 @@ input_create(void)
 	return 1;
 }
 
-int
+void
 input_delete(void)
 {
-	if (input_win != NULL) {
-		return delwin(input_win);
-	}
-	return 1;
+	delwin(input_win);
 }

@@ -9,7 +9,6 @@ static int item_sel = -1;
 static int item_count = 0;
 
 static enum menu_dest menu_items(void);
-static void free_item_list(void);
 
 // return most sensible string for item title
 static char *
@@ -20,6 +19,23 @@ item_image(struct item_entry *item) {
 		}
 	}
 	return "untitled";
+}
+
+static void
+free_item_list(void)
+{
+	if (item_list == NULL) return;
+	for (int i = 0; i < item_count; ++i) {
+		if (item_list[i].item != NULL) {
+			if (item_list[i].item->name != NULL) free(item_list[i].item->name);
+			if (item_list[i].item->url != NULL) free(item_list[i].item->url);
+			free(item_list[i].item);
+		}
+	}
+	item_sel = -1;
+	item_count = 0;
+	free(item_list);
+	item_list = NULL;
 }
 
 static int
@@ -127,23 +143,6 @@ items_menu(char *url)
 	}
 
 	items_menu(url);
-}
-
-static void
-free_item_list(void)
-{
-	if (item_list == NULL) return;
-	for (int i = 0; i < item_count; ++i) {
-		if (item_list[i].item != NULL) {
-			if (item_list[i].item->name != NULL) free(item_list[i].item->name);
-			if (item_list[i].item->url != NULL) free(item_list[i].item->url);
-			free(item_list[i].item);
-		}
-	}
-	item_sel = -1;
-	item_count = 0;
-	free(item_list);
-	item_list = NULL;
 }
 
 static void

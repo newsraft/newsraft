@@ -15,6 +15,24 @@ static struct feed_window *feed_list = NULL;
 static int feed_sel = -1;
 static int feed_count = 0;
 
+static void
+free_feed_list(void)
+{
+	if (feed_list == NULL) return;
+	for (int i = 0; i < feed_count; ++i) {
+		if (feed_list[i].feed != NULL) {
+			if (feed_list[i].feed->lname != NULL) free(feed_list[i].feed->lname);
+			if (feed_list[i].feed->rname != NULL) free(feed_list[i].feed->rname);
+			if (feed_list[i].feed->feed_url != NULL) free(feed_list[i].feed->feed_url);
+			if (feed_list[i].feed->site_url != NULL) free(feed_list[i].feed->site_url);
+			free(feed_list[i].feed);
+		}
+	}
+	feed_sel = -1;
+	feed_count = 0;
+	free(feed_list);
+	feed_list = NULL;
+}
 
 int
 load_feed_list(void)
@@ -88,30 +106,12 @@ load_feed_list(void)
 	}
 
 	if (feed_sel == -1) {
+		free_feed_list();
 		fprintf(stderr, "none of feeds loaded!\n");
 		return 0;
 	}
 
 	return 1; // success
-}
-
-void
-free_feed_list(void)
-{
-	if (feed_list == NULL) return;
-	for (int i = 0; i < feed_count; ++i) {
-		if (feed_list[i].feed != NULL) {
-			if (feed_list[i].feed->lname != NULL) free(feed_list[i].feed->lname);
-			if (feed_list[i].feed->rname != NULL) free(feed_list[i].feed->rname);
-			if (feed_list[i].feed->feed_url != NULL) free(feed_list[i].feed->feed_url);
-			if (feed_list[i].feed->site_url != NULL) free(feed_list[i].feed->site_url);
-			free(feed_list[i].feed);
-		}
-	}
-	feed_sel = -1;
-	feed_count = 0;
-	free(feed_list);
-	feed_list = NULL;
 }
 
 // return most sensible string for feed title
@@ -147,6 +147,7 @@ feeds_menu(void)
 	if (dest == MENU_ITEMS) {
 		items_menu(feed_list[feed_sel].feed->feed_url);
 	} else if (dest == MENU_EXIT) {
+		free_feed_list();
 		return;
 	}
 	feeds_menu();

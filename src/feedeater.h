@@ -92,7 +92,6 @@ char *feed_item_data_path(char *url, int num);
 void write_feed_item_elem(char *item_path, char *item_name, void *data, size_t size);
 
 int load_feed_list(void);  // load feeds information in memory
-void free_feed_list(void); // unload all feeds information (call this before exitting)
 void feeds_menu(void);     // display feeds in an interactive list
 void hide_feeds(void);     // hide interactive list of feeds
 void items_menu(char *url);
@@ -128,10 +127,10 @@ struct feed_entry *parse_atom03(XML_Parser *parser, char *url); // Atom 0.3
 int status_create(void);
 void status_write(char *format, ...);
 void status_clean(void);
-int status_delete(void);
+void status_delete(void);
 
 // functions related to window which handles user input (see input.c file)
 int input_create(void);
-int input_delete(void);
+void input_delete(void);
 // variable with input window
 extern WINDOW *input_win;

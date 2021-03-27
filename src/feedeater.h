@@ -1,7 +1,7 @@
 #include <ncurses.h>
 #include <expat.h>
 #include <wchar.h>
-#define MAX_ITEMS 10
+#define MAX_ITEMS 30
 #define MAXPATH 512
 #ifndef XML_LARGE_SIZE
 #define XML_LARGE_SIZE
@@ -33,8 +33,19 @@ struct feed_entry {
 	char *feed_url; // url of feed
 	char *site_url; // url of site
 };
+
 struct feed_window {
 	struct feed_entry *feed;
+	WINDOW *window;
+};
+
+struct item_entry {
+	char *name; // name of item
+	char *url;  // url to item
+};
+
+struct item_window {
+	struct item_entry *item;
 	WINDOW *window;
 };
 
@@ -51,13 +62,20 @@ enum xml_pos {
 	IN_TITLE_ELEMENT = 4,
 	IN_DESCRIPTION_ELEMENT = 8,
 	IN_LINK_ELEMENT = 16,
-	IN_PUBDATE_ELEMENT = 32,
-	IN_AUTHOR_ELEMENT = 64,
+	IN_AUTHOR_ELEMENT = 32,
+	IN_PUBDATE_ELEMENT = 64,
 	IN_CATEGORY_ELEMENT = 128,
 	IN_ENCLOSURE_ELEMENT = 256,
 	IN_COMMENTS_ELEMENT = 512,
 	IN_SOURCE_ELEMENT = 1024,
 	IN_IMAGE_ELEMENT = 2048,
+};
+
+enum menu_dest {
+	MENU_FEEDS,
+	MENU_ITEMS,
+	MENU_CONTENTS,
+	MENU_EXIT,
 };
 
 struct feed_parser_data {
@@ -75,9 +93,9 @@ void write_feed_item_elem(char *item_path, char *item_name, void *data, size_t s
 
 int load_feed_list(void);  // load feeds information in memory
 void free_feed_list(void); // unload all feeds information (call this before exitting)
-void show_feeds(void);    // display feeds in an interactive list
-void hide_feeds(void);    // hide interactive list of feeds
-void menu_feeds(void);
+void feeds_menu(void);     // display feeds in an interactive list
+void hide_feeds(void);     // hide interactive list of feeds
+void items_menu(char *url);
 char *get_config_file_path(char *file_name);
 char *get_data_dir_path_for_url(char *url);
 
@@ -87,14 +105,12 @@ struct string *feed_download(char *url);
 
 int feed_process(struct string *buf, struct feed_entry *feed);
 
-// if cur_char is equal to one of the elements from list, then
-// set position indicator of file to next character that mismatched all elements in list
+
+// parsing
+
 void skip_chars(FILE *file, char *cur_char, char *list);
 
-int status_create(void);
-void status_write(char *format, ...);
-int status_delete(void);
-
+// xml parsers for different versions of feeds
 struct feed_entry *parse_rss20(XML_Parser *parser, char *url);  // RSS 2.0
 struct feed_entry *parse_rss11(XML_Parser *parser, char *url);  // RSS 1.1
 struct feed_entry *parse_rss10(XML_Parser *parser, char *url);  // RSS 1.0
@@ -104,3 +120,18 @@ struct feed_entry *parse_rss091(XML_Parser *parser, char *url); // RSS 0.91
 struct feed_entry *parse_rss090(XML_Parser *parser, char *url); // RSS 0.90
 struct feed_entry *parse_atom10(XML_Parser *parser, char *url); // Atom 1.0
 struct feed_entry *parse_atom03(XML_Parser *parser, char *url); // Atom 0.3
+
+
+// ncurses
+
+// functions related to window which displays informational messages (see status.c file)
+int status_create(void);
+void status_write(char *format, ...);
+void status_clean(void);
+int status_delete(void);
+
+// functions related to window which handles user input (see input.c file)
+int input_create(void);
+int input_delete(void);
+// variable with input window
+extern WINDOW *input_win;

@@ -1,6 +1,10 @@
 #include <stdio.h>
 #include <stdint.h>
 
+uint8_t left_offset = 1;
+
+// if cur_char is equal to one of the elements from list, then
+// set position indicator of file to next character that mismatched all elements in list
 void
 skip_chars(FILE *file, char *cur_char, char *list)
 {

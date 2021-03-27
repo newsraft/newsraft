@@ -54,6 +54,8 @@ end_element(void *userData, const XML_Char *name) {
 int
 feed_process(struct string *buf, struct feed_entry *feed)
 {
+	status_write("[parsing] %s", feed->feed_url);
+
 	int do_reload_win = 0;
 	XML_Parser parser = XML_ParserCreate(NULL);
 	struct init_parser_data parser_data = {0, &parser, NULL};
@@ -94,7 +96,8 @@ feed_process(struct string *buf, struct feed_entry *feed)
 		do_reload_win = 1;
 	}
 
+	status_clean();
 	free_feed_entry(remote_feed);
-	status_write("Parsed %s", feed->feed_url);
+	/*status_write("[done] %s", feed->feed_url);*/
 	return do_reload_win;
 }

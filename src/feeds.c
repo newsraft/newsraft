@@ -6,12 +6,15 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include "feedeater.h"
+#include "config.h"
 #define MAX_NAME_SIZE 128
 #define MAX_URL_SIZE 128
 
+static enum menu_dest menu_feeds(void);
 static struct feed_window *feed_list = NULL;
 static int feed_sel = -1;
 static int feed_count = 0;
+
 
 int
 load_feed_list(void)
@@ -108,6 +111,7 @@ free_feed_list(void)
 	feed_sel = -1;
 	feed_count = 0;
 	free(feed_list);
+	feed_list = NULL;
 }
 
 // return most sensible string for feed title
@@ -117,23 +121,35 @@ feed_image(struct feed_entry *feed) {
 }
 
 void
-show_feeds(void)
+hide_feeds(void)
 {
-	clear();
 	for (int i = 0; i < feed_count; ++i) {
-		feed_list[i].window = newwin(1, COLS, i, 0);
-		if (i == feed_sel) wattron(feed_list[i].window, A_REVERSE);
-		mvwprintw(feed_list[i].window, 0, 0, "%s\n", feed_image(feed_list[i].feed));
-		if (i == feed_sel) wattroff(feed_list[i].window, A_REVERSE);
-		wrefresh(feed_list[i].window);
+		if (feed_list[i].window != NULL) {
+			delwin(feed_list[i].window);
+		}
 	}
 }
 
 void
-hide_feeds(void)
+feeds_menu(void)
 {
-	for (int i = 0; i < feed_count; ++i) delwin(feed_list[i].window);
 	clear();
+	refresh();
+	for (int i = 0; i < feed_count; ++i) {
+		feed_list[i].window = newwin(1, COLS, i, 0);
+		if (i == feed_sel) wattron(feed_list[i].window, A_REVERSE);
+		mvwprintw(feed_list[i].window, 0, left_offset, "%s\n", feed_image(feed_list[i].feed));
+		if (i == feed_sel) wattroff(feed_list[i].window, A_REVERSE);
+		wrefresh(feed_list[i].window);
+	}
+	enum menu_dest dest = menu_feeds();
+	hide_feeds();
+	if (dest == MENU_ITEMS) {
+		items_menu(feed_list[feed_sel].feed->feed_url);
+	} else if (dest == MENU_EXIT) {
+		return;
+	}
+	feeds_menu();
 }
 
 static void
@@ -167,11 +183,11 @@ feed_select(int i)
 	}
 	if (feed_list[new_sel].feed->feed_url == NULL) return;
 	if (new_sel != feed_sel) {
-		mvwprintw(feed_list[feed_sel].window, 0, 0, "%s\n", feed_image(feed_list[feed_sel].feed));
+		mvwprintw(feed_list[feed_sel].window, 0, left_offset, "%s\n", feed_image(feed_list[feed_sel].feed));
 		wrefresh(feed_list[feed_sel].window);
 		feed_sel = new_sel;
 		wattron(feed_list[feed_sel].window, A_REVERSE);
-		mvwprintw(feed_list[feed_sel].window, 0, 0, "%s\n", feed_image(feed_list[feed_sel].feed));
+		mvwprintw(feed_list[feed_sel].window, 0, left_offset, "%s\n", feed_image(feed_list[feed_sel].feed));
 		wattroff(feed_list[feed_sel].window, A_REVERSE);
 		wrefresh(feed_list[feed_sel].window);
 	}
@@ -195,18 +211,9 @@ feed_reload_all(void)
 	return;
 }
 
-static void
-feed_view(char *url)
-{
-	//under construction
-	return;
-}
-
-void
+static enum menu_dest
 menu_feeds(void)
 {
-	WINDOW *input_win = newwin(1, 1, LINES, COLS);
-	keypad(input_win, TRUE); // used to recognize arrow keys
 	int ch, q;
 	char cmd[7];
 	while (1) {
@@ -215,7 +222,7 @@ menu_feeds(void)
 		if      (ch == 'j'  || ch == KEY_DOWN)          { feed_select(feed_sel + 1); }
 		else if (ch == 'k'  || ch == KEY_UP)            { feed_select(feed_sel - 1); }
 		else if (ch == 'l'  || ch == KEY_RIGHT ||
-		         ch == '\n' || ch == KEY_ENTER)         { feed_view(feed_list[feed_sel].feed->feed_url); }
+		         ch == '\n' || ch == KEY_ENTER)         { return MENU_ITEMS; }
 		else if (ch == 'd')                             { feed_reload(&feed_list[feed_sel]); }
 		else if (ch == 'D')                             { feed_reload_all(); }
 		else if (ch == 'g' && wgetch(input_win) == 'g') { feed_select(0); }
@@ -239,9 +246,8 @@ menu_feeds(void)
 				}
 			}
 		}
-		else if (ch == 'q') break;
+		else if (ch == 'q') return MENU_EXIT;
 	}
-	delwin(input_win);
 }
 
 
@@ -254,6 +260,7 @@ free_feed_entry(struct feed_entry *feed)
 	if (feed->feed_url != NULL) free(feed->feed_url);
 	if (feed->site_url != NULL) free(feed->site_url);
 	free(feed);
+	feed = NULL;
 }
 
 int
@@ -278,7 +285,6 @@ export_feed_value(char *url, char *element)
 	char *path = get_data_dir_path_for_url(url);
 	if (path == NULL) return NULL;
 	strcat(path, "/elements/");
-	mkdir(path, 0777);
 	strcat(path, element);
 	FILE *f = fopen(path, "r");
 	free(path);

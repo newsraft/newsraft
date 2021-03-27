@@ -17,9 +17,10 @@ startElement(void *userData, const XML_Char *name, const XML_Char **atts) {
 			++(data->items_count);
 			data->item_path = feed_item_data_path(data->feed->feed_url, data->items_count);
 		}
-	} else if (strcmp(name, "title") == 0)       data->pos |= IN_TITLE_ELEMENT;
+	} else if (strcmp(name, "title") == 0)     data->pos |= IN_TITLE_ELEMENT;
 	else if (strcmp(name, "description") == 0) data->pos |= IN_DESCRIPTION_ELEMENT;
 	else if (strcmp(name, "link") == 0)        data->pos |= IN_LINK_ELEMENT;
+	else if (strcmp(name, "author") == 0)      data->pos |= IN_AUTHOR_ELEMENT;
 	else if (strcmp(name, "channel") == 0)     data->pos |= IN_CHANNEL_ELEMENT;
 
 	data->depth += 1;
@@ -64,6 +65,15 @@ endElement(void *userData, const XML_Char *name) {
 				data->feed->site_url = malloc(sizeof(char) * (value_len + 1));
 				strcpy(data->feed->site_url, value);
 			}
+		}
+	} else if (strcmp(name, "author") == 0) {
+		data->pos &= ~IN_AUTHOR_ELEMENT;
+		if (((data->pos & IN_CHANNEL_ELEMENT) != 0) &&
+		    ((data->pos & IN_ITEM_ELEMENT) != 0) &&
+		    (data->items_count < MAX_ITEMS) &&
+		    (value_len != 0))
+		{
+			write_feed_item_elem(data->item_path, "author", value, sizeof(char) * value_len);
 		}
 	} else if (strcmp(name, "channel") == 0) data->pos &= ~IN_CHANNEL_ELEMENT;
 

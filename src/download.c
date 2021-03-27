@@ -29,13 +29,13 @@ string_write_func(void *ptr, size_t size, size_t nmemb, struct string *s)
 struct string *
 feed_download(char *url)
 {
-	status_write("Downloading %s", url);
-
 	struct string *buf = new_string();
 	if (buf == NULL) {
 		status_write("[insufficient memory] %s", url);
 		return NULL;
 	}
+
+	status_write("[downloading] %s", url);
 
 	CURL *curl = curl_easy_init();
 	curl_easy_setopt(curl, CURLOPT_URL, url);
@@ -54,7 +54,9 @@ feed_download(char *url)
 	/*curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, curl_errbuf);*/
 	int error = curl_easy_perform(curl);
 
-	if (error != CURLE_OK) {
+	if (error == CURLE_OK) {
+		status_clean();
+	} else {
 		status_write("[download failed] %s", url);
 		free(buf->ptr);
 		free(buf);

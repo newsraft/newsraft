@@ -1,5 +1,5 @@
 gcc = gcc -fanalyzer -Wall -fdiagnostics-color=always -iquotesrc
-clang = clang -Isrc
+#clang = clang -Isrc
 rule compile
   command = $gcc $arg -o $out -c $in
 rule link
@@ -11,6 +11,8 @@ build obj/parse.o:                compile src/parse.c
 build obj/status.o:               compile src/status.c
 build obj/config.o:               compile src/config.c
 build obj/path.o:                 compile src/path.c
+build obj/items.o:                compile src/items.c
+build obj/input.o:                compile src/input.c
 build obj/download.o:             compile src/download.c
 build obj/parsers/parse_atom03.o: compile src/parsers/parse_atom03.c
 build obj/parsers/parse_atom10.o: compile src/parsers/parse_atom10.c
@@ -28,6 +30,8 @@ build feedeater: link obj/feedeater.o $
                       obj/status.o $
                       obj/config.o $
                       obj/path.o $
+                      obj/items.o $
+                      obj/input.o $
                       obj/download.o $
                       obj/parsers/parse_atom03.o $
                       obj/parsers/parse_atom10.o $

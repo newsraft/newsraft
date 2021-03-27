@@ -17,9 +17,12 @@ int main (int argc, char **argv) {
 
 	if (status_create() == 0) { error = 5; goto undo3; }
 
-	show_feeds();
-	menu_feeds();
+	if (input_create() == 0) { error = 6; goto undo4; }
 
+	feeds_menu();
+
+undo4:
+	input_delete();
 undo3:
 	status_delete();
 undo2:

@@ -26,6 +26,13 @@ status_write(char *format, ...)
 	va_end(args);
 }
 
+void
+status_clean(void)
+{
+	wclear(status_win);
+	wrefresh(status_win);
+}
+
 int status_delete(void)
 {
 	return delwin(status_win);

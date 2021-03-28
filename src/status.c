@@ -7,6 +7,7 @@ static WINDOW *status_win = NULL;
 int
 status_create(void)
 {
+	curs_set(0); // try to hide cursor
 	status_win = newwin(1, COLS, LINES - 1, 0); // create status window
 	if (status_win == NULL) {
 		fprintf(stderr, "could not create status line\n");

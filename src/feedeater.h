@@ -1,3 +1,5 @@
+#ifndef FEEDEATER_H
+#define FEEDEATER_H
 #include <ncurses.h>
 #include <stdbool.h>
 #include <expat.h>
@@ -101,7 +103,7 @@ void contents_menu(void);
 int load_feed_list(void);  // load feeds information in memory
 void feeds_menu(void);     // display feeds in an interactive list
 void hide_feeds(void);     // hide interactive list of feeds
-void items_menu(char *url);
+int items_menu(char *url);
 char *get_config_file_path(char *file_name);
 char *make_feed_dir(char *url);
 
@@ -139,3 +141,4 @@ int input_create(void);
 void input_delete(void);
 // variable with input window
 extern WINDOW *input_win;
+#endif // FEEDEATER_H

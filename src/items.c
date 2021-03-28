@@ -98,11 +98,10 @@ load_item_list(char *data_path)
 	free(path);
 
 	if (item_sel == -1) {
-		status_write("[error] this feed is empty");
-		return 0;
+		return 1; // no items found
 	}
 
-	return 1;
+	return 0;
 }
 
 void
@@ -115,13 +114,14 @@ hide_items(void)
 	}
 }
 
-void
+int
 items_menu(char *data_path)
 {
 	if (item_list == NULL) {
-		if (load_item_list(data_path) == 0) {
+		int load_status = load_item_list(data_path);
+		if (load_status != 0) {
 			free_item_list();
-			return;
+			return load_status;
 		}
 	}
 
@@ -135,16 +135,17 @@ items_menu(char *data_path)
 		wrefresh(item_list[i].window);
 	}
 
-	enum menu_dest dest = menu_items();
+	int dest = menu_items();
 	hide_items();
 	if (dest == MENU_CONTENTS) {
 		contents_menu();
 	} else if (dest == MENU_EXIT) {
 		free_item_list();
-		return;
+		return 1;
 	}
 
 	items_menu(data_path);
+	return 1;
 }
 
 static void
@@ -176,12 +177,12 @@ menu_items(void)
 	while (1) {
 		ch = wgetch(input_win);
 		wrefresh(input_win);
-		if      (ch == 'j') { item_select(item_sel + 1); }
-		else if (ch == 'k') { item_select(item_sel - 1); }
-		else if (ch == 'l') { return MENU_CONTENTS; }
-		else if (ch == 'h') { return MENU_EXIT; }
-		else if (ch == 'G') { item_select(item_count - 1); }
-		else if (ch == 'g' && wgetch(input_win) == 'g') { item_select(0); }
+		if      (ch == 'j' || ch == KEY_DOWN)                                   { item_select(item_sel + 1); }
+		else if (ch == 'k' || ch == KEY_UP)                                     { item_select(item_sel - 1); }
+		else if (ch == 'l' || ch == KEY_RIGHT || ch == '\n' || ch == KEY_ENTER) { return MENU_CONTENTS; }
+		else if (ch == 'h' || ch == KEY_LEFT)                                   { return MENU_EXIT; }
+		else if (ch == 'G')                                                     { item_select(item_count - 1); }
+		else if (ch == 'g' && wgetch(input_win) == 'g')                         { item_select(0); }
 		else if (isdigit(ch)) {
 			q = 0;
 			while (1) {

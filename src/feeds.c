@@ -14,6 +14,7 @@ static enum menu_dest menu_feeds(void);
 static struct feed_window *feed_list = NULL;
 static int feed_sel = -1;
 static int feed_count = 0;
+static int do_clear = 1;
 
 static void
 free_feed_list(void)
@@ -24,6 +25,7 @@ free_feed_list(void)
 			if (feed_list[i].feed->name != NULL) free(feed_list[i].feed->name);
 			if (feed_list[i].feed->feed_url != NULL) free(feed_list[i].feed->feed_url);
 			if (feed_list[i].feed->site_url != NULL) free(feed_list[i].feed->site_url);
+			if (feed_list[i].feed->path != NULL) free(feed_list[i].feed->path);
 			free(feed_list[i].feed);
 		}
 	}
@@ -36,20 +38,18 @@ free_feed_list(void)
 int
 load_feed_list(void)
 {
-	int feed_index, letter, errors = 0;
+	int feed_index, letter, error = 0;
 	char c, *path;
 	path = get_config_file_path("feeds");
 	if (path == NULL) {
-		++errors;
 		fprintf(stderr, "could not find feeds file!\n");
-		return errors;
+		return 1;
 	}
 	FILE *f = fopen(path, "r");
 	free(path);
 	if (f == NULL) {
-		++errors;
 		fprintf(stderr, "could not open feeds file!\n");
-		return errors;
+		return 1;
 	}
 	while (1) {
 		c = fgetc(f);
@@ -62,14 +62,23 @@ load_feed_list(void)
 		feed_index = feed_count++;
 		feed_list = realloc(feed_list, sizeof(struct feed_window) * feed_count);
 		feed_list[feed_index].feed = calloc(1, sizeof(struct feed_entry));
+		if (feed_list[feed_index].feed == NULL) {
+			error = 1; fprintf(stderr, "memory allocation for feed_entry failed\n"); break;
+		}
 		if (c == '@') {
 			feed_list[feed_index].feed->name = malloc(sizeof(char) * MAX_NAME_SIZE);
+			if (feed_list[feed_index].feed->name == NULL) {
+				error = 1; fprintf(stderr, "memory allocation for decoration title failed\n"); break;
+			}
 			c = fgetc(f);
 			while ((c != '\n') && (c != EOF)) { feed_list[feed_index].feed->name[letter++] = c; c = fgetc(f); }
 			feed_list[feed_index].feed->name[letter] = '\0';
 			continue;
 		}
 		feed_list[feed_index].feed->feed_url = malloc(sizeof(char) * MAX_URL_SIZE);
+		if (feed_list[feed_index].feed->feed_url == NULL) {
+			error = 1; fprintf(stderr, "memory allocation for feed url failed\n"); break;
+		}
 		while (1) {
 			feed_list[feed_index].feed->feed_url[letter++] = c;
 			c = fgetc(f);
@@ -77,21 +86,23 @@ load_feed_list(void)
 				feed_list[feed_index].feed->feed_url[letter] = '\0';
 				feed_list[feed_index].feed->path = make_feed_dir(feed_list[feed_index].feed->feed_url);
 				if (feed_list[feed_index].feed->path == NULL) {
-					++errors;
-					fprintf(stderr, "could not set directory for \"%s\"!\n", feed_list[feed_index].feed->feed_url);
+					error = 1; fprintf(stderr, "could not set directory for \"%s\"!\n", feed_list[feed_index].feed->feed_url);
 				} else {
 					feed_list[feed_index].feed->site_url = export_feed_value(feed_list[feed_index].feed->path, "link");
 				}
 				break;
 			}
 		}
-		if (c == EOF) break;
+		if (c == EOF || error == 1) break;
 		if (c == '\n') continue;
 		skip_chars(f, &c, " \t");
 		if (c == '\n') continue;
 		if (c == '"') {
 			letter = 0;
 			feed_list[feed_index].feed->name = malloc(sizeof(char) * MAX_NAME_SIZE);
+			if (feed_list[feed_index].feed->name == NULL) {
+				error = 1; fprintf(stderr, "memory allocation for feed entry name failed\n"); break;
+			}
 			while (1) {
 				c = fgetc(f);
 				if (c == '"') { feed_list[feed_index].feed->name[letter] = '\0'; break; }
@@ -104,21 +115,26 @@ load_feed_list(void)
 	fclose(f);
 
 	// put first non-decorative item in selection
-	for (feed_index = 0; feed_index < feed_count; ++feed_index) {
-		if (feed_list[feed_index].feed->feed_url != NULL) {
-			feed_sel = feed_index;
-			break;
+	if (error == 0) {
+		for (feed_index = 0; feed_index < feed_count; ++feed_index) {
+			if (feed_list[feed_index].feed->feed_url != NULL) {
+				feed_sel = feed_index;
+				break;
+			}
 		}
+	} else {
+		fprintf(stderr, "there is some trouble in loading feeds!\n");
+		free_feed_list();
+		return 1;
 	}
 
 	if (feed_sel == -1) {
-		++errors;
-		free_feed_list();
 		fprintf(stderr, "none of feeds loaded!\n");
-		return errors;
+		free_feed_list();
+		return 1;
 	}
 
-	return errors; // success
+	return 0; // success
 }
 
 // return most sensible string for feed title
@@ -140,23 +156,49 @@ hide_feeds(void)
 void
 feeds_menu(void)
 {
-	clear();
-	refresh();
+	if (do_clear == 1) {
+		// clear ncurses screen
+		clear();
+		refresh();
+	} else {
+		do_clear = 1;
+	}
+
 	for (int i = 0; i < feed_count; ++i) {
 		feed_list[i].window = newwin(1, COLS, i + config_top_offset, config_left_offset);
 		if (i == feed_sel) wattron(feed_list[i].window, A_REVERSE);
-		mvwprintw(feed_list[i].window, 0, 0, "%s\n", feed_image(feed_list[i].feed));
+
+		// print window contents considering number and relativenumber settings
+		/*if (config_number == 1) {*/
+			/*if (feed_list[i].feed->feed_url == NULL) {*/
+				/*mvwprintw(feed_list[i].window, 0, 0, "     %s", feed_list[i].feed->name);*/
+			/*} else {*/
+				/*mvwprintw(feed_list[i].window, 0, 0, "%3d  %s", i + 1, feed_image(feed_list[i].feed));*/
+			/*}*/
+		/*} else {*/
+		mvwprintw(feed_list[i].window, 0, 0, "%s", feed_image(feed_list[i].feed));
+		/*}*/
+
 		if (i == feed_sel) wattroff(feed_list[i].window, A_REVERSE);
 		wrefresh(feed_list[i].window);
 	}
-	enum menu_dest dest = menu_feeds();
+
+
+	int dest = menu_feeds();
 	hide_feeds();
-	if (dest == MENU_ITEMS) {
-		items_menu(feed_list[feed_sel].feed->path);
-	} else if (dest == MENU_EXIT) {
+	if (dest == MENU_EXIT) {
 		free_feed_list();
 		return;
+	} else if (dest == MENU_CONTENTS) {
+		int items_status = items_menu(feed_list[feed_sel].feed->path);
+		if (items_status != 0) {
+			do_clear = 0;
+			if (items_status == 1) {
+				status_write("[empty] %s", feed_image(feed_list[feed_sel].feed));
+			}
+		}
 	}
+
 	feeds_menu();
 }
 
@@ -189,13 +231,12 @@ feed_select(int i)
 			}
 		}
 	}
-	if (feed_list[new_sel].feed->feed_url == NULL) return;
-	if (new_sel != feed_sel) {
-		mvwprintw(feed_list[feed_sel].window, 0, 0, "%s\n", feed_image(feed_list[feed_sel].feed));
+	if (feed_list[new_sel].feed->feed_url != NULL && new_sel != feed_sel) {
+		mvwprintw(feed_list[feed_sel].window, 0, 0, "%s", feed_image(feed_list[feed_sel].feed));
 		wrefresh(feed_list[feed_sel].window);
 		feed_sel = new_sel;
 		wattron(feed_list[feed_sel].window, A_REVERSE);
-		mvwprintw(feed_list[feed_sel].window, 0, 0, "%s\n", feed_image(feed_list[feed_sel].feed));
+		mvwprintw(feed_list[feed_sel].window, 0, 0, "%s", feed_image(feed_list[feed_sel].feed));
 		wattroff(feed_list[feed_sel].window, A_REVERSE);
 		wrefresh(feed_list[feed_sel].window);
 	}
@@ -227,14 +268,16 @@ menu_feeds(void)
 	while (1) {
 		ch = wgetch(input_win);
 		wrefresh(input_win);
-		if      (ch == 'j') { feed_select(feed_sel + 1); }
-		else if (ch == 'k') { feed_select(feed_sel - 1); }
-		else if (ch == 'l') { return MENU_ITEMS; }
-		else if (ch == 'h') { return MENU_EXIT; }
-		else if (ch == 'd') { feed_reload(&feed_list[feed_sel]); }
-		else if (ch == 'D') { feed_reload_all(); }
-		else if (ch == 'g' && wgetch(input_win) == 'g') { feed_select(0); }
-		else if (ch == 'G') { feed_select(feed_count - 1); }
+		if      (ch == 'j' || ch == KEY_DOWN)                                   { feed_select(feed_sel + 1); }
+		else if (ch == 'k' || ch == KEY_UP)                                     { feed_select(feed_sel - 1); }
+		else if (ch == 'l' || ch == KEY_RIGHT || ch == '\n' || ch == KEY_ENTER) {
+			return MENU_CONTENTS;
+		}
+		else if (ch == 'q')                                                     { return MENU_EXIT; }
+		else if (ch == 'd')                                                     { feed_reload(&feed_list[feed_sel]); }
+		else if (ch == 'D')                                                     { feed_reload_all(); }
+		else if (ch == 'g' && wgetch(input_win) == 'g')                         { feed_select(0); }
+		else if (ch == 'G')                                                     { feed_select(feed_count - 1); }
 		else if (isdigit(ch)) {
 			q = 0;
 			while (1) {

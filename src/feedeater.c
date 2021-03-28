@@ -1,7 +1,7 @@
 #include "feedeater.h"
 int main (int argc, char **argv) {
 	int error = 0;
-	if (load_feed_list() == 0) { error = 1; goto undo1; }
+	if (load_feed_list() != 0) { error = 1; goto undo1; }
 
 	// initialize curses mode
 	if (initscr() == NULL) { error = 2; goto undo1; }

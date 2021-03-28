@@ -148,7 +148,7 @@ get_data_dir(void)
 }
 
 char *
-get_data_dir_path_for_url(char *url)
+make_feed_dir(char *url)
 {
 	if (data_dir_path == NULL) {
 		data_dir_path = get_data_dir();
@@ -162,10 +162,15 @@ get_data_dir_path_for_url(char *url)
 	}
 	strcpy(file_name, url);
 
-	// store all https links as http
 	if (strncmp(file_name, "https://", 8) == 0) {
-		for (int i = 4; file_name[i] != '\0'; ++i) {
-			file_name[i] = file_name[i + 1];
+		for (int i = 0; ; ++i) {
+			file_name[i] = file_name[i + 8];
+			if (file_name[i + 8] == '\0') break;
+		}
+	} else if (strncmp(file_name, "http://", 7) == 0) {
+		for (int i = 0; ; ++i) {
+			file_name[i] = file_name[i + 7];
+			if (file_name[i + 7] == '\0') break;
 		}
 	}
 
@@ -173,10 +178,10 @@ get_data_dir_path_for_url(char *url)
 	// replace all slashes with spaces
 	while ((c = strchr(file_name, '/')) != NULL) *c = ' ';
 
-	char *path = malloc(MAXPATH * sizeof(char));
+	char *path = malloc(sizeof(char) * MAXPATH);
 	if (path == NULL) {
 		free(file_name);
-		status_write("failed to allocate memory for path to \"%s\" data directory\n", url);
+		fprintf(stderr, "failed to allocate memory for path to \"%s\" data directory\n", url);
 		return NULL;
 	}
 
@@ -186,6 +191,18 @@ get_data_dir_path_for_url(char *url)
 	strcat(path, "/");
 
 	mkdir(path, 0777);
+
+	char *elements_path = malloc(sizeof(char) * MAXPATH);
+	if (elements_path == NULL) {
+		free(file_name);
+		fprintf(stderr, "failed to allocate memory for path to \"%s\" elements directory\n", url);
+		return NULL;
+	}
+
+	strcpy(elements_path, path);
+	strcat(elements_path, "elements/");
+	mkdir(elements_path, 0777);
+	free(elements_path);
 
 	free(file_name);
 	return path;

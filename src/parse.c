@@ -56,7 +56,6 @@ feed_process(struct string *buf, struct feed_entry *feed)
 {
 	status_write("[parsing] %s", feed->feed_url);
 
-	int do_reload_win = 0;
 	XML_Parser parser = XML_ParserCreate(NULL);
 	struct init_parser_data parser_data = {0, &parser, NULL};
 	XML_SetUserData(parser, &parser_data);
@@ -75,29 +74,13 @@ feed_process(struct string *buf, struct feed_entry *feed)
 		return 0;
 	}
 
-	struct feed_entry *remote_feed = parser_data.parser_func(&parser, feed->feed_url);
+	int parsing_done = parser_data.parser_func(&parser, feed->path);
 	XML_ParserFree(parser);
-	if (remote_feed == NULL) {
-		/*status_write("[incorrect format] %s", feed->feed_url);*/
+	if (parsing_done == 0) {
+		status_write("[incorrect format] %s", feed->feed_url);
 		return 0;
 	}
 
-	if (remote_feed->rname != NULL) import_feed_value(feed->feed_url, "title", remote_feed->rname);
-	if (remote_feed->site_url != NULL) import_feed_value(feed->feed_url, "link", remote_feed->site_url);
-	if (feed->rname == NULL && remote_feed->rname != NULL) {
-		feed->rname = malloc(strlen(remote_feed->rname) + 1);
-		strcpy(feed->rname, remote_feed->rname);
-		do_reload_win = 1;
-	} else if (feed->rname != NULL && remote_feed->rname != NULL &&
-	           strcmp(feed->rname, remote_feed->rname) != 0)
-	{
-		feed->rname = realloc(feed->rname, strlen(remote_feed->rname) + 1);
-		strcpy(feed->rname, remote_feed->rname);
-		do_reload_win = 1;
-	}
-
 	status_clean();
-	free_feed_entry(remote_feed);
-	/*status_write("[done] %s", feed->feed_url);*/
-	return do_reload_win;
+	return 1;
 }

@@ -21,8 +21,7 @@ free_feed_list(void)
 	if (feed_list == NULL) return;
 	for (int i = 0; i < feed_count; ++i) {
 		if (feed_list[i].feed != NULL) {
-			if (feed_list[i].feed->lname != NULL) free(feed_list[i].feed->lname);
-			if (feed_list[i].feed->rname != NULL) free(feed_list[i].feed->rname);
+			if (feed_list[i].feed->name != NULL) free(feed_list[i].feed->name);
 			if (feed_list[i].feed->feed_url != NULL) free(feed_list[i].feed->feed_url);
 			if (feed_list[i].feed->site_url != NULL) free(feed_list[i].feed->site_url);
 			free(feed_list[i].feed);
@@ -37,18 +36,20 @@ free_feed_list(void)
 int
 load_feed_list(void)
 {
-	int feed_index, letter;
+	int feed_index, letter, errors = 0;
 	char c, *path;
 	path = get_config_file_path("feeds");
 	if (path == NULL) {
+		++errors;
 		fprintf(stderr, "could not find feeds file!\n");
-		return 0;
+		return errors;
 	}
 	FILE *f = fopen(path, "r");
 	free(path);
 	if (f == NULL) {
+		++errors;
 		fprintf(stderr, "could not open feeds file!\n");
-		return 0;
+		return errors;
 	}
 	while (1) {
 		c = fgetc(f);
@@ -62,10 +63,10 @@ load_feed_list(void)
 		feed_list = realloc(feed_list, sizeof(struct feed_window) * feed_count);
 		feed_list[feed_index].feed = calloc(1, sizeof(struct feed_entry));
 		if (c == '@') {
-			feed_list[feed_index].feed->lname = malloc(sizeof(char) * MAX_NAME_SIZE);
+			feed_list[feed_index].feed->name = malloc(sizeof(char) * MAX_NAME_SIZE);
 			c = fgetc(f);
-			while ((c != '\n') && (c != EOF)) { feed_list[feed_index].feed->lname[letter++] = c; c = fgetc(f); }
-			feed_list[feed_index].feed->lname[letter] = '\0';
+			while ((c != '\n') && (c != EOF)) { feed_list[feed_index].feed->name[letter++] = c; c = fgetc(f); }
+			feed_list[feed_index].feed->name[letter] = '\0';
 			continue;
 		}
 		feed_list[feed_index].feed->feed_url = malloc(sizeof(char) * MAX_URL_SIZE);
@@ -74,22 +75,27 @@ load_feed_list(void)
 			c = fgetc(f);
 			if (c == ' ' || c == '\t' || c == '\n' || c == EOF) {
 				feed_list[feed_index].feed->feed_url[letter] = '\0';
-				feed_list[feed_index].feed->rname = export_feed_value(feed_list[feed_index].feed->feed_url, "title");
-				feed_list[feed_index].feed->site_url = export_feed_value(feed_list[feed_index].feed->feed_url, "link");
+				feed_list[feed_index].feed->path = make_feed_dir(feed_list[feed_index].feed->feed_url);
+				if (feed_list[feed_index].feed->path == NULL) {
+					++errors;
+					fprintf(stderr, "could not set directory for \"%s\"!\n", feed_list[feed_index].feed->feed_url);
+				} else {
+					feed_list[feed_index].feed->site_url = export_feed_value(feed_list[feed_index].feed->path, "link");
+				}
 				break;
 			}
 		}
-		if (c != ' ' && c != '\t') continue;
-		skip_chars(f, &c, " \t");
 		if (c == EOF) break;
+		if (c == '\n') continue;
+		skip_chars(f, &c, " \t");
 		if (c == '\n') continue;
 		if (c == '"') {
 			letter = 0;
-			feed_list[feed_index].feed->lname = malloc(sizeof(char) * MAX_NAME_SIZE);
+			feed_list[feed_index].feed->name = malloc(sizeof(char) * MAX_NAME_SIZE);
 			while (1) {
 				c = fgetc(f);
-				if (c == '"') { feed_list[feed_index].feed->lname[letter] = '\0'; break; }
-				feed_list[feed_index].feed->lname[letter++] = c;
+				if (c == '"') { feed_list[feed_index].feed->name[letter] = '\0'; break; }
+				feed_list[feed_index].feed->name[letter++] = c;
 			}
 		}
 		// move to the end of line or file
@@ -106,18 +112,19 @@ load_feed_list(void)
 	}
 
 	if (feed_sel == -1) {
+		++errors;
 		free_feed_list();
 		fprintf(stderr, "none of feeds loaded!\n");
-		return 0;
+		return errors;
 	}
 
-	return 1; // success
+	return errors; // success
 }
 
 // return most sensible string for feed title
 static char *
 feed_image(struct feed_entry *feed) {
-	return feed->lname ? feed->lname : (feed->rname ? feed->rname : feed->feed_url);
+	return feed->name ? feed->name : feed->feed_url;
 }
 
 void
@@ -136,16 +143,16 @@ feeds_menu(void)
 	clear();
 	refresh();
 	for (int i = 0; i < feed_count; ++i) {
-		feed_list[i].window = newwin(1, COLS, i, 0);
+		feed_list[i].window = newwin(1, COLS, i + config_top_offset, config_left_offset);
 		if (i == feed_sel) wattron(feed_list[i].window, A_REVERSE);
-		mvwprintw(feed_list[i].window, 0, left_offset, "%s\n", feed_image(feed_list[i].feed));
+		mvwprintw(feed_list[i].window, 0, 0, "%s\n", feed_image(feed_list[i].feed));
 		if (i == feed_sel) wattroff(feed_list[i].window, A_REVERSE);
 		wrefresh(feed_list[i].window);
 	}
 	enum menu_dest dest = menu_feeds();
 	hide_feeds();
 	if (dest == MENU_ITEMS) {
-		items_menu(feed_list[feed_sel].feed->feed_url);
+		items_menu(feed_list[feed_sel].feed->path);
 	} else if (dest == MENU_EXIT) {
 		free_feed_list();
 		return;
@@ -184,11 +191,11 @@ feed_select(int i)
 	}
 	if (feed_list[new_sel].feed->feed_url == NULL) return;
 	if (new_sel != feed_sel) {
-		mvwprintw(feed_list[feed_sel].window, 0, left_offset, "%s\n", feed_image(feed_list[feed_sel].feed));
+		mvwprintw(feed_list[feed_sel].window, 0, 0, "%s\n", feed_image(feed_list[feed_sel].feed));
 		wrefresh(feed_list[feed_sel].window);
 		feed_sel = new_sel;
 		wattron(feed_list[feed_sel].window, A_REVERSE);
-		mvwprintw(feed_list[feed_sel].window, 0, left_offset, "%s\n", feed_image(feed_list[feed_sel].feed));
+		mvwprintw(feed_list[feed_sel].window, 0, 0, "%s\n", feed_image(feed_list[feed_sel].feed));
 		wattroff(feed_list[feed_sel].window, A_REVERSE);
 		wrefresh(feed_list[feed_sel].window);
 	}
@@ -220,14 +227,14 @@ menu_feeds(void)
 	while (1) {
 		ch = wgetch(input_win);
 		wrefresh(input_win);
-		if      (ch == 'j'  || ch == KEY_DOWN)          { feed_select(feed_sel + 1); }
-		else if (ch == 'k'  || ch == KEY_UP)            { feed_select(feed_sel - 1); }
-		else if (ch == 'l'  || ch == KEY_RIGHT ||
-		         ch == '\n' || ch == KEY_ENTER)         { return MENU_ITEMS; }
-		else if (ch == 'd')                             { feed_reload(&feed_list[feed_sel]); }
-		else if (ch == 'D')                             { feed_reload_all(); }
+		if      (ch == 'j') { feed_select(feed_sel + 1); }
+		else if (ch == 'k') { feed_select(feed_sel - 1); }
+		else if (ch == 'l') { return MENU_ITEMS; }
+		else if (ch == 'h') { return MENU_EXIT; }
+		else if (ch == 'd') { feed_reload(&feed_list[feed_sel]); }
+		else if (ch == 'D') { feed_reload_all(); }
 		else if (ch == 'g' && wgetch(input_win) == 'g') { feed_select(0); }
-		else if (ch == 'G')                             { feed_select(feed_count - 1); }
+		else if (ch == 'G') { feed_select(feed_count - 1); }
 		else if (isdigit(ch)) {
 			q = 0;
 			while (1) {
@@ -247,45 +254,16 @@ menu_feeds(void)
 				}
 			}
 		}
-		else if (ch == 'q') return MENU_EXIT;
 	}
 }
 
-
-void
-free_feed_entry(struct feed_entry *feed)
-{
-	if (feed == NULL) return;
-	if (feed->lname != NULL) free(feed->lname);
-	if (feed->rname != NULL) free(feed->rname);
-	if (feed->feed_url != NULL) free(feed->feed_url);
-	if (feed->site_url != NULL) free(feed->site_url);
-	free(feed);
-	feed = NULL;
-}
-
-int
-import_feed_value(char *url, char *element, char *value)
-{
-	char *path = get_data_dir_path_for_url(url);
-	if (path == NULL) return 0;
-	strcat(path, "/elements/");
-	mkdir(path, 0777);
-	strcat(path, element);
-	FILE *f = fopen(path, "w");
-	free(path);
-	if (f == NULL) return 0;
-	fputs(value, f);
-	fclose(f);
-	return 1; // success
-}
-
 char *
-export_feed_value(char *url, char *element)
+export_feed_value(char *feed_path, char *element)
 {
-	char *path = get_data_dir_path_for_url(url);
+	char *path = malloc(sizeof(char) * MAXPATH);
 	if (path == NULL) return NULL;
-	strcat(path, "/elements/");
+	strcpy(path, feed_path);
+	strcat(path, "elements/");
 	strcat(path, element);
 	FILE *f = fopen(path, "r");
 	free(path);
@@ -305,27 +283,18 @@ export_feed_value(char *url, char *element)
 	return value;
 }
 
-char *
-feed_item_data_path(char *url, int num)
-{
-	char *path = get_data_dir_path_for_url(url);
-	if (path == NULL) return NULL;
-	char dir_name[6];
-	sprintf(dir_name, "%d", num);
-	strcat(path, dir_name);
-	strcat(path, "/");
-	mkdir(path, 0777);
-	return path;
-}
-
 void
-write_feed_item_elem(char *item_path, char *item_name, void *data, size_t size)
+write_feed_element(char *feed_path, char *element, void *data, size_t size)
 {
-	char *item = malloc(sizeof(char) * MAXPATH);
-	if (item == NULL) return;
-	strcpy(item, item_path);
-	strcat(item, item_name);
-	FILE *f = fopen(item, "w");
+	if (feed_path == NULL || data == NULL || size == 0) return;
+	char *feed = malloc(sizeof(char) * MAXPATH);
+	if (feed == NULL) return;
+	strcpy(feed, feed_path);
+	strcat(feed, "elements/");
+	strcat(feed, element);
+	FILE *f = fopen(feed, "w");
+	free(feed);
+	if (f == NULL) return;
 	fwrite(data, size, 1, f);
 	fclose(f);
 }

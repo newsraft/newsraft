@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include "feedeater.h"
 
-struct feed_entry *
+int
 parse_rss11(XML_Parser *parser, char *url)
 {
 	status_write("rss11 under_construction");

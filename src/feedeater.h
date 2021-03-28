@@ -1,8 +1,9 @@
 #include <ncurses.h>
+#include <stdbool.h>
 #include <expat.h>
 #include <wchar.h>
-#define MAX_ITEMS 30
 #define MAXPATH 512
+#define MAX_ITEM_INDEX_LEN 10
 #ifndef XML_LARGE_SIZE
 #define XML_LARGE_SIZE
 #endif
@@ -28,10 +29,10 @@ struct string {
 };
 
 struct feed_entry {
-	char *lname;    // local name of feed
-	char *rname;    // remote name of feed
+	char *name;     // remote name of feed
 	char *feed_url; // url of feed
 	char *site_url; // url of site
+	char *path;     // path to data directory
 };
 
 struct feed_window {
@@ -52,23 +53,23 @@ struct item_window {
 struct init_parser_data {
 	int depth;
 	XML_Parser *xml_parser;
-	struct feed_entry *(*parser_func)(XML_Parser *parser, char *url);
+	int (*parser_func)(XML_Parser *parser, char *url);
 };
 
 enum xml_pos {
 	IN_ROOT = 0,
-	IN_CHANNEL_ELEMENT = 1,
-	IN_ITEM_ELEMENT = 2,
-	IN_TITLE_ELEMENT = 4,
-	IN_DESCRIPTION_ELEMENT = 8,
-	IN_LINK_ELEMENT = 16,
-	IN_AUTHOR_ELEMENT = 32,
-	IN_PUBDATE_ELEMENT = 64,
-	IN_CATEGORY_ELEMENT = 128,
+	IN_ITEM_ELEMENT = 1,
+	IN_TITLE_ELEMENT = 2,
+	IN_DESCRIPTION_ELEMENT = 4,
+	IN_LINK_ELEMENT = 8,
+	IN_CATEGORY_ELEMENT = 16,
+	IN_COMMENTS_ELEMENT = 32,
+	IN_AUTHOR_ELEMENT = 64,
+	IN_PUBDATE_ELEMENT = 128,
 	IN_ENCLOSURE_ELEMENT = 256,
-	IN_COMMENTS_ELEMENT = 512,
-	IN_SOURCE_ELEMENT = 1024,
-	IN_IMAGE_ELEMENT = 2048,
+	IN_SOURCE_ELEMENT = 512,
+	IN_IMAGE_ELEMENT = 1024,
+	IN_CHANNEL_ELEMENT = 2048,
 };
 
 enum menu_dest {
@@ -80,25 +81,29 @@ enum menu_dest {
 
 struct feed_parser_data {
 	int depth;
-	int items_count;
-	struct feed_entry *feed;
+	int item_index;
 	enum xml_pos pos;
+	char *feed_path;
 	char *item_path;
+	int border_index;
+	bool past_line;
 };
 
-int import_feed_value(char *url, char *element, char *value);
+void set_last_item_index(char *feed_path, int index);
+int get_last_item_index(char *feed_path);
+char *feed_data_path(char *url, int num);
+char *item_data_path(char *feed_path, int num);
 char *export_feed_value(char *url, char *element);
-char *feed_item_data_path(char *url, int num);
-void write_feed_item_elem(char *item_path, char *item_name, void *data, size_t size);
+void write_feed_element(char *feed_path, char *element, void *data, size_t size);
+void write_item_element(char *item_path, char *element, void *data, size_t size);
 
+void contents_menu(void);
 int load_feed_list(void);  // load feeds information in memory
 void feeds_menu(void);     // display feeds in an interactive list
 void hide_feeds(void);     // hide interactive list of feeds
 void items_menu(char *url);
 char *get_config_file_path(char *file_name);
-char *get_data_dir_path_for_url(char *url);
-
-void free_feed_entry(struct feed_entry *);
+char *make_feed_dir(char *url);
 
 struct string *feed_download(char *url);
 
@@ -110,15 +115,15 @@ int feed_process(struct string *buf, struct feed_entry *feed);
 void skip_chars(FILE *file, char *cur_char, char *list);
 
 // xml parsers for different versions of feeds
-struct feed_entry *parse_rss20(XML_Parser *parser, char *url);  // RSS 2.0
-struct feed_entry *parse_rss11(XML_Parser *parser, char *url);  // RSS 1.1
-struct feed_entry *parse_rss10(XML_Parser *parser, char *url);  // RSS 1.0
-struct feed_entry *parse_rss094(XML_Parser *parser, char *url); // RSS 0.94
-struct feed_entry *parse_rss092(XML_Parser *parser, char *url); // RSS 0.92
-struct feed_entry *parse_rss091(XML_Parser *parser, char *url); // RSS 0.91
-struct feed_entry *parse_rss090(XML_Parser *parser, char *url); // RSS 0.90
-struct feed_entry *parse_atom10(XML_Parser *parser, char *url); // Atom 1.0
-struct feed_entry *parse_atom03(XML_Parser *parser, char *url); // Atom 0.3
+int parse_rss20(XML_Parser *parser, char *feed_path);  // RSS 2.0
+int parse_rss11(XML_Parser *parser, char *feed_path);  // RSS 1.1
+int parse_rss10(XML_Parser *parser, char *feed_path);  // RSS 1.0
+int parse_rss094(XML_Parser *parser, char *feed_path); // RSS 0.94
+int parse_rss092(XML_Parser *parser, char *feed_path); // RSS 0.92
+int parse_rss091(XML_Parser *parser, char *feed_path); // RSS 0.91
+int parse_rss090(XML_Parser *parser, char *feed_path); // RSS 0.90
+int parse_atom10(XML_Parser *parser, char *feed_path); // Atom 1.0
+int parse_atom03(XML_Parser *parser, char *feed_path); // Atom 0.3
 
 
 // ncurses

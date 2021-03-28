@@ -1,6 +1,9 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include "feedeater.h"
 #include "config.h"
 
@@ -48,7 +51,16 @@ load_item_list(char *data_path)
 	     *value = malloc(sizeof(char) * size),
 	     *path = malloc(sizeof(char) * MAXPATH);
 	FILE *f;
-	for (int i = 1; i <= MAX_ITEMS; ++i) {
+	int border_index = get_last_item_index(data_path);
+	bool past_line = false;
+	for (int i = border_index + 1; ; ++i) {
+		if (past_line == false && i > config_max_items) {
+			past_line = true;
+			i = 1;
+		}
+		if (past_line == true && i == border_index + 1) {
+			break;
+		}
 		strcpy(path, data_path);
 		sprintf(item_num, "%d/", i);
 		strcat(path, item_num);
@@ -86,14 +98,12 @@ load_item_list(char *data_path)
 	free(path);
 
 	if (item_sel == -1) {
-		status_write("this feed is empty");
+		status_write("[error] this feed is empty");
 		return 0;
 	}
 
 	return 1;
 }
-
-void contents_menu(void) { status_write("viewing functionaltiy is under construction"); }
 
 void
 hide_items(void)
@@ -106,29 +116,21 @@ hide_items(void)
 }
 
 void
-items_menu(char *url)
+items_menu(char *data_path)
 {
 	if (item_list == NULL) {
-		char *data_path = get_data_dir_path_for_url(url);
-		if (data_path == NULL) {
-			status_write("[error] could not access data directory for %s", url);
-			return;
-		}
 		if (load_item_list(data_path) == 0) {
-			free(data_path);
-			status_write("[error] could not load data for %s", url);
 			free_item_list();
 			return;
 		}
-		free(data_path);
 	}
 
 	clear();
 	refresh();
 	for (int i = 0; i < item_count; ++i) {
-		item_list[i].window = newwin(1, COLS, i, 0);
+		item_list[i].window = newwin(1, COLS, i + config_top_offset, config_left_offset);
 		if (i == item_sel) wattron(item_list[i].window, A_REVERSE);
-		mvwprintw(item_list[i].window, 0, left_offset, "%s\n", item_image(item_list[i].item));
+		mvwprintw(item_list[i].window, 0, 0, "%s\n", item_image(item_list[i].item));
 		if (i == item_sel) wattroff(item_list[i].window, A_REVERSE);
 		wrefresh(item_list[i].window);
 	}
@@ -142,7 +144,7 @@ items_menu(char *url)
 		return;
 	}
 
-	items_menu(url);
+	items_menu(data_path);
 }
 
 static void
@@ -156,11 +158,11 @@ item_select(int i)
 		if (new_sel < 0) return;
 	}
 	if (new_sel != item_sel) {
-		mvwprintw(item_list[item_sel].window, 0, left_offset, "%s\n", item_image(item_list[item_sel].item));
+		mvwprintw(item_list[item_sel].window, 0, 0, "%s\n", item_image(item_list[item_sel].item));
 		wrefresh(item_list[item_sel].window);
 		item_sel = new_sel;
 		wattron(item_list[item_sel].window, A_REVERSE);
-		mvwprintw(item_list[item_sel].window, 0, left_offset, "%s\n", item_image(item_list[item_sel].item));
+		mvwprintw(item_list[item_sel].window, 0, 0, "%s\n", item_image(item_list[item_sel].item));
 		wattroff(item_list[item_sel].window, A_REVERSE);
 		wrefresh(item_list[item_sel].window);
 	}
@@ -174,14 +176,12 @@ menu_items(void)
 	while (1) {
 		ch = wgetch(input_win);
 		wrefresh(input_win);
-		if      (ch == 'j'  || ch == KEY_DOWN)          { item_select(item_sel + 1); }
-		else if (ch == 'k'  || ch == KEY_UP)            { item_select(item_sel - 1); }
-		else if (ch == 'l'  || ch == KEY_RIGHT ||
-		         ch == '\n' || ch == KEY_ENTER)         { return MENU_CONTENTS; }
-		/*else if (ch == 'd')                             { item_reload(&item_list[item_sel]); }*/
-		/*else if (ch == 'D')                             { item_reload_all(); }*/
+		if      (ch == 'j') { item_select(item_sel + 1); }
+		else if (ch == 'k') { item_select(item_sel - 1); }
+		else if (ch == 'l') { return MENU_CONTENTS; }
+		else if (ch == 'h') { return MENU_EXIT; }
+		else if (ch == 'G') { item_select(item_count - 1); }
 		else if (ch == 'g' && wgetch(input_win) == 'g') { item_select(0); }
-		else if (ch == 'G')                             { item_select(item_count - 1); }
 		else if (isdigit(ch)) {
 			q = 0;
 			while (1) {
@@ -190,9 +190,9 @@ menu_items(void)
 				cmd[q] = '\0';
 				ch = wgetch(input_win);
 				if (!isdigit(ch)) {
-					if (ch == 'j' || ch == KEY_DOWN) {
+					if (ch == 'j') {
 						item_select(item_sel + atoi(cmd));
-					} else if (ch == 'k' || ch == KEY_UP) {
+					} else if (ch == 'k') {
 						item_select(item_sel - atoi(cmd));
 					} else if (ch == 'G') {
 						item_select(atoi(cmd) - 1);
@@ -200,7 +200,74 @@ menu_items(void)
 					break;
 				}
 			}
-		}
-		else if (ch == 'q') return MENU_EXIT;
+		} 
 	}
+}
+
+char *
+item_data_path(char *feed_path, int num)
+{
+	if (feed_path == NULL) return NULL;
+	char *path = malloc(sizeof(char) * MAXPATH);
+	if (path == NULL) return NULL;
+	strcpy(path, feed_path);
+	char dir_name[MAX_ITEM_INDEX_LEN];
+	sprintf(dir_name, "%d", num);
+	strcat(path, dir_name);
+	strcat(path, "/");
+	mkdir(path, 0777);
+	return path;
+}
+
+void
+set_last_item_index(char *feed_path, int index)
+{
+	char *path = malloc(sizeof(char) * MAXPATH);
+	if (path == NULL) {
+		status_write("not enough ram");
+		return;
+	}
+	strcpy(path, feed_path);
+	strcat(path, "last_item");
+	FILE *f = fopen(path, "w");
+	free(path);
+	if (f == NULL) return;
+	fprintf(f, "%d", index);
+	fclose(f);
+}
+
+int
+get_last_item_index(char *feed_path)
+{
+	char *path = malloc(sizeof(char) * MAXPATH);
+	if (path == NULL) {
+		status_write("not enough ram");
+		return 0;
+	}
+	strcpy(path, feed_path);
+	strcat(path, "last_item");
+	FILE *f = fopen(path, "r");
+	free(path);
+	if (f == NULL) { return 0; }
+	int i = 0;
+	char index[MAX_ITEM_INDEX_LEN], c;
+	while ((c = fgetc(f)) != EOF) index[i++] = c;
+	index[i] = '\0';
+	fclose(f);
+	return atoi(index);
+}
+
+void
+write_item_element(char *item_path, char *element, void *data, size_t size)
+{
+	if (item_path == NULL || data == NULL || size == 0) return;
+	char *item = malloc(sizeof(char) * MAXPATH);
+	if (item == NULL) return;
+	strcpy(item, item_path);
+	strcat(item, element);
+	FILE *f = fopen(item, "w");
+	free(item);
+	if (f == NULL) return;
+	fwrite(data, size, 1, f);
+	fclose(f);
 }

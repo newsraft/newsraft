@@ -13,6 +13,7 @@ build obj/config.o:               compile src/config.c
 build obj/path.o:                 compile src/path.c
 build obj/items.o:                compile src/items.c
 build obj/input.o:                compile src/input.c
+build obj/contents.o:             compile src/contents.c
 build obj/download.o:             compile src/download.c
 build obj/parsers/parse_atom03.o: compile src/parsers/parse_atom03.c
 build obj/parsers/parse_atom10.o: compile src/parsers/parse_atom10.c
@@ -33,6 +34,7 @@ build feedeater: link obj/feedeater.o $
                       obj/items.o $
                       obj/input.o $
                       obj/download.o $
+                      obj/contents.o $
                       obj/parsers/parse_atom03.o $
                       obj/parsers/parse_atom10.o $
                       obj/parsers/parse_rss090.o $

@@ -1,10 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #include "feedeater.h"
+#include "config.h"
 
 static enum xml_pos last_pos = 0;
-static char value[100000];
+static char value[1000000];
 static int value_len = 0;
 
 static void XMLCALL
@@ -13,13 +15,23 @@ startElement(void *userData, const XML_Char *name, const XML_Char **atts) {
 	struct feed_parser_data *data = userData;
 	if (strcmp(name, "item") == 0) {
 		data->pos |= IN_ITEM_ELEMENT;
-		if (data->items_count <= MAX_ITEMS) {
-			++(data->items_count);
-			data->item_path = feed_item_data_path(data->feed->feed_url, data->items_count);
+		if (data->past_line == false && data->item_index > config_max_items) {
+			data->item_index = 0;
+			data->past_line = true;
+		}
+		if (((data->item_index < config_max_items) && (data->past_line == false)) ||
+		    ((data->item_index < data->border_index) && (data->past_line == true)))
+		{
+			++(data->item_index);
+			data->item_path = item_data_path(data->feed_path, data->item_index);
+		} else {
+			data->item_path = NULL;
 		}
 	} else if (strcmp(name, "title") == 0)     data->pos |= IN_TITLE_ELEMENT;
 	else if (strcmp(name, "description") == 0) data->pos |= IN_DESCRIPTION_ELEMENT;
 	else if (strcmp(name, "link") == 0)        data->pos |= IN_LINK_ELEMENT;
+	else if (strcmp(name, "category") == 0)    data->pos |= IN_CATEGORY_ELEMENT;
+	else if (strcmp(name, "comments") == 0)    data->pos |= IN_COMMENTS_ELEMENT;
 	else if (strcmp(name, "author") == 0)      data->pos |= IN_AUTHOR_ELEMENT;
 	else if (strcmp(name, "channel") == 0)     data->pos |= IN_CHANNEL_ELEMENT;
 
@@ -30,52 +42,57 @@ static void XMLCALL
 endElement(void *userData, const XML_Char *name) {
 	struct feed_parser_data *data = userData;
 	/*(void)name;*/
-	if        (strcmp(name, "item") == 0) {
+	if (strcmp(name, "item") == 0) {
 		data->pos &= ~IN_ITEM_ELEMENT;
-		if (data->items_count <= MAX_ITEMS) {
-			if (data->item_path != NULL) free(data->item_path);
+		if (data->item_path != NULL) {
+			free(data->item_path);
+			data->item_path = NULL;
 		}
 	} else if (strcmp(name, "title") == 0) {
 		data->pos &= ~IN_TITLE_ELEMENT;
-		if (((data->pos & IN_CHANNEL_ELEMENT) != 0) && (value_len != 0)) {
+		if ((data->pos & IN_CHANNEL_ELEMENT) != 0) {
 			if ((data->pos & IN_ITEM_ELEMENT) != 0) {
-				if (data->items_count < MAX_ITEMS) {
-					write_feed_item_elem(data->item_path, "title", value, sizeof(char) * value_len);
-				}
+				write_item_element(data->item_path, "title", value, sizeof(char) * value_len);
 			} else {
-				data->feed->rname = malloc(sizeof(char) * (value_len + 1));
-				strcpy(data->feed->rname, value);
+				write_feed_element(data->feed_path, "title", value, sizeof(char) * value_len);
 			}
 		}
 	} else if (strcmp(name, "description") == 0) {
 		data->pos &= ~IN_DESCRIPTION_ELEMENT;
-		if (((data->pos & IN_CHANNEL_ELEMENT) != 0) && (value_len != 0)) {
+		if ((data->pos & IN_CHANNEL_ELEMENT) != 0) {
 			if ((data->pos & IN_ITEM_ELEMENT) != 0) {
-				if (data->items_count < MAX_ITEMS) {
-					write_feed_item_elem(data->item_path, "description", value, sizeof(char) * value_len);
-				}
+				write_item_element(data->item_path, "description", value, sizeof(char) * value_len);
+			} else {
+				write_feed_element(data->feed_path, "description", value, sizeof(char) * value_len);
 			}
-			/*else {*/
-			/*}*/
 		}
 	} else if (strcmp(name, "link") == 0) {
 		data->pos &= ~IN_LINK_ELEMENT;
-		if (((data->pos & IN_CHANNEL_ELEMENT) != 0) && ((data->pos & IN_ITEM_ELEMENT) == 0)) {
-			if (strlen(value) != 0) {
-				data->feed->site_url = malloc(sizeof(char) * (value_len + 1));
-				strcpy(data->feed->site_url, value);
+		if ((data->pos & IN_CHANNEL_ELEMENT) != 0) {
+			if ((data->pos & IN_ITEM_ELEMENT) != 0) {
+				write_item_element(data->item_path, "link", value, sizeof(char) * value_len);
+			} else {
+				write_feed_element(data->feed_path, "link", value, sizeof(char) * value_len);
 			}
+		}
+	} else if (strcmp(name, "category") == 0) {
+		data->pos &= ~IN_CATEGORY_ELEMENT;
+		if (((data->pos & IN_CHANNEL_ELEMENT) != 0) && ((data->pos & IN_ITEM_ELEMENT) != 0)) {
+			write_item_element(data->item_path, "category", value, sizeof(char) * value_len);
+		}
+	} else if (strcmp(name, "comments") == 0) {
+		data->pos &= ~IN_COMMENTS_ELEMENT;
+		if (((data->pos & IN_CHANNEL_ELEMENT) != 0) && ((data->pos & IN_ITEM_ELEMENT) != 0)) {
+			write_item_element(data->item_path, "comments", value, sizeof(char) * value_len);
 		}
 	} else if (strcmp(name, "author") == 0) {
 		data->pos &= ~IN_AUTHOR_ELEMENT;
-		if (((data->pos & IN_CHANNEL_ELEMENT) != 0) &&
-		    ((data->pos & IN_ITEM_ELEMENT) != 0) &&
-		    (data->items_count < MAX_ITEMS) &&
-		    (value_len != 0))
-		{
-			write_feed_item_elem(data->item_path, "author", value, sizeof(char) * value_len);
+		if (((data->pos & IN_CHANNEL_ELEMENT) != 0) && ((data->pos & IN_ITEM_ELEMENT) != 0)) {
+			write_item_element(data->item_path, "author", value, sizeof(char) * value_len);
 		}
-	} else if (strcmp(name, "channel") == 0) data->pos &= ~IN_CHANNEL_ELEMENT;
+	} else if (strcmp(name, "channel") == 0) {
+		data->pos &= ~IN_CHANNEL_ELEMENT;
+	}
 
 	data->depth -= 1;
 }
@@ -94,35 +111,26 @@ charData(void *userData, const XML_Char *s, int len)
 }
 
 
-struct feed_entry *
-parse_rss20(XML_Parser *parser, char *url)
+int
+parse_rss20(XML_Parser *parser, char *feed_path)
 {
 	/*status_write("rss20 beign parsed");*/
 	/*return NULL;*/
-	struct feed_entry *feed = calloc(1, sizeof(struct feed_entry));
-	if (feed == NULL) {
-		status_write("calloc on feed buffer failed\n"); return NULL;
-	}
-	feed->feed_url = malloc(sizeof(char) * (strlen(url) + 1));
-	if (feed->feed_url == NULL) {
-		free(feed);
-		status_write("malloc on feed url failed\n");
-		return NULL;
-	}
-	strcpy(feed->feed_url, url);
 
-	struct feed_parser_data feed_data = {0, 0, feed, 0, NULL};
+	int last_item_index = get_last_item_index(feed_path);
+	struct feed_parser_data feed_data = {0, last_item_index, IN_ROOT, feed_path, NULL, last_item_index, false};
 
 	XML_SetUserData(*parser, &feed_data);
 	XML_SetElementHandler(*parser, startElement, endElement);
 	XML_SetCharacterDataHandler(*parser, charData);
 	if (XML_ResumeParser(*parser) == XML_STATUS_ERROR) {
-		free(feed);
 		/*status_write("rss20: %" XML_FMT_STR " at line %" XML_FMT_INT_MOD "u\n",*/
               /*XML_ErrorString(XML_GetErrorCode(*parser)),*/
               /*XML_GetCurrentLineNumber(*parser));*/
-		return NULL;
+		return 0;
 	}
 
-	return feed;
+	set_last_item_index(feed_path, feed_data.item_index);
+
+	return 1;
 }

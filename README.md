@@ -38,6 +38,8 @@ Project **non-goals** are:
 
 #### `feeds` file syntax
 
+See `feeds` file sample in `examples` directory.
+
 #### `config` file syntax
 
 ### Search order of the essential files
@@ -64,4 +66,4 @@ Directory with data files is searched in the following order:
 
 ## License
 
-See LICENSE file in repository root.
+See `LICENSE` file in repository root.

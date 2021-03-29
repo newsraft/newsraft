@@ -15,6 +15,7 @@ static struct feed_window *feed_list = NULL;
 static int feed_sel = -1;
 static int feed_count = 0;
 static int do_clear = 1;
+static WINDOW *feed_pad;
 
 static void
 free_feed_list(void)
@@ -151,6 +152,7 @@ hide_feeds(void)
 			delwin(feed_list[i].window);
 		}
 	}
+	if (feed_pad != NULL) delwin(feed_pad);
 }
 
 void
@@ -164,8 +166,9 @@ feeds_menu(void)
 		do_clear = 1;
 	}
 
+	feed_pad = newpad(feed_count + config_top_offset, COLS);
 	for (int i = 0; i < feed_count; ++i) {
-		feed_list[i].window = newwin(1, COLS, i + config_top_offset, config_left_offset);
+		feed_list[i].window = subpad(feed_pad, 1, COLS - config_left_offset, i + config_top_offset, config_left_offset);
 		if (i == feed_sel) wattron(feed_list[i].window, A_REVERSE);
 
 		// print window contents considering number and relativenumber settings
@@ -180,7 +183,8 @@ feeds_menu(void)
 		/*}*/
 
 		if (i == feed_sel) wattroff(feed_list[i].window, A_REVERSE);
-		wrefresh(feed_list[i].window);
+		/*wrefresh(feed_list[i].window);*/
+		prefresh(feed_pad, 0, 0, 0, 0, LINES, COLS - config_left_offset);
 	}
 
 
@@ -233,12 +237,12 @@ feed_select(int i)
 	}
 	if (feed_list[new_sel].feed->feed_url != NULL && new_sel != feed_sel) {
 		mvwprintw(feed_list[feed_sel].window, 0, 0, "%s", feed_image(feed_list[feed_sel].feed));
-		wrefresh(feed_list[feed_sel].window);
+		prefresh(feed_list[feed_sel].window, 0, 0, feed_sel + config_top_offset, config_left_offset, LINES, COLS);
 		feed_sel = new_sel;
 		wattron(feed_list[feed_sel].window, A_REVERSE);
 		mvwprintw(feed_list[feed_sel].window, 0, 0, "%s", feed_image(feed_list[feed_sel].feed));
 		wattroff(feed_list[feed_sel].window, A_REVERSE);
-		wrefresh(feed_list[feed_sel].window);
+		prefresh(feed_list[feed_sel].window, 0, 0, feed_sel + config_top_offset, config_left_offset, LINES, COLS);
 	}
 }
 

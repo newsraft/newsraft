@@ -10,6 +10,7 @@
 static struct item_window *item_list = NULL;
 static int item_sel = -1;
 static int item_count = 0;
+static WINDOW *item_pad;
 
 static enum menu_dest menu_items(void);
 
@@ -112,6 +113,7 @@ hide_items(void)
 			delwin(item_list[i].window);
 		}
 	}
+	if (item_pad != NULL) delwin(item_pad);
 }
 
 int
@@ -127,12 +129,14 @@ items_menu(char *data_path)
 
 	clear();
 	refresh();
+	item_pad = newpad(item_count + config_top_offset, COLS);
 	for (int i = 0; i < item_count; ++i) {
-		item_list[i].window = newwin(1, COLS, i + config_top_offset, config_left_offset);
+		item_list[i].window = subpad(item_pad, 1, COLS - config_left_offset, i + config_top_offset, config_left_offset);
 		if (i == item_sel) wattron(item_list[i].window, A_REVERSE);
 		mvwprintw(item_list[i].window, 0, 0, "%s\n", item_image(item_list[i].item));
 		if (i == item_sel) wattroff(item_list[i].window, A_REVERSE);
 		wrefresh(item_list[i].window);
+		prefresh(item_pad, 0, 0, 0, 0, LINES, COLS - config_left_offset);
 	}
 
 	int dest = menu_items();
@@ -141,11 +145,11 @@ items_menu(char *data_path)
 		contents_menu();
 	} else if (dest == MENU_EXIT) {
 		free_item_list();
-		return 1;
+		return 0;
 	}
 
 	items_menu(data_path);
-	return 1;
+	return 0;
 }
 
 static void
@@ -160,12 +164,12 @@ item_select(int i)
 	}
 	if (new_sel != item_sel) {
 		mvwprintw(item_list[item_sel].window, 0, 0, "%s\n", item_image(item_list[item_sel].item));
-		wrefresh(item_list[item_sel].window);
+		prefresh(item_list[item_sel].window, 0, 0, item_sel + config_top_offset, config_left_offset, LINES, COLS);
 		item_sel = new_sel;
 		wattron(item_list[item_sel].window, A_REVERSE);
 		mvwprintw(item_list[item_sel].window, 0, 0, "%s\n", item_image(item_list[item_sel].item));
 		wattroff(item_list[item_sel].window, A_REVERSE);
-		wrefresh(item_list[item_sel].window);
+		prefresh(item_list[item_sel].window, 0, 0, item_sel + config_top_offset, config_left_offset, LINES, COLS);
 	}
 }
 

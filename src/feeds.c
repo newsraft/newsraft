@@ -1,8 +1,6 @@
-#include <ncurses.h>
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdint.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include "feedeater.h"
@@ -12,10 +10,11 @@
 
 static enum menu_dest menu_feeds(void);
 static struct feed_window *feed_list = NULL;
+static int view_min = 0;
+static int view_max = -1;
 static int feed_sel = -1;
 static int feed_count = 0;
 static int do_clear = 1;
-static WINDOW *feed_pad;
 
 static void
 free_feed_list(void)
@@ -144,15 +143,35 @@ feed_image(struct feed_entry *feed) {
 	return feed->name ? feed->name : feed->feed_url;
 }
 
-void
+static void
+show_feeds(void)
+{
+	for (int i = view_min, j = 0; i < feed_count && i < view_max; ++i, ++j) {
+		feed_list[i].window = newwin(1, COLS - config_left_offset, j + config_top_offset, config_left_offset);
+		if (i == feed_sel) wattron(feed_list[i].window, A_REVERSE);
+		// print window contents considering number and relativenumber settings
+		/*if (config_number == 1) {*/
+			/*if (feed_list[i].feed->feed_url == NULL) {*/
+				/*mvwprintw(feed_list[i].window, 0, 0, "     %s", feed_list[i].feed->name);*/
+			/*} else {*/
+				/*mvwprintw(feed_list[i].window, 0, 0, "%3d  %s", i + 1, feed_image(feed_list[i].feed));*/
+			/*}*/
+		/*} else {*/
+		mvwprintw(feed_list[i].window, 0, 0, "%s", feed_image(feed_list[i].feed));
+		/*}*/
+		if (i == feed_sel) wattroff(feed_list[i].window, A_REVERSE);
+		wrefresh(feed_list[i].window);
+	}
+}
+
+static void
 hide_feeds(void)
 {
-	for (int i = 0; i < feed_count; ++i) {
+	for (int i = view_min; i < feed_count && i < view_max; ++i) {
 		if (feed_list[i].window != NULL) {
 			delwin(feed_list[i].window);
 		}
 	}
-	if (feed_pad != NULL) delwin(feed_pad);
 }
 
 void
@@ -165,29 +184,8 @@ feeds_menu(void)
 	} else {
 		do_clear = 1;
 	}
-
-	feed_pad = newpad(feed_count + config_top_offset, COLS);
-	for (int i = 0; i < feed_count; ++i) {
-		feed_list[i].window = subpad(feed_pad, 1, COLS - config_left_offset, i + config_top_offset, config_left_offset);
-		if (i == feed_sel) wattron(feed_list[i].window, A_REVERSE);
-
-		// print window contents considering number and relativenumber settings
-		/*if (config_number == 1) {*/
-			/*if (feed_list[i].feed->feed_url == NULL) {*/
-				/*mvwprintw(feed_list[i].window, 0, 0, "     %s", feed_list[i].feed->name);*/
-			/*} else {*/
-				/*mvwprintw(feed_list[i].window, 0, 0, "%3d  %s", i + 1, feed_image(feed_list[i].feed));*/
-			/*}*/
-		/*} else {*/
-		mvwprintw(feed_list[i].window, 0, 0, "%s", feed_image(feed_list[i].feed));
-		/*}*/
-
-		if (i == feed_sel) wattroff(feed_list[i].window, A_REVERSE);
-		/*wrefresh(feed_list[i].window);*/
-		prefresh(feed_pad, 0, 0, 0, 0, LINES, COLS - config_left_offset);
-	}
-
-
+	if (view_max == -1) view_max = LINES - 1;
+	show_feeds();
 	int dest = menu_feeds();
 	hide_feeds();
 	if (dest == MENU_EXIT) {
@@ -210,39 +208,60 @@ static void
 feed_select(int i)
 {
 	int new_sel = i, j;
+
+	// perform boundary check
 	if (new_sel < 0) {
 		new_sel = 0;
 	} else if (new_sel >= feed_count) {
 		new_sel = feed_count - 1;
 		if (new_sel < 0) return;
 	}
-	if (new_sel > feed_sel && feed_list[new_sel].feed->feed_url == NULL) {
-		for (j = new_sel; (j < feed_count) && (feed_list[j].feed->feed_url == NULL); ++j);
-		if (j < feed_count) {
-			new_sel = j;
-		} else {
-			for (j = feed_sel; j < feed_count; ++j) {
-				if (feed_list[j].feed->feed_url != NULL) new_sel = j;
+
+	// skip decorations
+	if (feed_list[new_sel].feed->feed_url == NULL) {
+		if (new_sel > feed_sel) {
+			for (j = new_sel + 1; (j < feed_count) && (feed_list[j].feed->feed_url == NULL); ++j);
+			if (j < feed_count) {
+				new_sel = j;
+			} else {
+				for (j = feed_sel; j < feed_count; ++j) {
+					if (feed_list[j].feed->feed_url != NULL) new_sel = j;
+				}
 			}
-		}
-	} else if (new_sel < feed_sel && feed_list[new_sel].feed->feed_url == NULL) {
-		for (j = new_sel; (j > -1) && (feed_list[j].feed->feed_url == NULL); --j);
-		if (j > -1) {
-			new_sel = j;
-		} else {
-			for (j = feed_sel; j > -1; --j) {
-				if (feed_list[j].feed->feed_url != NULL) new_sel = j;
+		} else if (new_sel < feed_sel) {
+			for (j = new_sel - 1; (j > -1) && (feed_list[j].feed->feed_url == NULL); --j);
+			if (j > -1) {
+				new_sel = j;
+			} else {
+				for (j = feed_sel; j > -1; --j) {
+					if (feed_list[j].feed->feed_url != NULL) new_sel = j;
+				}
 			}
 		}
 	}
+
 	if (feed_list[new_sel].feed->feed_url != NULL && new_sel != feed_sel) {
-		mvwprintw(feed_list[feed_sel].window, 0, 0, "%s", feed_image(feed_list[feed_sel].feed));
-		prefresh(feed_list[feed_sel].window, 0, 0, feed_sel + config_top_offset, config_left_offset, LINES, COLS);
-		feed_sel = new_sel;
-		wattron(feed_list[feed_sel].window, A_REVERSE);
-		mvwprintw(feed_list[feed_sel].window, 0, 0, "%s", feed_image(feed_list[feed_sel].feed));
-		wattroff(feed_list[feed_sel].window, A_REVERSE);
-		prefresh(feed_list[feed_sel].window, 0, 0, feed_sel + config_top_offset, config_left_offset, LINES, COLS);
+		if (new_sel >= view_max) {
+			hide_feeds();
+			view_min += new_sel - feed_sel;
+			view_max += new_sel - feed_sel;
+			feed_sel = new_sel;
+			show_feeds();
+		} else if (new_sel < view_min) {
+			hide_feeds();
+			view_min -= feed_sel - new_sel;
+			view_max -= feed_sel - new_sel;
+			feed_sel = new_sel;
+			show_feeds();
+		} else {
+			mvwprintw(feed_list[feed_sel].window, 0, 0, "%s", feed_image(feed_list[feed_sel].feed));
+			wrefresh(feed_list[feed_sel].window);
+			feed_sel = new_sel;
+			wattron(feed_list[feed_sel].window, A_REVERSE);
+			mvwprintw(feed_list[feed_sel].window, 0, 0, "%s", feed_image(feed_list[feed_sel].feed));
+			wattroff(feed_list[feed_sel].window, A_REVERSE);
+			wrefresh(feed_list[feed_sel].window);
+		}
 	}
 }
 

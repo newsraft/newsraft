@@ -3,7 +3,7 @@
 
 uint8_t config_top_offset = 0;
 uint8_t config_left_offset = 1;
-uint16_t config_max_items = 5;
+int64_t config_max_items = 100;
 uint8_t config_number = 1;
 
 // if cur_char is equal to one of the elements from list, then

@@ -2,10 +2,11 @@
 #define FEEDEATER_H
 #include <ncurses.h>
 #include <stdbool.h>
+#include <inttypes.h>
 #include <expat.h>
 #include <wchar.h>
 #define MAXPATH 512
-#define MAX_ITEM_INDEX_LEN 10
+#define MAX_ITEM_INDEX_LEN 20
 #ifndef XML_LARGE_SIZE
 #define XML_LARGE_SIZE
 #endif
@@ -24,6 +25,7 @@
 #ifndef XML_FMT_STR
 #define XML_FMT_STR "s"
 #endif
+
 
 struct string {
 	char *ptr;
@@ -83,18 +85,17 @@ enum menu_dest {
 
 struct feed_parser_data {
 	int depth;
-	int item_index;
+	int64_t item_index;
 	enum xml_pos pos;
 	char *feed_path;
 	char *item_path;
-	int border_index;
+	int64_t border_index;
 	bool past_line;
 };
 
-void set_last_item_index(char *feed_path, int index);
-int get_last_item_index(char *feed_path);
-char *feed_data_path(char *url, int num);
-char *item_data_path(char *feed_path, int num);
+void set_last_item_index(char *feed_path, int64_t index);
+int64_t get_last_item_index(char *feed_path);
+char *item_data_path(char *feed_path, int64_t num);
 char *export_feed_value(char *url, char *element);
 void write_feed_element(char *feed_path, char *element, void *data, size_t size);
 void write_item_element(char *item_path, char *element, void *data, size_t size);
@@ -102,7 +103,6 @@ void write_item_element(char *item_path, char *element, void *data, size_t size)
 void contents_menu(void);
 int load_feed_list(void);  // load feeds information in memory
 void feeds_menu(void);     // display feeds in an interactive list
-void hide_feeds(void);     // hide interactive list of feeds
 int items_menu(char *url);
 char *get_config_file_path(char *file_name);
 char *make_feed_dir(char *url);

@@ -117,7 +117,7 @@ parse_rss20(XML_Parser *parser, char *feed_path)
 	/*status_write("rss20 beign parsed");*/
 	/*return NULL;*/
 
-	int last_item_index = get_last_item_index(feed_path);
+	int64_t last_item_index = get_last_item_index(feed_path);
 	struct feed_parser_data feed_data = {0, last_item_index, IN_ROOT, feed_path, NULL, last_item_index, false};
 
 	XML_SetUserData(*parser, &feed_data);

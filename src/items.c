@@ -10,7 +10,8 @@
 static struct item_window *item_list = NULL;
 static int item_sel = -1;
 static int item_count = 0;
-static WINDOW *item_pad;
+static int view_min = 0;
+static int view_max = -1;
 
 static enum menu_dest menu_items(void);
 
@@ -52,9 +53,9 @@ load_item_list(char *data_path)
 	     *value = malloc(sizeof(char) * size),
 	     *path = malloc(sizeof(char) * MAXPATH);
 	FILE *f;
-	int border_index = get_last_item_index(data_path);
+	int64_t border_index = get_last_item_index(data_path);
 	bool past_line = false;
-	for (int i = border_index + 1; ; ++i) {
+	for (int64_t i = border_index + 1; ; ++i) {
 		if (past_line == false && i > config_max_items) {
 			past_line = true;
 			i = 1;
@@ -63,7 +64,7 @@ load_item_list(char *data_path)
 			break;
 		}
 		strcpy(path, data_path);
-		sprintf(item_num, "%d/", i);
+		sprintf(item_num, "%" PRId64 "/", i);
 		strcat(path, item_num);
 		strcat(path, "title");
 		f = fopen(path, "r");
@@ -105,15 +106,26 @@ load_item_list(char *data_path)
 	return 0;
 }
 
-void
+static void
+show_items(void)
+{
+	for (int i = view_min, j = 0; i < item_count && i < view_max; ++i, ++j) {
+		item_list[i].window = newwin(1, COLS - config_left_offset, j + config_top_offset, config_left_offset);
+		if (i == item_sel) wattron(item_list[i].window, A_REVERSE);
+		mvwprintw(item_list[i].window, 0, 0, "%s", item_image(item_list[i].item));
+		if (i == item_sel) wattroff(item_list[i].window, A_REVERSE);
+		wrefresh(item_list[i].window);
+	}
+}
+
+static void
 hide_items(void)
 {
-	for (int i = 0; i < item_count; ++i) {
+	for (int i = view_min; i < item_count && i < view_max; ++i) {
 		if (item_list[i].window != NULL) {
 			delwin(item_list[i].window);
 		}
 	}
-	if (item_pad != NULL) delwin(item_pad);
 }
 
 int
@@ -125,20 +137,14 @@ items_menu(char *data_path)
 			free_item_list();
 			return load_status;
 		}
+		view_min = 0;
+		view_max = LINES - 1;
 	}
 
 	clear();
 	refresh();
-	item_pad = newpad(item_count + config_top_offset, COLS);
-	for (int i = 0; i < item_count; ++i) {
-		item_list[i].window = subpad(item_pad, 1, COLS - config_left_offset, i + config_top_offset, config_left_offset);
-		if (i == item_sel) wattron(item_list[i].window, A_REVERSE);
-		mvwprintw(item_list[i].window, 0, 0, "%s\n", item_image(item_list[i].item));
-		if (i == item_sel) wattroff(item_list[i].window, A_REVERSE);
-		wrefresh(item_list[i].window);
-		prefresh(item_pad, 0, 0, 0, 0, LINES, COLS - config_left_offset);
-	}
 
+	show_items();
 	int dest = menu_items();
 	hide_items();
 	if (dest == MENU_CONTENTS) {
@@ -162,14 +168,29 @@ item_select(int i)
 		new_sel = item_count - 1;
 		if (new_sel < 0) return;
 	}
+
 	if (new_sel != item_sel) {
-		mvwprintw(item_list[item_sel].window, 0, 0, "%s\n", item_image(item_list[item_sel].item));
-		prefresh(item_list[item_sel].window, 0, 0, item_sel + config_top_offset, config_left_offset, LINES, COLS);
-		item_sel = new_sel;
-		wattron(item_list[item_sel].window, A_REVERSE);
-		mvwprintw(item_list[item_sel].window, 0, 0, "%s\n", item_image(item_list[item_sel].item));
-		wattroff(item_list[item_sel].window, A_REVERSE);
-		prefresh(item_list[item_sel].window, 0, 0, item_sel + config_top_offset, config_left_offset, LINES, COLS);
+		if (new_sel >= view_max) {
+			hide_items();
+			view_min += new_sel - item_sel;
+			view_max += new_sel - item_sel;
+			item_sel = new_sel;
+			show_items();
+		} else if (new_sel < view_min) {
+			hide_items();
+			view_min -= item_sel - new_sel;
+			view_max -= item_sel - new_sel;
+			item_sel = new_sel;
+			show_items();
+		} else {
+			mvwprintw(item_list[item_sel].window, 0, 0, "%s", item_image(item_list[item_sel].item));
+			wrefresh(item_list[item_sel].window);
+			item_sel = new_sel;
+			wattron(item_list[item_sel].window, A_REVERSE);
+			mvwprintw(item_list[item_sel].window, 0, 0, "%s", item_image(item_list[item_sel].item));
+			wattroff(item_list[item_sel].window, A_REVERSE);
+			wrefresh(item_list[item_sel].window);
+		}
 	}
 }
 
@@ -184,7 +205,7 @@ menu_items(void)
 		if      (ch == 'j' || ch == KEY_DOWN)                                   { item_select(item_sel + 1); }
 		else if (ch == 'k' || ch == KEY_UP)                                     { item_select(item_sel - 1); }
 		else if (ch == 'l' || ch == KEY_RIGHT || ch == '\n' || ch == KEY_ENTER) { return MENU_CONTENTS; }
-		else if (ch == 'h' || ch == KEY_LEFT)                                   { return MENU_EXIT; }
+		else if (ch == 'h' || ch == KEY_LEFT  || ch == 'q')                     { return MENU_EXIT; }
 		else if (ch == 'G')                                                     { item_select(item_count - 1); }
 		else if (ch == 'g' && wgetch(input_win) == 'g')                         { item_select(0); }
 		else if (isdigit(ch)) {
@@ -210,14 +231,14 @@ menu_items(void)
 }
 
 char *
-item_data_path(char *feed_path, int num)
+item_data_path(char *feed_path, int64_t num)
 {
 	if (feed_path == NULL) return NULL;
 	char *path = malloc(sizeof(char) * MAXPATH);
 	if (path == NULL) return NULL;
 	strcpy(path, feed_path);
 	char dir_name[MAX_ITEM_INDEX_LEN];
-	sprintf(dir_name, "%d", num);
+	sprintf(dir_name, "%" PRId64 "", num);
 	strcat(path, dir_name);
 	strcat(path, "/");
 	mkdir(path, 0777);
@@ -225,7 +246,7 @@ item_data_path(char *feed_path, int num)
 }
 
 void
-set_last_item_index(char *feed_path, int index)
+set_last_item_index(char *feed_path, int64_t index)
 {
 	char *path = malloc(sizeof(char) * MAXPATH);
 	if (path == NULL) {
@@ -237,11 +258,11 @@ set_last_item_index(char *feed_path, int index)
 	FILE *f = fopen(path, "w");
 	free(path);
 	if (f == NULL) return;
-	fprintf(f, "%d", index);
+	fprintf(f, "%" PRId64 "", index);
 	fclose(f);
 }
 
-int
+int64_t
 get_last_item_index(char *feed_path)
 {
 	char *path = malloc(sizeof(char) * MAXPATH);
@@ -255,11 +276,13 @@ get_last_item_index(char *feed_path)
 	free(path);
 	if (f == NULL) { return 0; }
 	int i = 0;
-	char index[MAX_ITEM_INDEX_LEN], c;
-	while ((c = fgetc(f)) != EOF) index[i++] = c;
-	index[i] = '\0';
+	char index_str[MAX_ITEM_INDEX_LEN], c;
+	while ((c = fgetc(f)) != EOF) index_str[i++] = c;
+	index_str[i] = '\0';
 	fclose(f);
-	return atoi(index);
+	int64_t index = 0;
+	sscanf(index_str, "%" SCNd64 "", &index);
+	return index;
 }
 
 void

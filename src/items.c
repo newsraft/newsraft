@@ -10,8 +10,8 @@
 static struct item_window *item_list = NULL;
 static int item_sel = -1;
 static int item_count = 0;
-static int view_min = 0;
-static int view_max = -1;
+static int view_min;
+static int view_max;
 
 static enum menu_dest menu_items(void);
 
@@ -84,6 +84,7 @@ load_item_list(char *data_path)
 			if (item_list != NULL) {
 				item_list[item_index].item = calloc(1, sizeof(struct item_entry));
 				if (item_list[item_index].item != NULL) {
+					item_list[item_index].item->index = i;
 					item_list[item_index].item->name = malloc(sizeof(char) * (count + 1));
 					if (item_list[item_index].item->name != NULL) {
 						strcpy(item_list[item_index].item->name, value);
@@ -148,7 +149,7 @@ items_menu(char *data_path)
 	int dest = menu_items();
 	hide_items();
 	if (dest == MENU_CONTENTS) {
-		contents_menu();
+		contents_menu(data_path, item_list[item_sel].item->index);
 	} else if (dest == MENU_EXIT) {
 		free_item_list();
 		return 0;
@@ -231,14 +232,14 @@ menu_items(void)
 }
 
 char *
-item_data_path(char *feed_path, int64_t num)
+item_data_path(char *feed_path, int64_t index)
 {
 	if (feed_path == NULL) return NULL;
 	char *path = malloc(sizeof(char) * MAXPATH);
 	if (path == NULL) return NULL;
 	strcpy(path, feed_path);
 	char dir_name[MAX_ITEM_INDEX_LEN];
-	sprintf(dir_name, "%" PRId64 "", num);
+	sprintf(dir_name, "%" PRId64 "", index);
 	strcat(path, dir_name);
 	strcat(path, "/");
 	mkdir(path, 0777);
@@ -283,6 +284,31 @@ get_last_item_index(char *feed_path)
 	int64_t index = 0;
 	sscanf(index_str, "%" SCNd64 "", &index);
 	return index;
+}
+
+char *
+read_item_element(char *item_path, char *element)
+{
+	char *path = malloc(sizeof(char) * MAXPATH);
+	if (path == NULL) return NULL;
+	strcpy(path, item_path);
+	strcat(path, element);
+	FILE *f = fopen(path, "r");
+	free(path);
+	if (f == NULL) return NULL;
+	int size = 32, count = 0;
+	char *value = malloc(sizeof(char) * size);
+	char c;
+	while ((c = fgetc(f)) != EOF) {
+		value[count++] = c;
+		if (count == size) {
+			size *= 2;
+			value = realloc(value, sizeof(char) * size);
+		}
+	}
+	value[count] = '\0';
+	fclose(f);
+	return value;
 }
 
 void

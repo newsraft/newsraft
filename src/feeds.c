@@ -88,7 +88,7 @@ load_feed_list(void)
 				if (feed_list[feed_index].feed->path == NULL) {
 					error = 1; fprintf(stderr, "could not set directory for \"%s\"!\n", feed_list[feed_index].feed->feed_url);
 				} else {
-					feed_list[feed_index].feed->site_url = export_feed_value(feed_list[feed_index].feed->path, "link");
+					feed_list[feed_index].feed->site_url = read_feed_element(feed_list[feed_index].feed->path, "link");
 				}
 				break;
 			}
@@ -324,7 +324,7 @@ menu_feeds(void)
 }
 
 char *
-export_feed_value(char *feed_path, char *element)
+read_feed_element(char *feed_path, char *element)
 {
 	char *path = malloc(sizeof(char) * MAXPATH);
 	if (path == NULL) return NULL;

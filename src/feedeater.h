@@ -33,7 +33,7 @@ struct string {
 };
 
 struct feed_entry {
-	char *name;     // remote name of feed
+	char *name;
 	char *feed_url; // url of feed
 	char *site_url; // url of site
 	char *path;     // path to data directory
@@ -45,8 +45,9 @@ struct feed_window {
 };
 
 struct item_entry {
-	char *name; // name of item
-	char *url;  // url to item
+	char *name;    // name of item
+	char *url;     // url to item
+	int64_t index; // index of item
 };
 
 struct item_window {
@@ -93,28 +94,37 @@ struct feed_parser_data {
 	bool past_line;
 };
 
-void set_last_item_index(char *feed_path, int64_t index);
-int64_t get_last_item_index(char *feed_path);
-char *item_data_path(char *feed_path, int64_t num);
-char *export_feed_value(char *url, char *element);
-void write_feed_element(char *feed_path, char *element, void *data, size_t size);
-void write_item_element(char *item_path, char *element, void *data, size_t size);
 
-void contents_menu(void);
+// feeds
+
 int load_feed_list(void);  // load feeds information in memory
 void feeds_menu(void);     // display feeds in an interactive list
+char *read_feed_element(char *feed_path, char *element);
+void write_feed_element(char *feed_path, char *element, void *data, size_t size);
+
+
+// items
+
 int items_menu(char *url);
+int64_t get_last_item_index(char *feed_path);
+void set_last_item_index(char *feed_path, int64_t index);
+char *item_data_path(char *feed_path, int64_t index);
+char *read_item_element(char *item_path, char *element);
+void write_item_element(char *item_path, char *element, void *data, size_t size);
+
+
+// contents
+void contents_menu(char *, int64_t);
+
+
+// path
 char *get_config_file_path(char *file_name);
 char *make_feed_dir(char *url);
 
-struct string *feed_download(char *url);
+
+// feed parsing
 
 int feed_process(struct string *buf, struct feed_entry *feed);
-
-
-// parsing
-
-void skip_chars(FILE *file, char *cur_char, char *list);
 
 // xml parsers for different versions of feeds
 int parse_rss20(XML_Parser *parser, char *feed_path);  // RSS 2.0
@@ -126,6 +136,11 @@ int parse_rss091(XML_Parser *parser, char *feed_path); // RSS 0.91
 int parse_rss090(XML_Parser *parser, char *feed_path); // RSS 0.90
 int parse_atom10(XML_Parser *parser, char *feed_path); // Atom 1.0
 int parse_atom03(XML_Parser *parser, char *feed_path); // Atom 0.3
+
+
+// config parsing
+
+void skip_chars(FILE *file, char *cur_char, char *list);
 
 
 // ncurses
@@ -141,4 +156,8 @@ int input_create(void);
 void input_delete(void);
 // variable with input window
 extern WINDOW *input_win;
+
+
+// curl
+struct string *feed_download(char *url);
 #endif // FEEDEATER_H

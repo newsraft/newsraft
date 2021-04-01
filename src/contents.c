@@ -12,22 +12,27 @@ static int view_max;
 static void
 print_content(char *item_path)
 {
-	char *title = read_item_element(item_path, "title");
+	char *title = read_item_element(item_path, TITLE_FILE);
 	if (title != NULL) {
 		waddstr(window, "Title: "); waddstr(window, title); waddch(window, '\n');
 		free(title);
 	}
-	char *author = read_item_element(item_path, "author");
+	char *date = read_item_element(item_path, PUBDATE_FILE);
+	if (date != NULL) {
+		waddstr(window, "Date: "); waddstr(window, date); waddch(window, '\n');
+		free(date);
+	}
+	char *author = read_item_element(item_path, AUTHOR_FILE);
 	if (author != NULL) {
 		waddstr(window, "Author: "); waddstr(window, author); waddch(window, '\n');
 		free(author);
 	}
-	char *link = read_item_element(item_path, "link");
+	char *link = read_item_element(item_path, LINK_FILE);
 	if (link != NULL) {
 		waddstr(window, "Link: "); waddstr(window, link); waddch(window, '\n');
 		free(link);
 	}
-	char *description = read_item_element(item_path, "description");
+	char *description = read_item_element(item_path, CONTENT_FILE);
 	if (description != NULL) {
 		waddch(window, '\n');
 		waddstr(window, description);

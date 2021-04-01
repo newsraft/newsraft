@@ -66,20 +66,19 @@ feed_process(struct string *buf, struct feed_entry *feed)
 								 /*XML_GetCurrentLineNumber(parser));*/
 		status_write("[invalid format] %s", feed->feed_url); // bad xml document
 		XML_ParserFree(parser);
-		return 0;
+		return 1;
 	}
 	if (parser_data.parser_func == NULL) {
 		status_write("[unknown format] %s", feed->feed_url);
-		return 0;
+		return 1;
 	}
 
 	int parsing_done = parser_data.parser_func(&parser, feed->path);
 	XML_ParserFree(parser);
 	if (parsing_done == 0) {
 		status_write("[incorrect format] %s", feed->feed_url);
-		return 0;
+		return 1;
 	}
 
-	status_clean();
-	return 1;
+	return 0;
 }

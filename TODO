@@ -1,4 +1,0 @@
-if all elements of new item are equal to elements of one of the other item, then set this item unread
-(implement function which compares given item to all of the items in feed)
-
-take guid tag into account! this is used to identify new feed items, very useful thing

@@ -54,9 +54,7 @@ feed_download(char *url)
 	/*curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, curl_errbuf);*/
 	int error = curl_easy_perform(curl);
 
-	if (error == CURLE_OK) {
-		status_clean();
-	} else {
+	if (error != CURLE_OK) {
 		status_write("[download failed] %s", url);
 		free(buf->ptr);
 		free(buf);

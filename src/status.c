@@ -1,4 +1,3 @@
-#include <ncurses.h>
 #include <stdarg.h>
 #include "feedeater.h"
 

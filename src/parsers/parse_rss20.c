@@ -30,6 +30,8 @@ startElement(void *userData, const XML_Char *name, const XML_Char **atts) {
 	} else if (strcmp(name, "title") == 0)     data->pos |= IN_TITLE_ELEMENT;
 	else if (strcmp(name, "description") == 0) data->pos |= IN_DESCRIPTION_ELEMENT;
 	else if (strcmp(name, "link") == 0)        data->pos |= IN_LINK_ELEMENT;
+	else if (strcmp(name, "pubDate") == 0)     data->pos |= IN_PUBDATE_ELEMENT;
+	else if (strcmp(name, "guid") == 0)        data->pos |= IN_GUID_ELEMENT;
 	else if (strcmp(name, "category") == 0)    data->pos |= IN_CATEGORY_ELEMENT;
 	else if (strcmp(name, "comments") == 0)    data->pos |= IN_COMMENTS_ELEMENT;
 	else if (strcmp(name, "author") == 0)      data->pos |= IN_AUTHOR_ELEMENT;
@@ -52,43 +54,57 @@ endElement(void *userData, const XML_Char *name) {
 		data->pos &= ~IN_TITLE_ELEMENT;
 		if ((data->pos & IN_CHANNEL_ELEMENT) != 0) {
 			if ((data->pos & IN_ITEM_ELEMENT) != 0) {
-				write_item_element(data->item_path, "title", value, sizeof(char) * value_len);
+				write_item_element(data->item_path, TITLE_FILE, value, sizeof(char) * value_len);
 			} else {
-				write_feed_element(data->feed_path, "title", value, sizeof(char) * value_len);
+				write_feed_element(data->feed_path, TITLE_FILE, value, sizeof(char) * value_len);
 			}
 		}
 	} else if (strcmp(name, "description") == 0) {
 		data->pos &= ~IN_DESCRIPTION_ELEMENT;
 		if ((data->pos & IN_CHANNEL_ELEMENT) != 0) {
 			if ((data->pos & IN_ITEM_ELEMENT) != 0) {
-				write_item_element(data->item_path, "description", value, sizeof(char) * value_len);
+				write_item_element(data->item_path, CONTENT_FILE, value, sizeof(char) * value_len);
 			} else {
-				write_feed_element(data->feed_path, "description", value, sizeof(char) * value_len);
+				write_feed_element(data->feed_path, CONTENT_FILE, value, sizeof(char) * value_len);
 			}
 		}
 	} else if (strcmp(name, "link") == 0) {
 		data->pos &= ~IN_LINK_ELEMENT;
 		if ((data->pos & IN_CHANNEL_ELEMENT) != 0) {
 			if ((data->pos & IN_ITEM_ELEMENT) != 0) {
-				write_item_element(data->item_path, "link", value, sizeof(char) * value_len);
+				write_item_element(data->item_path, LINK_FILE, value, sizeof(char) * value_len);
 			} else {
-				write_feed_element(data->feed_path, "link", value, sizeof(char) * value_len);
+				write_feed_element(data->feed_path, LINK_FILE, value, sizeof(char) * value_len);
 			}
+		}
+	} else if (strcmp(name, "pubDate") == 0) {
+		data->pos &= ~IN_PUBDATE_ELEMENT;
+		if ((data->pos & IN_CHANNEL_ELEMENT) != 0) {
+			if ((data->pos & IN_ITEM_ELEMENT) != 0) {
+				write_item_element(data->item_path, PUBDATE_FILE, value, sizeof(char) * value_len);
+			} else {
+				write_feed_element(data->feed_path, PUBDATE_FILE, value, sizeof(char) * value_len);
+			}
+		}
+	} else if (strcmp(name, "guid") == 0) {
+		data->pos &= ~IN_GUID_ELEMENT;
+		if (((data->pos & IN_CHANNEL_ELEMENT) != 0) && ((data->pos & IN_ITEM_ELEMENT) != 0)) {
+			write_item_element(data->item_path, UNIQUE_ID_FILE, value, sizeof(char) * value_len);
 		}
 	} else if (strcmp(name, "category") == 0) {
 		data->pos &= ~IN_CATEGORY_ELEMENT;
 		if (((data->pos & IN_CHANNEL_ELEMENT) != 0) && ((data->pos & IN_ITEM_ELEMENT) != 0)) {
-			write_item_element(data->item_path, "category", value, sizeof(char) * value_len);
+			write_item_element(data->item_path, CATEGORY_FILE, value, sizeof(char) * value_len);
 		}
 	} else if (strcmp(name, "comments") == 0) {
 		data->pos &= ~IN_COMMENTS_ELEMENT;
 		if (((data->pos & IN_CHANNEL_ELEMENT) != 0) && ((data->pos & IN_ITEM_ELEMENT) != 0)) {
-			write_item_element(data->item_path, "comments", value, sizeof(char) * value_len);
+			write_item_element(data->item_path, COMMENTS_FILE, value, sizeof(char) * value_len);
 		}
 	} else if (strcmp(name, "author") == 0) {
 		data->pos &= ~IN_AUTHOR_ELEMENT;
 		if (((data->pos & IN_CHANNEL_ELEMENT) != 0) && ((data->pos & IN_ITEM_ELEMENT) != 0)) {
-			write_item_element(data->item_path, "author", value, sizeof(char) * value_len);
+			write_item_element(data->item_path, AUTHOR_FILE, value, sizeof(char) * value_len);
 		}
 	} else if (strcmp(name, "channel") == 0) {
 		data->pos &= ~IN_CHANNEL_ELEMENT;

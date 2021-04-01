@@ -5,6 +5,14 @@
 #include <inttypes.h>
 #include <expat.h>
 #include <wchar.h>
+#define UNIQUE_ID_FILE "uid"
+#define TITLE_FILE "title"
+#define LINK_FILE "link"
+#define CATEGORY_FILE "category"
+#define COMMENTS_FILE "comments"
+#define PUBDATE_FILE "pubdate"
+#define CONTENT_FILE "content"
+#define AUTHOR_FILE "author"
 #define MAXPATH 512
 #define MAX_ITEM_INDEX_LEN 20
 #ifndef XML_LARGE_SIZE
@@ -25,7 +33,6 @@
 #ifndef XML_FMT_STR
 #define XML_FMT_STR "s"
 #endif
-
 
 struct string {
 	char *ptr;
@@ -67,14 +74,15 @@ enum xml_pos {
 	IN_TITLE_ELEMENT = 2,
 	IN_DESCRIPTION_ELEMENT = 4,
 	IN_LINK_ELEMENT = 8,
-	IN_CATEGORY_ELEMENT = 16,
-	IN_COMMENTS_ELEMENT = 32,
-	IN_AUTHOR_ELEMENT = 64,
-	IN_PUBDATE_ELEMENT = 128,
-	IN_ENCLOSURE_ELEMENT = 256,
-	IN_SOURCE_ELEMENT = 512,
-	IN_IMAGE_ELEMENT = 1024,
-	IN_CHANNEL_ELEMENT = 2048,
+	IN_PUBDATE_ELEMENT = 16,
+	IN_GUID_ELEMENT = 32,
+	IN_CATEGORY_ELEMENT = 64,
+	IN_COMMENTS_ELEMENT = 128,
+	IN_AUTHOR_ELEMENT = 256,
+	IN_ENCLOSURE_ELEMENT = 512,
+	IN_SOURCE_ELEMENT = 1024,
+	IN_IMAGE_ELEMENT = 2048,
+	IN_CHANNEL_ELEMENT = 4096,
 };
 
 enum menu_dest {

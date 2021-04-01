@@ -66,7 +66,7 @@ load_item_list(char *data_path)
 		strcpy(path, data_path);
 		sprintf(item_num, "%" PRId64 "/", i);
 		strcat(path, item_num);
-		strcat(path, "title");
+		strcat(path, TITLE_FILE);
 		f = fopen(path, "r");
 		if (f == NULL) continue;
 		count = 0;

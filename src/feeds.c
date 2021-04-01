@@ -271,7 +271,7 @@ feed_reload(struct feed_window *feedwin)
 	struct string *buf = feed_download(feedwin->feed->feed_url);
 	if (buf == NULL) return;
 	if (buf->ptr == NULL) { free(buf); return; }
-	feed_process(buf, feedwin->feed);
+	if (feed_process(buf, feedwin->feed) == 0) status_clean();
 	free(buf->ptr);
 	free(buf);
 }

@@ -14,6 +14,7 @@ startElement(void *userData, const XML_Char *name, const XML_Char **atts) {
 	/*(void)atts;*/
 	struct feed_parser_data *data = userData;
 	if (strcmp(name, "item") == 0) {
+		// if IN_ITEM_ELEMENT is alredy 1, then EXIT parser with error
 		data->pos |= IN_ITEM_ELEMENT;
 		if (data->past_line == false && data->item_index > config_max_items) {
 			data->item_index = 0;
@@ -47,14 +48,18 @@ endElement(void *userData, const XML_Char *name) {
 	if (strcmp(name, "item") == 0) {
 		data->pos &= ~IN_ITEM_ELEMENT;
 		if (data->item_path != NULL) {
+			if (is_item_unique(data->bucket) == 1) {
+				take_item_bucket(data->bucket, data->item_path);
+			}
 			free(data->item_path);
 			data->item_path = NULL;
 		}
+		free_item_bucket(data->bucket);
 	} else if (strcmp(name, "title") == 0) {
 		data->pos &= ~IN_TITLE_ELEMENT;
 		if ((data->pos & IN_CHANNEL_ELEMENT) != 0) {
 			if ((data->pos & IN_ITEM_ELEMENT) != 0) {
-				write_item_element(data->item_path, TITLE_FILE, value, sizeof(char) * value_len);
+				malstrcpy(&data->bucket->title, value, sizeof(char) * value_len);
 			} else {
 				write_feed_element(data->feed_path, TITLE_FILE, value, sizeof(char) * value_len);
 			}
@@ -63,7 +68,7 @@ endElement(void *userData, const XML_Char *name) {
 		data->pos &= ~IN_DESCRIPTION_ELEMENT;
 		if ((data->pos & IN_CHANNEL_ELEMENT) != 0) {
 			if ((data->pos & IN_ITEM_ELEMENT) != 0) {
-				write_item_element(data->item_path, CONTENT_FILE, value, sizeof(char) * value_len);
+				malstrcpy(&data->bucket->content, value, sizeof(char) * value_len);
 			} else {
 				write_feed_element(data->feed_path, CONTENT_FILE, value, sizeof(char) * value_len);
 			}
@@ -72,7 +77,7 @@ endElement(void *userData, const XML_Char *name) {
 		data->pos &= ~IN_LINK_ELEMENT;
 		if ((data->pos & IN_CHANNEL_ELEMENT) != 0) {
 			if ((data->pos & IN_ITEM_ELEMENT) != 0) {
-				write_item_element(data->item_path, LINK_FILE, value, sizeof(char) * value_len);
+				malstrcpy(&data->bucket->link, value, sizeof(char) * value_len);
 			} else {
 				write_feed_element(data->feed_path, LINK_FILE, value, sizeof(char) * value_len);
 			}
@@ -81,7 +86,7 @@ endElement(void *userData, const XML_Char *name) {
 		data->pos &= ~IN_PUBDATE_ELEMENT;
 		if ((data->pos & IN_CHANNEL_ELEMENT) != 0) {
 			if ((data->pos & IN_ITEM_ELEMENT) != 0) {
-				write_item_element(data->item_path, PUBDATE_FILE, value, sizeof(char) * value_len);
+				malstrcpy(&data->bucket->pubdate, value, sizeof(char) * value_len);
 			} else {
 				write_feed_element(data->feed_path, PUBDATE_FILE, value, sizeof(char) * value_len);
 			}
@@ -89,22 +94,22 @@ endElement(void *userData, const XML_Char *name) {
 	} else if (strcmp(name, "guid") == 0) {
 		data->pos &= ~IN_GUID_ELEMENT;
 		if (((data->pos & IN_CHANNEL_ELEMENT) != 0) && ((data->pos & IN_ITEM_ELEMENT) != 0)) {
-			write_item_element(data->item_path, UNIQUE_ID_FILE, value, sizeof(char) * value_len);
+			malstrcpy(&data->bucket->uid, value, sizeof(char) * value_len);
 		}
 	} else if (strcmp(name, "category") == 0) {
 		data->pos &= ~IN_CATEGORY_ELEMENT;
 		if (((data->pos & IN_CHANNEL_ELEMENT) != 0) && ((data->pos & IN_ITEM_ELEMENT) != 0)) {
-			write_item_element(data->item_path, CATEGORY_FILE, value, sizeof(char) * value_len);
+			malstrcpy(&data->bucket->category, value, sizeof(char) * value_len);
 		}
 	} else if (strcmp(name, "comments") == 0) {
 		data->pos &= ~IN_COMMENTS_ELEMENT;
 		if (((data->pos & IN_CHANNEL_ELEMENT) != 0) && ((data->pos & IN_ITEM_ELEMENT) != 0)) {
-			write_item_element(data->item_path, COMMENTS_FILE, value, sizeof(char) * value_len);
+			malstrcpy(&data->bucket->comments, value, sizeof(char) * value_len);
 		}
 	} else if (strcmp(name, "author") == 0) {
 		data->pos &= ~IN_AUTHOR_ELEMENT;
 		if (((data->pos & IN_CHANNEL_ELEMENT) != 0) && ((data->pos & IN_ITEM_ELEMENT) != 0)) {
-			write_item_element(data->item_path, AUTHOR_FILE, value, sizeof(char) * value_len);
+			malstrcpy(&data->bucket->author, value, sizeof(char) * value_len);
 		}
 	} else if (strcmp(name, "channel") == 0) {
 		data->pos &= ~IN_CHANNEL_ELEMENT;
@@ -130,11 +135,9 @@ charData(void *userData, const XML_Char *s, int len)
 int
 parse_rss20(XML_Parser *parser, char *feed_path)
 {
-	/*status_write("rss20 beign parsed");*/
-	/*return NULL;*/
-
 	int64_t last_item_index = get_last_item_index(feed_path);
-	struct feed_parser_data feed_data = {0, last_item_index, IN_ROOT, feed_path, NULL, last_item_index, false};
+	struct item_bucket *bucket = calloc(1, sizeof(struct item_bucket));
+	struct feed_parser_data feed_data = {0, last_item_index, IN_ROOT, feed_path, NULL, last_item_index, false, bucket};
 
 	XML_SetUserData(*parser, &feed_data);
 	XML_SetElementHandler(*parser, startElement, endElement);
@@ -148,5 +151,6 @@ parse_rss20(XML_Parser *parser, char *feed_path)
 
 	set_last_item_index(feed_path, feed_data.item_index);
 
+	free(bucket);
 	return 1;
 }

@@ -314,7 +314,7 @@ read_item_element(char *item_path, char *element)
 void
 write_item_element(char *item_path, char *element, void *data, size_t size)
 {
-	if (item_path == NULL || data == NULL || size == 0) return;
+	if (item_path == NULL || data == NULL || size < 2) return;
 	char *item = malloc(sizeof(char) * MAXPATH);
 	if (item == NULL) return;
 	strcpy(item, item_path);

@@ -68,6 +68,19 @@ struct init_parser_data {
 	int (*parser_func)(XML_Parser *parser, char *url);
 };
 
+// used to bufferize item before writing to disk
+// so we can reject it in case parsed item is already exist
+struct item_bucket {
+	struct string uid;
+	struct string title;
+	struct string link;
+	struct string content;
+	struct string author;
+	struct string category;
+	struct string comments;
+	struct string pubdate;
+};
+
 enum xml_pos {
 	IN_ROOT = 0,
 	IN_ITEM_ELEMENT = 1,
@@ -100,6 +113,7 @@ struct feed_parser_data {
 	char *item_path;
 	int64_t border_index;
 	bool past_line;
+	struct item_bucket *bucket;
 };
 
 
@@ -119,6 +133,9 @@ void set_last_item_index(char *feed_path, int64_t index);
 char *item_data_path(char *feed_path, int64_t index);
 char *read_item_element(char *item_path, char *element);
 void write_item_element(char *item_path, char *element, void *data, size_t size);
+void free_item_bucket(struct item_bucket *bucket);
+int is_item_unique(struct item_bucket *bucket);
+void take_item_bucket(struct item_bucket *bucket, char *path);
 
 
 // contents
@@ -168,4 +185,8 @@ extern WINDOW *input_win;
 
 // curl
 struct string *feed_download(char *url);
+
+
+// utils
+void malstrcpy(struct string *dest, void *src, size_t size);
 #endif // FEEDEATER_H

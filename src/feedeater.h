@@ -13,6 +13,7 @@
 #define PUBDATE_FILE "pubdate"
 #define CONTENT_FILE "content"
 #define AUTHOR_FILE "author"
+#define ISNEW_FILE "is_new"
 #define MAXPATH 512
 #define MAX_ITEM_INDEX_LEN 20
 #ifndef XML_LARGE_SIZE
@@ -44,6 +45,7 @@ struct feed_entry {
 	char *feed_url; // url of feed
 	char *site_url; // url of site
 	char *path;     // path to data directory
+	bool is_read;
 };
 
 struct feed_window {
@@ -101,7 +103,8 @@ enum xml_pos {
 enum menu_dest {
 	MENU_FEEDS,
 	MENU_ITEMS,
-	MENU_CONTENTS,
+	MENU_ITEMS_EMPTY,
+	MENU_CONTENT,
 	MENU_EXIT,
 };
 
@@ -123,6 +126,7 @@ int load_feed_list(void);  // load feeds information in memory
 void feeds_menu(void);     // display feeds in an interactive list
 char *read_feed_element(char *feed_path, char *element);
 void write_feed_element(char *feed_path, char *element, void *data, size_t size);
+bool is_feed_read(char *feed_path);
 
 
 // items
@@ -134,12 +138,15 @@ char *item_data_path(char *feed_path, int64_t index);
 char *read_item_element(char *item_path, char *element);
 void write_item_element(char *item_path, char *element, void *data, size_t size);
 void free_item_bucket(struct item_bucket *bucket);
-int is_item_unique(struct item_bucket *bucket);
-void take_item_bucket(struct item_bucket *bucket, char *path);
+int is_item_unique(char *feed_path, struct item_bucket *bucket);
+void take_item_bucket(struct item_bucket *bucket, char *item_path);
+void mark_read(char *item_path);
+void mark_unread(char *item_path);
+int is_item_read(char *item_path);
 
 
 // contents
-void contents_menu(char *, int64_t);
+int contents_menu(char *, int64_t);
 
 
 // path

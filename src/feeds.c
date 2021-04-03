@@ -144,23 +144,22 @@ feed_image(struct feed_entry *feed) {
 }
 
 static void
+feed_expose(struct feed_window *feedwin, bool highlight)
+{
+	mvwprintw(feedwin->window, 0, 0, feedwin->feed->is_read ? " " : "N");
+	if (highlight) wattron(feedwin->window, A_REVERSE);
+	mvwprintw(feedwin->window, 0, 3, "%s", feed_image(feedwin->feed));
+	if (highlight) wattroff(feedwin->window, A_REVERSE);
+	wrefresh(feedwin->window);
+}
+
+static void
 show_feeds(void)
 {
 	for (int i = view_min, j = 0; i < feed_count && i < view_max; ++i, ++j) {
 		feed_list[i].window = newwin(1, COLS - config_left_offset, j + config_top_offset, config_left_offset);
-		if (i == feed_sel) wattron(feed_list[i].window, A_REVERSE);
-		// print window contents considering number and relativenumber settings
-		/*if (config_number == 1) {*/
-			/*if (feed_list[i].feed->feed_url == NULL) {*/
-				/*mvwprintw(feed_list[i].window, 0, 0, "     %s", feed_list[i].feed->name);*/
-			/*} else {*/
-				/*mvwprintw(feed_list[i].window, 0, 0, "%3d  %s", i + 1, feed_image(feed_list[i].feed));*/
-			/*}*/
-		/*} else {*/
-		mvwprintw(feed_list[i].window, 0, 0, "%s", feed_image(feed_list[i].feed));
-		/*}*/
-		if (i == feed_sel) wattroff(feed_list[i].window, A_REVERSE);
-		wrefresh(feed_list[i].window);
+		feed_list[i].feed->is_read = is_feed_read(feed_list[i].feed->path);
+		feed_expose(&feed_list[i], (i == feed_sel));
 	}
 }
 
@@ -185,18 +184,23 @@ feeds_menu(void)
 		do_clear = 1;
 	}
 	if (view_max == -1) view_max = LINES - 1;
+
 	show_feeds();
 	int dest = menu_feeds();
 	hide_feeds();
+
 	if (dest == MENU_EXIT) {
 		free_feed_list();
 		return;
-	} else if (dest == MENU_CONTENTS) {
+	} else if (dest == MENU_ITEMS) {
 		int items_status = items_menu(feed_list[feed_sel].feed->path);
-		if (items_status != 0) {
+		if (items_status != MENU_FEEDS) {
 			do_clear = 0;
-			if (items_status == 1) {
+			if (items_status == MENU_ITEMS_EMPTY) {
 				status_write("[empty] %s", feed_image(feed_list[feed_sel].feed));
+			} else if (items_status == MENU_EXIT) {
+				free_feed_list();
+				return;
 			}
 		}
 	}
@@ -245,22 +249,26 @@ feed_select(int i)
 			hide_feeds();
 			view_min += new_sel - feed_sel;
 			view_max += new_sel - feed_sel;
+			if (view_max > feed_count) {
+				view_max = feed_count;
+				view_min = view_max - LINES + 1;
+			}
 			feed_sel = new_sel;
 			show_feeds();
 		} else if (new_sel < view_min) {
 			hide_feeds();
 			view_min -= feed_sel - new_sel;
 			view_max -= feed_sel - new_sel;
+			if (view_min < 0) {
+				view_min = 0;
+				view_max = LINES - 1;
+			}
 			feed_sel = new_sel;
 			show_feeds();
 		} else {
-			mvwprintw(feed_list[feed_sel].window, 0, 0, "%s", feed_image(feed_list[feed_sel].feed));
-			wrefresh(feed_list[feed_sel].window);
+			feed_expose(&feed_list[feed_sel], 0);
 			feed_sel = new_sel;
-			wattron(feed_list[feed_sel].window, A_REVERSE);
-			mvwprintw(feed_list[feed_sel].window, 0, 0, "%s", feed_image(feed_list[feed_sel].feed));
-			wattroff(feed_list[feed_sel].window, A_REVERSE);
-			wrefresh(feed_list[feed_sel].window);
+			feed_expose(&feed_list[feed_sel], 1);
 		}
 	}
 }
@@ -272,6 +280,7 @@ feed_reload(struct feed_window *feedwin)
 	if (buf == NULL) return;
 	if (buf->ptr == NULL) { free(buf); return; }
 	if (feed_process(buf, feedwin->feed) == 0) status_clean();
+	feed_expose(feedwin, 1);
 	free(buf->ptr);
 	free(buf);
 }
@@ -293,12 +302,10 @@ menu_feeds(void)
 		wrefresh(input_win);
 		if      (ch == 'j' || ch == KEY_DOWN)                                   { feed_select(feed_sel + 1); }
 		else if (ch == 'k' || ch == KEY_UP)                                     { feed_select(feed_sel - 1); }
-		else if (ch == 'l' || ch == KEY_RIGHT || ch == '\n' || ch == KEY_ENTER) {
-			return MENU_CONTENTS;
-		}
+		else if (ch == 'l' || ch == KEY_RIGHT || ch == '\n' || ch == KEY_ENTER) { return MENU_ITEMS; }
 		else if (ch == 'q')                                                     { return MENU_EXIT; }
-		else if (ch == 'd')                                                     { feed_reload(&feed_list[feed_sel]); }
-		else if (ch == 'D')                                                     { feed_reload_all(); }
+		else if (ch == config_key_download)                                     { feed_reload(&feed_list[feed_sel]); }
+		else if (ch == config_key_download_all)                                 { feed_reload_all(); }
 		else if (ch == 'g' && wgetch(input_win) == 'g')                         { feed_select(0); }
 		else if (ch == 'G')                                                     { feed_select(feed_count - 1); }
 		else if (isdigit(ch)) {
@@ -363,4 +370,25 @@ write_feed_element(char *feed_path, char *element, void *data, size_t size)
 	if (f == NULL) return;
 	fwrite(data, size, 1, f);
 	fclose(f);
+}
+
+bool
+is_feed_read(char *feed_path)
+{
+	if (feed_path == NULL) return true;
+	char *item;
+	bool found_unread = false;
+	for (int64_t i = 0; i < config_max_items; ++i) {
+		item = item_data_path(feed_path, i);
+		if (is_item_read(item) == 0) {
+			found_unread = true;
+			free(item);
+			break;
+		}
+		free(item);
+	}
+	if (found_unread == true) {
+		return false;
+	}
+	return true;
 }

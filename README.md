@@ -36,13 +36,15 @@ Project **non-goals** are:
 
 * `config` is file that contains custom settings (optional)
 
-#### `feeds` file syntax
+#### feeds
 
 See `feeds` file sample in `examples` directory.
 
-#### `config` file syntax
+#### config
 
-### Search order of the essential files
+See `config` file sample in `examples` directory.
+
+### Search order for essential files
 
 Directory with configuration files is searched in the following order:
 

@@ -5,7 +5,7 @@
 #include "config.h"
 
 static WINDOW *window;
-static void menu_contents(void);
+static int menu_contents(void);
 static int view_min;
 static int view_max;
 
@@ -32,28 +32,36 @@ print_content(char *item_path)
 		waddstr(window, "Link: "); waddstr(window, link); waddch(window, '\n');
 		free(link);
 	}
-	char *description = read_item_element(item_path, CONTENT_FILE);
-	if (description != NULL) {
+	char *content = read_item_element(item_path, CONTENT_FILE);
+	if (content != NULL) {
 		waddch(window, '\n');
-		waddstr(window, description);
-		free(description);
+		waddstr(window, content);
+		/*char *saveptr;*/
+		/*char *line = strtok_r(content, "\n", &saveptr);*/
+		/*do {*/
+			/*waddstr(window, line);*/
+			/*waddch(window, '\n');*/
+		/*} while ((line = strtok_r(NULL, "\n", &saveptr)) != NULL);*/
+		free(content);
 	}
 }
 
-void
+int
 contents_menu(char *feed_path, int64_t index)
 {
 	view_min = 0;
 	view_max = LINES - 1;
-	char *content_path = item_data_path(feed_path, index);
+	char *item_path = item_data_path(feed_path, index);
 	clear();
 	refresh();
+	mark_read(item_path);
 	window = newpad(LINES - 1, COLS);
-	print_content(content_path);
+	print_content(item_path);
 	prefresh(window, 0, 0, 0, 0, LINES - 1, COLS);
-	menu_contents();
+	int contents_status = menu_contents();
 	delwin(window);
-	free(content_path);
+	free(item_path);
+	return contents_status;
 }
 
 void
@@ -61,7 +69,11 @@ scroll_view(int offset)
 {
 	int new_view_min = view_min + offset;
 	int new_view_max = view_max + offset;
-	if (new_view_min >= 0) {
+	if (new_view_min < 0) {
+		new_view_min = 0;
+		new_view_max = LINES - 1;
+	}
+	if (new_view_min != view_min && new_view_max != view_max) {
 		view_min = new_view_min;
 		view_max = new_view_max;
 		prefresh(window, view_min, 0, 0, 0, LINES - 1, COLS);
@@ -80,7 +92,7 @@ scroll_view_bot(void)
 	return;
 }
 
-static void
+static int
 menu_contents(void)
 {
 	int ch, q;
@@ -90,7 +102,8 @@ menu_contents(void)
 		wrefresh(input_win);
 		if      (ch == 'j' || ch == KEY_DOWN)              { scroll_view(1); }
 		else if (ch == 'k' || ch == KEY_UP)                { scroll_view(-1); }
-		else if (ch == 'q' || ch == 'h' || ch == KEY_LEFT) { return; }
+		else if (ch == 'h' || ch == KEY_LEFT)              { return MENU_ITEMS; }
+		else if (ch == 'q')                                { return MENU_EXIT; }
 		else if (ch == 'g' && wgetch(input_win) == 'g')    { scroll_view_top(); }
 		else if (ch == 'G')                                { scroll_view_bot(); }
 		else if (isdigit(ch)) {

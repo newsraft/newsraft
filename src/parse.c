@@ -6,6 +6,7 @@
 #include <dirent.h>
 #include <ncurses.h>
 #include "feedeater.h"
+#include "config.h"
 
 static void XMLCALL
 start_element(void *userData, const XML_Char *name, const XML_Char **atts) {
@@ -97,23 +98,50 @@ free_item_bucket(struct item_bucket *bucket)
 	free_string(&bucket->pubdate);
 }
 
+// as for now we checking uniqueness by uid file (guid tag value in rss20)
+// if uid file does not exist, compare link files (link tag value in rss20)
 int
-is_item_unique(struct item_bucket *bucket)
+is_item_unique(char *feed_path, struct item_bucket *bucket)
 {
-	// return 0 if item already downloaded
+	char *item_path, *item_element_value;
+	for (int64_t i = 0; i < config_max_items; ++i) {
+		item_path = item_data_path(feed_path, i);
+		if (item_path == NULL) continue;
+		item_element_value = read_item_element(item_path, UNIQUE_ID_FILE);
+		if (item_element_value != NULL) {
+			if (strcmp(bucket->uid.ptr, item_element_value) == 0) {
+				free(item_element_value);
+				free(item_path);
+				return 0;
+			}
+			free(item_element_value);
+		} else {
+			item_element_value = read_item_element(item_path, LINK_FILE);
+			if (item_element_value != NULL) {
+				if (strcmp(bucket->link.ptr, item_element_value) == 0) {
+					free(item_element_value);
+					free(item_path);
+					return 0;
+				}
+				free(item_element_value);
+			}
+		}
+		free(item_path);
+	}
 	return 1;
 }
 
 void
-take_item_bucket(struct item_bucket *bucket, char *path)
+take_item_bucket(struct item_bucket *bucket, char *item_path)
 {
-	if (path == NULL || bucket == NULL) return;
-	write_item_element(path, UNIQUE_ID_FILE, bucket->uid.ptr, bucket->uid.len);
-	write_item_element(path, TITLE_FILE, bucket->title.ptr, bucket->title.len);
-	write_item_element(path, LINK_FILE, bucket->link.ptr, bucket->link.len);
-	write_item_element(path, PUBDATE_FILE, bucket->pubdate.ptr, bucket->pubdate.len);
-	write_item_element(path, AUTHOR_FILE, bucket->author.ptr, bucket->author.len);
-	write_item_element(path, CONTENT_FILE, bucket->content.ptr, bucket->content.len);
-	write_item_element(path, CATEGORY_FILE, bucket->category.ptr, bucket->category.len);
-	write_item_element(path, COMMENTS_FILE, bucket->comments.ptr, bucket->comments.len);
+	if (item_path == NULL || bucket == NULL) return;
+	write_item_element(item_path, UNIQUE_ID_FILE, bucket->uid.ptr, bucket->uid.len);
+	write_item_element(item_path, TITLE_FILE, bucket->title.ptr, bucket->title.len);
+	write_item_element(item_path, LINK_FILE, bucket->link.ptr, bucket->link.len);
+	write_item_element(item_path, PUBDATE_FILE, bucket->pubdate.ptr, bucket->pubdate.len);
+	write_item_element(item_path, AUTHOR_FILE, bucket->author.ptr, bucket->author.len);
+	write_item_element(item_path, CONTENT_FILE, bucket->content.ptr, bucket->content.len);
+	write_item_element(item_path, CATEGORY_FILE, bucket->category.ptr, bucket->category.len);
+	write_item_element(item_path, COMMENTS_FILE, bucket->comments.ptr, bucket->comments.len);
+	mark_unread(item_path);
 }

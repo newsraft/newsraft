@@ -7,6 +7,7 @@
 #include "feedeater.h"
 #include "config.h"
 
+static char *items_path = NULL;
 static struct item_window *item_list = NULL;
 static int item_sel = -1;
 static int item_count = 0;
@@ -27,7 +28,19 @@ item_image(struct item_entry *item) {
 }
 
 static void
-free_item_list(void)
+item_expose(struct item_window *itemwin, bool highlight)
+{
+	char *item_path = item_data_path(items_path, itemwin->item->index);
+	mvwprintw(itemwin->window, 0, 0, is_item_read(item_path) ? " " : "N");
+	free(item_path);
+	if (highlight) wattron(itemwin->window, A_REVERSE);
+	mvwprintw(itemwin->window, 0, 3, "%s", item_image(itemwin->item));
+	if (highlight) wattroff(itemwin->window, A_REVERSE);
+	wrefresh(itemwin->window);
+}
+
+static void
+free_items(void)
 {
 	if (item_list == NULL) return;
 	for (int i = 0; i < item_count; ++i) {
@@ -37,6 +50,7 @@ free_item_list(void)
 			free(item_list[i].item);
 		}
 	}
+	items_path = NULL;
 	item_sel = -1;
 	item_count = 0;
 	free(item_list);
@@ -101,7 +115,7 @@ load_item_list(char *data_path)
 	free(path);
 
 	if (item_sel == -1) {
-		return 1; // no items found
+		return MENU_ITEMS_EMPTY; // no items found
 	}
 
 	return 0;
@@ -112,10 +126,7 @@ show_items(void)
 {
 	for (int i = view_min, j = 0; i < item_count && i < view_max; ++i, ++j) {
 		item_list[i].window = newwin(1, COLS - config_left_offset, j + config_top_offset, config_left_offset);
-		if (i == item_sel) wattron(item_list[i].window, A_REVERSE);
-		mvwprintw(item_list[i].window, 0, 0, "%s", item_image(item_list[i].item));
-		if (i == item_sel) wattroff(item_list[i].window, A_REVERSE);
-		wrefresh(item_list[i].window);
+		item_expose(&item_list[i], (i == item_sel));
 	}
 }
 
@@ -135,9 +146,10 @@ items_menu(char *data_path)
 	if (item_list == NULL) {
 		int load_status = load_item_list(data_path);
 		if (load_status != 0) {
-			free_item_list();
+			free_items();
 			return load_status;
 		}
+		items_path = data_path;
 		view_min = 0;
 		view_max = LINES - 1;
 	}
@@ -148,15 +160,18 @@ items_menu(char *data_path)
 	show_items();
 	int dest = menu_items();
 	hide_items();
-	if (dest == MENU_CONTENTS) {
-		contents_menu(data_path, item_list[item_sel].item->index);
-	} else if (dest == MENU_EXIT) {
-		free_item_list();
-		return 0;
+	if (dest == MENU_CONTENT) {
+		int contents_status = contents_menu(data_path, item_list[item_sel].item->index);
+		if (contents_status == MENU_EXIT) {
+			free_items();
+			return MENU_EXIT;
+		}
+	} else if (dest == MENU_FEEDS || dest == MENU_EXIT) {
+		free_items();
+		return dest;
 	}
 
-	items_menu(data_path);
-	return 0;
+	return items_menu(data_path);
 }
 
 static void
@@ -175,22 +190,26 @@ item_select(int i)
 			hide_items();
 			view_min += new_sel - item_sel;
 			view_max += new_sel - item_sel;
+			if (view_max > item_count) {
+				view_max = item_count;
+				view_min = view_max - LINES + 1;
+			}
 			item_sel = new_sel;
 			show_items();
 		} else if (new_sel < view_min) {
 			hide_items();
 			view_min -= item_sel - new_sel;
 			view_max -= item_sel - new_sel;
+			if (view_min < 0) {
+				view_min = 0;
+				view_max = LINES - 1;
+			}
 			item_sel = new_sel;
 			show_items();
 		} else {
-			mvwprintw(item_list[item_sel].window, 0, 0, "%s", item_image(item_list[item_sel].item));
-			wrefresh(item_list[item_sel].window);
+			item_expose(&item_list[item_sel], 0);
 			item_sel = new_sel;
-			wattron(item_list[item_sel].window, A_REVERSE);
-			mvwprintw(item_list[item_sel].window, 0, 0, "%s", item_image(item_list[item_sel].item));
-			wattroff(item_list[item_sel].window, A_REVERSE);
-			wrefresh(item_list[item_sel].window);
+			item_expose(&item_list[item_sel], 1);
 		}
 	}
 }
@@ -205,8 +224,9 @@ menu_items(void)
 		wrefresh(input_win);
 		if      (ch == 'j' || ch == KEY_DOWN)                                   { item_select(item_sel + 1); }
 		else if (ch == 'k' || ch == KEY_UP)                                     { item_select(item_sel - 1); }
-		else if (ch == 'l' || ch == KEY_RIGHT || ch == '\n' || ch == KEY_ENTER) { return MENU_CONTENTS; }
-		else if (ch == 'h' || ch == KEY_LEFT  || ch == 'q')                     { return MENU_EXIT; }
+		else if (ch == 'l' || ch == KEY_RIGHT || ch == '\n' || ch == KEY_ENTER) { return MENU_CONTENT; }
+		else if (ch == 'h' || ch == KEY_LEFT)                                   { return MENU_FEEDS; }
+		else if (ch == 'q')                                                     { return MENU_EXIT; }
 		else if (ch == 'G')                                                     { item_select(item_count - 1); }
 		else if (ch == 'g' && wgetch(input_win) == 'g')                         { item_select(0); }
 		else if (isdigit(ch)) {
@@ -324,4 +344,44 @@ write_item_element(char *item_path, char *element, void *data, size_t size)
 	if (f == NULL) return;
 	fwrite(data, size, 1, f);
 	fclose(f);
+}
+
+void
+mark_read(char *item_path)
+{
+	char *item = malloc(sizeof(char) * MAXPATH);
+	if (item == NULL) return;
+	strcpy(item, item_path);
+	strcat(item, ISNEW_FILE);
+	remove(item);
+	free(item);
+}
+
+void
+mark_unread(char *item_path)
+{
+	char *item = malloc(sizeof(char) * MAXPATH);
+	if (item == NULL) return;
+	strcpy(item, item_path);
+	strcat(item, ISNEW_FILE);
+	// whooooooooooaaaa, that's how file is created. lol
+	fclose(fopen(item, "w"));
+	free(item);
+}
+
+int
+is_item_read(char *item_path)
+{
+	if (item_path == NULL) return 1;
+	char *item = malloc(sizeof(char) * MAXPATH);
+	if (item == NULL) return 1;
+	strcpy(item, item_path);
+	strcat(item, ISNEW_FILE);
+	FILE *f = fopen(item, "r");
+	free(item);
+	if (f != NULL) {
+		fclose(f);
+		return 0;
+	}
+	return 1;
 }

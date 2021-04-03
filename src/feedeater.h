@@ -189,4 +189,5 @@ struct string *feed_download(char *url);
 
 // utils
 void malstrcpy(struct string *dest, void *src, size_t size);
+void free_string(struct string *dest);
 #endif // FEEDEATER_H

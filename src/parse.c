@@ -86,23 +86,15 @@ feed_process(struct string *buf, struct feed_entry *feed)
 void
 free_item_bucket(struct item_bucket *bucket)
 {
-#define FREE_LOL(X) if (X != NULL) { free(X); X = NULL; }
-	FREE_LOL(bucket->uid.ptr)
-	bucket->uid.len = 0;
-	FREE_LOL(bucket->title.ptr)
-	bucket->title.len = 0;
-	FREE_LOL(bucket->link.ptr)
-	bucket->link.len = 0;
-	FREE_LOL(bucket->content.ptr)
-	bucket->content.len = 0;
-	FREE_LOL(bucket->author.ptr)
-	bucket->author.len = 0;
-	FREE_LOL(bucket->category.ptr)
-	bucket->category.len = 0;
-	FREE_LOL(bucket->comments.ptr)
-	bucket->comments.len = 0;
-	FREE_LOL(bucket->pubdate.ptr)
-	bucket->pubdate.len = 0;
+	if (bucket == NULL) return;
+	free_string(&bucket->uid);
+	free_string(&bucket->title);
+	free_string(&bucket->link);
+	free_string(&bucket->content);
+	free_string(&bucket->author);
+	free_string(&bucket->category);
+	free_string(&bucket->comments);
+	free_string(&bucket->pubdate);
 }
 
 int
@@ -116,7 +108,6 @@ void
 take_item_bucket(struct item_bucket *bucket, char *path)
 {
 	if (path == NULL || bucket == NULL) return;
-	/*fprintf(stderr, "writing\n");*/
 	write_item_element(path, UNIQUE_ID_FILE, bucket->uid.ptr, bucket->uid.len);
 	write_item_element(path, TITLE_FILE, bucket->title.ptr, bucket->title.len);
 	write_item_element(path, LINK_FILE, bucket->link.ptr, bucket->link.len);

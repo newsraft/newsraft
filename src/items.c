@@ -13,6 +13,7 @@ static int item_sel = -1;
 static int item_count = 0;
 static int view_min;
 static int view_max;
+static int do_clean = 1;
 
 static enum menu_dest menu_items(void);
 
@@ -154,8 +155,12 @@ items_menu(char *data_path)
 		view_max = LINES - 1;
 	}
 
-	clear();
-	refresh();
+	if (do_clean == 1) {
+		clear();
+		refresh();
+	} else {
+		do_clean = 1;
+	}
 
 	show_items();
 	int dest = menu_items();
@@ -165,6 +170,8 @@ items_menu(char *data_path)
 		if (contents_status == MENU_EXIT) {
 			free_items();
 			return MENU_EXIT;
+		} else if (contents_status == MENU_CONTENT_ERROR) {
+			do_clean = 0;
 		}
 	} else if (dest == MENU_FEEDS || dest == MENU_EXIT) {
 		free_items();
@@ -226,7 +233,7 @@ menu_items(void)
 		else if (ch == 'k' || ch == KEY_UP)                                     { item_select(item_sel - 1); }
 		else if (ch == 'l' || ch == KEY_RIGHT || ch == '\n' || ch == KEY_ENTER) { return MENU_CONTENT; }
 		else if (ch == 'h' || ch == KEY_LEFT)                                   { return MENU_FEEDS; }
-		else if (ch == 'q')                                                     { return MENU_EXIT; }
+		else if (ch == config_key_exit)                                         { return MENU_EXIT; }
 		else if (ch == 'G')                                                     { item_select(item_count - 1); }
 		else if (ch == 'g' && wgetch(input_win) == 'g')                         { item_select(0); }
 		else if (isdigit(ch)) {
@@ -306,7 +313,7 @@ get_last_item_index(char *feed_path)
 	return index;
 }
 
-char *
+struct string *
 read_item_element(char *item_path, char *element)
 {
 	char *path = malloc(sizeof(char) * MAXPATH);
@@ -316,19 +323,26 @@ read_item_element(char *item_path, char *element)
 	FILE *f = fopen(path, "r");
 	free(path);
 	if (f == NULL) return NULL;
-	int size = 32, count = 0;
-	char *value = malloc(sizeof(char) * size);
+	struct string *str = malloc(sizeof(struct string));
+	if (str == NULL) return NULL;
+	str->len = 64;
+	str->ptr = malloc(sizeof(char) * str->len);
+	int count = 0;
 	char c;
 	while ((c = fgetc(f)) != EOF) {
-		value[count++] = c;
-		if (count == size) {
-			size *= 2;
-			value = realloc(value, sizeof(char) * size);
+		str->ptr[count++] = c;
+		if (count == str->len) {
+			str->len *= 2;
+			str->ptr = realloc(str->ptr, sizeof(char) * str->len);
 		}
 	}
-	value[count] = '\0';
+	str->ptr[count] = '\0';
 	fclose(f);
-	return value;
+	if (count == 0) {
+		free_string_ptr(str);
+		return NULL;
+	}
+	return str;
 }
 
 void

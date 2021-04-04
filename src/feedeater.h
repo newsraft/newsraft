@@ -51,6 +51,7 @@ struct feed_entry {
 struct feed_window {
 	struct feed_entry *feed;
 	WINDOW *window;
+	int64_t index;
 };
 
 struct item_entry {
@@ -105,6 +106,7 @@ enum menu_dest {
 	MENU_ITEMS,
 	MENU_ITEMS_EMPTY,
 	MENU_CONTENT,
+	MENU_CONTENT_ERROR,
 	MENU_EXIT,
 };
 
@@ -124,7 +126,7 @@ struct feed_parser_data {
 
 int load_feed_list(void);  // load feeds information in memory
 void feeds_menu(void);     // display feeds in an interactive list
-char *read_feed_element(char *feed_path, char *element);
+char * read_feed_element(char *feed_path, char *element);
 void write_feed_element(char *feed_path, char *element, void *data, size_t size);
 bool is_feed_read(char *feed_path);
 
@@ -134,8 +136,8 @@ bool is_feed_read(char *feed_path);
 int items_menu(char *url);
 int64_t get_last_item_index(char *feed_path);
 void set_last_item_index(char *feed_path, int64_t index);
-char *item_data_path(char *feed_path, int64_t index);
-char *read_item_element(char *item_path, char *element);
+char * item_data_path(char *feed_path, int64_t index);
+struct string * read_item_element(char *item_path, char *element);
 void write_item_element(char *item_path, char *element, void *data, size_t size);
 void free_item_bucket(struct item_bucket *bucket);
 int is_item_unique(char *feed_path, struct item_bucket *bucket);
@@ -150,8 +152,8 @@ int contents_menu(char *, int64_t);
 
 
 // path
-char *get_config_file_path(char *file_name);
-char *make_feed_dir(char *url);
+char * get_config_file_path(char *file_name);
+char * make_feed_dir(char *url);
 
 
 // feed parsing
@@ -191,10 +193,13 @@ extern WINDOW *input_win;
 
 
 // curl
-struct string *feed_download(char *url);
+struct string * feed_download(char *url);
 
 
 // utils
 void malstrcpy(struct string *dest, void *src, size_t size);
 void free_string(struct string *dest);
+void free_string_ptr(struct string *dest);
+void cat_strings(struct string *dest, struct string *src);
+void cat_string_cstr(struct string *dest, char *src);
 #endif // FEEDEATER_H

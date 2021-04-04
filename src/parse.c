@@ -103,27 +103,28 @@ free_item_bucket(struct item_bucket *bucket)
 int
 is_item_unique(char *feed_path, struct item_bucket *bucket)
 {
-	char *item_path, *item_element_value;
+	char *item_path;
+	struct string *str;
 	for (int64_t i = 0; i < config_max_items; ++i) {
 		item_path = item_data_path(feed_path, i);
 		if (item_path == NULL) continue;
-		item_element_value = read_item_element(item_path, UNIQUE_ID_FILE);
-		if (item_element_value != NULL) {
-			if (strcmp(bucket->uid.ptr, item_element_value) == 0) {
-				free(item_element_value);
+		str = read_item_element(item_path, UNIQUE_ID_FILE);
+		if (str != NULL) {
+			if (strcmp(bucket->uid.ptr, str->ptr) == 0) {
+				free_string_ptr(str);
 				free(item_path);
 				return 0;
 			}
-			free(item_element_value);
+			free_string_ptr(str);
 		} else {
-			item_element_value = read_item_element(item_path, LINK_FILE);
-			if (item_element_value != NULL) {
-				if (strcmp(bucket->link.ptr, item_element_value) == 0) {
-					free(item_element_value);
+			str = read_item_element(item_path, LINK_FILE);
+			if (str != NULL) {
+				if (strcmp(bucket->link.ptr, str->ptr) == 0) {
+					free_string_ptr(str);
 					free(item_path);
 					return 0;
 				}
-				free(item_element_value);
+				free_string_ptr(str);
 			}
 		}
 		free(item_path);

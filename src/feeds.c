@@ -146,9 +146,12 @@ feed_image(struct feed_entry *feed) {
 static void
 feed_expose(struct feed_window *feedwin, bool highlight)
 {
-	mvwprintw(feedwin->window, 0, 0, feedwin->feed->is_read ? " " : "N");
+	if (config_number == 1 && feedwin->feed->feed_url != NULL) {
+		mvwprintw(feedwin->window, 0, 0, "%3d", feedwin->index);
+	}
+	mvwprintw(feedwin->window, 0, 0 + config_number * 5, feedwin->feed->is_read ? " " : "N");
 	if (highlight) wattron(feedwin->window, A_REVERSE);
-	mvwprintw(feedwin->window, 0, 3, "%s", feed_image(feedwin->feed));
+	mvwprintw(feedwin->window, 0, 3 + config_number * 5, "%s", feed_image(feedwin->feed));
 	if (highlight) wattroff(feedwin->window, A_REVERSE);
 	wrefresh(feedwin->window);
 }
@@ -158,6 +161,7 @@ show_feeds(void)
 {
 	for (int i = view_min, j = 0; i < feed_count && i < view_max; ++i, ++j) {
 		feed_list[i].window = newwin(1, COLS - config_left_offset, j + config_top_offset, config_left_offset);
+		feed_list[i].index = i;
 		feed_list[i].feed->is_read = is_feed_read(feed_list[i].feed->path);
 		feed_expose(&feed_list[i], (i == feed_sel));
 	}
@@ -303,7 +307,7 @@ menu_feeds(void)
 		if      (ch == 'j' || ch == KEY_DOWN)                                   { feed_select(feed_sel + 1); }
 		else if (ch == 'k' || ch == KEY_UP)                                     { feed_select(feed_sel - 1); }
 		else if (ch == 'l' || ch == KEY_RIGHT || ch == '\n' || ch == KEY_ENTER) { return MENU_ITEMS; }
-		else if (ch == 'q')                                                     { return MENU_EXIT; }
+		else if (ch == config_key_exit)                                         { return MENU_EXIT; }
 		else if (ch == config_key_download)                                     { feed_reload(&feed_list[feed_sel]); }
 		else if (ch == config_key_download_all)                                 { feed_reload_all(); }
 		else if (ch == 'g' && wgetch(input_win) == 'g')                         { feed_select(0); }

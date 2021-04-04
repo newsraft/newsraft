@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "feedeater.h"
 
 void
@@ -20,4 +21,28 @@ free_string(struct string *dest)
 	if (dest == NULL) return;
 	if (dest->ptr != NULL) { free(dest->ptr); dest->ptr = NULL; }
 	dest->len = 0;
+}
+
+void
+free_string_ptr(struct string *dest)
+{
+	if (dest == NULL) return;
+	if (dest->ptr != NULL) free(dest->ptr);
+	free(dest);
+}
+
+void
+cat_strings(struct string *dest, struct string *src)
+{
+	dest->len += src->len - 1;
+	dest->ptr = realloc(dest->ptr, dest->len);
+	strcat(dest->ptr, src->ptr);
+}
+
+void
+cat_string_cstr(struct string *dest, char *src)
+{
+	dest->len += strlen(src);
+	dest->ptr = realloc(dest->ptr, dest->len);
+	strcat(dest->ptr, src);
 }

@@ -35,7 +35,7 @@
 #define XML_FMT_STR "s"
 #endif
 
-struct string {
+struct buf {
 	char *ptr;
 	size_t len;
 };
@@ -63,6 +63,7 @@ struct item_entry {
 struct item_window {
 	struct item_entry *item;
 	WINDOW *window;
+	int64_t index;
 };
 
 struct init_parser_data {
@@ -74,14 +75,14 @@ struct init_parser_data {
 // used to bufferize item before writing to disk
 // so we can reject it in case parsed item is already exist
 struct item_bucket {
-	struct string uid;
-	struct string title;
-	struct string link;
-	struct string content;
-	struct string author;
-	struct string category;
-	struct string comments;
-	struct string pubdate;
+	struct buf uid;
+	struct buf title;
+	struct buf link;
+	struct buf content;
+	struct buf author;
+	struct buf category;
+	struct buf comments;
+	struct buf pubdate;
 };
 
 enum xml_pos {
@@ -137,7 +138,7 @@ int items_menu(char *url);
 int64_t get_last_item_index(char *feed_path);
 void set_last_item_index(char *feed_path, int64_t index);
 char * item_data_path(char *feed_path, int64_t index);
-struct string * read_item_element(char *item_path, char *element);
+struct buf * read_item_element(char *item_path, char *element);
 void write_item_element(char *item_path, char *element, void *data, size_t size);
 void free_item_bucket(struct item_bucket *bucket);
 int is_item_unique(char *feed_path, struct item_bucket *bucket);
@@ -158,7 +159,7 @@ char * make_feed_dir(char *url);
 
 // feed parsing
 
-int feed_process(struct string *buf, struct feed_entry *feed);
+int feed_process(struct buf *buf, struct feed_entry *feed);
 
 // xml parsers for different versions of feeds
 int parse_rss20(XML_Parser *parser, char *feed_path);  // RSS 2.0
@@ -193,13 +194,14 @@ extern WINDOW *input_win;
 
 
 // curl
-struct string * feed_download(char *url);
+struct buf * feed_download(char *url);
 
 
 // utils
-void malstrcpy(struct string *dest, void *src, size_t size);
-void free_string(struct string *dest);
-void free_string_ptr(struct string *dest);
-void cat_strings(struct string *dest, struct string *src);
-void cat_string_cstr(struct string *dest, char *src);
+void malstrcpy(struct buf *dest, void *src, size_t size);
+void free_string(struct buf *dest);
+void free_string_ptr(struct buf *dest);
+void cat_strings(struct buf *dest, struct buf *src);
+void cat_string_cstr(struct buf *dest, char *src);
+int is_bufs_equal(struct buf *str1, struct buf *str2);
 #endif // FEEDEATER_H

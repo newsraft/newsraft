@@ -110,6 +110,7 @@ get_data_dir(void)
 	char *env_var = getenv("FEEDEATER_DATA");
 	if (env_var != NULL) {
 		strcpy(path, env_var);
+		strcat(path, "/");
 		mkdir(path, 0777);
 		d = opendir(path);
 		if (d != NULL) {
@@ -121,7 +122,7 @@ get_data_dir(void)
 	env_var = getenv("XDG_DATA_HOME");
 	if (env_var != NULL) {
 		strcpy(path, env_var);
-		strcat(path, "/feedeater");
+		strcat(path, "/feedeater/");
 		mkdir(path, 0777);
 		d = opendir(path);
 		if (d != NULL) {
@@ -133,7 +134,7 @@ get_data_dir(void)
 	env_var = getenv("HOME");
 	if (env_var != NULL) {
 		strcpy(path, env_var);
-		strcat(path, "/.local/share/feedeater");
+		strcat(path, "/.local/share/feedeater/");
 		mkdir(path, 0777);
 		d = opendir(path);
 		if (d != NULL) {
@@ -186,7 +187,6 @@ make_feed_dir(char *url)
 	}
 
 	strcpy(path, data_dir_path);
-	strcat(path, "/");
 	strcat(path, file_name);
 	strcat(path, "/");
 
@@ -200,10 +200,11 @@ make_feed_dir(char *url)
 	}
 
 	strcpy(elements_path, path);
-	strcat(elements_path, "elements/");
+	strcat(elements_path, "elements");
 	mkdir(elements_path, 0777);
-	free(elements_path);
 
+	free(elements_path);
 	free(file_name);
+
 	return path;
 }

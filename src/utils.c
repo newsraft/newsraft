@@ -6,7 +6,7 @@
 #include "feedeater.h"
 
 void
-malstrcpy(struct string *dest, void *src, size_t size)
+malstrcpy(struct buf *dest, void *src, size_t size)
 {
 	if (dest == NULL || dest->ptr != NULL || src == NULL || size == 0) return;
 	dest->ptr = malloc(sizeof(char) * size);
@@ -16,7 +16,7 @@ malstrcpy(struct string *dest, void *src, size_t size)
 }
 
 void
-free_string(struct string *dest)
+free_string(struct buf *dest)
 {
 	if (dest == NULL) return;
 	if (dest->ptr != NULL) { free(dest->ptr); dest->ptr = NULL; }
@@ -24,7 +24,7 @@ free_string(struct string *dest)
 }
 
 void
-free_string_ptr(struct string *dest)
+free_string_ptr(struct buf *dest)
 {
 	if (dest == NULL) return;
 	if (dest->ptr != NULL) free(dest->ptr);
@@ -32,7 +32,7 @@ free_string_ptr(struct string *dest)
 }
 
 void
-cat_strings(struct string *dest, struct string *src)
+cat_strings(struct buf *dest, struct buf *src)
 {
 	dest->len += src->len - 1;
 	dest->ptr = realloc(dest->ptr, dest->len);
@@ -40,9 +40,21 @@ cat_strings(struct string *dest, struct string *src)
 }
 
 void
-cat_string_cstr(struct string *dest, char *src)
+cat_string_cstr(struct buf *dest, char *src)
 {
 	dest->len += strlen(src);
 	dest->ptr = realloc(dest->ptr, dest->len);
 	strcat(dest->ptr, src);
+}
+
+int
+is_bufs_equal(struct buf *str1, struct buf *str2)
+{
+	if (str1 == NULL || str2 == NULL) return 0;
+	if (str1->ptr == NULL || str2->ptr == NULL) return 0;
+	if (str1->len != str2->len) return 0;
+	for (int i = 0; i < str1->len; ++i) {
+		if (str1->ptr[i] != str2->ptr[i]) return 0;
+	}
+	return 1;
 }

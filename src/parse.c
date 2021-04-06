@@ -52,7 +52,7 @@ end_element(void *userData, const XML_Char *name) {
 }
 
 int
-feed_process(struct string *buf, struct feed_entry *feed)
+feed_process(struct buf *buf, struct feed_entry *feed)
 {
 	status_write("[parsing] %s", feed->feed_url);
 
@@ -104,13 +104,13 @@ int
 is_item_unique(char *feed_path, struct item_bucket *bucket)
 {
 	char *item_path;
-	struct string *str;
+	struct buf *str;
 	for (int64_t i = 0; i < config_max_items; ++i) {
 		item_path = item_data_path(feed_path, i);
 		if (item_path == NULL) continue;
 		str = read_item_element(item_path, UNIQUE_ID_FILE);
 		if (str != NULL) {
-			if (strcmp(bucket->uid.ptr, str->ptr) == 0) {
+			if (is_bufs_equal(&bucket->uid, str)) {
 				free_string_ptr(str);
 				free(item_path);
 				return 0;
@@ -119,7 +119,7 @@ is_item_unique(char *feed_path, struct item_bucket *bucket)
 		} else {
 			str = read_item_element(item_path, LINK_FILE);
 			if (str != NULL) {
-				if (strcmp(bucket->link.ptr, str->ptr) == 0) {
+				if (is_bufs_equal(&bucket->link, str)) {
 					free_string_ptr(str);
 					free(item_path);
 					return 0;

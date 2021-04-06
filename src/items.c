@@ -9,8 +9,8 @@
 
 static char *items_path = NULL;
 static struct item_window *item_list = NULL;
-static int item_sel = -1;
 static int item_count = 0;
+static int view_sel = -1;
 static int view_min;
 static int view_max;
 static int do_clean = 1;
@@ -31,11 +31,14 @@ item_image(struct item_entry *item) {
 static void
 item_expose(struct item_window *itemwin, bool highlight)
 {
+	if (config_number == 1) {
+		mvwprintw(itemwin->window, 0, 0, "%3d", itemwin->index + 1);
+	}
 	char *item_path = item_data_path(items_path, itemwin->item->index);
-	mvwprintw(itemwin->window, 0, 0, is_item_read(item_path) ? " " : "N");
+	mvwprintw(itemwin->window, 0, 0 + 5 * config_number, is_item_read(item_path) ? " " : "N");
 	free(item_path);
 	if (highlight) wattron(itemwin->window, A_REVERSE);
-	mvwprintw(itemwin->window, 0, 3, "%s", item_image(itemwin->item));
+	mvwprintw(itemwin->window, 0, 3 + 5 * config_number, "%s", item_image(itemwin->item));
 	if (highlight) wattroff(itemwin->window, A_REVERSE);
 	wrefresh(itemwin->window);
 }
@@ -52,7 +55,7 @@ free_items(void)
 		}
 	}
 	items_path = NULL;
-	item_sel = -1;
+	view_sel = -1;
 	item_count = 0;
 	free(item_list);
 	item_list = NULL;
@@ -70,12 +73,12 @@ load_item_list(char *data_path)
 	FILE *f;
 	int64_t border_index = get_last_item_index(data_path);
 	bool past_line = false;
-	for (int64_t i = border_index + 1; ; ++i) {
+	for (int64_t i = border_index; ; ++i) {
 		if (past_line == false && i > config_max_items) {
 			past_line = true;
 			i = 1;
 		}
-		if (past_line == true && i == border_index + 1) {
+		if (past_line == true && i == border_index) {
 			break;
 		}
 		strcpy(path, data_path);
@@ -99,11 +102,12 @@ load_item_list(char *data_path)
 			if (item_list != NULL) {
 				item_list[item_index].item = calloc(1, sizeof(struct item_entry));
 				if (item_list[item_index].item != NULL) {
+					item_list[item_index].index = item_index;
 					item_list[item_index].item->index = i;
 					item_list[item_index].item->name = malloc(sizeof(char) * (count + 1));
 					if (item_list[item_index].item->name != NULL) {
 						strcpy(item_list[item_index].item->name, value);
-						if (item_sel == -1) item_sel = item_index;
+						if (view_sel == -1) view_sel = item_index;
 					}
 				}
 			}
@@ -115,7 +119,7 @@ load_item_list(char *data_path)
 	free(value);
 	free(path);
 
-	if (item_sel == -1) {
+	if (view_sel == -1) {
 		return MENU_ITEMS_EMPTY; // no items found
 	}
 
@@ -127,7 +131,7 @@ show_items(void)
 {
 	for (int i = view_min, j = 0; i < item_count && i < view_max; ++i, ++j) {
 		item_list[i].window = newwin(1, COLS - config_left_offset, j + config_top_offset, config_left_offset);
-		item_expose(&item_list[i], (i == item_sel));
+		item_expose(&item_list[i], (i == view_sel));
 	}
 }
 
@@ -166,7 +170,7 @@ items_menu(char *data_path)
 	int dest = menu_items();
 	hide_items();
 	if (dest == MENU_CONTENT) {
-		int contents_status = contents_menu(data_path, item_list[item_sel].item->index);
+		int contents_status = contents_menu(data_path, item_list[view_sel].item->index);
 		if (contents_status == MENU_EXIT) {
 			free_items();
 			return MENU_EXIT;
@@ -182,7 +186,7 @@ items_menu(char *data_path)
 }
 
 static void
-item_select(int i)
+view_select(int i)
 {
 	int new_sel = i;
 	if (new_sel < 0) {
@@ -192,31 +196,31 @@ item_select(int i)
 		if (new_sel < 0) return;
 	}
 
-	if (new_sel != item_sel) {
+	if (new_sel != view_sel) {
 		if (new_sel >= view_max) {
 			hide_items();
-			view_min += new_sel - item_sel;
-			view_max += new_sel - item_sel;
+			view_min += new_sel - view_sel;
+			view_max += new_sel - view_sel;
 			if (view_max > item_count) {
 				view_max = item_count;
 				view_min = view_max - LINES + 1;
 			}
-			item_sel = new_sel;
+			view_sel = new_sel;
 			show_items();
 		} else if (new_sel < view_min) {
 			hide_items();
-			view_min -= item_sel - new_sel;
-			view_max -= item_sel - new_sel;
+			view_min -= view_sel - new_sel;
+			view_max -= view_sel - new_sel;
 			if (view_min < 0) {
 				view_min = 0;
 				view_max = LINES - 1;
 			}
-			item_sel = new_sel;
+			view_sel = new_sel;
 			show_items();
 		} else {
-			item_expose(&item_list[item_sel], 0);
-			item_sel = new_sel;
-			item_expose(&item_list[item_sel], 1);
+			item_expose(&item_list[view_sel], 0);
+			view_sel = new_sel;
+			item_expose(&item_list[view_sel], 1);
 		}
 	}
 }
@@ -229,13 +233,13 @@ menu_items(void)
 	while (1) {
 		ch = wgetch(input_win);
 		wrefresh(input_win);
-		if      (ch == 'j' || ch == KEY_DOWN)                                   { item_select(item_sel + 1); }
-		else if (ch == 'k' || ch == KEY_UP)                                     { item_select(item_sel - 1); }
+		if      (ch == 'j' || ch == KEY_DOWN)                                   { view_select(view_sel + 1); }
+		else if (ch == 'k' || ch == KEY_UP)                                     { view_select(view_sel - 1); }
 		else if (ch == 'l' || ch == KEY_RIGHT || ch == '\n' || ch == KEY_ENTER) { return MENU_CONTENT; }
 		else if (ch == 'h' || ch == KEY_LEFT)                                   { return MENU_FEEDS; }
 		else if (ch == config_key_exit)                                         { return MENU_EXIT; }
-		else if (ch == 'G')                                                     { item_select(item_count - 1); }
-		else if (ch == 'g' && wgetch(input_win) == 'g')                         { item_select(0); }
+		else if (ch == 'G')                                                     { view_select(item_count - 1); }
+		else if (ch == 'g' && wgetch(input_win) == 'g')                         { view_select(0); }
 		else if (isdigit(ch)) {
 			q = 0;
 			while (1) {
@@ -245,11 +249,11 @@ menu_items(void)
 				ch = wgetch(input_win);
 				if (!isdigit(ch)) {
 					if (ch == 'j') {
-						item_select(item_sel + atoi(cmd));
+						view_select(view_sel + atoi(cmd));
 					} else if (ch == 'k') {
-						item_select(item_sel - atoi(cmd));
+						view_select(view_sel - atoi(cmd));
 					} else if (ch == 'G') {
-						item_select(atoi(cmd) - 1);
+						view_select(atoi(cmd) - 1);
 					}
 					break;
 				}
@@ -313,7 +317,7 @@ get_last_item_index(char *feed_path)
 	return index;
 }
 
-struct string *
+struct buf *
 read_item_element(char *item_path, char *element)
 {
 	char *path = malloc(sizeof(char) * MAXPATH);
@@ -323,7 +327,7 @@ read_item_element(char *item_path, char *element)
 	FILE *f = fopen(path, "r");
 	free(path);
 	if (f == NULL) return NULL;
-	struct string *str = malloc(sizeof(struct string));
+	struct buf *str = malloc(sizeof(struct buf));
 	if (str == NULL) return NULL;
 	str->len = 64;
 	str->ptr = malloc(sizeof(char) * str->len);
@@ -336,7 +340,8 @@ read_item_element(char *item_path, char *element)
 			str->ptr = realloc(str->ptr, sizeof(char) * str->len);
 		}
 	}
-	str->ptr[count] = '\0';
+	str->len = count;
+	str->ptr = realloc(str->ptr, sizeof(char) * str->len);
 	fclose(f);
 	if (count == 0) {
 		free_string_ptr(str);

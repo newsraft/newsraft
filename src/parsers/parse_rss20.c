@@ -14,7 +14,7 @@ startElement(void *userData, const XML_Char *name, const XML_Char **atts) {
 	/*(void)atts;*/
 	struct feed_parser_data *data = userData;
 	if (strcmp(name, "item") == 0) {
-		// if IN_ITEM_ELEMENT is alredy 1, then EXIT parser with error
+		// TODO: if IN_ITEM_ELEMENT is alredy 1, then EXIT parser with error
 		data->pos |= IN_ITEM_ELEMENT;
 		if (data->past_line == false && data->item_index > config_max_items) {
 			data->item_index = 0;
@@ -50,6 +50,9 @@ endElement(void *userData, const XML_Char *name) {
 		if (data->item_path != NULL) {
 			if (is_item_unique(data->feed_path, data->bucket) == 1) {
 				take_item_bucket(data->bucket, data->item_path);
+			} else {
+				// do not move to the next item directory if a duplicate is found
+				--(data->item_index); 
 			}
 			free(data->item_path);
 			data->item_path = NULL;
@@ -127,7 +130,7 @@ charData(void *userData, const XML_Char *s, int len)
 	}
 	memcpy(value + value_len, s, len);
 	value_len += len;
-	value[value_len] = '\0';
+	value[value_len++] = '\0';
 	last_pos = data->pos;
 }
 

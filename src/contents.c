@@ -10,10 +10,10 @@ static int view_min;
 static int view_max;
 static int newlines;
 
-static struct string *
+static struct buf *
 cat_content(char *item_path)
 {
-	struct string *buf = calloc(1, sizeof(struct string));
+	struct buf *buf = calloc(1, sizeof(struct buf));
 	if (buf == NULL) return NULL;
 	buf->len = 1;
 	buf->ptr = malloc(sizeof(char) * buf->len);
@@ -23,13 +23,13 @@ cat_content(char *item_path)
                          	cat_string_cstr(buf, Y); cat_strings(buf, str); cat_string_cstr(buf, "\n"); \
                          	free_string_ptr(str); \
                          }
-	struct string *str;
+	struct buf *str;
 	BUF_APPEND(TITLE_FILE, "Title: ")
 	BUF_APPEND(PUBDATE_FILE, "Date: ")
 	BUF_APPEND(AUTHOR_FILE, "Author: ")
 	BUF_APPEND(LINK_FILE, "Link: ")
 	BUF_APPEND(COMMENTS_FILE, "Comments: ")
-	struct string *content = read_item_element(item_path, CONTENT_FILE);
+	struct buf *content = read_item_element(item_path, CONTENT_FILE);
 	if (content != NULL) {
 		cat_string_cstr(buf, "\n");
 		cat_strings(buf, content);
@@ -63,7 +63,7 @@ contents_menu(char *feed_path, int64_t index)
 		status_write("could not get path to this item");
 		return MENU_CONTENT_ERROR;
 	}
-	struct string *content = cat_content(item_path);
+	struct buf *content = cat_content(item_path);
 	if (content == NULL) {
 		status_write("could not obtain contents of item");
 		free(item_path);

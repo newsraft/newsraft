@@ -3,9 +3,9 @@
 #include <curl/curl.h>
 #include "feedeater.h"
 
-static struct string *
+static struct buf *
 new_string(void) {
-	struct string *s = malloc(sizeof(struct string));
+	struct buf *s = malloc(sizeof(struct buf));
 	if (s == NULL) return NULL;
 	s->len = 0;
 	s->ptr = malloc(s->len+1);
@@ -15,7 +15,7 @@ new_string(void) {
 }
 
 static size_t
-string_write_func(void *ptr, size_t size, size_t nmemb, struct string *s)
+string_write_func(void *ptr, size_t size, size_t nmemb, struct buf *s)
 {
 	size_t new_len = s->len + size * nmemb;
 	s->ptr = realloc(s->ptr, new_len + 1);
@@ -26,10 +26,10 @@ string_write_func(void *ptr, size_t size, size_t nmemb, struct string *s)
 	return size * nmemb;
 }
 
-struct string *
+struct buf *
 feed_download(char *url)
 {
-	struct string *buf = new_string();
+	struct buf *buf = new_string();
 	if (buf == NULL) {
 		status_write("[insufficient memory] %s", url);
 		return NULL;

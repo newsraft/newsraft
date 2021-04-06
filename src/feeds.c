@@ -10,11 +10,11 @@
 
 static enum menu_dest menu_feeds(void);
 static struct feed_window *feed_list = NULL;
+static int view_sel = -1;
 static int view_min = 0;
 static int view_max = -1;
-static int feed_sel = -1;
 static int feed_count = 0;
-static int do_clear = 1;
+static int do_clean = 1;
 
 static void
 free_feed_list(void)
@@ -29,7 +29,7 @@ free_feed_list(void)
 			free(feed_list[i].feed);
 		}
 	}
-	feed_sel = -1;
+	view_sel = -1;
 	feed_count = 0;
 	free(feed_list);
 	feed_list = NULL;
@@ -118,7 +118,7 @@ load_feed_list(void)
 	if (error == 0) {
 		for (feed_index = 0; feed_index < feed_count; ++feed_index) {
 			if (feed_list[feed_index].feed->feed_url != NULL) {
-				feed_sel = feed_index;
+				view_sel = feed_index;
 				break;
 			}
 		}
@@ -128,7 +128,7 @@ load_feed_list(void)
 		return 1;
 	}
 
-	if (feed_sel == -1) {
+	if (view_sel == -1) {
 		fprintf(stderr, "none of feeds loaded!\n");
 		free_feed_list();
 		return 1;
@@ -147,11 +147,11 @@ static void
 feed_expose(struct feed_window *feedwin, bool highlight)
 {
 	if (config_number == 1 && feedwin->feed->feed_url != NULL) {
-		mvwprintw(feedwin->window, 0, 0, "%3d", feedwin->index);
+		mvwprintw(feedwin->window, 0, 0, "%3d", feedwin->index + 1);
 	}
-	mvwprintw(feedwin->window, 0, 0 + config_number * 5, feedwin->feed->is_read ? " " : "N");
+	mvwprintw(feedwin->window, 0, 0 + 5 * config_number, feedwin->feed->is_read ? " " : "N");
 	if (highlight) wattron(feedwin->window, A_REVERSE);
-	mvwprintw(feedwin->window, 0, 3 + config_number * 5, "%s", feed_image(feedwin->feed));
+	mvwprintw(feedwin->window, 0, 3 + 5 * config_number, "%s", feed_image(feedwin->feed));
 	if (highlight) wattroff(feedwin->window, A_REVERSE);
 	wrefresh(feedwin->window);
 }
@@ -163,7 +163,7 @@ show_feeds(void)
 		feed_list[i].window = newwin(1, COLS - config_left_offset, j + config_top_offset, config_left_offset);
 		feed_list[i].index = i;
 		feed_list[i].feed->is_read = is_feed_read(feed_list[i].feed->path);
-		feed_expose(&feed_list[i], (i == feed_sel));
+		feed_expose(&feed_list[i], (i == view_sel));
 	}
 }
 
@@ -180,12 +180,12 @@ hide_feeds(void)
 void
 feeds_menu(void)
 {
-	if (do_clear == 1) {
+	if (do_clean == 1) {
 		// clear ncurses screen
 		clear();
 		refresh();
 	} else {
-		do_clear = 1;
+		do_clean = 1;
 	}
 	if (view_max == -1) view_max = LINES - 1;
 
@@ -197,11 +197,11 @@ feeds_menu(void)
 		free_feed_list();
 		return;
 	} else if (dest == MENU_ITEMS) {
-		int items_status = items_menu(feed_list[feed_sel].feed->path);
+		int items_status = items_menu(feed_list[view_sel].feed->path);
 		if (items_status != MENU_FEEDS) {
-			do_clear = 0;
+			do_clean = 0;
 			if (items_status == MENU_ITEMS_EMPTY) {
-				status_write("[empty] %s", feed_image(feed_list[feed_sel].feed));
+				status_write("[empty] %s", feed_image(feed_list[view_sel].feed));
 			} else if (items_status == MENU_EXIT) {
 				free_feed_list();
 				return;
@@ -213,7 +213,7 @@ feeds_menu(void)
 }
 
 static void
-feed_select(int i)
+view_select(int i)
 {
 	int new_sel = i, j;
 
@@ -227,52 +227,52 @@ feed_select(int i)
 
 	// skip decorations
 	if (feed_list[new_sel].feed->feed_url == NULL) {
-		if (new_sel > feed_sel) {
+		if (new_sel > view_sel) {
 			for (j = new_sel + 1; (j < feed_count) && (feed_list[j].feed->feed_url == NULL); ++j);
 			if (j < feed_count) {
 				new_sel = j;
 			} else {
-				for (j = feed_sel; j < feed_count; ++j) {
+				for (j = view_sel; j < feed_count; ++j) {
 					if (feed_list[j].feed->feed_url != NULL) new_sel = j;
 				}
 			}
-		} else if (new_sel < feed_sel) {
+		} else if (new_sel < view_sel) {
 			for (j = new_sel - 1; (j > -1) && (feed_list[j].feed->feed_url == NULL); --j);
 			if (j > -1) {
 				new_sel = j;
 			} else {
-				for (j = feed_sel; j > -1; --j) {
+				for (j = view_sel; j > -1; --j) {
 					if (feed_list[j].feed->feed_url != NULL) new_sel = j;
 				}
 			}
 		}
 	}
 
-	if (feed_list[new_sel].feed->feed_url != NULL && new_sel != feed_sel) {
+	if (feed_list[new_sel].feed->feed_url != NULL && new_sel != view_sel) {
 		if (new_sel >= view_max) {
 			hide_feeds();
-			view_min += new_sel - feed_sel;
-			view_max += new_sel - feed_sel;
+			view_min += new_sel - view_sel;
+			view_max += new_sel - view_sel;
 			if (view_max > feed_count) {
 				view_max = feed_count;
 				view_min = view_max - LINES + 1;
 			}
-			feed_sel = new_sel;
+			view_sel = new_sel;
 			show_feeds();
 		} else if (new_sel < view_min) {
 			hide_feeds();
-			view_min -= feed_sel - new_sel;
-			view_max -= feed_sel - new_sel;
+			view_min -= view_sel - new_sel;
+			view_max -= view_sel - new_sel;
 			if (view_min < 0) {
 				view_min = 0;
 				view_max = LINES - 1;
 			}
-			feed_sel = new_sel;
+			view_sel = new_sel;
 			show_feeds();
 		} else {
-			feed_expose(&feed_list[feed_sel], 0);
-			feed_sel = new_sel;
-			feed_expose(&feed_list[feed_sel], 1);
+			feed_expose(&feed_list[view_sel], 0);
+			view_sel = new_sel;
+			feed_expose(&feed_list[view_sel], 1);
 		}
 	}
 }
@@ -280,7 +280,7 @@ feed_select(int i)
 static void
 feed_reload(struct feed_window *feedwin)
 {
-	struct string *buf = feed_download(feedwin->feed->feed_url);
+	struct buf *buf = feed_download(feedwin->feed->feed_url);
 	if (buf == NULL) return;
 	if (buf->ptr == NULL) { free(buf); return; }
 	if (feed_process(buf, feedwin->feed) == 0) status_clean();
@@ -304,14 +304,14 @@ menu_feeds(void)
 	while (1) {
 		ch = wgetch(input_win);
 		wrefresh(input_win);
-		if      (ch == 'j' || ch == KEY_DOWN)                                   { feed_select(feed_sel + 1); }
-		else if (ch == 'k' || ch == KEY_UP)                                     { feed_select(feed_sel - 1); }
+		if      (ch == 'j' || ch == KEY_DOWN)                                   { view_select(view_sel + 1); }
+		else if (ch == 'k' || ch == KEY_UP)                                     { view_select(view_sel - 1); }
 		else if (ch == 'l' || ch == KEY_RIGHT || ch == '\n' || ch == KEY_ENTER) { return MENU_ITEMS; }
 		else if (ch == config_key_exit)                                         { return MENU_EXIT; }
-		else if (ch == config_key_download)                                     { feed_reload(&feed_list[feed_sel]); }
+		else if (ch == config_key_download)                                     { feed_reload(&feed_list[view_sel]); }
 		else if (ch == config_key_download_all)                                 { feed_reload_all(); }
-		else if (ch == 'g' && wgetch(input_win) == 'g')                         { feed_select(0); }
-		else if (ch == 'G')                                                     { feed_select(feed_count - 1); }
+		else if (ch == 'g' && wgetch(input_win) == 'g')                         { view_select(0); }
+		else if (ch == 'G')                                                     { view_select(feed_count - 1); }
 		else if (isdigit(ch)) {
 			q = 0;
 			while (1) {
@@ -321,11 +321,11 @@ menu_feeds(void)
 				ch = wgetch(input_win);
 				if (!isdigit(ch)) {
 					if (ch == 'j' || ch == KEY_DOWN) {
-						feed_select(feed_sel + atoi(cmd));
+						view_select(view_sel + atoi(cmd));
 					} else if (ch == 'k' || ch == KEY_UP) {
-						feed_select(feed_sel - atoi(cmd));
+						view_select(view_sel - atoi(cmd));
 					} else if (ch == 'G') {
-						feed_select(atoi(cmd) - 1);
+						view_select(atoi(cmd) - 1);
 					}
 					break;
 				}

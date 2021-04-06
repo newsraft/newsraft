@@ -13,14 +13,14 @@ static int newlines;
 static struct buf *
 cat_content(char *item_path)
 {
-	struct buf *buf = calloc(1, sizeof(struct buf));
+	struct buf *buf = malloc(sizeof(struct buf));
 	if (buf == NULL) return NULL;
 	buf->len = 1;
 	buf->ptr = malloc(sizeof(char) * buf->len);
 	if (buf->ptr == NULL) { free(buf); return NULL; }
 	buf->ptr[0] = '\0';
 #define BUF_APPEND(X, Y) if ((str = read_item_element(item_path, X)) != NULL) { \
-                         	cat_string_cstr(buf, Y); cat_strings(buf, str); cat_string_cstr(buf, "\n"); \
+                         	cat_string_cstr(buf, Y); cat_strings(buf, str); cat_string_cstr(buf, "\n"); ++newlines; \
                          	free_string_ptr(str); \
                          }
 	struct buf *str;
@@ -43,7 +43,7 @@ cat_content(char *item_path)
 			++newlines;
 		} else {
 			++not_newline;
-			if (not_newline > COLS + 100) {
+			if (not_newline > COLS) {
 				not_newline = 0;
 				++newlines;
 			}

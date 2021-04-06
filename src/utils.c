@@ -12,7 +12,7 @@ malstrcpy(struct buf *dest, void *src, size_t size)
 	dest->ptr = malloc(sizeof(char) * size);
 	if (dest->ptr == NULL) return;
 	dest->len = size;
-	strncpy(dest->ptr, src, sizeof(char) * size);
+	memcpy(dest->ptr, src, sizeof(char) * size);
 }
 
 void
@@ -34,7 +34,7 @@ free_string_ptr(struct buf *dest)
 void
 cat_strings(struct buf *dest, struct buf *src)
 {
-	dest->len += src->len - 1;
+	dest->len += src->len;
 	dest->ptr = realloc(dest->ptr, dest->len);
 	strcat(dest->ptr, src->ptr);
 }

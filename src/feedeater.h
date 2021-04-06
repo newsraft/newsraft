@@ -139,7 +139,7 @@ int64_t get_last_item_index(char *feed_path);
 void set_last_item_index(char *feed_path, int64_t index);
 char * item_data_path(char *feed_path, int64_t index);
 struct buf * read_item_element(char *item_path, char *element);
-void write_item_element(char *item_path, char *element, void *data, size_t size);
+void write_item_element(char *item_path, char *element, char *str);
 void free_item_bucket(struct item_bucket *bucket);
 int is_item_unique(char *feed_path, struct item_bucket *bucket);
 void take_item_bucket(struct item_bucket *bucket, char *item_path);

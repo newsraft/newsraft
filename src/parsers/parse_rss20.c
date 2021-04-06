@@ -17,7 +17,7 @@ startElement(void *userData, const XML_Char *name, const XML_Char **atts) {
 		// TODO: if IN_ITEM_ELEMENT is alredy 1, then EXIT parser with error
 		data->pos |= IN_ITEM_ELEMENT;
 		if (data->past_line == false && data->item_index > config_max_items) {
-			data->item_index = 0;
+			data->item_index = -1;
 			data->past_line = true;
 		}
 		if (((data->item_index < config_max_items) && (data->past_line == false)) ||
@@ -62,57 +62,57 @@ endElement(void *userData, const XML_Char *name) {
 		data->pos &= ~IN_TITLE_ELEMENT;
 		if ((data->pos & IN_CHANNEL_ELEMENT) != 0) {
 			if ((data->pos & IN_ITEM_ELEMENT) != 0) {
-				malstrcpy(&data->bucket->title, value, sizeof(char) * value_len);
+				malstrcpy(&data->bucket->title, value, sizeof(char) * (value_len + 1));
 			} else {
-				write_feed_element(data->feed_path, TITLE_FILE, value, sizeof(char) * value_len);
+				write_feed_element(data->feed_path, TITLE_FILE, value, sizeof(char) * (value_len + 1));
 			}
 		}
 	} else if (strcmp(name, "description") == 0) {
 		data->pos &= ~IN_DESCRIPTION_ELEMENT;
 		if ((data->pos & IN_CHANNEL_ELEMENT) != 0) {
 			if ((data->pos & IN_ITEM_ELEMENT) != 0) {
-				malstrcpy(&data->bucket->content, value, sizeof(char) * value_len);
+				malstrcpy(&data->bucket->content, value, sizeof(char) * (value_len + 1));
 			} else {
-				write_feed_element(data->feed_path, CONTENT_FILE, value, sizeof(char) * value_len);
+				write_feed_element(data->feed_path, CONTENT_FILE, value, sizeof(char) * (value_len + 1));
 			}
 		}
 	} else if (strcmp(name, "link") == 0) {
 		data->pos &= ~IN_LINK_ELEMENT;
 		if ((data->pos & IN_CHANNEL_ELEMENT) != 0) {
 			if ((data->pos & IN_ITEM_ELEMENT) != 0) {
-				malstrcpy(&data->bucket->link, value, sizeof(char) * value_len);
+				malstrcpy(&data->bucket->link, value, sizeof(char) * (value_len + 1));
 			} else {
-				write_feed_element(data->feed_path, LINK_FILE, value, sizeof(char) * value_len);
+				write_feed_element(data->feed_path, LINK_FILE, value, sizeof(char) * (value_len + 1));
 			}
 		}
 	} else if (strcmp(name, "pubDate") == 0) {
 		data->pos &= ~IN_PUBDATE_ELEMENT;
 		if ((data->pos & IN_CHANNEL_ELEMENT) != 0) {
 			if ((data->pos & IN_ITEM_ELEMENT) != 0) {
-				malstrcpy(&data->bucket->pubdate, value, sizeof(char) * value_len);
+				malstrcpy(&data->bucket->pubdate, value, sizeof(char) * (value_len + 1));
 			} else {
-				write_feed_element(data->feed_path, PUBDATE_FILE, value, sizeof(char) * value_len);
+				write_feed_element(data->feed_path, PUBDATE_FILE, value, sizeof(char) * (value_len + 1));
 			}
 		}
 	} else if (strcmp(name, "guid") == 0) {
 		data->pos &= ~IN_GUID_ELEMENT;
 		if (((data->pos & IN_CHANNEL_ELEMENT) != 0) && ((data->pos & IN_ITEM_ELEMENT) != 0)) {
-			malstrcpy(&data->bucket->uid, value, sizeof(char) * value_len);
+			malstrcpy(&data->bucket->uid, value, sizeof(char) * (value_len + 1));
 		}
 	} else if (strcmp(name, "category") == 0) {
 		data->pos &= ~IN_CATEGORY_ELEMENT;
 		if (((data->pos & IN_CHANNEL_ELEMENT) != 0) && ((data->pos & IN_ITEM_ELEMENT) != 0)) {
-			malstrcpy(&data->bucket->category, value, sizeof(char) * value_len);
+			malstrcpy(&data->bucket->category, value, sizeof(char) * (value_len + 1));
 		}
 	} else if (strcmp(name, "comments") == 0) {
 		data->pos &= ~IN_COMMENTS_ELEMENT;
 		if (((data->pos & IN_CHANNEL_ELEMENT) != 0) && ((data->pos & IN_ITEM_ELEMENT) != 0)) {
-			malstrcpy(&data->bucket->comments, value, sizeof(char) * value_len);
+			malstrcpy(&data->bucket->comments, value, sizeof(char) * (value_len + 1));
 		}
 	} else if (strcmp(name, "author") == 0) {
 		data->pos &= ~IN_AUTHOR_ELEMENT;
 		if (((data->pos & IN_CHANNEL_ELEMENT) != 0) && ((data->pos & IN_ITEM_ELEMENT) != 0)) {
-			malstrcpy(&data->bucket->author, value, sizeof(char) * value_len);
+			malstrcpy(&data->bucket->author, value, sizeof(char) * (value_len + 1));
 		}
 	} else if (strcmp(name, "channel") == 0) {
 		data->pos &= ~IN_CHANNEL_ELEMENT;
@@ -130,7 +130,7 @@ charData(void *userData, const XML_Char *s, int len)
 	}
 	memcpy(value + value_len, s, len);
 	value_len += len;
-	value[value_len++] = '\0';
+	value[value_len] = '\0';
 	last_pos = data->pos;
 }
 

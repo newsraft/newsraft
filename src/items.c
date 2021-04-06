@@ -72,11 +72,13 @@ load_item_list(char *data_path)
 	     *path = malloc(sizeof(char) * MAXPATH);
 	FILE *f;
 	int64_t border_index = get_last_item_index(data_path);
+	if (border_index == -1) border_index = 0;
 	bool past_line = false;
+	// TODO: this order is broken
 	for (int64_t i = border_index; ; ++i) {
 		if (past_line == false && i > config_max_items) {
 			past_line = true;
-			i = 1;
+			i = 0;
 		}
 		if (past_line == true && i == border_index) {
 			break;
@@ -306,7 +308,7 @@ get_last_item_index(char *feed_path)
 	strcat(path, "last_item");
 	FILE *f = fopen(path, "r");
 	free(path);
-	if (f == NULL) { return 0; }
+	if (f == NULL) { return -1; }
 	int i = 0;
 	char index_str[MAX_ITEM_INDEX_LEN], c;
 	while ((c = fgetc(f)) != EOF) index_str[i++] = c;
@@ -340,6 +342,7 @@ read_item_element(char *item_path, char *element)
 			str->ptr = realloc(str->ptr, sizeof(char) * str->len);
 		}
 	}
+	str->ptr[count++] = '\0';
 	str->len = count;
 	str->ptr = realloc(str->ptr, sizeof(char) * str->len);
 	fclose(f);
@@ -351,9 +354,9 @@ read_item_element(char *item_path, char *element)
 }
 
 void
-write_item_element(char *item_path, char *element, void *data, size_t size)
+write_item_element(char *item_path, char *element, char *str)
 {
-	if (item_path == NULL || data == NULL || size < 2) return;
+	if (item_path == NULL || str == NULL) return;
 	char *item = malloc(sizeof(char) * MAXPATH);
 	if (item == NULL) return;
 	strcpy(item, item_path);
@@ -361,7 +364,7 @@ write_item_element(char *item_path, char *element, void *data, size_t size)
 	FILE *f = fopen(item, "w");
 	free(item);
 	if (f == NULL) return;
-	fwrite(data, size, 1, f);
+	fputs(str, f);
 	fclose(f);
 }
 

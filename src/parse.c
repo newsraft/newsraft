@@ -136,13 +136,13 @@ void
 take_item_bucket(struct item_bucket *bucket, char *item_path)
 {
 	if (item_path == NULL || bucket == NULL) return;
-	write_item_element(item_path, UNIQUE_ID_FILE, bucket->uid.ptr, bucket->uid.len);
-	write_item_element(item_path, TITLE_FILE, bucket->title.ptr, bucket->title.len);
-	write_item_element(item_path, LINK_FILE, bucket->link.ptr, bucket->link.len);
-	write_item_element(item_path, PUBDATE_FILE, bucket->pubdate.ptr, bucket->pubdate.len);
-	write_item_element(item_path, AUTHOR_FILE, bucket->author.ptr, bucket->author.len);
-	write_item_element(item_path, CONTENT_FILE, bucket->content.ptr, bucket->content.len);
-	write_item_element(item_path, CATEGORY_FILE, bucket->category.ptr, bucket->category.len);
-	write_item_element(item_path, COMMENTS_FILE, bucket->comments.ptr, bucket->comments.len);
+	write_item_element(item_path, UNIQUE_ID_FILE, bucket->uid.ptr);
+	write_item_element(item_path, TITLE_FILE, bucket->title.ptr);
+	write_item_element(item_path, LINK_FILE, bucket->link.ptr);
+	write_item_element(item_path, PUBDATE_FILE, bucket->pubdate.ptr);
+	write_item_element(item_path, AUTHOR_FILE, bucket->author.ptr);
+	write_item_element(item_path, CONTENT_FILE, bucket->content.ptr);
+	write_item_element(item_path, CATEGORY_FILE, bucket->category.ptr);
+	write_item_element(item_path, COMMENTS_FILE, bucket->comments.ptr);
 	mark_unread(item_path);
 }

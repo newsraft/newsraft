@@ -48,10 +48,7 @@ endElement(void *userData, const XML_Char *name) {
 	if (strcmp(name, "item") == 0) {
 		data->pos &= ~IN_ITEM_ELEMENT;
 		if (data->item_path != NULL) {
-			if (is_item_unique(data->feed_path, data->bucket) == 1) {
-				take_item_bucket(data->bucket, data->item_path);
-			} else {
-				// do not move to the next item directory if a duplicate is found
+			if (try_bucket(data->bucket, data->feed_path, data->item_path) == 0) {
 				--(data->item_index); 
 			}
 			free(data->item_path);

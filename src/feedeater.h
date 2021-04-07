@@ -135,7 +135,9 @@ bool is_feed_read(char *feed_path);
 // items
 
 int items_menu(char *url);
+int64_t get_first_item_index(char *feed_path);
 int64_t get_last_item_index(char *feed_path);
+void set_first_item_index(char *feed_path, int64_t index);
 void set_last_item_index(char *feed_path, int64_t index);
 char * item_data_path(char *feed_path, int64_t index);
 struct buf * read_item_element(char *item_path, char *element);

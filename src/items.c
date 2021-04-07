@@ -61,65 +61,73 @@ free_items(void)
 	item_list = NULL;
 }
 
+static void
+load_item(char *data_path, int64_t index)
+{
+	FILE *f;
+	int item_index, size = 32, count = 0;
+	char c, item_num[MAX_ITEM_INDEX_LEN];
+	char *value = malloc(sizeof(char) * size);
+	if (value == NULL) { return; }
+	char *path = malloc(sizeof(char) * MAXPATH);
+	if (path == NULL) { free(value); return; }
+	strcpy(path, data_path);
+	sprintf(item_num, "%" PRId64 "/", index);
+	strcat(path, item_num);
+	strcat(path, TITLE_FILE);
+	f = fopen(path, "r");
+	if (f == NULL) { free(value); free(path); return; }
+	count = 0;
+	while ((c = fgetc(f)) != EOF) {
+		value[count++] = c;
+		if (count == size) {
+			size *= 2;
+			value = realloc(value, sizeof(char) * size);
+		}
+	}
+	value[count] = '\0';
+	if (count != 0) {
+		item_index = item_count++;
+		item_list = realloc(item_list, sizeof(struct item_window) * item_count);
+		if (item_list != NULL) {
+			item_list[item_index].item = calloc(1, sizeof(struct item_entry));
+			if (item_list[item_index].item != NULL) {
+				item_list[item_index].index = item_index;
+				item_list[item_index].item->index = index;
+				item_list[item_index].item->name = malloc(sizeof(char) * (count + 1));
+				if (item_list[item_index].item->name != NULL) {
+					strcpy(item_list[item_index].item->name, value);
+					if (view_sel == -1) view_sel = item_index;
+				}
+			}
+		}
+	}
+
+	fclose(f);
+	free(value);
+	free(path);
+}
+
 static int
 load_item_list(char *data_path)
 {
-	int item_index;
-	char c;
-	int size = 32, count = 0;
-	char item_num[8],
-	     *value = malloc(sizeof(char) * size),
-	     *path = malloc(sizeof(char) * MAXPATH);
-	FILE *f;
-	int64_t border_index = get_last_item_index(data_path);
-	if (border_index == -1) border_index = 0;
+	int64_t start_index = get_first_item_index(data_path);
+	int64_t end_index = get_last_item_index(data_path);
+	if (start_index == -1) start_index = 0;
+	if (end_index == -1) end_index = 0;
 	bool past_line = false;
 	// TODO: this order is broken
-	for (int64_t i = border_index; ; ++i) {
+	for (int64_t i = end_index; ; ++i) {
 		if (past_line == false && i > config_max_items) {
 			past_line = true;
 			i = 0;
 		}
-		if (past_line == true && i == border_index) {
+		if (past_line == true && i == end_index) {
 			break;
 		}
-		strcpy(path, data_path);
-		sprintf(item_num, "%" PRId64 "/", i);
-		strcat(path, item_num);
-		strcat(path, TITLE_FILE);
-		f = fopen(path, "r");
-		if (f == NULL) continue;
-		count = 0;
-		while ((c = fgetc(f)) != EOF) {
-			value[count++] = c;
-			if (count == size) {
-				size *= 2;
-				value = realloc(value, sizeof(char) * size);
-			}
-		}
-		value[count] = '\0';
-		if (count != 0) {
-			item_index = item_count++;
-			item_list = realloc(item_list, sizeof(struct item_window) * item_count);
-			if (item_list != NULL) {
-				item_list[item_index].item = calloc(1, sizeof(struct item_entry));
-				if (item_list[item_index].item != NULL) {
-					item_list[item_index].index = item_index;
-					item_list[item_index].item->index = i;
-					item_list[item_index].item->name = malloc(sizeof(char) * (count + 1));
-					if (item_list[item_index].item->name != NULL) {
-						strcpy(item_list[item_index].item->name, value);
-						if (view_sel == -1) view_sel = item_index;
-					}
-				}
-			}
-		}
-
-		fclose(f);
+		load_item(data_path, i);
 	}
 
-	free(value);
-	free(path);
 
 	if (view_sel == -1) {
 		return MENU_ITEMS_EMPTY; // no items found
@@ -280,6 +288,22 @@ item_data_path(char *feed_path, int64_t index)
 }
 
 void
+set_first_item_index(char *feed_path, int64_t index)
+{
+	char *path = malloc(sizeof(char) * MAXPATH);
+	if (path == NULL) {
+		status_write("not enough ram");
+		return;
+	}
+	strcpy(path, feed_path);
+	strcat(path, "first_item");
+	FILE *f = fopen(path, "w");
+	free(path);
+	if (f == NULL) return;
+	fprintf(f, "%" PRId64 "", index);
+	fclose(f);
+}
+void
 set_last_item_index(char *feed_path, int64_t index)
 {
 	char *path = malloc(sizeof(char) * MAXPATH);
@@ -296,6 +320,28 @@ set_last_item_index(char *feed_path, int64_t index)
 	fclose(f);
 }
 
+int64_t
+get_first_item_index(char *feed_path)
+{
+	char *path = malloc(sizeof(char) * MAXPATH);
+	if (path == NULL) {
+		status_write("not enough ram");
+		return 0;
+	}
+	strcpy(path, feed_path);
+	strcat(path, "first_item");
+	FILE *f = fopen(path, "r");
+	free(path);
+	if (f == NULL) { return -1; }
+	int i = 0;
+	char index_str[MAX_ITEM_INDEX_LEN], c;
+	while ((c = fgetc(f)) != EOF) index_str[i++] = c;
+	index_str[i] = '\0';
+	fclose(f);
+	int64_t index = 0;
+	sscanf(index_str, "%" SCNd64 "", &index);
+	return index;
+}
 int64_t
 get_last_item_index(char *feed_path)
 {

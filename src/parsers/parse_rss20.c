@@ -139,6 +139,8 @@ parse_rss20(XML_Parser *parser, char *feed_path)
 	struct item_bucket *bucket = calloc(1, sizeof(struct item_bucket));
 	struct feed_parser_data feed_data = {0, last_item_index, IN_ROOT, feed_path, NULL, last_item_index, false, bucket};
 
+	set_first_item_index(feed_path, feed_data.item_index);
+
 	XML_SetUserData(*parser, &feed_data);
 	XML_SetElementHandler(*parser, startElement, endElement);
 	XML_SetCharacterDataHandler(*parser, charData);

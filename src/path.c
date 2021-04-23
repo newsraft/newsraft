@@ -98,7 +98,7 @@ get_config_file_path(char *file_name)
 }
 
 static char *
-get_data_dir(void)
+get_data_dir_path(void)
 {
 	char *path = malloc(MAXPATH * sizeof(char));
 	if (path == NULL) {
@@ -149,10 +149,27 @@ get_data_dir(void)
 }
 
 char *
+get_db_path(void)
+{
+	if (data_dir_path == NULL) {
+		data_dir_path = get_data_dir_path();
+		if (data_dir_path == NULL) return NULL;
+	}
+	char *path = malloc(sizeof(char) * MAXPATH);
+	if (path == NULL) {
+		status_write("failed to allocate memory for database path\n");
+		return NULL;
+	}
+	strcpy(path, data_dir_path);
+	strcat(path, "data.sqlite");
+	return path;
+}
+
+char *
 make_feed_dir(char *url)
 {
 	if (data_dir_path == NULL) {
-		data_dir_path = get_data_dir();
+		data_dir_path = get_data_dir_path();
 		if (data_dir_path == NULL) return NULL;
 	}
 

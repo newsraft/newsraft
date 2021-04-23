@@ -74,7 +74,7 @@ feed_process(struct buf *buf, struct feed_entry *feed)
 		return 1;
 	}
 
-	int parsing_done = parser_data.parser_func(&parser, feed->path);
+	int parsing_done = parser_data.parser_func(&parser, feed->feed_url);
 	XML_ParserFree(parser);
 	if (parsing_done == 0) {
 		status_write("[incorrect format] %s", feed->feed_url);
@@ -96,48 +96,4 @@ free_item_bucket(struct item_bucket *bucket)
 	free_string(&bucket->category);
 	free_string(&bucket->comments);
 	free_string(&bucket->pubdate);
-}
-
-// as for now we checking uniqueness by uid file (guid tag value in rss20)
-// if uid file does not exist, compare link files (link tag value in rss20)
-int
-try_bucket(struct item_bucket *bucket, char *feed_path, char *item_path)
-{
-	if (bucket == NULL || feed_path == NULL || item_path == NULL) return 0;
-	char *item_check_path;
-	struct buf *str;
-	for (int64_t i = 0; i < config_max_items; ++i) {
-		item_check_path = item_data_path(feed_path, i);
-		if (item_check_path == NULL) continue;
-		str = read_item_element(item_check_path, UNIQUE_ID_FILE);
-		if (str != NULL) {
-			if (is_bufs_equal(&bucket->uid, str)) {
-				free_string_ptr(str);
-				free(item_check_path);
-				return 0;
-			}
-			free_string_ptr(str);
-		} else {
-			str = read_item_element(item_check_path, LINK_FILE);
-			if (str != NULL) {
-				if (is_bufs_equal(&bucket->link, str)) {
-					free_string_ptr(str);
-					free(item_check_path);
-					return 0;
-				}
-				free_string_ptr(str);
-			}
-		}
-		free(item_check_path);
-	}
-	write_item_element(item_path, UNIQUE_ID_FILE, bucket->uid.ptr);
-	write_item_element(item_path, TITLE_FILE, bucket->title.ptr);
-	write_item_element(item_path, LINK_FILE, bucket->link.ptr);
-	write_item_element(item_path, PUBDATE_FILE, bucket->pubdate.ptr);
-	write_item_element(item_path, AUTHOR_FILE, bucket->author.ptr);
-	write_item_element(item_path, CONTENT_FILE, bucket->content.ptr);
-	write_item_element(item_path, CATEGORY_FILE, bucket->category.ptr);
-	write_item_element(item_path, COMMENTS_FILE, bucket->comments.ptr);
-	mark_unread(item_path);
-	return 1;
 }

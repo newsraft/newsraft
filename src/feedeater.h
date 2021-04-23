@@ -113,12 +113,8 @@ enum menu_dest {
 
 struct feed_parser_data {
 	int depth;
-	int64_t item_index;
 	enum xml_pos pos;
-	char *feed_path;
-	char *item_path;
-	int64_t border_index;
-	bool past_line;
+	char *feed_url;
 	struct item_bucket *bucket;
 };
 
@@ -135,15 +131,10 @@ bool is_feed_read(char *feed_path);
 // items
 
 int items_menu(char *url);
-int64_t get_first_item_index(char *feed_path);
-int64_t get_last_item_index(char *feed_path);
-void set_first_item_index(char *feed_path, int64_t index);
-void set_last_item_index(char *feed_path, int64_t index);
 char * item_data_path(char *feed_path, int64_t index);
 struct buf * read_item_element(char *item_path, char *element);
-void write_item_element(char *item_path, char *element, char *str);
 void free_item_bucket(struct item_bucket *bucket);
-int try_bucket(struct item_bucket *bucket, char *feed_path, char *item_path);
+int try_bucket(struct item_bucket *bucket, char *feed_url);
 void mark_read(char *item_path);
 void mark_unread(char *item_path);
 int is_item_read(char *item_path);
@@ -155,6 +146,7 @@ int contents_menu(char *, int64_t);
 
 // path
 char * get_config_file_path(char *file_name);
+char * get_db_path(void);
 char * make_feed_dir(char *url);
 
 
@@ -163,15 +155,15 @@ char * make_feed_dir(char *url);
 int feed_process(struct buf *buf, struct feed_entry *feed);
 
 // xml parsers for different versions of feeds
-int parse_rss20(XML_Parser *parser, char *feed_path);  // RSS 2.0
-int parse_rss11(XML_Parser *parser, char *feed_path);  // RSS 1.1
-int parse_rss10(XML_Parser *parser, char *feed_path);  // RSS 1.0
-int parse_rss094(XML_Parser *parser, char *feed_path); // RSS 0.94
-int parse_rss092(XML_Parser *parser, char *feed_path); // RSS 0.92
-int parse_rss091(XML_Parser *parser, char *feed_path); // RSS 0.91
-int parse_rss090(XML_Parser *parser, char *feed_path); // RSS 0.90
-int parse_atom10(XML_Parser *parser, char *feed_path); // Atom 1.0
-int parse_atom03(XML_Parser *parser, char *feed_path); // Atom 0.3
+int parse_rss20(XML_Parser *parser, char *feed_url);  // RSS 2.0
+int parse_rss11(XML_Parser *parser, char *feed_url);  // RSS 1.1
+int parse_rss10(XML_Parser *parser, char *feed_url);  // RSS 1.0
+int parse_rss094(XML_Parser *parser, char *feed_url); // RSS 0.94
+int parse_rss092(XML_Parser *parser, char *feed_url); // RSS 0.92
+int parse_rss091(XML_Parser *parser, char *feed_url); // RSS 0.91
+int parse_rss090(XML_Parser *parser, char *feed_url); // RSS 0.90
+int parse_atom10(XML_Parser *parser, char *feed_url); // Atom 1.0
+int parse_atom03(XML_Parser *parser, char *feed_url); // Atom 0.3
 
 
 // config parsing

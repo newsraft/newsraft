@@ -16,6 +16,7 @@ build obj/input.o:                compile src/input.c
 build obj/contents.o:             compile src/contents.c
 build obj/download.o:             compile src/download.c
 build obj/utils.o:                compile src/utils.c
+build obj/db/db.o:                compile src/db/db.c
 build obj/parsers/parse_atom03.o: compile src/parsers/parse_atom03.c
 build obj/parsers/parse_atom10.o: compile src/parsers/parse_atom10.c
 build obj/parsers/parse_rss090.o: compile src/parsers/parse_rss090.c
@@ -37,6 +38,7 @@ build feedeater: link obj/feedeater.o $
                       obj/contents.o $
                       obj/download.o $
                       obj/utils.o $
+                      obj/db/db.o $
                       obj/parsers/parse_atom03.o $
                       obj/parsers/parse_atom10.o $
                       obj/parsers/parse_rss090.o $
@@ -46,4 +48,4 @@ build feedeater: link obj/feedeater.o $
                       obj/parsers/parse_rss10.o $
                       obj/parsers/parse_rss11.o $
                       obj/parsers/parse_rss20.o
-  arg = -lncurses -lcurl -lexpat
+  arg = -lncurses -lcurl -lexpat -lsqlite3

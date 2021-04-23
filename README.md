@@ -20,6 +20,8 @@ Project **non-goals** are:
 
 * expat >= 2.2.10
 
+* sqlite >= 3.35.4
+
 * gcc >= 10.2.0 (build-time)
 
 * ninja >= 1.10.2 (build-time)

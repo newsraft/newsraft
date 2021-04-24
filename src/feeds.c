@@ -162,7 +162,7 @@ show_feeds(void)
 	for (int i = view_min, j = 0; i < feed_count && i < view_max; ++i, ++j) {
 		feed_list[i].window = newwin(1, COLS - config_left_offset, j + config_top_offset, config_left_offset);
 		feed_list[i].index = i;
-		feed_list[i].feed->is_read = is_feed_read(feed_list[i].feed->path);
+		feed_list[i].feed->is_read = is_feed_read(feed_list[i].feed->feed_url);
 		feed_expose(&feed_list[i], (i == view_sel));
 	}
 }
@@ -197,7 +197,7 @@ feeds_menu(void)
 		free_feed_list();
 		return;
 	} else if (dest == MENU_ITEMS) {
-		int items_status = items_menu(feed_list[view_sel].feed->path);
+		int items_status = items_menu(feed_list[view_sel].feed->feed_url);
 		if (items_status != MENU_FEEDS) {
 			do_clean = 0;
 			if (items_status == MENU_ITEMS_EMPTY) {
@@ -377,22 +377,8 @@ write_feed_element(char *feed_path, char *element, void *data, size_t size)
 }
 
 bool
-is_feed_read(char *feed_path)
+is_feed_read(char *feed_url)
 {
-	if (feed_path == NULL) return true;
-	char *item;
-	bool found_unread = false;
-	for (int64_t i = 0; i < config_max_items; ++i) {
-		item = item_data_path(feed_path, i);
-		if (is_item_read(item) == 0) {
-			found_unread = true;
-			free(item);
-			break;
-		}
-		free(item);
-	}
-	if (found_unread == true) {
-		return false;
-	}
+	//under constr
 	return true;
 }

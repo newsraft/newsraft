@@ -34,9 +34,7 @@ item_expose(struct item_window *itemwin, bool highlight)
 	if (config_number == 1) {
 		mvwprintw(itemwin->window, 0, 0, "%3d", itemwin->index + 1);
 	}
-	char *item_path = item_data_path(items_path, itemwin->item->index);
-	mvwprintw(itemwin->window, 0, 0 + 5 * config_number, is_item_read(item_path) ? " " : "N");
-	free(item_path);
+	mvwprintw(itemwin->window, 0, 0 + 5 * config_number, itemwin->item->unread ? "N" : " ");
 	if (highlight) wattron(itemwin->window, A_REVERSE);
 	mvwprintw(itemwin->window, 0, 3 + 5 * config_number, "%s", item_image(itemwin->item));
 	if (highlight) wattroff(itemwin->window, A_REVERSE);
@@ -62,12 +60,41 @@ free_items(void)
 }
 
 static int
-load_item_list(char *data_path)
+load_item_list(char *feed_url)
 {
+	int item_index, rc, unread;
+	sqlite3_stmt *res;
+	char cmd[] = "SELECT name, link, unread FROM items WHERE feed = ? ORDER BY pubdate DESC", *text;
+	rc = sqlite3_prepare_v2(db, cmd, -1, &res, 0);
+	if (rc == SQLITE_OK) {
+		sqlite3_bind_text(res, 1, feed_url, strlen(feed_url), NULL);
+		while (1) {
+			rc = sqlite3_step(res);
+			if (rc != SQLITE_ROW) break;
+			item_index = item_count++;
+			item_list = realloc(item_list, sizeof(struct item_window) * item_count);
+			item_list[item_index].item = calloc(1, sizeof(struct item_entry));
+			if (view_sel == -1) view_sel = item_index;
+			item_list[item_index].index = item_index;
+			if (item_list[item_index].item == NULL) {
+				fprintf(stderr, "memory allocation for item entry failed\n"); break;
+			}
+			text = (char *)sqlite3_column_text(res, 0);
+			item_list[item_index].item->name = malloc(sizeof(char) * (strlen(text) + 1));
+			strcpy(item_list[item_index].item->name, text);
+			text = (char *)sqlite3_column_text(res, 1);
+			item_list[item_index].item->url = malloc(sizeof(char) * (strlen(text) + 1));
+			strcpy(item_list[item_index].item->url, text);
+			unread = sqlite3_column_int(res, 2);
+			item_list[item_index].item->unread = unread;
+		}
+	} else {
+		fprintf(stderr, "Failed to execute statement: %s\n", sqlite3_errmsg(db));
+	}
+	sqlite3_finalize(res);
 	if (view_sel == -1) {
 		return MENU_ITEMS_EMPTY; // no items found
 	}
-
 	return 0;
 }
 
@@ -91,15 +118,15 @@ hide_items(void)
 }
 
 int
-items_menu(char *data_path)
+items_menu(char *feed_url)
 {
 	if (item_list == NULL) {
-		int load_status = load_item_list(data_path);
+		int load_status = load_item_list(feed_url);
 		if (load_status != 0) {
 			free_items();
 			return load_status;
 		}
-		items_path = data_path;
+		/*items_path = data_path;*/
 		view_min = 0;
 		view_max = LINES - 1;
 	}
@@ -115,7 +142,7 @@ items_menu(char *data_path)
 	int dest = menu_items();
 	hide_items();
 	if (dest == MENU_CONTENT) {
-		int contents_status = contents_menu(data_path, item_list[view_sel].item->index);
+		int contents_status = contents_menu(feed_url, item_list[view_sel].item);
 		if (contents_status == MENU_EXIT) {
 			free_items();
 			return MENU_EXIT;
@@ -127,7 +154,7 @@ items_menu(char *data_path)
 		return dest;
 	}
 
-	return items_menu(data_path);
+	return items_menu(feed_url);
 }
 
 static void
@@ -207,21 +234,6 @@ menu_items(void)
 	}
 }
 
-char *
-item_data_path(char *feed_path, int64_t index)
-{
-	if (feed_path == NULL) return NULL;
-	char *path = malloc(sizeof(char) * MAXPATH);
-	if (path == NULL) return NULL;
-	strcpy(path, feed_path);
-	char dir_name[MAX_ITEM_INDEX_LEN];
-	sprintf(dir_name, "%" PRId64 "", index);
-	strcat(path, dir_name);
-	strcat(path, "/");
-	mkdir(path, 0777);
-	return path;
-}
-
 struct buf *
 read_item_element(char *item_path, char *element)
 {
@@ -256,19 +268,56 @@ read_item_element(char *item_path, char *element)
 	return str;
 }
 
-int
-is_item_read(char *item_path)
+void
+mark_read(char *item_path)
 {
-	if (item_path == NULL) return 1;
 	char *item = malloc(sizeof(char) * MAXPATH);
-	if (item == NULL) return 1;
+	if (item == NULL) return;
 	strcpy(item, item_path);
 	strcat(item, ISNEW_FILE);
-	FILE *f = fopen(item, "r");
+	remove(item);
 	free(item);
-	if (f != NULL) {
-		fclose(f);
-		return 0;
+}
+
+void
+mark_unread(char *item_path)
+{
+	char *item = malloc(sizeof(char) * MAXPATH);
+	if (item == NULL) return;
+	strcpy(item, item_path);
+	strcat(item, ISNEW_FILE);
+	// whooooooooooaaaa, that's how file is created. lol
+	fclose(fopen(item, "w"));
+	free(item);
+}
+
+int
+try_item_bucket(struct item_bucket *bucket, char *feed_url)
+{
+	if (bucket == NULL) return 0;
+	int is_unique = 0, rc;
+	sqlite3_stmt *res;
+	if (bucket->uid.ptr != NULL && bucket->uid.len != 0) {
+		char cmd1[] = "SELECT * FROM items WHERE guid = ?";
+		rc = sqlite3_prepare_v2(db, cmd1, -1, &res, 0);
+		if (rc == SQLITE_OK) {
+			sqlite3_bind_text(res, 1, bucket->uid.ptr, bucket->uid.len - 1, NULL);
+			if (sqlite3_step(res) == SQLITE_DONE) is_unique = 1;
+		} else {
+			fprintf(stderr, "Failed to execute statement: %s\n", sqlite3_errmsg(db));
+		}
+		sqlite3_finalize(res);
+	} else if (bucket->link.ptr != NULL && bucket->link.len != 0) {
+		char cmd2[] = "SELECT * FROM items WHERE link = ?";
+		rc = sqlite3_prepare_v2(db, cmd2, -1, &res, 0);
+		if (rc == SQLITE_OK) {
+			sqlite3_bind_text(res, 1, bucket->link.ptr, bucket->link.len - 1, NULL);
+			if (sqlite3_step(res) == SQLITE_DONE) is_unique = 1;
+		} else {
+			fprintf(stderr, "Failed to execute statement: %s\n", sqlite3_errmsg(db));
+		}
+		sqlite3_finalize(res);
 	}
+	if (is_unique) db_insert_item(bucket, feed_url);
 	return 1;
 }

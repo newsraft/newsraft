@@ -11,80 +11,105 @@ static int view_max;
 static int newlines;
 
 static struct buf *
-cat_content(char *item_path)
+cat_content(char *feed_url, struct item_entry *item)
 {
 	struct buf *buf = malloc(sizeof(struct buf));
 	if (buf == NULL) return NULL;
 	buf->len = 1;
 	buf->ptr = malloc(sizeof(char) * buf->len);
 	if (buf->ptr == NULL) { free(buf); return NULL; }
-	buf->ptr[0] = '\0';
-#define BUF_APPEND(X, Y) if ((str = read_item_element(item_path, X)) != NULL) { \
-                         	cat_string_cstr(buf, Y); cat_strings(buf, str); cat_string_cstr(buf, "\n"); ++newlines; \
-                         	free_string_ptr(str); \
-                         }
-	struct buf *str;
-	BUF_APPEND(TITLE_FILE, "Title: ")
-	BUF_APPEND(PUBDATE_FILE, "Date: ")
-	BUF_APPEND(AUTHOR_FILE, "Author: ")
-	BUF_APPEND(LINK_FILE, "Link: ")
-	BUF_APPEND(COMMENTS_FILE, "Comments: ")
-	struct buf *content = read_item_element(item_path, CONTENT_FILE);
-	if (content != NULL) {
-		cat_string_cstr(buf, "\n");
-		cat_strings(buf, content);
-		free_string_ptr(content);
+	strcpy(buf->ptr, "");
+	// this thing throws CWE-401 for some reason:
+	// buf->ptr[0] = '\0';
+	// so use strcpy...
+	sqlite3_stmt *res;
+	char cmd[] = "SELECT * FROM items WHERE feed = ? AND link = ? LIMIT 1", *text;
+	int rc = sqlite3_prepare_v2(db, cmd, -1, &res, 0);
+	if (rc == SQLITE_OK) {
+		sqlite3_bind_text(res, 1, feed_url, strlen(feed_url), NULL);
+		sqlite3_bind_text(res, 2, item->url, strlen(item->url), NULL);
+		rc = sqlite3_step(res);
+#define TEXT_TAG_APPEND(X, Y) \
+	text = (char *)sqlite3_column_text(res, Y); \
+	if (text != NULL) { \
+		cat_string_cstr(buf, X); \
+		cat_string_cstr(buf, text); \
+		cat_string_cstr(buf, "\n"); \
+		++newlines; \
 	}
-	int not_newline = 0;
-	long int c = 0;
-	while (c < buf->len) {
-		if ((buf->ptr)[c++] == '\n') {
-			not_newline = 0;
-			++newlines;
-		} else {
-			++not_newline;
-			if (not_newline > COLS) {
-				not_newline = 0;
-				++newlines;
+		if (rc == SQLITE_ROW) {
+			TEXT_TAG_APPEND("Feed: ", ITEM_COLUMN_FEED)
+			if (config_contents_show_title == true) {
+				TEXT_TAG_APPEND("Title: ", ITEM_COLUMN_NAME)
+			}
+			if (config_contents_show_author == true) {
+				TEXT_TAG_APPEND("Author: ", ITEM_COLUMN_AUTHOR)
+			}
+			if (config_contents_show_date == true) {
+				time_t epoch_time = (time_t)sqlite3_column_int64(res, ITEM_COLUMN_PUBDATE);
+				struct tm ts = *localtime(&epoch_time);
+				char time[100];
+				if (strftime(time, sizeof(time), config_contents_date_format, &ts) != 0) {
+					cat_string_cstr(buf, "Date: ");
+					cat_string_cstr(buf, time);
+					cat_string_cstr(buf, "\n");
+				}
+			}
+			if (config_contents_show_link == true) {
+				TEXT_TAG_APPEND("Link: ", ITEM_COLUMN_LINK)
+			}
+			text = (char *)sqlite3_column_text(res, ITEM_COLUMN_CONTENT);
+			if (text != NULL) {
+				cat_string_cstr(buf, "\n");
+				cat_string_cstr(buf, text);
+			}
+			int not_newline = 0;
+			long int c = 0;
+			while (c < buf->len) {
+				if ((buf->ptr)[c++] == '\n') {
+					not_newline = 0;
+					++newlines;
+				} else {
+					++not_newline;
+					if (not_newline > COLS) {
+						not_newline = 0;
+						++newlines;
+					}
+				}
 			}
 		}
+	} else {
+		fprintf(stderr, "Failed to execute statement: %s\n", sqlite3_errmsg(db));
 	}
+	sqlite3_finalize(res);
+
 	return buf;
 }
 
 int
-contents_menu(char *feed_path, int64_t index)
+contents_menu(char *feed_url, struct item_entry *item)
 {
 	newlines = 0;
 	view_min = 0;
 	view_max = LINES - 1;
-	char *item_path = item_data_path(feed_path, index);
-	if (item_path == NULL) {
-		status_write("could not get path to this item");
-		return MENU_CONTENT_ERROR;
-	}
-	struct buf *content = cat_content(item_path);
+	struct buf *content = cat_content(feed_url, item);
 	if (content == NULL) {
 		status_write("could not obtain contents of item");
-		free(item_path);
 		return MENU_CONTENT_ERROR;
 	}
 	if (newlines == 0) {
 		status_write("this item seems empty");
 		free_string_ptr(content);
-		free(item_path);
 		return MENU_CONTENT_ERROR;
 	}
 	clear();
 	refresh();
-	mark_read(item_path);
 	window = newpad(newlines, COLS);
 	waddstr(window, content->ptr);
 	free_string_ptr(content);
 	prefresh(window, 0, 0, 0, 0, LINES - 2, COLS);
 	int contents_status = menu_contents();
 	delwin(window);
-	free(item_path);
 	return contents_status;
 }
 

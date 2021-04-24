@@ -5,6 +5,8 @@
 #include <inttypes.h>
 #include <expat.h>
 #include <wchar.h>
+#include <sqlite3.h>
+#include <time.h>
 #define UNIQUE_ID_FILE "uid"
 #define TITLE_FILE "title"
 #define LINK_FILE "link"
@@ -57,6 +59,7 @@ struct feed_window {
 struct item_entry {
 	char *name;    // name of item
 	char *url;     // url to item
+	bool unread;
 	int64_t index; // index of item
 };
 
@@ -82,7 +85,7 @@ struct item_bucket {
 	struct buf author;
 	struct buf category;
 	struct buf comments;
-	struct buf pubdate;
+	time_t pubdate;
 };
 
 enum xml_pos {
@@ -111,6 +114,17 @@ enum menu_dest {
 	MENU_EXIT,
 };
 
+enum item_column {
+	ITEM_COLUMN_FEED,
+	ITEM_COLUMN_NAME,
+	ITEM_COLUMN_GUID,
+	ITEM_COLUMN_UNREAD,
+	ITEM_COLUMN_LINK,
+	ITEM_COLUMN_AUTHOR,
+	ITEM_COLUMN_PUBDATE,
+	ITEM_COLUMN_CONTENT,
+};
+
 struct feed_parser_data {
 	int depth;
 	enum xml_pos pos;
@@ -130,18 +144,17 @@ bool is_feed_read(char *feed_path);
 
 // items
 
-int items_menu(char *url);
-char * item_data_path(char *feed_path, int64_t index);
+int items_menu(char *feed_url);
 struct buf * read_item_element(char *item_path, char *element);
 void free_item_bucket(struct item_bucket *bucket);
-int try_bucket(struct item_bucket *bucket, char *feed_url);
+int try_item_bucket(struct item_bucket *bucket, char *feed_url);
 void mark_read(char *item_path);
 void mark_unread(char *item_path);
 int is_item_read(char *item_path);
 
 
 // contents
-int contents_menu(char *, int64_t);
+int contents_menu(char *feed_url, struct item_entry *item);
 
 
 // path
@@ -171,7 +184,10 @@ int parse_atom03(XML_Parser *parser, char *feed_url); // Atom 0.3
 void skip_chars(FILE *file, char *cur_char, char *list);
 
 
-// ncurses
+// db
+int db_init(void);
+int db_insert_item(struct item_bucket *bucket, char *feed_url);
+void db_stop(void);
 
 // functions related to window which displays informational messages (see status.c file)
 int status_create(void);
@@ -184,6 +200,7 @@ int input_create(void);
 void input_delete(void);
 // variable with input window
 extern WINDOW *input_win;
+extern sqlite3 *db;
 
 
 // curl

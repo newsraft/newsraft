@@ -95,5 +95,5 @@ free_item_bucket(struct item_bucket *bucket)
 	free_string(&bucket->author);
 	free_string(&bucket->category);
 	free_string(&bucket->comments);
-	free_string(&bucket->pubdate);
+	bucket->pubdate = 0;
 }

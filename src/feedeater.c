@@ -1,5 +1,4 @@
 #include "feedeater.h"
-#include "db/db.h"
 int main (int argc, char **argv) {
 	int error = 0;
 	if (db_init() != 0) { error = 1; goto undo1; }

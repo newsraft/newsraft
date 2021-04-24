@@ -32,7 +32,8 @@ endElement(void *userData, const XML_Char *name) {
 	/*(void)name;*/
 	if (strcmp(name, "item") == 0) {
 		data->pos &= ~IN_ITEM_ELEMENT;
-		try_bucket(data->bucket, data->feed_url);
+		/*fprintf(stderr, "%ld\n", data->bucket->pubdate);*/
+		try_item_bucket(data->bucket, data->feed_url);
 		free_item_bucket(data->bucket);
 	} else if (strcmp(name, "title") == 0) {
 		data->pos &= ~IN_TITLE_ELEMENT;
@@ -68,7 +69,12 @@ endElement(void *userData, const XML_Char *name) {
 		data->pos &= ~IN_PUBDATE_ELEMENT;
 		if ((data->pos & IN_CHANNEL_ELEMENT) != 0) {
 			if ((data->pos & IN_ITEM_ELEMENT) != 0) {
-				malstrcpy(&data->bucket->pubdate, value, sizeof(char) * (value_len + 1));
+				struct tm t = {0};
+				if(strptime(value, "%a, %d %b %Y %H:%M:%S %z", &t) != NULL) {
+					data->bucket->pubdate = mktime(&t);
+				} else {
+					fprintf(stderr, "strptime FAILEEEEEEEEEEEEEED\n");
+				}
 			}
 			/*else {*/
 				/*write_feed_element(data->feed_path, PUBDATE_FILE, value, sizeof(char) * (value_len + 1));*/

@@ -1,10 +1,18 @@
 #include <stdio.h>
+#include <stdbool.h>
 #include <stdint.h>
 
 uint8_t config_top_offset = 0;
 uint8_t config_left_offset = 1;
 int64_t config_max_items = 100;
 uint8_t config_number = 1;
+
+bool config_contents_show_title = true;
+bool config_contents_show_author = true;
+bool config_contents_show_date = true;
+bool config_contents_show_link = true;
+char *config_contents_date_format = "%a, %d %b %Y %H:%M:%S %z";
+
 char config_key_exit = 'q';
 char config_key_download = 'd';
 char config_key_download_all = 'D';

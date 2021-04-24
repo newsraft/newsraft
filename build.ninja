@@ -1,9 +1,9 @@
-gcc = gcc -fanalyzer -Wall -fdiagnostics-color=always -iquotesrc
-#clang = clang -Isrc
+cc = gcc -fanalyzer -Wall -fdiagnostics-color=always -iquotesrc
+#cc = clang -Isrc
 rule compile
-  command = $gcc $arg -o $out -c $in
+  command = $cc -D_XOPEN_SOURCE=700 $arg -o $out -c $in
 rule link
-  command = $gcc $arg -o $out $in
+  command = $cc $arg -o $out $in
 
 build obj/feedeater.o:            compile src/feedeater.c
 build obj/feeds.o:                compile src/feeds.c
@@ -16,7 +16,7 @@ build obj/input.o:                compile src/input.c
 build obj/contents.o:             compile src/contents.c
 build obj/download.o:             compile src/download.c
 build obj/utils.o:                compile src/utils.c
-build obj/db/db.o:                compile src/db/db.c
+build obj/db.o:                   compile src/db.c
 build obj/parsers/parse_atom03.o: compile src/parsers/parse_atom03.c
 build obj/parsers/parse_atom10.o: compile src/parsers/parse_atom10.c
 build obj/parsers/parse_rss090.o: compile src/parsers/parse_rss090.c
@@ -38,7 +38,7 @@ build feedeater: link obj/feedeater.o $
                       obj/contents.o $
                       obj/download.o $
                       obj/utils.o $
-                      obj/db/db.o $
+                      obj/db.o $
                       obj/parsers/parse_atom03.o $
                       obj/parsers/parse_atom10.o $
                       obj/parsers/parse_rss090.o $

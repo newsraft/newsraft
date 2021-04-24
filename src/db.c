@@ -3,7 +3,8 @@
 
 sqlite3 *db = NULL;
 
-int db_init(void)
+int
+db_init(void)
 {
 	char *path = get_db_path();
 	if (path == NULL) {
@@ -35,31 +36,48 @@ int db_init(void)
 	return 0;
 }
 
-int
+void
 db_insert_item(struct item_bucket *bucket, char *feed_url)
 {
-	int rc, error = 0;
-	char cmd[] = "INSERT INTO items VALUES(?, ?, ?, ?, ?, ?, ?, ?);";
-	sqlite3_stmt *res;
-	rc = sqlite3_prepare_v2(db, cmd, -1, &res, 0);
-	if (rc == SQLITE_OK) {
-		sqlite3_bind_text(res, 1, feed_url, strlen(feed_url), NULL);
-		sqlite3_bind_text(res, 2, bucket->title.ptr, bucket->title.len - 1, NULL);
-		sqlite3_bind_text(res, 3, bucket->uid.ptr, bucket->uid.len - 1, NULL);
-		sqlite3_bind_int(res, 4, 1);
-		sqlite3_bind_text(res, 5, bucket->link.ptr, bucket->link.len - 1, NULL);
-		sqlite3_bind_text(res, 6, bucket->author.ptr, bucket->author.len - 1, NULL);
-		sqlite3_bind_int64(res, 7, (sqlite3_int64)(bucket->pubdate));
-		sqlite3_bind_text(res, 8, bucket->content.ptr, bucket->content.len - 1, NULL);
+	sqlite3_stmt *s;
+	if (sqlite3_prepare_v2(db, "INSERT INTO items VALUES(?, ?, ?, ?, ?, ?, ?, ?);", -1, &s, 0) == SQLITE_OK) {
+		sqlite3_bind_text(s,  ITEM_COLUMN_FEED + 1,    feed_url, strlen(feed_url), NULL);
+		sqlite3_bind_text(s,  ITEM_COLUMN_TITLE + 1,   bucket->title.ptr, bucket->title.len - 1, NULL);
+		sqlite3_bind_text(s,  ITEM_COLUMN_GUID + 1,    bucket->uid.ptr, bucket->uid.len - 1, NULL);
+		sqlite3_bind_int(s,   ITEM_COLUMN_UNREAD + 1,  1);
+		sqlite3_bind_text(s,  ITEM_COLUMN_LINK + 1,    bucket->link.ptr, bucket->link.len - 1, NULL);
+		sqlite3_bind_text(s,  ITEM_COLUMN_AUTHOR + 1,  bucket->author.ptr, bucket->author.len - 1, NULL);
+		sqlite3_bind_int64(s, ITEM_COLUMN_PUBDATE + 1, (sqlite3_int64)(bucket->pubdate));
+		sqlite3_bind_text(s,  ITEM_COLUMN_CONTENT + 1, bucket->content.ptr, bucket->content.len - 1, NULL);
 	} else {
-		fprintf(stderr, "Failed to execute statement: %s\n", sqlite3_errmsg(db));
+		fprintf(stderr, "failed to execute INSERT statement: %s\n", sqlite3_errmsg(db));
 	}
-	sqlite3_step(res);
-	sqlite3_finalize(res);
-	return error;
+	sqlite3_step(s);
+	sqlite3_finalize(s);
 }
 
-void db_stop(void)
+void
+db_mark_item_unread(char *feed_url, struct item_entry *item, bool state)
+{
+	if (item == NULL) return;
+	sqlite3_stmt *res;
+	char cmd[] = "UPDATE items SET unread = ? WHERE feed = ? AND guid = ? AND link = ?";
+	int rc = sqlite3_prepare_v2(db, cmd, -1, &res, 0);
+	if (rc == SQLITE_OK) {
+		sqlite3_bind_int(res, 1, state == true ? 1 : 0);
+		sqlite3_bind_text(res, 2, feed_url, strlen(feed_url), NULL);
+		sqlite3_bind_text(res, 3, item->guid, strlen(item->guid), NULL);
+		sqlite3_bind_text(res, 4, item->url, strlen(item->url), NULL);
+		sqlite3_step(res);
+	} else {
+		fprintf(stderr, "failed to execute statement: %s\n", sqlite3_errmsg(db));
+	}
+	sqlite3_finalize(res);
+}
+
+
+void
+db_stop(void)
 {
 	sqlite3_close(db);
 }

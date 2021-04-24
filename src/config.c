@@ -7,6 +7,7 @@ uint8_t config_left_offset = 1;
 int64_t config_max_items = 100;
 uint8_t config_number = 1;
 
+bool config_contents_show_feed = true;
 bool config_contents_show_title = true;
 bool config_contents_show_author = true;
 bool config_contents_show_date = true;

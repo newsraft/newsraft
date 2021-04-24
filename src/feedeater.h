@@ -59,6 +59,7 @@ struct feed_window {
 struct item_entry {
 	char *name;    // name of item
 	char *url;     // url to item
+	char *guid;
 	bool unread;
 	int64_t index; // index of item
 };
@@ -116,7 +117,7 @@ enum menu_dest {
 
 enum item_column {
 	ITEM_COLUMN_FEED,
-	ITEM_COLUMN_NAME,
+	ITEM_COLUMN_TITLE,
 	ITEM_COLUMN_GUID,
 	ITEM_COLUMN_UNREAD,
 	ITEM_COLUMN_LINK,
@@ -139,7 +140,6 @@ int load_feed_list(void);  // load feeds information in memory
 void feeds_menu(void);     // display feeds in an interactive list
 char * read_feed_element(char *feed_path, char *element);
 void write_feed_element(char *feed_path, char *element, void *data, size_t size);
-bool is_feed_read(char *feed_path);
 
 
 // items
@@ -148,9 +148,6 @@ int items_menu(char *feed_url);
 struct buf * read_item_element(char *item_path, char *element);
 void free_item_bucket(struct item_bucket *bucket);
 int try_item_bucket(struct item_bucket *bucket, char *feed_url);
-void mark_read(char *item_path);
-void mark_unread(char *item_path);
-int is_item_read(char *item_path);
 
 
 // contents
@@ -186,7 +183,8 @@ void skip_chars(FILE *file, char *cur_char, char *list);
 
 // db
 int db_init(void);
-int db_insert_item(struct item_bucket *bucket, char *feed_url);
+void db_insert_item(struct item_bucket *bucket, char *feed_url);
+void db_mark_item_unread(char *feed_url, struct item_entry *item, bool state);
 void db_stop(void);
 
 // functions related to window which displays informational messages (see status.c file)

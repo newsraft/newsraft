@@ -156,6 +156,26 @@ feed_expose(struct feed_window *feedwin, bool highlight)
 	wrefresh(feedwin->window);
 }
 
+static bool
+is_feed_read(char *feed_url)
+{
+	if (feed_url == NULL) return true;
+	bool is_read = false;
+	sqlite3_stmt *res;
+	char cmd[] = "SELECT * FROM items WHERE feed = ? AND unread = ?";
+	int rc = sqlite3_prepare_v2(db, cmd, -1, &res, 0);
+	if (rc == SQLITE_OK) {
+		sqlite3_bind_text(res, 1, feed_url, strlen(feed_url), NULL);
+		sqlite3_bind_int(res, 2, 1);
+		// if nothing found (every item from feed is read), say feed is read
+		if (sqlite3_step(res) == SQLITE_DONE) is_read = true;
+	} else {
+		fprintf(stderr, "failed to execute statement: %s\n", sqlite3_errmsg(db));
+	}
+	sqlite3_finalize(res);
+	return is_read;
+}
+
 static void
 show_feeds(void)
 {
@@ -284,9 +304,9 @@ feed_reload(struct feed_window *feedwin)
 	if (buf == NULL) return;
 	if (buf->ptr == NULL) { free(buf); return; }
 	if (feed_process(buf, feedwin->feed) == 0) status_clean();
+	feedwin->feed->is_read = is_feed_read(feedwin->feed->feed_url);
 	feed_expose(feedwin, 1);
-	free(buf->ptr);
-	free(buf);
+	free_string_ptr(buf);
 }
 
 static void
@@ -374,11 +394,4 @@ write_feed_element(char *feed_path, char *element, void *data, size_t size)
 	if (f == NULL) return;
 	fwrite(data, size, 1, f);
 	fclose(f);
-}
-
-bool
-is_feed_read(char *feed_url)
-{
-	//under constr
-	return true;
 }

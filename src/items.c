@@ -49,6 +49,7 @@ free_items(void)
 		if (item_list[i].item != NULL) {
 			if (item_list[i].item->name != NULL) free(item_list[i].item->name);
 			if (item_list[i].item->url != NULL) free(item_list[i].item->url);
+			if (item_list[i].item->guid != NULL) free(item_list[i].item->guid);
 			free(item_list[i].item);
 		}
 	}
@@ -64,7 +65,7 @@ load_item_list(char *feed_url)
 {
 	int item_index, rc, unread;
 	sqlite3_stmt *res;
-	char cmd[] = "SELECT name, link, unread FROM items WHERE feed = ? ORDER BY pubdate DESC", *text;
+	char cmd[] = "SELECT name, link, guid, unread FROM items WHERE feed = ? ORDER BY pubdate DESC", *text;
 	rc = sqlite3_prepare_v2(db, cmd, -1, &res, 0);
 	if (rc == SQLITE_OK) {
 		sqlite3_bind_text(res, 1, feed_url, strlen(feed_url), NULL);
@@ -79,13 +80,19 @@ load_item_list(char *feed_url)
 			if (item_list[item_index].item == NULL) {
 				fprintf(stderr, "memory allocation for item entry failed\n"); break;
 			}
-			text = (char *)sqlite3_column_text(res, 0);
-			item_list[item_index].item->name = malloc(sizeof(char) * (strlen(text) + 1));
-			strcpy(item_list[item_index].item->name, text);
-			text = (char *)sqlite3_column_text(res, 1);
-			item_list[item_index].item->url = malloc(sizeof(char) * (strlen(text) + 1));
-			strcpy(item_list[item_index].item->url, text);
-			unread = sqlite3_column_int(res, 2);
+			if ((text = (char *)sqlite3_column_text(res, 0)) != NULL) {
+				item_list[item_index].item->name = malloc(sizeof(char) * (strlen(text) + 1));
+				strcpy(item_list[item_index].item->name, text);
+			}
+			if ((text = (char *)sqlite3_column_text(res, 1)) != NULL) {
+				item_list[item_index].item->url = malloc(sizeof(char) * (strlen(text) + 1));
+				strcpy(item_list[item_index].item->url, text);
+			}
+			if ((text = (char *)sqlite3_column_text(res, 2)) != NULL) {
+				item_list[item_index].item->guid = malloc(sizeof(char) * (strlen(text) + 1));
+				strcpy(item_list[item_index].item->guid, text);
+			}
+			unread = sqlite3_column_int(res, 3);
 			item_list[item_index].item->unread = unread;
 		}
 	} else {
@@ -148,6 +155,8 @@ items_menu(char *feed_url)
 			return MENU_EXIT;
 		} else if (contents_status == MENU_CONTENT_ERROR) {
 			do_clean = 0;
+		} else {
+			item_list[view_sel].item->unread = false;
 		}
 	} else if (dest == MENU_FEEDS || dest == MENU_EXIT) {
 		free_items();
@@ -268,56 +277,22 @@ read_item_element(char *item_path, char *element)
 	return str;
 }
 
-void
-mark_read(char *item_path)
-{
-	char *item = malloc(sizeof(char) * MAXPATH);
-	if (item == NULL) return;
-	strcpy(item, item_path);
-	strcat(item, ISNEW_FILE);
-	remove(item);
-	free(item);
-}
-
-void
-mark_unread(char *item_path)
-{
-	char *item = malloc(sizeof(char) * MAXPATH);
-	if (item == NULL) return;
-	strcpy(item, item_path);
-	strcat(item, ISNEW_FILE);
-	// whooooooooooaaaa, that's how file is created. lol
-	fclose(fopen(item, "w"));
-	free(item);
-}
-
 int
 try_item_bucket(struct item_bucket *bucket, char *feed_url)
 {
-	if (bucket == NULL) return 0;
-	int is_unique = 0, rc;
+	if (bucket == NULL || feed_url == NULL) return 0;
 	sqlite3_stmt *res;
-	if (bucket->uid.ptr != NULL && bucket->uid.len != 0) {
-		char cmd1[] = "SELECT * FROM items WHERE guid = ?";
-		rc = sqlite3_prepare_v2(db, cmd1, -1, &res, 0);
-		if (rc == SQLITE_OK) {
-			sqlite3_bind_text(res, 1, bucket->uid.ptr, bucket->uid.len - 1, NULL);
-			if (sqlite3_step(res) == SQLITE_DONE) is_unique = 1;
-		} else {
-			fprintf(stderr, "Failed to execute statement: %s\n", sqlite3_errmsg(db));
-		}
-		sqlite3_finalize(res);
-	} else if (bucket->link.ptr != NULL && bucket->link.len != 0) {
-		char cmd2[] = "SELECT * FROM items WHERE link = ?";
-		rc = sqlite3_prepare_v2(db, cmd2, -1, &res, 0);
-		if (rc == SQLITE_OK) {
-			sqlite3_bind_text(res, 1, bucket->link.ptr, bucket->link.len - 1, NULL);
-			if (sqlite3_step(res) == SQLITE_DONE) is_unique = 1;
-		} else {
-			fprintf(stderr, "Failed to execute statement: %s\n", sqlite3_errmsg(db));
-		}
-		sqlite3_finalize(res);
+	char cmd[] = "SELECT * FROM items WHERE feed = ? AND guid = ? AND link = ?";
+	int rc = sqlite3_prepare_v2(db, cmd, -1, &res, 0);
+	if (rc == SQLITE_OK) {
+		sqlite3_bind_text(res, 1, feed_url, strlen(feed_url), NULL);
+		sqlite3_bind_text(res, 2, bucket->uid.ptr, bucket->uid.len - 1, NULL);
+		sqlite3_bind_text(res, 3, bucket->link.ptr, bucket->link.len - 1, NULL);
+		// if nothing found (item is unique), insert item into table
+		if (sqlite3_step(res) == SQLITE_DONE) db_insert_item(bucket, feed_url);
+	} else {
+		fprintf(stderr, "failed to execute statement: %s\n", sqlite3_errmsg(db));
 	}
-	if (is_unique) db_insert_item(bucket, feed_url);
+	sqlite3_finalize(res);
 	return 1;
 }

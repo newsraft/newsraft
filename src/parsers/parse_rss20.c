@@ -33,9 +33,8 @@ endElement(void *userData, const XML_Char *name) {
 	} else if (strcmp(name, "title") == 0) {
 		data->pos &= ~IN_TITLE_ELEMENT;
 		if ((data->pos & IN_CHANNEL_ELEMENT) != 0) {
-			if ((data->pos & IN_ITEM_ELEMENT) != 0) {
+			if ((data->pos & IN_ITEM_ELEMENT) != 0)
 				make_string(&data->bucket->title, data->value, sizeof(char) * data->value_len);
-			}
 			/*else {*/
 				/*write_feed_element(data->feed_path, TITLE_FILE, data->value, sizeof(char) * (data->value_len + 1));*/
 			/*}*/
@@ -43,9 +42,8 @@ endElement(void *userData, const XML_Char *name) {
 	} else if (strcmp(name, "description") == 0) {
 		data->pos &= ~IN_DESCRIPTION_ELEMENT;
 		if ((data->pos & IN_CHANNEL_ELEMENT) != 0) {
-			if ((data->pos & IN_ITEM_ELEMENT) != 0) {
+			if ((data->pos & IN_ITEM_ELEMENT) != 0)
 				make_string(&data->bucket->content, data->value, sizeof(char) * data->value_len);
-			}
 			/*else {*/
 				/*write_feed_element(data->feed_path, CONTENT_FILE, data->value, sizeof(char) * (data->value_len + 1));*/
 			/*}*/
@@ -53,9 +51,8 @@ endElement(void *userData, const XML_Char *name) {
 	} else if (strcmp(name, "link") == 0) {
 		data->pos &= ~IN_LINK_ELEMENT;
 		if ((data->pos & IN_CHANNEL_ELEMENT) != 0) {
-			if ((data->pos & IN_ITEM_ELEMENT) != 0) {
+			if ((data->pos & IN_ITEM_ELEMENT) != 0)
 				make_string(&data->bucket->url, data->value, sizeof(char) * data->value_len);
-			}
 			/*else {*/
 				/*write_feed_element(data->feed_path, LINK_FILE, data->value, sizeof(char) * (data->value_len + 1));*/
 			/*}*/
@@ -77,24 +74,20 @@ endElement(void *userData, const XML_Char *name) {
 		}
 	} else if (strcmp(name, "guid") == 0) {
 		data->pos &= ~IN_GUID_ELEMENT;
-		if (((data->pos & IN_CHANNEL_ELEMENT) != 0) && ((data->pos & IN_ITEM_ELEMENT) != 0)) {
+		if (((data->pos & IN_CHANNEL_ELEMENT) != 0) && ((data->pos & IN_ITEM_ELEMENT) != 0))
 			make_string(&data->bucket->guid, data->value, sizeof(char) * data->value_len);
-		}
 	} else if (strcmp(name, "author") == 0) {
 		data->pos &= ~IN_AUTHOR_ELEMENT;
-		if (((data->pos & IN_CHANNEL_ELEMENT) != 0) && ((data->pos & IN_ITEM_ELEMENT) != 0)) {
+		if (((data->pos & IN_CHANNEL_ELEMENT) != 0) && ((data->pos & IN_ITEM_ELEMENT) != 0))
 			make_string(&data->bucket->author, data->value, sizeof(char) * data->value_len);
-		}
 	} else if (strcmp(name, "category") == 0) {
 		data->pos &= ~IN_CATEGORY_ELEMENT;
-		if (((data->pos & IN_CHANNEL_ELEMENT) != 0) && ((data->pos & IN_ITEM_ELEMENT) != 0)) {
+		if (((data->pos & IN_CHANNEL_ELEMENT) != 0) && ((data->pos & IN_ITEM_ELEMENT) != 0))
 			make_string(&data->bucket->category, data->value, sizeof(char) * data->value_len);
-		}
 	} else if (strcmp(name, "comments") == 0) {
 		data->pos &= ~IN_COMMENTS_ELEMENT;
-		if (((data->pos & IN_CHANNEL_ELEMENT) != 0) && ((data->pos & IN_ITEM_ELEMENT) != 0)) {
+		if (((data->pos & IN_CHANNEL_ELEMENT) != 0) && ((data->pos & IN_ITEM_ELEMENT) != 0))
 			make_string(&data->bucket->comments, data->value, sizeof(char) * data->value_len);
-		}
 	} else if (strcmp(name, "channel") == 0) {
 		data->pos &= ~IN_CHANNEL_ELEMENT;
 	}

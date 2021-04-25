@@ -1,6 +1,8 @@
 #ifndef CONFIG_H
 #define CONFIG_H
+#include <stdint.h>
 #include <stdbool.h>
+
 extern uint8_t config_top_offset;
 extern uint8_t config_left_offset;
 extern int64_t config_max_items;

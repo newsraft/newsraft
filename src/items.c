@@ -22,7 +22,7 @@ load_item_list(void)
 {
 	int item_index, rc, unread;
 	sqlite3_stmt *res;
-	char cmd[] = "SELECT name, url, guid, unread FROM items WHERE feed = ? ORDER BY pubdate DESC", *text;
+	char cmd[] = "SELECT title, url, guid, unread FROM items WHERE feed = ? ORDER BY pubdate DESC", *text;
 	rc = sqlite3_prepare_v2(db, cmd, -1, &res, 0);
 	if (rc == SQLITE_OK) {
 		sqlite3_bind_text(res, 1, feed_url, strlen(feed_url), NULL);

@@ -135,7 +135,6 @@ struct feed_parser_data {
 
 int load_feed_list(void); // load feeds information in memory
 void feeds_menu(void);    // display feeds in an interactive list
-void write_feed_element(char *feed_path, char *element, void *data, size_t size);
 
 
 // items
@@ -152,7 +151,6 @@ int contents_menu(char *feed_url, struct item_entry *item);
 // path
 char * get_config_file_path(char *file_name);
 char * get_db_path(void);
-char * make_feed_dir(char *url);
 
 
 // feed parsing

@@ -344,19 +344,3 @@ menu_feeds(void)
 		}
 	}
 }
-
-void
-write_feed_element(char *feed_path, char *element, void *data, size_t size)
-{
-	if (feed_path == NULL || data == NULL || size == 0) return;
-	char *feed = malloc(sizeof(char) * MAXPATH);
-	if (feed == NULL) return;
-	strcpy(feed, feed_path);
-	strcat(feed, "elements/");
-	strcat(feed, element);
-	FILE *f = fopen(feed, "w");
-	free(feed);
-	if (f == NULL) return;
-	fwrite(data, size, 1, f);
-	fclose(f);
-}

@@ -161,7 +161,7 @@ get_db_path(void)
 		return NULL;
 	}
 	strcpy(path, data_dir_path);
-	strcat(path, "data.sqlite");
+	strcat(path, "feedeater.sqlite");
 	return path;
 }
 

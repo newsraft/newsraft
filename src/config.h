@@ -13,7 +13,11 @@ extern bool   config_contents_show_date;
 extern bool   config_contents_show_link;
 extern char * config_contents_date_format;
 
-extern char config_key_exit;
+extern char config_key_mark_read;
+extern char config_key_mark_read_all;
+extern char config_key_mark_unread;
+extern char config_key_mark_unread_all;
 extern char config_key_download;
 extern char config_key_download_all;
+extern char config_key_exit;
 #endif // CONFIG_H

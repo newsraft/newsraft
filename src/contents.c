@@ -10,18 +10,11 @@ static int view_min;
 static int view_max;
 static int newlines;
 
-static struct buf *
+static struct string *
 cat_content(char *feed_url, struct item_entry *item)
 {
-	struct buf *buf = malloc(sizeof(struct buf));
+	struct string *buf = create_string();
 	if (buf == NULL) return NULL;
-	buf->len = 1;
-	buf->ptr = malloc(sizeof(char) * buf->len);
-	if (buf->ptr == NULL) { free(buf); return NULL; }
-	strcpy(buf->ptr, "");
-	// this thing throws CWE-401 for some reason:
-	// buf->ptr[0] = '\0';
-	// so use strcpy...
 	sqlite3_stmt *res;
 	char *text, cmd[] = "SELECT * FROM items WHERE feed = ? AND guid = ? AND link = ? LIMIT 1";
 	int rc = sqlite3_prepare_v2(db, cmd, -1, &res, 0);
@@ -33,9 +26,9 @@ cat_content(char *feed_url, struct item_entry *item)
 #define TEXT_TAG_APPEND(X, Y) \
 	text = (char *)sqlite3_column_text(res, Y); \
 	if (text != NULL) { \
-		cat_string_cstr(buf, X); \
-		cat_string_cstr(buf, text); \
-		cat_string_cstr(buf, "\n"); \
+		cat_string_array(buf, X); \
+		cat_string_array(buf, text); \
+		cat_string_char(buf, '\n'); \
 		++newlines; \
 	}
 		if (rc == SQLITE_ROW) {
@@ -48,21 +41,21 @@ cat_content(char *feed_url, struct item_entry *item)
 					struct tm ts = *localtime(&epoch_time);
 					char time_str[64];
 					if (strftime(time_str, sizeof(time_str), config_contents_date_format, &ts) != 0) {
-						cat_string_cstr(buf, "Date: ");
-						cat_string_cstr(buf, time_str);
-						cat_string_cstr(buf, "\n");
+						cat_string_array(buf, "Date: ");
+						cat_string_array(buf, time_str);
+						cat_string_char(buf, '\n');
 					}
 				}
 			}
 			if (config_contents_show_link == true)   { TEXT_TAG_APPEND("Link: ", ITEM_COLUMN_LINK) }
 			if ((text = (char *)sqlite3_column_text(res, ITEM_COLUMN_CONTENT)) != NULL) {
-				cat_string_cstr(buf, "\n");
-				cat_string_cstr(buf, text);
+				cat_string_char(buf, '\n');
+				cat_string_array(buf, text);
 			}
 			int not_newline = 0;
-			long int c = 0;
-			while (c < buf->len) {
-				if ((buf->ptr)[c++] == '\n') {
+			uint64_t i = 0;
+			while (i <= buf->len) {
+				if ((buf->ptr)[i++] == '\n') {
 					not_newline = 0;
 					++newlines;
 				} else {
@@ -76,13 +69,13 @@ cat_content(char *feed_url, struct item_entry *item)
 		} else {
 			fprintf(stderr, "could not find that item\n");
 			sqlite3_finalize(res);
-			free_string_ptr(buf);
+			free_string(&buf);
 			return NULL;
 		}
 	} else {
 		fprintf(stderr, "failed to execute statement: %s\n", sqlite3_errmsg(db));
 		sqlite3_finalize(res);
-		free_string_ptr(buf);
+		free_string(&buf);
 		return NULL;
 	}
 	sqlite3_finalize(res);
@@ -96,14 +89,14 @@ contents_menu(char *feed_url, struct item_entry *item)
 	newlines = 0;
 	view_min = 0;
 	view_max = LINES - 1;
-	struct buf *content = cat_content(feed_url, item);
+	struct string *content = cat_content(feed_url, item);
 	if (content == NULL) {
 		status_write("could not obtain contents of item");
 		return MENU_CONTENT_ERROR;
 	}
 	if (newlines == 0) {
 		status_write("this item seems empty");
-		free_string_ptr(content);
+		free_string(&content);
 		return MENU_CONTENT_ERROR;
 	}
 	db_mark_item_unread(feed_url, item, false);
@@ -111,7 +104,7 @@ contents_menu(char *feed_url, struct item_entry *item)
 	refresh();
 	window = newpad(newlines, COLS);
 	waddstr(window, content->ptr);
-	free_string_ptr(content);
+	free_string(&content);
 	prefresh(window, 0, 0, 0, 0, LINES - 2, COLS);
 	int contents_status = menu_contents();
 	delwin(window);

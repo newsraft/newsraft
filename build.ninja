@@ -1,7 +1,9 @@
-cc = gcc -fanalyzer -Wall -fdiagnostics-color=always -iquotesrc
-#cc = clang -Isrc
+# development gcc command
+cc = gcc -D_XOPEN_SOURCE=700 -fanalyzer -Wall -fdiagnostics-color=always -iquotesrc
+# release gcc command
+#cc = gcc -D_XOPEN_SOURCE=700 -fdiagnostics-color=never -iquotesrc
 rule compile
-  command = $cc -D_XOPEN_SOURCE=700 $arg -o $out -c $in
+  command = $cc $arg -o $out -c $in
 rule link
   command = $cc $arg -o $out $in
 
@@ -15,7 +17,7 @@ build obj/items.o:                compile src/items.c
 build obj/input.o:                compile src/input.c
 build obj/contents.o:             compile src/contents.c
 build obj/download.o:             compile src/download.c
-build obj/utils.o:                compile src/utils.c
+build obj/string.o:               compile src/string.c
 build obj/db.o:                   compile src/db.c
 build obj/parsers/parse_atom03.o: compile src/parsers/parse_atom03.c
 build obj/parsers/parse_atom10.o: compile src/parsers/parse_atom10.c
@@ -37,7 +39,7 @@ build feedeater: link obj/feedeater.o $
                       obj/input.o $
                       obj/contents.o $
                       obj/download.o $
-                      obj/utils.o $
+                      obj/string.o $
                       obj/db.o $
                       obj/parsers/parse_atom03.o $
                       obj/parsers/parse_atom10.o $

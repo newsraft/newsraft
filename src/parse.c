@@ -52,7 +52,7 @@ end_element(void *userData, const XML_Char *name) {
 }
 
 int
-feed_process(struct buf *buf, struct feed_entry *feed)
+feed_process(struct string *buf, struct feed_entry *feed)
 {
 	status_write("[parsing] %s", feed->feed_url);
 
@@ -85,7 +85,7 @@ feed_process(struct buf *buf, struct feed_entry *feed)
 }
 
 void
-free_item_bucket(struct item_bucket *bucket)
+reset_item_bucket(struct item_bucket *bucket)
 {
 	if (bucket == NULL) return;
 	free_string(&bucket->uid);

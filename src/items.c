@@ -7,7 +7,7 @@
 #include "feedeater.h"
 #include "config.h"
 
-static char *items_path = NULL;
+static char *feed_url = NULL;
 static struct item_window *item_list = NULL;
 static int item_count = 0;
 static int view_sel = -1;
@@ -17,51 +17,8 @@ static int do_clean = 1;
 
 static enum menu_dest menu_items(void);
 
-// return most sensible string for item title
-static char *
-item_image(struct item_entry *item) {
-	if (item != NULL) {
-		if (item->name != NULL) {
-			return item->name;
-		}
-	}
-	return "untitled";
-}
-
-static void
-item_expose(struct item_window *itemwin, bool highlight)
-{
-	if (config_number == 1) {
-		mvwprintw(itemwin->window, 0, 0, "%3d", itemwin->index + 1);
-	}
-	mvwprintw(itemwin->window, 0, 0 + 5 * config_number, itemwin->item->unread ? "N" : " ");
-	if (highlight) wattron(itemwin->window, A_REVERSE);
-	mvwprintw(itemwin->window, 0, 3 + 5 * config_number, "%s", item_image(itemwin->item));
-	if (highlight) wattroff(itemwin->window, A_REVERSE);
-	wrefresh(itemwin->window);
-}
-
-static void
-free_items(void)
-{
-	if (item_list == NULL) return;
-	for (int i = 0; i < item_count; ++i) {
-		if (item_list[i].item != NULL) {
-			if (item_list[i].item->name != NULL) free(item_list[i].item->name);
-			if (item_list[i].item->url != NULL) free(item_list[i].item->url);
-			if (item_list[i].item->guid != NULL) free(item_list[i].item->guid);
-			free(item_list[i].item);
-		}
-	}
-	items_path = NULL;
-	view_sel = -1;
-	item_count = 0;
-	free(item_list);
-	item_list = NULL;
-}
-
 static int
-load_item_list(char *feed_url)
+load_item_list(void)
 {
 	int item_index, rc, unread;
 	sqlite3_stmt *res;
@@ -105,6 +62,30 @@ load_item_list(char *feed_url)
 	return 0;
 }
 
+// return most sensible string for item title
+static char *
+item_image(struct item_entry *item) {
+	if (item != NULL) {
+		if (item->name != NULL) {
+			return item->name;
+		}
+	}
+	return "untitled";
+}
+
+static void
+item_expose(struct item_window *itemwin, bool highlight)
+{
+	if (config_number == 1) {
+		mvwprintw(itemwin->window, 0, 0, "%3d", itemwin->index + 1);
+	}
+	mvwprintw(itemwin->window, 0, 0 + 5 * config_number, itemwin->item->unread ? "N" : " ");
+	if (highlight) wattron(itemwin->window, A_REVERSE);
+	mvwprintw(itemwin->window, 0, 3 + 5 * config_number, "%s", item_image(itemwin->item));
+	if (highlight) wattroff(itemwin->window, A_REVERSE);
+	wrefresh(itemwin->window);
+}
+
 static void
 show_items(void)
 {
@@ -124,16 +105,35 @@ hide_items(void)
 	}
 }
 
+static void
+free_items(void)
+{
+	if (item_list == NULL) return;
+	for (int i = 0; i < item_count; ++i) {
+		if (item_list[i].item != NULL) {
+			if (item_list[i].item->name != NULL) free(item_list[i].item->name);
+			if (item_list[i].item->url != NULL) free(item_list[i].item->url);
+			if (item_list[i].item->guid != NULL) free(item_list[i].item->guid);
+			free(item_list[i].item);
+		}
+	}
+	feed_url = NULL;
+	view_sel = -1;
+	item_count = 0;
+	free(item_list);
+	item_list = NULL;
+}
+
 int
-items_menu(char *feed_url)
+items_menu(char *items_feed_url)
 {
 	if (item_list == NULL) {
-		int load_status = load_item_list(feed_url);
+		feed_url = items_feed_url;
+		int load_status = load_item_list();
 		if (load_status != 0) {
 			free_items();
 			return load_status;
 		}
-		/*items_path = data_path;*/
 		view_min = 0;
 		view_max = LINES - 1;
 	}
@@ -206,6 +206,15 @@ view_select(int i)
 	}
 }
 
+static void
+mark_item_unread(struct item_window *itemwin, bool state)
+{
+	if (db_mark_item_unread(feed_url, itemwin->item, state)) {
+		itemwin->item->unread = state;
+		item_expose(itemwin, 1);
+	}
+}
+
 static enum menu_dest
 menu_items(void)
 {
@@ -218,6 +227,8 @@ menu_items(void)
 		else if (ch == 'k' || ch == KEY_UP)                                     { view_select(view_sel - 1); }
 		else if (ch == 'l' || ch == KEY_RIGHT || ch == '\n' || ch == KEY_ENTER) { return MENU_CONTENT; }
 		else if (ch == 'h' || ch == KEY_LEFT)                                   { return MENU_FEEDS; }
+		else if (ch == config_key_mark_read)                                    { mark_item_unread(&item_list[view_sel], false); }
+		else if (ch == config_key_mark_unread)                                  { mark_item_unread(&item_list[view_sel], true); }
 		else if (ch == config_key_exit)                                         { return MENU_EXIT; }
 		else if (ch == 'G')                                                     { view_select(item_count - 1); }
 		else if (ch == 'g' && wgetch(input_win) == 'g')                         { view_select(0); }
@@ -241,58 +252,4 @@ menu_items(void)
 			}
 		} 
 	}
-}
-
-struct buf *
-read_item_element(char *item_path, char *element)
-{
-	char *path = malloc(sizeof(char) * MAXPATH);
-	if (path == NULL) return NULL;
-	strcpy(path, item_path);
-	strcat(path, element);
-	FILE *f = fopen(path, "r");
-	free(path);
-	if (f == NULL) return NULL;
-	struct buf *str = malloc(sizeof(struct buf));
-	if (str == NULL) return NULL;
-	str->len = 64;
-	str->ptr = malloc(sizeof(char) * str->len);
-	int count = 0;
-	char c;
-	while ((c = fgetc(f)) != EOF) {
-		str->ptr[count++] = c;
-		if (count == str->len) {
-			str->len *= 2;
-			str->ptr = realloc(str->ptr, sizeof(char) * str->len);
-		}
-	}
-	str->ptr[count++] = '\0';
-	str->len = count;
-	str->ptr = realloc(str->ptr, sizeof(char) * str->len);
-	fclose(f);
-	if (count == 0) {
-		free_string_ptr(str);
-		return NULL;
-	}
-	return str;
-}
-
-int
-try_item_bucket(struct item_bucket *bucket, char *feed_url)
-{
-	if (bucket == NULL || feed_url == NULL) return 0;
-	sqlite3_stmt *res;
-	char cmd[] = "SELECT * FROM items WHERE feed = ? AND guid = ? AND link = ?";
-	int rc = sqlite3_prepare_v2(db, cmd, -1, &res, 0);
-	if (rc == SQLITE_OK) {
-		sqlite3_bind_text(res, 1, feed_url, strlen(feed_url), NULL);
-		sqlite3_bind_text(res, 2, bucket->uid.ptr, bucket->uid.len - 1, NULL);
-		sqlite3_bind_text(res, 3, bucket->link.ptr, bucket->link.len - 1, NULL);
-		// if nothing found (item is unique), insert item into table
-		if (sqlite3_step(res) == SQLITE_DONE) db_insert_item(bucket, feed_url);
-	} else {
-		fprintf(stderr, "failed to execute statement: %s\n", sqlite3_errmsg(db));
-	}
-	sqlite3_finalize(res);
-	return 1;
 }

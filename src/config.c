@@ -10,8 +10,10 @@ uint8_t config_number = 1;
 bool config_contents_show_feed = true;
 bool config_contents_show_title = true;
 bool config_contents_show_author = true;
+bool config_contents_show_category = true;
 bool config_contents_show_date = true;
-bool config_contents_show_link = true;
+bool config_contents_show_url = true;
+bool config_contents_show_comments = true;
 char *config_contents_date_format = "%a, %d %b %Y %H:%M:%S %z";
 
 char config_key_mark_read = 'r';

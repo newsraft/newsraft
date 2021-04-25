@@ -5,8 +5,6 @@
 #include <sys/stat.h>
 #include "feedeater.h"
 #include "config.h"
-#define MAX_NAME_SIZE 128
-#define MAX_URL_SIZE 128
 
 static enum menu_dest menu_feeds(void);
 static struct feed_window *feed_list = NULL;
@@ -25,7 +23,6 @@ free_feed_list(void)
 			if (feed_list[i].feed->name != NULL) free(feed_list[i].feed->name);
 			if (feed_list[i].feed->feed_url != NULL) free(feed_list[i].feed->feed_url);
 			if (feed_list[i].feed->site_url != NULL) free(feed_list[i].feed->site_url);
-			if (feed_list[i].feed->path != NULL) free(feed_list[i].feed->path);
 			free(feed_list[i].feed);
 		}
 	}
@@ -84,12 +81,6 @@ load_feed_list(void)
 			c = fgetc(f);
 			if (c == ' ' || c == '\t' || c == '\n' || c == EOF) {
 				feed_list[feed_index].feed->feed_url[letter] = '\0';
-				feed_list[feed_index].feed->path = make_feed_dir(feed_list[feed_index].feed->feed_url);
-				if (feed_list[feed_index].feed->path == NULL) {
-					error = 1; fprintf(stderr, "could not set directory for \"%s\"!\n", feed_list[feed_index].feed->feed_url);
-				} else {
-					feed_list[feed_index].feed->site_url = read_feed_element(feed_list[feed_index].feed->path, "link");
-				}
 				break;
 			}
 		}
@@ -352,32 +343,6 @@ menu_feeds(void)
 			}
 		}
 	}
-}
-
-char *
-read_feed_element(char *feed_path, char *element)
-{
-	char *path = malloc(sizeof(char) * MAXPATH);
-	if (path == NULL) return NULL;
-	strcpy(path, feed_path);
-	strcat(path, "elements/");
-	strcat(path, element);
-	FILE *f = fopen(path, "r");
-	free(path);
-	if (f == NULL) return NULL;
-	int size = 32, count = 0;
-	char *value = malloc(sizeof(char) * size);
-	char c;
-	while ((c = fgetc(f)) != EOF) {
-		value[count++] = c;
-		if (count == size) {
-			size *= 2;
-			value = realloc(value, sizeof(char) * size);
-		}
-	}
-	value[count] = '\0';
-	fclose(f);
-	return value;
 }
 
 void

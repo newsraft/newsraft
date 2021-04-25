@@ -88,9 +88,9 @@ void
 reset_item_bucket(struct item_bucket *bucket)
 {
 	if (bucket == NULL) return;
-	free_string(&bucket->uid);
+	free_string(&bucket->guid);
 	free_string(&bucket->title);
-	free_string(&bucket->link);
+	free_string(&bucket->url);
 	free_string(&bucket->content);
 	free_string(&bucket->author);
 	free_string(&bucket->category);

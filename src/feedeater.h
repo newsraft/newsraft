@@ -9,6 +9,8 @@
 #include <time.h>
 #define MAXPATH 512
 #define MAX_ITEM_INDEX_LEN 20
+#define MAX_NAME_SIZE 128
+#define MAX_URL_SIZE 256
 #ifndef XML_LARGE_SIZE
 #define XML_LARGE_SIZE
 #endif
@@ -37,7 +39,6 @@ struct feed_entry {
 	char *name;
 	char *feed_url; // url of feed
 	char *site_url; // url of site
-	char *path;     // path to data directory
 	bool is_read;
 };
 
@@ -70,9 +71,9 @@ struct init_parser_data {
 // used to bufferize item before writing to disk
 // so we can reject it in case parsed item is already exist
 struct item_bucket {
-	struct string *uid;
+	struct string *guid;
 	struct string *title;
-	struct string *link;
+	struct string *url;
 	struct string *content;
 	struct string *author;
 	struct string *category;
@@ -111,9 +112,11 @@ enum items_column {
 	ITEM_COLUMN_TITLE,
 	ITEM_COLUMN_GUID,
 	ITEM_COLUMN_UNREAD,
-	ITEM_COLUMN_LINK,
+	ITEM_COLUMN_URL,
 	ITEM_COLUMN_AUTHOR,
+	ITEM_COLUMN_CATEGORY,
 	ITEM_COLUMN_PUBDATE,
+	ITEM_COLUMN_COMMENTS,
 	ITEM_COLUMN_CONTENT,
 };
 
@@ -132,7 +135,6 @@ struct feed_parser_data {
 
 int load_feed_list(void); // load feeds information in memory
 void feeds_menu(void);    // display feeds in an interactive list
-char * read_feed_element(char *feed_path, char *element);
 void write_feed_element(char *feed_path, char *element, void *data, size_t size);
 
 
@@ -177,7 +179,6 @@ void skip_chars(FILE *file, char *cur_char, char *list);
 // db
 int db_init(void);
 void db_bind_string(sqlite3_stmt *s, int pos, struct string *str);
-void db_insert_item(struct item_bucket *bucket, char *feed_url);
 int db_mark_item_unread(char *feed_url, struct item_entry *item, bool state);
 void db_stop(void);
 

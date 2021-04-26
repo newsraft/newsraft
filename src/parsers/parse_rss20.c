@@ -95,34 +95,47 @@ endElement(void *userData, const XML_Char *name) {
 }
 
 static void XMLCALL
-charData(void *userData, const XML_Char *s, int len)
+charData(void *userData, const XML_Char *s, int s_len)
 {
 	struct feed_parser_data *data = userData;
-	if (data->last_pos != data->pos) {
-		data->value_len = 0;
+	if (data->prev_pos != data->pos) data->value_len = 0;
+	if (data->value_len + s_len + 1 > data->value_lim) {
+		data->value_lim = data->value_len + s_len + 1;
+		data->value_lim *= 2; // just to minimize number of further realloc calls
+		data->value = realloc(data->value, data->value_lim);
+		if (data->value == NULL) return;
 	}
-	memcpy(data->value + data->value_len, s, len);
-	data->value_len += len;
+	memcpy(data->value + data->value_len, s, s_len);
+	data->value_len += s_len;
 	data->value[data->value_len] = '\0';
-	data->last_pos = data->pos;
+	data->prev_pos = data->pos;
 }
 
 
 int
 parse_rss20(XML_Parser *parser, char *feed_url)
 {
-	char *value = malloc(sizeof(char) * 1040000); // around megabyte
-	struct item_bucket bucket = {0};
-	struct feed_parser_data feed_data = {value, 0, 0, IN_ROOT, IN_ROOT, feed_url, &bucket};
+	int error = 0;
+	struct item_bucket new_bucket = {0};
+	struct feed_parser_data feed_data = {
+		.value     = malloc(sizeof(char) * INIT_PARSER_BUF_SIZE),
+		.value_len = 0,
+		.value_lim = INIT_PARSER_BUF_SIZE,
+		.depth     = 0,
+		.pos       = IN_ROOT,
+		.prev_pos  = IN_ROOT,
+		.feed_url  = feed_url,
+		.bucket    = &new_bucket
+	};
 	XML_SetUserData(*parser, &feed_data);
 	XML_SetElementHandler(*parser, &startElement, &endElement);
 	XML_SetCharacterDataHandler(*parser, &charData);
 	if (XML_ResumeParser(*parser) == XML_STATUS_ERROR) {
+		error = 1;
 		/*status_write("rss20: %" XML_FMT_STR " at line %" XML_FMT_INT_MOD "u\n",*/
               /*XML_ErrorString(XML_GetErrorCode(*parser)),*/
               /*XML_GetCurrentLineNumber(*parser));*/
-		return 0;
 	}
-	free(value);
-	return 1;
+	free(feed_data.value);
+	return error;
 }

@@ -11,6 +11,7 @@
 #define MAX_ITEM_INDEX_LEN 20
 #define MAX_NAME_SIZE 128
 #define MAX_URL_SIZE 256
+#define INIT_PARSER_BUF_SIZE 1000
 #ifndef XML_LARGE_SIZE
 #define XML_LARGE_SIZE
 #endif
@@ -123,9 +124,10 @@ enum items_column {
 struct feed_parser_data {
 	char *value;
 	size_t value_len;
+	size_t value_lim;
 	int depth;
 	enum xml_pos pos;
-	enum xml_pos last_pos;
+	enum xml_pos prev_pos;
 	char *feed_url;
 	struct item_bucket *bucket;
 };

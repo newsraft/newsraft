@@ -2,8 +2,9 @@
 #include "feedeater.h"
 
 int
-parse_rss091(XML_Parser *parser, char *url)
+parse_rss091(XML_Parser *parser, char *feed_url)
 {
-	status_write("rss091 under_construction");
-	return 0;
+	int error = 0;
+	status_write("Support for RSS 0.91 is under construction!");
+	return error;
 }

@@ -56,9 +56,7 @@ load_item_list(void)
 		fprintf(stderr, "Failed to execute statement: %s\n", sqlite3_errmsg(db));
 	}
 	sqlite3_finalize(res);
-	if (view_sel == -1) {
-		return MENU_ITEMS_EMPTY; // no items found
-	}
+	if (view_sel == -1) return MENU_ITEMS_EMPTY; // no items found
 	return 0;
 }
 

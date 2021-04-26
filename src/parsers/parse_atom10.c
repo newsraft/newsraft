@@ -2,8 +2,9 @@
 #include "feedeater.h"
 
 int
-parse_atom10(XML_Parser *parser, char *url)
+parse_atom10(XML_Parser *parser, char *feed_url)
 {
-	status_write("atom10 under_construction");
-	return 0;
+	int error = 0;
+	status_write("Support for Atom 1.0 is under construction!");
+	return error;
 }

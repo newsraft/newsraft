@@ -73,9 +73,9 @@ feed_process(struct string *buf, struct feed_entry *feed)
 		return 1;
 	}
 
-	int parsing_done = parser_data.parser_func(&parser, feed->feed_url);
+	int parsing_error = parser_data.parser_func(&parser, feed->feed_url);
 	XML_ParserFree(parser);
-	if (parsing_done == 0) {
+	if (parsing_error != 0) {
 		status_write("[incorrect format] %s", feed->feed_url);
 		return 1;
 	}

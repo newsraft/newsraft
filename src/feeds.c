@@ -294,9 +294,11 @@ feed_reload(struct feed_window *feedwin)
 	struct string *buf = feed_download(feedwin->feed->feed_url);
 	if (buf == NULL) return;
 	if (buf->ptr == NULL) { free(buf); return; }
-	if (feed_process(buf, feedwin->feed) == 0) status_clean();
-	feedwin->feed->is_read = is_feed_read(feedwin->feed->feed_url);
-	feed_expose(feedwin, 1);
+	if (feed_process(buf, feedwin->feed) == 0) {
+		status_clean();
+		feedwin->feed->is_read = is_feed_read(feedwin->feed->feed_url);
+		feed_expose(feedwin, 1);
+	}
 	free_string(&buf);
 }
 

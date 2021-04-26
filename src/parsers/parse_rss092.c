@@ -4,7 +4,7 @@
 int
 parse_rss092(XML_Parser *parser, char *feed_url)
 {
-	int error = 0;
+	int error = 1;
 	status_write("Support for RSS 0.92 is under construction!");
 	return error;
 }

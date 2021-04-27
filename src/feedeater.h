@@ -82,23 +82,6 @@ struct item_bucket {
 	time_t pubdate;
 };
 
-enum xml_pos {
-	IN_ROOT = 0,
-	IN_ITEM_ELEMENT = 1,
-	IN_TITLE_ELEMENT = 2,
-	IN_DESCRIPTION_ELEMENT = 4,
-	IN_LINK_ELEMENT = 8,
-	IN_PUBDATE_ELEMENT = 16,
-	IN_GUID_ELEMENT = 32,
-	IN_CATEGORY_ELEMENT = 64,
-	IN_COMMENTS_ELEMENT = 128,
-	IN_AUTHOR_ELEMENT = 256,
-	IN_ENCLOSURE_ELEMENT = 512,
-	IN_SOURCE_ELEMENT = 1024,
-	IN_IMAGE_ELEMENT = 2048,
-	IN_CHANNEL_ELEMENT = 4096,
-};
-
 enum menu_dest {
 	MENU_FEEDS,
 	MENU_ITEMS,
@@ -126,8 +109,8 @@ struct feed_parser_data {
 	size_t value_len;
 	size_t value_lim;
 	int depth;
-	enum xml_pos pos;
-	enum xml_pos prev_pos;
+	int pos;
+	int prev_pos;
 	char *feed_url;
 	struct item_bucket *bucket;
 };
@@ -180,6 +163,7 @@ void skip_chars(FILE *file, char *cur_char, char *list);
 int db_init(void);
 void db_bind_string(sqlite3_stmt *s, int pos, struct string *str);
 int db_mark_item_unread(char *feed_url, struct item_entry *item, bool state);
+void db_update_feed_text(char *feed_url, char *column, char *data, size_t data_len);
 void db_stop(void);
 
 // functions related to window which displays informational messages (see status.c file)

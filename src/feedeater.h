@@ -63,10 +63,21 @@ struct item_window {
 	int64_t index;
 };
 
+struct feed_parser_data {
+	char *value;
+	size_t value_len;
+	size_t value_lim;
+	int depth;
+	int pos;
+	int prev_pos;
+	char *feed_url;
+	struct item_bucket *bucket;
+};
+
 struct init_parser_data {
 	int depth;
 	XML_Parser *xml_parser;
-	int (*parser_func)(XML_Parser *parser, char *url);
+	int (*parser_func)(XML_Parser *parser, char *url, struct feed_parser_data *feed_data);
 };
 
 // used to bufferize item before writing to disk
@@ -104,17 +115,6 @@ enum items_column {
 	ITEM_COLUMN_CONTENT,
 };
 
-struct feed_parser_data {
-	char *value;
-	size_t value_len;
-	size_t value_lim;
-	int depth;
-	int pos;
-	int prev_pos;
-	char *feed_url;
-	struct item_bucket *bucket;
-};
-
 
 // feeds
 
@@ -139,19 +139,19 @@ char * get_db_path(void);
 
 
 // feed parsing
-
+void XMLCALL store_xml_element_value(void *userData, const XML_Char *s, int s_len);
 int feed_process(struct string *buf, struct feed_entry *feed);
-
+time_t get_unix_epoch_time(char *format_str, char *date_str);
 // xml parsers for different versions of feeds
-int parse_rss20(XML_Parser *parser, char *feed_url);  // RSS 2.0
-int parse_rss11(XML_Parser *parser, char *feed_url);  // RSS 1.1
-int parse_rss10(XML_Parser *parser, char *feed_url);  // RSS 1.0
-int parse_rss094(XML_Parser *parser, char *feed_url); // RSS 0.94
-int parse_rss092(XML_Parser *parser, char *feed_url); // RSS 0.92
-int parse_rss091(XML_Parser *parser, char *feed_url); // RSS 0.91
-int parse_rss090(XML_Parser *parser, char *feed_url); // RSS 0.90
-int parse_atom10(XML_Parser *parser, char *feed_url); // Atom 1.0
-int parse_atom03(XML_Parser *parser, char *feed_url); // Atom 0.3
+int parse_rss20(XML_Parser *parser, char *feed_url, struct feed_parser_data *feed_data);  // RSS 2.0
+int parse_rss11(XML_Parser *parser, char *feed_url, struct feed_parser_data *feed_data);  // RSS 1.1
+int parse_rss10(XML_Parser *parser, char *feed_url, struct feed_parser_data *feed_data);  // RSS 1.0
+int parse_rss094(XML_Parser *parser, char *feed_url, struct feed_parser_data *feed_data); // RSS 0.94
+int parse_rss092(XML_Parser *parser, char *feed_url, struct feed_parser_data *feed_data); // RSS 0.92
+int parse_rss091(XML_Parser *parser, char *feed_url, struct feed_parser_data *feed_data); // RSS 0.91
+int parse_rss090(XML_Parser *parser, char *feed_url, struct feed_parser_data *feed_data); // RSS 0.90
+int parse_atom10(XML_Parser *parser, char *feed_url, struct feed_parser_data *feed_data); // Atom 1.0
+int parse_atom03(XML_Parser *parser, char *feed_url, struct feed_parser_data *feed_data); // Atom 0.3
 
 
 // config parsing
@@ -163,6 +163,7 @@ void skip_chars(FILE *file, char *cur_char, char *list);
 int db_init(void);
 void db_bind_string(sqlite3_stmt *s, int pos, struct string *str);
 int db_mark_item_unread(char *feed_url, struct item_entry *item, bool state);
+void db_update_feed_int64(char *feed_url, char *column, int64_t i);
 void db_update_feed_text(char *feed_url, char *column, char *data, size_t data_len);
 void db_stop(void);
 

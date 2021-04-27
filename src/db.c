@@ -22,6 +22,7 @@ db_init(void)
 	             	"name TEXT,"
 	             	"resource TEXT,"
 	             	"pubdate INTEGER(8),"
+	             	"language TEXT,"
 	             	"description TEXT"
 	             ");"
 	             "CREATE TABLE IF NOT EXISTS items("
@@ -186,6 +187,29 @@ db_update_feed_text(char *feed_url, char *column, char *data, size_t data_len)
 	sprintf(cmd, "UPDATE feeds SET %s = ? WHERE url = ?", column);
 	if (sqlite3_prepare_v2(db, cmd, -1, &res, 0) == SQLITE_OK) {
 		sqlite3_bind_text(res, 1, data, data_len, NULL);
+		sqlite3_bind_text(res, 2, feed_url, strlen(feed_url), NULL);
+		/*if (sqlite3_step(res) == SQLITE_DONE) success = 1;*/
+		sqlite3_step(res);
+	} else {
+		fprintf(stderr, "failed to execute statement: %s\n", sqlite3_errmsg(db));
+	}
+	free(cmd);
+	sqlite3_finalize(res);
+}
+
+void
+db_update_feed_int64(char *feed_url, char *column, int64_t i)
+{
+	if (create_feed_entry(feed_url) == false) {
+		fprintf(stderr, "could not create feed entry in database!\n"); return;
+	}
+	char *cmd = malloc(sizeof(char) * (37 + strlen(column)));
+	if (cmd == NULL) return;
+	sqlite3_stmt *res;
+	// BEFORE CHANGING FORMAT STRING LO^OK ABOVE
+	sprintf(cmd, "UPDATE feeds SET %s = ? WHERE url = ?", column);
+	if (sqlite3_prepare_v2(db, cmd, -1, &res, 0) == SQLITE_OK) {
+		sqlite3_bind_int64(res, 1, i);
 		sqlite3_bind_text(res, 2, feed_url, strlen(feed_url), NULL);
 		/*if (sqlite3_step(res) == SQLITE_DONE) success = 1;*/
 		sqlite3_step(res);

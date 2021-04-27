@@ -130,7 +130,8 @@ load_feed_list(void)
 
 // return most sensible string for feed title
 static char *
-feed_image(struct feed_entry *feed) {
+feed_image(struct feed_entry *feed)
+{
 	return feed->name ? feed->name : feed->feed_url;
 }
 
@@ -153,9 +154,8 @@ is_feed_read(char *feed_url)
 	if (feed_url == NULL) return true;
 	bool is_read = false;
 	sqlite3_stmt *res;
-	char cmd[] = "SELECT * FROM items WHERE feed = ? AND unread = ?";
-	int rc = sqlite3_prepare_v2(db, cmd, -1, &res, 0);
-	if (rc == SQLITE_OK) {
+	char cmd[] = "SELECT * FROM items WHERE feed = ? AND unread = ? LIMIT 1";
+	if (sqlite3_prepare_v2(db, cmd, -1, &res, 0) == SQLITE_OK) {
 		sqlite3_bind_text(res, 1, feed_url, strlen(feed_url), NULL);
 		sqlite3_bind_int(res, 2, 1);
 		// if nothing found (every item from feed is read), say feed is read

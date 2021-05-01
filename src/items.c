@@ -32,22 +32,19 @@ load_item_list(void)
 			item_index = item_count++;
 			item_list = realloc(item_list, sizeof(struct item_window) * item_count);
 			item_list[item_index].item = calloc(1, sizeof(struct item_entry));
-			if (view_sel == -1) view_sel = item_index;
-			item_list[item_index].index = item_index;
 			if (item_list[item_index].item == NULL) {
 				fprintf(stderr, "memory allocation for item entry failed\n"); break;
 			}
+			if (view_sel == -1) view_sel = item_index;
+			item_list[item_index].index = item_index;
 			if ((text = (char *)sqlite3_column_text(res, 0)) != NULL) {
-				item_list[item_index].item->name = malloc(sizeof(char) * (strlen(text) + 1));
-				strcpy(item_list[item_index].item->name, text);
+				make_string(&item_list[item_index].item->title, text, strlen(text));
 			}
 			if ((text = (char *)sqlite3_column_text(res, 1)) != NULL) {
-				item_list[item_index].item->url = malloc(sizeof(char) * (strlen(text) + 1));
-				strcpy(item_list[item_index].item->url, text);
+				make_string(&item_list[item_index].item->url, text, strlen(text));
 			}
 			if ((text = (char *)sqlite3_column_text(res, 2)) != NULL) {
-				item_list[item_index].item->guid = malloc(sizeof(char) * (strlen(text) + 1));
-				strcpy(item_list[item_index].item->guid, text);
+				make_string(&item_list[item_index].item->guid, text, strlen(text));
 			}
 			unread = sqlite3_column_int(res, 3);
 			item_list[item_index].item->unread = unread;
@@ -64,8 +61,8 @@ load_item_list(void)
 static char *
 item_image(struct item_entry *item) {
 	if (item != NULL) {
-		if (item->name != NULL) {
-			return item->name;
+		if (item->title != NULL) {
+			return item->title->ptr;
 		}
 	}
 	return "untitled";
@@ -109,9 +106,9 @@ free_items(void)
 	if (item_list == NULL) return;
 	for (int i = 0; i < item_count; ++i) {
 		if (item_list[i].item != NULL) {
-			if (item_list[i].item->name != NULL) free(item_list[i].item->name);
-			if (item_list[i].item->url != NULL) free(item_list[i].item->url);
-			if (item_list[i].item->guid != NULL) free(item_list[i].item->guid);
+			if (item_list[i].item->title != NULL) free_string(&item_list[i].item->title);
+			if (item_list[i].item->url != NULL) free_string(&item_list[i].item->url);
+			if (item_list[i].item->guid != NULL) free_string(&item_list[i].item->guid);
 			free(item_list[i].item);
 		}
 	}

@@ -133,8 +133,8 @@ db_mark_item_unread(struct string *feed_url, struct item_entry *item, bool state
 	if (rc == SQLITE_OK) {
 		sqlite3_bind_int(res, 1, state == true ? 1 : 0);
 		sqlite3_bind_text(res, 2, feed_url->ptr, feed_url->len, NULL);
-		sqlite3_bind_text(res, 3, item->guid, strlen(item->guid), NULL);
-		sqlite3_bind_text(res, 4, item->url, strlen(item->url), NULL);
+		sqlite3_bind_text(res, 3, item->guid->ptr, item->guid->len, NULL);
+		sqlite3_bind_text(res, 4, item->url->ptr, item->url->len, NULL);
 		if (sqlite3_step(res) == SQLITE_DONE) success = 1;
 	} else {
 		fprintf(stderr, "failed to prepare statement: %s\n", sqlite3_errmsg(db));

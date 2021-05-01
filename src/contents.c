@@ -20,8 +20,8 @@ cat_content(struct string *feed_url, struct item_entry *item)
 	int rc = sqlite3_prepare_v2(db, cmd, -1, &res, 0);
 	if (rc == SQLITE_OK) {
 		sqlite3_bind_text(res, 1, feed_url->ptr, feed_url->len, NULL);
-		sqlite3_bind_text(res, 2, item->guid, strlen(item->guid), NULL);
-		sqlite3_bind_text(res, 3, item->url, strlen(item->url), NULL);
+		sqlite3_bind_text(res, 2, item->guid->ptr, item->guid->len, NULL);
+		sqlite3_bind_text(res, 3, item->url->ptr, item->url->len, NULL);
 		rc = sqlite3_step(res);
 #define TEXT_TAG_APPEND(X, Y) \
 	text = (char *)sqlite3_column_text(res, Y); \

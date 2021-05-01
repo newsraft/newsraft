@@ -50,9 +50,9 @@ struct feed_window {
 };
 
 struct item_entry {
-	char *name;    // name of item
-	char *url;     // url to item
-	char *guid;
+	struct string *title; // name of item
+	struct string *url;   // url to item
+	struct string *guid;
 	bool unread;
 	int64_t index; // index of item
 };

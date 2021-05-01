@@ -8,7 +8,7 @@
 #include "config.h"
 
 static void XMLCALL
-init_process_element_start(void *userData, const XML_Char *name, const XML_Char **atts) {
+process_element_start(void *userData, const XML_Char *name, const XML_Char **atts) {
 	/*(void)atts;*/
 	struct init_parser_data *parser_data = userData;
 	++(parser_data->depth);
@@ -45,7 +45,7 @@ init_process_element_start(void *userData, const XML_Char *name, const XML_Char 
 }
 
 static void XMLCALL
-init_process_element_finish(void *userData, const XML_Char *name) {
+process_element_finish(void *userData, const XML_Char *name) {
 	struct init_parser_data *parser_data = userData;
 	--(parser_data->depth);
 }
@@ -53,21 +53,21 @@ init_process_element_finish(void *userData, const XML_Char *name) {
 int
 feed_process(struct string *buf, struct feed_entry *feed)
 {
-	status_write("[parsing] %s", feed->feed_url);
+	status_write("[parsing] %s", feed->feed_url->ptr);
 	XML_Parser parser = XML_ParserCreate(NULL);
 	struct init_parser_data parser_data = {0, &parser, NULL};
 	XML_SetUserData(parser, &parser_data);
-	XML_SetElementHandler(parser, &init_process_element_start, &init_process_element_finish);
+	XML_SetElementHandler(parser, &process_element_start, &process_element_finish);
 	if (XML_Parse(parser, buf->ptr, buf->len, 0) == XML_STATUS_ERROR) {
 		/*status_write("%" XML_FMT_STR " at line %" XML_FMT_INT_MOD "u\n",*/
 								 /*XML_ErrorString(XML_GetErrorCode(parser)),*/
 								 /*XML_GetCurrentLineNumber(parser));*/
-		status_write("[invalid format] %s", feed->feed_url); // bad xml document
+		status_write("[invalid format] %s", feed->feed_url->ptr); // bad xml document
 		XML_ParserFree(parser);
 		return 1;
 	}
 	if (parser_data.parser_func == NULL) {
-		status_write("[unknown format] %s", feed->feed_url);
+		status_write("[unknown format] %s", feed->feed_url->ptr);
 		return 1;
 	}
 
@@ -86,7 +86,7 @@ feed_process(struct string *buf, struct feed_entry *feed)
 	free(feed_data.value);
 	XML_ParserFree(parser);
 	if (parsing_error != 0) {
-		/*status_write("[incorrect format] %s", feed->feed_url);*/
+		/*status_write("[incorrect format] %s", feed->feed_url->ptr);*/
 		return 1;
 	}
 

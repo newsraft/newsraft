@@ -7,7 +7,7 @@
 #include "feedeater.h"
 #include "config.h"
 
-static char *feed_url = NULL;
+static struct string *feed_url = NULL;
 static struct item_window *item_list = NULL;
 static int item_count = 0;
 static int view_sel = -1;
@@ -25,7 +25,7 @@ load_item_list(void)
 	char cmd[] = "SELECT title, url, guid, unread FROM items WHERE feed = ? ORDER BY pubdate DESC", *text;
 	rc = sqlite3_prepare_v2(db, cmd, -1, &res, 0);
 	if (rc == SQLITE_OK) {
-		sqlite3_bind_text(res, 1, feed_url, strlen(feed_url), NULL);
+		sqlite3_bind_text(res, 1, feed_url->ptr, feed_url->len, NULL);
 		while (1) {
 			rc = sqlite3_step(res);
 			if (rc != SQLITE_ROW) break;
@@ -123,7 +123,7 @@ free_items(void)
 }
 
 int
-items_menu(char *items_feed_url)
+items_menu(struct string *items_feed_url)
 {
 	if (item_list == NULL) {
 		feed_url = items_feed_url;

@@ -38,7 +38,7 @@ struct string {
 
 struct feed_entry {
 	char *name;
-	char *feed_url; // url of feed
+	struct string *feed_url; // url of feed
 	char *site_url; // url of site
 	bool is_read;
 };
@@ -70,14 +70,14 @@ struct feed_parser_data {
 	int depth;
 	int pos;
 	int prev_pos;
-	char *feed_url;
+	struct string *feed_url;
 	struct item_bucket *bucket;
 };
 
 struct init_parser_data {
 	int depth;
 	XML_Parser *xml_parser;
-	int (*parser_func)(XML_Parser *parser, char *url, struct feed_parser_data *feed_data);
+	int (*parser_func)(XML_Parser *parser, struct string *feed_url, struct feed_parser_data *feed_data);
 };
 
 // used to bufferize item before writing to disk
@@ -124,13 +124,13 @@ void feeds_menu(void);    // display feeds in an interactive list
 
 // items
 
-int items_menu(char *feed_url);
+int items_menu(struct string *feed_url);
 void reset_item_bucket(struct item_bucket *bucket);
-int try_item_bucket(struct item_bucket *bucket, char *feed_url);
+int try_item_bucket(struct item_bucket *bucket, struct string *feed_url);
 
 
 // contents
-int contents_menu(char *feed_url, struct item_entry *item);
+int contents_menu(struct string *feed_url, struct item_entry *item);
 
 
 // path
@@ -143,28 +143,29 @@ void XMLCALL store_xml_element_value(void *userData, const XML_Char *s, int s_le
 int feed_process(struct string *buf, struct feed_entry *feed);
 time_t get_unix_epoch_time(char *format_str, char *date_str);
 // xml parsers for different versions of feeds
-int parse_rss20(XML_Parser *parser, char *feed_url, struct feed_parser_data *feed_data);  // RSS 2.0
-int parse_rss11(XML_Parser *parser, char *feed_url, struct feed_parser_data *feed_data);  // RSS 1.1
-int parse_rss10(XML_Parser *parser, char *feed_url, struct feed_parser_data *feed_data);  // RSS 1.0
-int parse_rss094(XML_Parser *parser, char *feed_url, struct feed_parser_data *feed_data); // RSS 0.94
-int parse_rss092(XML_Parser *parser, char *feed_url, struct feed_parser_data *feed_data); // RSS 0.92
-int parse_rss091(XML_Parser *parser, char *feed_url, struct feed_parser_data *feed_data); // RSS 0.91
-int parse_rss090(XML_Parser *parser, char *feed_url, struct feed_parser_data *feed_data); // RSS 0.90
-int parse_atom10(XML_Parser *parser, char *feed_url, struct feed_parser_data *feed_data); // Atom 1.0
-int parse_atom03(XML_Parser *parser, char *feed_url, struct feed_parser_data *feed_data); // Atom 0.3
+int parse_rss20(XML_Parser *parser, struct string *feed_url, struct feed_parser_data *feed_data);  // RSS 2.0
+int parse_rss11(XML_Parser *parser, struct string *feed_url, struct feed_parser_data *feed_data);  // RSS 1.1
+int parse_rss10(XML_Parser *parser, struct string *feed_url, struct feed_parser_data *feed_data);  // RSS 1.0
+int parse_rss094(XML_Parser *parser, struct string *feed_url, struct feed_parser_data *feed_data); // RSS 0.94
+int parse_rss092(XML_Parser *parser, struct string *feed_url, struct feed_parser_data *feed_data); // RSS 0.92
+int parse_rss091(XML_Parser *parser, struct string *feed_url, struct feed_parser_data *feed_data); // RSS 0.91
+int parse_rss090(XML_Parser *parser, struct string *feed_url, struct feed_parser_data *feed_data); // RSS 0.90
+int parse_atom10(XML_Parser *parser, struct string *feed_url, struct feed_parser_data *feed_data); // Atom 1.0
+int parse_atom03(XML_Parser *parser, struct string *feed_url, struct feed_parser_data *feed_data); // Atom 0.3
 
 
 // config parsing
 
 void skip_chars(FILE *file, char *cur_char, char *list);
+void find_chars(FILE *file, char *cur_char, char *list);
 
 
 // db
 int db_init(void);
 void db_bind_string(sqlite3_stmt *s, int pos, struct string *str);
-int db_mark_item_unread(char *feed_url, struct item_entry *item, bool state);
-void db_update_feed_int64(char *feed_url, char *column, int64_t i);
-void db_update_feed_text(char *feed_url, char *column, char *data, size_t data_len);
+int db_mark_item_unread(struct string *feed_url, struct item_entry *item, bool state);
+void db_update_feed_int64(struct string *feed_url, char *column, int64_t i);
+void db_update_feed_text(struct string *feed_url, char *column, char *data, size_t data_len);
 void db_stop(void);
 
 // functions related to window which displays informational messages (see status.c file)

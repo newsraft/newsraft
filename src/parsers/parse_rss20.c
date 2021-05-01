@@ -101,14 +101,14 @@ process_element_finish(void *userData, const XML_Char *name)
 		data->pos &= ~IN_LASTBUILDDATE_ELEMENT;
 		time_t rawtime = get_unix_epoch_time("%a, %d %b %Y %H:%M:%S %z", data->value);
 		if ((data->pos & IN_ITEM_ELEMENT) == 0)
-			db_update_feed_int64(data->feed_url, "pubdate", (int64_t)rawtime);
+			db_update_feed_int64(data->feed_url, "builddate", (int64_t)rawtime);
 	} else if (strcmp(name, "channel") == 0) {
 		data->pos &= ~IN_CHANNEL_ELEMENT;
 	}
 }
 
 int
-parse_rss20(XML_Parser *parser, char *feed_url, struct feed_parser_data *feed_data)
+parse_rss20(XML_Parser *parser, struct string *feed_url, struct feed_parser_data *feed_data)
 {
 	int error = 0;
 	XML_SetUserData(*parser, feed_data);

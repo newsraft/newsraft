@@ -11,7 +11,7 @@ static int view_max;
 static int newlines;
 
 static struct string *
-cat_content(char *feed_url, struct item_entry *item)
+cat_content(struct string *feed_url, struct item_entry *item)
 {
 	struct string *buf = create_string();
 	if (buf == NULL) return NULL;
@@ -19,7 +19,7 @@ cat_content(char *feed_url, struct item_entry *item)
 	char *text, cmd[] = "SELECT * FROM items WHERE feed = ? AND guid = ? AND url = ? LIMIT 1";
 	int rc = sqlite3_prepare_v2(db, cmd, -1, &res, 0);
 	if (rc == SQLITE_OK) {
-		sqlite3_bind_text(res, 1, feed_url, strlen(feed_url), NULL);
+		sqlite3_bind_text(res, 1, feed_url->ptr, feed_url->len, NULL);
 		sqlite3_bind_text(res, 2, item->guid, strlen(item->guid), NULL);
 		sqlite3_bind_text(res, 3, item->url, strlen(item->url), NULL);
 		rc = sqlite3_step(res);
@@ -81,7 +81,7 @@ cat_content(char *feed_url, struct item_entry *item)
 }
 
 int
-contents_menu(char *feed_url, struct item_entry *item)
+contents_menu(struct string *feed_url, struct item_entry *item)
 {
 	newlines = 0;
 	view_min = 0;

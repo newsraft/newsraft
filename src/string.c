@@ -13,10 +13,7 @@ create_string(void)
 	str->len = 0;
 	str->ptr = malloc(sizeof(char));
 	if (str->ptr == NULL) { free(str); return NULL; }
-	// this thing throws CWE-401 for some reason:
-	// str->ptr[0] = '\0';
-	// so use strcpy...
-	strcpy(str->ptr, "");
+	*(str->ptr + 0) = '\0';
 	return str;
 }
 
@@ -28,7 +25,8 @@ make_string(struct string **dest, void *src, size_t len)
 	(*dest)->ptr = realloc((*dest)->ptr, sizeof(char) * (len + 1));
 	if ((*dest)->ptr == NULL) { free_string(dest); return; }
 	(*dest)->len = len;
-	memcpy((*dest)->ptr, src, sizeof(char) * (len + 1));
+	memcpy((*dest)->ptr, src, sizeof(char) * len);
+	*((*dest)->ptr + len) = '\0';
 	if ((*dest)->ptr == NULL) free_string(dest);
 }
 

@@ -118,7 +118,8 @@ enum items_column {
 
 // feeds
 
-int load_feed_list(void); // load feeds information in memory
+int load_feed_list(void);  // load feeds information in memory
+void free_feed_list(void);
 void feeds_menu(void);    // display feeds in an interactive list
 
 

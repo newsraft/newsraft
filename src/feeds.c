@@ -14,7 +14,7 @@ static int view_max = -1;
 static int feed_count = 0;
 static int do_clean = 1;
 
-static void
+void
 free_feed_list(void)
 {
 	if (feed_list == NULL) return;
@@ -205,7 +205,6 @@ feeds_menu(void)
 	hide_feeds();
 
 	if (dest == MENU_EXIT) {
-		free_feed_list();
 		return;
 	} else if (dest == MENU_ITEMS) {
 		int items_status = items_menu(feed_list[view_sel].feed->feed_url);
@@ -214,7 +213,6 @@ feeds_menu(void)
 			if (items_status == MENU_ITEMS_EMPTY) {
 				status_write("[empty] %s", feed_image(feed_list[view_sel].feed));
 			} else if (items_status == MENU_EXIT) {
-				free_feed_list();
 				return;
 			}
 		}

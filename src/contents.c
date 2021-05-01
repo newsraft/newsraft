@@ -158,21 +158,20 @@ menu_contents(void)
 	int ch, q;
 	char cmd[7];
 	while (1) {
-		ch = wgetch(input_win);
-		wrefresh(input_win);
-		if      (ch == 'j' || ch == KEY_DOWN)           { scroll_view(1); }
-		else if (ch == 'k' || ch == KEY_UP)             { scroll_view(-1); }
-		else if (ch == 'h' || ch == KEY_LEFT)           { return MENU_ITEMS; }
-		else if (ch == 'g' && wgetch(input_win) == 'g') { scroll_view_top(); }
-		else if (ch == 'G')                             { scroll_view_bot(); }
-		else if (ch == config_key_exit)                 { return MENU_EXIT; }
+		ch = input_wgetch();
+		if      (ch == 'j' || ch == KEY_DOWN)        { scroll_view(1); }
+		else if (ch == 'k' || ch == KEY_UP)          { scroll_view(-1); }
+		else if (ch == 'h' || ch == KEY_LEFT)        { return MENU_ITEMS; }
+		else if (ch == 'g' && input_wgetch() == 'g') { scroll_view_top(); }
+		else if (ch == 'G')                          { scroll_view_bot(); }
+		else if (ch == config_key_exit)              { return MENU_EXIT; }
 		else if (isdigit(ch)) {
 			q = 0;
 			while (1) {
 				cmd[q++] = ch;
 				if (q > 6) break;
 				cmd[q] = '\0';
-				ch = wgetch(input_win);
+				ch = input_wgetch();
 				if (!isdigit(ch)) {
 					if (ch == 'j' || ch == KEY_DOWN) {
 						scroll_view(atoi(cmd));

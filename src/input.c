@@ -18,6 +18,13 @@ input_create(void)
 	return 1;
 }
 
+int
+input_wgetch(void)
+{
+	return wgetch(input_win);
+}
+
+
 void
 input_delete(void)
 {

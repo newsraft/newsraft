@@ -50,6 +50,7 @@ process_element_finish(void *userData, const XML_Char *name)
 	/*(void)name;*/
 	struct feed_parser_data *data = userData;
 	--(data->depth);
+	value_strip_whitespace(data->value, &data->value_len);
 	if ((data->pos & IN_CHANNEL_ELEMENT) == 0) return;
 	if (strcmp(name, "item") == 0) {
 		data->pos &= ~IN_ITEM_ELEMENT;
@@ -114,7 +115,6 @@ int
 parse_rss20(XML_Parser *parser, struct string *feed_url, struct feed_parser_data *feed_data)
 {
 	int error = 0;
-	XML_SetUserData(*parser, feed_data);
 	XML_SetElementHandler(*parser, &process_element_start, &process_element_finish);
 	XML_SetCharacterDataHandler(*parser, &store_xml_element_value);
 	if (XML_ResumeParser(*parser) == XML_STATUS_ERROR) {

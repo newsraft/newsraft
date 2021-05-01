@@ -216,8 +216,7 @@ menu_items(void)
 	int ch, q;
 	char cmd[7];
 	while (1) {
-		ch = wgetch(input_win);
-		wrefresh(input_win);
+		ch = input_wgetch();
 		if      (ch == 'j' || ch == KEY_DOWN)                                   { view_select(view_sel + 1); }
 		else if (ch == 'k' || ch == KEY_UP)                                     { view_select(view_sel - 1); }
 		else if (ch == 'l' || ch == KEY_RIGHT || ch == '\n' || ch == KEY_ENTER) { return MENU_CONTENT; }
@@ -226,14 +225,14 @@ menu_items(void)
 		else if (ch == config_key_mark_unread)                                  { mark_item_unread(&item_list[view_sel], true); }
 		else if (ch == config_key_exit)                                         { return MENU_EXIT; }
 		else if (ch == 'G')                                                     { view_select(item_count - 1); }
-		else if (ch == 'g' && wgetch(input_win) == 'g')                         { view_select(0); }
+		else if (ch == 'g' && input_wgetch() == 'g')                            { view_select(0); }
 		else if (isdigit(ch)) {
 			q = 0;
 			while (1) {
 				cmd[q++] = ch;
 				if (q > 6) break;
 				cmd[q] = '\0';
-				ch = wgetch(input_win);
+				ch = input_wgetch();
 				if (!isdigit(ch)) {
 					if (ch == 'j') {
 						view_select(view_sel + atoi(cmd));

@@ -39,7 +39,7 @@ struct string {
 struct feed_entry {
 	char *name;
 	struct string *feed_url; // url of feed
-	char *site_url; // url of site
+	char *site_url;          // url of site
 	bool is_read;
 };
 
@@ -140,6 +140,7 @@ char * get_db_path(void);
 
 
 // feed parsing
+void value_strip_whitespace(char *str, size_t *len);
 void XMLCALL store_xml_element_value(void *userData, const XML_Char *s, int s_len);
 int feed_process(struct string *buf, struct feed_entry *feed);
 time_t get_unix_epoch_time(char *format_str, char *date_str);
@@ -177,21 +178,22 @@ void status_delete(void);
 
 // functions related to window which handles user input (see input.c file)
 int input_create(void);
+int input_wgetch(void);
 void input_delete(void);
-// variable with input window
-extern WINDOW *input_win;
-extern sqlite3 *db;
 
 
 // curl
 struct string * feed_download(char *url);
 
 
-// utils
+// string
 void make_string(struct string **dest, void *src, size_t len);
 struct string * create_string(void);
 void free_string(struct string **dest);
 void cat_string_string(struct string *dest, struct string *src);
 void cat_string_array(struct string *dest, char *src);
 void cat_string_char(struct string *dest, char c);
+
+
+extern sqlite3 *db;
 #endif // FEEDEATER_H

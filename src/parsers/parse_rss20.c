@@ -76,7 +76,10 @@ process_element_finish(void *userData, const XML_Char *name)
 	} else if (strcmp(name, "pubDate") == 0) {
 		data->pos &= ~IN_PUBDATE_ELEMENT;
 		time_t rawtime = get_unix_epoch_time("%a, %d %b %Y %H:%M:%S %z", data->value);
-		if ((data->pos & IN_ITEM_ELEMENT) != 0) data->bucket->pubdate = rawtime;
+		if ((data->pos & IN_ITEM_ELEMENT) != 0)
+			data->bucket->pubdate = rawtime;
+		else
+			db_update_feed_int64(data->feed_url, "pubdate", (int64_t)rawtime);
 	} else if (strcmp(name, "guid") == 0) {
 		data->pos &= ~IN_GUID_ELEMENT;
 		if ((data->pos & IN_ITEM_ELEMENT) != 0)

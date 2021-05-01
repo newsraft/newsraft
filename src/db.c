@@ -21,6 +21,7 @@ db_init(void)
 	             	"url TEXT,"
 	             	"name TEXT,"
 	             	"resource TEXT,"
+	             	"pubdate INTEGER(8),"
 	             	"builddate INTEGER(8),"
 	             	"language TEXT,"
 	             	"description TEXT"

@@ -1,5 +1,7 @@
 #include "feedeater.h"
+#include <locale.h>
 int main (int argc, char **argv) {
+	setlocale(LC_ALL, "");
 	int error = 0;
 	if (db_init() != 0)        { error = 1; goto undo1; }
 	if (load_feed_list() != 0) { error = 2; goto undo2; }

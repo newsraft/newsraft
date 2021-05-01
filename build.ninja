@@ -50,4 +50,4 @@ build feedeater: link obj/feedeater.o $
                       obj/parsers/parse_rss10.o $
                       obj/parsers/parse_rss11.o $
                       obj/parsers/parse_rss20.o
-  arg = -lncurses -lcurl -lexpat -lsqlite3
+  arg = -lncursesw -lcurl -lexpat -lsqlite3

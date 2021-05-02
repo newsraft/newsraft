@@ -31,6 +31,7 @@ db_init(void)
 	             	"title TEXT,"
 	             	"guid TEXT,"
 	             	"unread INTEGER(1),"
+	             	"marked INTEGER(1),"
 	             	"url TEXT,"
 	             	"author TEXT,"
 	             	"category TEXT,"
@@ -57,11 +58,12 @@ static void
 db_insert_item(struct item_bucket *bucket, struct string *feed_url)
 {
 	sqlite3_stmt *s;
-	if (sqlite3_prepare_v2(db, "INSERT INTO items VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", -1, &s, 0) == SQLITE_OK) {
+	if (sqlite3_prepare_v2(db, "INSERT INTO items VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", -1, &s, 0) == SQLITE_OK) {
 		sqlite3_bind_text(s,  ITEM_COLUMN_FEED + 1,     feed_url->ptr, feed_url->len, NULL);
 		db_bind_string(s,     ITEM_COLUMN_TITLE + 1,    bucket->title);
 		db_bind_string(s,     ITEM_COLUMN_GUID + 1,     bucket->guid);
 		sqlite3_bind_int(s,   ITEM_COLUMN_UNREAD + 1,   1);
+		sqlite3_bind_int(s,   ITEM_COLUMN_MARKED + 1,   0);
 		db_bind_string(s,     ITEM_COLUMN_URL + 1,      bucket->url);
 		db_bind_string(s,     ITEM_COLUMN_AUTHOR + 1,   bucket->author);
 		db_bind_string(s,     ITEM_COLUMN_CATEGORY + 1, bucket->category);
@@ -84,35 +86,19 @@ try_item_bucket(struct item_bucket *bucket, struct string *feed_url)
 	if (bucket->guid != NULL) { // check uniqueness by guid
 		char cmd[] = "SELECT * FROM items WHERE feed = ? AND guid = ? LIMIT 1";
 		if (sqlite3_prepare_v2(db, cmd, -1, &res, 0) == SQLITE_OK) {
-			sqlite3_bind_text(res, 1, feed_url->ptr, feed_url->len, NULL);
-			sqlite3_bind_text(res, 2, bucket->guid->ptr, bucket->guid->len, NULL);
+			db_bind_string(res, 1, feed_url);
+			db_bind_string(res, 2, bucket->guid);
 			if (sqlite3_step(res) == SQLITE_DONE) is_item_unique = true;
 		} else {
 			fprintf(stderr, "failed to prepare SELECT statement: %s\n", sqlite3_errmsg(db));
 		}
-	} else if (bucket->pubdate > 0) { // check uniqueness by publication date
-		char cmd[] = "SELECT * FROM items WHERE feed = ? AND pubdate = ? LIMIT 1";
+	} else { // check uniqueness by url, title and pubdate
+		char cmd[] = "SELECT * FROM items WHERE feed = ? AND url = ? AND title = ? AND pubdate = ? LIMIT 1";
 		if (sqlite3_prepare_v2(db, cmd, -1, &res, 0) == SQLITE_OK) {
-			sqlite3_bind_text(res, 1, feed_url->ptr, feed_url->len, NULL);
-			sqlite3_bind_int64(res, 2, (sqlite3_int64)(bucket->pubdate));
-			if (sqlite3_step(res) == SQLITE_DONE) is_item_unique = true;
-		} else {
-			fprintf(stderr, "failed to prepare SELECT statement: %s\n", sqlite3_errmsg(db));
-		}
-	} else if (bucket->url != NULL) { // check uniqueness by url
-		char cmd[] = "SELECT * FROM items WHERE feed = ? AND url = ? LIMIT 1";
-		if (sqlite3_prepare_v2(db, cmd, -1, &res, 0) == SQLITE_OK) {
-			sqlite3_bind_text(res, 1, feed_url->ptr, feed_url->len, NULL);
-			sqlite3_bind_text(res, 2, bucket->url->ptr, bucket->url->len, NULL);
-			if (sqlite3_step(res) == SQLITE_DONE) is_item_unique = true;
-		} else {
-			fprintf(stderr, "failed to prepare SELECT statement: %s\n", sqlite3_errmsg(db));
-		}
-	} else if (bucket->content != NULL) { // check uniqueness by content
-		char cmd[] = "SELECT * FROM items WHERE feed = ? AND content = ? LIMIT 1";
-		if (sqlite3_prepare_v2(db, cmd, -1, &res, 0) == SQLITE_OK) {
-			sqlite3_bind_text(res, 1, feed_url->ptr, feed_url->len, NULL);
-			sqlite3_bind_text(res, 2, bucket->content->ptr, bucket->content->len, NULL);
+			db_bind_string(res, 1, feed_url);
+			db_bind_string(res, 2, bucket->url);
+			db_bind_string(res, 3, bucket->title);
+			sqlite3_bind_int64(res, 4, (sqlite3_int64)(bucket->pubdate));
 			if (sqlite3_step(res) == SQLITE_DONE) is_item_unique = true;
 		} else {
 			fprintf(stderr, "failed to prepare SELECT statement: %s\n", sqlite3_errmsg(db));

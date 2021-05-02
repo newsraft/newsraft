@@ -69,7 +69,7 @@ db_insert_item(struct item_bucket *bucket, struct string *feed_url)
 		db_bind_string(s,     ITEM_COLUMN_COMMENTS + 1, bucket->comments);
 		db_bind_string(s,     ITEM_COLUMN_CONTENT + 1,  bucket->content);
 	} else {
-		fprintf(stderr, "failed to execute INSERT statement: %s\n", sqlite3_errmsg(db));
+		fprintf(stderr, "failed to prepare INSERT statement: %s\n", sqlite3_errmsg(db));
 	}
 	sqlite3_step(s);
 	sqlite3_finalize(s);
@@ -88,7 +88,7 @@ try_item_bucket(struct item_bucket *bucket, struct string *feed_url)
 			sqlite3_bind_text(res, 2, bucket->guid->ptr, bucket->guid->len, NULL);
 			if (sqlite3_step(res) == SQLITE_DONE) is_item_unique = true;
 		} else {
-			fprintf(stderr, "failed to execute statement: %s\n", sqlite3_errmsg(db));
+			fprintf(stderr, "failed to prepare SELECT statement: %s\n", sqlite3_errmsg(db));
 		}
 	} else if (bucket->pubdate > 0) { // check uniqueness by publication date
 		char cmd[] = "SELECT * FROM items WHERE feed = ? AND pubdate = ? LIMIT 1";
@@ -97,7 +97,7 @@ try_item_bucket(struct item_bucket *bucket, struct string *feed_url)
 			sqlite3_bind_int64(res, 2, (sqlite3_int64)(bucket->pubdate));
 			if (sqlite3_step(res) == SQLITE_DONE) is_item_unique = true;
 		} else {
-			fprintf(stderr, "failed to execute statement: %s\n", sqlite3_errmsg(db));
+			fprintf(stderr, "failed to prepare SELECT statement: %s\n", sqlite3_errmsg(db));
 		}
 	} else if (bucket->url != NULL) { // check uniqueness by url
 		char cmd[] = "SELECT * FROM items WHERE feed = ? AND url = ? LIMIT 1";
@@ -106,7 +106,7 @@ try_item_bucket(struct item_bucket *bucket, struct string *feed_url)
 			sqlite3_bind_text(res, 2, bucket->url->ptr, bucket->url->len, NULL);
 			if (sqlite3_step(res) == SQLITE_DONE) is_item_unique = true;
 		} else {
-			fprintf(stderr, "failed to execute statement: %s\n", sqlite3_errmsg(db));
+			fprintf(stderr, "failed to prepare SELECT statement: %s\n", sqlite3_errmsg(db));
 		}
 	} else if (bucket->content != NULL) { // check uniqueness by content
 		char cmd[] = "SELECT * FROM items WHERE feed = ? AND content = ? LIMIT 1";
@@ -115,7 +115,7 @@ try_item_bucket(struct item_bucket *bucket, struct string *feed_url)
 			sqlite3_bind_text(res, 2, bucket->content->ptr, bucket->content->len, NULL);
 			if (sqlite3_step(res) == SQLITE_DONE) is_item_unique = true;
 		} else {
-			fprintf(stderr, "failed to execute statement: %s\n", sqlite3_errmsg(db));
+			fprintf(stderr, "failed to prepare SELECT statement: %s\n", sqlite3_errmsg(db));
 		}
 	}
 	if (is_item_unique == true) db_insert_item(bucket, feed_url);
@@ -138,7 +138,7 @@ db_mark_item_unread(struct string *feed_url, struct item_entry *item, bool state
 		sqlite3_bind_text(res, 4, item->url->ptr, item->url->len, NULL);
 		if (sqlite3_step(res) == SQLITE_DONE) success = 1;
 	} else {
-		fprintf(stderr, "failed to prepare statement: %s\n", sqlite3_errmsg(db));
+		fprintf(stderr, "failed to prepare UPDATE statement: %s\n", sqlite3_errmsg(db));
 	}
 	sqlite3_finalize(res);
 	return success;
@@ -153,7 +153,7 @@ is_feed_stored(struct string *feed_url)
 		sqlite3_bind_text(res, 1, feed_url->ptr, feed_url->len, NULL);
 		if (sqlite3_step(res) == SQLITE_DONE) stored = false;
 	} else {
-		fprintf(stderr, "failed to execute statement: %s\n", sqlite3_errmsg(db));
+		fprintf(stderr, "failed to prepare SELECT statement: %s\n", sqlite3_errmsg(db));
 	}
 	sqlite3_finalize(res);
 	return stored;
@@ -169,7 +169,7 @@ create_feed_entry(struct string *feed_url)
 		sqlite3_bind_text(res, 1, feed_url->ptr, feed_url->len, NULL);
 		if (sqlite3_step(res) == SQLITE_DONE) created = true;
 	} else {
-		fprintf(stderr, "failed to execute statement: %s\n", sqlite3_errmsg(db));
+		fprintf(stderr, "failed to prepare INSERT statement: %s\n", sqlite3_errmsg(db));
 	}
 	sqlite3_finalize(res);
 	return created;
@@ -192,7 +192,7 @@ db_update_feed_text(struct string *feed_url, char *column, char *data, size_t da
 		/*if (sqlite3_step(res) == SQLITE_DONE) success = 1;*/
 		sqlite3_step(res);
 	} else {
-		fprintf(stderr, "failed to execute statement: %s\n", sqlite3_errmsg(db));
+		fprintf(stderr, "failed to prepare UPDATE statement: %s\n", sqlite3_errmsg(db));
 	}
 	free(cmd);
 	sqlite3_finalize(res);
@@ -215,7 +215,7 @@ db_update_feed_int64(struct string *feed_url, char *column, int64_t i)
 		/*if (sqlite3_step(res) == SQLITE_DONE) success = 1;*/
 		sqlite3_step(res);
 	} else {
-		fprintf(stderr, "failed to execute statement: %s\n", sqlite3_errmsg(db));
+		fprintf(stderr, "failed to prepare UPDATE statement: %s\n", sqlite3_errmsg(db));
 	}
 	free(cmd);
 	sqlite3_finalize(res);

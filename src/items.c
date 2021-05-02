@@ -50,7 +50,7 @@ load_item_list(void)
 			item_list[item_index].item->unread = unread;
 		}
 	} else {
-		fprintf(stderr, "Failed to execute statement: %s\n", sqlite3_errmsg(db));
+		fprintf(stderr, "failed to prepare statement: %s\n", sqlite3_errmsg(db));
 	}
 	sqlite3_finalize(res);
 	if (view_sel == -1) return MENU_ITEMS_EMPTY; // no items found

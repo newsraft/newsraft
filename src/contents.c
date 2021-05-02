@@ -4,12 +4,20 @@
 #include "feedeater.h"
 #include "config.h"
 
-static WINDOW *window;
 static int menu_contents(void);
+static WINDOW *window;
 static int view_min;
 static int view_max;
 static int newlines;
 
+#define TEXT_TAG_APPEND(A, B) \
+	text = (char *)sqlite3_column_text(res, B); \
+	if (text != NULL) { \
+		cat_string_array(buf, A); \
+		cat_string_array(buf, text); \
+		cat_string_char(buf, '\n'); \
+		++newlines; \
+	}
 static struct string *
 cat_content(struct string *feed_url, struct item_entry *item)
 {
@@ -23,14 +31,6 @@ cat_content(struct string *feed_url, struct item_entry *item)
 		sqlite3_bind_text(res, 2, item->guid->ptr, item->guid->len, NULL);
 		sqlite3_bind_text(res, 3, item->url->ptr, item->url->len, NULL);
 		rc = sqlite3_step(res);
-#define TEXT_TAG_APPEND(X, Y) \
-	text = (char *)sqlite3_column_text(res, Y); \
-	if (text != NULL) { \
-		cat_string_array(buf, X); \
-		cat_string_array(buf, text); \
-		cat_string_char(buf, '\n'); \
-		++newlines; \
-	}
 		if (rc == SQLITE_ROW) {
 			if (config_contents_show_feed == true)     { TEXT_TAG_APPEND("Feed: ", ITEM_COLUMN_FEED) }
 			if (config_contents_show_title == true)    { TEXT_TAG_APPEND("Title: ", ITEM_COLUMN_TITLE) }
@@ -73,7 +73,7 @@ cat_content(struct string *feed_url, struct item_entry *item)
 			free_string(&buf);
 		}
 	} else {
-		fprintf(stderr, "failed to execute statement: %s\n", sqlite3_errmsg(db));
+		fprintf(stderr, "failed to prepare SELECT statement: %s\n", sqlite3_errmsg(db));
 		free_string(&buf);
 	}
 	sqlite3_finalize(res);

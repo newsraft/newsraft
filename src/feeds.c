@@ -35,9 +35,9 @@ free_feed_list(void)
 int
 load_feed_list(void)
 {
-	char c, *path, word[1000];
+	char c, word[1000];
 	int feed_index, error = 0, word_len;
-	path = get_config_file_path("feeds");
+	char *path = get_config_file_path("feeds");
 	if (path == NULL) {
 		fprintf(stderr, "could not find feeds file!\n");
 		return 1;
@@ -57,36 +57,30 @@ load_feed_list(void)
 		if (c == EOF) break;
 		// skip comment-line
 		if (c == '#') { find_chars(f, &c, "\n"); continue; }
-		word_len = 0;
 		feed_index = feed_count++;
 		feed_list = realloc(feed_list, sizeof(struct feed_window) * feed_count);
 		feed_list[feed_index].feed = calloc(1, sizeof(struct feed_entry));
 		if (feed_list[feed_index].feed == NULL) {
 			error = 1; fprintf(stderr, "memory allocation for feed_entry failed\n"); break;
 		}
-		if (c == '@') {
-			c = fgetc(f);
+		word_len = 0;
+		if (c == '@') { // create decoration
+			while (1) {
+				c = fgetc(f);
+				if (c == '\r' || c == '\n' || c == EOF) { word[word_len] = '\0'; break; }
+				word[word_len++] = c;
+			}
+			make_string(&feed_list[feed_index].feed->name, word, word_len);
+			continue;
+		} else { // create feed entry
 			while (1) {
 				word[word_len++] = c;
 				c = fgetc(f);
-				if (c == ' ' || c == '\t' || c == '\n' || c == EOF) {
-					word[word_len] = '\0';
-					break;
-				}
+				if (IS_WHITESPACE(c) || c == EOF) { word[word_len] = '\0'; break; }
 			}
-			if (word_len > 1) make_string(&feed_list[feed_index].feed->name, word, word_len);
-			continue;
+			make_string(&feed_list[feed_index].feed->feed_url, word, word_len);
 		}
-		while (1) {
-			word[word_len++] = c;
-			c = fgetc(f);
-			if (c == ' ' || c == '\t' || c == '\n' || c == EOF) {
-				word[word_len] = '\0';
-				break;
-			}
-		}
-		if (word_len > 1) make_string(&feed_list[feed_index].feed->feed_url, word, word_len);
-		if (c == EOF || error == 1) break;
+		if (c == EOF) break;
 		if (c == '\n') continue;
 		skip_chars(f, &c, " \t");
 		if (c == '\n') continue;
@@ -94,13 +88,10 @@ load_feed_list(void)
 			word_len = 0;
 			while (1) {
 				c = fgetc(f);
-				if (c == '"' || c == '\n' || c == EOF) {
-					word[word_len] = '\0';
-					break;
-				}
+				if (c == '"' || c == '\r' || c == '\n' || c == EOF) { word[word_len] = '\0'; break; }
 				word[word_len++] = c;
 			}
-			if (word_len > 1) make_string(&feed_list[feed_index].feed->name, word, word_len);
+			make_string(&feed_list[feed_index].feed->name, word, word_len);
 		}
 		// move to the end of line
 		find_chars(f, &c, "\n");
@@ -134,7 +125,15 @@ load_feed_list(void)
 static char *
 feed_image(struct feed_entry *feed)
 {
-	return feed->name ? feed->name->ptr : feed->feed_url->ptr;
+	if (feed->name == NULL) {
+		if (feed->feed_url == NULL) {
+			return "";
+		} else {
+			return feed->feed_url->ptr;
+		}
+	} else {
+		return feed->name->ptr;
+	}
 }
 
 static void
@@ -163,7 +162,7 @@ is_feed_read(struct string *feed_url)
 		// if nothing found (every item from feed is read), say feed is read
 		if (sqlite3_step(res) == SQLITE_DONE) is_read = true;
 	} else {
-		fprintf(stderr, "failed to execute statement: %s\n", sqlite3_errmsg(db));
+		fprintf(stderr, "failed to prepare statement: %s\n", sqlite3_errmsg(db));
 	}
 	sqlite3_finalize(res);
 	return is_read;

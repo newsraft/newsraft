@@ -12,6 +12,7 @@
 #define MAX_NAME_SIZE 128
 #define MAX_URL_SIZE 256
 #define INIT_PARSER_BUF_SIZE 1000
+#define IS_WHITESPACE(A) (((A) == ' ') || ((A) == '\t') || ((A) == '\r') || ((A) == '\n'))
 #ifndef XML_LARGE_SIZE
 #define XML_LARGE_SIZE
 #endif

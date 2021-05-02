@@ -7,15 +7,20 @@ input_create(void)
 {
 	input_win = newwin(1, 1, LINES, COLS);
 	if (input_win == NULL) {
-		return 0;
+		return 1;
 	}
 
-	// used to recognize arrow and numpad keys
+	if (noecho() == ERR) {
+		fprintf(stderr, "noecho() failed => can't disable echoing of characters typed be the user!\n");
+	}
+	if (cbreak() == ERR) {
+		fprintf(stderr, "cbreak() failed => can't disable line buffering and erase/kill character-processing!\n");
+	} 
 	if (keypad(input_win, TRUE) == ERR) {
-		status_write("[error] could not enable extended keys");
+		fprintf(stderr, "keypad(input_win, TRUE) failed => can't enable extended keys!\n");
 	}
 
-	return 1;
+	return 0;
 }
 
 int

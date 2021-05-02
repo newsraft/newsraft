@@ -37,9 +37,9 @@ struct string {
 };
 
 struct feed_entry {
-	char *name;
-	struct string *feed_url; // url of feed
-	char *site_url;          // url of site
+	struct string *name;
+	struct string *feed_url; // url of feed file
+	struct string *site_url; // url of resource site
 	bool is_read;
 };
 

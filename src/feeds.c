@@ -20,9 +20,9 @@ free_feed_list(void)
 	if (feed_list == NULL) return;
 	for (int i = 0; i < feed_count; ++i) {
 		if (feed_list[i].feed != NULL) {
-			if (feed_list[i].feed->name != NULL) free(feed_list[i].feed->name);
+			if (feed_list[i].feed->name != NULL) free_string(&feed_list[i].feed->name);
 			if (feed_list[i].feed->feed_url != NULL) free_string(&feed_list[i].feed->feed_url);
-			if (feed_list[i].feed->site_url != NULL) free(feed_list[i].feed->site_url);
+			if (feed_list[i].feed->site_url != NULL) free_string(&feed_list[i].feed->site_url);
 			free(feed_list[i].feed);
 		}
 	}
@@ -36,7 +36,7 @@ int
 load_feed_list(void)
 {
 	char c, *path, word[1000];
-	int feed_index, letter, error = 0, word_len;
+	int feed_index, error = 0, word_len;
 	path = get_config_file_path("feeds");
 	if (path == NULL) {
 		fprintf(stderr, "could not find feeds file!\n");
@@ -57,7 +57,6 @@ load_feed_list(void)
 		if (c == EOF) break;
 		// skip comment-line
 		if (c == '#') { find_chars(f, &c, "\n"); continue; }
-		letter = 0;
 		word_len = 0;
 		feed_index = feed_count++;
 		feed_list = realloc(feed_list, sizeof(struct feed_window) * feed_count);
@@ -66,13 +65,16 @@ load_feed_list(void)
 			error = 1; fprintf(stderr, "memory allocation for feed_entry failed\n"); break;
 		}
 		if (c == '@') {
-			feed_list[feed_index].feed->name = malloc(sizeof(char) * MAX_NAME_SIZE);
-			if (feed_list[feed_index].feed->name == NULL) {
-				error = 1; fprintf(stderr, "memory allocation for decoration title failed\n"); break;
-			}
 			c = fgetc(f);
-			while ((c != '\n') && (c != EOF)) { feed_list[feed_index].feed->name[letter++] = c; c = fgetc(f); }
-			feed_list[feed_index].feed->name[letter] = '\0';
+			while (1) {
+				word[word_len++] = c;
+				c = fgetc(f);
+				if (c == ' ' || c == '\t' || c == '\n' || c == EOF) {
+					word[word_len] = '\0';
+					break;
+				}
+			}
+			if (word_len > 1) make_string(&feed_list[feed_index].feed->name, word, word_len);
 			continue;
 		}
 		while (1) {
@@ -89,16 +91,16 @@ load_feed_list(void)
 		skip_chars(f, &c, " \t");
 		if (c == '\n') continue;
 		if (c == '"') {
-			letter = 0;
-			feed_list[feed_index].feed->name = malloc(sizeof(char) * MAX_NAME_SIZE);
-			if (feed_list[feed_index].feed->name == NULL) {
-				error = 1; fprintf(stderr, "memory allocation for feed entry name failed\n"); break;
-			}
+			word_len = 0;
 			while (1) {
 				c = fgetc(f);
-				if (c == '"') { feed_list[feed_index].feed->name[letter] = '\0'; break; }
-				feed_list[feed_index].feed->name[letter++] = c;
+				if (c == '"' || c == '\n' || c == EOF) {
+					word[word_len] = '\0';
+					break;
+				}
+				word[word_len++] = c;
 			}
+			if (word_len > 1) make_string(&feed_list[feed_index].feed->name, word, word_len);
 		}
 		// move to the end of line
 		find_chars(f, &c, "\n");
@@ -132,7 +134,7 @@ load_feed_list(void)
 static char *
 feed_image(struct feed_entry *feed)
 {
-	return feed->name ? feed->name : feed->feed_url->ptr;
+	return feed->name ? feed->name->ptr : feed->feed_url->ptr;
 }
 
 static void

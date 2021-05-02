@@ -10,9 +10,9 @@ status_create(void)
 	status_win = newwin(1, COLS, LINES - 1, 0); // create status window
 	if (status_win == NULL) {
 		fprintf(stderr, "could not create status line\n");
-		return 0;
+		return 1;
 	}
-	return 1;
+	return 0;
 }
 
 void

@@ -4,7 +4,6 @@
 #include "feedeater.h"
 #include "config.h"
 
-static int menu_contents(void);
 static WINDOW *window;
 static int view_min;
 static int view_max;
@@ -78,34 +77,6 @@ cat_content(struct string *feed_url, struct item_entry *item)
 	}
 	sqlite3_finalize(res);
 	return buf;
-}
-
-int
-contents_menu(struct string *feed_url, struct item_entry *item)
-{
-	newlines = 0;
-	view_min = 0;
-	view_max = LINES - 1;
-	struct string *content = cat_content(feed_url, item);
-	if (content == NULL) {
-		status_write("could not obtain contents of item");
-		return MENU_CONTENT_ERROR;
-	}
-	if (newlines == 0) {
-		status_write("this item seems empty");
-		free_string(&content);
-		return MENU_CONTENT_ERROR;
-	}
-	db_mark_item_unread(feed_url, item, false);
-	clear();
-	refresh();
-	window = newpad(newlines, COLS);
-	waddstr(window, content->ptr);
-	free_string(&content);
-	prefresh(window, 0, 0, 0, 0, LINES - 2, COLS);
-	int contents_status = menu_contents();
-	delwin(window);
-	return contents_status;
 }
 
 static void
@@ -183,4 +154,32 @@ menu_contents(void)
 			}
 		}
 	}
+}
+
+int
+contents_menu(struct string *feed_url, struct item_entry *item)
+{
+	newlines = 0;
+	view_min = 0;
+	view_max = LINES - 1;
+	struct string *content = cat_content(feed_url, item);
+	if (content == NULL) {
+		status_write("could not obtain contents of item");
+		return MENU_CONTENT_ERROR;
+	}
+	if (newlines == 0) {
+		status_write("this item seems empty");
+		free_string(&content);
+		return MENU_CONTENT_ERROR;
+	}
+	db_mark_item_unread(feed_url, item, false);
+	clear();
+	refresh();
+	window = newpad(newlines, COLS);
+	waddstr(window, content->ptr);
+	free_string(&content);
+	prefresh(window, 0, 0, 0, 0, LINES - 2, COLS);
+	int contents_status = menu_contents();
+	delwin(window);
+	return contents_status;
 }

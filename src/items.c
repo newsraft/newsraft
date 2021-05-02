@@ -15,8 +15,6 @@ static int view_min;
 static int view_max;
 static int do_clean = 1;
 
-static enum menu_dest menu_items(void);
-
 static int
 load_item_list(void)
 {
@@ -50,7 +48,7 @@ load_item_list(void)
 			item_list[item_index].item->unread = unread;
 		}
 	} else {
-		fprintf(stderr, "failed to prepare statement: %s\n", sqlite3_errmsg(db));
+		fprintf(stderr, "failed to prepare SELECT statement: %s\n", sqlite3_errmsg(db));
 	}
 	sqlite3_finalize(res);
 	if (view_sel == -1) return MENU_ITEMS_EMPTY; // no items found
@@ -117,48 +115,6 @@ free_items(void)
 	item_count = 0;
 	free(item_list);
 	item_list = NULL;
-}
-
-int
-items_menu(struct string *items_feed_url)
-{
-	if (item_list == NULL) {
-		feed_url = items_feed_url;
-		int load_status = load_item_list();
-		if (load_status != 0) {
-			free_items();
-			return load_status;
-		}
-		view_min = 0;
-		view_max = LINES - 1;
-	}
-
-	if (do_clean == 1) {
-		clear();
-		refresh();
-	} else {
-		do_clean = 1;
-	}
-
-	show_items();
-	int dest = menu_items();
-	hide_items();
-	if (dest == MENU_CONTENT) {
-		int contents_status = contents_menu(feed_url, item_list[view_sel].item);
-		if (contents_status == MENU_EXIT) {
-			free_items();
-			return MENU_EXIT;
-		} else if (contents_status == MENU_CONTENT_ERROR) {
-			do_clean = 0;
-		} else {
-			item_list[view_sel].item->unread = false;
-		}
-	} else if (dest == MENU_FEEDS || dest == MENU_EXIT) {
-		free_items();
-		return dest;
-	}
-
-	return items_menu(feed_url);
 }
 
 static void
@@ -246,4 +202,46 @@ menu_items(void)
 			}
 		} 
 	}
+}
+
+int
+items_menu(struct string *items_feed_url)
+{
+	if (item_list == NULL) {
+		feed_url = items_feed_url;
+		int load_status = load_item_list();
+		if (load_status != 0) {
+			free_items();
+			return load_status;
+		}
+		view_min = 0;
+		view_max = LINES - 1;
+	}
+
+	if (do_clean == 1) {
+		clear();
+		refresh();
+	} else {
+		do_clean = 1;
+	}
+
+	show_items();
+	int dest = menu_items();
+	hide_items();
+	if (dest == MENU_CONTENT) {
+		int contents_status = contents_menu(feed_url, item_list[view_sel].item);
+		if (contents_status == MENU_EXIT) {
+			free_items();
+			return MENU_EXIT;
+		} else if (contents_status == MENU_CONTENT_ERROR) {
+			do_clean = 0;
+		} else {
+			item_list[view_sel].item->unread = false;
+		}
+	} else if (dest == MENU_FEEDS || dest == MENU_EXIT) {
+		free_items();
+		return dest;
+	}
+
+	return items_menu(feed_url);
 }

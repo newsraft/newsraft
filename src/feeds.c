@@ -6,13 +6,12 @@
 #include "feedeater.h"
 #include "config.h"
 
-static enum menu_dest menu_feeds(void);
 static struct feed_window *feed_list = NULL;
 static int view_sel = -1;
 static int view_min = 0;
 static int view_max = -1;
 static int feed_count = 0;
-static int do_clean = 1;
+static int do_clear = 1;
 
 void
 free_feed_list(void)
@@ -189,39 +188,6 @@ hide_feeds(void)
 	}
 }
 
-void
-feeds_menu(void)
-{
-	if (do_clean == 1) {
-		// clear ncurses screen
-		clear();
-		refresh();
-	} else {
-		do_clean = 1;
-	}
-	if (view_max == -1) view_max = LINES - 1;
-
-	show_feeds();
-	int dest = menu_feeds();
-	hide_feeds();
-
-	if (dest == MENU_EXIT) {
-		return;
-	} else if (dest == MENU_ITEMS) {
-		int items_status = items_menu(feed_list[view_sel].feed->feed_url);
-		if (items_status != MENU_FEEDS) {
-			do_clean = 0;
-			if (items_status == MENU_ITEMS_EMPTY) {
-				status_write("[empty] %s", feed_image(feed_list[view_sel].feed));
-			} else if (items_status == MENU_EXIT) {
-				return;
-			}
-		}
-	}
-
-	feeds_menu();
-}
-
 static void
 view_select(int i)
 {
@@ -343,4 +309,35 @@ menu_feeds(void)
 			}
 		}
 	}
+}
+
+void
+feeds_menu(void)
+{
+	if (do_clear == 1) {
+		// clear ncurses screen
+		clear();
+		refresh();
+	} else {
+		do_clear = 1;
+	}
+	if (view_max == -1) view_max = LINES - 1;
+
+	show_feeds();
+	int dest = menu_feeds();
+	hide_feeds();
+
+	if (dest == MENU_EXIT) return;
+
+	int items_status = items_menu(feed_list[view_sel].feed->feed_url);
+	if (items_status != MENU_FEEDS) {
+		do_clear = 0;
+		if (items_status == MENU_ITEMS_EMPTY) {
+			status_write("[empty] %s", feed_image(feed_list[view_sel].feed));
+		} else if (items_status == MENU_EXIT) {
+			return;
+		}
+	}
+
+	feeds_menu();
 }

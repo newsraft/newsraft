@@ -25,10 +25,7 @@ free_feed_list(void)
 			free(feed_list[i].feed);
 		}
 	}
-	view_sel = -1;
-	feed_count = 0;
 	free(feed_list);
-	feed_list = NULL;
 }
 
 int
@@ -161,7 +158,7 @@ is_feed_read(struct string *feed_url)
 		// if nothing found (every item from feed is read), say feed is read
 		if (sqlite3_step(res) == SQLITE_DONE) is_read = true;
 	} else {
-		fprintf(stderr, "failed to prepare statement: %s\n", sqlite3_errmsg(db));
+		fprintf(stderr, "failed to prepare SELECT statement: %s\n", sqlite3_errmsg(db));
 	}
 	sqlite3_finalize(res);
 	return is_read;

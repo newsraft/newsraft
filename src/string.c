@@ -20,11 +20,17 @@ create_string(void)
 void
 make_string(struct string **dest, void *src, size_t len)
 {
-	if (src == NULL || len == 0) { free_string(dest); return; }
+	if (src == NULL || len == 0) {
+		if (*dest != NULL) free_string(dest);
+		return;
+	}
 	if (*dest == NULL) *dest = create_string();
 	if (*dest == NULL) return;
 	(*dest)->ptr = realloc((*dest)->ptr, sizeof(char) * (len + 1));
-	if ((*dest)->ptr == NULL) { free_string(dest); return; }
+	if ((*dest)->ptr == NULL) {
+		free_string(dest);
+		return;
+	}
 	(*dest)->len = len;
 	memcpy((*dest)->ptr, src, sizeof(char) * len);
 	*((*dest)->ptr + len) = '\0';
@@ -33,7 +39,6 @@ make_string(struct string **dest, void *src, size_t len)
 void
 free_string(struct string **dest)
 {
-	if (*dest == NULL) return;
 	if ((*dest)->ptr != NULL) free((*dest)->ptr);
 	free(*dest);
 	*dest = NULL;

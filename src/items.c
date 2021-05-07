@@ -18,10 +18,10 @@ static int do_redraw = 1;
 static int
 load_item_list(void)
 {
-	int item_index, rc, unread;
+	int item_index;
 	sqlite3_stmt *res;
-	char cmd[] = "SELECT title, url, guid, unread FROM items WHERE feed = ? ORDER BY pubdate DESC", *text;
-	rc = sqlite3_prepare_v2(db, cmd, -1, &res, 0);
+	char cmd[] = "SELECT title, url, guid, marked, unread FROM items WHERE feed = ? ORDER BY pubdate DESC", *text;
+	int rc = sqlite3_prepare_v2(db, cmd, -1, &res, 0);
 	if (rc == SQLITE_OK) {
 		sqlite3_bind_text(res, 1, feed_url->ptr, feed_url->len, NULL);
 		while (1) {
@@ -44,8 +44,8 @@ load_item_list(void)
 			if ((text = (char *)sqlite3_column_text(res, 2)) != NULL) {
 				make_string(&item_list[item_index].item->guid, text, strlen(text));
 			}
-			unread = sqlite3_column_int(res, 3);
-			item_list[item_index].item->unread = unread;
+			item_list[item_index].item->marked = sqlite3_column_int(res, 3);
+			item_list[item_index].item->unread = sqlite3_column_int(res, 4);
 		}
 	} else {
 		fprintf(stderr, "failed to prepare SELECT statement: %s\n", sqlite3_errmsg(db));
@@ -72,9 +72,10 @@ item_expose(struct item_window *itemwin, bool highlight)
 	if (config_number == 1) {
 		mvwprintw(itemwin->window, 0, 0, "%3d", itemwin->index + 1);
 	}
-	mvwprintw(itemwin->window, 0, 0 + 5 * config_number, itemwin->item->unread ? "N" : " ");
+	mvwprintw(itemwin->window, 0, 2 + 3 * config_number, itemwin->item->marked ? "M" : " ");
+	mvwprintw(itemwin->window, 0, 3 + 3 * config_number, itemwin->item->unread ? "N" : " ");
 	if (highlight) wattron(itemwin->window, A_REVERSE);
-	mvwprintw(itemwin->window, 0, 3 + 5 * config_number, "%s", item_image(itemwin->item));
+	mvwprintw(itemwin->window, 0, 6 + 3 * config_number, "%s", item_image(itemwin->item));
 	if (highlight) wattroff(itemwin->window, A_REVERSE);
 	wrefresh(itemwin->window);
 }
@@ -158,10 +159,19 @@ view_select(int i)
 }
 
 static void
-mark_item_unread(struct item_window *itemwin, bool state)
+mark_item_marked(struct item_window *itemwin, bool value)
 {
-	if (db_mark_item_unread(feed_url, itemwin->item, state)) {
-		itemwin->item->unread = state;
+	if (db_change_item_int(feed_url, itemwin->item, ITEM_MARKED_STATE, value)) {
+		itemwin->item->marked = value;
+		item_expose(itemwin, 1);
+	}
+}
+
+static void
+mark_item_unread(struct item_window *itemwin, bool value)
+{
+	if (db_change_item_int(feed_url, itemwin->item, ITEM_UNREAD_STATE, value)) {
+		itemwin->item->unread = value;
 		item_expose(itemwin, 1);
 	}
 }
@@ -177,6 +187,8 @@ menu_items(void)
 		else if (ch == 'k' || ch == KEY_UP)                                     { view_select(view_sel - 1); }
 		else if (ch == 'l' || ch == KEY_RIGHT || ch == '\n' || ch == KEY_ENTER) { return MENU_CONTENT; }
 		else if (ch == 'h' || ch == KEY_LEFT)                                   { return MENU_FEEDS; }
+		else if (ch == config_key_mark_marked)                                  { mark_item_marked(&item_list[view_sel], true); }
+		else if (ch == config_key_mark_unmarked)                                { mark_item_marked(&item_list[view_sel], false); }
 		else if (ch == config_key_mark_read)                                    { mark_item_unread(&item_list[view_sel], false); }
 		else if (ch == config_key_mark_unread)                                  { mark_item_unread(&item_list[view_sel], true); }
 		else if (ch == config_key_exit)                                         { return MENU_EXIT; }

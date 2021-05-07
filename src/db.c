@@ -110,15 +110,24 @@ try_item_bucket(struct item_bucket *bucket, struct string *feed_url)
 }
 
 int
-db_mark_item_unread(struct string *feed_url, struct item_entry *item, bool state)
+db_change_item_int(struct string *feed_url, struct item_entry *item, enum item_state state, int value)
 {
 	int success = 0;
 	if (item == NULL) return success;
+	char cmd[100];
 	sqlite3_stmt *res;
-	char cmd[] = "UPDATE items SET unread = ? WHERE feed = ? AND guid = ? AND url = ?";
+	// TODO: make WHERE statement more precise
+	if (state == ITEM_MARKED_STATE) {
+		strcpy(cmd, "UPDATE items SET marked = ? WHERE feed = ? AND guid = ? AND url = ?");
+	} else if (state == ITEM_UNREAD_STATE) {
+		strcpy(cmd, "UPDATE items SET unread = ? WHERE feed = ? AND guid = ? AND url = ?");
+	} else {
+		fprintf(stderr, "bad state\n!");
+		return success;
+	}
 	int rc = sqlite3_prepare_v2(db, cmd, -1, &res, 0);
 	if (rc == SQLITE_OK) {
-		sqlite3_bind_int(res, 1, state == true ? 1 : 0);
+		sqlite3_bind_int(res, 1, value);
 		sqlite3_bind_text(res, 2, feed_url->ptr, feed_url->len, NULL);
 		sqlite3_bind_text(res, 3, item->guid->ptr, item->guid->len, NULL);
 		sqlite3_bind_text(res, 4, item->url->ptr, item->url->len, NULL);

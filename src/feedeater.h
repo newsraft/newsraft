@@ -41,6 +41,7 @@ struct feed_entry {
 	struct string *name;
 	struct string *feed_url; // url of feed file
 	struct string *site_url; // url of resource site
+	bool is_marked;
 	bool is_read;
 };
 
@@ -54,6 +55,7 @@ struct item_entry {
 	struct string *title; // name of item
 	struct string *url;   // url to item
 	struct string *guid;
+	bool marked;
 	bool unread;
 	int64_t index; // index of item
 };
@@ -117,6 +119,11 @@ enum items_column {
 	ITEM_COLUMN_CONTENT,
 };
 
+enum item_state {
+	ITEM_UNREAD_STATE,
+	ITEM_MARKED_STATE,
+};
+
 
 // feeds
 
@@ -169,7 +176,7 @@ void find_chars(FILE *file, char *cur_char, char *list);
 // db
 int db_init(void);
 void db_bind_string(sqlite3_stmt *s, int pos, struct string *str);
-int db_mark_item_unread(struct string *feed_url, struct item_entry *item, bool state);
+int db_change_item_int(struct string *feed_url, struct item_entry *item, enum item_state state, int value);
 void db_update_feed_int64(struct string *feed_url, char *column, int64_t i);
 void db_update_feed_text(struct string *feed_url, char *column, char *data, size_t data_len);
 void db_stop(void);

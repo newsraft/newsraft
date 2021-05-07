@@ -17,6 +17,8 @@ extern bool   config_contents_show_url;
 extern bool   config_contents_show_comments;
 extern char * config_contents_date_format;
 
+extern char config_key_mark_marked;
+extern char config_key_mark_unmarked;
 extern char config_key_mark_read;
 extern char config_key_mark_read_all;
 extern char config_key_mark_unread;

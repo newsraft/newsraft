@@ -33,30 +33,36 @@ load_feed_list(void)
 {
 	char c, word[1000];
 	int feed_index, error = 0, word_len;
+
 	char *path = get_config_file_path("feeds");
 	if (path == NULL) {
 		fprintf(stderr, "could not find feeds file!\n");
 		return 1;
 	}
+
 	FILE *f = fopen(path, "r");
 	free(path);
 	if (f == NULL) {
 		fprintf(stderr, "could not open feeds file!\n");
 		return 1;
 	}
+
 	while (1) {
 		// get first character of the line
 		c = fgetc(f);
 		// skip white-space
 		skip_chars(f, &c, " \t\n");
-		if (c == EOF) break;
 		// skip comment-line
 		if (c == '#') { find_chars(f, &c, "\n"); continue; }
+		if (c == EOF) break;
 		feed_index = feed_count++;
 		feed_list = realloc(feed_list, sizeof(struct feed_window) * feed_count);
+		if (feed_list == NULL) {
+			error = 1; fprintf(stderr, "memory allocation for feed list failed\n"); break;
+		}
 		feed_list[feed_index].feed = calloc(1, sizeof(struct feed_entry));
 		if (feed_list[feed_index].feed == NULL) {
-			error = 1; fprintf(stderr, "memory allocation for feed_entry failed\n"); break;
+			error = 1; fprintf(stderr, "memory allocation for feed entry failed\n"); break;
 		}
 		word_len = 0;
 		if (c == '@') { // create decoration
@@ -75,10 +81,9 @@ load_feed_list(void)
 			}
 			make_string(&feed_list[feed_index].feed->feed_url, word, word_len);
 		}
-		if (c == EOF) break;
-		if (c == '\n') continue;
 		skip_chars(f, &c, " \t");
 		if (c == '\n') continue;
+		if (c == EOF) break;
 		if (c == '"') {
 			word_len = 0;
 			while (1) {
@@ -93,18 +98,18 @@ load_feed_list(void)
 	}
 	fclose(f);
 
-	// put first non-decorative item in selection
-	if (error == 0) {
-		for (feed_index = 0; feed_index < feed_count; ++feed_index) {
-			if (feed_list[feed_index].feed->feed_url != NULL) {
-				view_sel = feed_index;
-				break;
-			}
-		}
-	} else {
+	if (error != 0) {
 		fprintf(stderr, "there is some trouble in loading feeds!\n");
 		free_feed_list();
 		return 1;
+	}
+
+	// put first non-decorative feed entry in selection
+	for (feed_index = 0; feed_index < feed_count; ++feed_index) {
+		if (feed_list[feed_index].feed->feed_url != NULL) {
+			view_sel = feed_index;
+			break;
+		}
 	}
 
 	if (view_sel == -1) {
@@ -137,11 +142,31 @@ feed_expose(struct feed_window *feedwin, bool highlight)
 	if (config_number == 1 && feedwin->feed->feed_url != NULL) {
 		mvwprintw(feedwin->window, 0, 0, "%3d", feedwin->index + 1);
 	}
-	mvwprintw(feedwin->window, 0, 0 + 5 * config_number, feedwin->feed->is_read ? " " : "N");
+	mvwprintw(feedwin->window, 0, 2 + 3 * config_number, feedwin->feed->is_marked ? "M" : " ");
+	mvwprintw(feedwin->window, 0, 3 + 3 * config_number, feedwin->feed->is_read ? " " : "N");
 	if (highlight) wattron(feedwin->window, A_REVERSE);
-	mvwprintw(feedwin->window, 0, 3 + 5 * config_number, "%s", feed_image(feedwin->feed));
+	mvwprintw(feedwin->window, 0, 6 + 3 * config_number, "%s", feed_image(feedwin->feed));
 	if (highlight) wattroff(feedwin->window, A_REVERSE);
 	wrefresh(feedwin->window);
+}
+
+static bool
+is_feed_marked(struct string *feed_url)
+{
+	if (feed_url == NULL) return false;
+	bool is_marked = false;
+	sqlite3_stmt *res;
+	char cmd[] = "SELECT * FROM items WHERE feed = ? AND marked = ? LIMIT 1";
+	if (sqlite3_prepare_v2(db, cmd, -1, &res, 0) == SQLITE_OK) {
+		sqlite3_bind_text(res, 1, feed_url->ptr, feed_url->len, NULL);
+		sqlite3_bind_int(res, 2, 1);
+		// if something found (at least one item from feed is marked), say feed is marked
+		if (sqlite3_step(res) == SQLITE_ROW) is_marked = true;
+	} else {
+		fprintf(stderr, "failed to prepare SELECT statement: %s\n", sqlite3_errmsg(db));
+	}
+	sqlite3_finalize(res);
+	return is_marked;
 }
 
 static bool
@@ -169,6 +194,7 @@ show_feeds(void)
 	for (int i = view_min, j = 0; i < feed_count && i < view_max; ++i, ++j) {
 		feed_list[i].window = newwin(1, COLS - config_left_offset, j + config_top_offset, config_left_offset);
 		feed_list[i].index = i;
+		feed_list[i].feed->is_marked = is_feed_marked(feed_list[i].feed->feed_url);
 		feed_list[i].feed->is_read = is_feed_read(feed_list[i].feed->feed_url);
 		feed_expose(&feed_list[i], (i == view_sel));
 	}
@@ -334,7 +360,13 @@ run_feeds_menu(void)
 		} else if (items_status == MENU_EXIT) {
 			return 1;
 		}
-	}
+	} /*else {
+		bool marked_status = is_feed_marked(feed_list[view_sel].feed->feed_url);
+		if (feed_list[view_sel].feed->is_marked != marked_status) {
+			feed_list[view_sel].feed->is_marked = marked_status;
+			feed_expose(&feed_list[view_sel], 1);
+		}
+	}*/
 
 	return 0;
 }

@@ -1,6 +1,6 @@
 #include "feedeater.h"
 
-WINDOW *input_win = NULL;
+static WINDOW *input_win = NULL;
 
 int
 input_create(void)
@@ -16,7 +16,7 @@ input_create(void)
 	if (cbreak() == ERR) {
 		fprintf(stderr, "cbreak() failed => can't disable line buffering and erase/kill character-processing!\n");
 	} 
-	if (keypad(input_win, TRUE) == ERR) {
+	if (keypad(input_win, TRUE) == ERR) { // used to enable arrow keys, function keys...
 		fprintf(stderr, "keypad(input_win, TRUE) failed => can't enable extended keys!\n");
 	}
 

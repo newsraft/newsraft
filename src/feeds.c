@@ -11,7 +11,7 @@ static int view_sel = -1;
 static int view_min = 0;
 static int view_max = -1;
 static int feed_count = 0;
-static int do_clear = 1;
+static int do_redraw = 1;
 
 void
 free_feed_list(void)
@@ -47,7 +47,6 @@ load_feed_list(void)
 	while (1) {
 		// get first character of the line
 		c = fgetc(f);
-		if (c == EOF) break;
 		// skip white-space
 		skip_chars(f, &c, " \t\n");
 		if (c == EOF) break;
@@ -121,14 +120,14 @@ load_feed_list(void)
 static char *
 feed_image(struct feed_entry *feed)
 {
-	if (feed->name == NULL) {
-		if (feed->feed_url == NULL) {
-			return "";
-		} else {
-			return feed->feed_url->ptr;
-		}
-	} else {
+	if (feed->name != NULL) {
 		return feed->name->ptr;
+	} else {
+		if (feed->feed_url != NULL) {
+			return feed->feed_url->ptr;
+		} else {
+			return "";
+		}
 	}
 }
 
@@ -175,7 +174,7 @@ show_feeds(void)
 	}
 }
 
-static void
+void
 hide_feeds(void)
 {
 	for (int i = view_min; i < feed_count && i < view_max; ++i) {
@@ -258,8 +257,11 @@ feed_reload(struct feed_window *feedwin)
 	if (buf->ptr == NULL) { free(buf); return; }
 	if (feed_process(buf, feedwin->feed) == 0) {
 		status_clean();
-		feedwin->feed->is_read = is_feed_read(feedwin->feed->feed_url);
-		feed_expose(feedwin, 1);
+		bool read_status = is_feed_read(feedwin->feed->feed_url);
+		if (feedwin->feed->is_read != read_status) {
+			feedwin->feed->is_read = read_status;
+			feed_expose(feedwin, 1);
+		}
 	}
 	free_string(&buf);
 }
@@ -308,33 +310,31 @@ menu_feeds(void)
 	}
 }
 
-void
-feeds_menu(void)
+int
+run_feeds_menu(void)
 {
-	if (do_clear == 1) {
-		// clear ncurses screen
+	if (view_max == -1) view_max = LINES - 1;
+	if (do_redraw == 1) {
 		clear();
 		refresh();
+		show_feeds();
 	} else {
-		do_clear = 1;
+		do_redraw = 1;
 	}
-	if (view_max == -1) view_max = LINES - 1;
 
-	show_feeds();
 	int dest = menu_feeds();
-	hide_feeds();
 
-	if (dest == MENU_EXIT) return;
+	if (dest == MENU_EXIT) return 1;
 
 	int items_status = items_menu(feed_list[view_sel].feed->feed_url);
 	if (items_status != MENU_FEEDS) {
-		do_clear = 0;
+		do_redraw = 0;
 		if (items_status == MENU_ITEMS_EMPTY) {
 			status_write("[empty] %s", feed_image(feed_list[view_sel].feed));
 		} else if (items_status == MENU_EXIT) {
-			return;
+			return 1;
 		}
 	}
 
-	feeds_menu();
+	return 0;
 }

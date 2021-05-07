@@ -20,7 +20,7 @@ status_write(char *format, ...)
 {
 	va_list args;
 	va_start(args, format);
-	wclear(status_win);
+	werase(status_win);
 	wmove(status_win, 0, 0);
 	vw_printw(status_win, format, args);
 	wrefresh(status_win);
@@ -30,7 +30,7 @@ status_write(char *format, ...)
 void
 status_clean(void)
 {
-	wclear(status_win);
+	werase(status_win);
 	wrefresh(status_win);
 }
 

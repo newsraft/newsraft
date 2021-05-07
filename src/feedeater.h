@@ -122,12 +122,14 @@ enum items_column {
 
 int load_feed_list(void);  // load feeds information in memory
 void free_feed_list(void);
-void feeds_menu(void);    // display feeds in an interactive list
+int run_feeds_menu(void);
+void hide_feeds(void);
 
 
 // items
 
 int items_menu(struct string *feed_url);
+void hide_items(void);
 void reset_item_bucket(struct item_bucket *bucket);
 int try_item_bucket(struct item_bucket *bucket, struct string *feed_url);
 

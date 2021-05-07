@@ -173,6 +173,7 @@ contents_menu(struct string *feed_url, struct item_entry *item)
 		return MENU_CONTENT_ERROR;
 	}
 	db_mark_item_unread(feed_url, item, false);
+	hide_items();
 	clear();
 	refresh();
 	window = newpad(newlines, COLS);

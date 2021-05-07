@@ -13,7 +13,7 @@ static int item_count = 0;
 static int view_sel = -1;
 static int view_min;
 static int view_max;
-static int do_clean = 1;
+static int do_redraw = 1;
 
 static int
 load_item_list(void)
@@ -52,7 +52,7 @@ load_item_list(void)
 	}
 	sqlite3_finalize(res);
 	if (view_sel == -1) return MENU_ITEMS_EMPTY; // no items found
-	return 0;
+	return MENU_ITEMS;
 }
 
 // return most sensible string for item title
@@ -88,7 +88,7 @@ show_items(void)
 	}
 }
 
-static void
+void
 hide_items(void)
 {
 	for (int i = view_min; i < item_count && i < view_max; ++i) {
@@ -210,35 +210,37 @@ items_menu(struct string *items_feed_url)
 	if (item_list == NULL) {
 		feed_url = items_feed_url;
 		int load_status = load_item_list();
-		if (load_status != 0) {
+		if (load_status != MENU_ITEMS) {
 			free_items();
 			return load_status;
 		}
 		view_min = 0;
 		view_max = LINES - 1;
+		hide_feeds();
 	}
 
-	if (do_clean == 1) {
+	if (do_redraw == 1) {
 		clear();
 		refresh();
+		show_items();
 	} else {
-		do_clean = 1;
+		do_redraw = 1;
 	}
 
-	show_items();
 	int dest = menu_items();
-	hide_items();
+
 	if (dest == MENU_CONTENT) {
 		int contents_status = contents_menu(feed_url, item_list[view_sel].item);
 		if (contents_status == MENU_EXIT) {
 			free_items();
 			return MENU_EXIT;
 		} else if (contents_status == MENU_CONTENT_ERROR) {
-			do_clean = 0;
-		} else {
+			do_redraw = 0;
+		} else if (contents_status == MENU_ITEMS) {
 			item_list[view_sel].item->unread = false;
 		}
 	} else if (dest == MENU_FEEDS || dest == MENU_EXIT) {
+		hide_items();
 		free_items();
 		return dest;
 	}

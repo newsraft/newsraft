@@ -8,7 +8,7 @@ int main (int argc, char **argv) {
 	if (initscr() == NULL)     { error = 3; goto undo3; } // init curses mode
 	if (status_create() != 0)  { error = 4; goto undo4; }
 	if (input_create() != 0)   { error = 5; goto undo5; }
-	feeds_menu();
+	while (run_feeds_menu() == 0);
 	input_delete();
 undo5:
 	status_delete();

@@ -24,8 +24,6 @@ feed_download(char *url)
 		return NULL;
 	}
 
-	status_write("[downloading] %s", url);
-
 	CURL *curl = curl_easy_init();
 	curl_easy_setopt(curl, CURLOPT_URL, url);
 	curl_easy_setopt(curl, CURLOPT_FAILONERROR, 1);

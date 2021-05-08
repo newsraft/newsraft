@@ -278,6 +278,7 @@ view_select(int i)
 static void
 feed_reload(struct feed_window *feedwin)
 {
+	status_write("[loading] %s", feed_image(feed_list[view_sel].feed));
 	struct string *buf = feed_download(feedwin->feed->feed_url->ptr);
 	if (buf == NULL) return;
 	if (buf->ptr == NULL) { free(buf); return; }

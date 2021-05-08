@@ -12,6 +12,7 @@
 #define MAX_NAME_SIZE 128
 #define MAX_URL_SIZE 256
 #define INIT_PARSER_BUF_SIZE 1000
+#define LENGTH(A) (sizeof(A)/sizeof(*A))
 #define IS_WHITESPACE(A) (((A) == ' ') || ((A) == '\t') || ((A) == '\r') || ((A) == '\n'))
 #ifndef XML_LARGE_SIZE
 #define XML_LARGE_SIZE
@@ -124,6 +125,25 @@ enum item_state {
 	ITEM_MARKED_STATE,
 };
 
+enum xml_pos {
+	IN_ROOT = 0,
+	IN_ITEM_ELEMENT = 1,
+	IN_TITLE_ELEMENT = 2,
+	IN_DESCRIPTION_ELEMENT = 4,
+	IN_LINK_ELEMENT = 8,
+	IN_PUBDATE_ELEMENT = 16,
+	IN_GUID_ELEMENT = 32,
+	IN_CATEGORY_ELEMENT = 64,
+	IN_COMMENTS_ELEMENT = 128,
+	IN_AUTHOR_ELEMENT = 256,
+	IN_ENCLOSURE_ELEMENT = 512,
+	IN_SOURCE_ELEMENT = 1024,
+	IN_IMAGE_ELEMENT = 2048,
+	IN_LANGUAGE_ELEMENT = 4096,
+	IN_LASTBUILDDATE_ELEMENT = 8192,
+	IN_CHANNEL_ELEMENT = 16384,
+};
+
 
 // feeds
 
@@ -155,16 +175,10 @@ void value_strip_whitespace(char *str, size_t *len);
 void XMLCALL store_xml_element_value(void *userData, const XML_Char *s, int s_len);
 int feed_process(struct string *buf, struct feed_entry *feed);
 time_t get_unix_epoch_time(char *format_str, char *date_str);
-// xml parsers for different versions of feeds
-int parse_rss20(XML_Parser *parser, struct string *feed_url, struct feed_parser_data *feed_data);  // RSS 2.0
-int parse_rss11(XML_Parser *parser, struct string *feed_url, struct feed_parser_data *feed_data);  // RSS 1.1
-int parse_rss10(XML_Parser *parser, struct string *feed_url, struct feed_parser_data *feed_data);  // RSS 1.0
-int parse_rss094(XML_Parser *parser, struct string *feed_url, struct feed_parser_data *feed_data); // RSS 0.94
-int parse_rss092(XML_Parser *parser, struct string *feed_url, struct feed_parser_data *feed_data); // RSS 0.92
-int parse_rss091(XML_Parser *parser, struct string *feed_url, struct feed_parser_data *feed_data); // RSS 0.91
-int parse_rss090(XML_Parser *parser, struct string *feed_url, struct feed_parser_data *feed_data); // RSS 0.90
-int parse_atom10(XML_Parser *parser, struct string *feed_url, struct feed_parser_data *feed_data); // Atom 1.0
-int parse_atom03(XML_Parser *parser, struct string *feed_url, struct feed_parser_data *feed_data); // Atom 0.3
+int parse_generic(XML_Parser *parser, struct string *feed_url, struct feed_parser_data *feed_data);
+int parse_rss20(XML_Parser *parser, struct string *feed_url, struct feed_parser_data *feed_data);
+int start_namespaced_tag(void *userData, const XML_Char *name, const XML_Char **atts);
+int end_namespaced_tag(void *userData, const XML_Char *name);
 
 
 // config parsing

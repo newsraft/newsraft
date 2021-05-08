@@ -7,31 +7,27 @@ rule compile
 rule link
   command = $cc $arg -o $out $in
 
-build obj/feedeater.o:            compile src/feedeater.c
-build obj/feeds.o:                compile src/feeds.c
-build obj/parse.o:                compile src/parse.c
-build obj/status.o:               compile src/status.c
-build obj/config.o:               compile src/config.c
-build obj/path.o:                 compile src/path.c
-build obj/items.o:                compile src/items.c
-build obj/input.o:                compile src/input.c
-build obj/contents.o:             compile src/contents.c
-build obj/download.o:             compile src/download.c
-build obj/string.o:               compile src/string.c
-build obj/db.o:                   compile src/db.c
-build obj/parsers/parse_atom03.o: compile src/parsers/parse_atom03.c
-build obj/parsers/parse_atom10.o: compile src/parsers/parse_atom10.c
-build obj/parsers/parse_rss090.o: compile src/parsers/parse_rss090.c
-build obj/parsers/parse_rss091.o: compile src/parsers/parse_rss091.c
-build obj/parsers/parse_rss092.o: compile src/parsers/parse_rss092.c
-build obj/parsers/parse_rss094.o: compile src/parsers/parse_rss094.c
-build obj/parsers/parse_rss10.o:  compile src/parsers/parse_rss10.c
-build obj/parsers/parse_rss11.o:  compile src/parsers/parse_rss11.c
-build obj/parsers/parse_rss20.o:  compile src/parsers/parse_rss20.c
+build obj/feedeater.o:                  compile src/feedeater.c
+build obj/feeds.o:                      compile src/feeds.c
+build obj/namespace.o:                  compile src/namespace.c
+build obj/status.o:                     compile src/status.c
+build obj/config.o:                     compile src/config.c
+build obj/path.o:                       compile src/path.c
+build obj/items.o:                      compile src/items.c
+build obj/input.o:                      compile src/input.c
+build obj/contents.o:                   compile src/contents.c
+build obj/download.o:                   compile src/download.c
+build obj/string.o:                     compile src/string.c
+build obj/db.o:                         compile src/db.c
+build obj/parse.o:                      compile src/parse.c
+build obj/parse_generic.o:              compile src/parse_generic.c
+build obj/parse_rss20.o:                compile src/parse_rss20.c
+build obj/namespaces/atom_10.o:         compile src/namespaces/atom_10.c
 
 build feedeater: link obj/feedeater.o $
                       obj/feeds.o $
                       obj/parse.o $
+                      obj/namespace.o $
                       obj/status.o $
                       obj/config.o $
                       obj/path.o $
@@ -41,13 +37,7 @@ build feedeater: link obj/feedeater.o $
                       obj/download.o $
                       obj/string.o $
                       obj/db.o $
-                      obj/parsers/parse_atom03.o $
-                      obj/parsers/parse_atom10.o $
-                      obj/parsers/parse_rss090.o $
-                      obj/parsers/parse_rss091.o $
-                      obj/parsers/parse_rss092.o $
-                      obj/parsers/parse_rss094.o $
-                      obj/parsers/parse_rss10.o $
-                      obj/parsers/parse_rss11.o $
-                      obj/parsers/parse_rss20.o
+                      obj/parse_generic.o $
+                      obj/parse_rss20.o $
+                      obj/namespaces/atom_10.o
   arg = -lncursesw -lcurl -lexpat -lsqlite3

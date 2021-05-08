@@ -8,9 +8,6 @@
 #include <sqlite3.h>
 #include <time.h>
 #define MAXPATH 512
-#define MAX_ITEM_INDEX_LEN 20
-#define MAX_NAME_SIZE 128
-#define MAX_URL_SIZE 256
 #define INIT_PARSER_BUF_SIZE 1000
 #define LENGTH(A) (sizeof(A)/sizeof(*A))
 #define IS_WHITESPACE(A) (((A) == ' ') || ((A) == '\t') || ((A) == '\r') || ((A) == '\n'))
@@ -66,12 +63,6 @@ struct item_window {
 	int64_t index;
 };
 
-struct init_parser_data {
-	int depth;
-	XML_Parser *xml_parser;
-	int (*parser_func)(XML_Parser *parser, struct string *feed_url, struct feed_parser_data *feed_data);
-};
-
 struct feed_parser_data {
 	char *value;
 	size_t value_len;
@@ -81,6 +72,12 @@ struct feed_parser_data {
 	int prev_pos;
 	struct string *feed_url;
 	struct item_bucket *bucket;
+};
+
+struct init_parser_data {
+	int depth;
+	XML_Parser *xml_parser;
+	int (*parser_func)(XML_Parser *parser, struct string *feed_url, struct feed_parser_data *feed_data);
 };
 
 // used to bufferize item before writing to disk
@@ -165,6 +162,10 @@ int contents_menu(struct string *feed_url, struct item_entry *item);
 
 
 // path
+int set_config_dir_path(void);
+int set_data_dir_path(void);
+void free_config_dir_path(void);
+void free_data_dir_path(void);
 char * get_config_file_path(char *file_name);
 char * get_db_path(void);
 

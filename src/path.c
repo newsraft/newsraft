@@ -7,78 +7,78 @@
 #include <sys/stat.h>
 #include "feedeater.h"
 
-static char *config_dir_path = NULL;
-static char *data_dir_path = NULL;
+static char *config_dir_path;
+static char *data_dir_path;
 
-static char *
-get_config_dir(void)
+int
+set_config_dir_path(void)
 {
-	char *path = malloc(MAXPATH * sizeof(char));
-	if (path == NULL) {
+	config_dir_path = malloc(sizeof(char) * MAXPATH);
+	if (config_dir_path == NULL) {
 		fprintf(stderr, "failed to allocate memory for path to config directory\n");
-		return NULL;
+		return 1;
 	}
+
+	// TODO: make mkdir recursive?
 
 	DIR *d;
 	char *env_var = getenv("FEEDEATER_CONFIG");
 	if (env_var != NULL) {
-		strcpy(path, env_var);
-		d = opendir(path);
+		strcpy(config_dir_path, env_var);
+		mkdir(config_dir_path, 0777);
+		d = opendir(config_dir_path);
 		if (d != NULL) {
 			closedir(d);
-			return path;
+			return 0;
 		}
 	}
 
 	env_var = getenv("XDG_CONFIG_HOME");
 	if (env_var != NULL) {
-		strcpy(path, env_var);
-		strcat(path, "/feedeater");
-		d = opendir(path);
+		strcpy(config_dir_path, env_var);
+		strcat(config_dir_path, "/feedeater");
+		mkdir(config_dir_path, 0777);
+		d = opendir(config_dir_path);
 		if (d != NULL) {
 			closedir(d);
-			return path;
+			return 0;
 		}
 	}
 
 	env_var = getenv("HOME");
 	if (env_var != NULL) {
-		strcpy(path, env_var);
-		strcat(path, "/.config/feedeater");
-		d = opendir(path);
+		strcpy(config_dir_path, env_var);
+		strcat(config_dir_path, "/.config/feedeater");
+		mkdir(config_dir_path, 0777);
+		d = opendir(config_dir_path);
 		if (d != NULL) {
 			closedir(d);
-			return path;
+			return 0;
 		}
-		strcpy(path, env_var);
-		strcat(path, "/.feedeater");
-		d = opendir(path);
+		strcpy(config_dir_path, env_var);
+		strcat(config_dir_path, "/.feedeater");
+		mkdir(config_dir_path, 0777);
+		d = opendir(config_dir_path);
 		if (d != NULL) {
 			closedir(d);
-			return path;
+			return 0;
 		}
-	}
-
-	strcpy(path, "/etc/feedeater");
-	d = opendir(path);
-	if (d != NULL) {
-		closedir(d);
-		return path;
 	}
 
 	fprintf(stderr, "failed to find config directory\n");
-	free(path);
-	return NULL;
+	free(config_dir_path);
+	return 1;
+}
+
+void
+free_config_dir_path(void)
+{
+	free(config_dir_path);
 }
 
 char *
 get_config_file_path(char *file_name)
 {
-	if (config_dir_path == NULL) {
-		config_dir_path = get_config_dir();
-		if (config_dir_path == NULL) return NULL;
-	}
-
 	char *path = malloc(MAXPATH * sizeof(char));
 	if (path == NULL) {
 		fprintf(stderr, "failed to allocate memory for path to \"%s\" config file\n", file_name);
@@ -97,70 +97,73 @@ get_config_file_path(char *file_name)
 	return NULL;
 }
 
-static char *
-get_data_dir_path(void)
+int
+set_data_dir_path(void)
 {
-	char *path = malloc(MAXPATH * sizeof(char));
-	if (path == NULL) {
+	data_dir_path = malloc(sizeof(char) * MAXPATH);
+	if (data_dir_path == NULL) {
 		fprintf(stderr, "failed to allocate memory for path to data directory\n");
-		return NULL;
+		return 1;
 	}
+
+	// TODO: make mkdir recursive?
 
 	DIR *d;
 	char *env_var = getenv("FEEDEATER_DATA");
 	if (env_var != NULL) {
-		strcpy(path, env_var);
-		strcat(path, "/");
-		mkdir(path, 0777);
-		d = opendir(path);
+		strcpy(data_dir_path, env_var);
+		mkdir(data_dir_path, 0777);
+		d = opendir(data_dir_path);
 		if (d != NULL) {
 			closedir(d);
-			return path;
+			return 0;
 		}
 	}
 
 	env_var = getenv("XDG_DATA_HOME");
 	if (env_var != NULL) {
-		strcpy(path, env_var);
-		strcat(path, "/feedeater/");
-		mkdir(path, 0777);
-		d = opendir(path);
+		strcpy(data_dir_path, env_var);
+		strcat(data_dir_path, "/feedeater");
+		mkdir(data_dir_path, 0777);
+		d = opendir(data_dir_path);
 		if (d != NULL) {
 			closedir(d);
-			return path;
+			return 0;
 		}
 	}
 
 	env_var = getenv("HOME");
 	if (env_var != NULL) {
-		strcpy(path, env_var);
-		strcat(path, "/.local/share/feedeater/");
-		mkdir(path, 0777);
-		d = opendir(path);
+		strcpy(data_dir_path, env_var);
+		strcat(data_dir_path, "/.local/share/feedeater");
+		mkdir(data_dir_path, 0777);
+		d = opendir(data_dir_path);
 		if (d != NULL) {
 			closedir(d);
-			return path;
+			return 0;
 		}
 	}
 
 	fprintf(stderr, "failed to find data directory\n");
-	free(path);
-	return NULL;
+	free(data_dir_path);
+	return 1;
+}
+
+void
+free_data_dir_path(void)
+{
+	free(data_dir_path);
 }
 
 char *
 get_db_path(void)
 {
-	if (data_dir_path == NULL) {
-		data_dir_path = get_data_dir_path();
-		if (data_dir_path == NULL) return NULL;
-	}
 	char *path = malloc(sizeof(char) * MAXPATH);
 	if (path == NULL) {
 		status_write("failed to allocate memory for database path\n");
 		return NULL;
 	}
 	strcpy(path, data_dir_path);
-	strcat(path, "feedeater.sqlite");
+	strcat(path, "/feedeater.sqlite");
 	return path;
 }

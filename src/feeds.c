@@ -139,13 +139,18 @@ feed_image(struct feed_entry *feed)
 static void
 feed_expose(struct feed_window *feedwin, bool highlight)
 {
-	if (config_number == 1 && feedwin->feed->feed_url != NULL) {
-		mvwprintw(feedwin->window, 0, 0, "%3d", feedwin->index + 1);
+	if (config_menu_show_number == true) {
+		if (feedwin->feed->feed_url != NULL) mvwprintw(feedwin->window, 0, 0, "%3d", feedwin->index + 1);
+		mvwprintw(feedwin->window, 0, 5, feedwin->is_marked ? "M" : " ");
+		mvwprintw(feedwin->window, 0, 6, feedwin->is_unread ? "N" : " ");
+		if (highlight) wattron(feedwin->window, A_REVERSE);
+		mvwprintw(feedwin->window, 0, 9, "%s", feed_image(feedwin->feed));
+	} else {
+		mvwprintw(feedwin->window, 0, 2, feedwin->is_marked ? "M" : " ");
+		mvwprintw(feedwin->window, 0, 3, feedwin->is_unread ? "N" : " ");
+		if (highlight) wattron(feedwin->window, A_REVERSE);
+		mvwprintw(feedwin->window, 0, 6, "%s", feed_image(feedwin->feed));
 	}
-	mvwprintw(feedwin->window, 0, 2 + 3 * config_number, feedwin->feed->is_marked ? "M" : " ");
-	mvwprintw(feedwin->window, 0, 3 + 3 * config_number, feedwin->feed->is_read ? " " : "N");
-	if (highlight) wattron(feedwin->window, A_REVERSE);
-	mvwprintw(feedwin->window, 0, 6 + 3 * config_number, "%s", feed_image(feedwin->feed));
 	if (highlight) wattroff(feedwin->window, A_REVERSE);
 	wrefresh(feedwin->window);
 }
@@ -170,32 +175,32 @@ is_feed_marked(struct string *feed_url)
 }
 
 static bool
-is_feed_read(struct string *feed_url)
+is_feed_unread(struct string *feed_url)
 {
-	if (feed_url == NULL) return true;
-	bool is_read = false;
+	if (feed_url == NULL) return false;
+	bool is_unread = false;
 	sqlite3_stmt *res;
 	char cmd[] = "SELECT * FROM items WHERE feed = ? AND unread = ? LIMIT 1";
 	if (sqlite3_prepare_v2(db, cmd, -1, &res, 0) == SQLITE_OK) {
 		sqlite3_bind_text(res, 1, feed_url->ptr, feed_url->len, NULL);
 		sqlite3_bind_int(res, 2, 1);
-		// if nothing found (every item from feed is read), say feed is read
-		if (sqlite3_step(res) == SQLITE_DONE) is_read = true;
+		// if something found (at least one item from feed is unread), say feed is unread
+		if (sqlite3_step(res) == SQLITE_ROW) is_unread = true;
 	} else {
 		fprintf(stderr, "failed to prepare SELECT statement: %s\n", sqlite3_errmsg(db));
 	}
 	sqlite3_finalize(res);
-	return is_read;
+	return is_unread;
 }
 
 static void
 show_feeds(void)
 {
 	for (int i = view_min, j = 0; i < feed_count && i < view_max; ++i, ++j) {
-		feed_list[i].window = newwin(1, COLS - config_left_offset, j + config_top_offset, config_left_offset);
+		feed_list[i].window = newwin(1, COLS, j, 0);
 		feed_list[i].index = i;
-		feed_list[i].feed->is_marked = is_feed_marked(feed_list[i].feed->feed_url);
-		feed_list[i].feed->is_read = is_feed_read(feed_list[i].feed->feed_url);
+		feed_list[i].is_marked = is_feed_marked(feed_list[i].feed->feed_url);
+		feed_list[i].is_unread = is_feed_unread(feed_list[i].feed->feed_url);
 		feed_expose(&feed_list[i], (i == view_sel));
 	}
 }
@@ -284,9 +289,9 @@ feed_reload(struct feed_window *feedwin)
 	if (buf->ptr == NULL) { free(buf); return; }
 	if (feed_process(buf, feedwin->feed) == 0) {
 		status_clean();
-		bool read_status = is_feed_read(feedwin->feed->feed_url);
-		if (feedwin->feed->is_read != read_status) {
-			feedwin->feed->is_read = read_status;
+		bool unread_status = is_feed_unread(feedwin->feed->feed_url);
+		if (feedwin->is_unread != unread_status) {
+			feedwin->is_unread = unread_status;
 			feed_expose(feedwin, 1);
 		}
 	}
@@ -310,7 +315,7 @@ menu_feeds(void)
 		if      (ch == 'j' || ch == KEY_DOWN)                                   { view_select(view_sel + 1); }
 		else if (ch == 'k' || ch == KEY_UP)                                     { view_select(view_sel - 1); }
 		else if (ch == 'l' || ch == KEY_RIGHT || ch == '\n' || ch == KEY_ENTER) { return MENU_ITEMS; }
-		else if (ch == config_key_exit)                                         { return MENU_EXIT; }
+		else if (ch == config_key_quit)                                         { return MENU_QUIT; }
 		else if (ch == config_key_download)                                     { feed_reload(&feed_list[view_sel]); }
 		else if (ch == config_key_download_all)                                 { feed_reload_all(); }
 		else if (ch == 'g' && input_wgetch() == 'g')                            { view_select(0); }
@@ -351,14 +356,14 @@ run_feeds_menu(void)
 
 	int dest = menu_feeds();
 
-	if (dest == MENU_EXIT) return 1;
+	if (dest == MENU_QUIT) return 1;
 
 	int items_status = items_menu(feed_list[view_sel].feed->feed_url);
 	if (items_status != MENU_FEEDS) {
 		do_redraw = 0;
 		if (items_status == MENU_ITEMS_EMPTY) {
 			status_write("[empty] %s", feed_image(feed_list[view_sel].feed));
-		} else if (items_status == MENU_EXIT) {
+		} else if (items_status == MENU_QUIT) {
 			return 1;
 		}
 	} /*else {

@@ -42,12 +42,12 @@ struct feed_entry {
 	struct string *name;
 	struct string *feed_url; // url of feed file
 	struct string *site_url; // url of resource site
-	bool is_marked;
-	bool is_read;
 };
 
 struct feed_window {
 	struct feed_entry *feed;
+	bool is_marked;
+	bool is_unread;
 	WINDOW *window;
 	int64_t index;
 };
@@ -56,15 +56,20 @@ struct item_entry {
 	struct string *title; // name of item
 	struct string *url;   // url to item
 	struct string *guid;
-	bool marked;
-	bool unread;
-	int64_t index; // index of item
 };
 
 struct item_window {
 	struct item_entry *item;
+	bool is_marked;
+	bool is_unread;
 	WINDOW *window;
 	int64_t index;
+};
+
+struct init_parser_data {
+	int depth;
+	XML_Parser *xml_parser;
+	int (*parser_func)(XML_Parser *parser, struct string *feed_url, struct feed_parser_data *feed_data);
 };
 
 struct feed_parser_data {
@@ -78,14 +83,8 @@ struct feed_parser_data {
 	struct item_bucket *bucket;
 };
 
-struct init_parser_data {
-	int depth;
-	XML_Parser *xml_parser;
-	int (*parser_func)(XML_Parser *parser, struct string *feed_url, struct feed_parser_data *feed_data);
-};
-
 // used to bufferize item before writing to disk
-// so we can reject it in case parsed item is already exist
+// so we can reject it in case parsed item is already cached
 struct item_bucket {
 	struct string *guid;
 	struct string *title;
@@ -103,7 +102,7 @@ enum menu_dest {
 	MENU_ITEMS_EMPTY,
 	MENU_CONTENT,
 	MENU_CONTENT_ERROR,
-	MENU_EXIT,
+	MENU_QUIT,
 };
 
 enum items_column {
@@ -181,7 +180,7 @@ int start_namespaced_tag(void *userData, const XML_Char *name, const XML_Char **
 int end_namespaced_tag(void *userData, const XML_Char *name);
 
 
-// config parsing
+// files parsing utility functions (see config.c)
 
 void skip_chars(FILE *file, char *cur_char, char *list);
 void find_chars(FILE *file, char *cur_char, char *list);

@@ -135,7 +135,7 @@ menu_contents(void)
 		else if (ch == 'h' || ch == KEY_LEFT)        { return MENU_ITEMS; }
 		else if (ch == 'g' && input_wgetch() == 'g') { scroll_view_top(); }
 		else if (ch == 'G')                          { scroll_view_bot(); }
-		else if (ch == config_key_exit)              { return MENU_EXIT; }
+		else if (ch == config_key_quit)              { return MENU_QUIT; }
 		else if (isdigit(ch)) {
 			q = 0;
 			while (1) {

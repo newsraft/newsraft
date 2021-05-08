@@ -3,11 +3,9 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-extern uint8_t config_top_offset;
-extern uint8_t config_left_offset;
 extern int64_t config_max_items;
-extern uint8_t config_number;
 
+extern bool   config_menu_show_number;
 extern bool   config_contents_show_feed;
 extern bool   config_contents_show_title;
 extern bool   config_contents_show_author;
@@ -25,5 +23,5 @@ extern char config_key_mark_unread;
 extern char config_key_mark_unread_all;
 extern char config_key_download;
 extern char config_key_download_all;
-extern char config_key_exit;
+extern char config_key_quit;
 #endif // CONFIG_H

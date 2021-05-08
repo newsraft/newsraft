@@ -2,11 +2,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-uint8_t config_top_offset = 0;
-uint8_t config_left_offset = 1;
 int64_t config_max_items = 100;
-uint8_t config_number = 1;
-
+bool config_menu_show_number = true;
 bool config_contents_show_feed = true;
 bool config_contents_show_title = true;
 bool config_contents_show_author = true;
@@ -24,7 +21,7 @@ char config_key_mark_read_all = 'a';
 char config_key_mark_unread_all = 'A';
 char config_key_download = 'd';
 char config_key_download_all = 'D';
-char config_key_exit = 'q';
+char config_key_quit = 'q';
 
 // if cur_char is equal to one of the elements from list then
 // set position indicator of file to next character that mismatched all elements in list

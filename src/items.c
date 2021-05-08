@@ -44,8 +44,8 @@ load_item_list(void)
 			if ((text = (char *)sqlite3_column_text(res, 2)) != NULL) {
 				make_string(&item_list[item_index].item->guid, text, strlen(text));
 			}
-			item_list[item_index].item->marked = sqlite3_column_int(res, 3);
-			item_list[item_index].item->unread = sqlite3_column_int(res, 4);
+			item_list[item_index].is_marked = sqlite3_column_int(res, 3);
+			item_list[item_index].is_unread = sqlite3_column_int(res, 4);
 		}
 	} else {
 		fprintf(stderr, "failed to prepare SELECT statement: %s\n", sqlite3_errmsg(db));
@@ -69,13 +69,18 @@ item_image(struct item_entry *item) {
 static void
 item_expose(struct item_window *itemwin, bool highlight)
 {
-	if (config_number == 1) {
+	if (config_menu_show_number == true) {
 		mvwprintw(itemwin->window, 0, 0, "%3d", itemwin->index + 1);
+		mvwprintw(itemwin->window, 0, 5, itemwin->is_marked ? "M" : " ");
+		mvwprintw(itemwin->window, 0, 6, itemwin->is_unread ? "N" : " ");
+		if (highlight) wattron(itemwin->window, A_REVERSE);
+		mvwprintw(itemwin->window, 0, 9, "%s", item_image(itemwin->item));
+	} else {
+		mvwprintw(itemwin->window, 0, 2, itemwin->is_marked ? "M" : " ");
+		mvwprintw(itemwin->window, 0, 3, itemwin->is_unread ? "N" : " ");
+		if (highlight) wattron(itemwin->window, A_REVERSE);
+		mvwprintw(itemwin->window, 0, 6, "%s", item_image(itemwin->item));
 	}
-	mvwprintw(itemwin->window, 0, 2 + 3 * config_number, itemwin->item->marked ? "M" : " ");
-	mvwprintw(itemwin->window, 0, 3 + 3 * config_number, itemwin->item->unread ? "N" : " ");
-	if (highlight) wattron(itemwin->window, A_REVERSE);
-	mvwprintw(itemwin->window, 0, 6 + 3 * config_number, "%s", item_image(itemwin->item));
 	if (highlight) wattroff(itemwin->window, A_REVERSE);
 	wrefresh(itemwin->window);
 }
@@ -84,7 +89,7 @@ static void
 show_items(void)
 {
 	for (int i = view_min, j = 0; i < item_count && i < view_max; ++i, ++j) {
-		item_list[i].window = newwin(1, COLS - config_left_offset, j + config_top_offset, config_left_offset);
+		item_list[i].window = newwin(1, COLS, j, 0);
 		item_expose(&item_list[i], (i == view_sel));
 	}
 }
@@ -162,7 +167,7 @@ static void
 mark_item_marked(struct item_window *itemwin, bool value)
 {
 	if (db_change_item_int(feed_url, itemwin->item, ITEM_MARKED_STATE, value)) {
-		itemwin->item->marked = value;
+		itemwin->is_marked = value;
 		item_expose(itemwin, 1);
 	}
 }
@@ -171,7 +176,7 @@ static void
 mark_item_unread(struct item_window *itemwin, bool value)
 {
 	if (db_change_item_int(feed_url, itemwin->item, ITEM_UNREAD_STATE, value)) {
-		itemwin->item->unread = value;
+		itemwin->is_unread = value;
 		item_expose(itemwin, 1);
 	}
 }
@@ -191,7 +196,7 @@ menu_items(void)
 		else if (ch == config_key_mark_unmarked)                                { mark_item_marked(&item_list[view_sel], false); }
 		else if (ch == config_key_mark_read)                                    { mark_item_unread(&item_list[view_sel], false); }
 		else if (ch == config_key_mark_unread)                                  { mark_item_unread(&item_list[view_sel], true); }
-		else if (ch == config_key_exit)                                         { return MENU_EXIT; }
+		else if (ch == config_key_quit)                                         { return MENU_QUIT; }
 		else if (ch == 'G')                                                     { view_select(item_count - 1); }
 		else if (ch == 'g' && input_wgetch() == 'g')                            { view_select(0); }
 		else if (isdigit(ch)) {
@@ -243,15 +248,15 @@ items_menu(struct string *items_feed_url)
 
 	if (dest == MENU_CONTENT) {
 		int contents_status = contents_menu(feed_url, item_list[view_sel].item);
-		if (contents_status == MENU_EXIT) {
+		if (contents_status == MENU_QUIT) {
 			free_items();
-			return MENU_EXIT;
+			return MENU_QUIT;
 		} else if (contents_status == MENU_CONTENT_ERROR) {
 			do_redraw = 0;
 		} else if (contents_status == MENU_ITEMS) {
-			item_list[view_sel].item->unread = false;
+			item_list[view_sel].is_unread = false;
 		}
-	} else if (dest == MENU_FEEDS || dest == MENU_EXIT) {
+	} else if (dest == MENU_FEEDS || dest == MENU_QUIT) {
 		hide_items();
 		free_items();
 		return dest;

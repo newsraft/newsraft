@@ -86,13 +86,8 @@ time_t
 get_unix_epoch_time(char *format_str, char *date_str)
 {
 	struct tm t = {0};
-	time_t rawtime = 0;
-	if(strptime(date_str, format_str, &t) != NULL) {
-		rawtime = mktime(&t);
-	} else {
-		fprintf(stderr, "strptime failed\n");
-	}
-	return rawtime;
+	if(strptime(date_str, format_str, &t) != NULL) return mktime(&t);
+	return 0;
 }
 
 void

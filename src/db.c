@@ -160,8 +160,9 @@ create_feed_entry(struct string *feed_url)
 	if (is_feed_stored(feed_url) == true) return true;
 	bool created = false;
 	sqlite3_stmt *res;
-	if (sqlite3_prepare_v2(db, "INSERT INTO feeds (url) VALUES(?)", -1, &res, 0) == SQLITE_OK) {
+	if (sqlite3_prepare_v2(db, "INSERT INTO feeds (url, pubdate) VALUES(?, ?)", -1, &res, 0) == SQLITE_OK) {
 		sqlite3_bind_text(res, 1, feed_url->ptr, feed_url->len, NULL);
+		sqlite3_bind_int64(res, 2, 0);
 		if (sqlite3_step(res) == SQLITE_DONE) created = true;
 	} else {
 		fprintf(stderr, "failed to prepare INSERT statement: %s\n", sqlite3_errmsg(db));

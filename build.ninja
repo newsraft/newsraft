@@ -3,9 +3,9 @@ cc = gcc -D_XOPEN_SOURCE=700 -fanalyzer -Wall -fdiagnostics-color=always -iquote
 # release gcc command
 #cc = gcc -D_XOPEN_SOURCE=700 -fdiagnostics-color=never -iquotesrc
 rule compile
-  command = $cc $arg -o $out -c $in
+  command = $cc -c $in -o $out $arg
 rule link
-  command = $cc $arg -o $out $in
+  command = $cc $in -o $out $arg
 
 build obj/feedeater.o:                  compile src/feedeater.c
 build obj/feeds.o:                      compile src/feeds.c

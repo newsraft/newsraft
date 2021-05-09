@@ -7,14 +7,14 @@
 #include <sys/stat.h>
 #include "feedeater.h"
 
-static char *config_dir_path;
+static char *conf_dir_path;
 static char *data_dir_path;
 
 int
-set_config_dir_path(void)
+set_conf_dir_path(void)
 {
-	config_dir_path = malloc(sizeof(char) * MAXPATH);
-	if (config_dir_path == NULL) {
+	conf_dir_path = malloc(sizeof(char) * MAXPATH);
+	if (conf_dir_path == NULL) {
 		fprintf(stderr, "failed to allocate memory for path to config directory\n");
 		return 1;
 	}
@@ -24,9 +24,9 @@ set_config_dir_path(void)
 	DIR *d;
 	char *env_var = getenv("FEEDEATER_CONFIG");
 	if (env_var != NULL) {
-		strcpy(config_dir_path, env_var);
-		mkdir(config_dir_path, 0777);
-		d = opendir(config_dir_path);
+		strcpy(conf_dir_path, env_var);
+		mkdir(conf_dir_path, 0777);
+		d = opendir(conf_dir_path);
 		if (d != NULL) {
 			closedir(d);
 			return 0;
@@ -35,10 +35,10 @@ set_config_dir_path(void)
 
 	env_var = getenv("XDG_CONFIG_HOME");
 	if (env_var != NULL) {
-		strcpy(config_dir_path, env_var);
-		strcat(config_dir_path, "/feedeater");
-		mkdir(config_dir_path, 0777);
-		d = opendir(config_dir_path);
+		strcpy(conf_dir_path, env_var);
+		strcat(conf_dir_path, "/feedeater");
+		mkdir(conf_dir_path, 0777);
+		d = opendir(conf_dir_path);
 		if (d != NULL) {
 			closedir(d);
 			return 0;
@@ -47,18 +47,18 @@ set_config_dir_path(void)
 
 	env_var = getenv("HOME");
 	if (env_var != NULL) {
-		strcpy(config_dir_path, env_var);
-		strcat(config_dir_path, "/.config/feedeater");
-		mkdir(config_dir_path, 0777);
-		d = opendir(config_dir_path);
+		strcpy(conf_dir_path, env_var);
+		strcat(conf_dir_path, "/.config/feedeater");
+		mkdir(conf_dir_path, 0777);
+		d = opendir(conf_dir_path);
 		if (d != NULL) {
 			closedir(d);
 			return 0;
 		}
-		strcpy(config_dir_path, env_var);
-		strcat(config_dir_path, "/.feedeater");
-		mkdir(config_dir_path, 0777);
-		d = opendir(config_dir_path);
+		strcpy(conf_dir_path, env_var);
+		strcat(conf_dir_path, "/.feedeater");
+		mkdir(conf_dir_path, 0777);
+		d = opendir(conf_dir_path);
 		if (d != NULL) {
 			closedir(d);
 			return 0;
@@ -66,14 +66,14 @@ set_config_dir_path(void)
 	}
 
 	fprintf(stderr, "failed to find config directory\n");
-	free(config_dir_path);
+	free(conf_dir_path);
 	return 1;
 }
 
 void
-free_config_dir_path(void)
+free_conf_dir_path(void)
 {
-	free(config_dir_path);
+	free(conf_dir_path);
 }
 
 char *
@@ -85,7 +85,7 @@ get_config_file_path(char *file_name)
 		return NULL;
 	}
 
-	strcpy(path, config_dir_path);
+	strcpy(path, conf_dir_path);
 	strcat(path, "/");
 	strcat(path, file_name);
 

@@ -172,7 +172,7 @@ contents_menu(struct string *feed_url, struct item_entry *item)
 		free_string(&content);
 		return MENU_CONTENT_ERROR;
 	}
-	db_change_item_int(feed_url, item, ITEM_UNREAD_STATE, 0);
+	db_update_item_int(feed_url, item, "unread", 0);
 	hide_items();
 	clear();
 	refresh();

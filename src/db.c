@@ -1,7 +1,7 @@
 #include <string.h>
 #include "feedeater.h"
 
-sqlite3 *db = NULL;
+sqlite3 *db;
 
 int
 db_init(void)
@@ -15,7 +15,7 @@ db_init(void)
 		fprintf(stderr, "failed to open database!\n");
 		sqlite3_close(db);
 		free(path);
-		return 2;
+		return 1;
 	}
 	char cmd[] = "CREATE TABLE IF NOT EXISTS feeds("
 	             	"url TEXT,"
@@ -110,21 +110,16 @@ try_item_bucket(struct item_bucket *bucket, struct string *feed_url)
 }
 
 int
-db_change_item_int(struct string *feed_url, struct item_entry *item, enum item_state state, int value)
+db_update_item_int(struct string *feed_url, struct item_entry *item, const char *state, int value)
 {
 	int success = 0;
 	if (item == NULL) return success;
 	char cmd[100];
 	sqlite3_stmt *res;
+	strcpy(cmd, "UPDATE items SET ");
+	strcat(cmd, state);
 	// TODO: make WHERE statement more precise
-	if (state == ITEM_MARKED_STATE) {
-		strcpy(cmd, "UPDATE items SET marked = ? WHERE feed = ? AND guid = ? AND url = ?");
-	} else if (state == ITEM_UNREAD_STATE) {
-		strcpy(cmd, "UPDATE items SET unread = ? WHERE feed = ? AND guid = ? AND url = ?");
-	} else {
-		fprintf(stderr, "bad state\n!");
-		return success;
-	}
+	strcat(cmd, " = ? WHERE feed = ? AND guid = ? AND url = ?");
 	int rc = sqlite3_prepare_v2(db, cmd, -1, &res, 0);
 	if (rc == SQLITE_OK) {
 		sqlite3_bind_int(res, 1, value);

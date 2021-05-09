@@ -165,7 +165,7 @@ view_select(int i)
 static void
 mark_item_marked(struct item_window *itemwin, bool value)
 {
-	if (db_change_item_int(feed_url, itemwin->item, ITEM_MARKED_STATE, value)) {
+	if (db_update_item_int(feed_url, itemwin->item, "marked", value)) {
 		itemwin->is_marked = value;
 		item_expose(itemwin, 1);
 	}
@@ -174,7 +174,7 @@ mark_item_marked(struct item_window *itemwin, bool value)
 static void
 mark_item_unread(struct item_window *itemwin, bool value)
 {
-	if (db_change_item_int(feed_url, itemwin->item, ITEM_UNREAD_STATE, value)) {
+	if (db_update_item_int(feed_url, itemwin->item, "unread", value)) {
 		itemwin->is_unread = value;
 		item_expose(itemwin, 1);
 	}

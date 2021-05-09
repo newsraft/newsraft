@@ -116,11 +116,6 @@ enum items_column {
 	ITEM_COLUMN_CONTENT,
 };
 
-enum item_state {
-	ITEM_UNREAD_STATE,
-	ITEM_MARKED_STATE,
-};
-
 enum xml_pos {
 	IN_ROOT = 0,
 	IN_ITEM_ELEMENT = 1,
@@ -162,9 +157,9 @@ int contents_menu(struct string *feed_url, struct item_entry *item);
 
 
 // path
-int set_config_dir_path(void);
+int set_conf_dir_path(void);
 int set_data_dir_path(void);
-void free_config_dir_path(void);
+void free_conf_dir_path(void);
 void free_data_dir_path(void);
 char * get_config_file_path(char *file_name);
 char * get_db_path(void);
@@ -190,7 +185,7 @@ void find_chars(FILE *file, char *cur_char, char *list);
 // db
 int db_init(void);
 void db_bind_string(sqlite3_stmt *s, int pos, struct string *str);
-int db_change_item_int(struct string *feed_url, struct item_entry *item, enum item_state state, int value);
+int db_update_item_int(struct string *feed_url, struct item_entry *item, const char *state, int value);
 void db_update_feed_int64(struct string *feed_url, char *column, int64_t i);
 void db_update_feed_text(struct string *feed_url, char *column, char *data, size_t data_len);
 void db_stop(void);

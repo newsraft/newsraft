@@ -54,13 +54,13 @@ cat_string_string(struct string *dest, struct string *src)
 }
 
 void
-cat_string_array(struct string *dest, char *src)
+cat_string_array(struct string *dest, char *src, size_t src_len)
 {
-	size_t src_len = strlen(src);
 	if (src_len == 0) return;
+	dest->ptr = realloc(dest->ptr, (dest->len + src_len + 1));
+	memcpy(dest->ptr + dest->len, src, src_len);
 	dest->len += src_len;
-	dest->ptr = realloc(dest->ptr, (dest->len + 1));
-	strcat(dest->ptr, src);
+	*(dest->ptr + dest->len) = '\0';
 }
 
 void

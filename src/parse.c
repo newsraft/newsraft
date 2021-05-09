@@ -13,9 +13,9 @@ process_element_start(void *userData, const XML_Char *name, const XML_Char **att
 	struct init_parser_data *parser_data = userData;
 	++(parser_data->depth);
 	if (parser_data->depth == 1 && parser_data->parser_func == NULL) {
-		uint8_t i;
 		if (strcmp(name, "rss") == 0) {
-			for (i = 0; atts[i] != NULL && strcmp(atts[i], "version") != 0; ++i) {};
+			int8_t i;
+			for (i = 0; atts[i] != NULL && strcmp(atts[i], "version") != 0; ++i) {}
 			if (atts[i] != NULL) ++i;
 			if (atts[i] != NULL &&
 			    (strcmp(atts[i], "2.0") == 0 ||

@@ -74,8 +74,14 @@ process_element_end(void *userData, const XML_Char *name)
 			make_string(&data->bucket->author, data->value, data->value_len);
 	} else if (strcmp(name, "category") == 0) {
 		data->pos &= ~IN_CATEGORY_ELEMENT;
-		if ((data->pos & IN_ITEM_ELEMENT) != 0)
-			make_string(&data->bucket->category, data->value, data->value_len);
+		if ((data->pos & IN_ITEM_ELEMENT) != 0) {
+			if (data->bucket->category == NULL) {
+				make_string(&data->bucket->category, data->value, data->value_len);
+			} else {
+				cat_string_array(data->bucket->category, ", ", 2);
+				cat_string_array(data->bucket->category, data->value, data->value_len);
+			}
+		}
 	} else if (strcmp(name, "comments") == 0) {
 		data->pos &= ~IN_COMMENTS_ELEMENT;
 		if ((data->pos & IN_ITEM_ELEMENT) != 0)

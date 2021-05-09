@@ -94,9 +94,9 @@ atom_10_end(void *userData, const XML_Char *name)
 		data->pos &= ~IN_AUTHOR_ELEMENT;
 		if ((data->pos & IN_ITEM_ELEMENT) != 0)
 			make_string(&data->bucket->author, data->value, data->value_len);
-	} else if (strcmp(name, "category") == 0) { // REWORK
+	} else if (strcmp(name, "category") == 0) {
 		data->pos &= ~IN_CATEGORY_ELEMENT;
-		/*if ((data->pos & IN_ITEM_ELEMENT) != 0)*/
-			/*make_string(&data->bucket->category, data->value, data->value_len);*/
+		if ((data->pos & IN_ITEM_ELEMENT) != 0)
+			make_string(&data->bucket->category, data->value, data->value_len);
 	}
 }

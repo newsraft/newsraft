@@ -9,11 +9,11 @@ static int view_min;
 static int view_max;
 static int newlines;
 
-#define TEXT_TAG_APPEND(A, B) \
-	text = (char *)sqlite3_column_text(res, B); \
+#define TEXT_TAG_APPEND(A, B, C) \
+	text = (char *)sqlite3_column_text(res, C); \
 	if (text != NULL) { \
-		cat_string_array(buf, A); \
-		cat_string_array(buf, text); \
+		cat_string_array(buf, A, (size_t)B); \
+		cat_string_array(buf, text, strlen(text)); \
 		cat_string_char(buf, '\n'); \
 		++newlines; \
 	}
@@ -31,27 +31,27 @@ cat_content(struct string *feed_url, struct item_entry *item)
 		sqlite3_bind_text(res, 3, item->url->ptr, item->url->len, NULL);
 		rc = sqlite3_step(res);
 		if (rc == SQLITE_ROW) {
-			if (config_contents_show_feed == true)     { TEXT_TAG_APPEND("Feed: ", ITEM_COLUMN_FEED) }
-			if (config_contents_show_title == true)    { TEXT_TAG_APPEND("Title: ", ITEM_COLUMN_TITLE) }
-			if (config_contents_show_author == true)   { TEXT_TAG_APPEND("Author: ", ITEM_COLUMN_AUTHOR) }
-			if (config_contents_show_category == true) { TEXT_TAG_APPEND("Category: ", ITEM_COLUMN_CATEGORY) }
-			if (config_contents_show_comments == true) { TEXT_TAG_APPEND("Comments: ", ITEM_COLUMN_COMMENTS) }
+			if (config_contents_show_feed == true)     { TEXT_TAG_APPEND("Feed: ", 6, ITEM_COLUMN_FEED) }
+			if (config_contents_show_title == true)    { TEXT_TAG_APPEND("Title: ", 7, ITEM_COLUMN_TITLE) }
+			if (config_contents_show_author == true)   { TEXT_TAG_APPEND("Author: ", 8, ITEM_COLUMN_AUTHOR) }
+			if (config_contents_show_category == true) { TEXT_TAG_APPEND("Category: ", 10, ITEM_COLUMN_CATEGORY) }
+			if (config_contents_show_comments == true) { TEXT_TAG_APPEND("Comments: ", 10, ITEM_COLUMN_COMMENTS) }
 			if (config_contents_show_date == true) {
 				time_t epoch_time = (time_t)sqlite3_column_int64(res, ITEM_COLUMN_PUBDATE);
 				if (epoch_time > 0) {
 					struct tm ts = *localtime(&epoch_time);
 					char time_str[100];
 					if (strftime(time_str, sizeof(time_str), config_contents_date_format, &ts) != 0) {
-						cat_string_array(buf, "Date: ");
-						cat_string_array(buf, time_str);
+						cat_string_array(buf, "Date: ", (size_t)6);
+						cat_string_array(buf, time_str, strlen(time_str));
 						cat_string_char(buf, '\n');
 					}
 				}
 			}
-			if (config_contents_show_url == true)      { TEXT_TAG_APPEND("Link: ", ITEM_COLUMN_URL) }
+			if (config_contents_show_url == true)      { TEXT_TAG_APPEND("Link: ", 6, ITEM_COLUMN_URL) }
 			if ((text = (char *)sqlite3_column_text(res, ITEM_COLUMN_CONTENT)) != NULL) {
 				cat_string_char(buf, '\n');
-				cat_string_array(buf, text);
+				cat_string_array(buf, text, strlen(text));
 			}
 			uint16_t not_newline = 0;
 			uint64_t i = 0;

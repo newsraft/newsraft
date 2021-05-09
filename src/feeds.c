@@ -6,12 +6,11 @@
 #include "feedeater.h"
 #include "config.h"
 
-static struct feed_window *feed_list = NULL;
-static int view_sel = -1;
-static int view_min = 0;
-static int view_max = -1;
-static int feed_count = 0;
-static int do_redraw = 1;
+static struct feed_window *feed_list;
+static int view_sel;
+static int view_min;
+static int view_max;
+static int feed_count;
 
 void
 free_feed_list(void)
@@ -26,6 +25,44 @@ free_feed_list(void)
 		}
 	}
 	free(feed_list);
+}
+
+static bool
+is_feed_marked(struct string *feed_url)
+{
+	if (feed_url == NULL) return false;
+	bool is_marked = false;
+	sqlite3_stmt *res;
+	char cmd[] = "SELECT * FROM items WHERE feed = ? AND marked = ? LIMIT 1";
+	if (sqlite3_prepare_v2(db, cmd, -1, &res, 0) == SQLITE_OK) {
+		sqlite3_bind_text(res, 1, feed_url->ptr, feed_url->len, NULL);
+		sqlite3_bind_int(res, 2, 1);
+		// if something found (at least one item from feed is marked), say feed is marked
+		if (sqlite3_step(res) == SQLITE_ROW) is_marked = true;
+	} else {
+		fprintf(stderr, "failed to prepare SELECT statement: %s\n", sqlite3_errmsg(db));
+	}
+	sqlite3_finalize(res);
+	return is_marked;
+}
+
+static bool
+is_feed_unread(struct string *feed_url)
+{
+	if (feed_url == NULL) return false;
+	bool is_unread = false;
+	sqlite3_stmt *res;
+	char cmd[] = "SELECT * FROM items WHERE feed = ? AND unread = ? LIMIT 1";
+	if (sqlite3_prepare_v2(db, cmd, -1, &res, 0) == SQLITE_OK) {
+		sqlite3_bind_text(res, 1, feed_url->ptr, feed_url->len, NULL);
+		sqlite3_bind_int(res, 2, 1);
+		// if something found (at least one item from feed is unread), say feed is unread
+		if (sqlite3_step(res) == SQLITE_ROW) is_unread = true;
+	} else {
+		fprintf(stderr, "failed to prepare SELECT statement: %s\n", sqlite3_errmsg(db));
+	}
+	sqlite3_finalize(res);
+	return is_unread;
 }
 
 int
@@ -47,6 +84,10 @@ load_feed_list(void)
 		return 1;
 	}
 
+	feed_list = NULL;
+	feed_count = 0;
+	view_sel = -1;
+
 	while (1) {
 		// get first character of the line
 		c = fgetc(f);
@@ -60,6 +101,9 @@ load_feed_list(void)
 		if (feed_list == NULL) {
 			error = 1; fprintf(stderr, "memory allocation for feed list failed\n"); break;
 		}
+		feed_list[feed_index].index = feed_index;
+		feed_list[feed_index].is_marked = false;
+		feed_list[feed_index].is_unread = false;
 		feed_list[feed_index].feed = calloc(1, sizeof(struct feed_entry));
 		if (feed_list[feed_index].feed == NULL) {
 			error = 1; fprintf(stderr, "memory allocation for feed entry failed\n"); break;
@@ -80,6 +124,8 @@ load_feed_list(void)
 				if (IS_WHITESPACE(c) || c == EOF) { word[word_len] = '\0'; break; }
 			}
 			make_string(&feed_list[feed_index].feed->feed_url, word, word_len);
+			feed_list[feed_index].is_marked = is_feed_marked(feed_list[feed_index].feed->feed_url);
+			feed_list[feed_index].is_unread = is_feed_unread(feed_list[feed_index].feed->feed_url);
 		}
 		skip_chars(f, &c, " \t");
 		if (c == '\n') continue;
@@ -155,52 +201,11 @@ feed_expose(struct feed_window *feedwin, bool highlight)
 	wrefresh(feedwin->window);
 }
 
-static bool
-is_feed_marked(struct string *feed_url)
-{
-	if (feed_url == NULL) return false;
-	bool is_marked = false;
-	sqlite3_stmt *res;
-	char cmd[] = "SELECT * FROM items WHERE feed = ? AND marked = ? LIMIT 1";
-	if (sqlite3_prepare_v2(db, cmd, -1, &res, 0) == SQLITE_OK) {
-		sqlite3_bind_text(res, 1, feed_url->ptr, feed_url->len, NULL);
-		sqlite3_bind_int(res, 2, 1);
-		// if something found (at least one item from feed is marked), say feed is marked
-		if (sqlite3_step(res) == SQLITE_ROW) is_marked = true;
-	} else {
-		fprintf(stderr, "failed to prepare SELECT statement: %s\n", sqlite3_errmsg(db));
-	}
-	sqlite3_finalize(res);
-	return is_marked;
-}
-
-static bool
-is_feed_unread(struct string *feed_url)
-{
-	if (feed_url == NULL) return false;
-	bool is_unread = false;
-	sqlite3_stmt *res;
-	char cmd[] = "SELECT * FROM items WHERE feed = ? AND unread = ? LIMIT 1";
-	if (sqlite3_prepare_v2(db, cmd, -1, &res, 0) == SQLITE_OK) {
-		sqlite3_bind_text(res, 1, feed_url->ptr, feed_url->len, NULL);
-		sqlite3_bind_int(res, 2, 1);
-		// if something found (at least one item from feed is unread), say feed is unread
-		if (sqlite3_step(res) == SQLITE_ROW) is_unread = true;
-	} else {
-		fprintf(stderr, "failed to prepare SELECT statement: %s\n", sqlite3_errmsg(db));
-	}
-	sqlite3_finalize(res);
-	return is_unread;
-}
-
 static void
 show_feeds(void)
 {
 	for (int i = view_min, j = 0; i < feed_count && i < view_max; ++i, ++j) {
 		feed_list[i].window = newwin(1, COLS, j, 0);
-		feed_list[i].index = i;
-		feed_list[i].is_marked = is_feed_marked(feed_list[i].feed->feed_url);
-		feed_list[i].is_unread = is_feed_unread(feed_list[i].feed->feed_url);
 		feed_expose(&feed_list[i], (i == view_sel));
 	}
 }
@@ -315,7 +320,7 @@ menu_feeds(void)
 		if      (ch == 'j' || ch == KEY_DOWN)                                   { view_select(view_sel + 1); }
 		else if (ch == 'k' || ch == KEY_UP)                                     { view_select(view_sel - 1); }
 		else if (ch == 'l' || ch == KEY_RIGHT || ch == '\n' || ch == KEY_ENTER) { return MENU_ITEMS; }
-		else if (ch == config_key_quit)                                         { return MENU_QUIT; }
+		else if (ch == config_key_soft_quit || ch == config_key_hard_quit)      { return MENU_QUIT; }
 		else if (ch == config_key_download)                                     { feed_reload(&feed_list[view_sel]); }
 		else if (ch == config_key_download_all)                                 { feed_reload_all(); }
 		else if (ch == 'g' && input_wgetch() == 'g')                            { view_select(0); }
@@ -345,34 +350,36 @@ menu_feeds(void)
 int
 run_feeds_menu(void)
 {
-	if (view_max == -1) view_max = LINES - 1;
-	if (do_redraw == 1) {
-		clear();
-		refresh();
-		show_feeds();
-	} else {
-		do_redraw = 1;
-	}
+	view_min = 0;
+	view_max = LINES - 1;
+	clear();
+	refresh();
+	show_feeds();
 
-	int dest = menu_feeds();
-
-	if (dest == MENU_QUIT) return 1;
-
-	int items_status = items_menu(feed_list[view_sel].feed->feed_url);
-	if (items_status != MENU_FEEDS) {
-		do_redraw = 0;
-		if (items_status == MENU_ITEMS_EMPTY) {
+	int dest;
+	bool status_cond;
+	while ((dest = menu_feeds()) != MENU_QUIT) {
+		dest = run_items_menu(feed_list[view_sel].feed->feed_url);
+		if (dest == MENU_FEEDS) {
+			clear();
+			refresh();
+			show_feeds();
+			status_cond = is_feed_unread(feed_list[view_sel].feed->feed_url);
+			if (status_cond != feed_list[view_sel].is_unread) {
+				feed_list[view_sel].is_unread = status_cond;
+				feed_expose(&feed_list[view_sel], 1);
+			}
+			status_cond = is_feed_marked(feed_list[view_sel].feed->feed_url);
+			if (status_cond != feed_list[view_sel].is_marked) {
+				feed_list[view_sel].is_marked = status_cond;
+				feed_expose(&feed_list[view_sel], 1);
+			}
+		} else if (dest == MENU_ITEMS_EMPTY) {
 			status_write("[empty] %s", feed_image(feed_list[view_sel].feed));
-		} else if (items_status == MENU_QUIT) {
-			return 1;
+		} else if (dest == MENU_QUIT) {
+			break;
 		}
-	} /*else {
-		bool marked_status = is_feed_marked(feed_list[view_sel].feed->feed_url);
-		if (feed_list[view_sel].feed->is_marked != marked_status) {
-			feed_list[view_sel].feed->is_marked = marked_status;
-			feed_expose(&feed_list[view_sel], 1);
-		}
-	}*/
+	}
 
 	return 0;
 }

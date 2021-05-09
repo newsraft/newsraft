@@ -23,5 +23,6 @@ extern char config_key_mark_unread;
 extern char config_key_mark_unread_all;
 extern char config_key_download;
 extern char config_key_download_all;
-extern char config_key_quit;
+extern char config_key_soft_quit;
+extern char config_key_hard_quit;
 #endif // CONFIG_H

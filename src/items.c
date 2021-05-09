@@ -13,7 +13,6 @@ static int item_count = 0;
 static int view_sel = -1;
 static int view_min;
 static int view_max;
-static int do_redraw = 1;
 
 static int
 load_item_list(void)
@@ -191,12 +190,12 @@ menu_items(void)
 		if      (ch == 'j' || ch == KEY_DOWN)                                   { view_select(view_sel + 1); }
 		else if (ch == 'k' || ch == KEY_UP)                                     { view_select(view_sel - 1); }
 		else if (ch == 'l' || ch == KEY_RIGHT || ch == '\n' || ch == KEY_ENTER) { return MENU_CONTENT; }
-		else if (ch == 'h' || ch == KEY_LEFT)                                   { return MENU_FEEDS; }
+		else if (ch == 'h' || ch == KEY_LEFT || ch == config_key_soft_quit)     { return MENU_FEEDS; }
 		else if (ch == config_key_mark_marked)                                  { mark_item_marked(&item_list[view_sel], true); }
 		else if (ch == config_key_mark_unmarked)                                { mark_item_marked(&item_list[view_sel], false); }
 		else if (ch == config_key_mark_read)                                    { mark_item_unread(&item_list[view_sel], false); }
 		else if (ch == config_key_mark_unread)                                  { mark_item_unread(&item_list[view_sel], true); }
-		else if (ch == config_key_quit)                                         { return MENU_QUIT; }
+		else if (ch == config_key_hard_quit)                                    { return MENU_QUIT; }
 		else if (ch == 'G')                                                     { view_select(item_count - 1); }
 		else if (ch == 'g' && input_wgetch() == 'g')                            { view_select(0); }
 		else if (isdigit(ch)) {
@@ -222,7 +221,7 @@ menu_items(void)
 }
 
 int
-items_menu(struct string *items_feed_url)
+run_items_menu(struct string *items_feed_url)
 {
 	if (item_list == NULL) {
 		feed_url = items_feed_url;
@@ -231,36 +230,32 @@ items_menu(struct string *items_feed_url)
 			free_items();
 			return load_status;
 		}
-		view_min = 0;
-		view_max = LINES - 1;
-		hide_feeds();
 	}
+	view_min = 0;
+	view_max = LINES - 1;
+	hide_feeds();
+	clear();
+	refresh();
+	show_items();
 
-	if (do_redraw == 1) {
-		clear();
-		refresh();
-		show_items();
-	} else {
-		do_redraw = 1;
-	}
-
-	int dest = menu_items();
-
-	if (dest == MENU_CONTENT) {
-		int contents_status = contents_menu(feed_url, item_list[view_sel].item);
-		if (contents_status == MENU_QUIT) {
-			free_items();
-			return MENU_QUIT;
-		} else if (contents_status == MENU_CONTENT_ERROR) {
-			do_redraw = 0;
-		} else if (contents_status == MENU_ITEMS) {
-			item_list[view_sel].is_unread = false;
+	int dest;
+	while ((dest = menu_items()) != MENU_QUIT) {
+		if (dest == MENU_CONTENT) {
+			dest = contents_menu(feed_url, item_list[view_sel].item);
+			if (dest == MENU_QUIT) {
+				break;
+			} else if (dest == MENU_ITEMS) {
+				item_list[view_sel].is_unread = false;
+				clear();
+				refresh();
+				show_items();
+			}
+		} else if (dest == MENU_FEEDS || dest == MENU_QUIT) {
+			hide_items();
+			break;
 		}
-	} else if (dest == MENU_FEEDS || dest == MENU_QUIT) {
-		hide_items();
-		free_items();
-		return dest;
 	}
 
-	return items_menu(feed_url);
+	free_items();
+	return dest;
 }

@@ -7,10 +7,10 @@ bool config_menu_show_number = true;
 bool config_contents_show_feed = true;
 bool config_contents_show_title = true;
 bool config_contents_show_author = true;
-bool config_contents_show_category = true;
+bool config_contents_show_category = false;
 bool config_contents_show_date = true;
 bool config_contents_show_url = true;
-bool config_contents_show_comments = true;
+bool config_contents_show_comments = false;
 char *config_contents_date_format = "%a, %d %b %Y %H:%M:%S %z";
 
 char config_key_mark_marked = 'b';
@@ -21,7 +21,8 @@ char config_key_mark_read_all = 'a';
 char config_key_mark_unread_all = 'A';
 char config_key_download = 'd';
 char config_key_download_all = 'D';
-char config_key_quit = 'q';
+char config_key_soft_quit = 'q';
+char config_key_hard_quit = 'Q';
 
 // if cur_char is equal to one of the elements from list then
 // set position indicator of file to next character that mismatched all elements in list

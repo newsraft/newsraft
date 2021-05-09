@@ -10,7 +10,7 @@ int main (int argc, char **argv) {
 	if (initscr() == NULL)          { error = 5; goto undo5; } // init curses mode
 	if (status_create() != 0)       { error = 6; goto undo6; }
 	if (input_create() != 0)        { error = 7; goto undo7; }
-	while (run_feeds_menu() == 0);
+	run_feeds_menu();
 	input_delete();
 undo7:
 	status_delete();

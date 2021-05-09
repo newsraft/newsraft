@@ -151,7 +151,7 @@ void hide_feeds(void);
 
 // items
 
-int items_menu(struct string *feed_url);
+int run_items_menu(struct string *feed_url);
 void hide_items(void);
 void reset_item_bucket(struct item_bucket *bucket);
 int try_item_bucket(struct item_bucket *bucket, struct string *feed_url);

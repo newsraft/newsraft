@@ -9,13 +9,18 @@ static int view_min;
 static int view_max;
 static int newlines;
 
-#define TEXT_TAG_APPEND(A, B, C) \
-	text = (char *)sqlite3_column_text(res, C); \
-	if (text != NULL) { \
-		cat_string_array(buf, A, (size_t)B); \
-		cat_string_array(buf, text, strlen(text)); \
-		cat_string_char(buf, '\n'); \
-		++newlines; \
+#define TEXT_TAG_APPEND(A, B, C, D) \
+	if (D == true) { \
+		text = (char *)sqlite3_column_text(res, C); \
+		if (text != NULL) { \
+			text_len = strlen(text); \
+			if (text_len != 0) { \
+				cat_string_array(buf, A, (size_t)B); \
+				cat_string_array(buf, text, text_len); \
+				cat_string_char(buf, '\n'); \
+				++newlines; \
+			} \
+		} \
 	}
 static struct string *
 cat_content(struct string *feed_url, struct item_entry *item)
@@ -23,57 +28,61 @@ cat_content(struct string *feed_url, struct item_entry *item)
 	struct string *buf = create_string();
 	if (buf == NULL) return NULL;
 	sqlite3_stmt *res;
-	char *text, cmd[] = "SELECT * FROM items WHERE feed = ? AND guid = ? AND url = ? LIMIT 1";
-	int rc = sqlite3_prepare_v2(db, cmd, -1, &res, 0);
-	if (rc == SQLITE_OK) {
-		sqlite3_bind_text(res, 1, feed_url->ptr, feed_url->len, NULL);
-		sqlite3_bind_text(res, 2, item->guid->ptr, item->guid->len, NULL);
-		sqlite3_bind_text(res, 3, item->url->ptr, item->url->len, NULL);
-		rc = sqlite3_step(res);
-		if (rc == SQLITE_ROW) {
-			if (config_contents_show_feed == true)     { TEXT_TAG_APPEND("Feed: ", 6, ITEM_COLUMN_FEED) }
-			if (config_contents_show_title == true)    { TEXT_TAG_APPEND("Title: ", 7, ITEM_COLUMN_TITLE) }
-			if (config_contents_show_author == true)   { TEXT_TAG_APPEND("Author: ", 8, ITEM_COLUMN_AUTHOR) }
-			if (config_contents_show_category == true) { TEXT_TAG_APPEND("Category: ", 10, ITEM_COLUMN_CATEGORY) }
-			if (config_contents_show_comments == true) { TEXT_TAG_APPEND("Comments: ", 10, ITEM_COLUMN_COMMENTS) }
-			if (config_contents_show_date == true) {
-				time_t epoch_time = (time_t)sqlite3_column_int64(res, ITEM_COLUMN_PUBDATE);
-				if (epoch_time > 0) {
-					struct tm ts = *localtime(&epoch_time);
-					char time_str[100];
-					if (strftime(time_str, sizeof(time_str), config_contents_date_format, &ts) != 0) {
-						cat_string_array(buf, "Date: ", (size_t)6);
-						cat_string_array(buf, time_str, strlen(time_str));
-						cat_string_char(buf, '\n');
-					}
-				}
-			}
-			if (config_contents_show_url == true)      { TEXT_TAG_APPEND("Link: ", 6, ITEM_COLUMN_URL) }
-			if ((text = (char *)sqlite3_column_text(res, ITEM_COLUMN_CONTENT)) != NULL) {
-				cat_string_char(buf, '\n');
-				cat_string_array(buf, text, strlen(text));
-			}
-			uint16_t not_newline = 0;
-			uint64_t i = 0;
-			while (i <= buf->len) {
-				if ((buf->ptr)[i++] == '\n') {
-					not_newline = 0;
-					++newlines;
-				} else {
-					++not_newline;
-					if (not_newline > COLS) {
-						not_newline = 0;
-						++newlines;
-					}
-				}
-			}
-		} else {
-			fprintf(stderr, "could not find that item\n");
-			free_string(&buf);
-		}
-	} else {
+	int rc = sqlite3_prepare_v2(db, "SELECT * FROM items WHERE feed = ? AND guid = ? AND url = ? LIMIT 1", -1, &res, 0);
+	if (rc != SQLITE_OK) {
 		fprintf(stderr, "failed to prepare SELECT statement: %s\n", sqlite3_errmsg(db));
 		free_string(&buf);
+		sqlite3_finalize(res);
+		return NULL;
+	}
+	sqlite3_bind_text(res, 1, feed_url->ptr, feed_url->len, NULL);
+	sqlite3_bind_text(res, 2, item->guid->ptr, item->guid->len, NULL);
+	sqlite3_bind_text(res, 3, item->url->ptr, item->url->len, NULL);
+	rc = sqlite3_step(res);
+	if (rc != SQLITE_ROW) {
+		fprintf(stderr, "could not find that item\n");
+		free_string(&buf);
+		sqlite3_finalize(res);
+		return NULL;
+	}
+	char *text;
+	size_t text_len;
+	TEXT_TAG_APPEND("Feed: ", 6, ITEM_COLUMN_FEED, config_contents_show_feed)
+	TEXT_TAG_APPEND("Title: ", 7, ITEM_COLUMN_TITLE, config_contents_show_title)
+	if (config_contents_show_date == true) {
+		time_t epoch_time = (time_t)sqlite3_column_int64(res, ITEM_COLUMN_PUBDATE);
+		if (epoch_time > 0) {
+			struct tm ts = *localtime(&epoch_time);
+			char time_str[100];
+			if (strftime(time_str, sizeof(time_str), config_contents_date_format, &ts) != 0) {
+				cat_string_array(buf, "Date: ", (size_t)6);
+				cat_string_array(buf, time_str, strlen(time_str));
+				cat_string_char(buf, '\n');
+			}
+		}
+	}
+	TEXT_TAG_APPEND("Author: ", 8, ITEM_COLUMN_AUTHOR, config_contents_show_author)
+	TEXT_TAG_APPEND("Category: ", 10, ITEM_COLUMN_CATEGORY, config_contents_show_category)
+	TEXT_TAG_APPEND("Comments: ", 10, ITEM_COLUMN_COMMENTS, config_contents_show_comments)
+	TEXT_TAG_APPEND("Link: ", 6, ITEM_COLUMN_URL, config_contents_show_url)
+	if ((text = (char *)sqlite3_column_text(res, ITEM_COLUMN_CONTENT)) != NULL) {
+		cat_string_char(buf, '\n');
+		text_len = strlen(text);
+		if (text_len != 0) cat_string_array(buf, text, text_len);
+	}
+	uint16_t not_newline = 0;
+	uint64_t i = 0;
+	while (i <= buf->len) {
+		if ((buf->ptr)[i++] == '\n') {
+			not_newline = 0;
+			++newlines;
+		} else {
+			++not_newline;
+			if (not_newline > COLS) {
+				not_newline = 0;
+				++newlines;
+			}
+		}
 	}
 	sqlite3_finalize(res);
 	return buf;

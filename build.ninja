@@ -1,5 +1,5 @@
 # development gcc command
-cc = gcc -D_XOPEN_SOURCE=700 -fanalyzer -Wall -fdiagnostics-color=always -iquotesrc
+cc = gcc -g -D_XOPEN_SOURCE=700 -DFEEDEATER_DEBUG=1 -fanalyzer -Wall -fdiagnostics-color=always -iquotesrc
 # release gcc command
 #cc = gcc -D_XOPEN_SOURCE=700 -fdiagnostics-color=never -iquotesrc
 rule compile

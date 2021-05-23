@@ -10,7 +10,7 @@ string_write_func(void *ptr, size_t size, size_t nmemb, struct string *s)
 	s->ptr = realloc(s->ptr, new_len + 1);
 	if (s->ptr == NULL) return 0;
 	memcpy(s->ptr + s->len, ptr, size * nmemb);
-	s->ptr[new_len] = '\0';
+	*(s->ptr + new_len) = '\0';
 	s->len = new_len;
 	return size * nmemb;
 }
@@ -39,14 +39,16 @@ feed_download(char *url)
 	curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1L);
 	/*char curl_errbuf[CURL_ERROR_SIZE];*/
 	/*curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, curl_errbuf);*/
-	int error = curl_easy_perform(curl);
 
-	if (error != CURLE_OK) {
+	int res = curl_easy_perform(curl);
+	if (res != CURLE_OK) {
 		status_write("[download failed] %s", url);
-		free(buf->ptr);
-		free(buf);
+		DLOG("curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
+		curl_easy_cleanup(curl);
+		free_string(&buf);
 		return NULL;
 	}
 
+	curl_easy_cleanup(curl);
 	return buf;
 }

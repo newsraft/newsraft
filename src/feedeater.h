@@ -9,6 +9,11 @@
 #include <time.h>
 #define MAXPATH 512
 #define INIT_PARSER_BUF_SIZE 1000
+#ifdef FEEDEATER_DEBUG
+#define DLOG(...) fprintf(stderr, __VA_ARGS__)
+#else
+#define DLOG
+#endif
 #define LENGTH(A) (sizeof(A)/sizeof(*A))
 #define IS_WHITESPACE(A) (((A) == ' ') || ((A) == '\t') || ((A) == '\r') || ((A) == '\n'))
 #ifndef XML_LARGE_SIZE

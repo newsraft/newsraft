@@ -79,7 +79,7 @@ process_element_end(void *userData, const XML_Char *name)
 				make_string(&data->bucket->category, data->value, data->value_len);
 			} else {
 				cat_string_array(data->bucket->category, ", ", 2);
-				cat_string_array(data->bucket->category, data->value, data->value_len);
+				if (data->value_len != 0) cat_string_array(data->bucket->category, data->value, data->value_len);
 			}
 		}
 	} else if (strcmp(name, "comments") == 0) {

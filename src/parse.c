@@ -108,24 +108,31 @@ void
 value_strip_whitespace(char *str, size_t *len)
 {
 	// strip whitespace from edges
-	int i = 0, left_offset = 0, right_offset = *len - 1;
-	while (*(str + left_offset) == ' '  ||
-	       *(str + left_offset) == '\t' ||
-	       *(str + left_offset) == '\r' ||
-	       *(str + left_offset) == '\n')
+	int i = 0, left_edge = 0, right_edge = *len - 1;
+	while ((*(str + left_edge) == ' '   ||
+	        *(str + left_edge) == '\t'  ||
+	        *(str + left_edge) == '\r'  ||
+	        *(str + left_edge) == '\n') &&
+	       left_edge <= right_edge)
 	{
-		++left_offset;
+		++left_edge;
 	}
-	while (*(str + right_offset) == ' '  ||
-	       *(str + right_offset) == '\t' ||
-	       *(str + right_offset) == '\r' ||
-	       *(str + right_offset) == '\n')
+	while ((*(str + right_edge) == ' '   ||
+	        *(str + right_edge) == '\t'  ||
+	        *(str + right_edge) == '\r'  ||
+	        *(str + right_edge) == '\n') &&
+	       right_edge >= left_edge)
 	{
-		--right_offset;
+		--right_edge;
 	}
-	if ((left_offset != 0) || (right_offset != *len - 1)) {
-		for (; i <= right_offset - left_offset; ++i) {
-			*(str + i) = *(str + i + left_offset);
+	if ((left_edge != 0) || (right_edge != *len - 1)) {
+		if (right_edge < left_edge) {
+			*(str + 0) = '\0';
+			*len = 0;
+			return;
+		}
+		for (; i <= right_edge - left_edge; ++i) {
+			*(str + i) = *(str + i + left_edge);
 		}
 		*len = i;
 		*(str + i) = '\0';
@@ -137,14 +144,14 @@ store_xml_element_value(void *userData, const XML_Char *s, int s_len)
 {
 	struct feed_parser_data *data = userData;
 	if (data->prev_pos != data->pos) data->value_len = 0;
-	if (data->value_len + s_len + 1 > data->value_lim) {
-		data->value_lim = data->value_len + s_len + 1;
-		data->value_lim *= 2; // just to minimize number of further realloc calls
-		data->value = realloc(data->value, data->value_lim);
+	if (data->value_len + s_len > data->value_lim) {
+		// multiply by 2 to minimize number of further realloc calls
+		data->value_lim = (data->value_len + s_len) * 2;
+		data->value = realloc(data->value, data->value_lim + 1);
 		if (data->value == NULL) return;
 	}
 	memcpy(data->value + data->value_len, s, s_len);
 	data->value_len += s_len;
-	data->value[data->value_len] = '\0';
+	*(data->value + data->value_len) = '\0';
 	data->prev_pos = data->pos;
 }

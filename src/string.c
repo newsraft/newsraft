@@ -47,7 +47,6 @@ free_string(struct string **dest)
 void
 cat_string_string(struct string *dest, struct string *src)
 {
-	if (src->len == 0) return;
 	dest->len += src->len;
 	dest->ptr = realloc(dest->ptr, dest->len + 1);
 	strcat(dest->ptr, src->ptr);
@@ -56,7 +55,6 @@ cat_string_string(struct string *dest, struct string *src)
 void
 cat_string_array(struct string *dest, char *src, size_t src_len)
 {
-	if (src_len == 0) return;
 	dest->ptr = realloc(dest->ptr, (dest->len + src_len + 1));
 	memcpy(dest->ptr + dest->len, src, src_len);
 	dest->len += src_len;

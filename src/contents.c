@@ -30,7 +30,7 @@ cat_content(struct string *feed_url, struct item_entry *item)
 	sqlite3_stmt *res;
 	int rc = sqlite3_prepare_v2(db, "SELECT * FROM items WHERE feed = ? AND guid = ? AND url = ? LIMIT 1", -1, &res, 0);
 	if (rc != SQLITE_OK) {
-		fprintf(stderr, "failed to prepare SELECT statement: %s\n", sqlite3_errmsg(db));
+		debug_write(DBG_WARN, "failed to prepare SELECT statement: %s\n", sqlite3_errmsg(db));
 		free_string(&buf);
 		sqlite3_finalize(res);
 		return NULL;
@@ -40,7 +40,7 @@ cat_content(struct string *feed_url, struct item_entry *item)
 	sqlite3_bind_text(res, 3, item->url->ptr, item->url->len, NULL);
 	rc = sqlite3_step(res);
 	if (rc != SQLITE_ROW) {
-		fprintf(stderr, "could not find that item\n");
+		debug_write(DBG_WARN, "could not find that item\n");
 		free_string(&buf);
 		sqlite3_finalize(res);
 		return NULL;

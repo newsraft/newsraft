@@ -43,7 +43,7 @@ feed_download(char *url)
 	int res = curl_easy_perform(curl);
 	if (res != CURLE_OK) {
 		status_write("[download failed] %s", url);
-		DLOG("curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
+		debug_write(DBG_WARN, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
 		curl_easy_cleanup(curl);
 		free_string(&buf);
 		return NULL;

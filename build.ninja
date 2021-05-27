@@ -1,5 +1,5 @@
 # development gcc command
-cc = gcc -g -D_XOPEN_SOURCE=700 -DFEEDEATER_DEBUG=1 -fanalyzer -Wall -fdiagnostics-color=always -iquotesrc
+cc = gcc -g -D_XOPEN_SOURCE=700 -fanalyzer -Wall -fdiagnostics-color=always -iquotesrc
 # release gcc command
 #cc = gcc -D_XOPEN_SOURCE=700 -fdiagnostics-color=never -iquotesrc
 rule compile
@@ -18,6 +18,7 @@ build obj/input.o:                      compile src/input.c
 build obj/contents.o:                   compile src/contents.c
 build obj/download.o:                   compile src/download.c
 build obj/string.o:                     compile src/string.c
+build obj/debug.o:                      compile src/debug.c
 build obj/db.o:                         compile src/db.c
 build obj/parse.o:                      compile src/parse.c
 build obj/parse_generic.o:              compile src/parse_generic.c
@@ -33,6 +34,7 @@ build feedeater: link obj/feedeater.o $
                       obj/path.o $
                       obj/items.o $
                       obj/input.o $
+                      obj/debug.o $
                       obj/contents.o $
                       obj/download.o $
                       obj/string.o $

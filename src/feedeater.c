@@ -1,7 +1,49 @@
+#include <unistd.h>
+#include <stdlib.h>
+#include <stdio.h>
 #include "feedeater.h"
 #include <locale.h>
-int main (int argc, char **argv) {
+static void
+print_help(void)
+{
+	fprintf(stderr, "help!\n");
+}
+
+static void
+print_version(void)
+{
+	fprintf(stderr, "version!\n");
+}
+
+int
+main (int argc, char **argv)
+{
 	setlocale(LC_ALL, "");
+
+	// parse command-line arguments
+	int opt;
+	while ((opt = getopt(argc, argv, "vhd:")) != -1) {
+		switch (opt) {
+			case 'd':
+				if (debug_init(optarg) != 0) {
+					exit(EXIT_FAILURE);
+				}
+				break;
+			case 'v':
+				print_version();
+				exit(EXIT_SUCCESS);
+				break;
+			case 'h':
+				print_help();
+				exit(EXIT_SUCCESS);
+				break;
+			default:
+				print_help();
+				exit(EXIT_FAILURE);
+				break;
+		}
+	}
+
 	int error = 0;
 	if (set_conf_dir_path() != 0) { error = 1; goto undo1; }
 	if (set_data_dir_path() != 0) { error = 2; goto undo2; }
@@ -25,5 +67,6 @@ undo3:
 undo2:
 	free_conf_dir_path();
 undo1:
+	debug_stop();
 	return error;
 }

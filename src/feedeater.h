@@ -9,11 +9,6 @@
 #include <time.h>
 #define MAXPATH 512
 #define INIT_PARSER_BUF_SIZE 1000
-#ifdef FEEDEATER_DEBUG
-#define DLOG(...) fprintf(stderr, __VA_ARGS__)
-#else
-#define DLOG
-#endif
 #define LENGTH(A) (sizeof(A)/sizeof(*A))
 #define IS_WHITESPACE(A) (((A) == ' ') || ((A) == '\t') || ((A) == '\r') || ((A) == '\n'))
 #ifndef XML_LARGE_SIZE
@@ -140,6 +135,12 @@ enum xml_pos {
 	IN_CHANNEL_ELEMENT = 16384,
 };
 
+enum debug_level {
+	DBG_OK = 0,
+	DBG_WARN = 1,
+	DBG_ERROR = 2,
+};
+
 
 // feeds
 
@@ -218,6 +219,11 @@ void free_string(struct string **dest);
 void cat_string_string(struct string *dest, struct string *src);
 void cat_string_array(struct string *dest, char *src, size_t src_len);
 void cat_string_char(struct string *dest, char c);
+
+// debug
+int debug_init(char *path);
+void debug_write(enum debug_level lvl, char *format, ...);
+void debug_stop(void);
 
 
 extern sqlite3 *db;

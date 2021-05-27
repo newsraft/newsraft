@@ -43,7 +43,11 @@ int
 feed_process(struct string *buf, struct feed_entry *feed)
 {
 	XML_Parser parser = XML_ParserCreateNS(NULL, ':');
-	struct init_parser_data parser_data = {0, &parser, NULL};
+	struct init_parser_data parser_data = {
+		.depth = 0,
+		.xml_parser = &parser,
+		.parser_func = NULL,
+	};
 	XML_SetUserData(parser, &parser_data);
 	XML_SetElementHandler(parser, &process_element_start, &process_element_finish);
 	if (XML_Parse(parser, buf->ptr, buf->len, 0) == XML_STATUS_ERROR) {
@@ -86,7 +90,9 @@ time_t
 get_unix_epoch_time(char *format_str, char *date_str)
 {
 	struct tm t = {0};
-	if(strptime(date_str, format_str, &t) != NULL) return mktime(&t);
+	if (strptime(date_str, format_str, &t) != NULL) {
+		return mktime(&t);
+	}
 	return 0;
 }
 

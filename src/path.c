@@ -77,11 +77,11 @@ free_conf_dir_path(void)
 }
 
 char *
-get_config_file_path(char *file_name)
+get_conf_file_path(char *file_name)
 {
 	char *path = malloc(MAXPATH * sizeof(char));
 	if (path == NULL) {
-		fprintf(stderr, "failed to allocate memory for path to \"%s\" config file\n", file_name);
+		debug_write(DBG_ERROR, "failed to allocate memory for path to \"%s\" config file\n", file_name);
 		return NULL;
 	}
 

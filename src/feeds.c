@@ -68,15 +68,11 @@ is_feed_unread(struct string *feed_url)
 int
 load_feed_list(void)
 {
-	char c, word[1000];
-	int feed_index, error = 0, word_len;
-
-	char *path = get_config_file_path("feeds");
+	char *path = get_conf_file_path("feeds");
 	if (path == NULL) {
 		fprintf(stderr, "could not find feeds file!\n");
 		return 1;
 	}
-
 	FILE *f = fopen(path, "r");
 	free(path);
 	if (f == NULL) {
@@ -84,6 +80,8 @@ load_feed_list(void)
 		return 1;
 	}
 
+	int feed_index, error = 0, word_len;
+	char c, word[1000];
 	feed_list = NULL;
 	feed_count = 0;
 	view_sel = -1;
@@ -101,7 +99,6 @@ load_feed_list(void)
 		if (feed_list == NULL) {
 			error = 1; fprintf(stderr, "memory allocation for feed list failed\n"); break;
 		}
-		feed_list[feed_index].index = feed_index;
 		feed_list[feed_index].is_marked = false;
 		feed_list[feed_index].is_unread = false;
 		feed_list[feed_index].feed = calloc(1, sizeof(struct feed_entry));
@@ -183,22 +180,23 @@ feed_image(struct feed_entry *feed)
 }
 
 static void
-feed_expose(struct feed_window *feedwin, bool highlight)
+feed_expose(int index)
 {
+	struct feed_window *win = &feed_list[index];
 	if (config_menu_show_number == true) {
-		if (feedwin->feed->feed_url != NULL) mvwprintw(feedwin->window, 0, 0, "%3d", feedwin->index + 1);
-		mvwprintw(feedwin->window, 0, 5, feedwin->is_marked ? "M" : " ");
-		mvwprintw(feedwin->window, 0, 6, feedwin->is_unread ? "N" : " ");
-		if (highlight) wattron(feedwin->window, A_REVERSE);
-		mvwprintw(feedwin->window, 0, 9, "%s", feed_image(feedwin->feed));
+		if (win->feed->feed_url != NULL) mvwprintw(win->window, 0, 0, "%3d", index + 1);
+		mvwprintw(win->window, 0, 5, win->is_marked ? "M" : " ");
+		mvwprintw(win->window, 0, 6, win->is_unread ? "N" : " ");
+		if (index == view_sel) wattron(win->window, A_REVERSE);
+		mvwprintw(win->window, 0, 9, "%s", feed_image(win->feed));
 	} else {
-		mvwprintw(feedwin->window, 0, 2, feedwin->is_marked ? "M" : " ");
-		mvwprintw(feedwin->window, 0, 3, feedwin->is_unread ? "N" : " ");
-		if (highlight) wattron(feedwin->window, A_REVERSE);
-		mvwprintw(feedwin->window, 0, 6, "%s", feed_image(feedwin->feed));
+		mvwprintw(win->window, 0, 2, win->is_marked ? "M" : " ");
+		mvwprintw(win->window, 0, 3, win->is_unread ? "N" : " ");
+		if (index == view_sel) wattron(win->window, A_REVERSE);
+		mvwprintw(win->window, 0, 6, "%s", feed_image(win->feed));
 	}
-	if (highlight) wattroff(feedwin->window, A_REVERSE);
-	wrefresh(feedwin->window);
+	if (index == view_sel) wattroff(win->window, A_REVERSE);
+	wrefresh(win->window);
 }
 
 static void
@@ -206,7 +204,7 @@ show_feeds(void)
 {
 	for (int i = view_min, j = 0; i < feed_count && i < view_max; ++i, ++j) {
 		feed_list[i].window = newwin(1, COLS, j, 0);
-		feed_expose(&feed_list[i], (i == view_sel));
+		feed_expose(i);
 	}
 }
 
@@ -223,7 +221,7 @@ hide_feeds(void)
 static void
 view_select(int i)
 {
-	int new_sel = i, j;
+	int new_sel = i, j, old_sel;
 
 	// perform boundary check
 	if (new_sel < 0) {
@@ -278,26 +276,28 @@ view_select(int i)
 			view_sel = new_sel;
 			show_feeds();
 		} else {
-			feed_expose(&feed_list[view_sel], 0);
+			old_sel = view_sel;
 			view_sel = new_sel;
-			feed_expose(&feed_list[view_sel], 1);
+			feed_expose(old_sel);
+			feed_expose(view_sel);
 		}
 	}
 }
 
 static void
-feed_reload(struct feed_window *feedwin)
+feed_reload(int index)
 {
-	status_write("[loading] %s", feed_image(feed_list[view_sel].feed));
-	struct string *buf = feed_download(feedwin->feed->feed_url->ptr);
+	struct feed_window *win = &feed_list[index];
+	status_write("[loading] %s", feed_image(win->feed));
+	struct string *buf = feed_download(win->feed->feed_url->ptr);
 	if (buf == NULL) return;
 	if (buf->ptr == NULL) { free(buf); return; }
-	if (feed_process(buf, feedwin->feed) == 0) {
+	if (feed_process(buf, win->feed) == 0) {
 		status_clean();
-		bool unread_status = is_feed_unread(feedwin->feed->feed_url);
-		if (feedwin->is_unread != unread_status) {
-			feedwin->is_unread = unread_status;
-			feed_expose(feedwin, 1);
+		bool unread_status = is_feed_unread(win->feed->feed_url);
+		if (win->is_unread != unread_status) {
+			win->is_unread = unread_status;
+			feed_expose(index);
 		}
 	}
 	free_string(&buf);
@@ -321,7 +321,7 @@ menu_feeds(void)
 		else if (ch == 'k' || ch == KEY_UP)                                     { view_select(view_sel - 1); }
 		else if (ch == 'l' || ch == KEY_RIGHT || ch == '\n' || ch == KEY_ENTER) { return MENU_ITEMS; }
 		else if (ch == config_key_soft_quit || ch == config_key_hard_quit)      { return MENU_QUIT; }
-		else if (ch == config_key_download)                                     { feed_reload(&feed_list[view_sel]); }
+		else if (ch == config_key_download)                                     { feed_reload(view_sel); }
 		else if (ch == config_key_download_all)                                 { feed_reload_all(); }
 		else if (ch == 'g' && input_wgetch() == 'g')                            { view_select(0); }
 		else if (ch == 'G')                                                     { view_select(feed_count - 1); }
@@ -367,12 +367,12 @@ run_feeds_menu(void)
 			status_cond = is_feed_unread(feed_list[view_sel].feed->feed_url);
 			if (status_cond != feed_list[view_sel].is_unread) {
 				feed_list[view_sel].is_unread = status_cond;
-				feed_expose(&feed_list[view_sel], 1);
+				feed_expose(view_sel);
 			}
 			status_cond = is_feed_marked(feed_list[view_sel].feed->feed_url);
 			if (status_cond != feed_list[view_sel].is_marked) {
 				feed_list[view_sel].is_marked = status_cond;
-				feed_expose(&feed_list[view_sel], 1);
+				feed_expose(view_sel);
 			}
 		} else if (dest == MENU_ITEMS_EMPTY) {
 			status_write("[empty] %s", feed_image(feed_list[view_sel].feed));

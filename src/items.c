@@ -33,7 +33,6 @@ load_item_list(void)
 				fprintf(stderr, "memory allocation for item entry failed\n"); break;
 			}
 			if (view_sel == -1) view_sel = item_index;
-			item_list[item_index].index = item_index;
 			if ((text = (char *)sqlite3_column_text(res, 0)) != NULL) {
 				make_string(&item_list[item_index].item->title, text, strlen(text));
 			}
@@ -66,22 +65,23 @@ item_image(struct item_entry *item) {
 }
 
 static void
-item_expose(struct item_window *itemwin, bool highlight)
+item_expose(int index)
 {
+	struct item_window *win = &item_list[index];
 	if (config_menu_show_number == true) {
-		mvwprintw(itemwin->window, 0, 0, "%3d", itemwin->index + 1);
-		mvwprintw(itemwin->window, 0, 5, itemwin->is_marked ? "M" : " ");
-		mvwprintw(itemwin->window, 0, 6, itemwin->is_unread ? "N" : " ");
-		if (highlight) wattron(itemwin->window, A_REVERSE);
-		mvwprintw(itemwin->window, 0, 9, "%s", item_image(itemwin->item));
+		mvwprintw(win->window, 0, 0, "%3d", index + 1);
+		mvwprintw(win->window, 0, 5, win->is_marked ? "M" : " ");
+		mvwprintw(win->window, 0, 6, win->is_unread ? "N" : " ");
+		if (index == view_sel) wattron(win->window, A_REVERSE);
+		mvwprintw(win->window, 0, 9, "%s", item_image(win->item));
 	} else {
-		mvwprintw(itemwin->window, 0, 2, itemwin->is_marked ? "M" : " ");
-		mvwprintw(itemwin->window, 0, 3, itemwin->is_unread ? "N" : " ");
-		if (highlight) wattron(itemwin->window, A_REVERSE);
-		mvwprintw(itemwin->window, 0, 6, "%s", item_image(itemwin->item));
+		mvwprintw(win->window, 0, 2, win->is_marked ? "M" : " ");
+		mvwprintw(win->window, 0, 3, win->is_unread ? "N" : " ");
+		if (index == view_sel) wattron(win->window, A_REVERSE);
+		mvwprintw(win->window, 0, 6, "%s", item_image(win->item));
 	}
-	if (highlight) wattroff(itemwin->window, A_REVERSE);
-	wrefresh(itemwin->window);
+	if (index == view_sel) wattroff(win->window, A_REVERSE);
+	wrefresh(win->window);
 }
 
 static void
@@ -89,7 +89,7 @@ show_items(void)
 {
 	for (int i = view_min, j = 0; i < item_count && i < view_max; ++i, ++j) {
 		item_list[i].window = newwin(1, COLS, j, 0);
-		item_expose(&item_list[i], (i == view_sel));
+		item_expose(i);
 	}
 }
 
@@ -125,7 +125,7 @@ free_items(void)
 static void
 view_select(int i)
 {
-	int new_sel = i;
+	int new_sel = i, old_sel;
 	if (new_sel < 0) {
 		new_sel = 0;
 	} else if (new_sel >= item_count) {
@@ -155,28 +155,31 @@ view_select(int i)
 			view_sel = new_sel;
 			show_items();
 		} else {
-			item_expose(&item_list[view_sel], 0);
+			old_sel = view_sel;
 			view_sel = new_sel;
-			item_expose(&item_list[view_sel], 1);
+			item_expose(old_sel);
+			item_expose(view_sel);
 		}
 	}
 }
 
 static void
-mark_item_marked(struct item_window *itemwin, bool value)
+mark_item_marked(int index, bool value)
 {
-	if (db_update_item_int(feed_url, itemwin->item, "marked", value)) {
-		itemwin->is_marked = value;
-		item_expose(itemwin, 1);
+	struct item_window *win = &item_list[index];
+	if (db_update_item_int(feed_url, win->item, "marked", value)) {
+		win->is_marked = value;
+		item_expose(index);
 	}
 }
 
 static void
-mark_item_unread(struct item_window *itemwin, bool value)
+mark_item_unread(int index, bool value)
 {
-	if (db_update_item_int(feed_url, itemwin->item, "unread", value)) {
-		itemwin->is_unread = value;
-		item_expose(itemwin, 1);
+	struct item_window *win = &item_list[index];
+	if (db_update_item_int(feed_url, win->item, "unread", value)) {
+		win->is_unread = value;
+		item_expose(index);
 	}
 }
 
@@ -191,10 +194,10 @@ menu_items(void)
 		else if (ch == 'k' || ch == KEY_UP)                                     { view_select(view_sel - 1); }
 		else if (ch == 'l' || ch == KEY_RIGHT || ch == '\n' || ch == KEY_ENTER) { return MENU_CONTENT; }
 		else if (ch == 'h' || ch == KEY_LEFT || ch == config_key_soft_quit)     { return MENU_FEEDS; }
-		else if (ch == config_key_mark_marked)                                  { mark_item_marked(&item_list[view_sel], true); }
-		else if (ch == config_key_mark_unmarked)                                { mark_item_marked(&item_list[view_sel], false); }
-		else if (ch == config_key_mark_read)                                    { mark_item_unread(&item_list[view_sel], false); }
-		else if (ch == config_key_mark_unread)                                  { mark_item_unread(&item_list[view_sel], true); }
+		else if (ch == config_key_mark_marked)                                  { mark_item_marked(view_sel, true); }
+		else if (ch == config_key_mark_unmarked)                                { mark_item_marked(view_sel, false); }
+		else if (ch == config_key_mark_read)                                    { mark_item_unread(view_sel, false); }
+		else if (ch == config_key_mark_unread)                                  { mark_item_unread(view_sel, true); }
 		else if (ch == config_key_hard_quit)                                    { return MENU_QUIT; }
 		else if (ch == 'G')                                                     { view_select(item_count - 1); }
 		else if (ch == 'g' && input_wgetch() == 'g')                            { view_select(0); }

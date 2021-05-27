@@ -46,7 +46,6 @@ struct feed_window {
 	bool is_marked;
 	bool is_unread;
 	WINDOW *window;
-	int64_t index;
 };
 
 struct item_entry {
@@ -60,7 +59,6 @@ struct item_window {
 	bool is_marked;
 	bool is_unread;
 	WINDOW *window;
-	int64_t index;
 };
 
 struct feed_parser_data {
@@ -167,7 +165,7 @@ int set_conf_dir_path(void);
 int set_data_dir_path(void);
 void free_conf_dir_path(void);
 void free_data_dir_path(void);
-char * get_config_file_path(char *file_name);
+char * get_conf_file_path(char *file_name);
 char * get_db_path(void);
 
 

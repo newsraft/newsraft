@@ -7,7 +7,6 @@
 #include <sqlite3.h>
 #include <time.h>
 #define MAXPATH 512
-#define INIT_PARSER_BUF_SIZE 10000
 #define LENGTH(A) (sizeof(A)/sizeof(*A))
 #define IS_WHITESPACE(A) (((A) == ' ') || ((A) == '\t') || ((A) == '\r') || ((A) == '\n'))
 

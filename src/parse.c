@@ -65,9 +65,9 @@ feed_process(struct string *buf, struct feed_entry *feed)
 
 	struct item_bucket new_bucket = {0};
 	struct feed_parser_data feed_data = {
-		.value     = malloc(sizeof(char) * INIT_PARSER_BUF_SIZE),
+		.value     = malloc(sizeof(char) * config_init_parser_buf_size),
 		.value_len = 0,
-		.value_lim = INIT_PARSER_BUF_SIZE,
+		.value_lim = config_init_parser_buf_size,
 		.depth     = 0,
 		.pos       = 0,
 		.prev_pos  = 0,

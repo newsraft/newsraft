@@ -3,6 +3,7 @@
 #include <stdint.h>
 
 int64_t config_max_items = 100;
+size_t config_init_parser_buf_size = 100000;
 
 bool config_menu_show_number = true;
 bool config_contents_show_feed = true;

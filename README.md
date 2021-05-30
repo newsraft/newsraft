@@ -1,16 +1,18 @@
 # feedeater
 
-simple feed reader for terminal (work in progress)
+feed reader for terminal
 
 ## Description
 
-Command line based application for reading feed channels in RSS & Atom formats. User interface is implemented in ncurses. Configuration is done through files.
+Terminal-based application for reading feed channels in various Web syndication formats. User interface is implemented in ncurses. Configuration is done through files.
 
-Project **non-goals** are:
+Project goals are:
 
-* support for third-party feed services
+* omit the support for bunch of "cloud"-based feed services
 
-* utilization of large number of libraries
+* utilize as few libraries as possible
+
+* for program this small, use a single programming language
 
 ## Dependencies
 

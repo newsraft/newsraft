@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <string.h>
 #include "feedeater.h"
-#include "namespaces/namespaces.h"
 
 static time_t
 parse_atom_10_time(char *value, size_t value_len)

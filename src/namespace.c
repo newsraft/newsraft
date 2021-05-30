@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <string.h>
 #include "feedeater.h"
-#include "namespaces/namespaces.h"
 
 struct {
 	const char *name;

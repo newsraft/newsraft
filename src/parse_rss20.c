@@ -8,7 +8,7 @@ process_element_start(void *userData, const XML_Char *name, const XML_Char **att
 	struct feed_parser_data *data = userData;
 	++(data->depth);
 
-	if (start_namespaced_tag(userData, name, atts) == 0) return;
+	if (process_namespaced_tag_start(userData, name, atts) == 0) return;
 
 	if      (strcmp(name, "item") == 0)          data->pos |= IN_ITEM_ELEMENT;
 	else if (strcmp(name, "title") == 0)         data->pos |= IN_TITLE_ELEMENT;
@@ -32,7 +32,7 @@ process_element_end(void *userData, const XML_Char *name)
 	--(data->depth);
 	value_strip_whitespace(data->value, &data->value_len);
 
-	if (end_namespaced_tag(userData, name) == 0) return;
+	if (process_namespaced_tag_end(userData, name) == 0) return;
 
 	if ((data->pos & IN_CHANNEL_ELEMENT) == 0) return;
 	if (strcmp(name, "item") == 0) {

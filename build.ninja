@@ -1,5 +1,5 @@
 # development gcc command
-cc = gcc -g -D_XOPEN_SOURCE=700 -fanalyzer -Wall -fdiagnostics-color=always -iquotesrc
+cc = gcc -Wall -g -fanalyzer -fdiagnostics-color=always -D_XOPEN_SOURCE=700 -DXML_NS -DXML_LARGE_SIZE -DXML_FMT_INT_MOD=\"ll\" -DXML_FMT_STR=\"s\" -UXML_UNICODE -UXML_UNICODE_WCHAR_T -iquotesrc
 # release gcc command
 #cc = gcc -D_XOPEN_SOURCE=700 -fdiagnostics-color=never -iquotesrc
 rule compile

@@ -72,15 +72,13 @@ item_expose(int index)
 		mvwprintw(win->window, 0, 0, "%3d", index + 1);
 		mvwprintw(win->window, 0, 5, win->is_marked ? "M" : " ");
 		mvwprintw(win->window, 0, 6, win->is_unread ? "N" : " ");
-		if (index == view_sel) wattron(win->window, A_REVERSE);
 		mvwprintw(win->window, 0, 9, "%s", item_image(win->item));
 	} else {
 		mvwprintw(win->window, 0, 2, win->is_marked ? "M" : " ");
 		mvwprintw(win->window, 0, 3, win->is_unread ? "N" : " ");
-		if (index == view_sel) wattron(win->window, A_REVERSE);
 		mvwprintw(win->window, 0, 6, "%s", item_image(win->item));
 	}
-	if (index == view_sel) wattroff(win->window, A_REVERSE);
+	mvwchgat(win->window, 0, 0, -1, (index == view_sel) ? A_REVERSE : A_NORMAL, 0, NULL);
 	wrefresh(win->window);
 }
 

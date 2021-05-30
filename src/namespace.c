@@ -37,7 +37,7 @@ get_tag_name(const XML_Char *name)
 }
 
 int
-start_namespaced_tag(void *userData, const XML_Char *name, const XML_Char **atts) {
+process_namespaced_tag_start(void *userData, const XML_Char *name, const XML_Char **atts) {
 	char *namespace = get_namespace(name);
 	if (namespace == NULL) return 1;
 	char *tag_name = get_tag_name(name);
@@ -52,7 +52,7 @@ start_namespaced_tag(void *userData, const XML_Char *name, const XML_Char **atts
 }
 
 int
-end_namespaced_tag(void *userData, const XML_Char *name) {
+process_namespaced_tag_end(void *userData, const XML_Char *name) {
 	char *namespace = get_namespace(name);
 	if (namespace == NULL) return 1;
 	char *tag_name = get_tag_name(name);

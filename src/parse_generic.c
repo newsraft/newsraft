@@ -1,22 +1,24 @@
 #include "feedeater.h"
 
+/* Generic parsing is based on processing namespaced tags.
+ * Thus if tag does belong to some namespace and feedeater recognizes it,
+ * it will be parsed by functions defined in namespaces directory. */
+
 static void XMLCALL
 process_element_start(void *userData, const XML_Char *name, const XML_Char **atts)
 {
-	/*(void)atts;*/
 	struct feed_parser_data *data = userData;
 	++(data->depth);
-	if (start_namespaced_tag(userData, name, atts) == 0) return;
+	process_namespaced_tag_start(userData, name, atts);
 }
 
 static void XMLCALL
 process_element_end(void *userData, const XML_Char *name)
 {
-	/*(void)name;*/
 	struct feed_parser_data *data = userData;
 	--(data->depth);
 	value_strip_whitespace(data->value, &data->value_len);
-	if (end_namespaced_tag(userData, name) == 0) return;
+	process_namespaced_tag_end(userData, name);
 }
 
 int

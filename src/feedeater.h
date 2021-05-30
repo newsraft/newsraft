@@ -4,31 +4,12 @@
 #include <stdbool.h>
 #include <inttypes.h>
 #include <expat.h>
-#include <wchar.h>
 #include <sqlite3.h>
 #include <time.h>
 #define MAXPATH 512
-#define INIT_PARSER_BUF_SIZE 1000
+#define INIT_PARSER_BUF_SIZE 10000
 #define LENGTH(A) (sizeof(A)/sizeof(*A))
 #define IS_WHITESPACE(A) (((A) == ' ') || ((A) == '\t') || ((A) == '\r') || ((A) == '\n'))
-#ifndef XML_LARGE_SIZE
-#define XML_LARGE_SIZE
-#endif
-#ifndef XML_UNICODE_WCHAR_T
-#define XML_UNICODE_WCHAR_T
-#endif
-#ifndef XML_FMT_INT_MOD
-#define XML_FMT_INT_MOD "ll"
-#endif
-#ifndef XML_FMT_INT_MOD
-#define XML_FMT_INT_MOD "l"
-#endif
-#ifndef XML_FMT_STR
-#define XML_FMT_STR "ls"
-#endif
-#ifndef XML_FMT_STR
-#define XML_FMT_STR "s"
-#endif
 
 struct string {
 	char *ptr;
@@ -176,8 +157,8 @@ int feed_process(struct string *buf, struct feed_entry *feed);
 time_t get_unix_epoch_time(char *format_str, char *date_str);
 int parse_generic(XML_Parser *parser, struct string *feed_url, struct feed_parser_data *feed_data);
 int parse_rss20(XML_Parser *parser, struct string *feed_url, struct feed_parser_data *feed_data);
-int start_namespaced_tag(void *userData, const XML_Char *name, const XML_Char **atts);
-int end_namespaced_tag(void *userData, const XML_Char *name);
+int process_namespaced_tag_start(void *userData, const XML_Char *name, const XML_Char **atts);
+int process_namespaced_tag_end(void *userData, const XML_Char *name);
 
 
 // files parsing utility functions (see config.c)

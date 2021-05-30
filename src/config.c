@@ -3,6 +3,7 @@
 #include <stdint.h>
 
 int64_t config_max_items = 100;
+
 bool config_menu_show_number = true;
 bool config_contents_show_feed = true;
 bool config_contents_show_title = true;
@@ -11,6 +12,7 @@ bool config_contents_show_category = false;
 bool config_contents_show_date = true;
 bool config_contents_show_url = true;
 bool config_contents_show_comments = false;
+
 char *config_contents_date_format = "%a, %d %b %Y %H:%M:%S %z";
 
 char config_key_mark_marked = 'b';

@@ -12,7 +12,7 @@ Project goals are:
 
 * utilize as few libraries as possible
 
-* for program this small, use a single programming language
+* use a single programming language
 
 ## Dependencies
 

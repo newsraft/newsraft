@@ -18,11 +18,11 @@ static int newlines;
 				cat_string_array(buf, A, (size_t)B); \
 				cat_string_array(buf, text, text_len); \
 				cat_string_char(buf, '\n'); \
-				++newlines; \
+				++pad_height; \
 			} \
 		} \
 	}
-static struct string *
+static WINDOW *
 cat_content(struct string *feed_url, struct item_entry *item)
 {
 	struct string *buf = create_string();
@@ -38,8 +38,7 @@ cat_content(struct string *feed_url, struct item_entry *item)
 	sqlite3_bind_text(res, 1, feed_url->ptr, feed_url->len, NULL);
 	sqlite3_bind_text(res, 2, item->guid->ptr, item->guid->len, NULL);
 	sqlite3_bind_text(res, 3, item->url->ptr, item->url->len, NULL);
-	rc = sqlite3_step(res);
-	if (rc != SQLITE_ROW) {
+	if (sqlite3_step(res) != SQLITE_ROW) {
 		debug_write(DBG_WARN, "could not find that item\n");
 		free_string(&buf);
 		sqlite3_finalize(res);
@@ -47,6 +46,7 @@ cat_content(struct string *feed_url, struct item_entry *item)
 	}
 	char *text;
 	size_t text_len;
+	int pad_height = 0;
 	TEXT_TAG_APPEND("Feed: ", 6, ITEM_COLUMN_FEED, config_contents_show_feed)
 	TEXT_TAG_APPEND("Title: ", 7, ITEM_COLUMN_TITLE, config_contents_show_title)
 	if (config_contents_show_date == true) {
@@ -58,6 +58,7 @@ cat_content(struct string *feed_url, struct item_entry *item)
 				cat_string_array(buf, "Date: ", (size_t)6);
 				cat_string_array(buf, time_str, strlen(time_str));
 				cat_string_char(buf, '\n');
+				++pad_height;
 			}
 		}
 	}
@@ -65,27 +66,59 @@ cat_content(struct string *feed_url, struct item_entry *item)
 	TEXT_TAG_APPEND("Category: ", 10, ITEM_COLUMN_CATEGORY, config_contents_show_category)
 	TEXT_TAG_APPEND("Comments: ", 10, ITEM_COLUMN_COMMENTS, config_contents_show_comments)
 	TEXT_TAG_APPEND("Link: ", 6, ITEM_COLUMN_URL, config_contents_show_url)
+	int32_t not_newline = 0;
 	if ((text = (char *)sqlite3_column_text(res, ITEM_COLUMN_CONTENT)) != NULL) {
 		cat_string_char(buf, '\n');
+		++pad_height;
 		text_len = strlen(text);
-		if (text_len != 0) cat_string_array(buf, text, text_len);
-	}
-	uint16_t not_newline = 0;
-	uint64_t i = 0;
-	while (i <= buf->len) {
-		if ((buf->ptr)[i++] == '\n') {
-			not_newline = 0;
-			++newlines;
-		} else {
-			++not_newline;
-			if (not_newline > COLS) {
-				not_newline = 0;
-				++newlines;
+		if (text_len != 0) {
+			cat_string_array(buf, text, text_len);
+			for (int i = 0; i < text_len; ++i) {
+				if (text[i] == '\n') {
+					not_newline = 0;
+					++pad_height;
+				} else if (not_newline > COLS) {
+					not_newline = 0;
+					++pad_height;
+				} else {
+					++not_newline;
+				}
 			}
 		}
 	}
+	WINDOW *pad = newpad(pad_height, COLS);
+	if (pad == NULL) {
+		debug_write(DBG_ERROR, "could not create pad window for item contents\n");
+		sqlite3_finalize(res);
+		free_string(&buf);
+		return NULL;
+	}
+	not_newline = 0;
+	char *iter = buf->ptr;
+	char *newline_char;
+	while (1) {
+		newline_char = strchr(iter, '\n');
+		if (newline_char != NULL) {
+			while (newline_char - iter > COLS) {
+				waddnstr(pad, iter, COLS);
+				wmove(pad, newlines++, 0);
+				iter += COLS;
+			}
+			waddnstr(pad, iter, newline_char - iter);
+			wmove(pad, newlines++, 0);
+			iter = newline_char + 1;
+		} else {
+			while (iter < buf->ptr + buf->len) {
+				waddnstr(pad, iter, COLS);
+				wmove(pad, newlines++, 0);
+				iter += COLS;
+			}
+			break;
+		}
+	}
 	sqlite3_finalize(res);
-	return buf;
+	free_string(&buf);
+	return pad;
 }
 
 static void
@@ -96,10 +129,9 @@ scroll_view(int offset)
 	if (new_view_min < 0) {
 		new_view_min = 0;
 		new_view_max = LINES - 1;
-	}
-	if (new_view_max >= newlines) {
+	} else if (new_view_max + 1 >= newlines) {
 		new_view_max = newlines - 1;
-		new_view_min = newlines - LINES;
+		new_view_min = new_view_max - LINES;
 	}
 	if (new_view_min != view_min && new_view_max != view_max) {
 		view_min = new_view_min;
@@ -124,7 +156,7 @@ static void
 scroll_view_bot(void)
 {
 	int new_view_max = newlines - 1;
-	int new_view_min = newlines - LINES;
+	int new_view_min = new_view_max - LINES;
 	if (new_view_min != view_min && new_view_max != view_max) {
 		view_min = new_view_min;
 		view_max = new_view_max;
@@ -168,27 +200,19 @@ menu_contents(void)
 int
 contents_menu(struct string *feed_url, struct item_entry *item)
 {
-	newlines = 0;
+	newlines = 1;
 	view_min = 0;
 	view_max = LINES - 1;
-	struct string *content = cat_content(feed_url, item);
-	if (content == NULL) {
+	window = cat_content(feed_url, item);
+	if (window == NULL) {
 		status_write("could not obtain contents of item");
-		return MENU_CONTENT_ERROR;
-	}
-	if (newlines == 0) {
-		status_write("this item seems empty");
-		free_string(&content);
 		return MENU_CONTENT_ERROR;
 	}
 	db_update_item_int(feed_url, item, "unread", 0);
 	hide_items();
 	clear();
 	refresh();
-	window = newpad(newlines, COLS);
-	waddstr(window, content->ptr);
-	free_string(&content);
-	prefresh(window, 0, 0, 0, 0, LINES - 2, COLS);
+	prefresh(window, view_min, 0, 0, 0, LINES - 2, COLS);
 	int contents_status = menu_contents();
 	delwin(window);
 	return contents_status;

@@ -15,7 +15,7 @@ input_create(void)
 		fprintf(stderr, "can't disable line buffering and erase/kill character-processing\n");
 		delwin(input_win);
 		return 1;
-	} 
+	}
 	if (curs_set(0) == ERR) { // try to hide cursor
 		debug_write(DBG_WARN, "can't hide cursor\n");
 	}

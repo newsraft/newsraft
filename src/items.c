@@ -188,17 +188,14 @@ menu_items(void)
 	char cmd[7];
 	while (1) {
 		ch = input_wgetch();
-		if      (ch == 'j' || ch == KEY_DOWN)                                   { view_select(view_sel + 1); }
-		else if (ch == 'k' || ch == KEY_UP)                                     { view_select(view_sel - 1); }
-		else if (ch == 'l' || ch == KEY_RIGHT || ch == '\n' || ch == KEY_ENTER) { return MENU_CONTENT; }
-		else if (ch == 'h' || ch == KEY_LEFT || ch == config_key_soft_quit)     { return MENU_FEEDS; }
-		else if (ch == config_key_mark_marked)                                  { mark_item_marked(view_sel, true); }
-		else if (ch == config_key_mark_unmarked)                                { mark_item_marked(view_sel, false); }
-		else if (ch == config_key_mark_read)                                    { mark_item_unread(view_sel, false); }
-		else if (ch == config_key_mark_unread)                                  { mark_item_unread(view_sel, true); }
-		else if (ch == config_key_hard_quit)                                    { return MENU_QUIT; }
-		else if (ch == 'G')                                                     { view_select(item_count - 1); }
-		else if (ch == 'g' && input_wgetch() == 'g')                            { view_select(0); }
+		if      (ch == 'j' || ch == KEY_DOWN)                            { view_select(view_sel + 1); }
+		else if (ch == 'k' || ch == KEY_UP)                              { view_select(view_sel - 1); }
+		else if (ch == config_key_mark_marked)                           { mark_item_marked(view_sel, true); }
+		else if (ch == config_key_mark_unmarked)                         { mark_item_marked(view_sel, false); }
+		else if (ch == config_key_mark_read)                             { mark_item_unread(view_sel, false); }
+		else if (ch == config_key_mark_unread)                           { mark_item_unread(view_sel, true); }
+		else if (ch == 'G' || ch == KEY_END)                             { view_select(item_count - 1); }
+		else if ((ch == 'g' && input_wgetch() == 'g') || ch == KEY_HOME) { view_select(0); }
 		else if (isdigit(ch)) {
 			q = 0;
 			while (1) {
@@ -218,6 +215,9 @@ menu_items(void)
 				}
 			}
 		} 
+		else if (ch == 'l' || ch == KEY_RIGHT || ch == '\n' || ch == KEY_ENTER) { return MENU_CONTENT; }
+		else if (ch == 'h' || ch == KEY_LEFT || ch == config_key_soft_quit)     { return MENU_FEEDS; }
+		else if (ch == config_key_hard_quit)                                    { return MENU_QUIT; }
 	}
 }
 

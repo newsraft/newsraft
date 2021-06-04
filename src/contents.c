@@ -171,12 +171,12 @@ menu_contents(void)
 	char cmd[7];
 	while (1) {
 		ch = input_wgetch();
-		if      (ch == 'j' || ch == KEY_DOWN)                               { scroll_view(1); }
-		else if (ch == 'k' || ch == KEY_UP)                                 { scroll_view(-1); }
-		else if (ch == 'h' || ch == KEY_LEFT || ch == config_key_soft_quit) { return MENU_ITEMS; }
-		else if (ch == 'g' && input_wgetch() == 'g')                        { scroll_view_top(); }
-		else if (ch == 'G')                                                 { scroll_view_bot(); }
-		else if (ch == config_key_hard_quit)                                { return MENU_QUIT; }
+		if      (ch == 'j' || ch == KEY_DOWN)                            { scroll_view(1); }
+		else if (ch == 'k' || ch == KEY_UP)                              { scroll_view(-1); }
+		else if (ch == KEY_NPAGE)                                        { scroll_view(LINES - 1); }
+		else if (ch == KEY_PPAGE)                                        { scroll_view(-LINES + 1); }
+		else if (ch == 'G' || ch == KEY_END)                             { scroll_view_bot(); }
+		else if ((ch == 'g' && input_wgetch() == 'g') || ch == KEY_HOME) { scroll_view_top(); }
 		else if (isdigit(ch)) {
 			q = 0;
 			while (1) {
@@ -194,6 +194,8 @@ menu_contents(void)
 				}
 			}
 		}
+		else if (ch == 'h' || ch == KEY_LEFT || ch == config_key_soft_quit) { return MENU_ITEMS; }
+		else if (ch == config_key_hard_quit)                                { return MENU_QUIT; }
 	}
 }
 

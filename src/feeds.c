@@ -7,10 +7,21 @@
 #include "config.h"
 
 static struct feed_window *feed_list;
+static int feed_count;
+static char **tag_list;
+static int tag_count;
+/*
+// example of the tag_list structure:
+char tag_list[][] = {
+	{"tag1_name", "feed1_url", "feed3_url", "feed4_url", NULL},
+	{"tag2_name", "feed11_url", NULL},
+	{"tag3_name", "feed16_url", "feed18_url", NULL},
+}
+int tag_count = 3;
+*/
 static int view_sel;
 static int view_min;
 static int view_max;
-static int feed_count;
 
 void
 free_feed_list(void)
@@ -84,6 +95,8 @@ load_feed_list(void)
 	char c, word[1000];
 	feed_list = NULL;
 	feed_count = 0;
+	tag_list = NULL;
+	tag_count = 0;
 	view_sel = -1;
 
 	while (1) {

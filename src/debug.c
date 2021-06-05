@@ -22,7 +22,9 @@ debug_init(char *path)
 void
 debug_write(enum debug_level lvl, char *format, ...)
 {
-	if (f == NULL) return;
+	if (f == NULL) {
+		return;
+	}
 	va_list args;
 	va_start(args, format);
 	switch (lvl) {
@@ -37,5 +39,8 @@ debug_write(enum debug_level lvl, char *format, ...)
 void
 debug_stop(void)
 {
-	if (f != NULL) fclose(f);
+	if (f == NULL) {
+		return;
+	}
+	fclose(f);
 }

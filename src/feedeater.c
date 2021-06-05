@@ -1,18 +1,22 @@
-#include <unistd.h>
-#include <stdlib.h>
 #include <stdio.h>
-#include "feedeater.h"
 #include <locale.h>
+#include <unistd.h>
+#include "feedeater.h"
+
 static void
 print_help(void)
 {
-	fprintf(stderr, "help!\n");
+	fprintf(stderr,
+	        "feedeater - feed reader for terminal\n"
+	        "-d PATH  write debug information to PATH\n"
+	        "-v       print version and exit\n"
+	        "-h       print this message and exit\n");
 }
 
 static void
 print_version(void)
 {
-	fprintf(stderr, "version!\n");
+	fprintf(stderr, "this is not even pre-alpha\n");
 }
 
 int

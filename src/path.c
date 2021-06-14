@@ -81,7 +81,7 @@ get_conf_file_path(char *file_name)
 {
 	char *path = malloc(MAXPATH * sizeof(char));
 	if (path == NULL) {
-		debug_write(DBG_ERROR, "failed to allocate memory for path to \"%s\" config file\n", file_name);
+		debug_write(DBG_ERR, "failed to allocate memory for path to \"%s\" config file\n", file_name);
 		return NULL;
 	}
 

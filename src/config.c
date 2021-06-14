@@ -55,9 +55,11 @@ find_chars(FILE *file, char *cur_char, char *list)
 	while (1) {
 		i = 0;
 		while (list[i] != '\0') {
-			if (*cur_char == list[i]) match = true;
+			if (*cur_char == list[i]) {
+				match = true;
+				break;
+			}
 			++i;
-			if (match == true) break;
 		}
 		if (match == true) {
 			break;

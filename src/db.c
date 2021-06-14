@@ -174,7 +174,7 @@ void
 db_update_feed_text(struct string *feed_url, char *column, char *data, size_t data_len)
 {
 	if (create_feed_entry(feed_url) == false) {
-		debug_write(DBG_ERROR, "could not create feed entry in database!\n");
+		debug_write(DBG_ERR, "could not create feed entry in database!\n");
 		return;
 	}
 	char *cmd = malloc(sizeof(char) * (37 + strlen(column)));
@@ -198,7 +198,7 @@ void
 db_update_feed_int64(struct string *feed_url, char *column, int64_t i)
 {
 	if (create_feed_entry(feed_url) == false) {
-		debug_write(DBG_ERROR, "could not create feed entry in database!\n");
+		debug_write(DBG_ERR, "could not create feed entry in database!\n");
 		return;
 	}
 	char *cmd = malloc(sizeof(char) * (37 + strlen(column)));

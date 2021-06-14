@@ -88,7 +88,7 @@ cat_content(struct string *feed_url, struct item_entry *item)
 	}
 	WINDOW *pad = newpad(pad_height, COLS);
 	if (pad == NULL) {
-		debug_write(DBG_ERROR, "could not create pad window for item contents\n");
+		debug_write(DBG_ERR, "could not create pad window for item contents\n");
 		sqlite3_finalize(res);
 		free_string(&buf);
 		return NULL;

@@ -15,14 +15,11 @@ struct string {
 	size_t len;
 };
 
-struct feed_entry {
-	struct string *name;
-	struct string *feed_url; // url of feed file
-	struct string *site_url; // url of resource site
-};
-
-struct feed_window {
-	struct feed_entry *feed;
+enum set_type { EMPTY_ENTRY, FEED_ENTRY, FILTER_ENTRY, DECORATION_ENTRY };
+struct set_line {
+	enum set_type type;
+	struct string *name; // what is displayed in menu
+	struct string *data; // url for feed, space-separated list of tags for filter, whatever for decoration
 	bool is_marked;
 	bool is_unread;
 	WINDOW *window;
@@ -116,16 +113,16 @@ enum xml_pos {
 enum debug_level {
 	DBG_OK = 0,
 	DBG_WARN = 1,
-	DBG_ERROR = 2,
+	DBG_ERR = 2,
 };
 
 
 // feeds
 
-int load_feed_list(void);  // load feeds information in memory
-void free_feed_list(void);
+int load_set_list(void);  // load feeds information in memory
+void free_set_list(void);
 int run_feeds_menu(void);
-void hide_feeds(void);
+void hide_sets(void);
 
 
 // items
@@ -152,7 +149,7 @@ char * get_db_path(void);
 // feed parsing
 void value_strip_whitespace(char *str, size_t *len);
 void XMLCALL store_xml_element_value(void *userData, const XML_Char *s, int s_len);
-int feed_process(struct string *buf, struct feed_entry *feed);
+int feed_process(struct string *buf, struct string *url);
 time_t get_unix_epoch_time(char *format_str, char *date_str);
 int parse_generic(XML_Parser *parser, struct string *feed_url, struct feed_parser_data *feed_data);
 int parse_rss20(XML_Parser *parser, struct string *feed_url, struct feed_parser_data *feed_data);

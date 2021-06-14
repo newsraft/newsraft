@@ -40,7 +40,7 @@ process_element_finish(void *userData, const XML_Char *name) {
 }
 
 int
-feed_process(struct string *buf, struct feed_entry *feed)
+feed_process(struct string *buf, struct string *url)
 {
 	XML_Parser parser = XML_ParserCreateNS(NULL, ':');
 	struct init_parser_data parser_data = {
@@ -54,12 +54,12 @@ feed_process(struct string *buf, struct feed_entry *feed)
 		/*status_write("%" XML_FMT_STR " at line %" XML_FMT_INT_MOD "u\n",*/
 								 /*XML_ErrorString(XML_GetErrorCode(parser)),*/
 								 /*XML_GetCurrentLineNumber(parser));*/
-		status_write("[invalid format] %s", feed->feed_url->ptr); // bad xml document
+		status_write("[invalid format] %s", url->ptr); // bad xml document
 		XML_ParserFree(parser);
 		return 1;
 	}
 	if (parser_data.parser_func == NULL) {
-		status_write("[unknown format] %s", feed->feed_url->ptr);
+		status_write("[unknown format] %s", url->ptr);
 		return 1;
 	}
 
@@ -71,15 +71,15 @@ feed_process(struct string *buf, struct feed_entry *feed)
 		.depth     = 0,
 		.pos       = 0,
 		.prev_pos  = 0,
-		.feed_url  = feed->feed_url,
+		.feed_url  = url,
 		.bucket    = &new_bucket
 	};
 	XML_SetUserData(parser, &feed_data);
-	int parsing_error = parser_data.parser_func(&parser, feed->feed_url, &feed_data);
+	int parsing_error = parser_data.parser_func(&parser, url, &feed_data);
 	free(feed_data.value);
 	XML_ParserFree(parser);
 	if (parsing_error != 0) {
-		/*status_write("[incorrect format] %s", feed->feed_url->ptr);*/
+		/*status_write("[incorrect format] %s", url->ptr);*/
 		return 1;
 	}
 

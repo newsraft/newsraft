@@ -234,7 +234,7 @@ run_items_menu(struct string *items_feed_url)
 	}
 	view_min = 0;
 	view_max = LINES - 1;
-	hide_feeds();
+	hide_sets();
 	clear();
 	refresh();
 	show_items();

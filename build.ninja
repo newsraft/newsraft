@@ -8,7 +8,7 @@ rule link
   command = $cc $in -o $out $arg
 
 build obj/feedeater.o:                  compile src/feedeater.c
-build obj/feeds.o:                      compile src/feeds.c
+build obj/sets.o:                       compile src/sets.c
 build obj/namespace.o:                  compile src/namespace.c
 build obj/status.o:                     compile src/status.c
 build obj/config.o:                     compile src/config.c
@@ -26,7 +26,7 @@ build obj/parse_rss20.o:                compile src/parse_rss20.c
 build obj/namespaces/atom_10.o:         compile src/namespaces/atom_10.c
 
 build feedeater: link obj/feedeater.o $
-                      obj/feeds.o $
+                      obj/sets.o $
                       obj/parse.o $
                       obj/namespace.o $
                       obj/status.o $

@@ -52,7 +52,7 @@ main (int argc, char **argv)
 	if (set_conf_dir_path() != 0) { error = 1; goto undo1; }
 	if (set_data_dir_path() != 0) { error = 2; goto undo2; }
 	if (db_init() != 0)           { error = 3; goto undo3; }
-	if (load_feed_list() != 0)    { error = 4; goto undo4; }
+	if (load_set_list() != 0)     { error = 4; goto undo4; }
 	if (initscr() == NULL)        { error = 5; goto undo5; }
 	if (status_create() != 0)     { error = 6; goto undo6; }
 	if (input_create() != 0)      { error = 7; goto undo7; }
@@ -63,7 +63,7 @@ undo7:
 undo6:
 	endwin();
 undo5:
-	free_feed_list();
+	free_set_list();
 undo4:
 	db_stop();
 undo3:

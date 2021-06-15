@@ -218,6 +218,44 @@ db_update_feed_int64(struct string *feed_url, char *column, int64_t i)
 	sqlite3_finalize(res);
 }
 
+bool
+is_feed_marked(struct string *url)
+{
+	if (url == NULL) return false;
+	bool is_marked = false;
+	sqlite3_stmt *res;
+	char cmd[] = "SELECT * FROM items WHERE feed = ? AND marked = ? LIMIT 1";
+	if (sqlite3_prepare_v2(db, cmd, -1, &res, 0) == SQLITE_OK) {
+		sqlite3_bind_text(res, 1, url->ptr, url->len, NULL);
+		sqlite3_bind_int(res, 2, 1);
+		// if something found (at least one item from feed with this url is marked), say feed is marked
+		if (sqlite3_step(res) == SQLITE_ROW) is_marked = true;
+	} else {
+		debug_write(DBG_ERR, "failed to prepare SELECT statement: %s\n", sqlite3_errmsg(db));
+	}
+	sqlite3_finalize(res);
+	return is_marked;
+}
+
+bool
+is_feed_unread(struct string *url)
+{
+	if (url == NULL) return false;
+	bool is_unread = false;
+	sqlite3_stmt *res;
+	char cmd[] = "SELECT * FROM items WHERE feed = ? AND unread = ? LIMIT 1";
+	if (sqlite3_prepare_v2(db, cmd, -1, &res, 0) == SQLITE_OK) {
+		sqlite3_bind_text(res, 1, url->ptr, url->len, NULL);
+		sqlite3_bind_int(res, 2, 1);
+		// if something found (at least one item from feed with this url is unread), say feed is unread
+		if (sqlite3_step(res) == SQLITE_ROW) is_unread = true;
+	} else {
+		debug_write(DBG_ERR, "failed to prepare SELECT statement: %s\n", sqlite3_errmsg(db));
+	}
+	sqlite3_finalize(res);
+	return is_unread;
+}
+
 void
 db_stop(void)
 {

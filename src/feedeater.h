@@ -15,7 +15,7 @@ struct string {
 	size_t len;
 };
 
-enum set_type { EMPTY_ENTRY, FEED_ENTRY, FILTER_ENTRY, DECORATION_ENTRY };
+enum set_type { EMPTY_ENTRY = 0, FEED_ENTRY, FILTER_ENTRY, DECORATION_ENTRY };
 struct set_line {
 	enum set_type type;
 	struct string *name; // what is displayed in menu
@@ -117,11 +117,9 @@ enum debug_level {
 };
 
 
-// feeds
-
-int load_set_list(void);  // load feeds information in memory
-void free_set_list(void);
-int run_feeds_menu(void);
+int load_sets(void);
+void free_sets(void);
+int run_sets_menu(void);
 void hide_sets(void);
 
 
@@ -169,6 +167,8 @@ void db_bind_string(sqlite3_stmt *s, int pos, struct string *str);
 int db_update_item_int(struct string *feed_url, struct item_entry *item, const char *state, int value);
 void db_update_feed_int64(struct string *feed_url, char *column, int64_t i);
 void db_update_feed_text(struct string *feed_url, char *column, char *data, size_t data_len);
+bool is_feed_marked(struct string *url);
+bool is_feed_unread(struct string *url);
 void db_stop(void);
 
 // functions related to window which displays informational messages (see status.c file)

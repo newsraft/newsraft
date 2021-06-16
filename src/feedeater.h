@@ -154,6 +154,10 @@ int parse_rss20(XML_Parser *parser, struct string *feed_url, struct feed_parser_
 int process_namespaced_tag_start(void *userData, const XML_Char *name, const XML_Char **atts);
 int process_namespaced_tag_end(void *userData, const XML_Char *name);
 
+// tags
+void tag_feed(char *tag_name, struct string *url);
+void free_tags(void);
+
 
 // files parsing utility functions (see config.c)
 

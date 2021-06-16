@@ -6,19 +6,8 @@
 #include "feedeater.h"
 #include "config.h"
 
-static struct set_line *sets;
-static int sets_count;
-static char **tags;
-static int tags_count;
-/*
-// example of the tags structure:
-char tags[][] = {
-	{"tag1_name", "feed1_url", "feed3_url", "feed4_url", NULL},
-	{"tag2_name", "feed11_url", NULL},
-	{"tag3_name", "feed16_url", "feed18_url", NULL},
-}
-int tags_count = 3;
-*/
+static struct set_line *sets = NULL;
+static int sets_count = 0;
 static int view_sel;
 static int view_min;
 static int view_max;
@@ -32,13 +21,7 @@ free_sets(void)
 		if (sets[i].data != NULL) free_string(&sets[i].data);
 	}
 	free(sets);
-}
-
-void
-tag_feed(char *tag, struct string *url)
-{
-	//under construction
-	debug_write(DBG_OK, "feed \"%s\" is tagged as \"%s\"\n", url->ptr, tag);
+	free_tags();
 }
 
 int
@@ -58,10 +41,6 @@ load_sets(void)
 
 	int set_index, error = 0, word_len;
 	char c, word[1000];
-	sets = NULL;
-	sets_count = 0;
-	tags = NULL;
-	tags_count = 0;
 	view_sel = -1;
 
 	while (1) {
@@ -93,8 +72,18 @@ load_sets(void)
 			make_string(&sets[set_index].name, word, word_len);
 		} else if (c == '!') {
 			sets[set_index].type = FILTER_ENTRY;
-			//under construction
-			printf("yo this is filter!\n");
+			sets[set_index].data = create_string();
+			while (c != '\n' && c != EOF) {
+				word_len = 0;
+				while (1) {
+					c = fgetc(f);
+					if (IS_WHITESPACE(c) || c == EOF) { word[word_len] = '\0'; break; }
+					word[word_len++] = c;
+				}
+				cat_string_array(sets[set_index].data, word, word_len);
+				cat_string_char(sets[set_index].data, ' ');
+				skip_chars(f, &c, " \t");
+			}
 		} else {
 			sets[set_index].type = FEED_ENTRY;
 			while (1) {

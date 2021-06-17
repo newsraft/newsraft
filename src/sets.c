@@ -146,6 +146,8 @@ load_sets(void)
 		return 1;
 	}
 
+	debug_tags_summary();
+
 	return 0; // success
 }
 
@@ -347,7 +349,7 @@ run_sets_menu(void)
 	int dest;
 	bool status_cond;
 	while ((dest = menu_feeds()) != MENU_QUIT) {
-		dest = run_items_menu(sets[view_sel].data);
+		dest = run_items_menu(create_set_statement(&sets[view_sel]));
 		if (dest == MENU_FEEDS) {
 			clear();
 			refresh();
@@ -364,6 +366,8 @@ run_sets_menu(void)
 			}
 		} else if (dest == MENU_ITEMS_EMPTY) {
 			status_write("[empty] %s", set_image(&sets[view_sel]));
+		} else if (dest == MENU_ITEMS_ERROR) {
+			status_write("[error] %s", set_image(&sets[view_sel]));
 		} else if (dest == MENU_QUIT) {
 			break;
 		}

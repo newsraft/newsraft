@@ -23,7 +23,7 @@ static int newlines;
 		} \
 	}
 static WINDOW *
-cat_content(struct string *feed_url, struct item_entry *item)
+cat_content(struct string *feed_url, struct item_entry *item_data)
 {
 	struct string *buf = create_string();
 	if (buf == NULL) return NULL;
@@ -36,8 +36,8 @@ cat_content(struct string *feed_url, struct item_entry *item)
 		return NULL;
 	}
 	sqlite3_bind_text(res, 1, feed_url->ptr, feed_url->len, NULL);
-	sqlite3_bind_text(res, 2, item->guid->ptr, item->guid->len, NULL);
-	sqlite3_bind_text(res, 3, item->url->ptr, item->url->len, NULL);
+	sqlite3_bind_text(res, 2, item_data->guid->ptr, item_data->guid->len, NULL);
+	sqlite3_bind_text(res, 3, item_data->url->ptr, item_data->url->len, NULL);
 	if (sqlite3_step(res) != SQLITE_ROW) {
 		debug_write(DBG_WARN, "could not find that item\n");
 		free_string(&buf);
@@ -200,17 +200,17 @@ menu_contents(void)
 }
 
 int
-contents_menu(struct string *feed_url, struct item_entry *item)
+contents_menu(struct item_line *item)
 {
 	newlines = 1;
 	view_min = 0;
 	view_max = LINES - 1;
-	window = cat_content(feed_url, item);
+	window = cat_content(item->feed_url, item->data);
 	if (window == NULL) {
 		status_write("could not obtain contents of item");
 		return MENU_CONTENT_ERROR;
 	}
-	db_update_item_int(feed_url, item, "unread", 0);
+	db_update_item_int(item->feed_url, item->data, "unread", 0);
 	hide_items();
 	clear();
 	refresh();

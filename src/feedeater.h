@@ -15,6 +15,12 @@ struct string {
 	size_t len;
 };
 
+struct set_statement {
+	struct string *db_cmd;
+	struct string **urls;
+	size_t urls_count;
+};
+
 enum set_type { EMPTY_ENTRY = 0, FEED_ENTRY, FILTER_ENTRY, DECORATION_ENTRY };
 struct set_line {
 	enum set_type type;
@@ -31,8 +37,9 @@ struct item_entry {
 	struct string *guid;
 };
 
-struct item_window {
-	struct item_entry *item;
+struct item_line {
+	struct item_entry *data;
+	struct string *feed_url;
 	bool is_marked;
 	bool is_unread;
 	WINDOW *window;
@@ -72,6 +79,7 @@ enum menu_dest {
 	MENU_FEEDS,
 	MENU_ITEMS,
 	MENU_ITEMS_EMPTY,
+	MENU_ITEMS_ERROR,
 	MENU_CONTENT,
 	MENU_CONTENT_ERROR,
 	MENU_QUIT,
@@ -111,9 +119,10 @@ enum xml_pos {
 };
 
 enum debug_level {
-	DBG_OK = 0,
-	DBG_WARN = 1,
-	DBG_ERR = 2,
+	DBG_INFO = 0,
+	DBG_OK = 1,
+	DBG_WARN = 2,
+	DBG_ERR = 3,
 };
 
 
@@ -125,14 +134,14 @@ void hide_sets(void);
 
 // items
 
-int run_items_menu(struct string *feed_url);
+int run_items_menu(struct set_statement *st);
 void hide_items(void);
 void reset_item_bucket(struct item_bucket *bucket);
 int try_item_bucket(struct item_bucket *bucket, struct string *feed_url);
 
 
 // contents
-int contents_menu(struct string *feed_url, struct item_entry *item);
+int contents_menu(struct item_line *item);
 
 
 // path
@@ -156,6 +165,8 @@ int process_namespaced_tag_end(void *userData, const XML_Char *name);
 
 // tags
 void tag_feed(char *tag_name, struct string *url);
+struct set_statement * create_set_statement(struct set_line *set);
+void debug_tags_summary(void);
 void free_tags(void);
 
 

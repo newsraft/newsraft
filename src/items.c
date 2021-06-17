@@ -7,58 +7,80 @@
 #include "feedeater.h"
 #include "config.h"
 
-static struct string *feed_url = NULL;
-static struct item_window *item_list = NULL;
+#define SELECT_CMD_PART_1 "SELECT feed, title, url, guid, marked, unread FROM items WHERE"
+#define SELECT_CMD_PART_3 " ORDER BY pubdate DESC"
+
+static struct item_line *item_list = NULL;
 static int item_count = 0;
 static int view_sel = -1;
 static int view_min;
 static int view_max;
 
 static int
-load_item_list(void)
+load_item_list(struct set_statement *st)
 {
-	int item_index;
+	int item_index, error = 0;
 	sqlite3_stmt *res;
-	char cmd[] = "SELECT title, url, guid, marked, unread FROM items WHERE feed = ? ORDER BY pubdate DESC", *text;
+	char *cmd, *text;
+	cmd = malloc(sizeof(SELECT_CMD_PART_1) + st->db_cmd->len + sizeof(SELECT_CMD_PART_3) + 1);
+	strcpy(cmd, SELECT_CMD_PART_1);
+	strcat(cmd, st->db_cmd->ptr);
+	strcat(cmd, SELECT_CMD_PART_3);
+	debug_write(DBG_INFO, "item SELECT statement command: %s\n", cmd);
 	int rc = sqlite3_prepare_v2(db, cmd, -1, &res, 0);
 	if (rc == SQLITE_OK) {
-		sqlite3_bind_text(res, 1, feed_url->ptr, feed_url->len, NULL);
+		for (size_t i = 0; i < st->urls_count; ++i) {
+			sqlite3_bind_text(res, i + 1, st->urls[i]->ptr, st->urls[i]->len, NULL);
+		}
 		while (1) {
 			rc = sqlite3_step(res);
 			if (rc != SQLITE_ROW) break;
 			item_index = item_count++;
-			item_list = realloc(item_list, sizeof(struct item_window) * item_count);
-			item_list[item_index].item = calloc(1, sizeof(struct item_entry));
-			if (item_list[item_index].item == NULL) {
-				fprintf(stderr, "memory allocation for item entry failed\n"); break;
+			item_list = realloc(item_list, sizeof(struct item_line) * item_count);
+			item_list[item_index].feed_url = NULL;
+			item_list[item_index].data = calloc(1, sizeof(struct item_entry));
+			if (item_list[item_index].data == NULL) {
+				debug_write(DBG_ERR, "memory allocation for item data failed\n");
+				error = 1;
+				break;
 			}
 			if (view_sel == -1) view_sel = item_index;
 			if ((text = (char *)sqlite3_column_text(res, 0)) != NULL) {
-				make_string(&item_list[item_index].item->title, text, strlen(text));
+				make_string(&item_list[item_index].feed_url, text, strlen(text));
 			}
 			if ((text = (char *)sqlite3_column_text(res, 1)) != NULL) {
-				make_string(&item_list[item_index].item->url, text, strlen(text));
+				make_string(&item_list[item_index].data->title, text, strlen(text));
 			}
 			if ((text = (char *)sqlite3_column_text(res, 2)) != NULL) {
-				make_string(&item_list[item_index].item->guid, text, strlen(text));
+				make_string(&item_list[item_index].data->url, text, strlen(text));
 			}
-			item_list[item_index].is_marked = sqlite3_column_int(res, 3);
-			item_list[item_index].is_unread = sqlite3_column_int(res, 4);
+			if ((text = (char *)sqlite3_column_text(res, 3)) != NULL) {
+				make_string(&item_list[item_index].data->guid, text, strlen(text));
+			}
+			item_list[item_index].is_marked = sqlite3_column_int(res, 4);
+			item_list[item_index].is_unread = sqlite3_column_int(res, 5);
 		}
 	} else {
-		fprintf(stderr, "failed to prepare SELECT statement: %s\n", sqlite3_errmsg(db));
+		debug_write(DBG_ERR, "failed to prepare SELECT statement: %s\n", sqlite3_errmsg(db));
+		error = 1;
 	}
 	sqlite3_finalize(res);
-	if (view_sel == -1) return MENU_ITEMS_EMPTY; // no items found
+	free(cmd);
+	if (error == 1) {
+		return MENU_ITEMS_ERROR;
+	}
+	if (view_sel == -1) {
+		return MENU_ITEMS_EMPTY; // no items found
+	}
 	return MENU_ITEMS;
 }
 
 // return most sensible string for item title
 static char *
-item_image(struct item_entry *item) {
-	if (item != NULL) {
-		if (item->title != NULL) {
-			return item->title->ptr;
+item_image(struct item_entry *item_data) {
+	if (item_data != NULL) {
+		if (item_data->title != NULL) {
+			return item_data->title->ptr;
 		}
 	}
 	return "untitled";
@@ -67,19 +89,19 @@ item_image(struct item_entry *item) {
 static void
 item_expose(int index)
 {
-	struct item_window *win = &item_list[index];
+	struct item_line *item = &item_list[index];
 	if (config_menu_show_number == true) {
-		mvwprintw(win->window, 0, 0, "%3d", index + 1);
-		mvwprintw(win->window, 0, 5, win->is_marked ? "M" : " ");
-		mvwprintw(win->window, 0, 6, win->is_unread ? "N" : " ");
-		mvwprintw(win->window, 0, 9, "%s", item_image(win->item));
+		mvwprintw(item->window, 0, 0, "%3d", index + 1);
+		mvwprintw(item->window, 0, 5, item->is_marked ? "M" : " ");
+		mvwprintw(item->window, 0, 6, item->is_unread ? "N" : " ");
+		mvwprintw(item->window, 0, 9, "%s", item_image(item->data));
 	} else {
-		mvwprintw(win->window, 0, 2, win->is_marked ? "M" : " ");
-		mvwprintw(win->window, 0, 3, win->is_unread ? "N" : " ");
-		mvwprintw(win->window, 0, 6, "%s", item_image(win->item));
+		mvwprintw(item->window, 0, 2, item->is_marked ? "M" : " ");
+		mvwprintw(item->window, 0, 3, item->is_unread ? "N" : " ");
+		mvwprintw(item->window, 0, 6, "%s", item_image(item->data));
 	}
-	mvwchgat(win->window, 0, 0, -1, (index == view_sel) ? A_REVERSE : A_NORMAL, 0, NULL);
-	wrefresh(win->window);
+	mvwchgat(item->window, 0, 0, -1, (index == view_sel) ? A_REVERSE : A_NORMAL, 0, NULL);
+	wrefresh(item->window);
 }
 
 static void
@@ -106,14 +128,14 @@ free_items(void)
 {
 	if (item_list == NULL) return;
 	for (int i = 0; i < item_count; ++i) {
-		if (item_list[i].item != NULL) {
-			if (item_list[i].item->title != NULL) free_string(&item_list[i].item->title);
-			if (item_list[i].item->url != NULL) free_string(&item_list[i].item->url);
-			if (item_list[i].item->guid != NULL) free_string(&item_list[i].item->guid);
-			free(item_list[i].item);
+		if (item_list[i].data != NULL) {
+			if (item_list[i].feed_url != NULL) free_string(&item_list[i].feed_url);
+			if (item_list[i].data->title != NULL) free_string(&item_list[i].data->title);
+			if (item_list[i].data->url != NULL) free_string(&item_list[i].data->url);
+			if (item_list[i].data->guid != NULL) free_string(&item_list[i].data->guid);
+			free(item_list[i].data);
 		}
 	}
-	feed_url = NULL;
 	view_sel = -1;
 	item_count = 0;
 	free(item_list);
@@ -164,9 +186,9 @@ view_select(int i)
 static void
 mark_item_marked(int index, bool value)
 {
-	struct item_window *win = &item_list[index];
-	if (db_update_item_int(feed_url, win->item, "marked", value)) {
-		win->is_marked = value;
+	struct item_line *item = &item_list[index];
+	if (db_update_item_int(item->feed_url, item->data, "marked", value)) {
+		item->is_marked = value;
 		item_expose(index);
 	}
 }
@@ -174,9 +196,9 @@ mark_item_marked(int index, bool value)
 static void
 mark_item_unread(int index, bool value)
 {
-	struct item_window *win = &item_list[index];
-	if (db_update_item_int(feed_url, win->item, "unread", value)) {
-		win->is_unread = value;
+	struct item_line *item = &item_list[index];
+	if (db_update_item_int(item->feed_url, item->data, "unread", value)) {
+		item->is_unread = value;
 		item_expose(index);
 	}
 }
@@ -222,12 +244,14 @@ menu_items(void)
 }
 
 int
-run_items_menu(struct string *items_feed_url)
+run_items_menu(struct set_statement *st)
 {
 	if (item_list == NULL) {
-		feed_url = items_feed_url;
-		int load_status = load_item_list();
+		int load_status = load_item_list(st);
 		if (load_status != MENU_ITEMS) {
+			free_string(&st->db_cmd);
+			free(st->urls);
+			free(st);
 			free_items();
 			return load_status;
 		}
@@ -242,7 +266,7 @@ run_items_menu(struct string *items_feed_url)
 	int dest;
 	while ((dest = menu_items()) != MENU_QUIT) {
 		if (dest == MENU_CONTENT) {
-			dest = contents_menu(feed_url, item_list[view_sel].item);
+			dest = contents_menu(&item_list[view_sel]);
 			if (dest == MENU_QUIT) {
 				break;
 			} else if (dest == MENU_ITEMS) {
@@ -256,7 +280,9 @@ run_items_menu(struct string *items_feed_url)
 			break;
 		}
 	}
-
+	free_string(&st->db_cmd);
+	free(st->urls);
+	free(st);
 	free_items();
 	return dest;
 }

@@ -1,31 +1,30 @@
-http://feed1.org
+http://example.org/feed1.xml
 # lines with # at start are comments
-#I Can TYpe HeRe whAtEveR i WAnT
-http://feed2.com/feed
-https://feed3.ru/feed
-http://feed4.net/feed
-http://feed5.co/feed
+#I CaN TyPe hErE WhAtEvEr i wAnT
+http://example.org/feed2.xml
+http://example.org/feed3.xml
 # text inside double quotes after the feed url is a custom feed name
-https://feed6.net/feed "My GNU/Linux distribution news"
-http://feed7.sh/feed
-http://feed8.com/feed
-http://feed9.org/feed
-https://feed10.net/feed
-# lines with @ at start are decorations (you can see them in menu, but can't select)
-@[podcasts]
-https://feed11.net/feed
-https://feed12.net/feed
-# you can use any amount of spaces (and tabs) to align fields nicely (or the ugly way)
-      https://feed13.net/feed             "Politics rambling"
-https://feed14withlonglongdomain.net/feed "Local weather report"
-  https://feed15withshortdomain.net/feed  "My city news"
-      # this also works for comments
-          @ and for decorations too
-https://feed16.net/feed
-https://feed17.net/feed
-https://feed18.net/feed
-https://feed19.net/feed
+# when specified, custom feed names are displayed instead of feed url
+http://example.org/feed4.xml "My GNU/Linux distribution news"
+# lines with @ at start are decorations
+# you can see them in menu, but can't select
+@ [podcasts]
+http://example.org/feed5.xml "Weekly Tech Digest"
+http://example.org/feed6.xml
+# you can tag your feeds so they can be accessed with filters
+# tag is a word of latin alphabet characters, digits and underscores
+# using other symbols may lead to errors
+http://example.org/feed7.xml cooking podcast spanish
+http://example.org/feed8.xml "News Broadcasts" local_news podcast
+http://example.org/feed9.xml "Weather" podcast
 @
-@> feeds i like the least :-(
-https://feed20.net/feed
-https://feed21.net/feed
+@ > filters <
+# to define a filter use ! at start of the line
+# note that filters can be specified in every position of file
+# it is placed here for educational goals, but you can
+# place all your filters to the top of file and use it perfectly fine
+!cooking
+# you can use logical operators ("&" - and, "|" - or) in filters
+# also round brackets ("(" and ")") are available. consider that every non-tag value
+# like logical operator or bracket has to be its own word, i. e. space separated
+!podcast & ( local_news | cooking )

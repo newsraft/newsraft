@@ -10,15 +10,15 @@
 #define SELECT_CMD_PART_1 "SELECT feed, title, url, guid, marked, unread FROM items WHERE"
 #define SELECT_CMD_PART_3 " ORDER BY pubdate DESC"
 
-static struct item_line *item_list = NULL;
-static size_t item_count = 0;
+static struct item_line *items = NULL;
+static size_t items_count = 0;
 static size_t view_sel;
 // [view_min; view_max] is index range of displayed items
 static size_t view_min;
 static size_t view_max;
 
 static int
-load_item_list(struct set_statement *st)
+load_items(struct set_statement *st)
 {
 	size_t item_index;
 	int error = 0;
@@ -38,30 +38,30 @@ load_item_list(struct set_statement *st)
 		while (1) {
 			rc = sqlite3_step(res);
 			if (rc != SQLITE_ROW) break;
-			item_index = item_count++;
-			item_list = realloc(item_list, sizeof(struct item_line) * item_count);
-			item_list[item_index].feed_url = NULL;
-			item_list[item_index].data = calloc(1, sizeof(struct item_entry));
-			if (item_list[item_index].data == NULL) {
+			item_index = items_count++;
+			items = realloc(items, sizeof(struct item_line) * items_count);
+			items[item_index].feed_url = NULL;
+			items[item_index].data = calloc(1, sizeof(struct item_entry));
+			if (items[item_index].data == NULL) {
 				debug_write(DBG_ERR, "memory allocation for item data failed\n");
 				error = 1;
 				break;
 			}
 			if (view_sel == SIZE_MAX) view_sel = item_index;
 			if ((text = (char *)sqlite3_column_text(res, 0)) != NULL) {
-				make_string(&item_list[item_index].feed_url, text, strlen(text));
+				make_string(&items[item_index].feed_url, text, strlen(text));
 			}
 			if ((text = (char *)sqlite3_column_text(res, 1)) != NULL) {
-				make_string(&item_list[item_index].data->title, text, strlen(text));
+				make_string(&items[item_index].data->title, text, strlen(text));
 			}
 			if ((text = (char *)sqlite3_column_text(res, 2)) != NULL) {
-				make_string(&item_list[item_index].data->url, text, strlen(text));
+				make_string(&items[item_index].data->url, text, strlen(text));
 			}
 			if ((text = (char *)sqlite3_column_text(res, 3)) != NULL) {
-				make_string(&item_list[item_index].data->guid, text, strlen(text));
+				make_string(&items[item_index].data->guid, text, strlen(text));
 			}
-			item_list[item_index].is_marked = sqlite3_column_int(res, 4);
-			item_list[item_index].is_unread = sqlite3_column_int(res, 5);
+			items[item_index].is_marked = sqlite3_column_int(res, 4);
+			items[item_index].is_unread = sqlite3_column_int(res, 5);
 		}
 	} else {
 		debug_write(DBG_ERR, "failed to prepare SELECT statement: %s\n", sqlite3_errmsg(db));
@@ -92,7 +92,7 @@ item_image(struct item_entry *item_data) {
 static void
 item_expose(size_t index)
 {
-	struct item_line *item = &item_list[index];
+	struct item_line *item = &items[index];
 	if (config_menu_show_number == true) {
 		mvwprintw(item->window, 0, 0, "%3d", index + 1);
 		mvwprintw(item->window, 0, 5, item->is_marked ? "M" : " ");
@@ -110,8 +110,8 @@ item_expose(size_t index)
 static void
 show_items(void)
 {
-	for (size_t i = view_min, j = 0; i < item_count && i <= view_max; ++i, ++j) {
-		item_list[i].window = newwin(1, COLS, j, 0);
+	for (size_t i = view_min, j = 0; i < items_count && i <= view_max; ++i, ++j) {
+		items[i].window = newwin(1, COLS, j, 0);
 		item_expose(i);
 	}
 }
@@ -119,9 +119,9 @@ show_items(void)
 void
 hide_items(void)
 {
-	for (size_t i = view_min; i < item_count && i <= view_max; ++i) {
-		if (item_list[i].window != NULL) {
-			delwin(item_list[i].window);
+	for (size_t i = view_min; i < items_count && i <= view_max; ++i) {
+		if (items[i].window != NULL) {
+			delwin(items[i].window);
 		}
 	}
 }
@@ -129,19 +129,19 @@ hide_items(void)
 static void
 free_items(void)
 {
-	if (item_list == NULL) return;
-	for (size_t i = 0; i < item_count; ++i) {
-		if (item_list[i].data != NULL) {
-			if (item_list[i].feed_url != NULL) free_string(&item_list[i].feed_url);
-			if (item_list[i].data->title != NULL) free_string(&item_list[i].data->title);
-			if (item_list[i].data->url != NULL) free_string(&item_list[i].data->url);
-			if (item_list[i].data->guid != NULL) free_string(&item_list[i].data->guid);
-			free(item_list[i].data);
+	if (items == NULL) return;
+	for (size_t i = 0; i < items_count; ++i) {
+		if (items[i].data != NULL) {
+			if (items[i].feed_url != NULL) free_string(&items[i].feed_url);
+			if (items[i].data->title != NULL) free_string(&items[i].data->title);
+			if (items[i].data->url != NULL) free_string(&items[i].data->url);
+			if (items[i].data->guid != NULL) free_string(&items[i].data->guid);
+			free(items[i].data);
 		}
 	}
-	item_count = 0;
-	free(item_list);
-	item_list = NULL;
+	items_count = 0;
+	free(items);
+	items = NULL;
 }
 
 static void
@@ -150,12 +150,12 @@ view_select(size_t i)
 	size_t new_sel = i;
 
 	// perform boundary check
-	if (new_sel >= item_count) {
-		if (item_count == 0) return;
-		new_sel = item_count - 1;
+	if (new_sel >= items_count) {
+		if (items_count == 0) return;
+		new_sel = items_count - 1;
 	}
 
-	if (item_list[new_sel].data != NULL && new_sel != view_sel) {
+	if (items[new_sel].data != NULL && new_sel != view_sel) {
 		if (new_sel > view_max) {
 			hide_items();
 			view_min = new_sel - LINES + 2;
@@ -180,7 +180,7 @@ view_select(size_t i)
 static void
 mark_item_marked(size_t index, bool value)
 {
-	struct item_line *item = &item_list[index];
+	struct item_line *item = &items[index];
 	if (db_update_item_int(item->feed_url, item->data, "marked", value)) {
 		item->is_marked = value;
 		item_expose(index);
@@ -190,7 +190,7 @@ mark_item_marked(size_t index, bool value)
 static void
 mark_item_unread(size_t index, bool value)
 {
-	struct item_line *item = &item_list[index];
+	struct item_line *item = &items[index];
 	if (db_update_item_int(item->feed_url, item->data, "unread", value)) {
 		item->is_unread = value;
 		item_expose(index);
@@ -210,7 +210,7 @@ menu_items(void)
 		else if (ch == config_key_mark_unmarked)                         { mark_item_marked(view_sel, false); }
 		else if (ch == config_key_mark_read)                             { mark_item_unread(view_sel, false); }
 		else if (ch == config_key_mark_unread)                           { mark_item_unread(view_sel, true); }
-		else if ((ch == 'G' || ch == KEY_END) && (item_count != 0))      { view_select(item_count - 1); }
+		else if ((ch == 'G' || ch == KEY_END) && (items_count != 0))     { view_select(items_count - 1); }
 		else if ((ch == 'g' && input_wgetch() == 'g') || ch == KEY_HOME) { view_select(0); }
 		else if (isdigit(ch)) {
 			q = 0;
@@ -241,8 +241,8 @@ menu_items(void)
 int
 run_items_menu(struct set_statement *st)
 {
-	if (item_list == NULL) {
-		int load_status = load_item_list(st);
+	if (items == NULL) {
+		int load_status = load_items(st);
 		if (load_status != MENU_ITEMS) {
 			free_string(&st->db_cmd);
 			free(st->urls);
@@ -261,11 +261,11 @@ run_items_menu(struct set_statement *st)
 	int dest;
 	while ((dest = menu_items()) != MENU_QUIT) {
 		if (dest == MENU_CONTENT) {
-			dest = contents_menu(&item_list[view_sel]);
+			dest = contents_menu(&items[view_sel]);
 			if (dest == MENU_QUIT) {
 				break;
 			} else if (dest == MENU_ITEMS) {
-				item_list[view_sel].is_unread = false;
+				items[view_sel].is_unread = false;
 				clear();
 				refresh();
 				show_items();

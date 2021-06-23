@@ -7,21 +7,22 @@
 #include "config.h"
 
 static struct set_line *sets = NULL;
-static int sets_count = 0;
-static int view_sel;
-static int view_min;
-static int view_max;
+static ssize_t sets_count = 0;
+static ssize_t view_sel;
+// [view_min; view_max] is index range of displayed sets
+static ssize_t view_min;
+static ssize_t view_max;
 
 void
 free_sets(void)
 {
+	free_tags();
 	if (sets == NULL) return;
-	for (int i = 0; i < sets_count; ++i) {
+	for (ssize_t i = 0; i < sets_count; ++i) {
 		if (sets[i].name != NULL) free_string(&sets[i].name);
 		if (sets[i].data != NULL) free_string(&sets[i].data);
 	}
 	free(sets);
-	free_tags();
 }
 
 int
@@ -39,7 +40,8 @@ load_sets(void)
 		return 1;
 	}
 
-	int set_index, error = 0, word_len;
+	ssize_t set_index;
+	int error = 0, word_len;
 	char c, word[1000];
 	view_sel = -1;
 
@@ -167,27 +169,27 @@ set_image(struct set_line *set)
 }
 
 static void
-set_expose(int index)
+set_expose(ssize_t index)
 {
-	struct set_line *win = &sets[index];
+	struct set_line *set = &sets[index];
 	if (config_menu_show_number == true) {
-		if (win->data != NULL) mvwprintw(win->window, 0, 0, "%3d", index + 1);
-		mvwprintw(win->window, 0, 5, win->is_marked ? "M" : " ");
-		mvwprintw(win->window, 0, 6, win->is_unread ? "N" : " ");
-		mvwprintw(win->window, 0, 9, "%s", set_image(win));
+		if (set->data != NULL) mvwprintw(set->window, 0, 0, "%3d", index + 1);
+		mvwprintw(set->window, 0, 5, set->is_marked ? "M" : " ");
+		mvwprintw(set->window, 0, 6, set->is_unread ? "N" : " ");
+		mvwprintw(set->window, 0, 9, "%s", set_image(set));
 	} else {
-		mvwprintw(win->window, 0, 2, win->is_marked ? "M" : " ");
-		mvwprintw(win->window, 0, 3, win->is_unread ? "N" : " ");
-		mvwprintw(win->window, 0, 6, "%s", set_image(win));
+		mvwprintw(set->window, 0, 2, set->is_marked ? "M" : " ");
+		mvwprintw(set->window, 0, 3, set->is_unread ? "N" : " ");
+		mvwprintw(set->window, 0, 6, "%s", set_image(set));
 	}
-	mvwchgat(win->window, 0, 0, -1, (index == view_sel) ? A_REVERSE : A_NORMAL, 0, NULL);
-	wrefresh(win->window);
+	mvwchgat(set->window, 0, 0, -1, (index == view_sel) ? A_REVERSE : A_NORMAL, 0, NULL);
+	wrefresh(set->window);
 }
 
 static void
 show_sets(void)
 {
-	for (int i = view_min, j = 0; i < sets_count && i < view_max; ++i, ++j) {
+	for (ssize_t i = view_min, j = 0; i < sets_count && i <= view_max; ++i, ++j) {
 		sets[i].window = newwin(1, COLS, j, 0);
 		set_expose(i);
 	}
@@ -196,7 +198,7 @@ show_sets(void)
 void
 hide_sets(void)
 {
-	for (int i = view_min; i < sets_count && i < view_max; ++i) {
+	for (ssize_t i = view_min; i < sets_count && i <= view_max; ++i) {
 		if (sets[i].window != NULL) {
 			delwin(sets[i].window);
 		}
@@ -204,9 +206,9 @@ hide_sets(void)
 }
 
 static void
-view_select(int i)
+view_select(ssize_t i)
 {
-	int new_sel = i, j, old_sel;
+	ssize_t new_sel = i;
 
 	// perform boundary check
 	if (new_sel < 0) {
@@ -218,6 +220,7 @@ view_select(int i)
 
 	// skip decorations
 	if (sets[new_sel].data == NULL) {
+		ssize_t j;
 		if (new_sel > view_sel) {
 			for (j = new_sel + 1; (j < sets_count) && (sets[j].data == NULL); ++j);
 			if (j < sets_count) {
@@ -240,28 +243,20 @@ view_select(int i)
 	}
 
 	if (sets[new_sel].data != NULL && new_sel != view_sel) {
-		if (new_sel >= view_max) {
+		if (new_sel > view_max) {
 			hide_sets();
-			view_min += new_sel - view_sel;
-			view_max += new_sel - view_sel;
-			if (view_max > sets_count) {
-				view_max = sets_count;
-				view_min = view_max - LINES + 1;
-			}
+			view_min = new_sel - LINES + 2;
+			view_max = new_sel;
 			view_sel = new_sel;
 			show_sets();
 		} else if (new_sel < view_min) {
 			hide_sets();
-			view_min -= view_sel - new_sel;
-			view_max -= view_sel - new_sel;
-			if (view_min < 0) {
-				view_min = 0;
-				view_max = LINES - 1;
-			}
+			view_min = new_sel;
+			view_max = new_sel + LINES - 2;
 			view_sel = new_sel;
 			show_sets();
 		} else {
-			old_sel = view_sel;
+			ssize_t old_sel = view_sel;
 			view_sel = new_sel;
 			set_expose(old_sel);
 			set_expose(view_sel);
@@ -270,7 +265,7 @@ view_select(int i)
 }
 
 static void
-set_reload(int index)
+set_reload(ssize_t index)
 {
 	struct set_line *set = &sets[index];
 	if (set->type == FEED_ENTRY) {
@@ -289,7 +284,7 @@ set_reload(int index)
 		free_string(&buf);
 	} else if (set->type == FILTER_ENTRY) {
 		//under construction
-		printf("yo reloading filter!\n");
+		status_write("[under construction] can't reload filter");
 	}
 }
 
@@ -341,7 +336,7 @@ int
 run_sets_menu(void)
 {
 	view_min = 0;
-	view_max = LINES - 1;
+	view_max = LINES - 2;
 	clear();
 	refresh();
 	show_sets();

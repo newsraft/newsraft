@@ -7,18 +7,18 @@
 #include "config.h"
 
 static struct set_line *sets = NULL;
-static ssize_t sets_count = 0;
-static ssize_t view_sel;
+static size_t sets_count = 0;
+static size_t view_sel;
 // [view_min; view_max] is index range of displayed sets
-static ssize_t view_min;
-static ssize_t view_max;
+static size_t view_min;
+static size_t view_max;
 
 void
 free_sets(void)
 {
 	free_tags();
 	if (sets == NULL) return;
-	for (ssize_t i = 0; i < sets_count; ++i) {
+	for (size_t i = 0; i < sets_count; ++i) {
 		if (sets[i].name != NULL) free_string(&sets[i].name);
 		if (sets[i].data != NULL) free_string(&sets[i].data);
 	}
@@ -40,10 +40,10 @@ load_sets(void)
 		return 1;
 	}
 
-	ssize_t set_index;
+	size_t set_index;
 	int error = 0, word_len;
 	char c, word[1000];
-	view_sel = -1;
+	view_sel = SIZE_MAX;
 
 	while (1) {
 		// get first character of the line
@@ -142,7 +142,7 @@ load_sets(void)
 		}
 	}
 
-	if (view_sel == -1) {
+	if (view_sel == SIZE_MAX) {
 		fprintf(stderr, "none of feeds loaded!\n");
 		free_sets();
 		return 1;
@@ -169,7 +169,7 @@ set_image(struct set_line *set)
 }
 
 static void
-set_expose(ssize_t index)
+set_expose(size_t index)
 {
 	struct set_line *set = &sets[index];
 	if (config_menu_show_number == true) {
@@ -189,7 +189,7 @@ set_expose(ssize_t index)
 static void
 show_sets(void)
 {
-	for (ssize_t i = view_min, j = 0; i < sets_count && i <= view_max; ++i, ++j) {
+	for (size_t i = view_min, j = 0; i < sets_count && i <= view_max; ++i, ++j) {
 		sets[i].window = newwin(1, COLS, j, 0);
 		set_expose(i);
 	}
@@ -198,7 +198,7 @@ show_sets(void)
 void
 hide_sets(void)
 {
-	for (ssize_t i = view_min; i < sets_count && i <= view_max; ++i) {
+	for (size_t i = view_min; i < sets_count && i <= view_max; ++i) {
 		if (sets[i].window != NULL) {
 			delwin(sets[i].window);
 		}
@@ -206,40 +206,36 @@ hide_sets(void)
 }
 
 static void
-view_select(ssize_t i)
+view_select(size_t i)
 {
-	ssize_t new_sel = i;
+	size_t new_sel = i;
 
 	// perform boundary check
-	if (new_sel < 0) {
-		new_sel = 0;
-	} else if (new_sel >= sets_count) {
+	if (new_sel >= sets_count) {
+		if (sets_count == 0) return;
 		new_sel = sets_count - 1;
-		if (new_sel < 0) return;
 	}
 
 	// skip decorations
 	if (sets[new_sel].data == NULL) {
-		ssize_t j;
+		size_t temp_new_sel = new_sel;
 		if (new_sel > view_sel) {
-			for (j = new_sel + 1; (j < sets_count) && (sets[j].data == NULL); ++j);
-			if (j < sets_count) {
-				new_sel = j;
-			} else {
-				for (j = view_sel; j < sets_count; ++j) {
-					if (sets[j].data != NULL) new_sel = j;
+			for (size_t j = view_sel; j < sets_count; ++j) {
+				if (sets[j].data != NULL) {
+					temp_new_sel = j;
+					if (j >= new_sel) break;
 				}
 			}
 		} else if (new_sel < view_sel) {
-			for (j = new_sel - 1; (j > -1) && (sets[j].data == NULL); --j);
-			if (j > -1) {
-				new_sel = j;
-			} else {
-				for (j = view_sel; j > -1; --j) {
-					if (sets[j].data != NULL) new_sel = j;
+			for (size_t j = view_sel; ; --j) {
+				if (sets[j].data != NULL) {
+					temp_new_sel = j;
+					if (j <= new_sel) break;
 				}
+				if (j == 0) break;
 			}
 		}
+		new_sel = temp_new_sel;
 	}
 
 	if (sets[new_sel].data != NULL && new_sel != view_sel) {
@@ -256,7 +252,7 @@ view_select(ssize_t i)
 			view_sel = new_sel;
 			show_sets();
 		} else {
-			ssize_t old_sel = view_sel;
+			size_t old_sel = view_sel;
 			view_sel = new_sel;
 			set_expose(old_sel);
 			set_expose(view_sel);
@@ -265,7 +261,7 @@ view_select(ssize_t i)
 }
 
 static void
-set_reload(ssize_t index)
+set_reload(size_t index)
 {
 	struct set_line *set = &sets[index];
 	if (set->type == FEED_ENTRY) {
@@ -298,16 +294,16 @@ all_reload(void)
 static enum menu_dest
 menu_feeds(void)
 {
-	int ch, q;
+	int ch, q, i;
 	char cmd[7];
 	while (1) {
 		ch = input_wgetch();
 		if      (ch == 'j' || ch == KEY_DOWN)                            { view_select(view_sel + 1); }
-		else if (ch == 'k' || ch == KEY_UP)                              { view_select(view_sel - 1); }
+		else if ((ch == 'k' || ch == KEY_UP) && (view_sel != 0))         { view_select(view_sel - 1); }
 		else if (ch == config_key_download)                              { set_reload(view_sel); }
 		else if (ch == config_key_download_all)                          { all_reload(); }
 		else if ((ch == 'g' && input_wgetch() == 'g') || ch == KEY_HOME) { view_select(0); }
-		else if (ch == 'G' || ch == KEY_END)                             { view_select(sets_count - 1); }
+		else if ((ch == 'G' || ch == KEY_END) && (sets_count != 0))      { view_select(sets_count - 1); }
 		else if (isdigit(ch)) {
 			q = 0;
 			while (1) {
@@ -316,12 +312,13 @@ menu_feeds(void)
 				cmd[q] = '\0';
 				ch = input_wgetch();
 				if (!isdigit(ch)) {
+					i = atoi(cmd);
 					if (ch == 'j' || ch == KEY_DOWN) {
-						view_select(view_sel + atoi(cmd));
-					} else if (ch == 'k' || ch == KEY_UP) {
-						view_select(view_sel - atoi(cmd));
-					} else if (ch == 'G') {
-						view_select(atoi(cmd) - 1);
+						view_select(view_sel + i);
+					} else if ((ch == 'k' || ch == KEY_UP) && (i <= view_sel)) {
+						view_select(view_sel - i);
+					} else if ((ch == 'G') && (i != 0)) {
+						view_select(i - 1);
 					}
 					break;
 				}

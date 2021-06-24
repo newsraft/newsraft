@@ -47,6 +47,8 @@ create_set_statement(struct set_line *set)
 		return NULL;
 	}
 	st->db_cmd = create_string();
+	st->urls = NULL;
+	st->urls_count = 0;
 	if (set->type == FEED_ENTRY) {
 		cat_string_array(st->db_cmd, " feed = ?", 9);
 		st->urls = malloc(sizeof(struct string *));
@@ -59,7 +61,7 @@ create_set_statement(struct set_line *set)
 		return st;
 	}
 	char word[1000], c;
-	size_t word_len, i = 0;
+	size_t word_len, i = 0, old_urls_count;
 	if (set->type == FILTER_ENTRY) {
 		while (1) {
 			word_len = 0;
@@ -80,21 +82,24 @@ create_set_statement(struct set_line *set)
 			} else if (strcmp(word, "|") == 0) {
 				cat_string_array(st->db_cmd, " OR", 3);
 			} else if (strcmp(word, "(") == 0) {
-				cat_string_array(st->db_cmd, " (", 3);
+				cat_string_array(st->db_cmd, " (", 2);
 			} else if (strcmp(word, ")") == 0) {
-				cat_string_array(st->db_cmd, " )", 3);
+				cat_string_array(st->db_cmd, " )", 2);
 			} else {
 				for (size_t i = 0; i < tags_count; ++i) {
 					if (strcmp(word, tags[i].name) == 0) {
-						st->urls = malloc(sizeof(struct string *) * tags[i].urls_count);
+						old_urls_count = st->urls_count;
+						st->urls_count += tags[i].urls_count;
+						st->urls = realloc(st->urls, sizeof(struct string *) * st->urls_count);
 						for (size_t j = 0; j < tags[i].urls_count; ++j) {
-							st->urls[j] = tags[i].urls[j];
+							st->urls[old_urls_count++] = tags[i].urls[j];
 						}
-						st->urls_count = tags[i].urls_count;
+						cat_string_array(st->db_cmd, " (", 2);
 						for (int j = 0; j < tags[i].urls_count; ++j) {
 							cat_string_array(st->db_cmd, " feed = ?", 9);
 							if (j + 1 != tags[i].urls_count) cat_string_array(st->db_cmd, " OR", 3);
 						}
+						cat_string_array(st->db_cmd, " )", 2);
 						break;
 					}
 				}

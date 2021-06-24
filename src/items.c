@@ -151,29 +151,33 @@ view_select(size_t i)
 
 	// perform boundary check
 	if (new_sel >= items_count) {
-		if (items_count == 0) return;
+		if (items_count == 0) {
+			return;
+		}
 		new_sel = items_count - 1;
 	}
 
-	if (items[new_sel].data != NULL && new_sel != view_sel) {
-		if (new_sel > view_max) {
-			hide_items();
-			view_min = new_sel - LINES + 2;
-			view_max = new_sel;
-			view_sel = new_sel;
-			show_items();
-		} else if (new_sel < view_min) {
-			hide_items();
-			view_min = new_sel;
-			view_max = new_sel + LINES - 2;
-			view_sel = new_sel;
-			show_items();
-		} else {
-			size_t old_sel = view_sel;
-			view_sel = new_sel;
-			item_expose(old_sel);
-			item_expose(view_sel);
-		}
+	if (items[new_sel].data == NULL || new_sel == view_sel) {
+		return;
+	}
+
+	if (new_sel > view_max) {
+		hide_items();
+		view_min = new_sel - LINES + 2;
+		view_max = new_sel;
+		view_sel = new_sel;
+		show_items();
+	} else if (new_sel < view_min) {
+		hide_items();
+		view_min = new_sel;
+		view_max = new_sel + LINES - 2;
+		view_sel = new_sel;
+		show_items();
+	} else {
+		size_t old_sel = view_sel;
+		view_sel = new_sel;
+		item_expose(old_sel);
+		item_expose(view_sel);
 	}
 }
 

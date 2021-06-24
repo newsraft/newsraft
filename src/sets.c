@@ -73,18 +73,20 @@ load_sets(void)
 			}
 			make_string(&sets[set_index].name, word, word_len);
 		} else if (c == '!') {
+			c = fgetc(f);
 			sets[set_index].type = FILTER_ENTRY;
 			sets[set_index].data = create_string();
 			while (c != '\n' && c != EOF) {
+				skip_chars(f, &c, " \t");
 				word_len = 0;
 				while (1) {
+					word[word_len++] = c;
 					c = fgetc(f);
 					if (IS_WHITESPACE(c) || c == EOF) { word[word_len] = '\0'; break; }
-					word[word_len++] = c;
 				}
+				if (word_len == 0) continue;
 				cat_string_array(sets[set_index].data, word, word_len);
 				cat_string_char(sets[set_index].data, ' ');
-				skip_chars(f, &c, " \t");
 			}
 		} else {
 			sets[set_index].type = FEED_ENTRY;
@@ -212,7 +214,9 @@ view_select(size_t i)
 
 	// perform boundary check
 	if (new_sel >= sets_count) {
-		if (sets_count == 0) return;
+		if (sets_count == 0) {
+			return;
+		}
 		new_sel = sets_count - 1;
 	}
 
@@ -238,25 +242,27 @@ view_select(size_t i)
 		new_sel = temp_new_sel;
 	}
 
-	if (sets[new_sel].data != NULL && new_sel != view_sel) {
-		if (new_sel > view_max) {
-			hide_sets();
-			view_min = new_sel - LINES + 2;
-			view_max = new_sel;
-			view_sel = new_sel;
-			show_sets();
-		} else if (new_sel < view_min) {
-			hide_sets();
-			view_min = new_sel;
-			view_max = new_sel + LINES - 2;
-			view_sel = new_sel;
-			show_sets();
-		} else {
-			size_t old_sel = view_sel;
-			view_sel = new_sel;
-			set_expose(old_sel);
-			set_expose(view_sel);
-		}
+	if (sets[new_sel].data == NULL || new_sel == view_sel) {
+		return;
+	}
+
+	if (new_sel > view_max) {
+		hide_sets();
+		view_min = new_sel - LINES + 2;
+		view_max = new_sel;
+		view_sel = new_sel;
+		show_sets();
+	} else if (new_sel < view_min) {
+		hide_sets();
+		view_min = new_sel;
+		view_max = new_sel + LINES - 2;
+		view_sel = new_sel;
+		show_sets();
+	} else {
+		size_t old_sel = view_sel;
+		view_sel = new_sel;
+		set_expose(old_sel);
+		set_expose(view_sel);
 	}
 }
 

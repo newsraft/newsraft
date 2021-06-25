@@ -40,8 +40,8 @@ load_sets(void)
 		return 1;
 	}
 
-	size_t set_index;
-	int error = 0, word_len;
+	size_t set_index, word_len;
+	bool error = false;
 	char c, word[1000];
 	view_sel = SIZE_MAX;
 
@@ -56,7 +56,9 @@ load_sets(void)
 		set_index = sets_count++;
 		sets = realloc(sets, sizeof(struct set_line) * sets_count);
 		if (sets == NULL) {
-			error = 1; fprintf(stderr, "memory allocation for set list failed\n"); break;
+			fprintf(stderr, "memory allocation for new set failed\n");
+			error = true;
+			break;
 		}
 		sets[set_index].type = EMPTY_ENTRY;
 		sets[set_index].name = NULL;
@@ -73,9 +75,9 @@ load_sets(void)
 			}
 			make_string(&sets[set_index].name, word, word_len);
 		} else if (c == '!') {
-			c = fgetc(f);
 			sets[set_index].type = FILTER_ENTRY;
 			sets[set_index].data = create_string();
+			c = fgetc(f);
 			while (c != '\n' && c != EOF) {
 				skip_chars(f, &c, " \t");
 				word_len = 0;
@@ -130,10 +132,10 @@ load_sets(void)
 	}
 	fclose(f);
 
-	if (error != 0) {
-		fprintf(stderr, "there is some trouble in loading feeds!\n");
+	if (error == true) {
+		fprintf(stderr, "there is some trouble in loading feeds file!\n");
 		free_sets();
-		return 1;
+		return 1; // failure
 	}
 
 	// put first non-decorative feed entry in selection
@@ -147,7 +149,7 @@ load_sets(void)
 	if (view_sel == SIZE_MAX) {
 		fprintf(stderr, "none of feeds loaded!\n");
 		free_sets();
-		return 1;
+		return 1; // failure
 	}
 
 	debug_tags_summary();

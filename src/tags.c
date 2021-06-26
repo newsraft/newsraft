@@ -13,7 +13,7 @@ static size_t tags_count = 0;
 static void
 tag_init(char *tag_name, struct string *url)
 {
-	int tag_index = tags_count++;
+	size_t tag_index = tags_count++;
 	tags = realloc(tags, sizeof(struct feed_tag) * tags_count);
 	tags[tag_index].name = malloc(sizeof(char) * (strlen(tag_name) + 1));
 	tags[tag_index].urls = malloc(sizeof(struct string *));

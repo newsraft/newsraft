@@ -80,6 +80,7 @@ load_sets(void)
 			c = fgetc(f);
 			while (c != '\n' && c != EOF) {
 				skip_chars(f, &c, " \t");
+				if (c == '"') break;
 				word_len = 0;
 				while (1) {
 					word[word_len++] = c;
@@ -89,6 +90,15 @@ load_sets(void)
 				if (word_len == 0) continue;
 				cat_string_array(sets[set_index].data, word, word_len);
 				cat_string_char(sets[set_index].data, ' ');
+			}
+			if (c == '"') {
+				word_len = 0;
+				while (1) {
+					c = fgetc(f);
+					if (c == '"' || c == '\n' || c == EOF) { word[word_len] = '\0'; break; }
+					word[word_len++] = c;
+				}
+				make_string(&sets[set_index].name, word, word_len);
 			}
 		} else {
 			sets[set_index].type = FEED_ENTRY;

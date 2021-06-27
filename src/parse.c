@@ -9,7 +9,6 @@
 
 static void XMLCALL
 process_element_start(void *userData, const XML_Char *name, const XML_Char **atts) {
-	/*(void)atts;*/
 	struct init_parser_data *parser_data = userData;
 	++(parser_data->depth);
 	if (parser_data->depth == 1 && parser_data->parser_func == NULL) {
@@ -118,7 +117,7 @@ value_strip_whitespace(char *str, size_t *len)
 		return;
 	}
 	// strip whitespace from edges
-	size_t i = 0, left_edge = 0, right_edge = *len - 1;
+	size_t left_edge = 0, right_edge = *len - 1;
 	while ((*(str + left_edge) == ' '   ||
 	        *(str + left_edge) == '\t'  ||
 	        *(str + left_edge) == '\r'  ||
@@ -135,18 +134,20 @@ value_strip_whitespace(char *str, size_t *len)
 	{
 		--right_edge;
 	}
-	if ((left_edge != 0) || (right_edge != *len - 1)) {
-		if (right_edge < left_edge) {
-			*(str + 0) = '\0';
-			*len = 0;
-			return;
-		}
-		for (; i <= right_edge - left_edge; ++i) {
-			*(str + i) = *(str + i + left_edge);
-		}
-		*len = i;
-		*(str + i) = '\0';
+	if ((left_edge == 0) && (right_edge == *len - 1)) {
+		return;
 	}
+	if (right_edge < left_edge) {
+		*(str + 0) = '\0';
+		*len = 0;
+		return;
+	}
+	size_t i = 0;
+	for (; i <= right_edge - left_edge; ++i) {
+		*(str + i) = *(str + i + left_edge);
+	}
+	*len = i;
+	*(str + i) = '\0';
 }
 
 void XMLCALL

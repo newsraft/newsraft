@@ -7,6 +7,9 @@
 #include <sys/stat.h>
 #include "feedeater.h"
 
+#define CONF_PATH_ENVVAR "FEEDEATER_CONFIG"
+#define DATA_PATH_ENVVAR "FEEDEATER_DATA"
+
 static char *conf_dir_path;
 static char *data_dir_path;
 
@@ -19,23 +22,24 @@ set_conf_dir_path(void)
 		return 1;
 	}
 
-	// TODO: make mkdir recursive?
-
 	DIR *d;
-	char *env_var = getenv("FEEDEATER_CONFIG");
+	char *env_var = getenv(CONF_PATH_ENVVAR);
 	if (env_var != NULL) {
-		strcpy(conf_dir_path, env_var);
-		mkdir(conf_dir_path, 0777);
-		d = opendir(conf_dir_path);
+		d = opendir(env_var);
 		if (d != NULL) {
 			closedir(d);
+			strcpy(conf_dir_path, env_var);
 			return 0;
 		}
+		fprintf(stderr, CONF_PATH_ENVVAR " holds invalid path\n");
+		free(conf_dir_path);
+		return 1;
 	}
 
 	env_var = getenv("XDG_CONFIG_HOME");
 	if (env_var != NULL) {
 		strcpy(conf_dir_path, env_var);
+		mkdir(conf_dir_path, 0777);
 		strcat(conf_dir_path, "/feedeater");
 		mkdir(conf_dir_path, 0777);
 		d = opendir(conf_dir_path);
@@ -48,7 +52,9 @@ set_conf_dir_path(void)
 	env_var = getenv("HOME");
 	if (env_var != NULL) {
 		strcpy(conf_dir_path, env_var);
-		strcat(conf_dir_path, "/.config/feedeater");
+		strcat(conf_dir_path, "/.config");
+		mkdir(conf_dir_path, 0777);
+		strcat(conf_dir_path, "/feedeater");
 		mkdir(conf_dir_path, 0777);
 		d = opendir(conf_dir_path);
 		if (d != NULL) {
@@ -79,7 +85,7 @@ free_conf_dir_path(void)
 char *
 get_conf_file_path(char *file_name)
 {
-	char *path = malloc(MAXPATH * sizeof(char));
+	char *path = malloc(sizeof(char) * MAXPATH);
 	if (path == NULL) {
 		debug_write(DBG_ERR, "failed to allocate memory for path to \"%s\" config file\n", file_name);
 		return NULL;
@@ -106,23 +112,24 @@ set_data_dir_path(void)
 		return 1;
 	}
 
-	// TODO: make mkdir recursive?
-
 	DIR *d;
-	char *env_var = getenv("FEEDEATER_DATA");
+	char *env_var = getenv(DATA_PATH_ENVVAR);
 	if (env_var != NULL) {
-		strcpy(data_dir_path, env_var);
-		mkdir(data_dir_path, 0777);
-		d = opendir(data_dir_path);
+		d = opendir(env_var);
 		if (d != NULL) {
 			closedir(d);
+			strcpy(data_dir_path, env_var);
 			return 0;
 		}
+		fprintf(stderr, DATA_PATH_ENVVAR " holds invalid path\n");
+		free(data_dir_path);
+		return 1;
 	}
 
 	env_var = getenv("XDG_DATA_HOME");
 	if (env_var != NULL) {
 		strcpy(data_dir_path, env_var);
+		mkdir(data_dir_path, 0777);
 		strcat(data_dir_path, "/feedeater");
 		mkdir(data_dir_path, 0777);
 		d = opendir(data_dir_path);
@@ -135,7 +142,11 @@ set_data_dir_path(void)
 	env_var = getenv("HOME");
 	if (env_var != NULL) {
 		strcpy(data_dir_path, env_var);
-		strcat(data_dir_path, "/.local/share/feedeater");
+		strcat(data_dir_path, "/.local");
+		mkdir(data_dir_path, 0777);
+		strcat(data_dir_path, "/share");
+		mkdir(data_dir_path, 0777);
+		strcat(data_dir_path, "/feedeater");
 		mkdir(data_dir_path, 0777);
 		d = opendir(data_dir_path);
 		if (d != NULL) {

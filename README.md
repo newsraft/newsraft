@@ -10,9 +10,7 @@ Project goals are:
 
 * omit the support for bunch of "cloud"-based feed services
 
-* utilize as few libraries as possible
-
-* use a single programming language
+* utilize few libraries
 
 ## Dependencies
 
@@ -30,4 +28,8 @@ Project goals are:
 
 ## Building
 
-	ninja
+	meson setup builddir
+
+	cd builddir
+
+	meson compile

@@ -35,6 +35,7 @@ process_element_start(void *userData, const XML_Char *name, const XML_Char **att
 
 static void XMLCALL
 process_element_finish(void *userData, const XML_Char *name) {
+	(void)name;
 	struct init_parser_data *parser_data = userData;
 	--(parser_data->depth);
 }
@@ -75,7 +76,7 @@ feed_process(struct string *buf, struct string *url)
 		.bucket    = &new_bucket
 	};
 	XML_SetUserData(parser, &feed_data);
-	int parsing_error = parser_data.parser_func(&parser, url, &feed_data);
+	int parsing_error = parser_data.parser_func(&parser);
 	free(feed_data.value);
 	XML_ParserFree(parser);
 	if (parsing_error != 0) {
@@ -113,8 +114,11 @@ reset_item_bucket(struct item_bucket *bucket)
 void
 value_strip_whitespace(char *str, size_t *len)
 {
+	if (*len == 0) {
+		return;
+	}
 	// strip whitespace from edges
-	int i = 0, left_edge = 0, right_edge = *len - 1;
+	size_t i = 0, left_edge = 0, right_edge = *len - 1;
 	while ((*(str + left_edge) == ' '   ||
 	        *(str + left_edge) == '\t'  ||
 	        *(str + left_edge) == '\r'  ||

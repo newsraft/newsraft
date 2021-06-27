@@ -40,7 +40,7 @@ process_namespaced_tag_start(void *userData, const XML_Char *name, const XML_Cha
 	char *namespace = get_namespace(name);
 	if (namespace == NULL) return 1;
 	char *tag_name = get_tag_name(name);
-	for (int i = 0; i < LENGTH(namespace_handlers); ++i) {
+	for (size_t i = 0; i < LENGTH(namespace_handlers); ++i) {
 		if (strcmp(namespace, namespace_handlers[i].name) == 0) {
 			namespace_handlers[i].start_element_handler(userData, tag_name, atts);
 		}
@@ -55,7 +55,7 @@ process_namespaced_tag_end(void *userData, const XML_Char *name) {
 	char *namespace = get_namespace(name);
 	if (namespace == NULL) return 1;
 	char *tag_name = get_tag_name(name);
-	for (int i = 0; i < LENGTH(namespace_handlers); ++i) {
+	for (size_t i = 0; i < LENGTH(namespace_handlers); ++i) {
 		if (strcmp(namespace, namespace_handlers[i].name) == 0) {
 			namespace_handlers[i].end_element_handler(userData, tag_name);
 		}

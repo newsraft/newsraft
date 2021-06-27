@@ -22,7 +22,7 @@ process_element_end(void *userData, const XML_Char *name)
 }
 
 int
-parse_generic(XML_Parser *parser, struct string *feed_url, struct feed_parser_data *feed_data)
+parse_generic(XML_Parser *parser)
 {
 	int error = 0;
 	XML_SetElementHandler(*parser, &process_element_start, &process_element_end);

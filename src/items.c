@@ -227,7 +227,7 @@ menu_items(void)
 					i = atoi(cmd);
 					if (ch == 'j') {
 						view_select(view_sel + i);
-					} else if ((ch == 'k') && (i <= view_sel)) {
+					} else if ((ch == 'k') && ((size_t)i <= view_sel)) {
 						view_select(view_sel - i);
 					} else if ((ch == 'G') && (i != 0)) {
 						view_select(i - 1);

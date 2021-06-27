@@ -73,7 +73,7 @@ cat_content(struct string *feed_url, struct item_entry *item_data)
 		text_len = strlen(text);
 		if (text_len != 0) {
 			cat_string_array(buf, text, text_len);
-			for (int i = 0; i < text_len; ++i) {
+			for (size_t i = 0; i < text_len; ++i) {
 				if (text[i] == '\n') {
 					not_newline = 0;
 					++pad_height;

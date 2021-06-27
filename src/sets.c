@@ -60,14 +60,13 @@ load_sets(void)
 			error = true;
 			break;
 		}
-		sets[set_index].type = EMPTY_ENTRY;
+		sets[set_index].type = FEED_ENTRY;
 		sets[set_index].name = NULL;
 		sets[set_index].data = NULL;
 		sets[set_index].is_marked = false;
 		sets[set_index].is_unread = false;
 		word_len = 0;
 		if (c == '@') {
-			sets[set_index].type = DECORATION_ENTRY;
 			while (1) {
 				c = fgetc(f);
 				if (c == '\n' || c == EOF) { word[word_len] = '\0'; break; }
@@ -101,7 +100,6 @@ load_sets(void)
 				make_string(&sets[set_index].name, word, word_len);
 			}
 		} else {
-			sets[set_index].type = FEED_ENTRY;
 			while (1) {
 				word[word_len++] = c;
 				c = fgetc(f);
@@ -333,7 +331,7 @@ menu_feeds(void)
 					i = atoi(cmd);
 					if (ch == 'j' || ch == KEY_DOWN) {
 						view_select(view_sel + i);
-					} else if ((ch == 'k' || ch == KEY_UP) && (i <= view_sel)) {
+					} else if ((ch == 'k' || ch == KEY_UP) && ((size_t)i <= view_sel)) {
 						view_select(view_sel - i);
 					} else if ((ch == 'G') && (i != 0)) {
 						view_select(i - 1);

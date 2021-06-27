@@ -21,7 +21,7 @@ struct set_statement {
 	size_t urls_count;
 };
 
-enum set_type { EMPTY_ENTRY = 0, FEED_ENTRY, FILTER_ENTRY, DECORATION_ENTRY };
+enum set_type { FEED_ENTRY, FILTER_ENTRY };
 struct set_line {
 	enum set_type type;
 	struct string *name; // what is displayed in menu
@@ -59,7 +59,7 @@ struct feed_parser_data {
 struct init_parser_data {
 	int depth;
 	XML_Parser *xml_parser;
-	int (*parser_func)(XML_Parser *parser, struct string *feed_url, struct feed_parser_data *feed_data);
+	int (*parser_func)(XML_Parser *parser);
 };
 
 // used to bufferize item before writing to disk
@@ -158,8 +158,8 @@ void value_strip_whitespace(char *str, size_t *len);
 void XMLCALL store_xml_element_value(void *userData, const XML_Char *s, int s_len);
 int feed_process(struct string *buf, struct string *url);
 time_t get_unix_epoch_time(char *format_str, char *date_str);
-int parse_generic(XML_Parser *parser, struct string *feed_url, struct feed_parser_data *feed_data);
-int parse_rss20(XML_Parser *parser, struct string *feed_url, struct feed_parser_data *feed_data);
+int parse_generic(XML_Parser *parser);
+int parse_rss20(XML_Parser *parser);
 int process_namespaced_tag_start(void *userData, const XML_Char *name, const XML_Char **atts);
 int process_namespaced_tag_end(void *userData, const XML_Char *name);
 

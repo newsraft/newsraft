@@ -95,7 +95,7 @@ create_set_statement(struct set_line *set)
 							st->urls[old_urls_count++] = tags[i].urls[j];
 						}
 						cat_string_array(st->db_cmd, " (", 2);
-						for (int j = 0; j < tags[i].urls_count; ++j) {
+						for (size_t j = 0; j < tags[i].urls_count; ++j) {
 							cat_string_array(st->db_cmd, " feed = ?", 9);
 							if (j + 1 != tags[i].urls_count) cat_string_array(st->db_cmd, " OR", 3);
 						}
@@ -114,9 +114,9 @@ create_set_statement(struct set_line *set)
 void
 debug_tags_summary(void)
 {
-	for (int i = 0; i < tags_count; ++i) {
+	for (size_t i = 0; i < tags_count; ++i) {
 		debug_write(DBG_INFO, "tag \"%s\":\n", tags[i].name);
-		for (int j = 0; j < tags[i].urls_count; ++j) {
+		for (size_t j = 0; j < tags[i].urls_count; ++j) {
 			debug_write(DBG_INFO, "%s\n", tags[i].urls[j]->ptr);
 		}
 		debug_write(DBG_INFO, "\n");

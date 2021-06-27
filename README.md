@@ -26,10 +26,10 @@ Project goals are:
 
 * ninja >= 1.10.2 (build-time)
 
+* meson >= 0.58.1 (build-time)
+
 ## Building
 
 	meson setup builddir
-
 	cd builddir
-
 	meson compile

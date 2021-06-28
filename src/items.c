@@ -248,9 +248,6 @@ run_items_menu(struct set_statement *st)
 	if (items == NULL) {
 		int load_status = load_items(st);
 		if (load_status != MENU_ITEMS) {
-			free_string(&st->db_cmd);
-			free(st->urls);
-			free(st);
 			free_items();
 			return load_status;
 		}
@@ -279,9 +276,6 @@ run_items_menu(struct set_statement *st)
 			break;
 		}
 	}
-	free_string(&st->db_cmd);
-	free(st->urls);
-	free(st);
 	free_items();
 	return dest;
 }

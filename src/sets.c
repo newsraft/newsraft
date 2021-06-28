@@ -66,14 +66,14 @@ load_sets(void)
 		sets[set_index].is_marked = false;
 		sets[set_index].is_unread = false;
 		word_len = 0;
-		if (c == '@') {
+		if (c == '@') { // line is decoration
 			while (1) {
 				c = fgetc(f);
 				if (c == '\n' || c == EOF) { word[word_len] = '\0'; break; }
 				word[word_len++] = c;
 			}
 			make_string(&sets[set_index].name, word, word_len);
-		} else if (c == '!') {
+		} else if (c == '!') { // line is filter
 			sets[set_index].type = FILTER_ENTRY;
 			sets[set_index].data = create_string();
 			c = fgetc(f);
@@ -99,7 +99,7 @@ load_sets(void)
 				}
 				make_string(&sets[set_index].name, word, word_len);
 			}
-		} else {
+		} else { // line is feed
 			while (1) {
 				word[word_len++] = c;
 				c = fgetc(f);
@@ -283,8 +283,12 @@ set_reload(size_t index)
 	if (set->type == FEED_ENTRY) {
 		status_write("[loading] %s", set_image(set));
 		struct string *buf = feed_download(set->data->ptr);
-		if (buf == NULL) return;
-		if (buf->ptr == NULL) { free(buf); return; }
+		if (buf == NULL) {
+			return;
+		} else if (buf->ptr == NULL) {
+			free(buf);
+			return;
+		}
 		if (feed_process(buf, set->data) == 0) {
 			status_clean();
 			bool unread_status = is_feed_unread(set->data);
@@ -357,7 +361,24 @@ run_sets_menu(void)
 	int dest;
 	bool status_cond;
 	while ((dest = menu_feeds()) != MENU_QUIT) {
-		dest = run_items_menu(create_set_statement(&sets[view_sel]));
+		struct set_statement *st = create_set_statement(&sets[view_sel]);
+		if (st             != NULL &&
+		    st->db_cmd     != NULL &&
+		    st->urls_count != 0    &&
+		    st->urls       != NULL)
+		{
+			dest = run_items_menu(st);
+			free(st->urls);
+			free_string(&st->db_cmd);
+			free(st);
+		} else {
+			dest = MENU_ITEMS_EMPTY;
+			if (st != NULL) {
+				if (st->urls != NULL) free(st->urls);
+				if (st->db_cmd != NULL) free_string(&st->db_cmd);
+				free(st);
+			}
+		}
 		if (dest == MENU_FEEDS) {
 			clear();
 			refresh();

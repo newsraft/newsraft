@@ -141,6 +141,7 @@ int try_item_bucket(struct item_bucket *bucket, struct string *feed_url);
 
 
 // contents
+char *plainify_html(char *buff, size_t buff_len);
 int contents_menu(struct item_line *item);
 
 
@@ -165,6 +166,7 @@ int process_namespaced_tag_end(void *userData, const XML_Char *name);
 
 // tags
 void tag_feed(char *tag_name, struct string *url);
+// convert data of set to sql WHERE condition
 struct set_statement * create_set_statement(struct set_line *set);
 void debug_tags_summary(void);
 void free_tags(void);

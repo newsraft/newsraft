@@ -66,24 +66,26 @@ cat_content(struct string *feed_url, struct item_entry *item_data)
 	TEXT_TAG_APPEND("Category: ", 10, ITEM_COLUMN_CATEGORY, config_contents_show_category)
 	TEXT_TAG_APPEND("Comments: ", 10, ITEM_COLUMN_COMMENTS, config_contents_show_comments)
 	TEXT_TAG_APPEND("Link: ", 6, ITEM_COLUMN_URL, config_contents_show_url)
-	int32_t not_newline = 0;
-	if ((text = (char *)sqlite3_column_text(res, ITEM_COLUMN_CONTENT)) != NULL) {
-		cat_string_char(buf, '\n');
-		++pad_height;
-		text_len = strlen(text);
-		if (text_len != 0) {
-			cat_string_array(buf, text, text_len);
-			for (size_t i = 0; i < text_len; ++i) {
-				if (text[i] == '\n') {
-					not_newline = 0;
-					++pad_height;
-				} else if (not_newline > COLS) {
-					not_newline = 0;
-					++pad_height;
-				} else {
-					++not_newline;
+	int not_newline = 0;
+	text = (char *) sqlite3_column_text(res, ITEM_COLUMN_CONTENT);
+	if (text != NULL) {
+		char *plain_text = plainify_html(text, strlen(text));
+		if (plain_text != NULL) {
+			cat_string_char(buf, '\n');
+			++pad_height;
+			text_len = strlen(plain_text);
+			if (text_len != 0) {
+				cat_string_array(buf, plain_text, text_len);
+				for (size_t i = 0; i < text_len; ++i) {
+					if ((plain_text[i] == '\n') || (not_newline > COLS)) {
+						not_newline = 0;
+						++pad_height;
+					} else {
+						++not_newline;
+					}
 				}
 			}
+			free(plain_text);
 		}
 	}
 	WINDOW *pad = newpad(pad_height, COLS);

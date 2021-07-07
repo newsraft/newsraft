@@ -30,6 +30,7 @@ feedeater_src = [
   'src/config.c',
   'src/config.h',
   'src/contents.c',
+  'src/html_parser.c',
   'src/db.c',
   'src/debug.c',
   'src/download.c',

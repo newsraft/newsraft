@@ -9,19 +9,19 @@ static int view_min;
 static int view_max;
 static int newlines;
 
-#define TEXT_TAG_APPEND(A, B, C, D) \
-	if (D == true) { \
-		text = (char *)sqlite3_column_text(res, C); \
-		if (text != NULL) { \
-			text_len = strlen(text); \
-			if (text_len != 0) { \
-				cat_string_array(buf, A, (size_t)B); \
-				cat_string_array(buf, text, text_len); \
-				cat_string_char(buf, '\n'); \
-				++pad_height; \
-			} \
-		} \
-	}
+struct {
+	const char *name;
+	const char *column;
+	const int num;
+} meta_data[] = {
+	{"Feed", "feed", ITEM_COLUMN_FEED},
+	{"Title", "title", ITEM_COLUMN_TITLE},
+	{"Author", "author", ITEM_COLUMN_AUTHOR},
+	{"Category", "category", ITEM_COLUMN_CATEGORY},
+	{"Link", "url", ITEM_COLUMN_URL},
+	{"Comments", "comments", ITEM_COLUMN_COMMENTS},
+};
+
 static WINDOW *
 cat_content(struct string *feed_url, struct item_entry *item_data)
 {
@@ -44,28 +44,51 @@ cat_content(struct string *feed_url, struct item_entry *item_data)
 		sqlite3_finalize(res);
 		return NULL;
 	}
-	char *text;
+	char *text, *saveptr = NULL;
 	size_t text_len;
 	int pad_height = 0;
-	TEXT_TAG_APPEND("Feed: ", 6, ITEM_COLUMN_FEED, config_contents_show_feed)
-	TEXT_TAG_APPEND("Title: ", 7, ITEM_COLUMN_TITLE, config_contents_show_title)
-	if (config_contents_show_date == true) {
-		time_t epoch_time = (time_t)sqlite3_column_int64(res, ITEM_COLUMN_PUBDATE);
-		if (epoch_time > 0) {
-			struct tm ts = *localtime(&epoch_time);
-			char time_str[100];
-			if (strftime(time_str, sizeof(time_str), config_contents_date_format, &ts) != 0) {
-				cat_string_array(buf, "Date: ", (size_t)6);
-				cat_string_array(buf, time_str, strlen(time_str));
-				cat_string_char(buf, '\n');
-				++pad_height;
+	char *temp_config_contents_meta_data = malloc(sizeof(char) * (strlen(config_contents_meta_data) + 1));
+	if (temp_config_contents_meta_data == NULL) {
+		debug_write(DBG_ERR, "not enough memory for tokenizing order of meta data tags\n");
+		free_string(&buf);
+		sqlite3_finalize(res);
+		return NULL;
+	}
+	strcpy(temp_config_contents_meta_data, config_contents_meta_data);
+	char *meta_tag = strtok_r(temp_config_contents_meta_data, ",", &saveptr);
+	do {
+		if (strcmp(meta_tag, "date") == 0) {
+			time_t epoch_time = (time_t)sqlite3_column_int64(res, ITEM_COLUMN_PUBDATE);
+			if (epoch_time > 0) {
+				struct tm ts = *localtime(&epoch_time);
+				char time_str[100];
+				if (strftime(time_str, sizeof(time_str), config_contents_date_format, &ts) != 0) {
+					cat_string_array(buf, "Date: ", (size_t)6);
+					cat_string_array(buf, time_str, strlen(time_str));
+					cat_string_char(buf, '\n');
+					++pad_height;
+				}
+			}
+			continue;
+		}
+		text = NULL;
+		for (size_t i = 0; i < LENGTH(meta_data); ++i) {
+			if (strcmp(meta_tag, meta_data[i].column) == 0) {
+				text = (char *)sqlite3_column_text(res, meta_data[i].num);
+				if (text == NULL) break;
+				text_len = strlen(text);
+				if (text_len != 0) {
+					cat_string_array(buf, meta_data[i].name, strlen(meta_data[i].name));
+					cat_string_array(buf, ": ", (size_t)2);
+					cat_string_array(buf, text, text_len);
+					cat_string_char(buf, '\n');
+					++pad_height;
+				}
+				break;
 			}
 		}
-	}
-	TEXT_TAG_APPEND("Author: ", 8, ITEM_COLUMN_AUTHOR, config_contents_show_author)
-	TEXT_TAG_APPEND("Category: ", 10, ITEM_COLUMN_CATEGORY, config_contents_show_category)
-	TEXT_TAG_APPEND("Comments: ", 10, ITEM_COLUMN_COMMENTS, config_contents_show_comments)
-	TEXT_TAG_APPEND("Link: ", 6, ITEM_COLUMN_URL, config_contents_show_url)
+	} while ((meta_tag = strtok_r(NULL, ",", &saveptr)) != NULL);
+	free(temp_config_contents_meta_data);
 	int not_newline = 0;
 	text = (char *) sqlite3_column_text(res, ITEM_COLUMN_CONTENT);
 	if (text != NULL) {

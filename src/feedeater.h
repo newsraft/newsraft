@@ -138,11 +138,12 @@ int run_items_menu(struct set_statement *st);
 void hide_items(void);
 void reset_item_bucket(struct item_bucket *bucket);
 int try_item_bucket(struct item_bucket *bucket, struct string *feed_url);
+void free_items(void);
 
 
 // contents
-char *plainify_html(char *buff, size_t buff_len);
-int contents_menu(struct item_line *item);
+char *expand_xml_entities(char *buff, size_t buff_len);
+int contents_menu(struct string *feed_url, struct item_entry *item_data);
 
 
 // path

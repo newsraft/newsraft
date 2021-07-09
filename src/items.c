@@ -126,7 +126,7 @@ hide_items(void)
 	}
 }
 
-static void
+void
 free_items(void)
 {
 	if (items == NULL) return;
@@ -262,10 +262,8 @@ run_items_menu(struct set_statement *st)
 	int dest;
 	while ((dest = menu_items()) != MENU_QUIT) {
 		if (dest == MENU_CONTENT) {
-			dest = contents_menu(&items[view_sel]);
-			if (dest == MENU_QUIT) {
-				break;
-			} else if (dest == MENU_ITEMS) {
+			dest = contents_menu(items[view_sel].feed_url, items[view_sel].data);
+			if (dest == MENU_ITEMS) {
 				items[view_sel].is_unread = false;
 				clear();
 				refresh();

@@ -19,8 +19,8 @@ free_sets(void)
 	free_tags();
 	if (sets == NULL) return;
 	for (size_t i = 0; i < sets_count; ++i) {
-		if (sets[i].name != NULL) free_string(&sets[i].name);
-		if (sets[i].data != NULL) free_string(&sets[i].data);
+		free_string(sets[i].name);
+		free_string(sets[i].data);
 	}
 	free(sets);
 }
@@ -297,7 +297,7 @@ set_reload(size_t index)
 				set_expose(index);
 			}
 		}
-		free_string(&buf);
+		free_string(buf);
 	} else if (set->type == FILTER_ENTRY) {
 		//under construction
 		status_write("[under construction] can't reload filter");
@@ -369,13 +369,13 @@ run_sets_menu(void)
 		{
 			dest = run_items_menu(st);
 			free(st->urls);
-			free_string(&st->db_cmd);
+			free_string(st->db_cmd);
 			free(st);
 		} else {
 			dest = MENU_ITEMS_EMPTY;
 			if (st != NULL) {
-				if (st->urls != NULL) free(st->urls);
-				if (st->db_cmd != NULL) free_string(&st->db_cmd);
+				free(st->urls);
+				free_string(st->db_cmd);
 				free(st);
 			}
 		}

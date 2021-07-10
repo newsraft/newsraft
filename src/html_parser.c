@@ -16,7 +16,6 @@ free_atts(void)
 		free(atts);
 		atts = NULL; // set to NULL because we will call realloc on atts later
 	}
-	atts_count = 0;
 }
 
 #define TAG_IS_BLOCK(A) strcmp(A, "div") == 0    || \
@@ -81,7 +80,7 @@ plainify_html(char *buf_with_entities, size_t buf_len)
 	}
 	char *text = malloc(sizeof(char) * (buf->len + 1));
 	if (text == NULL) {
-		free_string(&buf);
+		free_string(buf);
 		return NULL;
 	}
 	bool in_tag = false;
@@ -111,6 +110,7 @@ plainify_html(char *buf_with_entities, size_t buf_len)
 			if (buf->ptr[i] == '<') {
 				in_tag = true;
 				free_atts();
+				atts_count = 0;
 				att_char = 0;
 			} else if (buf->ptr[i] == '\n' || buf->ptr[i] == ' ') {
 				if (j != 0 && text[j - 1] != ' ' && text[j - 1] != '\n') {
@@ -121,7 +121,7 @@ plainify_html(char *buf_with_entities, size_t buf_len)
 			}
 		}
 	}
-	free_string(&buf);
+	free_string(buf);
 	text[j] = '\0';
 	free_atts();
 	return text;

@@ -71,7 +71,7 @@ create_set_statement(struct set_line *set)
 		cat_string_array(st->db_cmd, " feed = ?", 9);
 		st->urls = malloc(sizeof(struct string *));
 		if (st->urls == NULL) {
-			free_string(&st->db_cmd);
+			free_string(st->db_cmd);
 			free(st);
 			debug_write(DBG_ERR, "can't allocate memory for set_statement url list!\n");
 			return NULL;
@@ -128,7 +128,7 @@ create_set_statement(struct set_line *set)
 		}
 		return st;
 	}
-	free_string(&st->db_cmd);
+	free_string(st->db_cmd);
 	free(st);
 	return NULL;
 }

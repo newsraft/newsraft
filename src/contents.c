@@ -50,8 +50,8 @@ cat_content(struct string *feed_url, struct item_entry *item_data)
 	int rc = sqlite3_prepare_v2(db, "SELECT * FROM items WHERE feed = ? AND guid = ? AND url = ? LIMIT 1", -1, &res, 0);
 	if (rc != SQLITE_OK) {
 		debug_write(DBG_WARN, "failed to prepare SELECT statement: %s\n", sqlite3_errmsg(db));
-		free_string(&buf);
 		sqlite3_finalize(res);
+		free_string(buf);
 		return NULL;
 	}
 	sqlite3_bind_text(res, 1, feed_url->ptr, feed_url->len, NULL);
@@ -59,15 +59,15 @@ cat_content(struct string *feed_url, struct item_entry *item_data)
 	sqlite3_bind_text(res, 3, item_data->url->ptr, item_data->url->len, NULL);
 	if (sqlite3_step(res) != SQLITE_ROW) {
 		debug_write(DBG_WARN, "could not find that item\n");
-		free_string(&buf);
 		sqlite3_finalize(res);
+		free_string(buf);
 		return NULL;
 	}
 
 	char *draft_meta_data_order = malloc(sizeof(char) * (strlen(config_contents_meta_data) + 1));
 	if (draft_meta_data_order == NULL) {
 		debug_write(DBG_ERR, "not enough memory for tokenizing order of meta data tags\n");
-		free_string(&buf);
+		free_string(buf);
 		sqlite3_finalize(res);
 		return NULL;
 	}
@@ -126,7 +126,7 @@ cat_content(struct string *feed_url, struct item_entry *item_data)
 	if (pad == NULL) {
 		debug_write(DBG_ERR, "could not create pad window for item contents\n");
 		sqlite3_finalize(res);
-		free_string(&buf);
+		free_string(buf);
 		return NULL;
 	}
 
@@ -135,21 +135,21 @@ cat_content(struct string *feed_url, struct item_entry *item_data)
 		if (mbslen == (size_t)-1) {
 			delwin(pad);
 			sqlite3_finalize(res);
-			free_string(&buf);
+			free_string(buf);
 			return NULL;
 		}
 		wchar_t *wcs = calloc(mbslen + 1, sizeof(wchar_t));
 		if (wcs == NULL) {
 			delwin(pad);
 			sqlite3_finalize(res);
-			free_string(&buf);
+			free_string(buf);
 			return NULL;
 		}
 		if (mbstowcs(wcs, buf->ptr, mbslen + 1) == (size_t)-1) {
 			free(wcs);
 			delwin(pad);
 			sqlite3_finalize(res);
-			free_string(&buf);
+			free_string(buf);
 			return NULL;
 		}
 		wchar_t *iter = wcs;
@@ -204,7 +204,7 @@ cat_content(struct string *feed_url, struct item_entry *item_data)
 	}
 
 	sqlite3_finalize(res);
-	free_string(&buf);
+	free_string(buf);
 	return pad;
 }
 

@@ -9,10 +9,15 @@ struct string *
 create_string(void)
 {
 	struct string *str = malloc(sizeof(struct string));
-	if (str == NULL) return NULL;
-	str->len = 0;
+	if (str == NULL) {
+		return NULL;
+	}
 	str->ptr = malloc(sizeof(char));
-	if (str->ptr == NULL) { free(str); return NULL; }
+	if (str->ptr == NULL) {
+		free(str);
+		return NULL;
+	}
+	str->len = 0;
 	*(str->ptr + 0) = '\0';
 	return str;
 }
@@ -21,14 +26,16 @@ void
 make_string(struct string **dest, void *src, size_t len)
 {
 	if (src == NULL || len == 0) {
-		if (*dest != NULL) free_string(dest);
+		if (*dest != NULL) free_string(*dest);
+		*dest = NULL;
 		return;
 	}
 	if (*dest == NULL) *dest = create_string();
 	if (*dest == NULL) return;
 	(*dest)->ptr = realloc((*dest)->ptr, sizeof(char) * (len + 1));
 	if ((*dest)->ptr == NULL) {
-		free_string(dest);
+		free(*dest);
+		*dest = NULL;
 		return;
 	}
 	(*dest)->len = len;
@@ -37,11 +44,12 @@ make_string(struct string **dest, void *src, size_t len)
 }
 
 void
-free_string(struct string **dest)
+free_string(struct string *dest)
 {
-	if ((*dest)->ptr != NULL) free((*dest)->ptr);
-	free(*dest);
-	*dest = NULL;
+	if (dest != NULL) {
+		free(dest->ptr);
+		free(dest);
+	}
 }
 
 void

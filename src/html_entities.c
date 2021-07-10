@@ -33,7 +33,7 @@ struct string *
 expand_html_entities(char *buf, size_t buf_len)
 {
 	// multiply by 2 in case if some entities' values greater than their name
-	char *text = malloc(sizeof(char) * (buf_len + 1) * 2);
+	char *text = malloc(sizeof(char) * (buf_len * 2 + 1));
 	if (text == NULL) {
 		return NULL;
 	}

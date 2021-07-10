@@ -45,7 +45,7 @@ feed_download(char *url)
 		status_write("[download failed] %s", url);
 		debug_write(DBG_WARN, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
 		curl_easy_cleanup(curl);
-		free_string(&buf);
+		free_string(buf);
 		return NULL;
 	}
 

@@ -131,11 +131,11 @@ free_items(void)
 {
 	if (items == NULL) return;
 	for (size_t i = 0; i < items_count; ++i) {
+		free_string(items[i].feed_url);
 		if (items[i].data != NULL) {
-			if (items[i].feed_url != NULL) free_string(&items[i].feed_url);
-			if (items[i].data->title != NULL) free_string(&items[i].data->title);
-			if (items[i].data->url != NULL) free_string(&items[i].data->url);
-			if (items[i].data->guid != NULL) free_string(&items[i].data->guid);
+			free_string(items[i].data->title);
+			free_string(items[i].data->url);
+			free_string(items[i].data->guid);
 			free(items[i].data);
 		}
 	}

@@ -100,13 +100,20 @@ void
 reset_item_bucket(struct item_bucket *bucket)
 {
 	if (bucket == NULL) return;
-	if (bucket->guid != NULL) free_string(&bucket->guid);
-	if (bucket->title != NULL) free_string(&bucket->title);
-	if (bucket->url != NULL) free_string(&bucket->url);
-	if (bucket->author != NULL) free_string(&bucket->author);
-	if (bucket->category != NULL) free_string(&bucket->category);
-	if (bucket->comments != NULL) free_string(&bucket->comments);
-	if (bucket->content != NULL) free_string(&bucket->content);
+	free_string(bucket->guid);
+	bucket->guid = NULL;
+	free_string(bucket->title);
+	bucket->title = NULL;
+	free_string(bucket->url);
+	bucket->url = NULL;
+	free_string(bucket->author);
+	bucket->author = NULL;
+	free_string(bucket->category);
+	bucket->category = NULL;
+	free_string(bucket->comments);
+	bucket->comments = NULL;
+	free_string(bucket->content);
+	bucket->content = NULL;
 	bucket->pubdate = 0;
 }
 

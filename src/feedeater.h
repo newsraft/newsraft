@@ -208,7 +208,7 @@ struct string * feed_download(char *url);
 // string
 void make_string(struct string **dest, void *src, size_t len);
 struct string * create_string(void);
-void free_string(struct string **dest);
+void free_string(struct string *dest);
 void cat_string_string(struct string *dest, struct string *src);
 void cat_string_array(struct string *dest, char *src, size_t src_len);
 void cat_string_char(struct string *dest, char c);

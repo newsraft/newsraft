@@ -1,10 +1,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include <unistd.h>
-#include <sys/wait.h>
 #include "feedeater.h"
 #include "config.h"
+
+static WINDOW *window;
+static int view_min;
+static int view_max;
+static int newlines;
 
 struct {
 	const char *name;
@@ -19,22 +22,18 @@ struct {
 	{"Comments", "comments", ITEM_COLUMN_COMMENTS},
 };
 
-int
-contents_menu(struct string *feed_url, struct item_entry *item_data)
+static WINDOW *
+cat_content(struct string *feed_url, struct item_entry *item_data)
 {
 	struct string *buf = create_string();
-	if (buf == NULL) {
-		debug_write(DBG_WARN, "not enough memory for contents buffer\n");
-		status_write("[insufficient memory] not enough memory for contents buffer");
-		return MENU_CONTENT_ERROR;
-	}
+	if (buf == NULL) return NULL;
 	sqlite3_stmt *res;
 	int rc = sqlite3_prepare_v2(db, "SELECT * FROM items WHERE feed = ? AND guid = ? AND url = ? LIMIT 1", -1, &res, 0);
 	if (rc != SQLITE_OK) {
 		debug_write(DBG_WARN, "failed to prepare SELECT statement: %s\n", sqlite3_errmsg(db));
 		free_string(&buf);
 		sqlite3_finalize(res);
-		return MENU_CONTENT_ERROR;
+		return NULL;
 	}
 	sqlite3_bind_text(res, 1, feed_url->ptr, feed_url->len, NULL);
 	sqlite3_bind_text(res, 2, item_data->guid->ptr, item_data->guid->len, NULL);
@@ -43,16 +42,17 @@ contents_menu(struct string *feed_url, struct item_entry *item_data)
 		debug_write(DBG_WARN, "could not find that item\n");
 		free_string(&buf);
 		sqlite3_finalize(res);
-		return MENU_CONTENT_ERROR;
+		return NULL;
 	}
 	char *text, *saveptr = NULL;
 	size_t text_len;
+	int pad_height = 0;
 	char *temp_config_contents_meta_data = malloc(sizeof(char) * (strlen(config_contents_meta_data) + 1));
 	if (temp_config_contents_meta_data == NULL) {
 		debug_write(DBG_ERR, "not enough memory for tokenizing order of meta data tags\n");
 		free_string(&buf);
 		sqlite3_finalize(res);
-		return MENU_CONTENT_ERROR;
+		return NULL;
 	}
 	strcpy(temp_config_contents_meta_data, config_contents_meta_data);
 	char *meta_tag = strtok_r(temp_config_contents_meta_data, ",", &saveptr);
@@ -66,6 +66,7 @@ contents_menu(struct string *feed_url, struct item_entry *item_data)
 					cat_string_array(buf, "Date: ", (size_t)6);
 					cat_string_array(buf, time_str, strlen(time_str));
 					cat_string_char(buf, '\n');
+					++pad_height;
 				}
 			}
 			continue;
@@ -77,74 +78,169 @@ contents_menu(struct string *feed_url, struct item_entry *item_data)
 				if (text == NULL) break;
 				text_len = strlen(text);
 				if (text_len != 0) {
-					cat_string_array(buf, "<div>", 5);
-					cat_string_array(buf, (char *)meta_data[i].name, strlen(meta_data[i].name));
+					cat_string_array(buf, meta_data[i].name, strlen(meta_data[i].name));
 					cat_string_array(buf, ": ", (size_t)2);
 					cat_string_array(buf, text, text_len);
-					cat_string_array(buf, "</div>\n", 7);
+					cat_string_char(buf, '\n');
+					++pad_height;
 				}
 				break;
 			}
 		}
 	} while ((meta_tag = strtok_r(NULL, ",", &saveptr)) != NULL);
 	free(temp_config_contents_meta_data);
-	text = (char *)sqlite3_column_text(res, ITEM_COLUMN_CONTENT);
+	int not_newline = 0;
+	text = (char *) sqlite3_column_text(res, ITEM_COLUMN_CONTENT);
 	if (text != NULL) {
-		char *expanded_text = expand_xml_entities(text, strlen(text));
-		if (expanded_text == NULL) {
-			debug_write(DBG_ERR, "not enough memory for expanding html entities\n");
-			free_string(&buf);
-			sqlite3_finalize(res);
-			return MENU_CONTENT_ERROR;
+		char *plain_text = plainify_html(text, strlen(text));
+		if (plain_text != NULL) {
+			cat_string_char(buf, '\n');
+			++pad_height;
+			text_len = strlen(plain_text);
+			if (text_len != 0) {
+				cat_string_array(buf, plain_text, text_len);
+				for (size_t i = 0; i < text_len; ++i) {
+					if ((plain_text[i] == '\n') || (not_newline > COLS)) {
+						not_newline = 0;
+						++pad_height;
+					} else {
+						++not_newline;
+					}
+				}
+			}
+			free(plain_text);
 		}
-		cat_string_char(buf, '\n');
-		text_len = strlen(expanded_text);
-		if (text_len != 0) {
-			cat_string_array(buf, expanded_text, text_len);
+	}
+	WINDOW *pad = newpad(pad_height, COLS);
+	if (pad == NULL) {
+		debug_write(DBG_ERR, "could not create pad window for item contents\n");
+		sqlite3_finalize(res);
+		free_string(&buf);
+		return NULL;
+	}
+	not_newline = 0;
+	char *iter = buf->ptr;
+	char *newline_char;
+	while (1) {
+		newline_char = strchr(iter, '\n');
+		if (newline_char != NULL) {
+			while (newline_char - iter > COLS) {
+				waddnstr(pad, iter, COLS);
+				wmove(pad, newlines++, 0);
+				iter += COLS;
+			}
+			waddnstr(pad, iter, newline_char - iter);
+			wmove(pad, newlines++, 0);
+			iter = newline_char + 1;
+		} else {
+			while (iter < buf->ptr + buf->len) {
+				waddnstr(pad, iter, COLS);
+				wmove(pad, newlines++, 0);
+				iter += COLS;
+			}
+			break;
 		}
-		free(expanded_text);
 	}
 	sqlite3_finalize(res);
+	free_string(&buf);
+	return pad;
+}
 
-	char temp_file[1000] = "/tmp/feedeater-XXXXXX";
-	char temp_file_full[1000];
-	(void)mkstemp(temp_file);
-	strcpy(temp_file_full, temp_file);
-	strcat(temp_file_full, ".html");
-	rename(temp_file, temp_file_full);
-	FILE* tempf = fopen(temp_file_full, "w");
-	if (tempf == NULL) {
+static void
+scroll_view(int offset)
+{
+	int new_view_min = view_min + offset;
+	int new_view_max = view_max + offset;
+	if (new_view_min < 0) {
+		new_view_min = 0;
+		new_view_max = LINES - 1;
+	} else if (new_view_max + 1 >= newlines) {
+		new_view_max = newlines - 1;
+		new_view_min = new_view_max - LINES;
+	}
+	if (new_view_min != view_min && new_view_max != view_max) {
+		view_min = new_view_min;
+		view_max = new_view_max;
+		prefresh(window, view_min, 0, 0, 0, LINES - 2, COLS);
+	}
+}
+
+static void
+scroll_view_top(void)
+{
+	int new_view_min = 0;
+	int new_view_max = LINES - 1;
+	if (new_view_min != view_min && new_view_max != view_max) {
+		view_min = new_view_min;
+		view_max = new_view_max;
+		prefresh(window, view_min, 0, 0, 0, LINES - 2, COLS);
+	}
+}
+
+static void
+scroll_view_bot(void)
+{
+	int new_view_max = newlines - 1;
+	int new_view_min = new_view_max - LINES;
+	if (new_view_min != view_min && new_view_max != view_max) {
+		view_min = new_view_min;
+		view_max = new_view_max;
+		prefresh(window, view_min, 0, 0, 0, LINES - 2, COLS);
+	}
+}
+
+static int
+menu_contents(void)
+{
+	int ch, q;
+	char cmd[7];
+	while (1) {
+		ch = input_wgetch();
+		if      (ch == 'j' || ch == KEY_DOWN)                            { scroll_view(1); }
+		else if (ch == 'k' || ch == KEY_UP)                              { scroll_view(-1); }
+		else if (ch == KEY_NPAGE)                                        { scroll_view(LINES - 1); }
+		else if (ch == KEY_PPAGE)                                        { scroll_view(-LINES + 1); }
+		else if (ch == 'G' || ch == KEY_END)                             { scroll_view_bot(); }
+		else if ((ch == 'g' && input_wgetch() == 'g') || ch == KEY_HOME) { scroll_view_top(); }
+		else if (isdigit(ch)) {
+			q = 0;
+			while (1) {
+				cmd[q++] = ch;
+				if (q > 6) break;
+				cmd[q] = '\0';
+				ch = input_wgetch();
+				if (!isdigit(ch)) {
+					if (ch == 'j' || ch == KEY_DOWN) {
+						scroll_view(atoi(cmd));
+					} else if (ch == 'k' || ch == KEY_UP) {
+						scroll_view(-atoi(cmd));
+					}
+					break;
+				}
+			}
+		}
+		else if (ch == 'h' || ch == KEY_LEFT || ch == config_key_soft_quit) { return MENU_ITEMS; }
+		else if (ch == config_key_hard_quit)                                { return MENU_QUIT; }
+	}
+}
+
+int
+contents_menu(struct item_line *item)
+{
+	newlines = 1;
+	view_min = 0;
+	view_max = LINES - 1;
+	window = cat_content(item->feed_url, item->data);
+	if (window == NULL) {
+		status_write("could not obtain contents of item");
 		return MENU_CONTENT_ERROR;
 	}
-
-	fwrite(buf->ptr, sizeof(char), buf->len, tempf);
-	fclose(tempf);
-	free_string(&buf);
+	db_update_item_int(item->feed_url, item->data, "unread", 0);
 	hide_items();
-
-	savetty();
-	endwin();
-	pid_t process = fork();
-	if (process == 0) {
-		// child
-		/*input_delete();*/
-		/*status_delete();*/
-		free_items();
-		free_sets();
-		db_stop();
-		free_data_dir_path();
-		free_conf_dir_path();
-		debug_stop();
-		execl("/bin/w3m", "w3m", "-T", "text/html", temp_file_full, NULL);
-		exit(EXIT_FAILURE);
-	} else if (process > 0) {
-		// parent
-		wait(NULL);
-		db_update_item_int(feed_url, item_data, "unread", 0);
-	}
-	resetty();
-
-	remove(temp_file_full);
-
-	return MENU_ITEMS;
+	clear();
+	refresh();
+	prefresh(window, view_min, 0, 0, 0, LINES - 2, COLS);
+	int contents_status = menu_contents();
+	delwin(window);
+	return contents_status;
 }

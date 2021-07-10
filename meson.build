@@ -30,7 +30,7 @@ feedeater_src = [
   'src/config.c',
   'src/config.h',
   'src/contents.c',
-  'src/xml_entities.c',
+  'src/html_parser.c',
   'src/db.c',
   'src/debug.c',
   'src/download.c',
@@ -57,7 +57,7 @@ feedeater_src = [
 incdir = include_directories('src')
 executable(
 	'feedeater',
-	dependencies: feedeater_dep,
 	sources: feedeater_src,
+	dependencies: feedeater_dep,
 	include_directories: incdir
 )

@@ -8,11 +8,9 @@ Terminal-based application for reading feed channels in various Web syndication 
 
 Project goals are:
 
-* shift html processing responsibilities to web browser
-
 * omit the support for bunch of "cloud"-based feed services
 
-* utilize a small amount of libraries
+* utilize few libraries
 
 ## Dependencies
 
@@ -23,8 +21,6 @@ Project goals are:
 * expat >= 2.2.10
 
 * sqlite >= 3.35.4
-
-* web browser of your choice
 
 * gcc >= 10.2.0 (build-time)
 

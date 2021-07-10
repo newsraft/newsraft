@@ -120,6 +120,7 @@ cat_content(struct string *feed_url, struct item_entry *item_data)
 		}
 	}
 
+	//int pad_height = 1;
 	int pad_height = calculate_pad_height_for_buf(buf);
 	WINDOW *pad = newpad(pad_height, COLS);
 	if (pad == NULL) {
@@ -158,15 +159,18 @@ cat_content(struct string *feed_url, struct item_entry *item_data)
 			if (newline_char != NULL) {
 				while (newline_char - iter > COLS) {
 					waddnwstr(pad, iter, COLS);
+					//wresize(pad, ++pad_height, COLS);
 					wmove(pad, newlines++, 0);
 					iter += COLS;
 				}
 				waddnwstr(pad, iter, newline_char - iter);
+				//wresize(pad, ++pad_height, COLS);
 				wmove(pad, newlines++, 0);
 				iter = newline_char + 1;
 			} else {
 				while (iter < wcs + mbslen) {
 					waddnwstr(pad, iter, COLS);
+					//wresize(pad, ++pad_height, COLS);
 					wmove(pad, newlines++, 0);
 					iter += COLS;
 				}
@@ -214,7 +218,7 @@ scroll_view(int offset)
 		new_view_max = LINES - 1;
 	} else if (new_view_max + 1 >= newlines) {
 		new_view_max = newlines - 1;
-		new_view_min = new_view_max - LINES;
+		new_view_min = new_view_max - LINES + 1;
 	}
 	if (new_view_min != view_min && new_view_max != view_max) {
 		view_min = new_view_min;
@@ -239,7 +243,7 @@ static void
 scroll_view_bot(void)
 {
 	int new_view_max = newlines - 1;
-	int new_view_min = new_view_max - LINES;
+	int new_view_min = new_view_max - LINES + 1;
 	if (new_view_min != view_min && new_view_max != view_max) {
 		view_min = new_view_min;
 		view_max = new_view_max;

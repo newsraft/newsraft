@@ -22,11 +22,30 @@ struct {
 	{"Comments", "comments", ITEM_COLUMN_COMMENTS},
 };
 
+static int
+calculate_pad_height_for_buf(struct string *buf)
+{
+	int pad_height = 0, not_newline = 0;
+	for (size_t i = 0; i < buf->len; ++i) {
+		if ((buf->ptr[i] == '\n') || (not_newline > COLS)) {
+			not_newline = 0;
+			++pad_height;
+		} else {
+			++not_newline;
+		}
+	}
+	return pad_height;
+}
+
 static WINDOW *
 cat_content(struct string *feed_url, struct item_entry *item_data)
 {
 	struct string *buf = create_string();
-	if (buf == NULL) return NULL;
+	if (buf == NULL) {
+		debug_write(DBG_ERR, "can't create buffer for content of item\n");
+		return NULL;
+	}
+
 	sqlite3_stmt *res;
 	int rc = sqlite3_prepare_v2(db, "SELECT * FROM items WHERE feed = ? AND guid = ? AND url = ? LIMIT 1", -1, &res, 0);
 	if (rc != SQLITE_OK) {
@@ -44,20 +63,20 @@ cat_content(struct string *feed_url, struct item_entry *item_data)
 		sqlite3_finalize(res);
 		return NULL;
 	}
-	char *text, *saveptr = NULL;
-	size_t text_len;
-	int pad_height = 0;
-	char *temp_config_contents_meta_data = malloc(sizeof(char) * (strlen(config_contents_meta_data) + 1));
-	if (temp_config_contents_meta_data == NULL) {
+
+	char *draft_meta_data_order = malloc(sizeof(char) * (strlen(config_contents_meta_data) + 1));
+	if (draft_meta_data_order == NULL) {
 		debug_write(DBG_ERR, "not enough memory for tokenizing order of meta data tags\n");
 		free_string(&buf);
 		sqlite3_finalize(res);
 		return NULL;
 	}
-	strcpy(temp_config_contents_meta_data, config_contents_meta_data);
-	char *meta_tag = strtok_r(temp_config_contents_meta_data, ",", &saveptr);
+	strcpy(draft_meta_data_order, config_contents_meta_data);
+	char *text, *saveptr = NULL;
+	size_t text_len;
+	char *meta_data_entry = strtok_r(draft_meta_data_order, ",", &saveptr);
 	do {
-		if (strcmp(meta_tag, "date") == 0) {
+		if (strcmp(meta_data_entry, "date") == 0) {
 			time_t epoch_time = (time_t)sqlite3_column_int64(res, ITEM_COLUMN_PUBDATE);
 			if (epoch_time > 0) {
 				struct tm ts = *localtime(&epoch_time);
@@ -66,51 +85,42 @@ cat_content(struct string *feed_url, struct item_entry *item_data)
 					cat_string_array(buf, "Date: ", (size_t)6);
 					cat_string_array(buf, time_str, strlen(time_str));
 					cat_string_char(buf, '\n');
-					++pad_height;
 				}
 			}
 			continue;
 		}
 		text = NULL;
 		for (size_t i = 0; i < LENGTH(meta_data); ++i) {
-			if (strcmp(meta_tag, meta_data[i].column) == 0) {
+			if (strcmp(meta_data_entry, meta_data[i].column) == 0) {
 				text = (char *)sqlite3_column_text(res, meta_data[i].num);
 				if (text == NULL) break;
 				text_len = strlen(text);
 				if (text_len != 0) {
-					cat_string_array(buf, meta_data[i].name, strlen(meta_data[i].name));
+					cat_string_array(buf, (char *)meta_data[i].name, strlen(meta_data[i].name));
 					cat_string_array(buf, ": ", (size_t)2);
 					cat_string_array(buf, text, text_len);
 					cat_string_char(buf, '\n');
-					++pad_height;
 				}
 				break;
 			}
 		}
-	} while ((meta_tag = strtok_r(NULL, ",", &saveptr)) != NULL);
-	free(temp_config_contents_meta_data);
-	int not_newline = 0;
+	} while ((meta_data_entry = strtok_r(NULL, ",", &saveptr)) != NULL);
+	free(draft_meta_data_order);
+
 	text = (char *) sqlite3_column_text(res, ITEM_COLUMN_CONTENT);
 	if (text != NULL) {
 		char *plain_text = plainify_html(text, strlen(text));
 		if (plain_text != NULL) {
 			cat_string_char(buf, '\n');
-			++pad_height;
 			text_len = strlen(plain_text);
 			if (text_len != 0) {
 				cat_string_array(buf, plain_text, text_len);
-				for (size_t i = 0; i < text_len; ++i) {
-					if ((plain_text[i] == '\n') || (not_newline > COLS)) {
-						not_newline = 0;
-						++pad_height;
-					} else {
-						++not_newline;
-					}
-				}
 			}
 			free(plain_text);
 		}
 	}
+
+	int pad_height = calculate_pad_height_for_buf(buf);
 	WINDOW *pad = newpad(pad_height, COLS);
 	if (pad == NULL) {
 		debug_write(DBG_ERR, "could not create pad window for item contents\n");
@@ -118,29 +128,77 @@ cat_content(struct string *feed_url, struct item_entry *item_data)
 		free_string(&buf);
 		return NULL;
 	}
-	not_newline = 0;
-	char *iter = buf->ptr;
-	char *newline_char;
-	while (1) {
-		newline_char = strchr(iter, '\n');
-		if (newline_char != NULL) {
-			while (newline_char - iter > COLS) {
-				waddnstr(pad, iter, COLS);
+
+	if (1) { // buffer is multi-byte
+		size_t mbslen = mbstowcs(NULL, buf->ptr, 0);
+		if (mbslen == (size_t)-1) {
+			delwin(pad);
+			sqlite3_finalize(res);
+			free_string(&buf);
+			return NULL;
+		}
+		wchar_t *wcs = calloc(mbslen + 1, sizeof(wchar_t));
+		if (wcs == NULL) {
+			delwin(pad);
+			sqlite3_finalize(res);
+			free_string(&buf);
+			return NULL;
+		}
+		if (mbstowcs(wcs, buf->ptr, mbslen + 1) == (size_t)-1) {
+			free(wcs);
+			delwin(pad);
+			sqlite3_finalize(res);
+			free_string(&buf);
+			return NULL;
+		}
+		wchar_t *iter = wcs;
+		wchar_t *newline_char;
+		while (1) {
+			newline_char = wcschr(iter, L'\n');
+			if (newline_char != NULL) {
+				while (newline_char - iter > COLS) {
+					waddnwstr(pad, iter, COLS);
+					wmove(pad, newlines++, 0);
+					iter += COLS;
+				}
+				waddnwstr(pad, iter, newline_char - iter);
 				wmove(pad, newlines++, 0);
-				iter += COLS;
+				iter = newline_char + 1;
+			} else {
+				while (iter < wcs + mbslen) {
+					waddnwstr(pad, iter, COLS);
+					wmove(pad, newlines++, 0);
+					iter += COLS;
+				}
+				break;
 			}
-			waddnstr(pad, iter, newline_char - iter);
-			wmove(pad, newlines++, 0);
-			iter = newline_char + 1;
-		} else {
-			while (iter < buf->ptr + buf->len) {
-				waddnstr(pad, iter, COLS);
+		}
+		free(wcs);
+	} else { // buffer is single-byte
+		char *iter = buf->ptr;
+		char *newline_char;
+		while (1) {
+			newline_char = strchr(iter, '\n');
+			if (newline_char != NULL) {
+				while (newline_char - iter > COLS) {
+					waddnstr(pad, iter, COLS);
+					wmove(pad, newlines++, 0);
+					iter += COLS;
+				}
+				waddnstr(pad, iter, newline_char - iter);
 				wmove(pad, newlines++, 0);
-				iter += COLS;
+				iter = newline_char + 1;
+			} else {
+				while (iter < buf->ptr + buf->len) {
+					waddnstr(pad, iter, COLS);
+					wmove(pad, newlines++, 0);
+					iter += COLS;
+				}
+				break;
 			}
-			break;
 		}
 	}
+
 	sqlite3_finalize(res);
 	free_string(&buf);
 	return pad;

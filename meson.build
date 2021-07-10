@@ -9,6 +9,8 @@ project(
 )
 add_project_arguments(
 	[
+		#'-O2',
+		#'-D_FORTIFY_SOURCE=2',
 		'-fanalyzer',
 		'-fdiagnostics-color=always',
 		'-DXML_NS',
@@ -21,16 +23,17 @@ add_project_arguments(
 	language : 'c'
 )
 feedeater_dep = [
-  dependency('ncursesw'),
-  dependency('libcurl'),
-  dependency('expat'),
-  dependency('sqlite3'),
+	dependency('ncursesw'),
+	dependency('libcurl'),
+	dependency('expat'),
+	dependency('sqlite3'),
 ]
 feedeater_src = [
   'src/config.c',
   'src/config.h',
   'src/contents.c',
   'src/html_parser.c',
+  'src/html_entities.c',
   'src/db.c',
   'src/debug.c',
   'src/download.c',

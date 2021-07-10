@@ -141,6 +141,7 @@ int try_item_bucket(struct item_bucket *bucket, struct string *feed_url);
 
 
 // contents
+struct string *expand_html_entities(char *buf, size_t buf_len);
 char *plainify_html(char *buff, size_t buff_len);
 int contents_menu(struct item_line *item);
 

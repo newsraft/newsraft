@@ -19,40 +19,35 @@ free_atts(void)
 	atts_count = 0;
 }
 
-static int
-tag_is_block_elem(char *tag)
-{
-	return strcmp(tag, "div") == 0 ||
-	       strcmp(tag, "/div") == 0 ||
-	       strcmp(tag, "ol") == 0 ||
-	       strcmp(tag, "/ol") == 0 ||
-	       strcmp(tag, "ul") == 0 ||
-	       strcmp(tag, "/ul") == 0 ||
-	       strcmp(tag, "li") == 0 ||
-	       strcmp(tag, "/li") == 0 ||
-	       strcmp(tag, "dl") == 0 ||
-	       strcmp(tag, "/dl") == 0 ||
-	       strcmp(tag, "dt") == 0 ||
-	       strcmp(tag, "/dt") == 0 ||
-	       strcmp(tag, "dd") == 0 ||
-	       strcmp(tag, "/dd") == 0 ||
-	       strcmp(tag, "footer") == 0 ||
-	       strcmp(tag, "/footer") == 0;
-}
-
-#define TAG_IS_HEADER(A) strcmp(A, "h1") == 0 || \
+#define TAG_IS_BLOCK(A) strcmp(A, "div") == 0    || \
+                        strcmp(A, "/div") == 0   || \
+                        strcmp(A, "ol") == 0     || \
+                        strcmp(A, "/ol") == 0    || \
+                        strcmp(A, "ul") == 0     || \
+                        strcmp(A, "/ul") == 0    || \
+                        strcmp(A, "li") == 0     || \
+                        strcmp(A, "/li") == 0    || \
+                        strcmp(A, "dl") == 0     || \
+                        strcmp(A, "/dl") == 0    || \
+                        strcmp(A, "dt") == 0     || \
+                        strcmp(A, "/dt") == 0    || \
+                        strcmp(A, "dd") == 0     || \
+                        strcmp(A, "/dd") == 0    || \
+                        strcmp(A, "footer") == 0 || \
+                        strcmp(A, "/footer") == 0
+#define TAG_IS_HEADER(A) strcmp(A, "h1") == 0  || \
                          strcmp(A, "/h1") == 0 || \
-                         strcmp(A, "h2") == 0 || \
+                         strcmp(A, "h2") == 0  || \
                          strcmp(A, "/h2") == 0 || \
-                         strcmp(A, "h3") == 0 || \
+                         strcmp(A, "h3") == 0  || \
                          strcmp(A, "/h3") == 0 || \
-                         strcmp(A, "h4") == 0 || \
+                         strcmp(A, "h4") == 0  || \
                          strcmp(A, "/h4") == 0 || \
-                         strcmp(A, "h5") == 0 || \
+                         strcmp(A, "h5") == 0  || \
                          strcmp(A, "/h5") == 0 || \
-                         strcmp(A, "h6") == 0 || \
+                         strcmp(A, "h6") == 0  || \
                          strcmp(A, "/h6") == 0
-#define TAG_IS_PARAGRAPH(A) strcmp(A, "p") == 0 || \
+#define TAG_IS_PARAGRAPH(A) strcmp(A, "p") == 0  || \
                             strcmp(A, "/p") == 0
 
 static void
@@ -68,7 +63,7 @@ format_plain_text(char *text, size_t *iter)
 		text[(*iter)++] = '\n';
 	} else if (TAG_IS_PARAGRAPH(atts[0])) {
 		text[(*iter)++] = '\n';
-	} else if (tag_is_block_elem(atts[0])) {
+	} else if (TAG_IS_BLOCK(atts[0])) {
 		if (text[*iter - 1] != '\n') {
 			text[(*iter)++] = '\n';
 		}
@@ -78,21 +73,26 @@ format_plain_text(char *text, size_t *iter)
 }
 
 char *
-plainify_html(char *buff, size_t buff_len)
+plainify_html(char *buf_with_entities, size_t buf_len)
 {
-	char *text = malloc(sizeof(char) * (buff_len + 1));
+	struct string *buf = expand_html_entities(buf_with_entities, buf_len);
+	if (buf == NULL) {
+		return NULL;
+	}
+	char *text = malloc(sizeof(char) * (buf->len + 1));
 	if (text == NULL) {
+		free_string(&buf);
 		return NULL;
 	}
 	bool in_tag = false;
 	size_t i, j, att_index, att_limit, att_char;
-	for (i = 0, j = 0; i < buff_len; ++i) {
+	for (i = 0, j = 0; i < buf->len; ++i) {
 		if (in_tag == true) {
-			if (buff[i] == '>') {
+			if (buf->ptr[i] == '>') {
 				in_tag = false;
 				atts[att_index][att_char] = '\0';
 				format_plain_text(text, &j);
-			} else if (buff[i] == ' ' || buff[i] == '\n') {
+			} else if (buf->ptr[i] == ' ' || buf->ptr[i] == '\n') {
 				atts[att_index][att_char] = '\0';
 				att_char = 0;
 			} else {
@@ -105,22 +105,23 @@ plainify_html(char *buff, size_t buff_len)
 					att_limit = (att_char + 1) * 2;
 					atts[att_index] = realloc(atts[att_index], sizeof(char) * att_limit);
 				}
-				atts[att_index][att_char++] = buff[i];
+				atts[att_index][att_char++] = buf->ptr[i];
 			}
 		} else {
-			if (buff[i] == '<') {
+			if (buf->ptr[i] == '<') {
 				in_tag = true;
 				free_atts();
 				att_char = 0;
-			} else if (buff[i] == '\n' || buff[i] == ' ') {
+			} else if (buf->ptr[i] == '\n' || buf->ptr[i] == ' ') {
 				if (j != 0 && text[j - 1] != ' ' && text[j - 1] != '\n') {
 					text[j++] = ' ';
 				}
 			} else {
-				text[j++] = buff[i];
+				text[j++] = buf->ptr[i];
 			}
 		}
 	}
+	free_string(&buf);
 	text[j] = '\0';
 	free_atts();
 	return text;

@@ -10,16 +10,27 @@ struct feed_tag {
 static struct feed_tag *tags = NULL;
 static size_t tags_count = 0;
 
-static void
+static int
 tag_init(char *tag_name, struct string *url)
 {
 	size_t tag_index = tags_count++;
 	tags = realloc(tags, sizeof(struct feed_tag) * tags_count);
+	if (tags == NULL) {
+		return 1;
+	}
 	tags[tag_index].name = malloc(sizeof(char) * (strlen(tag_name) + 1));
+	if (tags[tag_index].name == NULL) {
+		return 2;
+	}
 	tags[tag_index].urls = malloc(sizeof(struct string *));
+	if (tags[tag_index].urls == NULL) {
+		free(tags[tag_index].name);
+		return 3;
+	}
 	tags[tag_index].urls_count = 1;
 	tags[tag_index].urls[0] = url;
 	strcpy(tags[tag_index].name, tag_name);
+	return 0;
 }
 
 void
@@ -34,7 +45,14 @@ tag_feed(char *tag_name, struct string *url)
 			break;
 		}
 	}
-	if (i == tags_count) tag_init(tag_name, url);
+	if (i == tags_count) {
+		if (tag_init(tag_name, url) != 0) {
+			--tags_count;
+			tags = realloc(tags, sizeof(struct feed_tag) * tags_count);
+			debug_write(DBG_OK, "failed to tag feed %s as %s\n", url->ptr, tag_name);
+			return;
+		}
+	}
 	debug_write(DBG_OK, "feed %s is tagged as %s\n", url->ptr, tag_name);
 }
 
@@ -53,6 +71,8 @@ create_set_statement(struct set_line *set)
 		cat_string_array(st->db_cmd, " feed = ?", 9);
 		st->urls = malloc(sizeof(struct string *));
 		if (st->urls == NULL) {
+			free_string(&st->db_cmd);
+			free(st);
 			debug_write(DBG_ERR, "can't allocate memory for set_statement url list!\n");
 			return NULL;
 		}
@@ -108,6 +128,8 @@ create_set_statement(struct set_line *set)
 		}
 		return st;
 	}
+	free_string(&st->db_cmd);
+	free(st);
 	return NULL;
 }
 

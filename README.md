@@ -8,13 +8,13 @@ Terminal-based application for reading feed channels in various Web syndication 
 
 Project goals are:
 
-* omit the support for bunch of "cloud"-based feed services
+* avoid the support for bunch of cloud-based third-party feed services
 
 * utilize few libraries
 
 ## Dependencies
 
-* ncurses >= 6.2
+* ncursesw >= 6.2
 
 * libcurl >= 7.75.0
 
@@ -22,9 +22,7 @@ Project goals are:
 
 * sqlite >= 3.35.4
 
-* gcc >= 10.2.0 (build-time)
-
-* ninja >= 1.10.2 (build-time)
+* gcc >= 8.1.0 (build-time)
 
 * meson >= 0.58.1 (build-time)
 

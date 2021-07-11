@@ -1,6 +1,8 @@
 #include <string.h>
 #include "feedeater.h"
 
+#define MAX_ENTITY_NAME 30
+
 struct {
 	const char *name;
 	const char *data;
@@ -38,7 +40,7 @@ expand_html_entities(char *buf, size_t buf_len)
 		return NULL;
 	}
 	bool in_entity = false;
-	char entity[100], *data;
+	char entity[MAX_ENTITY_NAME], *data;
 	size_t i, j, entity_letter;
 	for (i = 0, j = 0; i < buf_len; ++i) {
 		if (in_entity == true) {
@@ -53,6 +55,14 @@ expand_html_entities(char *buf, size_t buf_len)
 				}
 			} else {
 				entity[entity_letter++] = buf[i];
+				if (entity_letter >= MAX_ENTITY_NAME - 1) {
+					in_entity = false;
+					entity[entity_letter] = '\0';
+					text[j] = '\0';
+					strcat(text, "&");
+					strcat(text, entity);
+					j += strlen(entity) + 1;
+				}
 			}
 		} else {
 			if (buf[i] == '&') {
@@ -63,6 +73,15 @@ expand_html_entities(char *buf, size_t buf_len)
 			}
 		}
 	}
+
+	if (in_entity == true) {
+		entity[entity_letter] = '\0';
+		text[j] = '\0';
+		strcat(text, "&");
+		strcat(text, entity);
+		j += strlen(entity) + 1;
+	}
+
 	text[j] = '\0';
 	struct string *text_str = NULL;
 	make_string(&text_str, text, j);

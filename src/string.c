@@ -17,8 +17,8 @@ create_string(void)
 		free(str);
 		return NULL;
 	}
-	str->len = 0;
 	*(str->ptr + 0) = '\0';
+	str->len = 0;
 	return str;
 }
 
@@ -26,7 +26,7 @@ void
 make_string(struct string **dest, void *src, size_t len)
 {
 	if (src == NULL || len == 0) {
-		if (*dest != NULL) free_string(*dest);
+		free_string(*dest);
 		*dest = NULL;
 		return;
 	}

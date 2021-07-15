@@ -109,14 +109,13 @@ cat_content(struct string *feed_url, struct item_entry *item_data)
 
 	text = (char *) sqlite3_column_text(res, ITEM_COLUMN_CONTENT);
 	if (text != NULL) {
-		char *plain_text = plainify_html(text, strlen(text));
+		struct string *plain_text = plainify_html(text, strlen(text));
 		if (plain_text != NULL) {
-			cat_string_char(buf, '\n');
-			text_len = strlen(plain_text);
-			if (text_len != 0) {
-				cat_string_array(buf, plain_text, text_len);
+			if (plain_text->len != 0) {
+				cat_string_char(buf, '\n');
+				cat_string_string(buf, plain_text);
 			}
-			free(plain_text);
+			free_string(plain_text);
 		}
 	}
 

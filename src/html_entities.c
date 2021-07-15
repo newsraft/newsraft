@@ -83,8 +83,14 @@ expand_html_entities(char *buf, size_t buf_len)
 	}
 
 	text[j] = '\0';
-	struct string *text_str = NULL;
-	make_string(&text_str, text, j);
-	free(text);
-	return text_str;
+
+	struct string *text_buf = malloc(sizeof(struct string));
+	if (text_buf == NULL) {
+		free(text);
+		return NULL;
+	}
+	text_buf->ptr = text;
+	text_buf->len = j;
+
+	return text_buf;
 }

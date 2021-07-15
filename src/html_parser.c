@@ -71,7 +71,7 @@ format_plain_text(char *text, size_t *iter)
 	}
 }
 
-char *
+struct string *
 plainify_html(char *buf_with_entities, size_t buf_len)
 {
 	struct string *buf = expand_html_entities(buf_with_entities, buf_len);
@@ -121,8 +121,19 @@ plainify_html(char *buf_with_entities, size_t buf_len)
 			}
 		}
 	}
-	free_string(buf);
+
 	text[j] = '\0';
+
+	free_string(buf);
 	free_atts();
-	return text;
+
+	struct string *text_buf = malloc(sizeof(struct string));
+	if (text_buf == NULL) {
+		free(text);
+		return NULL;
+	}
+	text_buf->ptr = text;
+	text_buf->len = j;
+
+	return text_buf;
 }

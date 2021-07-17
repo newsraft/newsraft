@@ -5,6 +5,7 @@
 
 static char **atts = NULL;
 static size_t atts_count = 0;
+static bool in_preformatted = false;
 
 static void
 free_atts(void)
@@ -32,6 +33,8 @@ free_atts(void)
                         strcmp(A, "/dt") == 0    || \
                         strcmp(A, "dd") == 0     || \
                         strcmp(A, "/dd") == 0    || \
+                        strcmp(A, "pre") == 0    || \
+                        strcmp(A, "/pre") == 0   || \
                         strcmp(A, "footer") == 0 || \
                         strcmp(A, "/footer") == 0
 #define TAG_IS_HEADER(A) strcmp(A, "h1") == 0  || \
@@ -71,6 +74,17 @@ format_plain_text(char *text, size_t *iter)
 	}
 }
 
+static void
+change_html_status(void)
+{
+	if (strcmp(atts[0], "pre") == 0) {
+		in_preformatted = true;
+	} else if (strcmp(atts[0], "/pre") == 0) {
+		in_preformatted = false;
+	}
+
+}
+
 struct string *
 plainify_html(char *buf_with_entities, size_t buf_len)
 {
@@ -85,11 +99,13 @@ plainify_html(char *buf_with_entities, size_t buf_len)
 	}
 	bool in_tag = false;
 	size_t i, j, att_index, att_limit, att_char;
+	in_preformatted = false;
 	for (i = 0, j = 0; i < buf->len; ++i) {
 		if (in_tag == true) {
 			if (buf->ptr[i] == '>') {
 				in_tag = false;
 				atts[att_index][att_char] = '\0';
+				change_html_status();
 				format_plain_text(text, &j);
 			} else if (buf->ptr[i] == ' ' || buf->ptr[i] == '\n') {
 				atts[att_index][att_char] = '\0';
@@ -112,7 +128,7 @@ plainify_html(char *buf_with_entities, size_t buf_len)
 				free_atts();
 				atts_count = 0;
 				att_char = 0;
-			} else if (buf->ptr[i] == '\n' || buf->ptr[i] == ' ') {
+			} else if (in_preformatted == false && (buf->ptr[i] == '\n' || buf->ptr[i] == ' ')) {
 				if (j != 0 && text[j - 1] != ' ' && text[j - 1] != '\n') {
 					text[j++] = ' ';
 				}

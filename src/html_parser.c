@@ -3,68 +3,100 @@
 
 #define INIT_ATT_SIZE 30
 
+enum html_status {
+	HTML_DEFAULT = 0,
+	HTML_PREFORMATTED = 1,
+};
+
 static char **atts = NULL;
 static size_t atts_count = 0;
-static bool in_preformatted = false;
 
 static void
 free_atts(void)
 {
-	if (atts != NULL) {
-		for (size_t a = 0; a < atts_count; ++a) {
-			free(atts[a]);
-		}
-		free(atts);
-		atts = NULL; // set to NULL because we will call realloc on atts later
+	if (atts == NULL) {
+		return;
 	}
+	for (size_t a = 0; a < atts_count; ++a) {
+		free(atts[a]);
+	}
+	free(atts);
+	atts = NULL;
 }
 
-#define TAG_IS_BLOCK(A) strcmp(A, "div") == 0    || \
-                        strcmp(A, "/div") == 0   || \
-                        strcmp(A, "ol") == 0     || \
-                        strcmp(A, "/ol") == 0    || \
-                        strcmp(A, "ul") == 0     || \
-                        strcmp(A, "/ul") == 0    || \
-                        strcmp(A, "li") == 0     || \
-                        strcmp(A, "/li") == 0    || \
-                        strcmp(A, "dl") == 0     || \
-                        strcmp(A, "/dl") == 0    || \
-                        strcmp(A, "dt") == 0     || \
-                        strcmp(A, "/dt") == 0    || \
-                        strcmp(A, "dd") == 0     || \
-                        strcmp(A, "/dd") == 0    || \
-                        strcmp(A, "pre") == 0    || \
-                        strcmp(A, "/pre") == 0   || \
-                        strcmp(A, "footer") == 0 || \
-                        strcmp(A, "/footer") == 0
-#define TAG_IS_HEADER(A) strcmp(A, "h1") == 0  || \
-                         strcmp(A, "/h1") == 0 || \
-                         strcmp(A, "h2") == 0  || \
-                         strcmp(A, "/h2") == 0 || \
-                         strcmp(A, "h3") == 0  || \
-                         strcmp(A, "/h3") == 0 || \
-                         strcmp(A, "h4") == 0  || \
-                         strcmp(A, "/h4") == 0 || \
-                         strcmp(A, "h5") == 0  || \
-                         strcmp(A, "/h5") == 0 || \
-                         strcmp(A, "h6") == 0  || \
-                         strcmp(A, "/h6") == 0
-#define TAG_IS_PARAGRAPH(A) strcmp(A, "p") == 0  || \
-                            strcmp(A, "/p") == 0
+#define TAG_IS_BLOCK(A) (strcmp(A, "div") == 0    || \
+                         strcmp(A, "/div") == 0   || \
+                         strcmp(A, "ol") == 0     || \
+                         strcmp(A, "/ol") == 0    || \
+                         strcmp(A, "ul") == 0     || \
+                         strcmp(A, "/ul") == 0    || \
+                         strcmp(A, "li") == 0     || \
+                         strcmp(A, "/li") == 0    || \
+                         strcmp(A, "dl") == 0     || \
+                         strcmp(A, "/dl") == 0    || \
+                         strcmp(A, "dt") == 0     || \
+                         strcmp(A, "/dt") == 0    || \
+                         strcmp(A, "dd") == 0     || \
+                         strcmp(A, "/dd") == 0    || \
+                         strcmp(A, "pre") == 0    || \
+                         strcmp(A, "/pre") == 0   || \
+                         strcmp(A, "footer") == 0 || \
+                         strcmp(A, "/footer") == 0)
+#define TAG_IS_HEADER_START(A) (strcmp(A, "h1") == 0 || \
+                                strcmp(A, "h2") == 0 || \
+                                strcmp(A, "h3") == 0 || \
+                                strcmp(A, "h4") == 0 || \
+                                strcmp(A, "h5") == 0 || \
+                                strcmp(A, "h6") == 0)
+#define TAG_IS_HEADER_END(A) (strcmp(A, "/h1") == 0 || \
+                              strcmp(A, "/h2") == 0 || \
+                              strcmp(A, "/h3") == 0 || \
+                              strcmp(A, "/h4") == 0 || \
+                              strcmp(A, "/h5") == 0 || \
+                              strcmp(A, "/h6") == 0)
+#define TAG_IS_PARAGRAPH(A) (strcmp(A, "p") == 0  || \
+                             strcmp(A, "/p") == 0)
 
+/*
+change plain text according to current html attributes
+
+text - plain text string
+iter - plain text iterator
+*/
 static void
 format_plain_text(char *text, size_t *iter)
 {
 	if (*iter == 0) {
 		return;
 	}
-	if (TAG_IS_HEADER(atts[0])) {
-		if (text[*iter - 1] != '\n') {
+	if (TAG_IS_PARAGRAPH(atts[0]) || TAG_IS_HEADER_END(atts[0])) {
+		if (text[*iter - 1] == '\n') {
+			if (*iter >= 2 && text[*iter - 2] == '\n') {
+				// enough
+			} else {
+				text[(*iter)++] = '\n';
+			}
+		} else {
+			text[(*iter)++] = '\n';
 			text[(*iter)++] = '\n';
 		}
-		text[(*iter)++] = '\n';
-	} else if (TAG_IS_PARAGRAPH(atts[0])) {
-		text[(*iter)++] = '\n';
+	} else if (TAG_IS_HEADER_START(atts[0])) {
+		if (text[*iter - 1] == '\n') {
+			if (*iter >= 2 && text[*iter - 2] == '\n') {
+				if (*iter >= 3 && text[*iter - 3] == '\n') {
+					// enough
+				} else {
+					text[(*iter)++] = '\n';
+				}
+			} else {
+				text[(*iter)++] = '\n';
+				text[(*iter)++] = '\n';
+			}
+		} else {
+			text[(*iter)++] = '\n';
+			text[(*iter)++] = '\n';
+			text[(*iter)++] = '\n';
+		}
 	} else if (TAG_IS_BLOCK(atts[0])) {
 		if (text[*iter - 1] != '\n') {
 			text[(*iter)++] = '\n';
@@ -75,12 +107,12 @@ format_plain_text(char *text, size_t *iter)
 }
 
 static void
-change_html_status(void)
+update_html_status(enum html_status *status_ptr)
 {
 	if (strcmp(atts[0], "pre") == 0) {
-		in_preformatted = true;
+		*status_ptr |= HTML_PREFORMATTED;
 	} else if (strcmp(atts[0], "/pre") == 0) {
-		in_preformatted = false;
+		*status_ptr &= ~HTML_PREFORMATTED;
 	}
 
 }
@@ -97,15 +129,22 @@ plainify_html(char *buf_with_entities, size_t buf_len)
 		free_string(buf);
 		return NULL;
 	}
-	bool in_tag = false;
-	size_t i, j, att_index, att_limit, att_char;
-	in_preformatted = false;
+
+	size_t i, /* html text iterator */
+	       j, /* plain text iterator */
+	       att_index, /* index of last attribute of html tag */
+	       att_limit, /* maximum length of current attribute */
+	       att_char;  /* actual length of current attribute */
+	bool in_tag = false; /* shows if buf->ptr[i] character belongs to html tag */
+	enum html_status status = HTML_DEFAULT;
+
+	// parse html text char-by-char
 	for (i = 0, j = 0; i < buf->len; ++i) {
 		if (in_tag == true) {
 			if (buf->ptr[i] == '>') {
 				in_tag = false;
 				atts[att_index][att_char] = '\0';
-				change_html_status();
+				update_html_status(&status);
 				format_plain_text(text, &j);
 			} else if (buf->ptr[i] == ' ' || buf->ptr[i] == '\n') {
 				atts[att_index][att_char] = '\0';
@@ -128,7 +167,7 @@ plainify_html(char *buf_with_entities, size_t buf_len)
 				free_atts();
 				atts_count = 0;
 				att_char = 0;
-			} else if (in_preformatted == false && (buf->ptr[i] == '\n' || buf->ptr[i] == ' ')) {
+			} else if ((status & HTML_PREFORMATTED) == 0 && (buf->ptr[i] == '\n' || buf->ptr[i] == ' ')) {
 				if (j != 0 && text[j - 1] != ' ' && text[j - 1] != '\n') {
 					text[j++] = ' ';
 				}

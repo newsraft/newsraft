@@ -5,13 +5,13 @@
 #include "config.h"
 
 static WINDOW *window;
-static int view_min;
-static int view_max;
-static int newlines;
+static int view_min; // index of first visible line (row)
+static int view_area_height;
+static int pad_height;
 
 struct {
 	const char *name;
-	const char *column;
+	const char *column; /* name of column in database table */
 	const int num;
 } meta_data[] = {
 	{"Feed", "feed", ITEM_COLUMN_FEED},
@@ -23,9 +23,24 @@ struct {
 };
 
 static int
+calculate_pad_height_for_wcs(wchar_t *buf, size_t len)
+{
+	int pad_height = 1, not_newline = 0;
+	for (size_t i = 0; i < len; ++i) {
+		if ((buf[i] == L'\n') || (not_newline > COLS)) {
+			not_newline = 0;
+			++pad_height;
+		} else {
+			++not_newline;
+		}
+	}
+	return pad_height;
+}
+
+static int
 calculate_pad_height_for_buf(struct string *buf)
 {
-	int pad_height = 0, not_newline = 0;
+	int pad_height = 1, not_newline = 0;
 	for (size_t i = 0; i < buf->len; ++i) {
 		if ((buf->ptr[i] == '\n') || (not_newline > COLS)) {
 			not_newline = 0;
@@ -113,88 +128,98 @@ cat_content(struct string *feed_url, struct item_entry *item_data)
 		if (plain_text != NULL) {
 			if (plain_text->len != 0) {
 				cat_string_char(buf, '\n');
+				value_strip_whitespace(plain_text->ptr, &plain_text->len);
 				cat_string_string(buf, plain_text);
 			}
 			free_string(plain_text);
 		}
 	}
 
-	//int pad_height = 1;
-	int pad_height = calculate_pad_height_for_buf(buf);
-	WINDOW *pad = newpad(pad_height, COLS);
-	if (pad == NULL) {
-		debug_write(DBG_ERR, "could not create pad window for item contents\n");
-		sqlite3_finalize(res);
-		free_string(buf);
-		return NULL;
-	}
-
+	WINDOW *pad = NULL;
+	int newlines = 0;
 	if (1) { // buffer is multi-byte
 		size_t mbslen = mbstowcs(NULL, buf->ptr, 0);
 		if (mbslen == (size_t)-1) {
-			delwin(pad);
 			sqlite3_finalize(res);
 			free_string(buf);
 			return NULL;
 		}
 		wchar_t *wcs = calloc(mbslen + 1, sizeof(wchar_t));
 		if (wcs == NULL) {
-			delwin(pad);
 			sqlite3_finalize(res);
 			free_string(buf);
 			return NULL;
 		}
 		if (mbstowcs(wcs, buf->ptr, mbslen + 1) == (size_t)-1) {
 			free(wcs);
-			delwin(pad);
 			sqlite3_finalize(res);
 			free_string(buf);
 			return NULL;
 		}
+
+		pad_height = calculate_pad_height_for_wcs(wcs, mbslen);
+		pad = newpad(pad_height, COLS);
+		if (pad == NULL) {
+			debug_write(DBG_ERR, "could not create pad window for item contents\n");
+			free(wcs);
+			sqlite3_finalize(res);
+			free_string(buf);
+			return NULL;
+		}
+		debug_write(DBG_INFO, "created pad of %d lines height\n", pad_height);
+
 		wchar_t *iter = wcs;
 		wchar_t *newline_char;
 		while (1) {
 			newline_char = wcschr(iter, L'\n');
 			if (newline_char != NULL) {
 				while (newline_char - iter > COLS) {
-					waddnwstr(pad, iter, COLS);
-					//wresize(pad, ++pad_height, COLS);
 					wmove(pad, newlines++, 0);
+					waddnwstr(pad, iter, COLS);
 					iter += COLS;
 				}
-				waddnwstr(pad, iter, newline_char - iter);
-				//wresize(pad, ++pad_height, COLS);
 				wmove(pad, newlines++, 0);
+				waddnwstr(pad, iter, newline_char - iter);
 				iter = newline_char + 1;
 			} else {
 				while (iter < wcs + mbslen) {
-					waddnwstr(pad, iter, COLS);
-					//wresize(pad, ++pad_height, COLS);
 					wmove(pad, newlines++, 0);
+					waddnwstr(pad, iter, COLS);
 					iter += COLS;
 				}
 				break;
 			}
 		}
+		debug_write(DBG_INFO, "wrote %d lines to contents pad\n", newlines);
 		free(wcs);
 	} else { // buffer is single-byte
+		pad_height = calculate_pad_height_for_buf(buf);
+		pad = newpad(pad_height, COLS);
+		if (pad == NULL) {
+			debug_write(DBG_ERR, "could not create pad window for item contents\n");
+			sqlite3_finalize(res);
+			free_string(buf);
+			return NULL;
+		}
+		debug_write(DBG_INFO, "created pad of %d lines height\n", pad_height);
+
 		char *iter = buf->ptr;
 		char *newline_char;
 		while (1) {
 			newline_char = strchr(iter, '\n');
 			if (newline_char != NULL) {
 				while (newline_char - iter > COLS) {
-					waddnstr(pad, iter, COLS);
 					wmove(pad, newlines++, 0);
+					waddnstr(pad, iter, COLS);
 					iter += COLS;
 				}
-				waddnstr(pad, iter, newline_char - iter);
 				wmove(pad, newlines++, 0);
+				waddnstr(pad, iter, newline_char - iter);
 				iter = newline_char + 1;
 			} else {
 				while (iter < buf->ptr + buf->len) {
-					waddnstr(pad, iter, COLS);
 					wmove(pad, newlines++, 0);
+					waddnstr(pad, iter, COLS);
 					iter += COLS;
 				}
 				break;
@@ -211,18 +236,14 @@ static void
 scroll_view(int offset)
 {
 	int new_view_min = view_min + offset;
-	int new_view_max = view_max + offset;
 	if (new_view_min < 0) {
 		new_view_min = 0;
-		new_view_max = LINES - 1;
-	} else if (new_view_max + 1 >= newlines) {
-		new_view_max = newlines - 1;
-		new_view_min = new_view_max - LINES + 1;
+	} else if (new_view_min + view_area_height >= pad_height) {
+		new_view_min = pad_height - view_area_height;
 	}
-	if (new_view_min != view_min && new_view_max != view_max) {
+	if (new_view_min != view_min) {
 		view_min = new_view_min;
-		view_max = new_view_max;
-		prefresh(window, view_min, 0, 0, 0, LINES - 2, COLS);
+		prefresh(window, view_min, 0, 0, 0, view_area_height - 1, COLS - 1);
 	}
 }
 
@@ -230,23 +251,19 @@ static void
 scroll_view_top(void)
 {
 	int new_view_min = 0;
-	int new_view_max = LINES - 1;
-	if (new_view_min != view_min && new_view_max != view_max) {
+	if (new_view_min != view_min) {
 		view_min = new_view_min;
-		view_max = new_view_max;
-		prefresh(window, view_min, 0, 0, 0, LINES - 2, COLS);
+		prefresh(window, view_min, 0, 0, 0, view_area_height - 1, COLS - 1);
 	}
 }
 
 static void
 scroll_view_bot(void)
 {
-	int new_view_max = newlines - 1;
-	int new_view_min = new_view_max - LINES + 1;
-	if (new_view_min != view_min && new_view_max != view_max) {
+	int new_view_min = pad_height - view_area_height;
+	if (new_view_min != view_min) {
 		view_min = new_view_min;
-		view_max = new_view_max;
-		prefresh(window, view_min, 0, 0, 0, LINES - 2, COLS);
+		prefresh(window, view_min, 0, 0, 0, view_area_height - 1 , COLS - 1);
 	}
 }
 
@@ -259,8 +276,8 @@ menu_contents(void)
 		ch = input_wgetch();
 		if      (ch == 'j' || ch == KEY_DOWN)                            { scroll_view(1); }
 		else if (ch == 'k' || ch == KEY_UP)                              { scroll_view(-1); }
-		else if (ch == KEY_NPAGE)                                        { scroll_view(LINES - 1); }
-		else if (ch == KEY_PPAGE)                                        { scroll_view(-LINES + 1); }
+		else if (ch == KEY_NPAGE)                                        { scroll_view(view_area_height); }
+		else if (ch == KEY_PPAGE)                                        { scroll_view(-view_area_height); }
 		else if (ch == 'G' || ch == KEY_END)                             { scroll_view_bot(); }
 		else if ((ch == 'g' && input_wgetch() == 'g') || ch == KEY_HOME) { scroll_view_top(); }
 		else if (isdigit(ch)) {
@@ -288,9 +305,9 @@ menu_contents(void)
 int
 contents_menu(struct item_line *item)
 {
-	newlines = 1;
+	pad_height = 0;
+	view_area_height = LINES - 1;
 	view_min = 0;
-	view_max = LINES - 1;
 	window = cat_content(item->feed_url, item->data);
 	if (window == NULL) {
 		status_write("could not obtain contents of item");
@@ -300,7 +317,7 @@ contents_menu(struct item_line *item)
 	hide_items();
 	clear();
 	refresh();
-	prefresh(window, view_min, 0, 0, 0, LINES - 2, COLS);
+	prefresh(window, view_min, 0, 0, 0, view_area_height - 1, COLS - 1);
 	int contents_status = menu_contents();
 	delwin(window);
 	return contents_status;

@@ -10,7 +10,7 @@ Project goals are:
 
 * avoid the support for bunch of cloud-based third-party feed services
 
-* utilize few libraries
+* utilize a small amount of libraries
 
 ## Dependencies
 

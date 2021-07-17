@@ -20,12 +20,12 @@ tag_init(char *tag_name, struct string *url)
 	}
 	tags[tag_index].name = malloc(sizeof(char) * (strlen(tag_name) + 1));
 	if (tags[tag_index].name == NULL) {
-		return 2;
+		return 1;
 	}
 	tags[tag_index].urls = malloc(sizeof(struct string *));
 	if (tags[tag_index].urls == NULL) {
 		free(tags[tag_index].name);
-		return 3;
+		return 1;
 	}
 	tags[tag_index].urls_count = 1;
 	tags[tag_index].urls[0] = url;
@@ -49,7 +49,7 @@ tag_feed(char *tag_name, struct string *url)
 		if (tag_init(tag_name, url) != 0) {
 			--tags_count;
 			tags = realloc(tags, sizeof(struct feed_tag) * tags_count);
-			debug_write(DBG_OK, "failed to tag feed %s as %s\n", url->ptr, tag_name);
+			debug_write(DBG_WARN, "failed to tag feed %s as %s\n", url->ptr, tag_name);
 			return;
 		}
 	}
@@ -136,12 +136,12 @@ create_set_statement(struct set_line *set)
 void
 debug_tags_summary(void)
 {
+	debug_write(DBG_INFO, "tags summary:\n");
 	for (size_t i = 0; i < tags_count; ++i) {
-		debug_write(DBG_INFO, "tag \"%s\":\n", tags[i].name);
+		debug_write(DBG_INFO, "feeds related to tag \"%s\":\n", tags[i].name);
 		for (size_t j = 0; j < tags[i].urls_count; ++j) {
 			debug_write(DBG_INFO, "%s\n", tags[i].urls[j]->ptr);
 		}
-		debug_write(DBG_INFO, "\n");
 	}
 }
 

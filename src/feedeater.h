@@ -162,8 +162,6 @@ int feed_process(struct string *buf, struct string *url);
 time_t get_unix_epoch_time(char *format_str, char *date_str);
 int parse_generic(XML_Parser *parser);
 int parse_rss20(XML_Parser *parser);
-int process_namespaced_tag_start(void *userData, const XML_Char *name, const XML_Char **atts);
-int process_namespaced_tag_end(void *userData, const XML_Char *name);
 
 // tags
 void tag_feed(char *tag_name, struct string *url);
@@ -220,6 +218,8 @@ void debug_stop(void);
 
 
 // namespaces
+int process_namespaced_tag_start(void *userData, const XML_Char *name, const XML_Char **atts);
+int process_namespaced_tag_end(void *userData, const XML_Char *name);
 void XMLCALL atom_10_start(void *userData, const XML_Char *name, const XML_Char **atts);
 void XMLCALL atom_10_end(void *userData, const XML_Char *name);
 void XMLCALL atom_03_start(void *userData, const XML_Char *name, const XML_Char **atts);

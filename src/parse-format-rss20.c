@@ -4,11 +4,12 @@
 static void XMLCALL
 process_element_start(void *userData, const XML_Char *name, const XML_Char **atts)
 {
-	/*(void)atts;*/
 	struct feed_parser_data *data = userData;
 	++(data->depth);
 
-	if (process_namespaced_tag_start(userData, name, atts) == 0) return;
+	if (process_namespaced_tag_start(userData, name, atts) == 0) {
+		return;
+	}
 
 	if      (strcmp(name, "item") == 0)          data->pos |= IN_ITEM_ELEMENT;
 	else if (strcmp(name, "title") == 0)         data->pos |= IN_TITLE_ELEMENT;
@@ -27,12 +28,13 @@ process_element_start(void *userData, const XML_Char *name, const XML_Char **att
 static void XMLCALL
 process_element_end(void *userData, const XML_Char *name)
 {
-	/*(void)name;*/
 	struct feed_parser_data *data = userData;
 	--(data->depth);
 	value_strip_whitespace(data->value, &data->value_len);
 
-	if (process_namespaced_tag_end(userData, name) == 0) return;
+	if (process_namespaced_tag_end(userData, name) == 0) {
+		return;
+	}
 
 	if ((data->pos & IN_CHANNEL_ELEMENT) == 0) return;
 	if (strcmp(name, "item") == 0) {
@@ -107,10 +109,10 @@ parse_rss20(XML_Parser *parser)
 	XML_SetElementHandler(*parser, &process_element_start, &process_element_end);
 	XML_SetCharacterDataHandler(*parser, &store_xml_element_value);
 	if (XML_ResumeParser(*parser) == XML_STATUS_ERROR) {
+		debug_write(DBG_ERR, "parse_rss20: %" XML_FMT_STR " at line %" XML_FMT_INT_MOD "u\n",
+		            XML_ErrorString(XML_GetErrorCode(*parser)),
+		            XML_GetCurrentLineNumber(*parser));
 		error = 1;
-		/*status_write("rss20: %" XML_FMT_STR " at line %" XML_FMT_INT_MOD "u\n",*/
-              /*XML_ErrorString(XML_GetErrorCode(*parser)),*/
-              /*XML_GetCurrentLineNumber(*parser));*/
 	}
 	return error;
 }

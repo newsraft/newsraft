@@ -15,10 +15,14 @@ add_project_arguments(
 		'-fdiagnostics-color=always',
 		'-DXML_NS',
 		'-DXML_LARGE_SIZE',
+		# most of internal expat integers (including unsigned ones)
+		# are long long as long as XML_LARGE_SIZE defined
 		'-DXML_FMT_INT_MOD="ll"',
-		'-DXML_FMT_STR="s"',
+		# undefine XML_UNICODE to make information be UTF-8 encoded
 		'-UXML_UNICODE',
+		# undefine XML_UNICODE_WCHAR_T to use char for characters
 		'-UXML_UNICODE_WCHAR_T',
+		'-DXML_FMT_STR="s"',
 	],
 	language : 'c'
 )

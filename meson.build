@@ -47,10 +47,10 @@ feedeater_src = [
 	'src/download.c',
 	'src/items.c',
 	'src/tags.c',
-	'src/parse.c',
-	'src/namespace.c',
+	'src/parse-format.c',
 	'src/parse-format-generic.c',
 	'src/parse-format-rss20.c',
+	'src/parse-namespace.c',
 	'src/parse-namespace-atom10.c',
 	#'src/parse-namespace-mrss.c',
 	#'src/parse-namespace-rss10.c',
@@ -58,8 +58,8 @@ feedeater_src = [
 	#'src/parse-namespace-rss10dublincore.c',
 	#'src/parse-namespace-rss10syndication.c',
 	'src/contents.c',
-	'src/html_entities.c',
-	'src/html_parser.c',
+	'src/html-entities.c',
+	'src/html-plainifier.c',
 ]
 incdir = include_directories('src')
 executable(

@@ -72,10 +72,10 @@ load_sets(void)
 				if (c == '\n' || c == EOF) { word[word_len] = '\0'; break; }
 				word[word_len++] = c;
 			}
-			make_string(&sets[set_index].name, word, word_len);
+			sets[set_index].name = create_string(word, word_len);
 		} else if (c == '!') { // line is filter
 			sets[set_index].type = FILTER_ENTRY;
-			sets[set_index].data = create_string();
+			sets[set_index].data = create_empty_string();
 			c = fgetc(f);
 			while (c != '\n' && c != EOF) {
 				skip_chars(f, &c, " \t");
@@ -97,7 +97,7 @@ load_sets(void)
 					if (c == '"' || c == '\n' || c == EOF) { word[word_len] = '\0'; break; }
 					word[word_len++] = c;
 				}
-				make_string(&sets[set_index].name, word, word_len);
+				sets[set_index].name = create_string(word, word_len);
 			}
 		} else { // line is feed
 			while (1) {
@@ -105,7 +105,7 @@ load_sets(void)
 				c = fgetc(f);
 				if (IS_WHITESPACE(c) || c == EOF) { word[word_len] = '\0'; break; }
 			}
-			make_string(&sets[set_index].data, word, word_len);
+			sets[set_index].data = create_string(word, word_len);
 			sets[set_index].is_marked = is_feed_marked(sets[set_index].data);
 			sets[set_index].is_unread = is_feed_unread(sets[set_index].data);
 			skip_chars(f, &c, " \t");
@@ -117,7 +117,7 @@ load_sets(void)
 					if (c == '"' || c == '\n' || c == EOF) { word[word_len] = '\0'; break; }
 					word[word_len++] = c;
 				}
-				make_string(&sets[set_index].name, word, word_len);
+				sets[set_index].name = create_string(word, word_len);
 				if (c == '"') {
 					find_chars(f, &c, " \t\n");
 					skip_chars(f, &c, " \t");

@@ -55,7 +55,7 @@ calculate_pad_height_for_buf(struct string *buf)
 static WINDOW *
 cat_content(struct string *feed_url, struct item_entry *item_data)
 {
-	struct string *buf = create_string();
+	struct string *buf = create_empty_string();
 	if (buf == NULL) {
 		debug_write(DBG_ERR, "can't create buffer for content of item\n");
 		return NULL;

@@ -64,7 +64,7 @@ create_set_statement(struct set_line *set)
 		debug_write(DBG_ERR, "can't allocate memory for set_statement!\n");
 		return NULL;
 	}
-	st->db_cmd = create_string();
+	st->db_cmd = create_empty_string();
 	st->urls = NULL;
 	st->urls_count = 0;
 	if (set->type == FEED_ENTRY) {

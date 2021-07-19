@@ -30,14 +30,11 @@ load_items(struct set_statement *st)
 	strcat(cmd, st->db_cmd->ptr);
 	strcat(cmd, SELECT_CMD_PART_3);
 	debug_write(DBG_INFO, "item SELECT statement command: %s\n", cmd);
-	int rc = sqlite3_prepare_v2(db, cmd, -1, &res, 0);
-	if (rc == SQLITE_OK) {
+	if (sqlite3_prepare_v2(db, cmd, -1, &res, 0) == SQLITE_OK) {
 		for (size_t i = 0; i < st->urls_count; ++i) {
 			sqlite3_bind_text(res, i + 1, st->urls[i]->ptr, st->urls[i]->len, NULL);
 		}
-		while (1) {
-			rc = sqlite3_step(res);
-			if (rc != SQLITE_ROW) break;
+		while (sqlite3_step(res) == SQLITE_ROW) {
 			item_index = items_count++;
 			items = realloc(items, sizeof(struct item_line) * items_count);
 			items[item_index].feed_url = NULL;
@@ -49,16 +46,16 @@ load_items(struct set_statement *st)
 			}
 			if (view_sel == SIZE_MAX) view_sel = item_index;
 			if ((text = (char *)sqlite3_column_text(res, 0)) != NULL) {
-				make_string(&items[item_index].feed_url, text, strlen(text));
+				items[item_index].feed_url = create_string(text, strlen(text));
 			}
 			if ((text = (char *)sqlite3_column_text(res, 1)) != NULL) {
-				make_string(&items[item_index].data->title, text, strlen(text));
+				items[item_index].data->title = create_string(text, strlen(text));
 			}
 			if ((text = (char *)sqlite3_column_text(res, 2)) != NULL) {
-				make_string(&items[item_index].data->url, text, strlen(text));
+				items[item_index].data->url = create_string(text, strlen(text));
 			}
 			if ((text = (char *)sqlite3_column_text(res, 3)) != NULL) {
-				make_string(&items[item_index].data->guid, text, strlen(text));
+				items[item_index].data->guid = create_string(text, strlen(text));
 			}
 			items[item_index].is_marked = sqlite3_column_int(res, 4);
 			items[item_index].is_unread = sqlite3_column_int(res, 5);

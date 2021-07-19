@@ -18,7 +18,7 @@ string_write_func(void *ptr, size_t size, size_t nmemb, struct string *s)
 struct string *
 feed_download(char *url)
 {
-	struct string *buf = create_string();
+	struct string *buf = create_empty_string();
 	if (buf == NULL) {
 		status_write("[insufficient memory] %s", url);
 		return NULL;

@@ -7,6 +7,44 @@
 #include "feedeater.h"
 #include "config.h"
 
+static void
+init_item_bucket(struct item_bucket *bucket)
+{
+	bucket->guid = create_empty_string();
+	bucket->title = create_empty_string();
+	bucket->url = create_empty_string();
+	bucket->author = create_empty_string();
+	bucket->category = create_empty_string();
+	bucket->comments = create_empty_string();
+	bucket->content = create_empty_string();
+	bucket->pubdate = 0;
+}
+
+void
+reset_item_bucket(struct item_bucket *bucket)
+{
+	make_string_empty(bucket->guid);
+	make_string_empty(bucket->title);
+	make_string_empty(bucket->url);
+	make_string_empty(bucket->author);
+	make_string_empty(bucket->category);
+	make_string_empty(bucket->comments);
+	make_string_empty(bucket->content);
+	bucket->pubdate = 0;
+}
+
+static void
+free_item_bucket(struct item_bucket *bucket)
+{
+	free_string(bucket->guid);
+	free_string(bucket->title);
+	free_string(bucket->url);
+	free_string(bucket->author);
+	free_string(bucket->category);
+	free_string(bucket->comments);
+	free_string(bucket->content);
+}
+
 static void XMLCALL
 process_element_start(void *userData, const XML_Char *name, const XML_Char **atts) {
 	struct init_parser_data *parser_data = userData;
@@ -63,7 +101,8 @@ feed_process(struct string *buf, struct string *url)
 		return 1;
 	}
 
-	struct item_bucket new_bucket = {0};
+	struct item_bucket new_bucket;
+	init_item_bucket(&new_bucket);
 	struct feed_parser_data feed_data = {
 		.value     = malloc(sizeof(char) * config_init_parser_buf_size),
 		.value_len = 0,
@@ -76,6 +115,7 @@ feed_process(struct string *buf, struct string *url)
 	};
 	XML_SetUserData(parser, &feed_data);
 	int parsing_error = parser_data.parser_func(&parser);
+	free_item_bucket(&new_bucket);
 	free(feed_data.value);
 	XML_ParserFree(parser);
 	if (parsing_error != 0) {
@@ -94,27 +134,6 @@ get_unix_epoch_time(char *format_str, char *date_str)
 		return mktime(&t);
 	}
 	return 0;
-}
-
-void
-reset_item_bucket(struct item_bucket *bucket)
-{
-	if (bucket == NULL) return;
-	free_string(bucket->guid);
-	bucket->guid = NULL;
-	free_string(bucket->title);
-	bucket->title = NULL;
-	free_string(bucket->url);
-	bucket->url = NULL;
-	free_string(bucket->author);
-	bucket->author = NULL;
-	free_string(bucket->category);
-	bucket->category = NULL;
-	free_string(bucket->comments);
-	bucket->comments = NULL;
-	free_string(bucket->content);
-	bucket->content = NULL;
-	bucket->pubdate = 0;
 }
 
 void

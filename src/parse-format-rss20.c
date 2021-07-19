@@ -44,19 +44,19 @@ process_element_end(void *userData, const XML_Char *name)
 	} else if (strcmp(name, "title") == 0) {
 		data->pos &= ~IN_TITLE_ELEMENT;
 		if ((data->pos & IN_ITEM_ELEMENT) != 0)
-			make_string(&data->bucket->title, data->value, data->value_len);
+			cpy_string_array(data->bucket->title, data->value, data->value_len);
 		else
 			db_update_feed_text(data->feed_url, "name", data->value, data->value_len);
 	} else if (strcmp(name, "description") == 0) {
 		data->pos &= ~IN_DESCRIPTION_ELEMENT;
 		if ((data->pos & IN_ITEM_ELEMENT) != 0)
-			make_string(&data->bucket->content, data->value, data->value_len);
+			cpy_string_array(data->bucket->content, data->value, data->value_len);
 		else
 			db_update_feed_text(data->feed_url, "description", data->value, data->value_len);
 	} else if (strcmp(name, "link") == 0) {
 		data->pos &= ~IN_LINK_ELEMENT;
 		if ((data->pos & IN_ITEM_ELEMENT) != 0)
-			make_string(&data->bucket->url, data->value, data->value_len);
+			cpy_string_array(data->bucket->url, data->value, data->value_len);
 		else
 			db_update_feed_text(data->feed_url, "resource", data->value, data->value_len);
 	} else if (strcmp(name, "pubDate") == 0) {
@@ -69,25 +69,25 @@ process_element_end(void *userData, const XML_Char *name)
 	} else if (strcmp(name, "guid") == 0) {
 		data->pos &= ~IN_GUID_ELEMENT;
 		if ((data->pos & IN_ITEM_ELEMENT) != 0)
-			make_string(&data->bucket->guid, data->value, data->value_len);
+			cpy_string_array(data->bucket->guid, data->value, data->value_len);
 	} else if (strcmp(name, "author") == 0) {
 		data->pos &= ~IN_AUTHOR_ELEMENT;
 		if ((data->pos & IN_ITEM_ELEMENT) != 0)
-			make_string(&data->bucket->author, data->value, data->value_len);
+			cpy_string_array(data->bucket->author, data->value, data->value_len);
 	} else if (strcmp(name, "category") == 0) {
 		data->pos &= ~IN_CATEGORY_ELEMENT;
 		if ((data->pos & IN_ITEM_ELEMENT) != 0) {
-			if (data->bucket->category == NULL) {
-				make_string(&data->bucket->category, data->value, data->value_len);
-			} else {
+			if (data->bucket->category->len == 0) {
+				cpy_string_array(data->bucket->category, data->value, data->value_len);
+			} else if (data->value_len != 0) {
 				cat_string_array(data->bucket->category, ", ", 2);
-				if (data->value_len != 0) cat_string_array(data->bucket->category, data->value, data->value_len);
+				cat_string_array(data->bucket->category, data->value, data->value_len);
 			}
 		}
 	} else if (strcmp(name, "comments") == 0) {
 		data->pos &= ~IN_COMMENTS_ELEMENT;
 		if ((data->pos & IN_ITEM_ELEMENT) != 0)
-			make_string(&data->bucket->comments, data->value, data->value_len);
+			cpy_string_array(data->bucket->comments, data->value, data->value_len);
 	} else if (strcmp(name, "language") == 0) {
 		data->pos &= ~IN_LANGUAGE_ELEMENT;
 		if ((data->pos & IN_ITEM_ELEMENT) == 0)

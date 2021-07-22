@@ -6,9 +6,8 @@
 #include <expat.h>
 #include <sqlite3.h>
 #include <time.h>
-#define MAXPATH 512
+#define MAXPATH 1024
 #define LENGTH(A) (sizeof(A)/sizeof(*A))
-#define IS_WHITESPACE(A) (((A) == ' ') || ((A) == '\t') || ((A) == '\r') || ((A) == '\n'))
 
 struct string {
 	char *ptr;
@@ -108,14 +107,14 @@ enum xml_pos {
 	IN_LINK_ELEMENT = 8,
 	IN_PUBDATE_ELEMENT = 16,
 	IN_GUID_ELEMENT = 32,
-	IN_CATEGORY_ELEMENT = 64,
-	IN_COMMENTS_ELEMENT = 128,
-	IN_AUTHOR_ELEMENT = 256,
+	IN_AUTHOR_ELEMENT = 64,
+	IN_CATEGORY_ELEMENT = 128,
+	IN_COMMENTS_ELEMENT = 256,
 	IN_ENCLOSURE_ELEMENT = 512,
 	IN_SOURCE_ELEMENT = 1024,
 	IN_IMAGE_ELEMENT = 2048,
-	IN_LANGUAGE_ELEMENT = 4096,
-	IN_LASTBUILDDATE_ELEMENT = 8192,
+	IN_LASTBUILDDATE_ELEMENT = 4096,
+	IN_LANGUAGE_ELEMENT = 8192,
 	IN_CHANNEL_ELEMENT = 16384,
 };
 
@@ -170,12 +169,6 @@ void tag_feed(char *tag_name, struct string *url);
 struct set_statement * create_set_statement(struct set_line *set);
 void debug_tags_summary(void);
 void free_tags(void);
-
-
-// files parsing utility functions (see config.c)
-
-void skip_chars(FILE *file, char *cur_char, char *list);
-void find_chars(FILE *file, char *cur_char, char *list);
 
 
 // db

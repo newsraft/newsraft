@@ -25,9 +25,8 @@ free_sets(void)
 	free(sets);
 }
 
-int
-load_sets(void)
-{
+static int
+parse_sets_file(void) {
 	char *path = get_conf_file_path("feeds");
 	if (path == NULL) {
 		fprintf(stderr, "could not find feeds file!\n");
@@ -39,25 +38,35 @@ load_sets(void)
 		fprintf(stderr, "could not open feeds file!\n");
 		return 1;
 	}
-
 	size_t set_index, word_len;
-	bool error = false;
+	int error = 0;
 	char c, word[1000];
-	view_sel = SIZE_MAX;
 
+	// this is line-by-line file processing loop:
+	// one iteration of loop == one processed line
 	while (1) {
-		// get first character of the line
-		c = fgetc(f);
-		// skip white-space
-		skip_chars(f, &c, " \t\n");
-		// skip comment-line
-		if (c == '#') { find_chars(f, &c, "\n"); continue; }
+
+		// get first non-whitespace character
+		do { c = fgetc(f); } while (c == ' ' || c == '\t' || c == '\n');
+
+		if (c == '#') {
+			// skip a comment line
+			do { c = fgetc(f); } while (c != '\n' && c != EOF);
+			if (c == '\n') {
+				continue;
+			} else {
+				break; // quit on end of file
+			}
+		}
+
+		// quit on end of file
 		if (c == EOF) break;
+
 		set_index = sets_count++;
 		sets = realloc(sets, sizeof(struct set_line) * sets_count);
 		if (sets == NULL) {
-			fprintf(stderr, "memory allocation for new set failed\n");
-			error = true;
+			fprintf(stderr, "reallocation for sets failed\n");
+			error = 1;
 			break;
 		}
 		sets[set_index].type = FEED_ENTRY;
@@ -65,30 +74,35 @@ load_sets(void)
 		sets[set_index].data = NULL;
 		sets[set_index].is_marked = false;
 		sets[set_index].is_unread = false;
+
 		word_len = 0;
 		if (c == '@') { // line is decoration
+
 			while (1) {
 				c = fgetc(f);
 				if (c == '\n' || c == EOF) { word[word_len] = '\0'; break; }
 				word[word_len++] = c;
 			}
 			sets[set_index].name = create_string(word, word_len);
+
 		} else if (c == '!') { // line is filter
+
 			sets[set_index].type = FILTER_ENTRY;
 			sets[set_index].data = create_empty_string();
 			c = fgetc(f);
-			while (c != '\n' && c != EOF) {
-				skip_chars(f, &c, " \t");
-				if (c == '"') break;
+			while (1) {
+				while (c == ' ' || c == '\t') { c = fgetc(f); }
+				if (c == '"' || c == '\n' || c == EOF) break;
 				word_len = 0;
 				while (1) {
 					word[word_len++] = c;
 					c = fgetc(f);
-					if (IS_WHITESPACE(c) || c == EOF) { word[word_len] = '\0'; break; }
+					if (c == ' ' || c == '\t' || c == '\n' || c == EOF) { word[word_len] = '\0'; break; }
 				}
-				if (word_len == 0) continue;
-				cat_string_array(sets[set_index].data, word, word_len);
-				cat_string_char(sets[set_index].data, ' ');
+				if (word_len != 0) {
+					cat_string_array(sets[set_index].data, word, word_len);
+					cat_string_char(sets[set_index].data, ' ');
+				}
 			}
 			if (c == '"') {
 				word_len = 0;
@@ -98,17 +112,22 @@ load_sets(void)
 					word[word_len++] = c;
 				}
 				sets[set_index].name = create_string(word, word_len);
+				if (c == '"') {
+					do { c = fgetc(f); } while (c == ' ' || c == '\t');
+				}
 			}
+
 		} else { // line is feed
+
 			while (1) {
 				word[word_len++] = c;
 				c = fgetc(f);
-				if (IS_WHITESPACE(c) || c == EOF) { word[word_len] = '\0'; break; }
+				if (c == ' ' || c == '\t' || c == '\n' || c == EOF) { word[word_len] = '\0'; break; }
 			}
 			sets[set_index].data = create_string(word, word_len);
 			sets[set_index].is_marked = is_feed_marked(sets[set_index].data);
 			sets[set_index].is_unread = is_feed_unread(sets[set_index].data);
-			skip_chars(f, &c, " \t");
+			while (c == ' ' || c == '\t') { c = fgetc(f); }
 			// process name
 			if (c == '"') {
 				word_len = 0;
@@ -119,8 +138,7 @@ load_sets(void)
 				}
 				sets[set_index].name = create_string(word, word_len);
 				if (c == '"') {
-					find_chars(f, &c, " \t\n");
-					skip_chars(f, &c, " \t");
+					do { c = fgetc(f); } while (c == ' ' || c == '\t');
 				}
 			}
 			// process tags
@@ -129,27 +147,33 @@ load_sets(void)
 				while (1) {
 					word[word_len++] = c;
 					c = fgetc(f);
-					if (IS_WHITESPACE(c) || c == EOF) { word[word_len] = '\0'; break; }
+					if (c == ' ' || c == '\t' || c == '\n' || c == EOF) { word[word_len] = '\0'; break; }
 				}
 				tag_feed(word, sets[set_index].data);
-				skip_chars(f, &c, " \t");
+				while (c == ' ' || c == '\t') { c = fgetc(f); }
 			}
+
 		}
-		// move to the end of line
-		find_chars(f, &c, "\n");
+		if (c == EOF) break;
 	}
 	fclose(f);
+	return error;
+}
 
-	if (error == true) {
-		fprintf(stderr, "there is some trouble in loading feeds file!\n");
+int
+load_sets(void)
+{
+	if (parse_sets_file() != 0) {
+		fprintf(stderr, "failed to load sets from file!\n");
 		free_sets();
 		return 1; // failure
 	}
 
-	// put first non-decorative feed entry in selection
-	for (set_index = 0; set_index < sets_count; ++set_index) {
-		if (sets[set_index].data != NULL) {
-			view_sel = set_index;
+	view_sel = SIZE_MAX;
+	// put first non-decorative set in selection
+	for (size_t i = 0; i < sets_count; ++i) {
+		if (sets[i].data != NULL) {
+			view_sel = i;
 			break;
 		}
 	}

@@ -102,6 +102,7 @@ try_item_bucket(struct item_bucket *bucket, struct string *feed_url)
 			db_bind_string(res, 1, feed_url);
 			db_bind_string(res, 2, bucket->url);
 			db_bind_string(res, 3, bucket->title);
+			sqlite3_bind_int64(res, 4, (sqlite3_int64)(bucket->pubdate));
 			if (sqlite3_step(res) == SQLITE_DONE) is_item_unique = true;
 		} else {
 			debug_write(DBG_WARN, PREPARE_SELECT_FAIL, sqlite3_errmsg(db));

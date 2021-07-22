@@ -39,7 +39,7 @@ atom_10_start(void *userData, const XML_Char *name, const XML_Char **atts)
 	}
 	else if (strcmp(name, "id") == 0)        data->pos |= IN_GUID_ELEMENT;
 	else if (strcmp(name, "published") == 0) data->pos |= IN_PUBDATE_ELEMENT;
-	else if (strcmp(name, "updated") == 0)   data->pos |= IN_LASTBUILDDATE_ELEMENT;
+	else if (strcmp(name, "updated") == 0)   data->pos |= IN_UPDDATE_ELEMENT;
 	else if (strcmp(name, "author") == 0)    data->pos |= IN_AUTHOR_ELEMENT;
 	else if (strcmp(name, "category") == 0)  data->pos |= IN_CATEGORY_ELEMENT;
 }
@@ -74,19 +74,13 @@ atom_10_end(void *userData, const XML_Char *name)
 	} else if (strcmp(name, "published") == 0) {
 		data->pos &= ~IN_PUBDATE_ELEMENT;
 		time_t rawtime = parse_atom_10_time(data->value, data->value_len);
-		if (rawtime > 0) {
-			if ((data->pos & IN_ITEM_ELEMENT) != 0)
-				data->bucket->pubdate = rawtime;
-			else
-				db_update_feed_int64(data->feed_url, "pubdate", (int64_t)rawtime);
-		}
+		if (rawtime != 0 && (data->pos & IN_ITEM_ELEMENT) != 0)
+			data->bucket->pubdate = rawtime;
 	} else if (strcmp(name, "updated") == 0) {
-		data->pos &= ~IN_LASTBUILDDATE_ELEMENT;
+		data->pos &= ~IN_UPDDATE_ELEMENT;
 		time_t rawtime = parse_atom_10_time(data->value, data->value_len);
-		if (rawtime > 0) {
-			if ((data->pos & IN_ITEM_ELEMENT) == 0)
-				db_update_feed_int64(data->feed_url, "builddate", (int64_t)rawtime);
-		}
+		if (rawtime != 0 && (data->pos & IN_ITEM_ELEMENT) != 0)
+			data->bucket->upddate = rawtime;
 	} else if (strcmp(name, "author") == 0) {
 		data->pos &= ~IN_AUTHOR_ELEMENT;
 		if ((data->pos & IN_ITEM_ELEMENT) != 0)

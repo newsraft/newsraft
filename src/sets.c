@@ -20,7 +20,8 @@ free_sets(void)
 	if (sets == NULL) return;
 	for (size_t i = 0; i < sets_count; ++i) {
 		free_string(sets[i].name);
-		free_string(sets[i].data);
+		free_string(sets[i].link);
+		free_string(sets[i].tags);
 	}
 	free(sets);
 }
@@ -69,9 +70,9 @@ parse_sets_file(void) {
 			error = 1;
 			break;
 		}
-		sets[set_index].type = FEED_ENTRY;
 		sets[set_index].name = NULL;
-		sets[set_index].data = NULL;
+		sets[set_index].link = NULL;
+		sets[set_index].tags = NULL;
 		sets[set_index].is_marked = false;
 		sets[set_index].is_unread = false;
 
@@ -87,8 +88,7 @@ parse_sets_file(void) {
 
 		} else if (c == '!') { // line is filter
 
-			sets[set_index].type = FILTER_ENTRY;
-			sets[set_index].data = create_empty_string();
+			sets[set_index].tags = create_empty_string();
 			c = fgetc(f);
 			while (1) {
 				while (c == ' ' || c == '\t') { c = fgetc(f); }
@@ -100,8 +100,8 @@ parse_sets_file(void) {
 					if (c == ' ' || c == '\t' || c == '\n' || c == EOF) { word[word_len] = '\0'; break; }
 				}
 				if (word_len != 0) {
-					cat_string_array(sets[set_index].data, word, word_len);
-					cat_string_char(sets[set_index].data, ' ');
+					cat_string_array(sets[set_index].tags, word, word_len);
+					cat_string_char(sets[set_index].tags, ' ');
 				}
 			}
 			if (c == '"') {
@@ -124,9 +124,9 @@ parse_sets_file(void) {
 				c = fgetc(f);
 				if (c == ' ' || c == '\t' || c == '\n' || c == EOF) { word[word_len] = '\0'; break; }
 			}
-			sets[set_index].data = create_string(word, word_len);
-			sets[set_index].is_marked = is_feed_marked(sets[set_index].data);
-			sets[set_index].is_unread = is_feed_unread(sets[set_index].data);
+			sets[set_index].link = create_string(word, word_len);
+			sets[set_index].is_marked = is_feed_marked(sets[set_index].link);
+			sets[set_index].is_unread = is_feed_unread(sets[set_index].link);
 			while (c == ' ' || c == '\t') { c = fgetc(f); }
 			// process name
 			if (c == '"') {
@@ -149,7 +149,7 @@ parse_sets_file(void) {
 					c = fgetc(f);
 					if (c == ' ' || c == '\t' || c == '\n' || c == EOF) { word[word_len] = '\0'; break; }
 				}
-				tag_feed(word, sets[set_index].data);
+				tag_feed(word, sets[set_index].link);
 				while (c == ' ' || c == '\t') { c = fgetc(f); }
 			}
 
@@ -172,7 +172,7 @@ load_sets(void)
 	view_sel = SIZE_MAX;
 	// put first non-decorative set in selection
 	for (size_t i = 0; i < sets_count; ++i) {
-		if (sets[i].data != NULL) {
+		if (sets[i].tags != NULL || sets[i].link != NULL) {
 			view_sel = i;
 			break;
 		}
@@ -196,10 +196,14 @@ set_image(struct set_line *set)
 	if (set->name != NULL) {
 		return set->name->ptr;
 	} else {
-		if (set->data != NULL) {
-			return set->data->ptr;
+		if (set->link != NULL) {
+			return set->link->ptr;
 		} else {
-			return "";
+			if (set->tags != NULL) {
+				return set->tags->ptr;
+			} else {
+				return "";
+			}
 		}
 	}
 }
@@ -209,7 +213,12 @@ set_expose(size_t index)
 {
 	struct set_line *set = &sets[index];
 	if (config_menu_show_number == true) {
-		if (set->data != NULL) mvwprintw(set->window, 0, 0, "%3d", index + 1);
+		if (set->link != NULL ||
+		    set->tags != NULL ||
+		    config_menu_show_decoration_number == true)
+		{
+			mvwprintw(set->window, 0, 0, "%3d", index + 1);
+		}
 		mvwprintw(set->window, 0, 5, set->is_marked ? "M" : " ");
 		mvwprintw(set->window, 0, 6, set->is_unread ? "N" : " ");
 		mvwprintw(set->window, 0, 9, "%s", set_image(set));
@@ -255,18 +264,18 @@ view_select(size_t i)
 	}
 
 	// skip decorations
-	if (sets[new_sel].data == NULL) {
+	if (sets[new_sel].link == NULL && sets[new_sel].tags == NULL) {
 		size_t temp_new_sel = new_sel;
 		if (new_sel > view_sel) {
 			for (size_t j = view_sel; j < sets_count; ++j) {
-				if (sets[j].data != NULL) {
+				if (sets[j].link != NULL || sets[j].tags != NULL) {
 					temp_new_sel = j;
 					if (j >= new_sel) break;
 				}
 			}
 		} else if (new_sel < view_sel) {
 			for (size_t j = view_sel; ; --j) {
-				if (sets[j].data != NULL) {
+				if (sets[j].link != NULL || sets[j].tags != NULL) {
 					temp_new_sel = j;
 					if (j <= new_sel) break;
 				}
@@ -276,7 +285,7 @@ view_select(size_t i)
 		new_sel = temp_new_sel;
 	}
 
-	if (sets[new_sel].data == NULL || new_sel == view_sel) {
+	if ((sets[new_sel].link == NULL && sets[new_sel].tags == NULL) || new_sel == view_sel) {
 		return;
 	}
 
@@ -304,25 +313,25 @@ static void
 set_reload(size_t index)
 {
 	struct set_line *set = &sets[index];
-	if (set->type == FEED_ENTRY) {
+	if (set->link != NULL) {
 		status_write("[loading] %s", set_image(set));
-		struct string *buf = feed_download(set->data->ptr);
+		struct string *buf = feed_download(set->link->ptr);
 		if (buf == NULL) {
 			return;
 		} else if (buf->ptr == NULL) {
 			free(buf);
 			return;
 		}
-		if (feed_process(buf, set->data) == 0) {
+		if (feed_process(buf, set->link) == 0) {
 			status_clean();
-			bool unread_status = is_feed_unread(set->data);
+			bool unread_status = is_feed_unread(set->link);
 			if (set->is_unread != unread_status) {
 				set->is_unread = unread_status;
 				set_expose(index);
 			}
 		}
 		free_string(buf);
-	} else if (set->type == FILTER_ENTRY) {
+	} else {
 		//under construction
 		status_write("[under construction] can't reload filter");
 	}
@@ -407,15 +416,17 @@ run_sets_menu(void)
 			clear();
 			refresh();
 			show_sets();
-			status_cond = is_feed_unread(sets[view_sel].data);
-			if (status_cond != sets[view_sel].is_unread) {
-				sets[view_sel].is_unread = status_cond;
-				set_expose(view_sel);
-			}
-			status_cond = is_feed_marked(sets[view_sel].data);
-			if (status_cond != sets[view_sel].is_marked) {
-				sets[view_sel].is_marked = status_cond;
-				set_expose(view_sel);
+			if (sets[view_sel].link != NULL) {
+				status_cond = is_feed_unread(sets[view_sel].link);
+				if (status_cond != sets[view_sel].is_unread) {
+					sets[view_sel].is_unread = status_cond;
+					set_expose(view_sel);
+				}
+				status_cond = is_feed_marked(sets[view_sel].link);
+				if (status_cond != sets[view_sel].is_marked) {
+					sets[view_sel].is_marked = status_cond;
+					set_expose(view_sel);
+				}
 			}
 		} else if (dest == MENU_ITEMS_EMPTY) {
 			status_write("[empty] %s", set_image(&sets[view_sel]));

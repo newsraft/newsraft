@@ -21,11 +21,10 @@ struct set_statement {
 	size_t urls_count;
 };
 
-enum set_type { FEED_ENTRY, FILTER_ENTRY };
 struct set_line {
-	enum set_type type;
 	struct string *name; // what is displayed in menu
-	struct string *data; // url for feed, space-separated list of tags for filter, whatever for decoration
+	struct string *link; // this is feed url if set is feed
+	struct string *tags; // this is tags expression if set is filter
 	bool is_marked;
 	bool is_unread;
 	WINDOW *window;
@@ -73,6 +72,7 @@ struct item_bucket {
 	struct string *category;
 	struct string *comments;
 	time_t pubdate;
+	time_t upddate;
 };
 
 enum menu_dest {
@@ -95,6 +95,7 @@ enum items_column {
 	ITEM_COLUMN_AUTHOR,
 	ITEM_COLUMN_CATEGORY,
 	ITEM_COLUMN_PUBDATE,
+	ITEM_COLUMN_UPDDATE,
 	ITEM_COLUMN_COMMENTS,
 	ITEM_COLUMN_CONTENT,
 };
@@ -113,9 +114,8 @@ enum xml_pos {
 	IN_ENCLOSURE_ELEMENT = 512,
 	IN_SOURCE_ELEMENT = 1024,
 	IN_IMAGE_ELEMENT = 2048,
-	IN_LASTBUILDDATE_ELEMENT = 4096,
-	IN_LANGUAGE_ELEMENT = 8192,
-	IN_CHANNEL_ELEMENT = 16384,
+	IN_UPDDATE_ELEMENT = 4096,
+	IN_CHANNEL_ELEMENT = 8192,
 };
 
 enum debug_level {

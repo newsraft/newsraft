@@ -18,6 +18,7 @@ init_item_bucket(struct item_bucket *bucket)
 	bucket->comments = create_empty_string();
 	bucket->content = create_empty_string();
 	bucket->pubdate = 0;
+	bucket->upddate = 0;
 }
 
 void
@@ -31,6 +32,7 @@ reset_item_bucket(struct item_bucket *bucket)
 	make_string_empty(bucket->comments);
 	make_string_empty(bucket->content);
 	bucket->pubdate = 0;
+	bucket->upddate = 0;
 }
 
 static void

@@ -67,7 +67,7 @@ create_set_statement(struct set_line *set)
 	st->db_cmd = create_empty_string();
 	st->urls = NULL;
 	st->urls_count = 0;
-	if (set->type == FEED_ENTRY) {
+	if (set->link != NULL) {
 		cat_string_array(st->db_cmd, " feed = ?", 9);
 		st->urls = malloc(sizeof(struct string *));
 		if (st->urls == NULL) {
@@ -77,16 +77,14 @@ create_set_statement(struct set_line *set)
 			return NULL;
 		}
 		st->urls_count = 1;
-		st->urls[0] = set->data;
-		return st;
-	}
-	char word[1000], c;
-	size_t word_len, i = 0, old_urls_count;
-	if (set->type == FILTER_ENTRY) {
+		st->urls[0] = set->link;
+	} else {
+		char word[1000], c;
+		size_t word_len, i = 0, old_urls_count;
 		while (1) {
 			word_len = 0;
 			while (1) {
-				c = set->data->ptr[i++];
+				c = set->tags->ptr[i++];
 				if (c == ' ' || c == '\t' || c == '\0') { word[word_len] = '\0'; break; }
 				word[word_len++] = c;
 			}
@@ -126,16 +124,17 @@ create_set_statement(struct set_line *set)
 			}
 			if (c == '\0') break;
 		}
-		return st;
 	}
-	free_string(st->db_cmd);
-	free(st);
-	return NULL;
+	return st;
 }
 
 void
 debug_tags_summary(void)
 {
+	if (tags_count == 0) {
+		debug_write(DBG_INFO, "no feeds were tagged!\n");
+		return;
+	}
 	debug_write(DBG_INFO, "tags summary:\n");
 	for (size_t i = 0; i < tags_count; ++i) {
 		debug_write(DBG_INFO, "feeds related to tag \"%s\":\n", tags[i].name);

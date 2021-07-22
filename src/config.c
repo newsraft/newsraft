@@ -6,6 +6,7 @@ int64_t config_max_items = 100;
 size_t config_init_parser_buf_size = 100000;
 
 bool config_menu_show_number = true;
+bool config_menu_show_decoration_number = false;
 
 char *config_contents_meta_data = "feed,title,author,category,date,url,comments";
 char *config_contents_date_format = "%a, %d %b %Y %H:%M:%S %z";

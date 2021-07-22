@@ -92,9 +92,12 @@ cat_content(struct string *feed_url, struct item_entry *item_data)
 	char *meta_data_entry = strtok_r(draft_meta_data_order, ",", &saveptr);
 	do {
 		if (strcmp(meta_data_entry, "date") == 0) {
-			time_t epoch_time = (time_t)sqlite3_column_int64(res, ITEM_COLUMN_PUBDATE);
-			if (epoch_time > 0) {
-				struct tm ts = *localtime(&epoch_time);
+			time_t item_pubdate, item_upddate, item_date = 0;
+			item_pubdate = (time_t)sqlite3_column_int64(res, ITEM_COLUMN_PUBDATE);
+			item_upddate = (time_t)sqlite3_column_int64(res, ITEM_COLUMN_UPDDATE);
+			item_date = item_pubdate > item_upddate ? item_pubdate : item_upddate;
+			if (item_date != 0) {
+				struct tm ts = *localtime(&item_date);
 				char time_str[100];
 				if (strftime(time_str, sizeof(time_str), config_contents_date_format, &ts) != 0) {
 					cat_string_array(buf, "Date: ", (size_t)6);

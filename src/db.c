@@ -25,9 +25,6 @@ db_init(void)
 	             	"url TEXT,"
 	             	"name TEXT,"
 	             	"resource TEXT,"
-	             	"pubdate INTEGER(8),"
-	             	"builddate INTEGER(8),"
-	             	"language TEXT,"
 	             	"description TEXT"
 	             ");"
 	             "CREATE TABLE IF NOT EXISTS items("
@@ -40,6 +37,7 @@ db_init(void)
 	             	"author TEXT,"
 	             	"category TEXT,"
 	             	"pubdate INTEGER(8),"
+	             	"upddate INTEGER(8),"
 	             	"comments TEXT,"
 	             	"content TEXT"
 	             ");";
@@ -62,7 +60,7 @@ static void
 db_insert_item(struct item_bucket *bucket, struct string *feed_url)
 {
 	sqlite3_stmt *s;
-	if (sqlite3_prepare_v2(db, "INSERT INTO items VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", -1, &s, 0) == SQLITE_OK) {
+	if (sqlite3_prepare_v2(db, "INSERT INTO items VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", -1, &s, 0) == SQLITE_OK) {
 		sqlite3_bind_text(s,  ITEM_COLUMN_FEED + 1,     feed_url->ptr, feed_url->len, NULL);
 		db_bind_string(s,     ITEM_COLUMN_TITLE + 1,    bucket->title);
 		db_bind_string(s,     ITEM_COLUMN_GUID + 1,     bucket->guid);
@@ -72,10 +70,12 @@ db_insert_item(struct item_bucket *bucket, struct string *feed_url)
 		db_bind_string(s,     ITEM_COLUMN_AUTHOR + 1,   bucket->author);
 		db_bind_string(s,     ITEM_COLUMN_CATEGORY + 1, bucket->category);
 		sqlite3_bind_int64(s, ITEM_COLUMN_PUBDATE + 1,  (sqlite3_int64)(bucket->pubdate));
+		sqlite3_bind_int64(s, ITEM_COLUMN_UPDDATE + 1,  (sqlite3_int64)(bucket->upddate));
 		db_bind_string(s,     ITEM_COLUMN_COMMENTS + 1, bucket->comments);
 		db_bind_string(s,     ITEM_COLUMN_CONTENT + 1,  bucket->content);
 	} else {
-		debug_write(DBG_WARN, PREPARE_INSERT_FAIL, sqlite3_errmsg(db));
+		debug_write(DBG_ERR, "item bucket insertion failed:\n");
+		debug_write(DBG_ERR, PREPARE_INSERT_FAIL, sqlite3_errmsg(db));
 	}
 	sqlite3_step(s);
 	sqlite3_finalize(s);
@@ -102,7 +102,6 @@ try_item_bucket(struct item_bucket *bucket, struct string *feed_url)
 			db_bind_string(res, 1, feed_url);
 			db_bind_string(res, 2, bucket->url);
 			db_bind_string(res, 3, bucket->title);
-			sqlite3_bind_int64(res, 4, (sqlite3_int64)(bucket->pubdate));
 			if (sqlite3_step(res) == SQLITE_DONE) is_item_unique = true;
 		} else {
 			debug_write(DBG_WARN, PREPARE_SELECT_FAIL, sqlite3_errmsg(db));
@@ -159,9 +158,8 @@ create_feed_entry(struct string *feed_url)
 	if (is_feed_stored(feed_url) == true) return true;
 	bool created = false;
 	sqlite3_stmt *res;
-	if (sqlite3_prepare_v2(db, "INSERT INTO feeds (url, pubdate) VALUES(?, ?)", -1, &res, 0) == SQLITE_OK) {
+	if (sqlite3_prepare_v2(db, "INSERT INTO feeds (url) VALUES(?)", -1, &res, 0) == SQLITE_OK) {
 		sqlite3_bind_text(res, 1, feed_url->ptr, feed_url->len, NULL);
-		sqlite3_bind_int64(res, 2, 0);
 		if (sqlite3_step(res) == SQLITE_DONE) created = true;
 	} else {
 		debug_write(DBG_WARN, PREPARE_INSERT_FAIL, sqlite3_errmsg(db));

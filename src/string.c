@@ -26,9 +26,6 @@ create_empty_string(void)
 struct string *
 create_string(char *src, size_t len)
 {
-	if (src == NULL || len == 0) {
-		return NULL;
-	}
 	struct string *str = malloc(sizeof(struct string));
 	if (str == NULL) {
 		return NULL;
@@ -38,7 +35,9 @@ create_string(char *src, size_t len)
 		free(str);
 		return NULL;
 	}
-	memcpy(str->ptr, src, sizeof(char) * len);
+	if (src != NULL && len != 0) {
+		memcpy(str->ptr, src, sizeof(char) * len);
+	}
 	*(str->ptr + len) = '\0';
 	str->len = len;
 	str->lim = len;

@@ -20,8 +20,6 @@ process_element_start(void *userData, const XML_Char *name, const XML_Char **att
 	else if (strcmp(name, "author") == 0)        data->pos |= IN_AUTHOR_ELEMENT;
 	else if (strcmp(name, "category") == 0)      data->pos |= IN_CATEGORY_ELEMENT;
 	else if (strcmp(name, "comments") == 0)      data->pos |= IN_COMMENTS_ELEMENT;
-	else if (strcmp(name, "lastBuildDate") == 0) data->pos |= IN_LASTBUILDDATE_ELEMENT;
-	else if (strcmp(name, "language") == 0)      data->pos |= IN_LANGUAGE_ELEMENT;
 	else if (strcmp(name, "channel") == 0)       data->pos |= IN_CHANNEL_ELEMENT;
 }
 
@@ -62,10 +60,8 @@ process_element_end(void *userData, const XML_Char *name)
 	} else if (strcmp(name, "pubDate") == 0) {
 		data->pos &= ~IN_PUBDATE_ELEMENT;
 		time_t rawtime = get_unix_epoch_time("%a, %d %b %Y %H:%M:%S %z", data->value);
-		if ((data->pos & IN_ITEM_ELEMENT) != 0)
+		if (rawtime != 0 && (data->pos & IN_ITEM_ELEMENT) != 0)
 			data->bucket->pubdate = rawtime;
-		else
-			db_update_feed_int64(data->feed_url, "pubdate", (int64_t)rawtime);
 	} else if (strcmp(name, "guid") == 0) {
 		data->pos &= ~IN_GUID_ELEMENT;
 		if ((data->pos & IN_ITEM_ELEMENT) != 0)
@@ -88,15 +84,6 @@ process_element_end(void *userData, const XML_Char *name)
 		data->pos &= ~IN_COMMENTS_ELEMENT;
 		if ((data->pos & IN_ITEM_ELEMENT) != 0)
 			cpy_string_array(data->bucket->comments, data->value, data->value_len);
-	} else if (strcmp(name, "language") == 0) {
-		data->pos &= ~IN_LANGUAGE_ELEMENT;
-		if ((data->pos & IN_ITEM_ELEMENT) == 0)
-			db_update_feed_text(data->feed_url, "language", data->value, data->value_len);
-	} else if (strcmp(name, "lastBuildDate") == 0) {
-		data->pos &= ~IN_LASTBUILDDATE_ELEMENT;
-		time_t rawtime = get_unix_epoch_time("%a, %d %b %Y %H:%M:%S %z", data->value);
-		if ((data->pos & IN_ITEM_ELEMENT) == 0)
-			db_update_feed_int64(data->feed_url, "builddate", (int64_t)rawtime);
 	} else if (strcmp(name, "channel") == 0) {
 		data->pos &= ~IN_CHANNEL_ELEMENT;
 	}

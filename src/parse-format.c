@@ -22,7 +22,7 @@ init_item_bucket(struct item_bucket *bucket)
 }
 
 void
-reset_item_bucket(struct item_bucket *bucket)
+drop_item_bucket(struct item_bucket *bucket)
 {
 	make_string_empty(bucket->guid);
 	make_string_empty(bucket->title);
@@ -53,7 +53,7 @@ process_element_start(void *userData, const XML_Char *name, const XML_Char **att
 	++(parser_data->depth);
 	if (parser_data->depth == 1 && parser_data->parser_func == NULL) {
 		if (strcmp(name, "rss") == 0) {
-			int8_t i;
+			size_t i;
 			for (i = 0; atts[i] != NULL && strcmp(atts[i], "version") != 0; ++i) {}
 			if (atts[i] != NULL) ++i;
 			if (atts[i] != NULL &&

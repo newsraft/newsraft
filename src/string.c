@@ -6,42 +6,36 @@
 #include "feedeater.h"
 
 struct string *
-create_empty_string(void)
-{
-	struct string *str = malloc(sizeof(struct string));
-	if (str == NULL) {
-		return NULL;
-	}
-	str->ptr = malloc(sizeof(char));
-	if (str->ptr == NULL) {
-		free(str);
-		return NULL;
-	}
-	*(str->ptr + 0) = '\0';
-	str->len = 0;
-	str->lim = 0;
-	return str;
-}
-
-struct string *
 create_string(char *src, size_t len)
 {
 	struct string *str = malloc(sizeof(struct string));
 	if (str == NULL) {
 		return NULL;
 	}
+	/* always create a string even in cases where the src is set to NULL */
 	str->ptr = malloc(sizeof(char) * (len + 1));
 	if (str->ptr == NULL) {
 		free(str);
 		return NULL;
 	}
-	if (src != NULL && len != 0) {
-		memcpy(str->ptr, src, sizeof(char) * len);
+	if (src == NULL) {
+		str->len = 0;
+		str->lim = len;
+	} else {
+		if (len != 0) {
+			memcpy(str->ptr, src, sizeof(char) * len);
+		}
+		str->len = len;
+		str->lim = len;
 	}
 	*(str->ptr + len) = '\0';
-	str->len = len;
-	str->lim = len;
 	return str;
+}
+
+struct string *
+create_empty_string(void)
+{
+	return create_string(NULL, 0);
 }
 
 void

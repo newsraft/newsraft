@@ -52,7 +52,7 @@ atom_10_end(void *userData, const XML_Char *name)
 	if (strcmp(name, "entry") == 0) {
 		data->pos &= ~IN_ITEM_ELEMENT;
 		try_item_bucket(data->bucket, data->feed_url);
-		reset_item_bucket(data->bucket);
+		drop_item_bucket(data->bucket);
 	} else if (strcmp(name, "title") == 0) {
 		data->pos &= ~IN_TITLE_ELEMENT;
 		if ((data->pos & IN_ITEM_ELEMENT) != 0)

@@ -8,7 +8,7 @@ http://example.org/feed3.xml
 http://example.org/feed4.xml "My GNU/Linux distribution news"
 # lines with @ at start are decorations
 # you can see them in menu, but can't select
-@-+[favorite podcasts]+-
+@-----+[favorite podcasts]+-----
 http://example.org/feed5.xml "Weekly Tech Digest"
 http://example.org/feed6.xml
 # you can tag your feeds so they can be accessed with filters
@@ -18,18 +18,17 @@ http://example.org/feed7.xml cooking podcast spanish
 # keep in mind that custom feed name has to be specified before any tags
 http://example.org/feed8.xml "News Broadcasts" local_news podcast
 http://example.org/feed9.xml "Weather" podcast
-# fun fact 1: decoration can be empty, leaving empty line in menu
+# fun fact 1: decorations can be empty, leaving empty line in menu
 # fun fact 2: decorations can be specified in sequence
 @
-@<<- My FiLTeRS ->>
+@  <<- My FiLTeRS ->>
 # to define a filter use ! at start of the line
 # note that filters can be specified in every position of file
 # it is placed here for educational goals, but you can
 # place all your filters to the top of file and use it perfectly fine
 !cooking
-# you can use logical operators ("&" - and, "|" - or) in filters
-# also round brackets ("(" and ")") are available. consider that every tag,
-# logical operator or bracket has to be its own word, i. e. space separated
+# you can use logical operators ("&" is AND, "|" is OR) in filters
+# also round brackets "(" and ")" are available. whitespace doesn't matter
 !podcast & ( local_news | cooking )
 # to give filter a name, put double quoted string after tag expression
 !spanish & podcast "Learning Spanish"

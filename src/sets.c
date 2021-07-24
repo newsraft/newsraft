@@ -88,22 +88,19 @@ parse_sets_file(void) {
 
 		} else if (c == '!') { // line is filter
 
-			sets[set_index].tags = create_empty_string();
-			c = fgetc(f);
 			while (1) {
-				while (c == ' ' || c == '\t') { c = fgetc(f); }
-				if (c == '"' || c == '\n' || c == EOF) break;
-				word_len = 0;
-				while (1) {
-					word[word_len++] = c;
-					c = fgetc(f);
-					if (c == ' ' || c == '\t' || c == '\n' || c == EOF) { word[word_len] = '\0'; break; }
+				c = fgetc(f);
+				if (c == ' ' || c == '\t') {
+					/* tags expression MUST NOT contain any whitespace! */
+					continue;
 				}
-				if (word_len != 0) {
-					cat_string_array(sets[set_index].tags, word, word_len);
-					cat_string_char(sets[set_index].tags, ' ');
+				if (c == '"' || c == '\n' || c == EOF) {
+					word[word_len] = '\0';
+					break;
 				}
+				word[word_len++] = c;
 			}
+			sets[set_index].tags = create_string(word, word_len);
 			if (c == '"') {
 				word_len = 0;
 				while (1) {

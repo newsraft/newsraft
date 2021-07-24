@@ -85,49 +85,42 @@ create_set_statement(struct set_line *set)
 		st->urls[0] = set->link;
 	} else {
 		char word[1000], c;
-		size_t word_len, i = 0, old_urls_count;
+		size_t word_len = 0, i = 0, t, old_urls_count;
 		while (1) {
-			word_len = 0;
-			while (1) {
-				c = set->tags->ptr[i++];
-				if (c == ' ' || c == '\t' || c == '\0') { word[word_len] = '\0'; break; }
-				word[word_len++] = c;
-			}
-			if (word_len == 0) {
-				if (c == '\0') {
-					break;
-				} else {
-					continue;
-				}
-			}
-			if (strcmp(word, "&") == 0) {
-				cat_string_array(st->db_cmd, " AND", 4);
-			} else if (strcmp(word, "|") == 0) {
-				cat_string_array(st->db_cmd, " OR", 3);
-			} else if (strcmp(word, "(") == 0) {
-				cat_string_array(st->db_cmd, " (", 2);
-			} else if (strcmp(word, ")") == 0) {
-				cat_string_array(st->db_cmd, " )", 2);
-			} else {
-				for (size_t i = 0; i < tags_count; ++i) {
-					if (strcmp(word, tags[i].name) == 0) {
-						old_urls_count = st->urls_count;
-						st->urls_count += tags[i].urls_count;
-						st->urls = realloc(st->urls, sizeof(struct string *) * st->urls_count);
-						for (size_t j = 0; j < tags[i].urls_count; ++j) {
-							st->urls[old_urls_count++] = tags[i].urls[j];
-						}
-						cat_string_array(st->db_cmd, " (", 2);
-						for (size_t j = 0; j < tags[i].urls_count; ++j) {
-							cat_string_array(st->db_cmd, " feed = ?", 9);
-							if (j + 1 != tags[i].urls_count) cat_string_array(st->db_cmd, " OR", 3);
-						}
-						cat_string_array(st->db_cmd, " )", 2);
-						break;
+			c = set->tags->ptr[i++];
+			if (c == '&' || c == '|' || c == '(' || c == ')' || c == '\0') {
+				word[word_len] = '\0';
+				word_len = 0;
+				for (t = 0; (t < tags_count) && (strcmp(word, tags[t].name) != 0); ++t) {}
+				if (t != tags_count) { /* found this tag under t index */
+					old_urls_count = st->urls_count;
+					st->urls_count += tags[t].urls_count;
+					st->urls = realloc(st->urls, sizeof(struct string *) * st->urls_count);
+					for (size_t j = 0; j < tags[t].urls_count; ++j) {
+						st->urls[old_urls_count++] = tags[t].urls[j];
 					}
+					cat_string_array(st->db_cmd, " (", 2);
+					for (size_t j = 0; j < tags[t].urls_count; ++j) {
+						cat_string_array(st->db_cmd, " feed = ?", 9);
+						if (j + 1 != tags[t].urls_count) cat_string_array(st->db_cmd, " OR", 3);
+					}
+					cat_string_array(st->db_cmd, " )", 2);
+				} else { /* this tag isn't known */
+					cat_string_array(st->db_cmd, " 1", 2);
+				}
+				if (c == '&') {
+					cat_string_array(st->db_cmd, " AND", 4);
+				} else if (c == '|') {
+					cat_string_array(st->db_cmd, " OR", 3);
+				} else if (c == '(') {
+					cat_string_array(st->db_cmd, " (", 2);
+				} else if (c == ')') {
+					cat_string_array(st->db_cmd, " )", 2);
+				} else if (c == '\0') {
+					break;
 				}
 			}
-			if (c == '\0') break;
+			word[word_len++] = c;
 		}
 	}
 	return st;

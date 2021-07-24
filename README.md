@@ -1,16 +1,14 @@
-# feedeater
+# Feedeater
 
-feed reader for terminal
+Feed reader for terminal
 
 ## Description
 
-Terminal-based application for reading feed channels in various Web syndication formats. User interface is implemented in ncurses. Configuration is done through files.
+Terminal-based application for reading feed channels in various Web syndication formats.
 
-Project goals are:
+Feedeater uses [ncurses](https://invisible-island.net/ncurses) to draw interface, [curl](https://curl.se) to download feeds, [Expat](https://libexpat.github.io) to process XML and [SQLite](https://www.sqlite.org) to store data. All configuration is done through command-line arguments, environment variables and files.
 
-* avoid the support for bunch of cloud-based third-party feed services
-
-* utilize a small amount of libraries
+Feedeater is greatly inspired by [Newsboat](https://www.newsboat.org).
 
 ## Dependencies
 

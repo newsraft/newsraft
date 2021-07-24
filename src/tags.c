@@ -59,6 +59,11 @@ tag_feed(char *tag_name, struct string *url)
 struct set_statement *
 create_set_statement(struct set_line *set)
 {
+	/* Create WHERE expression to use in search for items of given set.
+	 * This expression serves as struct with middle part of SQL command (expression string itself)
+	 * and array of feeds' urls which are related to this expression.
+	 * We could just put these urls in SQL command, but it is considered as bad practice -
+	 * every value has to be processed with inner SQLite commands to avoid injection attacks... */
 	struct set_statement *st = malloc(sizeof(struct set_statement));
 	if (st == NULL) {
 		debug_write(DBG_ERR, "can't allocate memory for set_statement!\n");
@@ -147,7 +152,9 @@ debug_tags_summary(void)
 void
 free_tags(void)
 {
-	if (tags == NULL) return;
+	if (tags == NULL) {
+		return;
+	}
 	for (size_t i = 0; i < tags_count; ++i) {
 		free(tags[i].name);
 		free(tags[i].urls);

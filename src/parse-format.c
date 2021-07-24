@@ -24,13 +24,13 @@ init_item_bucket(struct item_bucket *bucket)
 void
 drop_item_bucket(struct item_bucket *bucket)
 {
-	make_string_empty(bucket->guid);
-	make_string_empty(bucket->title);
-	make_string_empty(bucket->url);
-	make_string_empty(bucket->author);
-	make_string_empty(bucket->category);
-	make_string_empty(bucket->comments);
-	make_string_empty(bucket->content);
+	empty_string(bucket->guid);
+	empty_string(bucket->title);
+	empty_string(bucket->url);
+	empty_string(bucket->author);
+	empty_string(bucket->category);
+	empty_string(bucket->comments);
+	empty_string(bucket->content);
 	bucket->pubdate = 0;
 	bucket->upddate = 0;
 }

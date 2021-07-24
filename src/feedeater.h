@@ -198,16 +198,16 @@ struct string * feed_download(char *url);
 
 
 // string
-struct string *create_empty_string(void);
 struct string *create_string(char *src, size_t len);
-void free_string(struct string *dest);
+struct string *create_empty_string(void);
 void cpy_string_string(struct string *dest, struct string *src);
 void cpy_string_array(struct string *dest, char *src_ptr, size_t src_len);
 void cpy_string_char(struct string *dest, char c);
 void cat_string_string(struct string *dest, struct string *src);
 void cat_string_array(struct string *dest, char *src, size_t src_len);
 void cat_string_char(struct string *dest, char c);
-void make_string_empty(struct string *str);
+void empty_string(struct string *str);
+void free_string(struct string *str);
 
 // debug
 int debug_init(char *path);

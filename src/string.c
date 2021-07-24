@@ -1,6 +1,3 @@
-#include <stddef.h>
-#include <string.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "feedeater.h"
@@ -44,15 +41,6 @@ trim_string(struct string *dest)
 	if (dest->len != dest->lim) {
 		dest->ptr = realloc(dest->ptr, (dest->len + 1));
 		dest->lim = dest->len;
-	}
-}
-
-void
-free_string(struct string *str)
-{
-	if (str != NULL) {
-		free(str->ptr);
-		free(str);
 	}
 }
 
@@ -125,8 +113,18 @@ cat_string_char(struct string *dest, char c)
 }
 
 void
-make_string_empty(struct string *str)
+empty_string(struct string *str)
 {
 	str->len = 0;
 	*(str->ptr + 0) = '\0';
+}
+
+void
+free_string(struct string *str)
+{
+	if (str == NULL) {
+		return;
+	}
+	free(str->ptr);
+	free(str);
 }

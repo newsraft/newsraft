@@ -87,22 +87,25 @@ try_item_bucket(struct item_bucket *bucket, struct string *feed_url)
 	if (bucket == NULL || feed_url == NULL) return 0;
 	bool is_item_unique = false;
 	sqlite3_stmt *res;
-	if (bucket->guid != NULL) { // check uniqueness by guid
-		char cmd[] = "SELECT * FROM items WHERE feed = ? AND guid = ? LIMIT 1";
+	if (bucket->guid->len > 0) { // check uniqueness by guid, upddate and pubdate
+		char cmd[] = "SELECT * FROM items WHERE feed = ? AND guid = ? AND upddate = ? AND pubdate = ? LIMIT 1";
 		if (sqlite3_prepare_v2(db, cmd, -1, &res, 0) == SQLITE_OK) {
 			db_bind_string(res, 1, feed_url);
 			db_bind_string(res, 2, bucket->guid);
+			sqlite3_bind_int64(res, 3, (sqlite3_int64)(bucket->upddate));
+			sqlite3_bind_int64(res, 4, (sqlite3_int64)(bucket->pubdate));
 			if (sqlite3_step(res) == SQLITE_DONE) is_item_unique = true;
 		} else {
 			debug_write(DBG_WARN, PREPARE_SELECT_FAIL, sqlite3_errmsg(db));
 		}
-	} else { // check uniqueness by url, title and pubdate
-		char cmd[] = "SELECT * FROM items WHERE feed = ? AND url = ? AND title = ? AND pubdate = ? LIMIT 1";
+	} else { // check uniqueness by url, title, upddate and pubdate
+		char cmd[] = "SELECT * FROM items WHERE feed = ? AND url = ? AND title = ? AND upddate = ? AND pubdate = ? LIMIT 1";
 		if (sqlite3_prepare_v2(db, cmd, -1, &res, 0) == SQLITE_OK) {
 			db_bind_string(res, 1, feed_url);
 			db_bind_string(res, 2, bucket->url);
 			db_bind_string(res, 3, bucket->title);
-			sqlite3_bind_int64(res, 4, (sqlite3_int64)(bucket->pubdate));
+			sqlite3_bind_int64(res, 4, (sqlite3_int64)(bucket->upddate));
+			sqlite3_bind_int64(res, 5, (sqlite3_int64)(bucket->pubdate));
 			if (sqlite3_step(res) == SQLITE_DONE) is_item_unique = true;
 		} else {
 			debug_write(DBG_WARN, PREPARE_SELECT_FAIL, sqlite3_errmsg(db));

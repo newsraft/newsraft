@@ -78,7 +78,6 @@ struct item_bucket {
 enum menu_dest {
 	MENU_FEEDS,
 	MENU_ITEMS,
-	MENU_ITEMS_EMPTY,
 	MENU_ITEMS_ERROR,
 	MENU_CONTENT,
 	MENU_CONTENT_ERROR,

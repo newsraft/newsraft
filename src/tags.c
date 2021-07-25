@@ -96,12 +96,10 @@ create_set_statement(struct set_line *set)
 					old_urls_count = st->urls_count;
 					st->urls_count += tags[t].urls_count;
 					st->urls = realloc(st->urls, sizeof(struct string *) * st->urls_count);
-					for (size_t j = 0; j < tags[t].urls_count; ++j) {
-						st->urls[old_urls_count++] = tags[t].urls[j];
-					}
 					cat_string_array(st->db_cmd, " (", 2);
 					for (size_t j = 0; j < tags[t].urls_count; ++j) {
 						cat_string_array(st->db_cmd, " feed = ?", 9);
+						st->urls[old_urls_count++] = tags[t].urls[j];
 						if (j + 1 != tags[t].urls_count) cat_string_array(st->db_cmd, " OR", 3);
 					}
 					cat_string_array(st->db_cmd, " )", 2);
@@ -122,6 +120,12 @@ create_set_statement(struct set_line *set)
 			}
 			word[word_len++] = c;
 		}
+	}
+	if (st->urls == NULL || st->urls_count == 0) {
+		free(st->db_cmd);
+		free(st->urls);
+		free(st);
+		return NULL;
 	}
 	return st;
 }

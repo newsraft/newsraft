@@ -8,7 +8,7 @@
 #include "config.h"
 
 #define SELECT_CMD_PART_1 "SELECT feed, title, url, guid, marked, unread FROM items WHERE"
-#define SELECT_CMD_PART_3 " ORDER BY pubdate DESC"
+#define SELECT_CMD_PART_3 " ORDER BY upddate, pubdate DESC"
 
 static struct item_line *items = NULL;
 static size_t items_count = 0;
@@ -20,17 +20,21 @@ static size_t view_max;
 static int
 load_items(struct set_statement *st)
 {
-	size_t item_index;
-	int error = 0;
-	view_sel = SIZE_MAX;
-	sqlite3_stmt *res;
-	char *cmd, *text;
-	cmd = malloc(sizeof(SELECT_CMD_PART_1) + st->db_cmd->len + sizeof(SELECT_CMD_PART_3) + 1);
+	char *cmd = malloc(sizeof(SELECT_CMD_PART_1) + st->db_cmd->len + sizeof(SELECT_CMD_PART_3) + 1);
+	if (cmd == NULL) {
+		status_write("[error] not enough memory");
+		return MENU_ITEMS_ERROR;
+	}
 	strcpy(cmd, SELECT_CMD_PART_1);
 	strcat(cmd, st->db_cmd->ptr);
 	strcat(cmd, SELECT_CMD_PART_3);
 	debug_write(DBG_INFO, "item SELECT statement command: %s\n", cmd);
+	int error = 0;
+	view_sel = SIZE_MAX;
+	sqlite3_stmt *res;
 	if (sqlite3_prepare_v2(db, cmd, -1, &res, 0) == SQLITE_OK) {
+		size_t item_index;
+		char *text;
 		for (size_t i = 0; i < st->urls_count; ++i) {
 			sqlite3_bind_text(res, i + 1, st->urls[i]->ptr, st->urls[i]->len, NULL);
 		}
@@ -41,6 +45,7 @@ load_items(struct set_statement *st)
 			items[item_index].data = calloc(1, sizeof(struct item_entry));
 			if (items[item_index].data == NULL) {
 				debug_write(DBG_ERR, "memory allocation for item data failed\n");
+				status_write("[error] not enough memory");
 				error = 1;
 				break;
 			}
@@ -70,7 +75,8 @@ load_items(struct set_statement *st)
 		return MENU_ITEMS_ERROR;
 	}
 	if (view_sel == SIZE_MAX) {
-		return MENU_ITEMS_EMPTY; // no items found
+		status_write("[error] no items found");
+		return MENU_ITEMS_ERROR; // no items found
 	}
 	return MENU_ITEMS;
 }

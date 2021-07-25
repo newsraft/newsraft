@@ -219,6 +219,8 @@ int process_namespaced_tag_start(void *userData, const XML_Char *name, const XML
 int process_namespaced_tag_end(void *userData, const XML_Char *name);
 void XMLCALL rss_10_start(void *userData, const XML_Char *name, const XML_Char **atts);
 void XMLCALL rss_10_end(void *userData, const XML_Char *name);
+void XMLCALL rss_10_dc_start(void *userData, const XML_Char *name, const XML_Char **atts);
+void XMLCALL rss_10_dc_end(void *userData, const XML_Char *name);
 void XMLCALL atom_10_start(void *userData, const XML_Char *name, const XML_Char **atts);
 void XMLCALL atom_10_end(void *userData, const XML_Char *name);
 void XMLCALL atom_03_start(void *userData, const XML_Char *name, const XML_Char **atts);

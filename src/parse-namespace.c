@@ -10,6 +10,7 @@ struct {
 	{"http://www.w3.org/2005/Atom", &atom_10_start, &atom_10_end},
 	{"http://purl.org/rss/1.0/", &rss_10_start, &rss_10_end},
 	{"http://channel.netscape.com/rdf/simple/0.9/", &rss_10_start, &rss_10_end},
+	{"http://purl.org/dc/elements/1.1/", &rss_10_dc_start, &rss_10_dc_end},
 };
 
 static char *

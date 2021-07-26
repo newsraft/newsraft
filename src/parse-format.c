@@ -128,16 +128,6 @@ feed_process(struct string *buf, struct string *url)
 	return 0;
 }
 
-time_t
-get_unix_epoch_time(char *format_str, char *date_str)
-{
-	struct tm t = {0};
-	if (strptime(date_str, format_str, &t) != NULL) {
-		return mktime(&t);
-	}
-	return 0;
-}
-
 void
 value_strip_whitespace(char *str, size_t *len)
 {

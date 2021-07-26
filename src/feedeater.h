@@ -156,11 +156,15 @@ char *get_feeds_path(void);
 char *get_db_path(void);
 
 
+// date parsing
+time_t parse_date_rfc822(char *date_str);
+time_t parse_date_rfc3339(char *date_str, size_t date_len);
+
+
 // feed parsing
 void value_strip_whitespace(char *str, size_t *len);
 void XMLCALL store_xml_element_value(void *userData, const XML_Char *s, int s_len);
 int feed_process(struct string *buf, struct string *url);
-time_t get_unix_epoch_time(char *format_str, char *date_str);
 int parse_generic(XML_Parser *parser);
 int parse_rss20(XML_Parser *parser);
 

@@ -66,6 +66,7 @@ load_items(struct set_statement *st)
 			items[item_index].is_unread = sqlite3_column_int(res, 5);
 		}
 	} else {
+		status_write("[error] invalid tag expression");
 		debug_write(DBG_ERR, "failed to prepare SELECT statement: %s\n", sqlite3_errmsg(db));
 		error = 1;
 	}

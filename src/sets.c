@@ -60,8 +60,7 @@ parse_sets_file(void) {
 			}
 		}
 
-		// quit on end of file
-		if (c == EOF) break;
+		if (c == EOF) break; // quit on end of file
 
 		set_index = sets_count++;
 		sets = realloc(sets, sizeof(struct set_line) * sets_count);
@@ -110,7 +109,7 @@ parse_sets_file(void) {
 				}
 				sets[set_index].name = create_string(word, word_len);
 				if (c == '"') {
-					do { c = fgetc(f); } while (c == ' ' || c == '\t');
+					do { c = fgetc(f); } while (c != '\n' && c != EOF);
 				}
 			}
 
@@ -328,7 +327,7 @@ set_reload(size_t index)
 			}
 		}
 		free_string(buf);
-	} else {
+	} else if (set->tags != NULL) {
 		//under construction
 		status_write("[under construction] can't reload filter");
 	}
@@ -337,8 +336,11 @@ set_reload(size_t index)
 static void
 all_reload(void)
 {
-	//under construction
-	return;
+	for (size_t i = 0; i < sets_count; ++i) {
+		if (sets[i].link != NULL) {
+			set_reload(i);
+		}
+	}
 }
 
 static enum menu_dest
@@ -393,6 +395,7 @@ run_sets_menu(void)
 	struct set_statement *st;
 	while ((dest = menu_feeds()) != MENU_QUIT) {
 		if ((st = create_set_statement(&sets[view_sel])) == NULL) {
+			/* error message is written to status by create_set_statement */
 			continue;
 		}
 		dest = run_items_menu(st);

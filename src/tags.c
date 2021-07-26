@@ -63,7 +63,7 @@ create_set_statement(struct set_line *set)
 	 * This expression serves as struct with middle part of SQL command (expression string itself)
 	 * and array of feeds' urls which are related to this expression.
 	 * We could just put these urls in SQL command, but it is considered as bad practice -
-	 * every value has to be processed with inner SQLite commands to avoid injection attacks... */
+	 * every value has to be processed with inner SQLite functions to avoid injection attacks... */
 	struct set_statement *st = malloc(sizeof(struct set_statement));
 	if (st == NULL) {
 		debug_write(DBG_ERR, "can't allocate memory for set_statement!\n");
@@ -83,44 +83,46 @@ create_set_statement(struct set_line *set)
 		}
 		st->urls_count = 1;
 		st->urls[0] = set->link;
-	} else {
+	} else if (set->tags != NULL) {
 		char word[1000], c;
 		size_t word_len = 0, i = 0, t, old_urls_count;
 		while (1) {
 			c = set->tags->ptr[i++];
-			if (c == '&' || c == '|' || c == '(' || c == ')' || c == '\0') {
-				word[word_len] = '\0';
-				word_len = 0;
-				for (t = 0; (t < tags_count) && (strcmp(word, tags[t].name) != 0); ++t) {}
-				if (t != tags_count) { /* found this tag under t index */
-					old_urls_count = st->urls_count;
-					st->urls_count += tags[t].urls_count;
-					st->urls = realloc(st->urls, sizeof(struct string *) * st->urls_count);
-					cat_string_array(st->db_cmd, " (", 2);
-					for (size_t j = 0; j < tags[t].urls_count; ++j) {
-						cat_string_array(st->db_cmd, " feed = ?", 9);
-						st->urls[old_urls_count++] = tags[t].urls[j];
-						if (j + 1 != tags[t].urls_count) cat_string_array(st->db_cmd, " OR", 3);
+			if (c == '&' || c == '|' || c == ')' || c == '\0') {
+				if (word_len != 0) {
+					word[word_len] = '\0';
+					word_len = 0;
+					for (t = 0; (t < tags_count) && (strcmp(word, tags[t].name) != 0); ++t) {}
+					if (t != tags_count) { /* found this tag under t index */
+						old_urls_count = st->urls_count;
+						st->urls_count += tags[t].urls_count;
+						st->urls = realloc(st->urls, sizeof(struct string *) * st->urls_count);
+						cat_string_array(st->db_cmd, " (", 2);
+						for (size_t j = 0; j < tags[t].urls_count; ++j) {
+							cat_string_array(st->db_cmd, " feed = ?", 9);
+							st->urls[old_urls_count++] = tags[t].urls[j];
+							if (j + 1 != tags[t].urls_count) cat_string_array(st->db_cmd, " OR", 3);
+						}
+						cat_string_array(st->db_cmd, " )", 2);
+					} else { /* this tag isn't known */
+						free_string(st->db_cmd);
+						free(st->urls);
+						free(st);
+						status_write("[error] tag \"%s\" does not exist!", word);
+						return NULL;
 					}
-					cat_string_array(st->db_cmd, " )", 2);
-				} else { /* this tag isn't known */
-					free_string(st->db_cmd);
-					free(st->urls);
-					free(st);
-					status_write("[error] tag \"%s\" does not exist!", word);
-					return NULL;
 				}
 				if (c == '&') {
 					cat_string_array(st->db_cmd, " AND", 4);
 				} else if (c == '|') {
 					cat_string_array(st->db_cmd, " OR", 3);
-				} else if (c == '(') {
-					cat_string_array(st->db_cmd, " (", 2);
 				} else if (c == ')') {
 					cat_string_array(st->db_cmd, " )", 2);
 				} else if (c == '\0') {
 					break;
 				}
+			} else if (c == '(') {
+				cat_string_array(st->db_cmd, " (", 2);
 			} else {
 				word[word_len++] = c;
 			}

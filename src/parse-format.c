@@ -91,15 +91,11 @@ feed_process(struct string *buf, struct string *url)
 	XML_SetUserData(parser, &parser_data);
 	XML_SetElementHandler(parser, &process_element_start, &process_element_finish);
 	if (XML_Parse(parser, buf->ptr, buf->len, 0) == XML_STATUS_ERROR) {
-		/*status_write("%" XML_FMT_STR " at line %" XML_FMT_INT_MOD "u\n",*/
-								 /*XML_ErrorString(XML_GetErrorCode(parser)),*/
-								 /*XML_GetCurrentLineNumber(parser));*/
-		status_write("[invalid format] %s", url->ptr); // bad xml document
+		status_write("[invalid format] %s", url->ptr);
+		debug_write(DBG_ERR, "%" XML_FMT_STR " at line %" XML_FMT_INT_MOD "u\n",
+		            XML_ErrorString(XML_GetErrorCode(parser)),
+		            XML_GetCurrentLineNumber(parser));
 		XML_ParserFree(parser);
-		return 1;
-	}
-	if (parser_data.parser_func == NULL) {
-		status_write("[unknown format] %s", url->ptr);
 		return 1;
 	}
 
@@ -121,7 +117,7 @@ feed_process(struct string *buf, struct string *url)
 	free(feed_data.value);
 	XML_ParserFree(parser);
 	if (parsing_error != 0) {
-		/*status_write("[incorrect format] %s", url->ptr);*/
+		status_write("[invalid format] %s", url->ptr);
 		return 1;
 	}
 

@@ -1,9 +1,9 @@
 #ifndef CONFIG_H
 #define CONFIG_H
-#include <stdint.h>
+#include <stddef.h>
 #include <stdbool.h>
 
-extern int64_t config_max_items;
+extern size_t config_max_items; // 0 == inf
 extern size_t config_init_parser_buf_size;
 
 extern bool config_menu_show_number;

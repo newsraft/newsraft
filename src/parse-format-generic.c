@@ -1,8 +1,8 @@
 #include "feedeater.h"
 
-/* Generic parsing is based on processing namespaced tags.
+/* Generic parsing is based on namespaced tags processing only.
  * Thus if tag does belong to some namespace and feedeater recognizes it,
- * it will be parsed by functions defined in namespaces directory. */
+ * it will be parsed by functions listed in parse-namespace.c */
 
 static void XMLCALL
 process_element_start(void *userData, const XML_Char *name, const XML_Char **atts)
@@ -28,10 +28,10 @@ parse_generic(XML_Parser *parser)
 	XML_SetElementHandler(*parser, &process_element_start, &process_element_end);
 	XML_SetCharacterDataHandler(*parser, &store_xml_element_value);
 	if (XML_ResumeParser(*parser) == XML_STATUS_ERROR) {
+		debug_write(DBG_ERR, "parse_generic: %" XML_FMT_STR " at line %" XML_FMT_INT_MOD "u\n",
+		            XML_ErrorString(XML_GetErrorCode(*parser)),
+		            XML_GetCurrentLineNumber(*parser));
 		error = 1;
-		/*status_write("rss20: %" XML_FMT_STR " at line %" XML_FMT_INT_MOD "u\n",*/
-              /*XML_ErrorString(XML_GetErrorCode(*parser)),*/
-              /*XML_GetCurrentLineNumber(*parser));*/
 	}
 	return error;
 }

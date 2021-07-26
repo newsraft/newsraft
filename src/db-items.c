@@ -4,14 +4,17 @@
 
 static void
 delete_excess_items(struct string *feed_url) {
+	if (config_max_items == 0) {
+		return; // config_max_items is set to infinity, delete nothing
+	}
 	sqlite3_stmt *s;
 	if (sqlite3_prepare_v2(db, "SELECT rowid FROM items WHERE feed = ? ORDER BY upddate DESC, pubdate DESC, rowid ASC", -1, &s, 0) == SQLITE_OK) {
 		sqlite3_bind_text(s, 1, feed_url->ptr, feed_url->len, NULL);
 		sqlite3_stmt *t;
-		int item_id = 0;
+		size_t item_id = 0;
 		while (sqlite3_step(s) == SQLITE_ROW) {
 			++item_id;
-			if (item_id - 1 < config_max_items) {
+			if (item_id < config_max_items + 1) {
 				continue;
 			}
 			if (sqlite3_prepare_v2(db, "DELETE FROM items WHERE rowid = ?", -1, &t, 0) == SQLITE_OK) {
@@ -57,10 +60,9 @@ db_insert_item(struct item_bucket *bucket, struct string *feed_url)
 	sqlite3_finalize(s);
 }
 
-int
+void
 try_item_bucket(struct item_bucket *bucket, struct string *feed_url)
 {
-	if (bucket == NULL || feed_url == NULL) return 0;
 	bool is_item_unique = false;
 	sqlite3_stmt *res;
 	if (bucket->guid->len > 0) { // check uniqueness by guid, upddate and pubdate
@@ -90,7 +92,6 @@ try_item_bucket(struct item_bucket *bucket, struct string *feed_url)
 		}
 	}
 	if (is_item_unique == true) db_insert_item(bucket, feed_url);
-	return 1;
 }
 
 int

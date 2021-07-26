@@ -140,7 +140,7 @@ void hide_sets(void);
 int run_items_menu(struct set_statement *st);
 void hide_items(void);
 void drop_item_bucket(struct item_bucket *bucket);
-int try_item_bucket(struct item_bucket *bucket, struct string *feed_url);
+void try_item_bucket(struct item_bucket *bucket, struct string *feed_url);
 
 
 // contents

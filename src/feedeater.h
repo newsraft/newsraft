@@ -6,6 +6,10 @@
 #include <expat.h>
 #include <sqlite3.h>
 #include <time.h>
+#define PREPARE_SELECT_FAIL "failed to prepare SELECT statement: %s\n"
+#define PREPARE_INSERT_FAIL "failed to prepare INSERT statement: %s\n"
+#define PREPARE_UPDATE_FAIL "failed to prepare UPDATE statement: %s\n"
+#define PREPARE_DELETE_FAIL "failed to prepare DELETE statement: %s\n"
 #define MAXPATH 1024
 #define LENGTH(A) (sizeof(A)/sizeof(*A))
 
@@ -170,13 +174,12 @@ void free_tags(void);
 
 // db
 int db_init(void);
-void db_bind_string(sqlite3_stmt *s, int pos, struct string *str);
+void db_stop(void);
+int db_bind_string(sqlite3_stmt *s, int pos, struct string *str);
 int db_update_item_int(struct string *feed_url, struct item_entry *item, const char *state, int value);
-void db_update_feed_int64(struct string *feed_url, char *column, int64_t i);
 void db_update_feed_text(struct string *feed_url, char *column, char *data, size_t data_len);
 bool is_feed_marked(struct string *url);
 bool is_feed_unread(struct string *url);
-void db_stop(void);
 
 // functions related to window which displays informational messages (see status.c file)
 int status_create(void);

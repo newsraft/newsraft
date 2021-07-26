@@ -104,7 +104,11 @@ create_set_statement(struct set_line *set)
 					}
 					cat_string_array(st->db_cmd, " )", 2);
 				} else { /* this tag isn't known */
-					cat_string_array(st->db_cmd, " 1", 2);
+					free_string(st->db_cmd);
+					free(st->urls);
+					free(st);
+					status_write("[error] tag \"%s\" does not exist!", word);
+					return NULL;
 				}
 				if (c == '&') {
 					cat_string_array(st->db_cmd, " AND", 4);
@@ -117,14 +121,16 @@ create_set_statement(struct set_line *set)
 				} else if (c == '\0') {
 					break;
 				}
+			} else {
+				word[word_len++] = c;
 			}
-			word[word_len++] = c;
 		}
 	}
 	if (st->urls == NULL || st->urls_count == 0) {
-		free(st->db_cmd);
+		free_string(st->db_cmd);
 		free(st->urls);
 		free(st);
+		status_write("[error] this set is empty!");
 		return NULL;
 	}
 	return st;

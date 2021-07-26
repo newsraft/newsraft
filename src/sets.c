@@ -392,32 +392,31 @@ run_sets_menu(void)
 	bool status_cond;
 	struct set_statement *st;
 	while ((dest = menu_feeds()) != MENU_QUIT) {
-		if ((st = create_set_statement(&sets[view_sel])) != NULL) {
-			dest = run_items_menu(st);
-			free(st->urls);
-			free_string(st->db_cmd);
-			free(st);
-			if (dest == MENU_FEEDS) {
-				clear();
-				refresh();
-				show_sets();
-				if (sets[view_sel].link != NULL) {
-					status_cond = is_feed_unread(sets[view_sel].link);
-					if (status_cond != sets[view_sel].is_unread) {
-						sets[view_sel].is_unread = status_cond;
-						set_expose(view_sel);
-					}
-					status_cond = is_feed_marked(sets[view_sel].link);
-					if (status_cond != sets[view_sel].is_marked) {
-						sets[view_sel].is_marked = status_cond;
-						set_expose(view_sel);
-					}
+		if ((st = create_set_statement(&sets[view_sel])) == NULL) {
+			continue;
+		}
+		dest = run_items_menu(st);
+		free(st->urls);
+		free_string(st->db_cmd);
+		free(st);
+		if (dest == MENU_FEEDS) {
+			clear();
+			refresh();
+			show_sets();
+			if (sets[view_sel].link != NULL) {
+				status_cond = is_feed_unread(sets[view_sel].link);
+				if (status_cond != sets[view_sel].is_unread) {
+					sets[view_sel].is_unread = status_cond;
+					set_expose(view_sel);
 				}
-			} else if (dest == MENU_QUIT) {
-				break;
+				status_cond = is_feed_marked(sets[view_sel].link);
+				if (status_cond != sets[view_sel].is_marked) {
+					sets[view_sel].is_marked = status_cond;
+					set_expose(view_sel);
+				}
 			}
-		} else {
-			status_write("[empty] %s", set_image(&sets[view_sel]));
+		} else if (dest == MENU_QUIT) {
+			break;
 		}
 	}
 

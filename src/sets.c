@@ -28,7 +28,7 @@ free_sets(void)
 
 static int
 parse_sets_file(void) {
-	char *path = get_conf_file_path("feeds");
+	char *path = get_feeds_path();
 	if (path == NULL) {
 		fprintf(stderr, "could not find feeds file!\n");
 		return 1;

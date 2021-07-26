@@ -3,73 +3,66 @@
 #include <unistd.h>
 #include "feedeater.h"
 
-static void
-print_help(void)
-{
-	fprintf(stderr,
-	        "feedeater - feed reader for terminal\n"
-	        "-d PATH  write debug information to PATH\n"
-	        "-v       print version and exit\n"
-	        "-h       print this message and exit\n");
-}
-
-static void
-print_version(void)
-{
-	fprintf(stderr, "this is not even pre-alpha\n");
-}
-
 int
 main(int argc, char **argv)
 {
 	setlocale(LC_ALL, "");
 
-	// parse command-line arguments
 	int opt;
-	while ((opt = getopt(argc, argv, "vhd:")) != -1) {
+	while ((opt = getopt(argc, argv, "vhd:F:D:")) != -1) {
 		switch (opt) {
+			case 'F':
+				if (set_feeds_path(optarg) != 0) {
+					exit(EXIT_FAILURE);
+				}
+				break;
+			case 'D':
+				if (set_db_path(optarg) != 0) {
+					exit(EXIT_FAILURE);
+				}
+				break;
 			case 'd':
 				if (debug_init(optarg) != 0) {
 					exit(EXIT_FAILURE);
 				}
 				break;
 			case 'v':
-				print_version();
+				fprintf(stderr, "this is not even pre-alpha\n");
 				exit(EXIT_SUCCESS);
 				break;
 			case 'h':
-				print_help();
+				fprintf(stderr,
+				        "feedeater - feed reader for terminal\n"
+				        "-F PATH  force use of PATH as feeds file\n"
+				        "-D PATH  force use of PATH as database file\n"
+				        "-d PATH  write debug information to PATH\n"
+				        "-v       print version and exit\n"
+				        "-h       print this message and exit\n");
 				exit(EXIT_SUCCESS);
 				break;
 			default:
-				print_help();
+				fprintf(stderr, "Try '%s -h' for more information.\n", argv[0]);
 				exit(EXIT_FAILURE);
 				break;
 		}
 	}
 
 	int error = 0;
-	if (set_conf_dir_path() != 0) { error = 1; goto undo1; }
-	if (set_data_dir_path() != 0) { error = 2; goto undo2; }
-	if (db_init() != 0)           { error = 3; goto undo3; }
-	if (load_sets() != 0)         { error = 4; goto undo4; }
-	if (initscr() == NULL)        { error = 5; goto undo5; }
-	if (status_create() != 0)     { error = 6; goto undo6; }
-	if (input_create() != 0)      { error = 7; goto undo7; }
+	if (db_init() != 0)           { error = 1; goto undo1; }
+	if (load_sets() != 0)         { error = 2; goto undo2; }
+	if (initscr() == NULL)        { error = 3; goto undo3; }
+	if (status_create() != 0)     { error = 4; goto undo4; }
+	if (input_create() != 0)      { error = 5; goto undo5; }
 	run_sets_menu();
 	input_delete();
-undo7:
-	status_delete();
-undo6:
-	endwin();
 undo5:
-	free_sets();
+	status_delete();
 undo4:
-	db_stop();
+	endwin();
 undo3:
-	free_data_dir_path();
+	free_sets();
 undo2:
-	free_conf_dir_path();
+	db_stop();
 undo1:
 	debug_stop();
 	return error;

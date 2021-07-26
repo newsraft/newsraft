@@ -146,12 +146,10 @@ int contents_menu(struct item_line *item);
 
 
 // path
-int set_conf_dir_path(void);
-int set_data_dir_path(void);
-void free_conf_dir_path(void);
-void free_data_dir_path(void);
-char * get_conf_file_path(char *file_name);
-char * get_db_path(void);
+int set_feeds_path(char *path);
+int set_db_path(char *path);
+char *get_feeds_path(void);
+char *get_db_path(void);
 
 
 // feed parsing

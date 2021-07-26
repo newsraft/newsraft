@@ -7,33 +7,35 @@
 #include <sys/stat.h>
 #include "feedeater.h"
 
-#define CONF_PATH_ENVVAR "FEEDEATER_CONFIG"
-#define DATA_PATH_ENVVAR "FEEDEATER_DATA"
+#define CONF_DIR_PATH_ENVVAR "FEEDEATER_CONFIG_DIR"
+#define DATA_DIR_PATH_ENVVAR "FEEDEATER_DATA_DIR"
+#define FEEDS_FILE_PATH_ENVVAR "FEEDEATER_FEEDS_FILE"
+#define DB_FILE_PATH_ENVVAR "FEEDEATER_DB_FILE"
 
-static char *conf_dir_path;
-static char *data_dir_path;
+static char *feeds_file_path = NULL;
+static char *db_file_path = NULL;
 
-int
-set_conf_dir_path(void)
+static char *
+get_conf_dir_path(void)
 {
-	conf_dir_path = malloc(sizeof(char) * MAXPATH);
+	char *conf_dir_path = malloc(sizeof(char) * MAXPATH);
 	if (conf_dir_path == NULL) {
 		fprintf(stderr, "failed to allocate memory for path to config directory\n");
-		return 1;
+		return NULL;
 	}
 
 	DIR *d;
-	char *env_var = getenv(CONF_PATH_ENVVAR);
+	char *env_var = getenv(CONF_DIR_PATH_ENVVAR);
 	if (env_var != NULL) {
 		d = opendir(env_var);
 		if (d != NULL) {
 			closedir(d);
 			strcpy(conf_dir_path, env_var);
-			return 0;
+			return conf_dir_path;
 		}
-		fprintf(stderr, CONF_PATH_ENVVAR " holds invalid path\n");
+		fprintf(stderr, CONF_DIR_PATH_ENVVAR " holds invalid path\n");
 		free(conf_dir_path);
-		return 1;
+		return NULL;
 	}
 
 	env_var = getenv("XDG_CONFIG_HOME");
@@ -45,7 +47,7 @@ set_conf_dir_path(void)
 		d = opendir(conf_dir_path);
 		if (d != NULL) {
 			closedir(d);
-			return 0;
+			return conf_dir_path;
 		}
 	}
 
@@ -59,7 +61,7 @@ set_conf_dir_path(void)
 		d = opendir(conf_dir_path);
 		if (d != NULL) {
 			closedir(d);
-			return 0;
+			return conf_dir_path;
 		}
 		strcpy(conf_dir_path, env_var);
 		strcat(conf_dir_path, "/.feedeater");
@@ -67,63 +69,36 @@ set_conf_dir_path(void)
 		d = opendir(conf_dir_path);
 		if (d != NULL) {
 			closedir(d);
-			return 0;
+			return conf_dir_path;
 		}
 	}
 
 	fprintf(stderr, "failed to find config directory\n");
 	free(conf_dir_path);
-	return 1;
-}
-
-void
-free_conf_dir_path(void)
-{
-	free(conf_dir_path);
-}
-
-char *
-get_conf_file_path(char *file_name)
-{
-	char *path = malloc(sizeof(char) * MAXPATH);
-	if (path == NULL) {
-		debug_write(DBG_ERR, "failed to allocate memory for path to \"%s\" config file\n", file_name);
-		return NULL;
-	}
-
-	strcpy(path, conf_dir_path);
-	strcat(path, "/");
-	strcat(path, file_name);
-
-	if (access(path, R_OK) == 0) {
-		return path;
-	}
-
-	free(path);
 	return NULL;
 }
 
-int
-set_data_dir_path(void)
+static char *
+get_data_dir_path(void)
 {
-	data_dir_path = malloc(sizeof(char) * MAXPATH);
+	char *data_dir_path = malloc(sizeof(char) * MAXPATH);
 	if (data_dir_path == NULL) {
 		fprintf(stderr, "failed to allocate memory for path to data directory\n");
-		return 1;
+		return NULL;
 	}
 
 	DIR *d;
-	char *env_var = getenv(DATA_PATH_ENVVAR);
+	char *env_var = getenv(DATA_DIR_PATH_ENVVAR);
 	if (env_var != NULL) {
 		d = opendir(env_var);
 		if (d != NULL) {
 			closedir(d);
 			strcpy(data_dir_path, env_var);
-			return 0;
+			return data_dir_path;
 		}
-		fprintf(stderr, DATA_PATH_ENVVAR " holds invalid path\n");
+		fprintf(stderr, DATA_DIR_PATH_ENVVAR " holds invalid path\n");
 		free(data_dir_path);
-		return 1;
+		return NULL;
 	}
 
 	env_var = getenv("XDG_DATA_HOME");
@@ -135,7 +110,7 @@ set_data_dir_path(void)
 		d = opendir(data_dir_path);
 		if (d != NULL) {
 			closedir(d);
-			return 0;
+			return data_dir_path;
 		}
 	}
 
@@ -151,30 +126,71 @@ set_data_dir_path(void)
 		d = opendir(data_dir_path);
 		if (d != NULL) {
 			closedir(d);
-			return 0;
+			return data_dir_path;
 		}
 	}
 
 	fprintf(stderr, "failed to find data directory\n");
 	free(data_dir_path);
+	return NULL;
+}
+
+int
+set_feeds_path(char *path)
+{
+	feeds_file_path = malloc(sizeof(char) * (strlen(path) + 1));
+	if (feeds_file_path != NULL) {
+		strcpy(feeds_file_path, path);
+		return 0;
+	}
 	return 1;
 }
 
-void
-free_data_dir_path(void)
+int
+set_db_path(char *path)
 {
-	free(data_dir_path);
+	db_file_path = malloc(sizeof(char) * (strlen(path) + 1));
+	if (db_file_path != NULL) {
+		strcpy(db_file_path, path);
+		return 0;
+	}
+	return 1;
+}
+
+char *
+get_feeds_path(void)
+{
+	if (feeds_file_path != NULL) {
+		return feeds_file_path;
+	}
+	char *feeds_file = getenv(FEEDS_FILE_PATH_ENVVAR);
+	if (feeds_file != NULL) {
+		strcpy(feeds_file_path, feeds_file);
+		return feeds_file_path;
+	}
+	feeds_file = get_conf_dir_path();
+	if (feeds_file == NULL) {
+		return NULL;
+	}
+	strcat(feeds_file, "/feeds");
+	return feeds_file;
 }
 
 char *
 get_db_path(void)
 {
-	char *path = malloc(sizeof(char) * MAXPATH);
-	if (path == NULL) {
-		status_write("failed to allocate memory for database path\n");
+	if (db_file_path != NULL) {
+		return db_file_path;
+	}
+	char *db_file = getenv(DB_FILE_PATH_ENVVAR);
+	if (db_file != NULL) {
+		strcpy(db_file_path, db_file);
+		return db_file_path;
+	}
+	db_file = get_data_dir_path();
+	if (db_file == NULL) {
 		return NULL;
 	}
-	strcpy(path, data_dir_path);
-	strcat(path, "/feedeater.sqlite");
-	return path;
+	strcat(db_file, "/feedeater.sqlite");
+	return db_file;
 }

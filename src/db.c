@@ -1,9 +1,11 @@
 #include <string.h>
 #include "feedeater.h"
+#include "config.h"
 
 #define PREPARE_SELECT_FAIL "failed to prepare SELECT statement: %s\n"
 #define PREPARE_INSERT_FAIL "failed to prepare INSERT statement: %s\n"
 #define PREPARE_UPDATE_FAIL "failed to prepare UPDATE statement: %s\n"
+#define PREPARE_DELETE_FAIL "failed to prepare DELETE statement: %s\n"
 
 sqlite3 *db;
 
@@ -57,27 +59,57 @@ db_bind_string(sqlite3_stmt *s, int pos, struct string *str)
 }
 
 static void
+delete_excess_items(struct string *feed_url) {
+	sqlite3_stmt *s;
+	if (sqlite3_prepare_v2(db, "SELECT rowid FROM items WHERE feed = ? ORDER BY upddate DESC, pubdate DESC, rowid ASC", -1, &s, 0) == SQLITE_OK) {
+		sqlite3_bind_text(s, 1, feed_url->ptr, feed_url->len, NULL);
+		sqlite3_stmt *t;
+		int item_id = 0;
+		while (sqlite3_step(s) == SQLITE_ROW) {
+			++item_id;
+			if (item_id - 1 < config_max_items) {
+				continue;
+			}
+			if (sqlite3_prepare_v2(db, "DELETE FROM items WHERE rowid = ?", -1, &t, 0) == SQLITE_OK) {
+				sqlite3_bind_int(t, 1, sqlite3_column_int(s, 0));
+				if (sqlite3_step(t) != SQLITE_DONE) {
+					debug_write(DBG_ERR, "deletion of excess item failed: " PREPARE_DELETE_FAIL, sqlite3_errmsg(db));
+				}
+				sqlite3_finalize(t);
+			}
+		}
+		sqlite3_finalize(s);
+	} else {
+		debug_write(DBG_ERR, "search for excess items failed: " PREPARE_SELECT_FAIL, sqlite3_errmsg(db));
+	}
+}
+
+static void
 db_insert_item(struct item_bucket *bucket, struct string *feed_url)
 {
 	sqlite3_stmt *s;
-	if (sqlite3_prepare_v2(db, "INSERT INTO items VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", -1, &s, 0) == SQLITE_OK) {
-		sqlite3_bind_text(s,  ITEM_COLUMN_FEED + 1,     feed_url->ptr, feed_url->len, NULL);
-		db_bind_string(s,     ITEM_COLUMN_TITLE + 1,    bucket->title);
-		db_bind_string(s,     ITEM_COLUMN_GUID + 1,     bucket->guid);
-		sqlite3_bind_int(s,   ITEM_COLUMN_UNREAD + 1,   1);
-		sqlite3_bind_int(s,   ITEM_COLUMN_MARKED + 1,   0);
-		db_bind_string(s,     ITEM_COLUMN_URL + 1,      bucket->url);
-		db_bind_string(s,     ITEM_COLUMN_AUTHOR + 1,   bucket->author);
-		db_bind_string(s,     ITEM_COLUMN_CATEGORY + 1, bucket->category);
-		sqlite3_bind_int64(s, ITEM_COLUMN_PUBDATE + 1,  (sqlite3_int64)(bucket->pubdate));
-		sqlite3_bind_int64(s, ITEM_COLUMN_UPDDATE + 1,  (sqlite3_int64)(bucket->upddate));
-		db_bind_string(s,     ITEM_COLUMN_COMMENTS + 1, bucket->comments);
-		db_bind_string(s,     ITEM_COLUMN_CONTENT + 1,  bucket->content);
-	} else {
+	if (sqlite3_prepare_v2(db, "INSERT INTO items VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", -1, &s, 0) != SQLITE_OK) {
 		debug_write(DBG_ERR, "item bucket insertion failed:\n");
 		debug_write(DBG_ERR, PREPARE_INSERT_FAIL, sqlite3_errmsg(db));
+		return;
 	}
-	sqlite3_step(s);
+	sqlite3_bind_text(s,  ITEM_COLUMN_FEED + 1,     feed_url->ptr, feed_url->len, NULL);
+	db_bind_string(s,     ITEM_COLUMN_TITLE + 1,    bucket->title);
+	db_bind_string(s,     ITEM_COLUMN_GUID + 1,     bucket->guid);
+	sqlite3_bind_int(s,   ITEM_COLUMN_UNREAD + 1,   1);
+	sqlite3_bind_int(s,   ITEM_COLUMN_MARKED + 1,   0);
+	db_bind_string(s,     ITEM_COLUMN_URL + 1,      bucket->url);
+	db_bind_string(s,     ITEM_COLUMN_AUTHOR + 1,   bucket->author);
+	db_bind_string(s,     ITEM_COLUMN_CATEGORY + 1, bucket->category);
+	sqlite3_bind_int64(s, ITEM_COLUMN_PUBDATE + 1,  (sqlite3_int64)(bucket->pubdate));
+	sqlite3_bind_int64(s, ITEM_COLUMN_UPDDATE + 1,  (sqlite3_int64)(bucket->upddate));
+	db_bind_string(s,     ITEM_COLUMN_COMMENTS + 1, bucket->comments);
+	db_bind_string(s,     ITEM_COLUMN_CONTENT + 1,  bucket->content);
+	if (sqlite3_step(s) == SQLITE_DONE) {
+		delete_excess_items(feed_url);
+	} else {
+		debug_write(DBG_ERR, "item bucket insertion failed: %s\n", sqlite3_errmsg(db));
+	}
 	sqlite3_finalize(s);
 }
 

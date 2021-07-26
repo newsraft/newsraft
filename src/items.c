@@ -8,7 +8,7 @@
 #include "config.h"
 
 #define SELECT_CMD_PART_1 "SELECT feed, title, url, guid, marked, unread FROM items WHERE"
-#define SELECT_CMD_PART_3 " ORDER BY upddate, pubdate DESC"
+#define SELECT_CMD_PART_3 " ORDER BY upddate DESC, pubdate DESC, rowid ASC"
 
 static struct item_line *items = NULL;
 static size_t items_count = 0;

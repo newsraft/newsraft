@@ -1,4 +1,3 @@
-// http://purl.org/dc/elements/1.1/
 #include <string.h>
 #include "feedeater.h"
 

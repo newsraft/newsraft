@@ -1,5 +1,3 @@
-// http://purl.org/rss/1.0/
-// http://channel.netscape.com/rdf/simple/0.9/
 #include <string.h>
 #include "feedeater.h"
 

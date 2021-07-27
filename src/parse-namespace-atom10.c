@@ -1,4 +1,3 @@
-// http://www.w3.org/2005/Atom
 #include <stdio.h>
 #include <string.h>
 #include "feedeater.h"

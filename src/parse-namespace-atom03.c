@@ -1,4 +1,3 @@
-// http://purl.org/atom/ns#
 #include <string.h>
 #include "feedeater.h"
 

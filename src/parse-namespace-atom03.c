@@ -58,14 +58,16 @@ atom_03_end(void *userData, const XML_Char *name)
 			cpy_string_array(data->bucket->guid, data->value, data->value_len);
 	} else if (strcmp(name, "issued") == 0) {
 		data->pos &= ~IN_PUBDATE_ELEMENT;
-		time_t rawtime = parse_date_rfc3339(data->value, data->value_len);
-		if (rawtime != 0 && (data->pos & IN_ITEM_ELEMENT) != 0)
-			data->bucket->pubdate = rawtime;
+		if ((data->pos & IN_ITEM_ELEMENT) != 0) {
+			time_t rawtime = parse_date_rfc3339(data->value, data->value_len);
+			if (rawtime != 0) data->bucket->pubdate = rawtime;
+		}
 	} else if (strcmp(name, "modified") == 0) {
 		data->pos &= ~IN_UPDDATE_ELEMENT;
-		time_t rawtime = parse_date_rfc3339(data->value, data->value_len);
-		if (rawtime != 0 && (data->pos & IN_ITEM_ELEMENT) != 0)
-			data->bucket->upddate = rawtime;
+		if ((data->pos & IN_ITEM_ELEMENT) != 0) {
+			time_t rawtime = parse_date_rfc3339(data->value, data->value_len);
+			if (rawtime != 0) data->bucket->upddate = rawtime;
+		}
 	} else if (strcmp(name, "author") == 0) {
 		data->pos &= ~IN_AUTHOR_ELEMENT;
 		if ((data->pos & IN_ITEM_ELEMENT) != 0)

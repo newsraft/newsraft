@@ -157,8 +157,9 @@ char *get_db_path(void);
 
 
 // date parsing
-time_t parse_date_rfc822(char *date_str);
+time_t parse_date_rfc822(char *date_str, size_t date_len);
 time_t parse_date_rfc3339(char *date_str, size_t date_len);
+struct string *get_config_date_str(time_t *time_ptr);
 
 
 // feed parsing

@@ -259,8 +259,8 @@ view_select(size_t i)
 		new_sel = sets_count - 1;
 	}
 
-	// skip decorations
 	if (sets[new_sel].link == NULL && sets[new_sel].tags == NULL) {
+		// skip decorations
 		size_t temp_new_sel = new_sel;
 		if (new_sel > view_sel) {
 			for (size_t j = view_sel; j < sets_count; ++j) {
@@ -306,39 +306,81 @@ view_select(size_t i)
 }
 
 static void
+set_reload_feed(struct set_line *set, size_t index)
+{
+	status_write("[loading] %s", set->link->ptr);
+	struct string *buf = feed_download(set->link->ptr);
+	if (buf == NULL) {
+		return;
+	} else if (buf->ptr == NULL) {
+		free(buf);
+		return;
+	}
+	if (feed_process(buf, set->link) == 0) {
+		status_clean();
+		bool unread_status = is_feed_unread(set->link);
+		if (set->is_unread != unread_status) {
+			set->is_unread = unread_status;
+			set_expose(index);
+		}
+	}
+	free_string(buf);
+}
+
+static void
+set_reload_filter(struct set_line *set, size_t index)
+{
+	(void)index;
+	struct set_statement *st;
+	if ((st = create_set_statement(set)) == NULL) {
+		/* error message is written to status by create_set_statement */
+		return;
+	}
+	/* Here we trying to reload all feed urls related to this filter. */
+	for (size_t i = 0; i < st->urls_count; ++i) {
+		status_write("[loading] %s", st->urls[i]->ptr);
+		struct string *buf = feed_download(st->urls[i]->ptr);
+		if (buf == NULL) {
+			break;
+		} else if (buf->ptr == NULL) {
+			free(buf);
+			break;
+		}
+		if (feed_process(buf, st->urls[i]) == 0) {
+			status_clean();
+			// TODO: change unread status of updated feed somehow
+			/*bool unread_status = is_feed_unread(st->urls[i]);*/
+			/*if (set->is_unread != unread_status) {*/
+				/*set->is_unread = unread_status;*/
+				/*set_expose(index);*/
+			/*}*/
+		}
+		free_string(buf);
+	}
+	free(st->urls);
+	free_string(st->db_cmd);
+	free(st);
+}
+
+static void
 set_reload(size_t index)
 {
 	struct set_line *set = &sets[index];
 	if (set->link != NULL) {
-		status_write("[loading] %s", set_image(set));
-		struct string *buf = feed_download(set->link->ptr);
-		if (buf == NULL) {
-			return;
-		} else if (buf->ptr == NULL) {
-			free(buf);
-			return;
-		}
-		if (feed_process(buf, set->link) == 0) {
-			status_clean();
-			bool unread_status = is_feed_unread(set->link);
-			if (set->is_unread != unread_status) {
-				set->is_unread = unread_status;
-				set_expose(index);
-			}
-		}
-		free_string(buf);
+		set_reload_feed(set, index);
 	} else if (set->tags != NULL) {
-		//under construction
-		status_write("[under construction] can't reload filter");
+		set_reload_filter(set, index);
 	}
 }
 
 static void
 all_reload(void)
 {
+	/* Try to reload all feeds.
+	 * Omit filters to avoid repeated downloads... */
 	for (size_t i = 0; i < sets_count; ++i) {
 		if (sets[i].link != NULL) {
-			set_reload(i);
+			set_reload_feed(&sets[i], i);
 		}
 	}
 }

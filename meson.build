@@ -4,7 +4,8 @@ project(
 	license: 'MIT',
 	default_options: [
 		'c_std=c18',
-		'warning_level=3'
+		'warning_level=3',
+		'buildtype=release',
 	]
 )
 add_project_arguments(
@@ -64,10 +65,11 @@ feedeater_src = [
 	'src/html-entities.c',
 	'src/html-plainifier.c',
 ]
-incdir = include_directories('src')
+feedeater_inc = include_directories('src')
 executable(
 	'feedeater',
+	#link_args: ['-static'],
 	sources: feedeater_src,
 	dependencies: feedeater_dep,
-	include_directories: incdir
+	include_directories: feedeater_inc
 )

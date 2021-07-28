@@ -323,9 +323,9 @@ static void
 set_reload_filter(struct set_line *set, size_t index)
 {
 	(void)index;
-	struct set_statement *st;
-	if ((st = create_set_statement(set)) == NULL) {
-		/* error message is written to status by create_set_statement */
+	struct set_condition *st;
+	if ((st = create_set_condition(set)) == NULL) {
+		/* error message is written to status by create_set_condition */
 		return;
 	}
 	/* Here we trying to reload all feed urls related to this filter. */
@@ -418,10 +418,10 @@ run_sets_menu(void)
 
 	int dest;
 	bool status_cond;
-	struct set_statement *st;
+	struct set_condition *st;
 	while ((dest = menu_feeds()) != MENU_QUIT) {
-		if ((st = create_set_statement(&sets[view_sel])) == NULL) {
-			/* error message is written to status by create_set_statement */
+		if ((st = create_set_condition(&sets[view_sel])) == NULL) {
+			/* error message is written to status by create_set_condition */
 			continue;
 		}
 		dest = run_items_menu(st);

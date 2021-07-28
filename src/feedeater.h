@@ -19,10 +19,16 @@ struct string {
 	size_t lim;
 };
 
-struct set_statement {
-	struct string *db_cmd;
+struct feed_tag {
+	char *name;
 	struct string **urls;
 	size_t urls_count;
+};
+
+struct set_condition {
+	struct string *db_cmd; // WHERE condition string
+	struct string **urls;  // array of urls to replace the placeholders in db_cmd
+	size_t urls_count;     // length of urls
 };
 
 struct set_line {
@@ -131,7 +137,7 @@ int run_sets_menu(void);
 void hide_sets(void);
 
 // items
-int run_items_menu(struct set_statement *st);
+int run_items_menu(struct set_condition *st);
 void hide_items(void);
 
 // contents
@@ -158,8 +164,9 @@ void value_strip_whitespace(char *str, size_t *len);
 // tags
 void tag_feed(char *tag_name, struct string *url);
 // convert data of set to sql WHERE condition
-struct set_statement * create_set_statement(struct set_line *set);
+struct set_condition * create_set_condition(struct set_line *set);
 void debug_tags_summary(void);
+struct feed_tag *get_tag_by_name(char *name);
 void free_tags(void);
 
 // db

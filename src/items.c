@@ -18,7 +18,7 @@ static size_t view_min;
 static size_t view_max;
 
 static int
-load_items(struct set_statement *st)
+load_items(struct set_condition *st)
 {
 	char *cmd = malloc(sizeof(SELECT_CMD_PART_1) + st->db_cmd->len + sizeof(SELECT_CMD_PART_3) + 1);
 	if (cmd == NULL) {
@@ -247,7 +247,7 @@ menu_items(void)
 }
 
 int
-run_items_menu(struct set_statement *st)
+run_items_menu(struct set_condition *st)
 {
 	if (items == NULL) {
 		int load_status = load_items(st);

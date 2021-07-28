@@ -46,7 +46,6 @@ feedeater_src = [
 	'src/sets.c',
 	'src/status.c',
 	'src/input.c',
-	'src/download.c',
 	'src/items.c',
 	'src/tags.c',
 	'src/date-utils.c',

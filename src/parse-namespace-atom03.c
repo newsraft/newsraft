@@ -1,10 +1,10 @@
 #include <string.h>
 #include "feedeater.h"
 
-void XMLCALL
+void
 atom_03_start(void *userData, const XML_Char *name, const XML_Char **atts)
 {
-	struct feed_parser_data *data = userData;
+	struct parser_data *data = userData;
 
 	if      (strcmp(name, "entry") == 0)    data->pos |= IN_ITEM_ELEMENT;
 	else if (strcmp(name, "title") == 0)    data->pos |= IN_TITLE_ELEMENT;
@@ -28,10 +28,10 @@ atom_03_start(void *userData, const XML_Char *name, const XML_Char **atts)
 	else if (strcmp(name, "category") == 0) data->pos |= IN_CATEGORY_ELEMENT;
 }
 
-void XMLCALL
+void
 atom_03_end(void *userData, const XML_Char *name)
 {
-	struct feed_parser_data *data = userData;
+	struct parser_data *data = userData;
 
 	if (strcmp(name, "entry") == 0) {
 		data->pos &= ~IN_ITEM_ELEMENT;

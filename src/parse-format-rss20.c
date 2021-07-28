@@ -1,32 +1,32 @@
 #include <string.h>
 #include "feedeater.h"
 
-static void XMLCALL
-process_element_start(void *userData, const XML_Char *name, const XML_Char **atts)
+void
+elem_rss20_start(void *userData, const XML_Char *name, const XML_Char **atts)
 {
-	struct feed_parser_data *data = userData;
+	struct parser_data *data = userData;
 	++(data->depth);
 
 	if (process_namespaced_tag_start(userData, name, atts) == 0) {
 		return;
 	}
 
-	if      (strcmp(name, "item") == 0)          data->pos |= IN_ITEM_ELEMENT;
-	else if (strcmp(name, "title") == 0)         data->pos |= IN_TITLE_ELEMENT;
-	else if (strcmp(name, "description") == 0)   data->pos |= IN_DESCRIPTION_ELEMENT;
-	else if (strcmp(name, "link") == 0)          data->pos |= IN_LINK_ELEMENT;
-	else if (strcmp(name, "pubDate") == 0)       data->pos |= IN_PUBDATE_ELEMENT;
-	else if (strcmp(name, "guid") == 0)          data->pos |= IN_GUID_ELEMENT;
-	else if (strcmp(name, "author") == 0)        data->pos |= IN_AUTHOR_ELEMENT;
-	else if (strcmp(name, "category") == 0)      data->pos |= IN_CATEGORY_ELEMENT;
-	else if (strcmp(name, "comments") == 0)      data->pos |= IN_COMMENTS_ELEMENT;
-	else if (strcmp(name, "channel") == 0)       data->pos |= IN_CHANNEL_ELEMENT;
+	     if (strcmp(name, "item") == 0)        data->pos |= IN_ITEM_ELEMENT;
+	else if (strcmp(name, "title") == 0)       data->pos |= IN_TITLE_ELEMENT;
+	else if (strcmp(name, "description") == 0) data->pos |= IN_DESCRIPTION_ELEMENT;
+	else if (strcmp(name, "link") == 0)        data->pos |= IN_LINK_ELEMENT;
+	else if (strcmp(name, "pubDate") == 0)     data->pos |= IN_PUBDATE_ELEMENT;
+	else if (strcmp(name, "guid") == 0)        data->pos |= IN_GUID_ELEMENT;
+	else if (strcmp(name, "author") == 0)      data->pos |= IN_AUTHOR_ELEMENT;
+	else if (strcmp(name, "category") == 0)    data->pos |= IN_CATEGORY_ELEMENT;
+	else if (strcmp(name, "comments") == 0)    data->pos |= IN_COMMENTS_ELEMENT;
+	else if (strcmp(name, "channel") == 0)     data->pos |= IN_CHANNEL_ELEMENT;
 }
 
-static void XMLCALL
-process_element_end(void *userData, const XML_Char *name)
+void
+elem_rss20_finish(void *userData, const XML_Char *name)
 {
-	struct feed_parser_data *data = userData;
+	struct parser_data *data = userData;
 	--(data->depth);
 	value_strip_whitespace(data->value, &data->value_len);
 
@@ -88,19 +88,4 @@ process_element_end(void *userData, const XML_Char *name)
 	} else if (strcmp(name, "channel") == 0) {
 		data->pos &= ~IN_CHANNEL_ELEMENT;
 	}
-}
-
-int
-parse_rss20(XML_Parser *parser)
-{
-	int error = 0;
-	XML_SetElementHandler(*parser, &process_element_start, &process_element_end);
-	XML_SetCharacterDataHandler(*parser, &store_xml_element_value);
-	if (XML_ResumeParser(*parser) == XML_STATUS_ERROR) {
-		debug_write(DBG_ERR, "parse_rss20: %" XML_FMT_STR " at line %" XML_FMT_INT_MOD "u\n",
-		            XML_ErrorString(XML_GetErrorCode(*parser)),
-		            XML_GetCurrentLineNumber(*parser));
-		error = 1;
-	}
-	return error;
 }

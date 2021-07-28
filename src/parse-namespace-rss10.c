@@ -1,11 +1,11 @@
 #include <string.h>
 #include "feedeater.h"
 
-void XMLCALL
+void
 rss_10_start(void *userData, const XML_Char *name, const XML_Char **atts)
 {
 	(void)atts;
-	struct feed_parser_data *data = userData;
+	struct parser_data *data = userData;
 
 	if      (strcmp(name, "item") == 0)        data->pos |= IN_ITEM_ELEMENT;
 	else if (strcmp(name, "title") == 0)       data->pos |= IN_TITLE_ELEMENT;
@@ -15,10 +15,10 @@ rss_10_start(void *userData, const XML_Char *name, const XML_Char **atts)
 	else if (strcmp(name, "channel") == 0)     data->pos |= IN_CHANNEL_ELEMENT;
 }
 
-void XMLCALL
+void
 rss_10_end(void *userData, const XML_Char *name)
 {
-	struct feed_parser_data *data = userData;
+	struct parser_data *data = userData;
 
 	if (strcmp(name, "item") == 0) {
 		data->pos &= ~IN_ITEM_ELEMENT;

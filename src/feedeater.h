@@ -48,7 +48,7 @@ struct item_line {
 	WINDOW *window;
 };
 
-struct feed_parser_data {
+struct parser_data {
 	char *value;
 	size_t value_len;
 	size_t value_lim;
@@ -57,12 +57,8 @@ struct feed_parser_data {
 	int prev_pos;
 	struct string *feed_url;
 	struct item_bucket *bucket;
-};
-
-struct init_parser_data {
-	int depth;
-	XML_Parser *xml_parser;
-	int (*parser_func)(XML_Parser *parser);
+	XML_Parser *parser;
+	bool fail;
 };
 
 // used to bufferize item before writing to disk
@@ -128,26 +124,20 @@ enum debug_level {
 	DBG_ERR = 3,
 };
 
-
+// sets
 int load_sets(void);
 void free_sets(void);
 int run_sets_menu(void);
 void hide_sets(void);
 
-
 // items
-
 int run_items_menu(struct set_statement *st);
 void hide_items(void);
-void drop_item_bucket(struct item_bucket *bucket);
-void try_item_bucket(struct item_bucket *bucket, struct string *feed_url);
-
 
 // contents
 struct string *expand_html_entities(char *buf, size_t buf_len);
 struct string *plainify_html(char *buff, size_t buff_len);
 int contents_menu(struct item_line *item);
-
 
 // path
 int set_feeds_path(char *path);
@@ -155,19 +145,15 @@ int set_db_path(char *path);
 char *get_feeds_path(void);
 char *get_db_path(void);
 
-
 // date parsing
 time_t parse_date_rfc822(char *date_str, size_t date_len);
 time_t parse_date_rfc3339(char *date_str, size_t date_len);
 struct string *get_config_date_str(time_t *time_ptr);
 
-
 // feed parsing
+int feed_process(struct string *url);
+void drop_item_bucket(struct item_bucket *bucket);
 void value_strip_whitespace(char *str, size_t *len);
-void XMLCALL store_xml_element_value(void *userData, const XML_Char *s, int s_len);
-int feed_process(struct string *buf, struct string *url);
-int parse_generic(XML_Parser *parser);
-int parse_rss20(XML_Parser *parser);
 
 // tags
 void tag_feed(char *tag_name, struct string *url);
@@ -175,7 +161,6 @@ void tag_feed(char *tag_name, struct string *url);
 struct set_statement * create_set_statement(struct set_line *set);
 void debug_tags_summary(void);
 void free_tags(void);
-
 
 // db
 int db_init(void);
@@ -185,6 +170,7 @@ int db_update_item_int(struct string *feed_url, struct item_entry *item, const c
 void db_update_feed_text(struct string *feed_url, char *column, char *data, size_t data_len);
 bool is_feed_marked(struct string *url);
 bool is_feed_unread(struct string *url);
+void try_item_bucket(struct item_bucket *bucket, struct string *feed_url);
 
 // functions related to window which displays informational messages (see status.c file)
 int status_create(void);
@@ -196,11 +182,6 @@ void status_delete(void);
 int input_create(void);
 int input_wgetch(void);
 void input_delete(void);
-
-
-// curl
-struct string * feed_download(char *url);
-
 
 // string
 struct string *create_string(char *src, size_t len);
@@ -219,19 +200,21 @@ int debug_init(char *path);
 void debug_write(enum debug_level lvl, char *format, ...);
 void debug_stop(void);
 
-
 // namespaces
 int process_namespaced_tag_start(void *userData, const XML_Char *name, const XML_Char **atts);
 int process_namespaced_tag_end(void *userData, const XML_Char *name);
-void XMLCALL rss_10_start(void *userData, const XML_Char *name, const XML_Char **atts);
-void XMLCALL rss_10_end(void *userData, const XML_Char *name);
-void XMLCALL rss_10_dc_start(void *userData, const XML_Char *name, const XML_Char **atts);
-void XMLCALL rss_10_dc_end(void *userData, const XML_Char *name);
-void XMLCALL atom_10_start(void *userData, const XML_Char *name, const XML_Char **atts);
-void XMLCALL atom_10_end(void *userData, const XML_Char *name);
-void XMLCALL atom_03_start(void *userData, const XML_Char *name, const XML_Char **atts);
-void XMLCALL atom_03_end(void *userData, const XML_Char *name);
-
+void rss_10_start(void *userData, const XML_Char *name, const XML_Char **atts);
+void rss_10_end(void *userData, const XML_Char *name);
+void rss_10_dc_start(void *userData, const XML_Char *name, const XML_Char **atts);
+void rss_10_dc_end(void *userData, const XML_Char *name);
+void atom_10_start(void *userData, const XML_Char *name, const XML_Char **atts);
+void atom_10_end(void *userData, const XML_Char *name);
+void atom_03_start(void *userData, const XML_Char *name, const XML_Char **atts);
+void atom_03_end(void *userData, const XML_Char *name);
+void elem_generic_start(void *userData, const XML_Char *name, const XML_Char **atts);
+void elem_generic_finish(void *userData, const XML_Char *name);
+void elem_rss20_start(void *userData, const XML_Char *name, const XML_Char **atts);
+void elem_rss20_finish(void *userData, const XML_Char *name);
 
 extern sqlite3 *db;
 #endif // FEEDEATER_H

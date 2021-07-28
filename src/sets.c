@@ -309,14 +309,7 @@ static void
 set_reload_feed(struct set_line *set, size_t index)
 {
 	status_write("[loading] %s", set->link->ptr);
-	struct string *buf = feed_download(set->link->ptr);
-	if (buf == NULL) {
-		return;
-	} else if (buf->ptr == NULL) {
-		free(buf);
-		return;
-	}
-	if (feed_process(buf, set->link) == 0) {
+	if (feed_process(set->link) == 0) {
 		status_clean();
 		bool unread_status = is_feed_unread(set->link);
 		if (set->is_unread != unread_status) {
@@ -324,7 +317,6 @@ set_reload_feed(struct set_line *set, size_t index)
 			set_expose(index);
 		}
 	}
-	free_string(buf);
 }
 
 static void
@@ -339,14 +331,7 @@ set_reload_filter(struct set_line *set, size_t index)
 	/* Here we trying to reload all feed urls related to this filter. */
 	for (size_t i = 0; i < st->urls_count; ++i) {
 		status_write("[loading] %s", st->urls[i]->ptr);
-		struct string *buf = feed_download(st->urls[i]->ptr);
-		if (buf == NULL) {
-			break;
-		} else if (buf->ptr == NULL) {
-			free(buf);
-			break;
-		}
-		if (feed_process(buf, st->urls[i]) == 0) {
+		if (feed_process(st->urls[i]) == 0) {
 			status_clean();
 			// TODO: change unread status of updated feed somehow
 			/*bool unread_status = is_feed_unread(st->urls[i]);*/
@@ -355,7 +340,6 @@ set_reload_filter(struct set_line *set, size_t index)
 				/*set_expose(index);*/
 			/*}*/
 		}
-		free_string(buf);
 	}
 	free(st->urls);
 	free_string(st->db_cmd);

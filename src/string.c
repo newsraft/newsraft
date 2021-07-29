@@ -36,15 +36,6 @@ create_empty_string(void)
 }
 
 void
-trim_string(struct string *dest)
-{
-	if (dest->len != dest->lim) {
-		dest->ptr = realloc(dest->ptr, (dest->len + 1));
-		dest->lim = dest->len;
-	}
-}
-
-void
 cpy_string_string(struct string *dest, struct string *src)
 {
 	dest->len = src->len;
@@ -64,18 +55,6 @@ cpy_string_array(struct string *dest, char *src_ptr, size_t src_len)
 		dest->ptr = realloc(dest->ptr, dest->lim + 1);
 	}
 	strcpy(dest->ptr, src_ptr);
-}
-
-void
-cpy_string_char(struct string *dest, char c)
-{
-	dest->len = 1;
-	if (dest->len > dest->lim) {
-		dest->lim = dest->len;
-		dest->ptr = realloc(dest->ptr, dest->lim + 1);
-	}
-	*(dest->ptr + 0) = c;
-	*(dest->ptr + 1) = '\0';
 }
 
 void

@@ -36,8 +36,8 @@ main(int argc, char **argv)
 				        "-F PATH  force use of PATH as feeds file\n"
 				        "-D PATH  force use of PATH as database file\n"
 				        "-d PATH  write debug information to PATH\n"
-				        "-v       print version and exit\n"
-				        "-h       print this message and exit\n");
+				        "-v       print version and successfully exit\n"
+				        "-h       print this message and successfully exit\n");
 				exit(EXIT_SUCCESS);
 				break;
 			default:
@@ -48,22 +48,22 @@ main(int argc, char **argv)
 	}
 
 	int error = 0;
-	if (db_init() != 0)           { error = 1; goto undo1; }
-	if (load_sets() != 0)         { error = 2; goto undo2; }
-	if (initscr() == NULL)        { error = 3; goto undo3; }
-	if (status_create() != 0)     { error = 4; goto undo4; }
-	if (input_create() != 0)      { error = 5; goto undo5; }
+	if (db_init() != 0)       { error = 1; goto main_undo1; }
+	if (load_sets() != 0)     { error = 2; goto main_undo2; }
+	if (initscr() == NULL)    { error = 3; goto main_undo3; }
+	if (status_create() != 0) { error = 4; goto main_undo4; }
+	if (input_create() != 0)  { error = 5; goto main_undo5; }
 	run_sets_menu();
 	input_delete();
-undo5:
+main_undo5:
 	status_delete();
-undo4:
+main_undo4:
 	endwin();
-undo3:
+main_undo3:
 	free_sets();
-undo2:
+main_undo2:
 	db_stop();
-undo1:
+main_undo1:
 	debug_stop();
 	return error;
 }

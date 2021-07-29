@@ -7,8 +7,11 @@
 time_t
 parse_date_rfc822(char *date_str, size_t date_len)
 {
+	if (date_len == 0) {
+		return 0;
+	}
 	struct tm t = {0};
-	if (date_len != 0 && isdigit(date_str[date_len - 1]) != 0) {
+	if (isdigit(date_str[date_len - 1]) != 0) {
 		if (strptime(date_str, "%a, %d %b %Y %H:%M:%S %z", &t) != NULL) {
 			return mktime(&t);
 		}
@@ -23,8 +26,11 @@ parse_date_rfc822(char *date_str, size_t date_len)
 time_t
 parse_date_rfc3339(char *date_str, size_t date_len)
 {
+	if (date_len == 0) {
+		return 0;
+	}
 	struct tm t = {0};
-	if (date_len != 0 && isdigit(date_str[date_len - 1]) != 0) {
+	if (isdigit(date_str[date_len - 1]) != 0) {
 		if (strptime(date_str, "%Y-%m-%dT%H:%M:%S%z", &t) != NULL) {
 			return mktime(&t);
 		}

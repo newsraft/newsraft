@@ -6,12 +6,9 @@
 #include <expat.h>
 #include <sqlite3.h>
 #include <time.h>
-#define PREPARE_SELECT_FAIL "failed to prepare SELECT statement: %s\n"
-#define PREPARE_INSERT_FAIL "failed to prepare INSERT statement: %s\n"
-#define PREPARE_UPDATE_FAIL "failed to prepare UPDATE statement: %s\n"
-#define PREPARE_DELETE_FAIL "failed to prepare DELETE statement: %s\n"
 #define MAXPATH 1024
 #define LENGTH(A) (sizeof(A)/sizeof(*A))
+#define DEBUG_WRITE_DB_PREPARE_FAIL debug_write(DBG_WARN, "failed to prepare statement: %s\n", sqlite3_errmsg(db));
 
 struct string {
 	char *ptr;
@@ -28,7 +25,7 @@ struct feed_tag {
 struct set_condition {
 	struct string *db_cmd; // WHERE condition string
 	struct string **urls;  // array of urls to replace the placeholders in db_cmd
-	size_t urls_count;     // length of urls
+	size_t urls_count;     // number of elements in urls array
 };
 
 struct set_line {
@@ -172,7 +169,6 @@ void free_tags(void);
 // db
 int db_init(void);
 void db_stop(void);
-int db_bind_string(sqlite3_stmt *s, int pos, struct string *str);
 int db_update_item_int(struct string *feed_url, struct item_entry *item, const char *state, int value);
 void db_update_feed_text(struct string *feed_url, char *column, char *data, size_t data_len);
 bool is_feed_marked(struct string *url);
@@ -195,7 +191,6 @@ struct string *create_string(char *src, size_t len);
 struct string *create_empty_string(void);
 void cpy_string_string(struct string *dest, struct string *src);
 void cpy_string_array(struct string *dest, char *src_ptr, size_t src_len);
-void cpy_string_char(struct string *dest, char c);
 void cat_string_string(struct string *dest, struct string *src);
 void cat_string_array(struct string *dest, char *src, size_t src_len);
 void cat_string_char(struct string *dest, char c);

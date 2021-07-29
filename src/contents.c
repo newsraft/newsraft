@@ -22,6 +22,27 @@ struct {
 	{"Comments", "comments", ITEM_COLUMN_COMMENTS},
 };
 
+static sqlite3_stmt *
+find_item_by_its_data_in_db(struct string *feed_url, struct item_entry *item_data)
+{
+	sqlite3_stmt *res;
+	int rc = sqlite3_prepare_v2(db, "SELECT * FROM items WHERE feed = ? AND guid = ? AND url = ? AND title = ? LIMIT 1", -1, &res, 0);
+	if (rc != SQLITE_OK) {
+		debug_write(DBG_WARN, "failed to prepare SELECT statement: %s\n", sqlite3_errmsg(db));
+		return NULL; // fail
+	}
+	sqlite3_bind_text(res, 1, feed_url->ptr, feed_url->len, NULL);
+	sqlite3_bind_text(res, 2, item_data->guid->ptr, item_data->guid->len, NULL);
+	sqlite3_bind_text(res, 3, item_data->url->ptr, item_data->url->len, NULL);
+	sqlite3_bind_text(res, 4, item_data->title->ptr, item_data->title->len, NULL);
+	if (sqlite3_step(res) != SQLITE_ROW) {
+		debug_write(DBG_WARN, "could not find that item\n");
+		sqlite3_finalize(res);
+		return NULL; // fail
+	}
+	return res; // success
+}
+
 static void
 cat_item_date_to_buf(sqlite3_stmt *res, struct string *buf)
 {
@@ -62,17 +83,23 @@ cat_item_meta_data_to_buf(sqlite3_stmt *res, struct string *buf, int meta_data_i
 	cat_string_char(buf, '\n');
 }
 
-static int
-cpy_contents_of_item_to_buf(sqlite3_stmt *res, struct string *buf)
+static struct string *
+get_contents_of_item(sqlite3_stmt *res)
 {
+	struct string *buf = create_empty_string();
+	if (buf == NULL) {
+		debug_write(DBG_ERR, "can't create buffer for content of item\n");
+		return NULL;
+	}
 	char *restrict draft_meta_data_order = malloc(sizeof(char) * (strlen(config_contents_meta_data) + 1));
 	if (draft_meta_data_order == NULL) {
+		free_string(buf);
 		debug_write(DBG_ERR, "not enough memory for tokenizing order of meta data tags\n");
-		return 1;
+		return NULL;
 	}
 	strcpy(draft_meta_data_order, config_contents_meta_data);
-	char *saveptr = NULL;
-	char *meta_data_entry = strtok_r(draft_meta_data_order, ",", &saveptr);
+	char *saveptr = NULL,
+	     *meta_data_entry = strtok_r(draft_meta_data_order, ",", &saveptr);
 	do {
 		if (strcmp(meta_data_entry, "date") == 0) {
 			cat_item_date_to_buf(res, buf);
@@ -89,17 +116,20 @@ cpy_contents_of_item_to_buf(sqlite3_stmt *res, struct string *buf)
 
 	char *text = (char *)sqlite3_column_text(res, ITEM_COLUMN_CONTENT);
 	if (text != NULL) {
-		struct string *plain_text = plainify_html(text, strlen(text));
-		if (plain_text != NULL) {
-			if (plain_text->len != 0) {
-				cat_string_char(buf, '\n');
-				value_strip_whitespace(plain_text->ptr, &plain_text->len);
-				cat_string_string(buf, plain_text);
+		size_t text_len = strlen(text);
+		if (text_len != 0) {
+			struct string *plain_text = plainify_html(text, text_len);
+			if (plain_text != NULL) {
+				if (plain_text->len != 0) {
+					cat_string_char(buf, '\n');
+					value_strip_whitespace(plain_text->ptr, &plain_text->len);
+					cat_string_string(buf, plain_text);
+				}
+				free_string(plain_text);
 			}
-			free_string(plain_text);
 		}
 	}
-	return 0;
+	return buf;
 }
 
 static int
@@ -133,55 +163,21 @@ calculate_pad_height_for_buf(struct string *buf)
 }
 
 static WINDOW *
-cat_content(struct string *feed_url, struct item_entry *item_data)
+create_contents_window(struct string *buf)
 {
-	sqlite3_stmt *res;
-	int rc = sqlite3_prepare_v2(db, "SELECT * FROM items WHERE feed = ? AND guid = ? AND url = ? AND title = ? LIMIT 1", -1, &res, 0);
-	if (rc != SQLITE_OK) {
-		debug_write(DBG_WARN, "failed to prepare SELECT statement: %s\n", sqlite3_errmsg(db));
-		return NULL;
-	}
-	sqlite3_bind_text(res, 1, feed_url->ptr, feed_url->len, NULL);
-	sqlite3_bind_text(res, 2, item_data->guid->ptr, item_data->guid->len, NULL);
-	sqlite3_bind_text(res, 3, item_data->url->ptr, item_data->url->len, NULL);
-	sqlite3_bind_text(res, 4, item_data->title->ptr, item_data->title->len, NULL);
-	if (sqlite3_step(res) != SQLITE_ROW) {
-		debug_write(DBG_WARN, "could not find that item\n");
-		sqlite3_finalize(res);
-		return NULL;
-	}
-
-	struct string *buf = create_empty_string();
-	if (buf == NULL) {
-		debug_write(DBG_ERR, "can't create buffer for content of item\n");
-		sqlite3_finalize(res);
-		return NULL;
-	}
-	if (cpy_contents_of_item_to_buf(res, buf) != 0) {
-		free_string(buf);
-		sqlite3_finalize(res);
-		return NULL;
-	}
-
-	WINDOW *pad = NULL;
+	WINDOW *pad;
 	int newlines = 0;
 	if (1) { // buffer is multi-byte
 		size_t mbslen = mbstowcs(NULL, buf->ptr, 0);
 		if (mbslen == (size_t)-1) {
-			sqlite3_finalize(res);
-			free_string(buf);
 			return NULL;
 		}
 		wchar_t *wcs = calloc(mbslen + 1, sizeof(wchar_t));
 		if (wcs == NULL) {
-			sqlite3_finalize(res);
-			free_string(buf);
 			return NULL;
 		}
 		if (mbstowcs(wcs, buf->ptr, mbslen + 1) == (size_t)-1) {
 			free(wcs);
-			sqlite3_finalize(res);
-			free_string(buf);
 			return NULL;
 		}
 
@@ -190,8 +186,6 @@ cat_content(struct string *feed_url, struct item_entry *item_data)
 		if (pad == NULL) {
 			debug_write(DBG_ERR, "could not create pad window for item contents\n");
 			free(wcs);
-			sqlite3_finalize(res);
-			free_string(buf);
 			return NULL;
 		}
 
@@ -226,8 +220,6 @@ cat_content(struct string *feed_url, struct item_entry *item_data)
 		pad = newpad(pad_height, COLS);
 		if (pad == NULL) {
 			debug_write(DBG_ERR, "could not create pad window for item contents\n");
-			sqlite3_finalize(res);
-			free_string(buf);
 			return NULL;
 		}
 		debug_write(DBG_INFO, "created pad of %d lines height\n", pad_height);
@@ -256,8 +248,6 @@ cat_content(struct string *feed_url, struct item_entry *item_data)
 		}
 	}
 
-	sqlite3_finalize(res);
-	free_string(buf);
 	return pad;
 }
 
@@ -338,7 +328,18 @@ contents_menu(struct item_line *item)
 	pad_height = 0;
 	view_area_height = LINES - 1;
 	view_min = 0;
-	window = cat_content(item->feed_url, item->data);
+	sqlite3_stmt *res = find_item_by_its_data_in_db(item->feed_url, item->data);
+	if (res == NULL) {
+		return MENU_CONTENT_ERROR;
+	}
+	struct string *buf = get_contents_of_item(res);
+	if (buf == NULL) {
+		sqlite3_finalize(res);
+		return MENU_CONTENT_ERROR;
+	}
+	window = create_contents_window(buf);
+	free_string(buf);
+	sqlite3_finalize(res);
 	if (window == NULL) {
 		status_write("could not obtain contents of item");
 		return MENU_CONTENT_ERROR;

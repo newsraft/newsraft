@@ -22,6 +22,86 @@ struct {
 	{"Comments", "comments", ITEM_COLUMN_COMMENTS},
 };
 
+static void
+cat_item_date_to_buf(sqlite3_stmt *res, struct string *buf)
+{
+	time_t item_date = 0,
+	       item_pubdate = (time_t)sqlite3_column_int64(res, ITEM_COLUMN_PUBDATE),
+	       item_upddate = (time_t)sqlite3_column_int64(res, ITEM_COLUMN_UPDDATE);
+	item_date = item_pubdate > item_upddate ? item_pubdate : item_upddate;
+	if (item_date == 0) {
+		return;
+	}
+	struct string *date_str = get_config_date_str(&item_date);
+	if (date_str == NULL) {
+		return;
+	}
+	cat_string_array(buf, "Date: ", (size_t)6);
+	cat_string_string(buf, date_str);
+	cat_string_char(buf, '\n');
+	free_string(date_str);
+}
+
+static void
+cat_item_meta_data_to_buf(sqlite3_stmt *res, struct string *buf, int meta_data_index)
+{
+	char *text = (char *)sqlite3_column_text(res, meta_data[meta_data_index].num);
+	if (text == NULL) {
+		return;
+	}
+	size_t text_len = strlen(text);
+	if (text_len == 0) {
+		return;
+	}
+	cat_string_array(buf,
+	                 (char *)meta_data[meta_data_index].name,
+	                 /* strlen is optimized by compiler, right? */
+	                 strlen(meta_data[meta_data_index].name));
+	cat_string_array(buf, ": ", (size_t)2);
+	cat_string_array(buf, text, text_len);
+	cat_string_char(buf, '\n');
+}
+
+static int
+cpy_contents_of_item_to_buf(sqlite3_stmt *res, struct string *buf)
+{
+	char *restrict draft_meta_data_order = malloc(sizeof(char) * (strlen(config_contents_meta_data) + 1));
+	if (draft_meta_data_order == NULL) {
+		debug_write(DBG_ERR, "not enough memory for tokenizing order of meta data tags\n");
+		return 1;
+	}
+	strcpy(draft_meta_data_order, config_contents_meta_data);
+	char *saveptr = NULL;
+	char *meta_data_entry = strtok_r(draft_meta_data_order, ",", &saveptr);
+	do {
+		if (strcmp(meta_data_entry, "date") == 0) {
+			cat_item_date_to_buf(res, buf);
+			continue;
+		}
+		for (size_t i = 0; i < LENGTH(meta_data); ++i) {
+			if (strcmp(meta_data_entry, meta_data[i].column) == 0) {
+				cat_item_meta_data_to_buf(res, buf, i);
+				break;
+			}
+		}
+	} while ((meta_data_entry = strtok_r(NULL, ",", &saveptr)) != NULL);
+	free(draft_meta_data_order);
+
+	char *text = (char *)sqlite3_column_text(res, ITEM_COLUMN_CONTENT);
+	if (text != NULL) {
+		struct string *plain_text = plainify_html(text, strlen(text));
+		if (plain_text != NULL) {
+			if (plain_text->len != 0) {
+				cat_string_char(buf, '\n');
+				value_strip_whitespace(plain_text->ptr, &plain_text->len);
+				cat_string_string(buf, plain_text);
+			}
+			free_string(plain_text);
+		}
+	}
+	return 0;
+}
+
 static int
 calculate_pad_height_for_wcs(wchar_t *buf, size_t len)
 {
@@ -55,88 +135,32 @@ calculate_pad_height_for_buf(struct string *buf)
 static WINDOW *
 cat_content(struct string *feed_url, struct item_entry *item_data)
 {
-	struct string *buf = create_empty_string();
-	if (buf == NULL) {
-		debug_write(DBG_ERR, "can't create buffer for content of item\n");
-		return NULL;
-	}
-
 	sqlite3_stmt *res;
-	int rc = sqlite3_prepare_v2(db, "SELECT * FROM items WHERE feed = ? AND guid = ? AND url = ? LIMIT 1", -1, &res, 0);
+	int rc = sqlite3_prepare_v2(db, "SELECT * FROM items WHERE feed = ? AND guid = ? AND url = ? AND title = ? LIMIT 1", -1, &res, 0);
 	if (rc != SQLITE_OK) {
 		debug_write(DBG_WARN, "failed to prepare SELECT statement: %s\n", sqlite3_errmsg(db));
-		sqlite3_finalize(res);
-		free_string(buf);
 		return NULL;
 	}
 	sqlite3_bind_text(res, 1, feed_url->ptr, feed_url->len, NULL);
 	sqlite3_bind_text(res, 2, item_data->guid->ptr, item_data->guid->len, NULL);
 	sqlite3_bind_text(res, 3, item_data->url->ptr, item_data->url->len, NULL);
+	sqlite3_bind_text(res, 4, item_data->title->ptr, item_data->title->len, NULL);
 	if (sqlite3_step(res) != SQLITE_ROW) {
 		debug_write(DBG_WARN, "could not find that item\n");
 		sqlite3_finalize(res);
-		free_string(buf);
 		return NULL;
 	}
 
-	char *draft_meta_data_order = malloc(sizeof(char) * (strlen(config_contents_meta_data) + 1));
-	if (draft_meta_data_order == NULL) {
-		debug_write(DBG_ERR, "not enough memory for tokenizing order of meta data tags\n");
-		free_string(buf);
+	struct string *buf = create_empty_string();
+	if (buf == NULL) {
+		debug_write(DBG_ERR, "can't create buffer for content of item\n");
 		sqlite3_finalize(res);
 		return NULL;
 	}
-	strcpy(draft_meta_data_order, config_contents_meta_data);
-	char *text, *saveptr = NULL;
-	size_t text_len;
-	char *meta_data_entry = strtok_r(draft_meta_data_order, ",", &saveptr);
-	do {
-		if (strcmp(meta_data_entry, "date") == 0) {
-			time_t item_pubdate, item_upddate, item_date = 0;
-			item_pubdate = (time_t)sqlite3_column_int64(res, ITEM_COLUMN_PUBDATE);
-			item_upddate = (time_t)sqlite3_column_int64(res, ITEM_COLUMN_UPDDATE);
-			item_date = item_pubdate > item_upddate ? item_pubdate : item_upddate;
-			if (item_date == 0) {
-				continue;
-			}
-			struct string *date_str = get_config_date_str(&item_date);
-			if (date_str == NULL) {
-				continue;
-			}
-			cat_string_array(buf, "Date: ", (size_t)6);
-			cat_string_string(buf, date_str);
-			cat_string_char(buf, '\n');
-			free_string(date_str);
-		}
-		text = NULL;
-		for (size_t i = 0; i < LENGTH(meta_data); ++i) {
-			if (strcmp(meta_data_entry, meta_data[i].column) == 0) {
-				text = (char *)sqlite3_column_text(res, meta_data[i].num);
-				if (text == NULL) break;
-				text_len = strlen(text);
-				if (text_len != 0) {
-					cat_string_array(buf, (char *)meta_data[i].name, strlen(meta_data[i].name));
-					cat_string_array(buf, ": ", (size_t)2);
-					cat_string_array(buf, text, text_len);
-					cat_string_char(buf, '\n');
-				}
-				break;
-			}
-		}
-	} while ((meta_data_entry = strtok_r(NULL, ",", &saveptr)) != NULL);
-	free(draft_meta_data_order);
-
-	text = (char *) sqlite3_column_text(res, ITEM_COLUMN_CONTENT);
-	if (text != NULL) {
-		struct string *plain_text = plainify_html(text, strlen(text));
-		if (plain_text != NULL) {
-			if (plain_text->len != 0) {
-				cat_string_char(buf, '\n');
-				value_strip_whitespace(plain_text->ptr, &plain_text->len);
-				cat_string_string(buf, plain_text);
-			}
-			free_string(plain_text);
-		}
+	if (cpy_contents_of_item_to_buf(res, buf) != 0) {
+		free_string(buf);
+		sqlite3_finalize(res);
+		return NULL;
 	}
 
 	WINDOW *pad = NULL;
@@ -170,7 +194,6 @@ cat_content(struct string *feed_url, struct item_entry *item_data)
 			free_string(buf);
 			return NULL;
 		}
-		debug_write(DBG_INFO, "created pad of %d lines height\n", pad_height);
 
 		wchar_t *iter = wcs;
 		wchar_t *newline_char;
@@ -194,7 +217,9 @@ cat_content(struct string *feed_url, struct item_entry *item_data)
 				break;
 			}
 		}
-		debug_write(DBG_INFO, "wrote %d lines to contents pad\n", newlines);
+		debug_write(pad_height == newlines ? DBG_INFO : DBG_ERR,
+		            "created pad of %d lines height, wrote %d lines to this pad\n",
+		            pad_height, newlines);
 		free(wcs);
 	} else { // buffer is single-byte
 		pad_height = calculate_pad_height_for_buf(buf);
@@ -309,6 +334,7 @@ menu_contents(void)
 int
 contents_menu(struct item_line *item)
 {
+	debug_write(DBG_INFO, "trying to view an \"%s\" item of \"%s\" feed\n", item->data->title->ptr, item->feed_url->ptr);
 	pad_height = 0;
 	view_area_height = LINES - 1;
 	view_min = 0;

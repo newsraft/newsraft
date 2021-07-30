@@ -6,26 +6,27 @@ project(
 		'c_std=c18',
 		'warning_level=3',
 		'buildtype=release',
-	]
+	],
+	version: 'this is not even pre-alpha',
 )
 add_project_arguments(
 	[
-		#'-O2',
-		#'-D_FORTIFY_SOURCE=2',
-		'-fanalyzer',
-		'-fdiagnostics-color=always',
+		# enable namespaces functionality of expat
 		'-DXML_NS',
+		# enable parameter entity parsing functionality of expat
+		'-DXML_DTD',
+		# make expat use large integers for file/stream positions
 		'-DXML_LARGE_SIZE',
-		# most of internal expat integers (including unsigned ones)
-		# are long long as long as XML_LARGE_SIZE defined
+		# set integer modifier to "ll" because of argument above
 		'-DXML_FMT_INT_MOD="ll"',
 		# undefine XML_UNICODE to make information be UTF-8 encoded
 		'-UXML_UNICODE',
-		# undefine XML_UNICODE_WCHAR_T to use char for characters
+		# undefine XML_UNICODE_WCHAR_T to make expat use char for characters
 		'-UXML_UNICODE_WCHAR_T',
+		# set string specifier to "s" because of argument above
 		'-DXML_FMT_STR="s"',
 	],
-	language : 'c'
+	language : 'c',
 )
 feedeater_dep = [
 	dependency('ncursesw'),
@@ -67,10 +68,28 @@ feedeater_src = [
 	'src/html-plainifier.c',
 ]
 feedeater_inc = include_directories('src')
+
+if get_option('buildtype') == 'release'
+	add_project_arguments(
+		[
+			'-fdiagnostics-color=never',
+		],
+		language : 'c',
+	)
+else
+	add_project_arguments(
+		[
+			'-fanalyzer',
+			'-fdiagnostics-color=always',
+		],
+		language : 'c',
+	)
+endif
+
 executable(
 	'feedeater',
 	#link_args: ['-static'],
 	sources: feedeater_src,
 	dependencies: feedeater_dep,
-	include_directories: feedeater_inc
+	include_directories: feedeater_inc,
 )

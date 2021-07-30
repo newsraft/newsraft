@@ -5,7 +5,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include "feedeater.h"
-#include "config.h"
 
 #define SELECT_CMD_PART_1 "SELECT feed, title, url, guid, marked, unread FROM items WHERE"
 #define SELECT_CMD_PART_3 " ORDER BY upddate DESC, pubdate DESC, rowid ASC"

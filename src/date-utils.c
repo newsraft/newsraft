@@ -2,7 +2,6 @@
 #include <time.h>
 #include <ctype.h>
 #include "feedeater.h"
-#include "config.h"
 
 time_t
 parse_date_rfc822(char *date_str, size_t date_len)

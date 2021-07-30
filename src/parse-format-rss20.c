@@ -1,7 +1,7 @@
 #include <string.h>
 #include "feedeater.h"
 
-void
+void XMLCALL
 elem_rss20_start(void *userData, const XML_Char *name, const XML_Char **atts)
 {
 	struct parser_data *data = userData;
@@ -23,7 +23,7 @@ elem_rss20_start(void *userData, const XML_Char *name, const XML_Char **atts)
 	else if (strcmp(name, "channel") == 0)     data->pos |= IN_CHANNEL_ELEMENT;
 }
 
-void
+void XMLCALL
 elem_rss20_finish(void *userData, const XML_Char *name)
 {
 	struct parser_data *data = userData;

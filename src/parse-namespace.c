@@ -7,12 +7,12 @@ struct {
 	XML_StartElementHandler start_element_handler;
 	XML_EndElementHandler end_element_handler;
 } namespace_handlers[] = {
-	{"http://www.w3.org/2005/Atom", &atom_10_start, &atom_10_end},
-	{"http://purl.org/rss/1.0/", &rss_10_start, &rss_10_end},
-	{"http://purl.org/dc/elements/1.1/", &rss_10_dc_start, &rss_10_dc_end},
-	{"http://purl.org/atom/ns#", &atom_03_start, &atom_03_end},
-	{"http://channel.netscape.com/rdf/simple/0.9/", &rss_10_start, &rss_10_end},
-	{"http://purl.org/net/rss1.1#", &rss_10_start, &rss_10_end},
+	{"http://www.w3.org/2005/Atom", &elem_atom10_start, &elem_atom10_end},
+	{"http://purl.org/rss/1.0/", &elem_rss10_start, &elem_rss10_end},
+	{"http://purl.org/dc/elements/1.1/", &elem_rss10dc_start, &elem_rss10dc_end},
+	{"http://purl.org/atom/ns#", &elem_atom03_start, &elem_atom03_end},
+	{"http://channel.netscape.com/rdf/simple/0.9/", &elem_rss10_start, &elem_rss10_end},
+	{"http://purl.org/net/rss1.1#", &elem_rss10_start, &elem_rss10_end},
 };
 
 static char *

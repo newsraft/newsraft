@@ -8,20 +8,17 @@ enum html_status {
 	HTML_PREFORMATTED = 1,
 };
 
-static char **atts = NULL;
-static size_t atts_count = 0;
-
 static void
-free_atts(void)
+free_atts(char ***atts, size_t atts_count)
 {
-	if (atts == NULL) {
+	if (*atts == NULL) {
 		return;
 	}
 	for (size_t a = 0; a < atts_count; ++a) {
-		free(atts[a]);
+		free((*atts)[a]);
 	}
-	free(atts);
-	atts = NULL;
+	free(*atts);
+	*atts = NULL;
 }
 
 #define TAG_IS_BLOCK(A) (strcmp(A, "div") == 0    || \
@@ -64,7 +61,7 @@ text - plain text string
 iter - plain text iterator
 */
 static void
-format_plain_text(char *text, size_t *iter)
+format_plain_text(char **atts, char *text, size_t *iter)
 {
 	if (*iter == 0) {
 		return;
@@ -107,7 +104,7 @@ format_plain_text(char *text, size_t *iter)
 }
 
 static void
-update_html_status(enum html_status *status_ptr)
+update_html_status(char **atts, enum html_status *status_ptr)
 {
 	if (strcmp(atts[0], "pre") == 0) {
 		*status_ptr |= HTML_PREFORMATTED;
@@ -130,12 +127,14 @@ plainify_html(char *buf_with_entities, size_t buf_len)
 		return NULL;
 	}
 
-	size_t i, /* html text iterator */
-	       j, /* plain text iterator */
-	       att_index, /* index of last attribute of html tag */
-	       att_limit, /* maximum length of current attribute */
-	       att_char;  /* actual length of current attribute */
-	bool in_tag = false; /* shows if buf->ptr[i] character belongs to html tag */
+	char   **atts = NULL;  /* array of html tag attributes */
+	size_t i,              /* html text iterator */
+	       j,              /* plain text iterator */
+	       atts_count = 0, /* number of attribute elements in atts */
+	       att_index,      /* index of last attribute of html tag */
+	       att_limit,      /* maximum length of current attribute */
+	       att_char;       /* actual length of current attribute */
+	bool   in_tag = false; /* shows if buf->ptr[i] character belongs to html tag */
 	enum html_status status = HTML_DEFAULT;
 
 	// parse html text char-by-char
@@ -144,8 +143,8 @@ plainify_html(char *buf_with_entities, size_t buf_len)
 			if (buf->ptr[i] == '>') {
 				in_tag = false;
 				atts[att_index][att_char] = '\0';
-				update_html_status(&status);
-				format_plain_text(text, &j);
+				update_html_status(atts, &status);
+				format_plain_text(atts, text, &j);
 			} else if (buf->ptr[i] == ' ' || buf->ptr[i] == '\n') {
 				atts[att_index][att_char] = '\0';
 				att_char = 0;
@@ -164,7 +163,7 @@ plainify_html(char *buf_with_entities, size_t buf_len)
 		} else {
 			if (buf->ptr[i] == '<') {
 				in_tag = true;
-				free_atts();
+				free_atts(&atts, atts_count);
 				atts_count = 0;
 				att_char = 0;
 			} else if ((status & HTML_PREFORMATTED) == 0 && (buf->ptr[i] == '\n' || buf->ptr[i] == ' ')) {
@@ -180,7 +179,7 @@ plainify_html(char *buf_with_entities, size_t buf_len)
 	text[j] = '\0';
 
 	free_string(buf);
-	free_atts();
+	free_atts(&atts, atts_count);
 
 	struct string *text_buf = malloc(sizeof(struct string));
 	if (text_buf == NULL) {

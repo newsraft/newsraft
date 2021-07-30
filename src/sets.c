@@ -4,7 +4,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include "feedeater.h"
-#include "config.h"
 
 static struct set_line *sets = NULL;
 static size_t sets_count = 0;

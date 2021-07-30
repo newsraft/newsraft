@@ -1,8 +1,8 @@
 #include <string.h>
 #include "feedeater.h"
 
-void
-rss_10_dc_start(void *userData, const XML_Char *name, const XML_Char **atts)
+void XMLCALL
+elem_rss10dc_start(void *userData, const XML_Char *name, const XML_Char **atts)
 {
 	(void)atts;
 	struct parser_data *data = userData;
@@ -12,8 +12,8 @@ rss_10_dc_start(void *userData, const XML_Char *name, const XML_Char **atts)
 	else if (strcmp(name, "creator") == 0)     data->pos |= IN_AUTHOR_ELEMENT;
 }
 
-void
-rss_10_dc_end(void *userData, const XML_Char *name)
+void XMLCALL
+elem_rss10dc_end(void *userData, const XML_Char *name)
 {
 	struct parser_data *data = userData;
 

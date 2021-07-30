@@ -20,7 +20,7 @@ debug_init(char *path)
 }
 
 void
-debug_write(enum debug_level lvl, char *format, ...)
+debug_write(enum debug_level lvl, const char *format, ...)
 {
 	if (f == NULL) {
 		return;

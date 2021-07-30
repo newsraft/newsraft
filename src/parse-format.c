@@ -6,7 +6,6 @@
 #include <sys/stat.h>
 #include <curl/curl.h>
 #include "feedeater.h"
-#include "config.h"
 
 static void
 character_data_handler(void *userData, const XML_Char *s, int s_len)
@@ -82,7 +81,7 @@ free_item_bucket(struct item_bucket *bucket)
 	free_string(bucket->content);
 }
 
-static void
+static void XMLCALL
 process_element_start(void *userData, const XML_Char *name, const XML_Char **atts) {
 	struct parser_data *data = userData;
 	++(data->depth);
@@ -106,7 +105,7 @@ process_element_start(void *userData, const XML_Char *name, const XML_Char **att
 	}
 }
 
-static void
+static void XMLCALL
 process_element_finish(void *userData, const XML_Char *name) {
 	(void)name;
 	struct parser_data *data = userData;

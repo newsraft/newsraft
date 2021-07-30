@@ -2,7 +2,6 @@
 #include <string.h>
 #include <ctype.h>
 #include "feedeater.h"
-#include "config.h"
 
 static WINDOW *window;
 static int view_min; // index of first visible line (row)

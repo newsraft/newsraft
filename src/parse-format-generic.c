@@ -4,7 +4,7 @@
  * Thus if tag does belong to some namespace and feedeater recognizes it,
  * it will be parsed by functions listed in parse-namespace.c */
 
-void
+void XMLCALL
 elem_generic_start(void *userData, const XML_Char *name, const XML_Char **atts)
 {
 	struct parser_data *data = userData;
@@ -12,7 +12,7 @@ elem_generic_start(void *userData, const XML_Char *name, const XML_Char **atts)
 	process_namespaced_tag_start(userData, name, atts);
 }
 
-void
+void XMLCALL
 elem_generic_finish(void *userData, const XML_Char *name)
 {
 	struct parser_data *data = userData;

@@ -197,26 +197,43 @@ void cat_string_char(struct string *dest, char c);
 void empty_string(struct string *str);
 void free_string(struct string *str);
 
+// xml element handlers
+int process_namespaced_tag_start (void *userData, const XML_Char *name, const XML_Char **atts);
+int process_namespaced_tag_end   (void *userData, const XML_Char *name);
+void XMLCALL elem_rss20_start    (void *userData, const XML_Char *name, const XML_Char **atts);
+void XMLCALL elem_rss20_finish   (void *userData, const XML_Char *name);
+void XMLCALL elem_rss10_start    (void *userData, const XML_Char *name, const XML_Char **atts);
+void XMLCALL elem_rss10_end      (void *userData, const XML_Char *name);
+void XMLCALL elem_rss10dc_start  (void *userData, const XML_Char *name, const XML_Char **atts);
+void XMLCALL elem_rss10dc_end    (void *userData, const XML_Char *name);
+void XMLCALL elem_atom10_start   (void *userData, const XML_Char *name, const XML_Char **atts);
+void XMLCALL elem_atom10_end     (void *userData, const XML_Char *name);
+void XMLCALL elem_atom03_start   (void *userData, const XML_Char *name, const XML_Char **atts);
+void XMLCALL elem_atom03_end     (void *userData, const XML_Char *name);
+void XMLCALL elem_generic_start  (void *userData, const XML_Char *name, const XML_Char **atts);
+void XMLCALL elem_generic_finish (void *userData, const XML_Char *name);
+
 // debug
 int debug_init(char *path);
-void debug_write(enum debug_level lvl, char *format, ...);
+void debug_write(enum debug_level lvl, const char *format, ...);
 void debug_stop(void);
 
-// namespaces
-int process_namespaced_tag_start(void *userData, const XML_Char *name, const XML_Char **atts);
-int process_namespaced_tag_end(void *userData, const XML_Char *name);
-void rss_10_start(void *userData, const XML_Char *name, const XML_Char **atts);
-void rss_10_end(void *userData, const XML_Char *name);
-void rss_10_dc_start(void *userData, const XML_Char *name, const XML_Char **atts);
-void rss_10_dc_end(void *userData, const XML_Char *name);
-void atom_10_start(void *userData, const XML_Char *name, const XML_Char **atts);
-void atom_10_end(void *userData, const XML_Char *name);
-void atom_03_start(void *userData, const XML_Char *name, const XML_Char **atts);
-void atom_03_end(void *userData, const XML_Char *name);
-void elem_generic_start(void *userData, const XML_Char *name, const XML_Char **atts);
-void elem_generic_finish(void *userData, const XML_Char *name);
-void elem_rss20_start(void *userData, const XML_Char *name, const XML_Char **atts);
-void elem_rss20_finish(void *userData, const XML_Char *name);
-
 extern sqlite3 *db;
+
+extern size_t config_max_items; // 0 == inf
+extern size_t config_init_parser_buf_size;
+extern bool   config_menu_show_number;
+extern bool   config_menu_show_decoration_number;
+extern char*  config_contents_meta_data;
+extern char*  config_contents_date_format;
+extern char   config_key_mark_marked;
+extern char   config_key_mark_unmarked;
+extern char   config_key_mark_read;
+extern char   config_key_mark_read_all;
+extern char   config_key_mark_unread;
+extern char   config_key_mark_unread_all;
+extern char   config_key_download;
+extern char   config_key_download_all;
+extern char   config_key_soft_quit;
+extern char   config_key_hard_quit;
 #endif // FEEDEATER_H

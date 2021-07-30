@@ -2,8 +2,8 @@
 #include <string.h>
 #include "feedeater.h"
 
-void
-atom_10_start(void *userData, const XML_Char *name, const XML_Char **atts)
+void XMLCALL
+elem_atom10_start(void *userData, const XML_Char *name, const XML_Char **atts)
 {
 	struct parser_data *data = userData;
 
@@ -29,8 +29,8 @@ atom_10_start(void *userData, const XML_Char *name, const XML_Char **atts)
 	else if (strcmp(name, "category") == 0)  data->pos |= IN_CATEGORY_ELEMENT;
 }
 
-void
-atom_10_end(void *userData, const XML_Char *name)
+void XMLCALL
+elem_atom10_end(void *userData, const XML_Char *name)
 {
 	struct parser_data *data = userData;
 

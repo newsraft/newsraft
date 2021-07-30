@@ -1,5 +1,4 @@
-#include <stddef.h>
-#include <stdbool.h>
+#include "feedeater.h"
 
 size_t config_max_items = 100; // 0 == inf
 size_t config_init_parser_buf_size = 100000;

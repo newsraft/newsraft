@@ -1,6 +1,5 @@
 #include <string.h>
 #include "feedeater.h"
-#include "config.h"
 
 static void
 delete_excess_items(struct string *feed_url) {

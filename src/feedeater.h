@@ -128,19 +128,19 @@ enum debug_level {
 };
 
 // sets
+void enter_sets_menu_loop(void);
 int load_sets(void);
-void free_sets(void);
-int run_sets_menu(void);
 void hide_sets(void);
+void free_sets(void);
 
 // items
-int run_items_menu(struct set_condition *st);
+int enter_items_menu_loop(struct set_condition *st);
 void hide_items(void);
 
 // contents
 struct string *expand_html_entities(char *buf, size_t buf_len);
 struct string *plainify_html(char *buff, size_t buff_len);
-int contents_menu(struct item_line *item);
+int enter_item_contents_menu_loop(struct item_line *item);
 
 // path
 int set_feeds_path(char *path);

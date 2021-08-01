@@ -43,11 +43,11 @@ tag_feed(char *tag_name, struct string *url)
 		if (tag_init(tag_name, url) != 0) {
 			--tags_count;
 			tags = realloc(tags, sizeof(struct feed_tag) * tags_count);
-			debug_write(DBG_WARN, "failed to tag feed %s as %s\n", url->ptr, tag_name);
+			debug_write(DBG_ERR, "failed to tag \"%s\" as \"%s\"\n", url->ptr, tag_name);
 			return;
 		}
 	}
-	debug_write(DBG_OK, "feed %s is tagged as %s\n", url->ptr, tag_name);
+	debug_write(DBG_OK, "feed \"%s\" is tagged as \"%s\"\n", url->ptr, tag_name);
 }
 
 void
@@ -59,9 +59,9 @@ debug_tags_summary(void)
 	}
 	debug_write(DBG_INFO, "tags summary:\n");
 	for (size_t i = 0; i < tags_count; ++i) {
-		debug_write(DBG_INFO, "feeds related to tag \"%s\":\n", tags[i].name);
+		debug_write(DBG_INFO, "  feeds related to tag \"%s\":\n", tags[i].name);
 		for (size_t j = 0; j < tags[i].urls_count; ++j) {
-			debug_write(DBG_INFO, "%s\n", tags[i].urls[j]->ptr);
+			debug_write(DBG_INFO, "    %s\n", tags[i].urls[j]->ptr);
 		}
 	}
 }

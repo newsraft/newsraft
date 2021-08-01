@@ -19,7 +19,7 @@ add_project_arguments(
 		'-DXML_LARGE_SIZE',
 		# set integer modifier to "ll" because of argument above
 		'-DXML_FMT_INT_MOD="ll"',
-		# undefine XML_UNICODE to make information be UTF-8 encoded
+		# undefine XML_UNICODE to make expat work in UTF-8 mode (when defined, expat uses UTF-16)
 		'-UXML_UNICODE',
 		# undefine XML_UNICODE_WCHAR_T to make expat use char for characters
 		'-UXML_UNICODE_WCHAR_T',

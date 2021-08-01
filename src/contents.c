@@ -286,7 +286,7 @@ scroll_view_bot(void)
 }
 
 static int
-menu_contents(void)
+item_contents_menu_loop(void)
 {
 	int ch, q;
 	char cmd[7];
@@ -321,7 +321,7 @@ menu_contents(void)
 }
 
 int
-contents_menu(struct item_line *item)
+enter_item_contents_menu_loop(struct item_line *item)
 {
 	debug_write(DBG_INFO, "trying to view an \"%s\" item of \"%s\" feed\n", item->data->title->ptr, item->feed_url->ptr);
 	pad_height = 0;
@@ -348,7 +348,7 @@ contents_menu(struct item_line *item)
 	clear();
 	refresh();
 	prefresh(window, view_min, 0, 0, 0, view_area_height - 1, COLS - 1);
-	int contents_status = menu_contents();
+	int contents_status = item_contents_menu_loop();
 	delwin(window);
 	return contents_status;
 }

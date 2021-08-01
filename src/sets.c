@@ -406,8 +406,8 @@ menu_feeds(void)
 	}
 }
 
-int
-run_sets_menu(void)
+void
+enter_sets_menu_loop(void)
 {
 	view_min = 0;
 	view_max = LINES - 2;
@@ -423,7 +423,7 @@ run_sets_menu(void)
 			/* error message is written to status by create_set_condition */
 			continue;
 		}
-		dest = run_items_menu(st);
+		dest = enter_items_menu_loop(st);
 		free(st->urls);
 		free_string(st->db_cmd);
 		free(st);
@@ -447,6 +447,4 @@ run_sets_menu(void)
 			break;
 		}
 	}
-
-	return 0;
 }

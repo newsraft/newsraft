@@ -246,7 +246,7 @@ menu_items(void)
 }
 
 int
-run_items_menu(struct set_condition *st)
+enter_items_menu_loop(struct set_condition *st)
 {
 	if (items == NULL) {
 		int load_status = load_items(st);
@@ -265,7 +265,7 @@ run_items_menu(struct set_condition *st)
 	int dest;
 	while ((dest = menu_items()) != MENU_QUIT) {
 		if (dest == MENU_CONTENT) {
-			dest = contents_menu(&items[view_sel]);
+			dest = enter_item_contents_menu_loop(&items[view_sel]);
 			if (dest == MENU_QUIT) {
 				break;
 			} else if (dest == MENU_ITEMS) {

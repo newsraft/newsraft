@@ -53,7 +53,9 @@ main(int argc, char **argv)
 	if (initscr() == NULL)    { error = 3; goto main_undo3; }
 	if (status_create() != 0) { error = 4; goto main_undo4; }
 	if (input_create() != 0)  { error = 5; goto main_undo5; }
-	run_sets_menu();
+
+	enter_sets_menu_loop();
+
 	input_delete();
 main_undo5:
 	status_delete();

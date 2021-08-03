@@ -4,27 +4,30 @@
 static void
 delete_excess_items(struct string *feed_url) {
 	sqlite3_stmt *s;
-	if (sqlite3_prepare_v2(db, "SELECT rowid FROM items WHERE feed = ? ORDER BY upddate DESC, pubdate DESC, rowid ASC", -1, &s, 0) == SQLITE_OK) {
-		sqlite3_bind_text(s, 1, feed_url->ptr, feed_url->len, NULL);
-		sqlite3_stmt *t;
-		size_t item_id = 0;
-		while (sqlite3_step(s) == SQLITE_ROW) {
-			++item_id;
-			if (item_id < config_max_items + 1) {
-				continue;
-			}
-			if (sqlite3_prepare_v2(db, "DELETE FROM items WHERE rowid = ?", -1, &t, 0) == SQLITE_OK) {
-				sqlite3_bind_int(t, 1, sqlite3_column_int(s, 0));
-				if (sqlite3_step(t) != SQLITE_DONE) {
-					debug_write(DBG_ERR, "deletion of excess item failed!\n");
-				}
-				sqlite3_finalize(t);
-			}
-		}
-		sqlite3_finalize(s);
-	} else {
-		DEBUG_WRITE_DB_PREPARE_FAIL
+	if (sqlite3_prepare_v2(db, "SELECT rowid FROM items WHERE feed = ? ORDER BY upddate DESC, pubdate DESC, rowid ASC", -1, &s, 0) != SQLITE_OK) {
+		debug_write(DBG_ERR, "failed to prepare excess items deletion statement:\n");
+		DEBUG_WRITE_DB_PREPARE_FAIL;
+		return;
 	}
+	sqlite3_bind_text(s, 1, feed_url->ptr, feed_url->len, NULL);
+	sqlite3_stmt *t;
+	size_t item_id = 0;
+	while (sqlite3_step(s) == SQLITE_ROW) {
+		++item_id;
+		if (item_id < config_max_items + 1) {
+			continue;
+		}
+		if (sqlite3_prepare_v2(db, "DELETE FROM items WHERE rowid = ?", -1, &t, 0) == SQLITE_OK) {
+			sqlite3_bind_int(t, 1, sqlite3_column_int(s, 0));
+			if (sqlite3_step(t) != SQLITE_DONE) {
+				debug_write(DBG_ERR, "deletion of excess item failed!\n");
+			}
+			sqlite3_finalize(t);
+		} else {
+			DEBUG_WRITE_DB_PREPARE_FAIL;
+		}
+	}
+	sqlite3_finalize(s);
 }
 
 static bool
@@ -44,7 +47,7 @@ is_item_unique(struct string *feed_url, struct item_bucket *bucket)
 			}
 			sqlite3_finalize(res);
 		} else {
-			DEBUG_WRITE_DB_PREPARE_FAIL
+			DEBUG_WRITE_DB_PREPARE_FAIL;
 		}
 	} else { // check uniqueness by url, title, upddate and pubdate
 		char cmd[] = "SELECT * FROM items WHERE feed = ? AND url = ? AND title = ? AND upddate = ? AND pubdate = ? LIMIT 1";
@@ -59,7 +62,7 @@ is_item_unique(struct string *feed_url, struct item_bucket *bucket)
 			}
 			sqlite3_finalize(res);
 		} else {
-			DEBUG_WRITE_DB_PREPARE_FAIL
+			DEBUG_WRITE_DB_PREPARE_FAIL;
 		}
 	}
 	return is_item_unique;
@@ -69,16 +72,15 @@ static void
 db_insert_item(struct string *feed_url, struct item_bucket *bucket)
 {
 	sqlite3_stmt *s;
-	if (sqlite3_prepare_v2(db, "INSERT INTO items VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", -1, &s, 0) != SQLITE_OK) {
-		debug_write(DBG_ERR, "failed to prepare item insertion statement: \n");
-		DEBUG_WRITE_DB_PREPARE_FAIL
+	if (sqlite3_prepare_v2(db, "INSERT INTO items VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", -1, &s, 0) != SQLITE_OK) {
+		debug_write(DBG_ERR, "failed to prepare item insertion statement:\n");
+		DEBUG_WRITE_DB_PREPARE_FAIL;
 		return;
 	}
 	sqlite3_bind_text(s,  ITEM_COLUMN_FEED + 1,     feed_url->ptr, feed_url->len, NULL);
 	sqlite3_bind_text(s,  ITEM_COLUMN_TITLE + 1,    bucket->title->ptr, bucket->title->len, NULL);
 	sqlite3_bind_text(s,  ITEM_COLUMN_GUID + 1,     bucket->guid->ptr, bucket->guid->len, NULL);
 	sqlite3_bind_int(s,   ITEM_COLUMN_UNREAD + 1,   1);
-	sqlite3_bind_int(s,   ITEM_COLUMN_MARKED + 1,   0);
 	sqlite3_bind_text(s,  ITEM_COLUMN_URL + 1,      bucket->url->ptr, bucket->url->len, NULL);
 	sqlite3_bind_text(s,  ITEM_COLUMN_AUTHOR + 1,   bucket->author->ptr, bucket->author->len, NULL);
 	sqlite3_bind_text(s,  ITEM_COLUMN_CATEGORY + 1, bucket->category->ptr, bucket->category->len, NULL);
@@ -131,7 +133,7 @@ db_update_item_int(struct string *feed_url, struct item_entry *item, const char 
 		}
 		sqlite3_finalize(res);
 	} else {
-		DEBUG_WRITE_DB_PREPARE_FAIL
+		DEBUG_WRITE_DB_PREPARE_FAIL;
 	}
 	return success;
 }

@@ -11,7 +11,6 @@
                     	"title TEXT," \
                     	"guid TEXT," \
                     	"unread INTEGER(1)," \
-                    	"marked INTEGER(1)," \
                     	"url TEXT," \
                     	"author TEXT," \
                     	"category TEXT," \

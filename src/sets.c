@@ -71,7 +71,6 @@ parse_sets_file(void) {
 		sets[set_index].name = NULL;
 		sets[set_index].link = NULL;
 		sets[set_index].tags = NULL;
-		sets[set_index].is_marked = false;
 		sets[set_index].is_unread = false;
 
 		word_len = 0;
@@ -120,7 +119,6 @@ parse_sets_file(void) {
 				if (c == ' ' || c == '\t' || c == '\n' || c == EOF) { word[word_len] = '\0'; break; }
 			}
 			sets[set_index].link = create_string(word, word_len);
-			sets[set_index].is_marked = is_feed_marked(sets[set_index].link);
 			sets[set_index].is_unread = is_feed_unread(sets[set_index].link);
 			while (c == ' ' || c == '\t') { c = fgetc(f); }
 			// process name
@@ -214,11 +212,9 @@ set_expose(size_t index)
 		{
 			mvwprintw(set->window, 0, 0, "%3d", index + 1);
 		}
-		mvwprintw(set->window, 0, 5, set->is_marked ? "M" : " ");
 		mvwprintw(set->window, 0, 6, set->is_unread ? "N" : " ");
 		mvwprintw(set->window, 0, 9, "%s", set_image(set));
 	} else {
-		mvwprintw(set->window, 0, 2, set->is_marked ? "M" : " ");
 		mvwprintw(set->window, 0, 3, set->is_unread ? "N" : " ");
 		mvwprintw(set->window, 0, 6, "%s", set_image(set));
 	}
@@ -435,11 +431,6 @@ enter_sets_menu_loop(void)
 				status_cond = is_feed_unread(sets[view_sel].link);
 				if (status_cond != sets[view_sel].is_unread) {
 					sets[view_sel].is_unread = status_cond;
-					set_expose(view_sel);
-				}
-				status_cond = is_feed_marked(sets[view_sel].link);
-				if (status_cond != sets[view_sel].is_marked) {
-					sets[view_sel].is_marked = status_cond;
 					set_expose(view_sel);
 				}
 			}

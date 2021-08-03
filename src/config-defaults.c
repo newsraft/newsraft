@@ -9,8 +9,6 @@ bool config_menu_show_decoration_number = false;
 char *config_contents_meta_data = "feed,title,author,category,date,url,comments";
 char *config_contents_date_format = "%a, %d %b %Y %H:%M:%S %z";
 
-char config_key_mark_marked = 'b';
-char config_key_mark_unmarked = 'B';
 char config_key_mark_read = 'r';
 char config_key_mark_unread = 'R';
 char config_key_mark_read_all = 'a';

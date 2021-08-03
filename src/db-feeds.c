@@ -13,7 +13,7 @@ is_feed_in_db(struct string *feed_url)
 		}
 		sqlite3_finalize(s);
 	} else {
-		DEBUG_WRITE_DB_PREPARE_FAIL
+		DEBUG_WRITE_DB_PREPARE_FAIL;
 	}
 	return stored;
 }
@@ -33,7 +33,7 @@ make_sure_feed_is_in_db(struct string *feed_url)
 		}
 		sqlite3_finalize(s);
 	} else {
-		DEBUG_WRITE_DB_PREPARE_FAIL
+		DEBUG_WRITE_DB_PREPARE_FAIL;
 	}
 	return created;
 }
@@ -58,29 +58,9 @@ db_update_feed_text(struct string *feed_url, char *column, char *data, size_t da
 		sqlite3_step(res);
 		sqlite3_finalize(res);
 	} else {
-		DEBUG_WRITE_DB_PREPARE_FAIL
+		DEBUG_WRITE_DB_PREPARE_FAIL;
 	}
 	free(cmd);
-}
-
-bool
-is_feed_marked(struct string *url)
-{
-	bool is_marked = false;
-	char cmd[] = "SELECT * FROM items WHERE feed = ? AND marked = ? LIMIT 1";
-	sqlite3_stmt *res;
-	if (sqlite3_prepare_v2(db, cmd, -1, &res, 0) == SQLITE_OK) {
-		sqlite3_bind_text(res, 1, url->ptr, url->len, NULL);
-		sqlite3_bind_int(res,  2, 1);
-		// if something found (at least one item from feed with this url is marked), say feed is marked
-		if (sqlite3_step(res) == SQLITE_ROW) {
-			is_marked = true;
-		}
-		sqlite3_finalize(res);
-	} else {
-		debug_write(DBG_ERR, "failed to prepare SELECT statement: %s\n", sqlite3_errmsg(db));
-	}
-	return is_marked;
 }
 
 bool
@@ -92,13 +72,13 @@ is_feed_unread(struct string *url)
 	if (sqlite3_prepare_v2(db, cmd, -1, &res, 0) == SQLITE_OK) {
 		sqlite3_bind_text(res, 1, url->ptr, url->len, NULL);
 		sqlite3_bind_int(res,  2, 1);
-		// if something found (at least one item from feed with this url is unread), say feed is unread
 		if (sqlite3_step(res) == SQLITE_ROW) {
+			/* feed is unread because at least one item from this feed is unread */
 			is_unread = true;
 		}
 		sqlite3_finalize(res);
 	} else {
-		debug_write(DBG_ERR, "failed to prepare SELECT statement: %s\n", sqlite3_errmsg(db));
+		DEBUG_WRITE_DB_PREPARE_FAIL;
 	}
 	return is_unread;
 }

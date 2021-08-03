@@ -6,7 +6,7 @@
 #include <sys/stat.h>
 #include "feedeater.h"
 
-#define SELECT_CMD_PART_1 "SELECT feed, title, url, guid, marked, unread FROM items WHERE"
+#define SELECT_CMD_PART_1 "SELECT feed, title, url, guid, unread FROM items WHERE"
 #define SELECT_CMD_PART_3 " ORDER BY upddate DESC, pubdate DESC, rowid ASC"
 
 static struct item_line *items = NULL;
@@ -61,8 +61,7 @@ load_items(struct set_condition *st)
 			if ((text = (char *)sqlite3_column_text(res, 3)) != NULL) {
 				items[item_index].data->guid = create_string(text, strlen(text));
 			}
-			items[item_index].is_marked = sqlite3_column_int(res, 4);
-			items[item_index].is_unread = sqlite3_column_int(res, 5);
+			items[item_index].is_unread = sqlite3_column_int(res, 4);
 		}
 	} else {
 		status_write("[error] invalid tag expression");
@@ -98,11 +97,9 @@ item_expose(size_t index)
 	struct item_line *item = &items[index];
 	if (config_menu_show_number == true) {
 		mvwprintw(item->window, 0, 0, "%3d", index + 1);
-		mvwprintw(item->window, 0, 5, item->is_marked ? "M" : " ");
 		mvwprintw(item->window, 0, 6, item->is_unread ? "N" : " ");
 		mvwprintw(item->window, 0, 9, "%s", item_image(item->data));
 	} else {
-		mvwprintw(item->window, 0, 2, item->is_marked ? "M" : " ");
 		mvwprintw(item->window, 0, 3, item->is_unread ? "N" : " ");
 		mvwprintw(item->window, 0, 6, "%s", item_image(item->data));
 	}
@@ -185,16 +182,6 @@ view_select(size_t i)
 }
 
 static void
-mark_item_marked(size_t index, bool value)
-{
-	struct item_line *item = &items[index];
-	if (db_update_item_int(item->feed_url, item->data, "marked", value)) {
-		item->is_marked = value;
-		item_expose(index);
-	}
-}
-
-static void
 mark_item_unread(size_t index, bool value)
 {
 	struct item_line *item = &items[index];
@@ -213,8 +200,6 @@ menu_items(void)
 		ch = input_wgetch();
 		if      (ch == 'j' || ch == KEY_DOWN)                            { view_select(view_sel + 1); }
 		else if ((ch == 'k' || ch == KEY_UP) && (view_sel != 0))         { view_select(view_sel - 1); }
-		else if (ch == config_key_mark_marked)                           { mark_item_marked(view_sel, true); }
-		else if (ch == config_key_mark_unmarked)                         { mark_item_marked(view_sel, false); }
 		else if (ch == config_key_mark_read)                             { mark_item_unread(view_sel, false); }
 		else if (ch == config_key_mark_unread)                           { mark_item_unread(view_sel, true); }
 		else if ((ch == 'G' || ch == KEY_END) && (items_count != 0))     { view_select(items_count - 1); }

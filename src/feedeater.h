@@ -8,7 +8,7 @@
 #include <time.h>
 #define MAXPATH 1024
 #define LENGTH(A) (sizeof(A)/sizeof(*A))
-#define DEBUG_WRITE_DB_PREPARE_FAIL debug_write(DBG_WARN, "failed to prepare statement: %s\n", sqlite3_errmsg(db));
+#define DEBUG_WRITE_DB_PREPARE_FAIL debug_write(DBG_WARN, "failed to prepare statement: %s\n", sqlite3_errmsg(db))
 
 struct string {
 	char *ptr;
@@ -32,7 +32,6 @@ struct set_line {
 	struct string *name; // what is displayed in menu
 	struct string *link; // this is feed url if set is feed
 	struct string *tags; // this is tags expression if set is filter
-	bool is_marked;
 	bool is_unread;
 	WINDOW *window;
 };
@@ -46,7 +45,6 @@ struct item_entry {
 struct item_line {
 	struct item_entry *data;
 	struct string *feed_url;
-	bool is_marked;
 	bool is_unread;
 	WINDOW *window;
 };
@@ -92,7 +90,6 @@ enum items_column {
 	ITEM_COLUMN_TITLE,
 	ITEM_COLUMN_GUID,
 	ITEM_COLUMN_UNREAD,
-	ITEM_COLUMN_MARKED,
 	ITEM_COLUMN_URL,
 	ITEM_COLUMN_AUTHOR,
 	ITEM_COLUMN_CATEGORY,
@@ -171,7 +168,6 @@ int db_init(void);
 void db_stop(void);
 int db_update_item_int(struct string *feed_url, struct item_entry *item, const char *state, int value);
 void db_update_feed_text(struct string *feed_url, char *column, char *data, size_t data_len);
-bool is_feed_marked(struct string *url);
 bool is_feed_unread(struct string *url);
 void try_item_bucket(struct item_bucket *bucket, struct string *feed_url);
 
@@ -226,8 +222,6 @@ extern bool   config_menu_show_number;
 extern bool   config_menu_show_decoration_number;
 extern char*  config_contents_meta_data;
 extern char*  config_contents_date_format;
-extern char   config_key_mark_marked;
-extern char   config_key_mark_unmarked;
 extern char   config_key_mark_read;
 extern char   config_key_mark_read_all;
 extern char   config_key_mark_unread;

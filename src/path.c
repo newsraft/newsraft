@@ -191,6 +191,6 @@ get_db_path(void)
 	if (db_file == NULL) {
 		return NULL;
 	}
-	strcat(db_file, "/feedeater.sqlite");
+	strcat(db_file, "/feedeater.sqlite3");
 	return db_file;
 }

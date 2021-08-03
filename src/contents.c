@@ -332,19 +332,17 @@ enter_item_contents_menu_loop(struct item_line *item)
 		return MENU_CONTENT_ERROR;
 	}
 	struct string *buf = get_contents_of_item(res);
+	sqlite3_finalize(res);
 	if (buf == NULL) {
-		sqlite3_finalize(res);
 		return MENU_CONTENT_ERROR;
 	}
 	window = create_contents_window(buf);
 	free_string(buf);
-	sqlite3_finalize(res);
 	if (window == NULL) {
 		status_write("could not obtain contents of item");
 		return MENU_CONTENT_ERROR;
 	}
 	db_update_item_int(item->feed_url, item->data, "unread", 0);
-	hide_items();
 	clear();
 	refresh();
 	prefresh(window, view_min, 0, 0, 0, view_area_height - 1, COLS - 1);

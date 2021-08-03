@@ -124,15 +124,18 @@ enum debug_level {
 	DBG_ERR = 3,
 };
 
+// list interface
+int create_list_menu(void);
+WINDOW *get_list_entry_by_index(size_t i);
+void free_list_menu(void);
+
 // sets
 void enter_sets_menu_loop(void);
 int load_sets(void);
-void hide_sets(void);
 void free_sets(void);
 
 // items
 int enter_items_menu_loop(struct set_condition *st);
-void hide_items(void);
 
 // contents
 struct string *expand_html_entities(char *buf, size_t buf_len);

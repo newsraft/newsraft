@@ -205,6 +205,7 @@ static void
 set_expose(size_t index)
 {
 	struct set_line *set = &sets[index];
+	werase(set->window);
 	if (config_menu_show_number == true) {
 		if (set->link != NULL ||
 		    set->tags != NULL ||
@@ -226,18 +227,8 @@ static void
 show_sets(void)
 {
 	for (size_t i = view_min, j = 0; i < sets_count && i <= view_max; ++i, ++j) {
-		sets[i].window = newwin(1, COLS, j, 0);
+		sets[i].window = get_list_entry_by_index(j);
 		set_expose(i);
-	}
-}
-
-void
-hide_sets(void)
-{
-	for (size_t i = view_min; i < sets_count && i <= view_max; ++i) {
-		if (sets[i].window != NULL) {
-			delwin(sets[i].window);
-		}
 	}
 }
 
@@ -281,13 +272,11 @@ view_select(size_t i)
 	}
 
 	if (new_sel > view_max) {
-		hide_sets();
 		view_min = new_sel - LINES + 2;
 		view_max = new_sel;
 		view_sel = new_sel;
 		show_sets();
 	} else if (new_sel < view_min) {
-		hide_sets();
 		view_min = new_sel;
 		view_max = new_sel + LINES - 2;
 		view_sel = new_sel;

@@ -95,6 +95,7 @@ static void
 item_expose(size_t index)
 {
 	struct item_line *item = &items[index];
+	werase(item->window);
 	if (config_menu_show_number == true) {
 		mvwprintw(item->window, 0, 0, "%3d", index + 1);
 		mvwprintw(item->window, 0, 6, item->is_unread ? "N" : " ");
@@ -111,18 +112,8 @@ static void
 show_items(void)
 {
 	for (size_t i = view_min, j = 0; i < items_count && i <= view_max; ++i, ++j) {
-		items[i].window = newwin(1, COLS, j, 0);
+		items[i].window = get_list_entry_by_index(j);
 		item_expose(i);
-	}
-}
-
-void
-hide_items(void)
-{
-	for (size_t i = view_min; i < items_count && i <= view_max; ++i) {
-		if (items[i].window != NULL) {
-			delwin(items[i].window);
-		}
 	}
 }
 
@@ -162,13 +153,11 @@ view_select(size_t i)
 	}
 
 	if (new_sel > view_max) {
-		hide_items();
 		view_min = new_sel - LINES + 2;
 		view_max = new_sel;
 		view_sel = new_sel;
 		show_items();
 	} else if (new_sel < view_min) {
-		hide_items();
 		view_min = new_sel;
 		view_max = new_sel + LINES - 2;
 		view_sel = new_sel;
@@ -242,7 +231,6 @@ enter_items_menu_loop(struct set_condition *st)
 	}
 	view_min = 0;
 	view_max = LINES - 2;
-	hide_sets();
 	clear();
 	refresh();
 	show_items();
@@ -260,7 +248,6 @@ enter_items_menu_loop(struct set_condition *st)
 				show_items();
 			}
 		} else if (dest == MENU_FEEDS || dest == MENU_QUIT) {
-			hide_items();
 			break;
 		}
 	}

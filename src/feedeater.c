@@ -48,17 +48,20 @@ main(int argc, char **argv)
 	}
 
 	int error = 0;
-	if (db_init() != 0)       { error = 1; goto main_undo1; }
-	if (load_sets() != 0)     { error = 2; goto main_undo2; }
-	if (initscr() == NULL)    { error = 3; goto main_undo3; }
-	if (status_create() != 0) { error = 4; goto main_undo4; }
-	if (input_create() != 0)  { error = 5; goto main_undo5; }
+	if (db_init() != 0)          { error = 1; goto main_undo1; }
+	if (load_sets() != 0)        { error = 2; goto main_undo2; }
+	if (initscr() == NULL)       { error = 3; goto main_undo3; }
+	if (create_list_menu() != 0) { error = 4; goto main_undo4; }
+	if (status_create() != 0)    { error = 5; goto main_undo5; }
+	if (input_create() != 0)     { error = 6; goto main_undo6; }
 
 	enter_sets_menu_loop();
 
 	input_delete();
-main_undo5:
+main_undo6:
 	status_delete();
+main_undo5:
+	free_list_menu();
 main_undo4:
 	endwin();
 main_undo3:

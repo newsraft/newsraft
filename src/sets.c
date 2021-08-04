@@ -205,6 +205,9 @@ static void
 set_expose(size_t index)
 {
 	struct set_line *set = &sets[index];
+	if (set->window == NULL) {
+		return;
+	}
 	werase(set->window);
 	if (config_menu_show_number == true) {
 		if (set->link != NULL ||
@@ -388,6 +391,13 @@ menu_feeds(void)
 		}
 		else if (ch == 'l' || ch == KEY_RIGHT || ch == '\n' || ch == KEY_ENTER) { return MENU_ITEMS; }
 		else if (ch == config_key_soft_quit || ch == config_key_hard_quit)      { return MENU_QUIT; }
+		else if (ch == KEY_RESIZE) {
+			// TODO resize_list_menu must be called from some kind of global function like signal handler
+			// TODO unite all keyboard input handlers in one function
+			resize_list_menu();
+			view_max = view_min + LINES - 2;
+			show_sets();
+		}
 	}
 }
 

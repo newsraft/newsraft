@@ -1,12 +1,12 @@
 #include "feedeater.h"
 
 static WINDOW **windows = NULL;
-static size_t windows_count;
+static int windows_count;
 
 void
 free_list_menu(void)
 {
-	for (size_t i = 0; i < windows_count; ++i) {
+	for (int i = 0; i < windows_count; ++i) {
 		delwin(windows[i]);
 	}
 	free(windows);
@@ -15,16 +15,17 @@ free_list_menu(void)
 int
 create_list_menu(void)
 {
-	if (LINES < 1) {
+	if (LINES < 2) {
 		return 1;
 	}
-	for (windows_count = 0; windows_count < (size_t)(LINES - 1); ++windows_count) {
-		windows = realloc(windows, sizeof(WINDOW *) * (windows_count + 1));
-		if (windows == NULL) {
-			return 1;
-		}
-		windows[windows_count] = newwin(1, COLS, windows_count, 0);
-		if (windows[windows_count] == NULL) {
+	windows_count = LINES - 1;
+	windows = realloc(windows, sizeof(WINDOW *) * windows_count);
+	if (windows == NULL) {
+		return 1;
+	}
+	for (int i = 0; i < windows_count; ++i) {
+		windows[i] = newwin(1, COLS, i, 0);
+		if (windows[i] == NULL) {
 			free_list_menu();
 			return 1;
 		}
@@ -32,8 +33,25 @@ create_list_menu(void)
 	return 0;
 }
 
-WINDOW *
-get_list_entry_by_index(size_t i)
+void
+resize_list_menu(void)
 {
-	return i < windows_count ? windows[i] : NULL;
+	if (LINES > windows_count) {
+		windows = realloc(windows, sizeof(WINDOW *) * (LINES - 1));
+		for (int i = windows_count - 1; i < (LINES - 1); ++i) {
+			windows[i] = newwin(1, COLS, i, 0);
+		}
+	} else if (LINES < windows_count) {
+		/* you might think that these windows that are not needed should be deleted.
+		 * but this function is called on screen resize, on which ncurses automatically
+		 * deletes all the windows that have gone out of bounds.
+		 * hence do nothing in this case... */
+	}
+	windows_count = LINES - 1;
+}
+
+WINDOW *
+get_list_entry_by_index(size_t index)
+{
+	return index < (size_t)windows_count ? windows[index] : NULL;
 }

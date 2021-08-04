@@ -126,6 +126,7 @@ enum debug_level {
 
 // list interface
 int create_list_menu(void);
+void resize_list_menu(void);
 WINDOW *get_list_entry_by_index(size_t i);
 void free_list_menu(void);
 

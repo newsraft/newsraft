@@ -1,5 +1,13 @@
 #include "feedeater.h"
 
+void
+free_set_condition(struct set_condition *cond)
+{
+	free(cond->urls);
+	free_string(cond->db_cmd);
+	free(cond);
+}
+
 static struct set_condition *
 create_set_condition_for_feed(struct string *feed_url)
 {
@@ -50,9 +58,7 @@ create_set_condition_for_filter(struct string *tags_expr)
 				word_len = 0;
 				tag = get_tag_by_name(word);
 				if (tag == NULL) {
-					free_string(st->db_cmd);
-					free(st->urls);
-					free(st);
+					free_set_condition(st);
 					status_write("[error] tag \"%s\" does not exist!", word);
 					return NULL;
 				}

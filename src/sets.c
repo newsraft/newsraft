@@ -255,7 +255,7 @@ view_select(size_t i)
 			for (size_t j = view_sel; j < sets_count; ++j) {
 				if (sets[j].link != NULL || sets[j].tags != NULL) {
 					temp_new_sel = j;
-					if (j >= new_sel) break;
+					if (temp_new_sel >= new_sel) break;
 				}
 			}
 		} else if (new_sel < view_sel) {
@@ -328,32 +328,7 @@ set_reload_filter(struct set_line *set, size_t index)
 			/*}*/
 		}
 	}
-	free(st->urls);
-	free_string(st->db_cmd);
-	free(st);
-}
-
-static void
-set_reload(size_t index)
-{
-	struct set_line *set = &sets[index];
-	if (set->link != NULL) {
-		set_reload_feed(set, index);
-	} else if (set->tags != NULL) {
-		set_reload_filter(set, index);
-	}
-}
-
-static void
-reload_all_sets(void)
-{
-	/* Try to reload all feeds.
-	 * Omit filters to avoid repeated downloads... */
-	for (size_t i = 0; i < sets_count; ++i) {
-		if (sets[i].link != NULL) {
-			set_reload_feed(&sets[i], i);
-		}
-	}
+	free_set_condition(st);
 }
 
 static void
@@ -365,7 +340,7 @@ view_select_next(void)
 static void
 view_select_prev(void)
 {
-	view_select(view_sel == 0 ? (0) : (view_sel - 1));
+	view_select((view_sel == 0) ? (0) : (view_sel - 1));
 }
 
 static void
@@ -377,13 +352,28 @@ view_select_first(void)
 static void
 view_select_last(void)
 {
-	view_select(sets_count == 0 ? (0) : (sets_count - 1));
+	view_select((sets_count == 0) ? (0) : (sets_count - 1));
 }
 
 static void
 reload_current_set(void)
 {
-	set_reload(view_sel);
+	struct set_line *set = &(sets[view_sel]);
+	if (set->link != NULL) {
+		set_reload_feed(set, view_sel);
+	} else if (set->tags != NULL) {
+		set_reload_filter(set, view_sel);
+	}
+}
+
+static void
+reload_all_feeds(void)
+{
+	for (size_t i = 0; i < sets_count; ++i) {
+		if (sets[i].link != NULL) {
+			set_reload_feed(&sets[i], i);
+		}
+	}
 }
 
 static void
@@ -402,7 +392,7 @@ set_sets_input_handlers(void)
 	set_input_handler(INPUT_SELECT_FIRST, &view_select_first);
 	set_input_handler(INPUT_SELECT_LAST, &view_select_last);
 	set_input_handler(INPUT_RELOAD, &reload_current_set);
-	set_input_handler(INPUT_RELOAD_ALL, &reload_all_sets);
+	set_input_handler(INPUT_RELOAD_ALL, &reload_all_feeds);
 	set_input_handler(INPUT_RESIZE, &redraw_sets_by_resize);
 }
 
@@ -429,12 +419,10 @@ enter_sets_menu_loop(void)
 			continue;
 		}
 		dest = enter_items_menu_loop(st);
-		free(st->urls);
-		free_string(st->db_cmd);
-		free(st);
+		free_set_condition(st);
 		if (dest == INPUT_HARD_QUIT) { /* exit the program */
 			break;
-		} else if (dest == INPUT_SOFT_QUIT) { /* return to the previous menu */
+		} else if (dest == INPUT_SOFT_QUIT) { /* return to sets menu again */
 			set_sets_input_handlers();
 			clear();
 			refresh();

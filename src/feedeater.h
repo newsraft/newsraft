@@ -172,6 +172,7 @@ void value_strip_whitespace(char *str, size_t *len);
 void tag_feed(char *tag_name, struct string *url);
 // convert data of set to sql WHERE condition
 struct set_condition * create_set_condition(struct set_line *set);
+void free_set_condition(struct set_condition *cond);
 void debug_tags_summary(void);
 struct feed_tag *get_tag_by_name(char *name);
 void free_tags(void);

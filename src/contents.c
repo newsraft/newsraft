@@ -299,39 +299,32 @@ scroll_view_bot(void)
 	}
 }
 
-static int
-item_contents_menu_loop(void)
+static void
+view_select_next(void){
+	scroll_view(1);
+}
+
+static void
+view_select_prev(void){
+	scroll_view(-1);
+}
+
+static void
+redraw_content_by_resize(void)
 {
-	int ch, q;
-	char cmd[7];
-	while (1) {
-		ch = input_wgetch();
-		if      (ch == 'j' || ch == KEY_DOWN)                            { scroll_view(1); }
-		else if (ch == 'k' || ch == KEY_UP)                              { scroll_view(-1); }
-		else if (ch == KEY_NPAGE)                                        { scroll_view(view_area_height); }
-		else if (ch == KEY_PPAGE)                                        { scroll_view(-view_area_height); }
-		else if (ch == 'G' || ch == KEY_END)                             { scroll_view_bot(); }
-		else if ((ch == 'g' && input_wgetch() == 'g') || ch == KEY_HOME) { scroll_view_top(); }
-		else if (isdigit(ch)) {
-			q = 0;
-			while (1) {
-				cmd[q++] = ch;
-				if (q > 6) break;
-				cmd[q] = '\0';
-				ch = input_wgetch();
-				if (!isdigit(ch)) {
-					if (ch == 'j' || ch == KEY_DOWN) {
-						scroll_view(atoi(cmd));
-					} else if (ch == 'k' || ch == KEY_UP) {
-						scroll_view(-atoi(cmd));
-					}
-					break;
-				}
-			}
-		}
-		else if (ch == 'h' || ch == KEY_LEFT || ch == config_key_soft_quit) { return MENU_ITEMS; }
-		else if (ch == config_key_hard_quit)                                { return MENU_QUIT; }
-	}
+	view_area_height = LINES - 1;
+	prefresh(window, view_min, 0, 0, 0, view_area_height - 1, COLS - 1);
+}
+
+static void
+set_content_input_handlers(void)
+{
+	reset_input_handlers();
+	set_input_handler(INPUT_SELECT_NEXT, &view_select_next);
+	set_input_handler(INPUT_SELECT_PREV, &view_select_prev);
+	set_input_handler(INPUT_SELECT_FIRST, &scroll_view_top);
+	set_input_handler(INPUT_SELECT_LAST, &scroll_view_bot);
+	set_input_handler(INPUT_RESIZE, &redraw_content_by_resize);
 }
 
 int
@@ -343,24 +336,26 @@ enter_item_contents_menu_loop(struct item_line *item)
 	view_min = 0;
 	sqlite3_stmt *res = find_item_by_its_data_in_db(item->feed_url, item->data);
 	if (res == NULL) {
-		return MENU_CONTENT_ERROR;
+		return INPUTS_COUNT; // error
 	}
 	struct string *buf = get_contents_of_item(res);
 	sqlite3_finalize(res);
 	if (buf == NULL) {
-		return MENU_CONTENT_ERROR;
+		return INPUTS_COUNT; // error
 	}
 	window = create_contents_window(buf);
 	free_string(buf);
 	if (window == NULL) {
 		status_write("could not obtain contents of item");
-		return MENU_CONTENT_ERROR;
+		return INPUTS_COUNT; // error
 	}
 	db_update_item_int(item->feed_url, item->data, "unread", 0);
 	clear();
 	refresh();
 	prefresh(window, view_min, 0, 0, 0, view_area_height - 1, COLS - 1);
-	int contents_status = item_contents_menu_loop();
+	int dest;
+	set_content_input_handlers();
+	while ((dest = handle_input()) == INPUT_ENTER);
 	delwin(window);
-	return contents_status;
+	return dest;
 }

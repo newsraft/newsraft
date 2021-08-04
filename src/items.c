@@ -22,7 +22,7 @@ load_items(struct set_condition *st)
 	char *cmd = malloc(sizeof(SELECT_CMD_PART_1) + st->db_cmd->len + sizeof(SELECT_CMD_PART_3) + 1);
 	if (cmd == NULL) {
 		status_write("[error] not enough memory");
-		return MENU_ITEMS_ERROR;
+		return 1;
 	}
 	strcpy(cmd, SELECT_CMD_PART_1);
 	strcat(cmd, st->db_cmd->ptr);
@@ -71,13 +71,13 @@ load_items(struct set_condition *st)
 	sqlite3_finalize(res);
 	free(cmd);
 	if (error == 1) {
-		return MENU_ITEMS_ERROR;
+		return 1;
 	}
 	if (view_sel == SIZE_MAX) {
 		status_write("[error] no items found");
-		return MENU_ITEMS_ERROR; // no items found
+		return 1; // no items found
 	}
-	return MENU_ITEMS;
+	return 0;
 }
 
 // return most sensible string for item title
@@ -180,75 +180,94 @@ mark_item_unread(size_t index, bool value)
 	}
 }
 
-static enum menu_dest
-menu_items(void)
+static void
+view_select_next(void)
 {
-	int ch, q, i;
-	char cmd[7];
-	while (1) {
-		ch = input_wgetch();
-		if      (ch == 'j' || ch == KEY_DOWN)                            { view_select(view_sel + 1); }
-		else if ((ch == 'k' || ch == KEY_UP) && (view_sel != 0))         { view_select(view_sel - 1); }
-		else if (ch == config_key_mark_read)                             { mark_item_unread(view_sel, false); }
-		else if (ch == config_key_mark_unread)                           { mark_item_unread(view_sel, true); }
-		else if ((ch == 'G' || ch == KEY_END) && (items_count != 0))     { view_select(items_count - 1); }
-		else if ((ch == 'g' && input_wgetch() == 'g') || ch == KEY_HOME) { view_select(0); }
-		else if (isdigit(ch)) {
-			q = 0;
-			while (1) {
-				cmd[q++] = ch;
-				if (q > 6) break;
-				cmd[q] = '\0';
-				ch = input_wgetch();
-				if (!isdigit(ch)) {
-					i = atoi(cmd);
-					if (ch == 'j') {
-						view_select(view_sel + i);
-					} else if ((ch == 'k') && ((size_t)i <= view_sel)) {
-						view_select(view_sel - i);
-					} else if ((ch == 'G') && (i != 0)) {
-						view_select(i - 1);
-					}
-					break;
-				}
-			}
-		} 
-		else if (ch == 'l' || ch == KEY_RIGHT || ch == '\n' || ch == KEY_ENTER) { return MENU_CONTENT; }
-		else if (ch == 'h' || ch == KEY_LEFT || ch == config_key_soft_quit)     { return MENU_FEEDS; }
-		else if (ch == config_key_hard_quit)                                    { return MENU_QUIT; }
-	}
+	view_select(view_sel + 1);
+}
+
+static void
+view_select_prev(void)
+{
+	view_select(view_sel == 0 ? (0) : (view_sel - 1));
+}
+
+static void
+view_select_first(void)
+{
+	view_select(0);
+}
+
+static void
+view_select_last(void)
+{
+	view_select(items_count == 0 ? (0) : (items_count - 1));
+}
+
+static void
+input_mark_item_read(void)
+{
+	mark_item_unread(view_sel, false);
+}
+
+static void
+input_mark_item_unread(void)
+{
+	mark_item_unread(view_sel, true);
+}
+
+static void
+redraw_items_by_resize(void)
+{
+	view_max = view_min + LINES - 2;
+	show_items();
+}
+
+static void
+set_items_input_handlers(void)
+{
+	reset_input_handlers();
+	set_input_handler(INPUT_SELECT_NEXT, &view_select_next);
+	set_input_handler(INPUT_SELECT_PREV, &view_select_prev);
+	set_input_handler(INPUT_SELECT_FIRST, &view_select_first);
+	set_input_handler(INPUT_SELECT_LAST, &view_select_last);
+	set_input_handler(INPUT_MARK_READ, &input_mark_item_read);
+	set_input_handler(INPUT_MARK_UNREAD, &input_mark_item_unread);
+	set_input_handler(INPUT_RESIZE, &redraw_items_by_resize);
 }
 
 int
 enter_items_menu_loop(struct set_condition *st)
 {
 	if (items == NULL) {
-		int load_status = load_items(st);
-		if (load_status != MENU_ITEMS) {
+		if (load_items(st) != 0) {
 			free_items();
-			return load_status;
+			return INPUTS_COUNT;
 		}
 	}
 	view_min = 0;
 	view_max = LINES - 2;
+	set_items_input_handlers();
 	clear();
 	refresh();
 	show_items();
 
 	int dest;
-	while ((dest = menu_items()) != MENU_QUIT) {
-		if (dest == MENU_CONTENT) {
+	while (1) {
+		dest = handle_input();
+		if (dest == INPUT_SOFT_QUIT || dest == INPUT_HARD_QUIT) {
+			break;
+		} else if (dest == INPUT_ENTER) {
 			dest = enter_item_contents_menu_loop(&items[view_sel]);
-			if (dest == MENU_QUIT) {
+			if (dest == INPUT_HARD_QUIT) {
 				break;
-			} else if (dest == MENU_ITEMS) {
+			} else if (dest == INPUT_SOFT_QUIT) {
 				items[view_sel].is_unread = false;
+				set_items_input_handlers();
 				clear();
 				refresh();
 				show_items();
 			}
-		} else if (dest == MENU_FEEDS || dest == MENU_QUIT) {
-			break;
 		}
 	}
 	free_items();

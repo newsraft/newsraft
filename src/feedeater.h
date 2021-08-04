@@ -76,15 +76,6 @@ struct item_bucket {
 	time_t upddate;
 };
 
-enum menu_dest {
-	MENU_FEEDS,
-	MENU_ITEMS,
-	MENU_ITEMS_ERROR,
-	MENU_CONTENT,
-	MENU_CONTENT_ERROR,
-	MENU_QUIT,
-};
-
 enum items_column {
 	ITEM_COLUMN_FEED,
 	ITEM_COLUMN_TITLE,
@@ -122,6 +113,24 @@ enum debug_level {
 	DBG_OK = 1,
 	DBG_WARN = 2,
 	DBG_ERR = 3,
+};
+
+enum input_cmd {
+	INPUT_SELECT_NEXT = 0,
+	INPUT_SELECT_PREV,
+	INPUT_SELECT_FIRST,
+	INPUT_SELECT_LAST,
+	INPUT_ENTER,
+	INPUT_RELOAD,
+	INPUT_RELOAD_ALL,
+	INPUT_SOFT_QUIT,
+	INPUT_HARD_QUIT,
+	INPUT_MARK_READ,
+	INPUT_MARK_UNREAD,
+	INPUT_MARK_READ_ALL,
+	INPUT_MARK_UNREAD_ALL,
+	INPUT_RESIZE,
+	INPUTS_COUNT,
 };
 
 // list interface
@@ -181,9 +190,11 @@ void status_write(char *format, ...);
 void status_clean(void);
 void status_delete(void);
 
-// functions related to window which handles user input (see input.c file)
+// functions related to window which handles user input (see interface-input.c file)
 int input_create(void);
-int input_wgetch(void);
+void reset_input_handlers(void);
+void set_input_handler(enum input_cmd, void (*func)(void));
+int handle_input(void);
 void input_delete(void);
 
 // string

@@ -345,7 +345,7 @@ set_reload(size_t index)
 }
 
 static void
-all_reload(void)
+reload_all_sets(void)
 {
 	/* Try to reload all feeds.
 	 * Omit filters to avoid repeated downloads... */
@@ -356,49 +356,54 @@ all_reload(void)
 	}
 }
 
-static enum menu_dest
-menu_feeds(void)
+static void
+view_select_next(void)
 {
-	int ch, q, i;
-	char cmd[7];
-	while (1) {
-		ch = input_wgetch();
-		if      (ch == 'j' || ch == KEY_DOWN)                            { view_select(view_sel + 1); }
-		else if ((ch == 'k' || ch == KEY_UP) && (view_sel != 0))         { view_select(view_sel - 1); }
-		else if (ch == config_key_download)                              { set_reload(view_sel); }
-		else if (ch == config_key_download_all)                          { all_reload(); }
-		else if ((ch == 'g' && input_wgetch() == 'g') || ch == KEY_HOME) { view_select(0); }
-		else if ((ch == 'G' || ch == KEY_END) && (sets_count != 0))      { view_select(sets_count - 1); }
-		else if (isdigit(ch)) {
-			q = 0;
-			while (1) {
-				cmd[q++] = ch;
-				if (q > 6) break;
-				cmd[q] = '\0';
-				ch = input_wgetch();
-				if (!isdigit(ch)) {
-					i = atoi(cmd);
-					if (ch == 'j' || ch == KEY_DOWN) {
-						view_select(view_sel + i);
-					} else if ((ch == 'k' || ch == KEY_UP) && ((size_t)i <= view_sel)) {
-						view_select(view_sel - i);
-					} else if ((ch == 'G') && (i != 0)) {
-						view_select(i - 1);
-					}
-					break;
-				}
-			}
-		}
-		else if (ch == 'l' || ch == KEY_RIGHT || ch == '\n' || ch == KEY_ENTER) { return MENU_ITEMS; }
-		else if (ch == config_key_soft_quit || ch == config_key_hard_quit)      { return MENU_QUIT; }
-		else if (ch == KEY_RESIZE) {
-			// TODO resize_list_menu must be called from some kind of global function like signal handler
-			// TODO unite all keyboard input handlers in one function
-			resize_list_menu();
-			view_max = view_min + LINES - 2;
-			show_sets();
-		}
-	}
+	view_select(view_sel + 1);
+}
+
+static void
+view_select_prev(void)
+{
+	view_select(view_sel == 0 ? (0) : (view_sel - 1));
+}
+
+static void
+view_select_first(void)
+{
+	view_select(0);
+}
+
+static void
+view_select_last(void)
+{
+	view_select(sets_count == 0 ? (0) : (sets_count - 1));
+}
+
+static void
+reload_current_set(void)
+{
+	set_reload(view_sel);
+}
+
+static void
+redraw_sets_by_resize(void)
+{
+	view_max = view_min + LINES - 2;
+	show_sets();
+}
+
+static void
+set_sets_input_handlers(void)
+{
+	reset_input_handlers();
+	set_input_handler(INPUT_SELECT_NEXT, &view_select_next);
+	set_input_handler(INPUT_SELECT_PREV, &view_select_prev);
+	set_input_handler(INPUT_SELECT_FIRST, &view_select_first);
+	set_input_handler(INPUT_SELECT_LAST, &view_select_last);
+	set_input_handler(INPUT_RELOAD, &reload_current_set);
+	set_input_handler(INPUT_RELOAD_ALL, &reload_all_sets);
+	set_input_handler(INPUT_RESIZE, &redraw_sets_by_resize);
 }
 
 void
@@ -406,6 +411,7 @@ enter_sets_menu_loop(void)
 {
 	view_min = 0;
 	view_max = LINES - 2;
+	set_sets_input_handlers();
 	clear();
 	refresh();
 	show_sets();
@@ -413,7 +419,11 @@ enter_sets_menu_loop(void)
 	int dest;
 	bool status_cond;
 	struct set_condition *st;
-	while ((dest = menu_feeds()) != MENU_QUIT) {
+	while (1) {
+		dest = handle_input();
+		if (dest == INPUT_SOFT_QUIT || dest == INPUT_HARD_QUIT) {
+			break;
+		}
 		if ((st = create_set_condition(&sets[view_sel])) == NULL) {
 			/* error message is written to status by create_set_condition */
 			continue;
@@ -422,19 +432,23 @@ enter_sets_menu_loop(void)
 		free(st->urls);
 		free_string(st->db_cmd);
 		free(st);
-		if (dest == MENU_FEEDS) {
+		if (dest == INPUT_HARD_QUIT) { /* exit the program */
+			break;
+		} else if (dest == INPUT_SOFT_QUIT) { /* return to the previous menu */
+			set_sets_input_handlers();
 			clear();
 			refresh();
 			show_sets();
 			if (sets[view_sel].link != NULL) {
+				/* check if feed changed its read state */
 				status_cond = is_feed_unread(sets[view_sel].link);
 				if (status_cond != sets[view_sel].is_unread) {
 					sets[view_sel].is_unread = status_cond;
 					set_expose(view_sel);
 				}
+			} else if (sets[view_sel].tags != NULL) {
+				/* TODO check if filter changed its read state */
 			}
-		} else if (dest == MENU_QUIT) {
-			break;
 		}
 	}
 }

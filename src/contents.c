@@ -161,6 +161,20 @@ calculate_pad_height_for_buf(struct string *buf)
 	return pad_height;
 }
 
+/* in some cases calculate_pad_height_for_wcs returns wrong number of lines
+* needed for pad to store all data of buf.
+* TODO fix these two functions above, please...
+* for now use this function to resize pad everytime there is so much data in buffer */
+void
+make_sure_pad_has_enough_lines(WINDOW *pad, int needed_lines)
+{
+	if (needed_lines > pad_height) {
+		pad_height = needed_lines;
+		wresize(pad, pad_height, COLS);
+		debug_write(DBG_WARN, "pad had to expand!\n");
+	}
+}
+
 static WINDOW *
 create_contents_window(struct string *buf)
 {
@@ -194,15 +208,18 @@ create_contents_window(struct string *buf)
 			newline_char = wcschr(iter, L'\n');
 			if (newline_char != NULL) {
 				while (newline_char - iter > COLS) {
+					make_sure_pad_has_enough_lines(pad, newlines + 1);
 					wmove(pad, newlines++, 0);
 					waddnwstr(pad, iter, COLS);
 					iter += COLS;
 				}
+				make_sure_pad_has_enough_lines(pad, newlines + 1);
 				wmove(pad, newlines++, 0);
 				waddnwstr(pad, iter, newline_char - iter);
 				iter = newline_char + 1;
 			} else {
 				while (iter < wcs + mbslen) {
+					make_sure_pad_has_enough_lines(pad, newlines + 1);
 					wmove(pad, newlines++, 0);
 					waddnwstr(pad, iter, COLS);
 					iter += COLS;
@@ -210,9 +227,6 @@ create_contents_window(struct string *buf)
 				break;
 			}
 		}
-		debug_write(pad_height == newlines ? DBG_INFO : DBG_ERR,
-		            "created pad of %d lines height, wrote %d lines to this pad\n",
-		            pad_height, newlines);
 		free(wcs);
 	} else { // buffer is single-byte
 		pad_height = calculate_pad_height_for_buf(buf);

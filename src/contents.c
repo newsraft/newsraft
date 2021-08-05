@@ -132,11 +132,11 @@ get_contents_of_item(sqlite3_stmt *res)
 }
 
 static int
-calculate_pad_height_for_wcs(wchar_t *buf, size_t len)
+calculate_pad_height_for_wstring(struct wstring *wstr)
 {
 	int pad_height = 1, not_newline = 0;
-	for (size_t i = 0; i < len; ++i) {
-		if ((buf[i] == L'\n') || (not_newline > COLS)) {
+	for (size_t i = 0; i < wstr->len; ++i) {
+		if ((wstr->ptr[i] == L'\n') || (not_newline > COLS)) {
 			not_newline = 0;
 			++pad_height;
 		} else {
@@ -181,28 +181,20 @@ create_contents_window(struct string *buf)
 	WINDOW *pad;
 	int newlines = 0;
 	if (1) { // buffer is multi-byte
-		size_t mbslen = mbstowcs(NULL, buf->ptr, 0);
-		if (mbslen == (size_t)-1) {
-			return NULL;
-		}
-		wchar_t *wcs = calloc(mbslen + 1, sizeof(wchar_t));
-		if (wcs == NULL) {
-			return NULL;
-		}
-		if (mbstowcs(wcs, buf->ptr, mbslen + 1) == (size_t)-1) {
-			free(wcs);
+		struct wstring *wbuf = convert_string_to_wstring(buf);
+		if (wbuf == NULL) {
 			return NULL;
 		}
 
-		pad_height = calculate_pad_height_for_wcs(wcs, mbslen);
+		pad_height = calculate_pad_height_for_wstring(wbuf);
 		pad = newpad(pad_height, COLS);
 		if (pad == NULL) {
 			debug_write(DBG_ERR, "could not create pad window for item contents\n");
-			free(wcs);
+			free_wstring(wbuf);
 			return NULL;
 		}
 
-		wchar_t *iter = wcs;
+		wchar_t *iter = wbuf->ptr;
 		wchar_t *newline_char;
 		while (1) {
 			newline_char = wcschr(iter, L'\n');
@@ -218,7 +210,7 @@ create_contents_window(struct string *buf)
 				waddnwstr(pad, iter, newline_char - iter);
 				iter = newline_char + 1;
 			} else {
-				while (iter < wcs + mbslen) {
+				while (iter < wbuf->ptr + wbuf->len) {
 					make_sure_pad_has_enough_lines(pad, newlines + 1);
 					wmove(pad, newlines++, 0);
 					waddnwstr(pad, iter, COLS);
@@ -227,7 +219,7 @@ create_contents_window(struct string *buf)
 				break;
 			}
 		}
-		free(wcs);
+		free_wstring(wbuf);
 	} else { // buffer is single-byte
 		pad_height = calculate_pad_height_for_buf(buf);
 		pad = newpad(pad_height, COLS);

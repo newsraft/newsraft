@@ -6,12 +6,19 @@
 #include <expat.h>
 #include <sqlite3.h>
 #include <time.h>
+#include <wchar.h>
 #define MAXPATH 1024
 #define LENGTH(A) (sizeof(A)/sizeof(*A))
 #define DEBUG_WRITE_DB_PREPARE_FAIL debug_write(DBG_WARN, "failed to prepare statement: %s\n", sqlite3_errmsg(db))
 
 struct string {
 	char *ptr;
+	size_t len;
+	size_t lim;
+};
+
+struct wstring {
+	wchar_t *ptr;
 	size_t len;
 	size_t lim;
 };
@@ -208,6 +215,9 @@ void cat_string_array(struct string *dest, char *src, size_t src_len);
 void cat_string_char(struct string *dest, char c);
 void empty_string(struct string *str);
 void free_string(struct string *str);
+// wstring
+struct wstring *convert_string_to_wstring(struct string *src);
+void free_wstring(struct wstring *wstr);
 
 // xml element handlers
 int process_namespaced_tag_start (void *userData, const XML_Char *name, const XML_Char **atts);

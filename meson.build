@@ -40,6 +40,7 @@ feedeater_src = [
 	'src/debug.c',
 	'src/path.c',
 	'src/string.c',
+	'src/wstring.c',
 	'src/db.c',
 	'src/db-feeds.c',
 	'src/db-items.c',

@@ -96,14 +96,8 @@ item_expose(size_t index)
 {
 	struct item_line *item = &items[index];
 	werase(item->window);
-	if (config_menu_show_number == true) {
-		mvwprintw(item->window, 0, 0, "%3d", index + 1);
-		mvwprintw(item->window, 0, 6, item->is_unread ? "N" : " ");
-		mvwprintw(item->window, 0, 9, "%s", item_image(item->data));
-	} else {
-		mvwprintw(item->window, 0, 3, item->is_unread ? "N" : " ");
-		mvwprintw(item->window, 0, 6, "%s", item_image(item->data));
-	}
+	mvwprintw(item->window, 0, 3, item->is_unread ? "N" : " ");
+	mvwprintw(item->window, 0, 6, "%s", item_image(item->data));
 	mvwchgat(item->window, 0, 0, -1, (index == view_sel) ? A_REVERSE : A_NORMAL, 0, NULL);
 	wrefresh(item->window);
 }

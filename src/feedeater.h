@@ -39,7 +39,7 @@ struct set_line {
 	struct string *name; // what is displayed in menu
 	struct string *link; // this is feed url if set is feed
 	struct string *tags; // this is tags expression if set is filter
-	bool is_unread;
+	size_t unread_count;
 	WINDOW *window;
 };
 
@@ -150,6 +150,7 @@ void free_list_menu(void);
 void enter_sets_menu_loop(void);
 int load_sets(void);
 void free_sets(void);
+void print_set_format(size_t index, struct set_line *set);
 
 // items
 int enter_items_menu_loop(struct set_condition *st);
@@ -190,7 +191,7 @@ int db_init(void);
 void db_stop(void);
 int db_update_item_int(struct string *feed_url, struct item_entry *item, const char *state, int value);
 void db_update_feed_text(struct string *feed_url, char *column, char *data, size_t data_len);
-bool is_feed_unread(struct string *url);
+size_t get_unread_items_count_of_feed(struct string *url);
 void try_item_bucket(struct item_bucket *bucket, struct string *feed_url);
 
 // functions related to window which displays informational messages (see status.c file)
@@ -245,7 +246,7 @@ extern sqlite3 *db;
 
 extern size_t config_max_items; // 0 == inf
 extern size_t config_init_parser_buf_size;
-extern bool   config_menu_show_number;
+extern char*  config_menu_set_entry_format;
 extern bool   config_menu_show_decoration_number;
 extern char*  config_contents_meta_data;
 extern char*  config_contents_date_format;

@@ -63,22 +63,21 @@ db_update_feed_text(struct string *feed_url, char *column, char *data, size_t da
 	free(cmd);
 }
 
-bool
-is_feed_unread(struct string *url)
+size_t
+get_unread_items_count_of_feed(struct string *url)
 {
-	bool is_unread = false;
-	char cmd[] = "SELECT * FROM items WHERE feed = ? AND unread = ? LIMIT 1";
+	size_t unread_count = 0;
+	char cmd[] = "SELECT * FROM items WHERE feed = ? AND unread = ?";
 	sqlite3_stmt *res;
 	if (sqlite3_prepare_v2(db, cmd, -1, &res, 0) == SQLITE_OK) {
 		sqlite3_bind_text(res, 1, url->ptr, url->len, NULL);
 		sqlite3_bind_int(res,  2, 1);
-		if (sqlite3_step(res) == SQLITE_ROW) {
-			/* feed is unread because at least one item from this feed is unread */
-			is_unread = true;
+		while (sqlite3_step(res) == SQLITE_ROW) {
+			++unread_count;
 		}
 		sqlite3_finalize(res);
 	} else {
 		DEBUG_WRITE_DB_PREPARE_FAIL;
 	}
-	return is_unread;
+	return unread_count;
 }

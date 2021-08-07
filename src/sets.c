@@ -71,7 +71,7 @@ parse_sets_file(void) {
 		sets[set_index].name = NULL;
 		sets[set_index].link = NULL;
 		sets[set_index].tags = NULL;
-		sets[set_index].is_unread = false;
+		sets[set_index].unread_count = 0;
 
 		word_len = 0;
 		if (c == '@') { // line is decoration
@@ -119,7 +119,7 @@ parse_sets_file(void) {
 				if (c == ' ' || c == '\t' || c == '\n' || c == EOF) { word[word_len] = '\0'; break; }
 			}
 			sets[set_index].link = create_string(word, word_len);
-			sets[set_index].is_unread = is_feed_unread(sets[set_index].link);
+			sets[set_index].unread_count = get_unread_items_count_of_feed(sets[set_index].link);
 			while (c == ' ' || c == '\t') { c = fgetc(f); }
 			// process name
 			if (c == '"') {
@@ -182,46 +182,12 @@ load_sets(void)
 	return 0; // success
 }
 
-// return most sensible string for set line
-static char *
-set_image(struct set_line *set)
-{
-	if (set->name != NULL) {
-		return set->name->ptr;
-	} else {
-		if (set->link != NULL) {
-			return set->link->ptr;
-		} else {
-			if (set->tags != NULL) {
-				return set->tags->ptr;
-			} else {
-				return "";
-			}
-		}
-	}
-}
-
 static void
 set_expose(size_t index)
 {
 	struct set_line *set = &sets[index];
-	if (set->window == NULL) {
-		return;
-	}
 	werase(set->window);
-	if (config_menu_show_number == true) {
-		if (set->link != NULL ||
-		    set->tags != NULL ||
-		    config_menu_show_decoration_number == true)
-		{
-			mvwprintw(set->window, 0, 0, "%3d", index + 1);
-		}
-		mvwprintw(set->window, 0, 6, set->is_unread ? "N" : " ");
-		mvwprintw(set->window, 0, 9, "%s", set_image(set));
-	} else {
-		mvwprintw(set->window, 0, 3, set->is_unread ? "N" : " ");
-		mvwprintw(set->window, 0, 6, "%s", set_image(set));
-	}
+	print_set_format(index, set);
 	mvwchgat(set->window, 0, 0, -1, (index == view_sel) ? A_REVERSE : A_NORMAL, 0, NULL);
 	wrefresh(set->window);
 }
@@ -298,9 +264,9 @@ set_reload_feed(struct set_line *set, size_t index)
 	status_write("[loading] %s", set->link->ptr);
 	if (feed_process(set->link) == 0) {
 		status_clean();
-		bool unread_status = is_feed_unread(set->link);
-		if (set->is_unread != unread_status) {
-			set->is_unread = unread_status;
+		size_t new_unread_count = get_unread_items_count_of_feed(set->link);
+		if (set->unread_count != new_unread_count) {
+			set->unread_count = new_unread_count;
 			set_expose(index);
 		}
 	}
@@ -407,7 +373,7 @@ enter_sets_menu_loop(void)
 	show_sets();
 
 	int dest;
-	bool status_cond;
+	size_t new_unread_count;
 	struct set_condition *st;
 	while (1) {
 		dest = handle_input();
@@ -429,9 +395,9 @@ enter_sets_menu_loop(void)
 			show_sets();
 			if (sets[view_sel].link != NULL) {
 				/* check if feed changed its read state */
-				status_cond = is_feed_unread(sets[view_sel].link);
-				if (status_cond != sets[view_sel].is_unread) {
-					sets[view_sel].is_unread = status_cond;
+				new_unread_count = get_unread_items_count_of_feed(sets[view_sel].link);
+				if (sets[view_sel].unread_count != new_unread_count) {
+					sets[view_sel].unread_count = new_unread_count;
 					set_expose(view_sel);
 				}
 			} else if (sets[view_sel].tags != NULL) {

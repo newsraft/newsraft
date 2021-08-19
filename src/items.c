@@ -6,7 +6,7 @@
 #include <sys/stat.h>
 #include "feedeater.h"
 
-#define SELECT_CMD_PART_1 "SELECT feed, title, url, guid, unread FROM items WHERE"
+#define SELECT_CMD_PART_1 "SELECT rowid, feed, title unread FROM items WHERE"
 #define SELECT_CMD_PART_3 " ORDER BY upddate DESC, pubdate DESC, rowid ASC"
 
 static struct item_line *items = NULL;
@@ -41,27 +41,18 @@ load_items(struct set_condition *st)
 			item_index = items_count++;
 			items = realloc(items, sizeof(struct item_line) * items_count);
 			items[item_index].feed_url = NULL;
-			items[item_index].data = calloc(1, sizeof(struct item_entry));
-			if (items[item_index].data == NULL) {
-				debug_write(DBG_ERR, "memory allocation for item data failed\n");
-				status_write("[error] not enough memory");
-				error = 1;
-				break;
+			items[item_index].title = NULL;
+			if (view_sel == SIZE_MAX) {
+				view_sel = item_index;
 			}
-			if (view_sel == SIZE_MAX) view_sel = item_index;
-			if ((text = (char *)sqlite3_column_text(res, 0)) != NULL) {
+			items[item_index].rowid = sqlite3_column_int(res, 0);
+			if ((text = (char *)sqlite3_column_text(res, 1)) != NULL) {
 				items[item_index].feed_url = create_string(text, strlen(text));
 			}
-			if ((text = (char *)sqlite3_column_text(res, 1)) != NULL) {
-				items[item_index].data->title = create_string(text, strlen(text));
-			}
 			if ((text = (char *)sqlite3_column_text(res, 2)) != NULL) {
-				items[item_index].data->url = create_string(text, strlen(text));
+				items[item_index].title = create_string(text, strlen(text));
 			}
-			if ((text = (char *)sqlite3_column_text(res, 3)) != NULL) {
-				items[item_index].data->guid = create_string(text, strlen(text));
-			}
-			items[item_index].is_unread = sqlite3_column_int(res, 4);
+			items[item_index].is_unread = sqlite3_column_int(res, 3);
 		}
 	} else {
 		status_write("[error] invalid tag expression");
@@ -80,24 +71,13 @@ load_items(struct set_condition *st)
 	return 0;
 }
 
-// return most sensible string for item title
-static char *
-item_image(struct item_entry *item_data) {
-	if (item_data != NULL) {
-		if (item_data->title != NULL) {
-			return item_data->title->ptr;
-		}
-	}
-	return "untitled";
-}
-
 static void
 item_expose(size_t index)
 {
 	struct item_line *item = &items[index];
 	werase(item->window);
 	mvwprintw(item->window, 0, 3, item->is_unread ? "N" : " ");
-	mvwprintw(item->window, 0, 6, "%s", item_image(item->data));
+	mvwprintw(item->window, 0, 6, "%s", item->title ? item->title->ptr : "<untitled>");
 	mvwchgat(item->window, 0, 0, -1, (index == view_sel) ? A_REVERSE : A_NORMAL, 0, NULL);
 	wrefresh(item->window);
 }
@@ -117,19 +97,14 @@ free_items(void)
 	if (items == NULL) return;
 	for (size_t i = 0; i < items_count; ++i) {
 		free_string(items[i].feed_url);
-		if (items[i].data != NULL) {
-			free_string(items[i].data->title);
-			free_string(items[i].data->url);
-			free_string(items[i].data->guid);
-			free(items[i].data);
-		}
+		free_string(items[i].title);
 	}
-	items_count = 0;
 	free(items);
 	items = NULL;
+	items_count = 0;
 }
 
-static void
+static void // TODO: generalize view_select within interface-list-menu.c
 view_select(size_t i)
 {
 	size_t new_sel = i;
@@ -142,7 +117,7 @@ view_select(size_t i)
 		new_sel = items_count - 1;
 	}
 
-	if (items[new_sel].data == NULL || new_sel == view_sel) {
+	if (new_sel == view_sel) {
 		return;
 	}
 
@@ -168,7 +143,7 @@ static void
 mark_item_unread(size_t index, bool value)
 {
 	struct item_line *item = &items[index];
-	if (db_update_item_int(item->feed_url, item->data, "unread", value)) {
+	if (db_update_item_int(item->rowid, "unread", value)) {
 		item->is_unread = value;
 		item_expose(index);
 	}
@@ -252,7 +227,10 @@ enter_items_menu_loop(struct set_condition *st)
 		if (dest == INPUT_SOFT_QUIT || dest == INPUT_HARD_QUIT) {
 			break;
 		} else if (dest == INPUT_ENTER) {
-			dest = enter_item_contents_menu_loop(&items[view_sel]);
+			debug_write(DBG_INFO, "trying to view an \"%s\" item of \"%s\" feed\n",
+						items[view_sel].title ? items[view_sel].title->ptr : "<untitled>",
+						items[view_sel].feed_url->ptr);
+			dest = enter_item_contents_menu_loop(items[view_sel].rowid);
 			if (dest == INPUT_HARD_QUIT) {
 				break;
 			} else if (dest == INPUT_SOFT_QUIT) {

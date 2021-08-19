@@ -9,18 +9,14 @@ static int view_area_height;
 static int pad_height;
 
 static sqlite3_stmt *
-find_item_by_its_data_in_db(struct string *feed_url, struct item_entry *item_data)
+find_item_by_its_rowid_in_db(int rowid)
 {
 	sqlite3_stmt *res;
-	int rc = sqlite3_prepare_v2(db, "SELECT * FROM items WHERE feed = ? AND guid = ? AND url = ? AND title = ? LIMIT 1", -1, &res, 0);
-	if (rc != SQLITE_OK) {
-		debug_write(DBG_WARN, "failed to prepare SELECT statement: %s\n", sqlite3_errmsg(db));
+	if (sqlite3_prepare_v2(db, "SELECT * FROM items WHERE rowid = ? LIMIT 1", -1, &res, 0) != SQLITE_OK) {
+		DEBUG_WRITE_DB_PREPARE_FAIL;
 		return NULL; // fail
 	}
-	sqlite3_bind_text(res, 1, feed_url->ptr, feed_url->len, NULL);
-	sqlite3_bind_text(res, 2, item_data->guid->ptr, item_data->guid->len, NULL);
-	sqlite3_bind_text(res, 3, item_data->url->ptr, item_data->url->len, NULL);
-	sqlite3_bind_text(res, 4, item_data->title->ptr, item_data->title->len, NULL);
+	sqlite3_bind_int(res, 1, rowid);
 	if (sqlite3_step(res) != SQLITE_ROW) {
 		debug_write(DBG_WARN, "could not find that item\n");
 		sqlite3_finalize(res);
@@ -265,13 +261,12 @@ set_content_input_handlers(void)
 }
 
 int
-enter_item_contents_menu_loop(struct item_line *item)
+enter_item_contents_menu_loop(int rowid)
 {
-	debug_write(DBG_INFO, "trying to view an \"%s\" item of \"%s\" feed\n", item->data->title->ptr, item->feed_url->ptr);
 	pad_height = 0;
 	view_area_height = LINES - 1;
 	view_min = 0;
-	sqlite3_stmt *res = find_item_by_its_data_in_db(item->feed_url, item->data);
+	sqlite3_stmt *res = find_item_by_its_rowid_in_db(rowid);
 	if (res == NULL) {
 		return INPUTS_COUNT; // error
 	}
@@ -286,7 +281,7 @@ enter_item_contents_menu_loop(struct item_line *item)
 		status_write("could not obtain contents of item");
 		return INPUTS_COUNT; // error
 	}
-	db_update_item_int(item->feed_url, item->data, "unread", 0);
+	db_update_item_int(rowid, "unread", 0);
 	clear();
 	refresh();
 	prefresh(window, view_min, 0, 0, 0, view_area_height - 1, COLS - 1);

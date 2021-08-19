@@ -111,23 +111,17 @@ try_item_bucket(struct item_bucket *bucket, struct string *feed_url)
 }
 
 int
-db_update_item_int(struct string *feed_url, struct item_entry *item, const char *column, int value)
+db_update_item_int(int rowid, const char *column, int value)
 {
 	int success = 0;
-	if (item == NULL) {
-		return success;
-	}
 	char cmd[100];
 	sqlite3_stmt *res;
 	strcpy(cmd, "UPDATE items SET ");
 	strcat(cmd, column);
-	// TODO: make WHERE condition more precise
-	strcat(cmd, " = ? WHERE feed = ? AND guid = ? AND url = ?");
+	strcat(cmd, " = ? WHERE rowid = ?");
 	if (sqlite3_prepare_v2(db, cmd, -1, &res, 0) == SQLITE_OK) {
-		sqlite3_bind_int(res,  1, value);
-		sqlite3_bind_text(res, 2, feed_url->ptr, feed_url->len, NULL);
-		sqlite3_bind_text(res, 3, item->guid->ptr, item->guid->len, NULL);
-		sqlite3_bind_text(res, 4, item->url->ptr, item->url->len, NULL);
+		sqlite3_bind_int(res, 1, value);
+		sqlite3_bind_int(res, 2, rowid);
 		if (sqlite3_step(res) == SQLITE_DONE) {
 			success = 1;
 		}

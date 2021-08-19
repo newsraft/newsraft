@@ -142,12 +142,16 @@ plainify_html(char *buf_with_entities, size_t buf_len)
 		if (in_tag == true) {
 			if (buf->ptr[i] == '>') {
 				in_tag = false;
-				atts[att_index][att_char] = '\0';
-				update_html_status(atts, &status);
-				format_plain_text(atts, text, &j);
+				if (atts != NULL) {
+					atts[att_index][att_char] = '\0';
+					update_html_status(atts, &status);
+					format_plain_text(atts, text, &j);
+				}
 			} else if (buf->ptr[i] == ' ' || buf->ptr[i] == '\n') {
-				atts[att_index][att_char] = '\0';
-				att_char = 0;
+				if (atts != NULL) {
+					atts[att_index][att_char] = '\0';
+					att_char = 0;
+				}
 			} else {
 				if (att_char == 0) {
 					att_index = atts_count++;

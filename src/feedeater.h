@@ -43,17 +43,12 @@ struct set_line {
 	WINDOW *window;
 };
 
-struct item_entry {
-	struct string *title; // name of item
-	struct string *url;   // url to item
-	struct string *guid;
-};
-
 struct item_line {
-	struct item_entry *data;
+	struct string *title;
 	struct string *feed_url;
 	bool is_unread;
 	WINDOW *window;
+	int rowid;               // id of row related to this item
 };
 
 struct parser_data {
@@ -159,7 +154,7 @@ int enter_items_menu_loop(struct set_condition *st);
 int cat_item_meta_data_to_buf(sqlite3_stmt *res, struct string *buf);
 struct string *expand_html_entities(char *buf, size_t buf_len);
 struct string *plainify_html(char *buff, size_t buff_len);
-int enter_item_contents_menu_loop(struct item_line *item);
+int enter_item_contents_menu_loop(int rowid);
 
 // path
 int set_feeds_path(char *path);
@@ -189,7 +184,7 @@ void free_tags(void);
 // db
 int db_init(void);
 void db_stop(void);
-int db_update_item_int(struct string *feed_url, struct item_entry *item, const char *state, int value);
+int db_update_item_int(int rowid, const char *state, int value);
 void db_update_feed_text(struct string *feed_url, char *column, char *data, size_t data_len);
 size_t get_unread_items_count_of_feed(struct string *url);
 void try_item_bucket(struct item_bucket *bucket, struct string *feed_url);

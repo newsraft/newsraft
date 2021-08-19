@@ -34,7 +34,7 @@ get_contents_of_item(sqlite3_stmt *res)
 		return NULL;
 	}
 
-	if (cat_item_meta_data_to_buf(res, buf) != 0) {
+	if (cat_item_meta_data_to_buf(buf, res) != 0) {
 		free_string(buf);
 		return NULL;
 	}

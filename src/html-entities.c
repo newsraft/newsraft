@@ -3,10 +3,12 @@
 
 #define MAX_ENTITY_NAME 30
 
-struct {
+struct entity_entry {
 	const char *name;
 	const char *data;
-} entities[] = {
+};
+
+static struct entity_entry entities[] = {
 	{"lsquo", "‘"},
 	{"rsquo", "’"},
 	{"sbquo", "‚"},

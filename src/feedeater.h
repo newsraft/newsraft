@@ -151,7 +151,7 @@ void print_set_format(size_t index, struct set_line *set);
 int enter_items_menu_loop(struct set_condition *st);
 
 // contents
-int cat_item_meta_data_to_buf(sqlite3_stmt *res, struct string *buf);
+int cat_item_meta_data_to_buf(struct string *buf, sqlite3_stmt *res);
 struct string *expand_html_entities(char *buf, size_t buf_len);
 struct string *plainify_html(char *buff, size_t buff_len);
 int enter_item_contents_menu_loop(int rowid);

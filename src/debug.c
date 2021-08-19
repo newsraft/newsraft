@@ -13,7 +13,7 @@ debug_init(char *path)
 	}
 	f = fopen(path, "w");
 	if (f == NULL) {
-		fprintf(stderr, "could not open \"%s\" for writing!\n", path);
+		fprintf(stderr, "could not open \"%s\" for writing a debug information!\n", path);
 		return 1;
 	}
 	return 0;

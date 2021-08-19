@@ -28,17 +28,17 @@ db_init(void)
 	char *path = get_db_path();
 	if (path == NULL) {
 		fprintf(stderr, "failed to get to database!\n");
-		return 1;
+		return 1; // failure
 	}
 	if (sqlite3_open(path, &db) != SQLITE_OK) {
 		fprintf(stderr, "failed to open database!\n");
 		sqlite3_close(db);
 		free(path);
-		return 1;
+		return 1; // failure
 	}
 	sqlite3_exec(db, DB_INIT_CMD, 0, 0, NULL);
 	free(path);
-	return 0;
+	return 0; // success
 }
 
 void

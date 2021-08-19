@@ -4,7 +4,7 @@
 
 struct {
 	const char *name;
-	const char *column; /* name of column in database table */
+	const char *column; /* name of column in database items table */
 	const int num;
 } meta_data[] = {
 	{"Feed", "feed", ITEM_COLUMN_FEED},
@@ -16,7 +16,7 @@ struct {
 };
 
 static void
-cat_item_date_entry_to_buf(sqlite3_stmt *res, struct string *buf)
+cat_item_date_entry_to_buf(struct string *buf, sqlite3_stmt *res)
 {
 	time_t item_date = 0,
 	       item_pubdate = (time_t)sqlite3_column_int64(res, ITEM_COLUMN_PUBDATE),
@@ -36,7 +36,7 @@ cat_item_date_entry_to_buf(sqlite3_stmt *res, struct string *buf)
 }
 
 static void
-cat_item_meta_data_entry_to_buf(sqlite3_stmt *res, struct string *buf, int meta_data_index)
+cat_item_meta_data_entry_to_buf(struct string *buf, sqlite3_stmt *res, int meta_data_index)
 {
 	char *text = (char *)sqlite3_column_text(res, meta_data[meta_data_index].num);
 	if (text == NULL) {
@@ -56,7 +56,7 @@ cat_item_meta_data_entry_to_buf(sqlite3_stmt *res, struct string *buf, int meta_
 }
 
 int
-cat_item_meta_data_to_buf(sqlite3_stmt *res, struct string *buf)
+cat_item_meta_data_to_buf(struct string *buf, sqlite3_stmt *res)
 {
 	char *restrict draft_meta_data_order = malloc(sizeof(char) * (strlen(config_contents_meta_data) + 1));
 	if (draft_meta_data_order == NULL) {
@@ -68,12 +68,12 @@ cat_item_meta_data_to_buf(sqlite3_stmt *res, struct string *buf)
 	char *meta_data_entry = strtok_r(draft_meta_data_order, ",", &saveptr);
 	do {
 		if (strcmp(meta_data_entry, "date") == 0) {
-			cat_item_date_entry_to_buf(res, buf);
+			cat_item_date_entry_to_buf(buf, res);
 			continue;
 		}
 		for (size_t i = 0; i < LENGTH(meta_data); ++i) {
 			if (strcmp(meta_data_entry, meta_data[i].column) == 0) {
-				cat_item_meta_data_entry_to_buf(res, buf, i);
+				cat_item_meta_data_entry_to_buf(buf, res, i);
 				break;
 			}
 		}

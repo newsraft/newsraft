@@ -9,19 +9,24 @@ main(int argc, char **argv)
 	setlocale(LC_ALL, "");
 
 	int opt;
-	while ((opt = getopt(argc, argv, "vhd:F:D:")) != -1) {
+	while ((opt = getopt(argc, argv, "vhf:c:d:D:")) != -1) {
 		switch (opt) {
-			case 'F':
+			case 'f':
 				if (set_feeds_path(optarg) != 0) {
 					exit(EXIT_FAILURE);
 				}
 				break;
-			case 'D':
-				if (set_db_path(optarg) != 0) {
+			case 'c':
+				if (set_config_path(optarg) != 0) {
 					exit(EXIT_FAILURE);
 				}
 				break;
 			case 'd':
+				if (set_db_path(optarg) != 0) {
+					exit(EXIT_FAILURE);
+				}
+				break;
+			case 'D':
 				if (debug_init(optarg) != 0) {
 					exit(EXIT_FAILURE);
 				}
@@ -33,9 +38,10 @@ main(int argc, char **argv)
 			case 'h':
 				fprintf(stderr,
 				        "feedeater - feed reader for terminal\n"
-				        "-F PATH  force use of PATH as feeds file\n"
-				        "-D PATH  force use of PATH as database file\n"
-				        "-d PATH  write debug information to PATH\n"
+				        "-f PATH  force use of PATH as feeds file\n"
+				        "-c PATH  force use of PATH as config file\n"
+				        "-d PATH  force use of PATH as database file\n"
+				        "-D PATH  write debug information to PATH\n"
 				        "-v       print version and successfully exit\n"
 				        "-h       print this message and successfully exit\n");
 				exit(EXIT_SUCCESS);

@@ -7,7 +7,6 @@
 #include <sqlite3.h>
 #include <time.h>
 #include <wchar.h>
-#define MAXPATH 1024
 #define LENGTH(A) (sizeof(A)/sizeof(*A))
 #define DEBUG_WRITE_DB_PREPARE_FAIL debug_write(DBG_WARN, "failed to prepare statement: %s\n", sqlite3_errmsg(db))
 
@@ -158,8 +157,10 @@ int enter_item_contents_menu_loop(int rowid);
 
 // path
 int set_feeds_path(char *path);
+int set_config_path(char *path);
 int set_db_path(char *path);
 char *get_feeds_path(void);
+char *get_config_path(void);
 char *get_db_path(void);
 
 // date parsing

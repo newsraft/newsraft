@@ -64,7 +64,6 @@ parse_sets_file(void) {
 		set_index = sets_count++;
 		sets = realloc(sets, sizeof(struct set_line) * sets_count);
 		if (sets == NULL) {
-			fprintf(stderr, "reallocation for sets failed\n");
 			error = 1;
 			break;
 		}
@@ -82,13 +81,17 @@ parse_sets_file(void) {
 				word[word_len++] = c;
 			}
 			sets[set_index].name = create_string(word, word_len);
+			if (sets[set_index].name == NULL) {
+				error = 1;
+				break;
+			}
 
 		} else if (c == '!') { // line is filter
 
 			while (1) {
 				c = fgetc(f);
 				if (c == ' ' || c == '\t') {
-					/* tags expression MUST NOT contain any whitespace! */
+					/* avoid any whitespace in tags expression */
 					continue;
 				}
 				if (c == '"' || c == '\n' || c == EOF) {
@@ -98,15 +101,28 @@ parse_sets_file(void) {
 				word[word_len++] = c;
 			}
 			sets[set_index].tags = create_string(word, word_len);
+			if (sets[set_index].tags == NULL) {
+				error = 1;
+				break;
+			}
 			if (c == '"') {
+				/* double quote shows beginning of the filter name */
 				word_len = 0;
 				while (1) {
 					c = fgetc(f);
-					if (c == '"' || c == '\n' || c == EOF) { word[word_len] = '\0'; break; }
+					if (c == '"' || c == '\n' || c == EOF) {
+						word[word_len] = '\0';
+						break;
+					}
 					word[word_len++] = c;
 				}
 				sets[set_index].name = create_string(word, word_len);
+				if (sets[set_index].name == NULL) {
+					error = 1;
+					break;
+				}
 				if (c == '"') {
+					/* skip everything in the line after closing double quote */
 					do { c = fgetc(f); } while (c != '\n' && c != EOF);
 				}
 			}
@@ -119,6 +135,10 @@ parse_sets_file(void) {
 				if (c == ' ' || c == '\t' || c == '\n' || c == EOF) { word[word_len] = '\0'; break; }
 			}
 			sets[set_index].link = create_string(word, word_len);
+			if (sets[set_index].link == NULL) {
+				error = 1;
+				break;
+			}
 			sets[set_index].unread_count = get_unread_items_count_of_feed(sets[set_index].link);
 			while (c == ' ' || c == '\t') { c = fgetc(f); }
 			// process name
@@ -130,6 +150,10 @@ parse_sets_file(void) {
 					word[word_len++] = c;
 				}
 				sets[set_index].name = create_string(word, word_len);
+				if (sets[set_index].name == NULL) {
+					error = 1;
+					break;
+				}
 				if (c == '"') {
 					do { c = fgetc(f); } while (c == ' ' || c == '\t');
 				}
@@ -142,7 +166,10 @@ parse_sets_file(void) {
 					c = fgetc(f);
 					if (c == ' ' || c == '\t' || c == '\n' || c == EOF) { word[word_len] = '\0'; break; }
 				}
-				tag_feed(word, sets[set_index].link);
+				if (tag_feed(word, sets[set_index].link) != 0) {
+					error = 1;
+					break;
+				}
 				while (c == ' ' || c == '\t') { c = fgetc(f); }
 			}
 
@@ -150,6 +177,11 @@ parse_sets_file(void) {
 		if (c == EOF) break;
 	}
 	fclose(f);
+	if (error != 0) {
+		if (error == 1) {
+			fprintf(stderr, "not enough memory for parsing feeds file\n");
+		}
+	}
 	return error;
 }
 
@@ -185,11 +217,10 @@ load_sets(void)
 static void
 set_expose(size_t index)
 {
-	struct set_line *set = &sets[index];
-	werase(set->window);
-	print_set_format(index, set);
-	mvwchgat(set->window, 0, 0, -1, (index == view_sel) ? A_REVERSE : A_NORMAL, 0, NULL);
-	wrefresh(set->window);
+	werase(sets[index].window);
+	print_set_format(index, &sets[index]);
+	mvwchgat(sets[index].window, 0, 0, -1, (index == view_sel) ? A_REVERSE : A_NORMAL, 0, NULL);
+	wrefresh(sets[index].window);
 }
 
 static void

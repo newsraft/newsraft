@@ -4,6 +4,8 @@
 #include <sys/types.h>
 #include "feedeater.h"
 
+static size_t config_menu_set_entry_format_len = SIZE_MAX;
+
 // return most sensible string for set line
 static char *
 set_image(struct set_line *set)
@@ -26,8 +28,10 @@ set_image(struct set_line *set)
 void
 print_set_format(size_t index, struct set_line *set)
 {
-	size_t fmt_len = strlen(config_menu_set_entry_format);
-	char *fmt = malloc(sizeof(char) * (fmt_len + 1));;
+	if (config_menu_set_entry_format_len == SIZE_MAX) {
+		config_menu_set_entry_format_len = strlen(config_menu_set_entry_format);
+	}
+	char *fmt = malloc(sizeof(char) * (config_menu_set_entry_format_len + 1));;
 	if (fmt == NULL) {
 		return;
 	}
@@ -60,15 +64,16 @@ print_set_format(size_t index, struct set_line *set)
 			*(percent_ptr) = '\0';
 			strcpy(word, iter - 1);
 			*(percent_ptr) = '%';
-
-			if (iter == percent_ptr) { // met %%
-				wprintw(set->window, "%s", "%");
-			}
-
 			iter = percent_ptr + 1;
+
+			if (strlen(word) == 1) {
+				/* met %% */
+				wprintw(set->window, "%%");
+				continue;
+			}
 		}
 
-		// first char of word is %, get to specifier
+		// word[0] is %, set i to specifier character
 		i = 1;
 		while (isdigit(word[i]) || word[i] == '-') {
 			++i;

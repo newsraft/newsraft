@@ -174,7 +174,7 @@ void drop_item_bucket(struct item_bucket *bucket);
 void value_strip_whitespace(char *str, size_t *len);
 
 // tags
-void tag_feed(char *tag_name, struct string *url);
+int tag_feed(char *tag_name, struct string *url);
 // convert data of set to sql WHERE condition
 struct set_condition * create_set_condition(struct set_line *set);
 void free_set_condition(struct set_condition *cond);

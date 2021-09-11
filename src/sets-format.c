@@ -4,8 +4,6 @@
 #include <sys/types.h>
 #include "feedeater.h"
 
-static size_t config_menu_set_entry_format_len = SIZE_MAX;
-
 // return most sensible string for set line
 static char *
 set_image(struct set_line *set)
@@ -28,21 +26,11 @@ set_image(struct set_line *set)
 void
 print_set_format(size_t index, struct set_line *set)
 {
-	if (config_menu_set_entry_format_len == SIZE_MAX) {
-		config_menu_set_entry_format_len = strlen(config_menu_set_entry_format);
-	}
-	char *fmt = malloc(sizeof(char) * (config_menu_set_entry_format_len + 1));;
-	if (fmt == NULL) {
-		return;
-	}
-	strcpy(fmt, config_menu_set_entry_format);
-
-	char *iter = fmt;
+	char *iter = config_menu_set_entry_format;
 	char *percent_ptr = strchr(iter, '%');
 
 	if (percent_ptr == NULL) { /* no conversions */
 		wprintw(set->window, "%s", iter);
-		free(fmt);
 		return;
 	}
 
@@ -96,10 +84,17 @@ print_set_format(size_t index, struct set_line *set)
 			word[i] = 's';
 			wprintw(set->window, word, set_image(set));
 		} else if (word[i] == 'i') {
+			if ((set->link == NULL) && (set->tags == NULL)) {
+				word[i] = 's';
+				wprintw(set->window, word, "");
+			} else {
+				word[i] = 'd';
+				wprintw(set->window, word, index + 1);
+			}
+		} else if (word[i] == 'I') {
 			wprintw(set->window, word, index + 1);
 		} else {
 			wprintw(set->window, "%s", word + i);
 		}
 	}
-	free(fmt);
 }

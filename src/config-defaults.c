@@ -1,13 +1,12 @@
 #include "feedeater.h"
 
+/* don't initialize strings because then they will be immutable */
+char *config_menu_set_entry_format = NULL;
+char *config_contents_meta_data = NULL;
+char *config_contents_date_format = NULL;
+
 size_t config_max_items = 100; // 0 == inf
 size_t config_init_parser_buf_size = 100000;
-
-char *config_menu_set_entry_format = "%-3n  %t";
-bool config_menu_show_decoration_number = false;
-
-char *config_contents_meta_data = "feed,title,author,category,date,url,comments";
-char *config_contents_date_format = "%a, %d %b %Y %H:%M:%S %z";
 
 char config_key_mark_read = 'r';
 char config_key_mark_unread = 'R';

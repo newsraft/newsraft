@@ -44,6 +44,7 @@ feedeater_src = [
 	'src/db.c',
 	'src/db-feeds.c',
 	'src/db-items.c',
+	'src/config.c',
 	'src/config-defaults.c',
 	'src/sets.c',
 	'src/sets-format.c',

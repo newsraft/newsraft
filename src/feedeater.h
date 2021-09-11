@@ -163,6 +163,10 @@ char *get_feeds_path(void);
 char *get_config_path(void);
 char *get_db_path(void);
 
+// config processing
+void free_config_data(void);
+int load_config(void);
+
 // date parsing
 time_t parse_date_rfc822(char *date_str, size_t date_len);
 time_t parse_date_rfc3339(char *date_str, size_t date_len);
@@ -243,7 +247,6 @@ extern sqlite3 *db;
 extern size_t config_max_items; // 0 == inf
 extern size_t config_init_parser_buf_size;
 extern char*  config_menu_set_entry_format;
-extern bool   config_menu_show_decoration_number;
 extern char*  config_contents_meta_data;
 extern char*  config_contents_date_format;
 extern char   config_key_mark_read;

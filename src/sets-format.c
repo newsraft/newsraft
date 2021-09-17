@@ -29,72 +29,82 @@ print_set_format(size_t index, struct set_line *set)
 	char *iter = config_menu_set_entry_format;
 	char *percent_ptr = strchr(iter, '%');
 
-	if (percent_ptr == NULL) { /* no conversions */
+	if (percent_ptr == NULL) {
+		/* format string has no specifiers (wonder why),
+		 * so just print its contents to set's window */
 		wprintw(set->window, "%s", iter);
 		return;
 	}
 
-	/* write everything before the first conversion */
+	/* write everything before the first specifier to set's window */
 	*(percent_ptr) = '\0';
 	wprintw(set->window, "%s", iter);
 	*(percent_ptr) = '%';
+
 	iter = percent_ptr + 1;
 
 	size_t i;
-	char word[1000];
-	bool done = false;
-	while (done == false && *iter != '\0') {
+	char old_char;
+	while (*iter != '\0') {
 		percent_ptr = strchr(iter, '%');
-		if (percent_ptr == NULL) {
-			strcpy(word, iter - 1);
-			done = true;
-		} else {
-			*(percent_ptr) = '\0';
-			strcpy(word, iter - 1);
-			*(percent_ptr) = '%';
-			iter = percent_ptr + 1;
-
-			if (strlen(word) == 1) {
+		if (percent_ptr != NULL) {
+			if (percent_ptr == iter) {
 				/* met %% */
-				wprintw(set->window, "%%");
-				continue;
+				percent_ptr = strchr(iter + 1, '%');
+				if (percent_ptr != NULL) {
+					*(percent_ptr) = '\0';
+				}
+			} else {
+				*(percent_ptr) = '\0';
 			}
 		}
 
-		// word[0] is %, set i to specifier character
-		i = 1;
-		while (isdigit(word[i]) || word[i] == '-') {
+		// iter[0] is the first character after %
+		// here we find specifier character position
+		i = 0;
+		while (isdigit(iter[i]) || iter[i] == '-') {
 			++i;
 		}
 
-		if (word[i] == '\0') {
-			continue;
-		} else if (word[i] == 'n') {
+		/* save original specifier */
+		old_char = iter[i];
+
+		if (iter[i] == 'n') {
 			if (set->unread_count != 0) {
-				word[i] = 'd';
-				wprintw(set->window, word, set->unread_count);
+				iter[i] = 'd';
+				wprintw(set->window, iter - 1, set->unread_count);
 			} else {
-				word[i] = 's';
-				wprintw(set->window, word, "");
+				iter[i] = 's';
+				wprintw(set->window, iter - 1, "");
 			}
-		} else if (word[i] == 'N') {
-			word[i] = 'd';
-			wprintw(set->window, word, set->unread_count);
-		} else if (word[i] == 't') {
-			word[i] = 's';
-			wprintw(set->window, word, set_image(set));
-		} else if (word[i] == 'i') {
+		} else if (iter[i] == 'N') {
+			iter[i] = 'd';
+			wprintw(set->window, iter - 1, set->unread_count);
+		} else if (iter[i] == 't') {
+			iter[i] = 's';
+			wprintw(set->window, iter - 1, set_image(set));
+		} else if (iter[i] == 'i') {
 			if ((set->link == NULL) && (set->tags == NULL)) {
-				word[i] = 's';
-				wprintw(set->window, word, "");
+				iter[i] = 's';
+				wprintw(set->window, iter - 1, "");
 			} else {
-				word[i] = 'd';
-				wprintw(set->window, word, index + 1);
+				iter[i] = 'd';
+				wprintw(set->window, iter - 1, index + 1);
 			}
-		} else if (word[i] == 'I') {
-			wprintw(set->window, word, index + 1);
+		} else if (iter[i] == 'I') {
+			wprintw(set->window, iter - 1, index + 1);
 		} else {
-			wprintw(set->window, "%s", word + i);
+			wprintw(set->window, iter - 1);
+		}
+
+		/* restore original specifier */
+		iter[i] = old_char;
+
+		if (percent_ptr != NULL) {
+			*(percent_ptr) = '%';
+			iter = percent_ptr + 1;
+		} else {
+			break;
 		}
 	}
 }

@@ -59,10 +59,9 @@ print_set_format(size_t index, struct set_line *set)
 			}
 		}
 
-		// iter[0] is the first character after %
-		// here we find specifier character position
+		/* find specifier character position */
 		i = 0;
-		while (isdigit(iter[i]) || iter[i] == '-') {
+		while (isalpha(iter[i]) == 0 && iter[i] != '\0') {
 			++i;
 		}
 
@@ -70,7 +69,7 @@ print_set_format(size_t index, struct set_line *set)
 		old_char = iter[i];
 
 		if (iter[i] == 'n') {
-			if (set->unread_count != 0) {
+			if ((set->unread_count != 0) && ((set->link != NULL) || (set->tags != NULL))) {
 				iter[i] = 'd';
 				wprintw(set->window, iter - 1, set->unread_count);
 			} else {
@@ -78,20 +77,23 @@ print_set_format(size_t index, struct set_line *set)
 				wprintw(set->window, iter - 1, "");
 			}
 		} else if (iter[i] == 'N') {
-			iter[i] = 'd';
-			wprintw(set->window, iter - 1, set->unread_count);
+			if ((set->link != NULL) || (set->tags != NULL)) {
+				iter[i] = 'd';
+				wprintw(set->window, iter - 1, set->unread_count);
+			}
 		} else if (iter[i] == 't') {
 			iter[i] = 's';
 			wprintw(set->window, iter - 1, set_image(set));
 		} else if (iter[i] == 'i') {
-			if ((set->link == NULL) && (set->tags == NULL)) {
-				iter[i] = 's';
-				wprintw(set->window, iter - 1, "");
-			} else {
+			if ((set->link != NULL) || (set->tags != NULL)) {
 				iter[i] = 'd';
 				wprintw(set->window, iter - 1, index + 1);
+			} else {
+				iter[i] = 's';
+				wprintw(set->window, iter - 1, "");
 			}
 		} else if (iter[i] == 'I') {
+			iter[i] = 'd';
 			wprintw(set->window, iter - 1, index + 1);
 		} else {
 			wprintw(set->window, iter - 1);
@@ -100,11 +102,11 @@ print_set_format(size_t index, struct set_line *set)
 		/* restore original specifier */
 		iter[i] = old_char;
 
-		if (percent_ptr != NULL) {
-			*(percent_ptr) = '%';
-			iter = percent_ptr + 1;
-		} else {
+		if (percent_ptr == NULL) {
 			break;
 		}
+
+		*(percent_ptr) = '%';
+		iter = percent_ptr + 1;
 	}
 }

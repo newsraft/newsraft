@@ -85,24 +85,28 @@ static void XMLCALL
 process_element_start(void *userData, const XML_Char *name, const XML_Char **atts) {
 	struct parser_data *data = userData;
 	++(data->depth);
-	if (data->depth == 1) {
-		if (strcmp(name, "rss") == 0) {
-			size_t i;
-			for (i = 0; atts[i] != NULL && strcmp(atts[i], "version") != 0; ++i) {}
-			if (atts[i] != NULL) ++i;
-			if (atts[i] != NULL &&
-			    (strcmp(atts[i], "2.0") == 0 ||
-			    strcmp(atts[i], "0.94") == 0 ||
-			    strcmp(atts[i], "0.93") == 0 ||
-			    strcmp(atts[i], "0.92") == 0 ||
-			    strcmp(atts[i], "0.91") == 0))
-			{
-				XML_SetElementHandler(*(data->parser), &elem_rss20_start, &elem_rss20_finish);
-				return;
+	if (data->depth != 1) {
+		return;
+	}
+	if (strcmp(name, "rss") == 0) {
+		for (size_t i = 0; atts[i] != NULL; ++i) {
+			if (strcmp(atts[i], "version") == 0) {
+				++i;
+				if (atts[i] != NULL &&
+					(strcmp(atts[i], "2.0") == 0 ||
+					strcmp(atts[i], "0.94") == 0 ||
+					strcmp(atts[i], "0.93") == 0 ||
+					strcmp(atts[i], "0.92") == 0 ||
+					strcmp(atts[i], "0.91") == 0))
+				{
+					XML_SetElementHandler(*(data->parser), &parse_rss20_element_beginning, &parse_rss20_element_end);
+					return;
+				}
+				break;
 			}
 		}
-		XML_SetElementHandler(*(data->parser), &elem_generic_start, &elem_generic_finish);
 	}
+	XML_SetElementHandler(*(data->parser), &parse_generic_element_beginning, &parse_generic_element_end);
 }
 
 static void XMLCALL
@@ -175,44 +179,4 @@ feed_process(struct string *url)
 	XML_ParserFree(parser);
 	curl_easy_cleanup(curl);
 	return error;
-}
-
-void
-value_strip_whitespace(char *str, size_t *len)
-{
-	if (*len == 0) {
-		return;
-	}
-	// strip whitespace from edges
-	size_t left_edge = 0, right_edge = *len - 1;
-	while ((*(str + left_edge) == ' '   ||
-	        *(str + left_edge) == '\t'  ||
-	        *(str + left_edge) == '\r'  ||
-	        *(str + left_edge) == '\n') &&
-	       left_edge <= right_edge)
-	{
-		++left_edge;
-	}
-	while ((*(str + right_edge) == ' '   ||
-	        *(str + right_edge) == '\t'  ||
-	        *(str + right_edge) == '\r'  ||
-	        *(str + right_edge) == '\n') &&
-	       right_edge >= left_edge)
-	{
-		--right_edge;
-	}
-	if ((left_edge == 0) && (right_edge == *len - 1)) {
-		return;
-	}
-	if (right_edge < left_edge) {
-		*(str + 0) = '\0';
-		*len = 0;
-		return;
-	}
-	size_t i = 0;
-	for (; i <= right_edge - left_edge; ++i) {
-		*(str + i) = *(str + i + left_edge);
-	}
-	*len = i;
-	*(str + i) = '\0';
 }

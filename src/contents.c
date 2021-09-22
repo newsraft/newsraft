@@ -47,7 +47,6 @@ get_contents_of_item(sqlite3_stmt *res)
 			if (plain_text != NULL) {
 				if (plain_text->len != 0) {
 					cat_string_char(buf, '\n');
-					value_strip_whitespace(plain_text->ptr, &plain_text->len);
 					cat_string_string(buf, plain_text);
 				}
 				free_string(plain_text);

@@ -2,7 +2,7 @@
 #include "feedeater.h"
 
 void XMLCALL
-elem_rss10_start(void *userData, const XML_Char *name, const XML_Char **atts)
+parse_rss10_element_beginning(void *userData, const XML_Char *name, const XML_Char **atts)
 {
 	(void)atts;
 	struct parser_data *data = userData;
@@ -16,7 +16,7 @@ elem_rss10_start(void *userData, const XML_Char *name, const XML_Char **atts)
 }
 
 void XMLCALL
-elem_rss10_end(void *userData, const XML_Char *name)
+parse_rss10_element_end(void *userData, const XML_Char *name)
 {
 	struct parser_data *data = userData;
 

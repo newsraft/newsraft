@@ -107,3 +107,46 @@ free_string(struct string *str)
 	free(str->ptr);
 	free(str);
 }
+
+void
+strip_whitespace_from_edges(char *str, size_t *len)
+{
+	if (*len == 0) {
+		return;
+	}
+
+	size_t left_edge = 0, right_edge = *len - 1;
+	while ((*(str + left_edge) == ' '   ||
+	        *(str + left_edge) == '\t'  ||
+	        *(str + left_edge) == '\r'  ||
+	        *(str + left_edge) == '\n') &&
+	       left_edge <= right_edge)
+	{
+		++left_edge;
+	}
+	while ((*(str + right_edge) == ' '   ||
+	        *(str + right_edge) == '\t'  ||
+	        *(str + right_edge) == '\r'  ||
+	        *(str + right_edge) == '\n') &&
+	       right_edge >= left_edge)
+	{
+		--right_edge;
+	}
+
+	if ((left_edge == 0) && (right_edge == (*len - 1))) {
+		return;
+	}
+
+	if (right_edge < left_edge) {
+		*(str + 0) = '\0';
+		*len = 0;
+		return;
+	}
+
+	size_t stripped_string_len = right_edge - left_edge + 1;
+	for (size_t i = 0; i < stripped_string_len; ++i) {
+		*(str + i) = *(str + i + left_edge);
+	}
+	*len = stripped_string_len;
+	*(str + stripped_string_len) = '\0';
+}

@@ -175,7 +175,6 @@ struct string *get_config_date_str(time_t *time_ptr);
 // feed parsing
 int feed_process(struct string *url);
 void drop_item_bucket(struct item_bucket *bucket);
-void value_strip_whitespace(char *str, size_t *len);
 
 // tags
 int tag_feed(char *tag_name, struct string *url);
@@ -217,25 +216,26 @@ void cat_string_array(struct string *dest, char *src, size_t src_len);
 void cat_string_char(struct string *dest, char c);
 void empty_string(struct string *str);
 void free_string(struct string *str);
+void strip_whitespace_from_edges(char *str, size_t *len);
 // wstring
 struct wstring *convert_string_to_wstring(struct string *src);
 void free_wstring(struct wstring *wstr);
 
 // xml element handlers
-int process_namespaced_tag_start (void *userData, const XML_Char *name, const XML_Char **atts);
-int process_namespaced_tag_end   (void *userData, const XML_Char *name);
-void XMLCALL elem_rss20_start    (void *userData, const XML_Char *name, const XML_Char **atts);
-void XMLCALL elem_rss20_finish   (void *userData, const XML_Char *name);
-void XMLCALL elem_rss10_start    (void *userData, const XML_Char *name, const XML_Char **atts);
-void XMLCALL elem_rss10_end      (void *userData, const XML_Char *name);
-void XMLCALL elem_rss10dc_start  (void *userData, const XML_Char *name, const XML_Char **atts);
-void XMLCALL elem_rss10dc_end    (void *userData, const XML_Char *name);
-void XMLCALL elem_atom10_start   (void *userData, const XML_Char *name, const XML_Char **atts);
-void XMLCALL elem_atom10_end     (void *userData, const XML_Char *name);
-void XMLCALL elem_atom03_start   (void *userData, const XML_Char *name, const XML_Char **atts);
-void XMLCALL elem_atom03_end     (void *userData, const XML_Char *name);
-void XMLCALL elem_generic_start  (void *userData, const XML_Char *name, const XML_Char **atts);
-void XMLCALL elem_generic_finish (void *userData, const XML_Char *name);
+int parse_namespace_element_beginning        (void *userData, const XML_Char *name, const XML_Char **atts);
+int parse_namespace_element_end              (void *userData, const XML_Char *name);
+void XMLCALL parse_rss20_element_beginning   (void *userData, const XML_Char *name, const XML_Char **atts);
+void XMLCALL parse_rss20_element_end         (void *userData, const XML_Char *name);
+void XMLCALL parse_generic_element_beginning (void *userData, const XML_Char *name, const XML_Char **atts);
+void XMLCALL parse_generic_element_end       (void *userData, const XML_Char *name);
+void XMLCALL parse_rss10_element_beginning   (void *userData, const XML_Char *name, const XML_Char **atts);
+void XMLCALL parse_rss10_element_end         (void *userData, const XML_Char *name);
+void XMLCALL parse_atom10_element_beginning  (void *userData, const XML_Char *name, const XML_Char **atts);
+void XMLCALL parse_atom10_element_end        (void *userData, const XML_Char *name);
+void XMLCALL parse_atom03_element_beginning  (void *userData, const XML_Char *name, const XML_Char **atts);
+void XMLCALL parse_atom03_element_end        (void *userData, const XML_Char *name);
+void XMLCALL parse_dc_element_beginning      (void *userData, const XML_Char *name, const XML_Char **atts);
+void XMLCALL parse_dc_element_end            (void *userData, const XML_Char *name);
 
 // debug
 int debug_init(char *path);

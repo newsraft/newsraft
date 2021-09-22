@@ -64,7 +64,7 @@ feedeater_src = [
 	#'src/parse-namespace-mrss.c',
 	'src/parse-namespace-rss10.c',
 	#'src/parse-namespace-rss10content.c',
-	'src/parse-namespace-rss10dc.c',
+	'src/parse-namespace-dc.c',
 	#'src/parse-namespace-rss10syndication.c',
 	'src/contents.c',
 	'src/contents-metadata.c',

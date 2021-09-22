@@ -7,12 +7,12 @@ struct {
 	XML_StartElementHandler start_element_handler;
 	XML_EndElementHandler end_element_handler;
 } namespace_handlers[] = {
-	{"http://www.w3.org/2005/Atom", &elem_atom10_start, &elem_atom10_end},
-	{"http://purl.org/rss/1.0/", &elem_rss10_start, &elem_rss10_end},
-	{"http://purl.org/dc/elements/1.1/", &elem_rss10dc_start, &elem_rss10dc_end},
-	{"http://purl.org/atom/ns#", &elem_atom03_start, &elem_atom03_end},
-	{"http://channel.netscape.com/rdf/simple/0.9/", &elem_rss10_start, &elem_rss10_end},
-	{"http://purl.org/net/rss1.1#", &elem_rss10_start, &elem_rss10_end},
+	{"http://www.w3.org/2005/Atom", &parse_atom10_element_beginning, &parse_atom10_element_end},
+	{"http://purl.org/rss/1.0/", &parse_rss10_element_beginning, &parse_rss10_element_end},
+	{"http://purl.org/dc/elements/1.1/", &parse_dc_element_beginning, &parse_dc_element_end},
+	{"http://purl.org/atom/ns#", &parse_atom03_element_beginning, &parse_atom03_element_end},
+	{"http://channel.netscape.com/rdf/simple/0.9/", &parse_rss10_element_beginning, &parse_rss10_element_end},
+	{"http://purl.org/net/rss1.1#", &parse_rss10_element_beginning, &parse_rss10_element_end},
 };
 
 static char *
@@ -60,7 +60,7 @@ get_tag_name(const XML_Char *name)
 }
 
 int
-process_namespaced_tag_start(void *userData, const XML_Char *name, const XML_Char **atts) {
+parse_namespace_element_beginning(void *userData, const XML_Char *name, const XML_Char **atts) {
 	char *namespace = get_namespace(name);
 	if (namespace == NULL) {
 		return 1; // error
@@ -82,7 +82,7 @@ process_namespaced_tag_start(void *userData, const XML_Char *name, const XML_Cha
 }
 
 int
-process_namespaced_tag_end(void *userData, const XML_Char *name) {
+parse_namespace_element_end(void *userData, const XML_Char *name) {
 	char *namespace = get_namespace(name);
 	if (namespace == NULL) {
 		return 1; // error
@@ -94,6 +94,8 @@ process_namespaced_tag_end(void *userData, const XML_Char *name) {
 				free(namespace);
 				return 1; // error
 			}
+			struct parser_data *data = userData;
+			strip_whitespace_from_edges(data->value, &data->value_len);
 			namespace_handlers[i].end_element_handler(userData, tag_name);
 			free(tag_name);
 			break;

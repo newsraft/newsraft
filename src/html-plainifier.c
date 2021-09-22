@@ -193,5 +193,7 @@ plainify_html(char *buf_with_entities, size_t buf_len)
 	text_buf->ptr = text;
 	text_buf->len = j;
 
+	strip_whitespace_from_edges(text_buf->ptr, &(text_buf->len));
+
 	return text_buf;
 }

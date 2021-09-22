@@ -2,12 +2,12 @@
 #include "feedeater.h"
 
 void XMLCALL
-elem_rss20_start(void *userData, const XML_Char *name, const XML_Char **atts)
+parse_rss20_element_beginning(void *userData, const XML_Char *name, const XML_Char **atts)
 {
 	struct parser_data *data = userData;
 	++(data->depth);
 
-	if (process_namespaced_tag_start(userData, name, atts) == 0) {
+	if (parse_namespace_element_beginning(userData, name, atts) == 0) {
 		return;
 	}
 
@@ -24,13 +24,13 @@ elem_rss20_start(void *userData, const XML_Char *name, const XML_Char **atts)
 }
 
 void XMLCALL
-elem_rss20_finish(void *userData, const XML_Char *name)
+parse_rss20_element_end(void *userData, const XML_Char *name)
 {
 	struct parser_data *data = userData;
 	--(data->depth);
-	value_strip_whitespace(data->value, &data->value_len);
+	strip_whitespace_from_edges(data->value, &data->value_len);
 
-	if (process_namespaced_tag_end(userData, name) == 0) {
+	if (parse_namespace_element_end(userData, name) == 0) {
 		return;
 	}
 

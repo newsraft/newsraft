@@ -2,7 +2,7 @@
 #include "feedeater.h"
 
 void XMLCALL
-elem_atom03_start(void *userData, const XML_Char *name, const XML_Char **atts)
+parse_atom03_element_beginning(void *userData, const XML_Char *name, const XML_Char **atts)
 {
 	struct parser_data *data = userData;
 
@@ -29,7 +29,7 @@ elem_atom03_start(void *userData, const XML_Char *name, const XML_Char **atts)
 }
 
 void XMLCALL
-elem_atom03_end(void *userData, const XML_Char *name)
+parse_atom03_element_end(void *userData, const XML_Char *name)
 {
 	struct parser_data *data = userData;
 

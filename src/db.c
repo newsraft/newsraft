@@ -1,25 +1,5 @@
 #include "feedeater.h"
 
-#define DB_INIT_CMD "CREATE TABLE IF NOT EXISTS feeds(" \
-                    	"url TEXT," \
-                    	"name TEXT," \
-                    	"resource TEXT," \
-                    	"description TEXT" \
-                    ");" \
-                    "CREATE TABLE IF NOT EXISTS items(" \
-                    	"feed TEXT," \
-                    	"title TEXT," \
-                    	"guid TEXT," \
-                    	"unread INTEGER(1)," \
-                    	"url TEXT," \
-                    	"author TEXT," \
-                    	"category TEXT," \
-                    	"pubdate INTEGER(8)," \
-                    	"upddate INTEGER(8)," \
-                    	"comments TEXT," \
-                    	"content TEXT" \
-                    ");"
-
 sqlite3 *db;
 
 int
@@ -36,7 +16,31 @@ db_init(void)
 		free(path);
 		return 1; // failure
 	}
-	sqlite3_exec(db, DB_INIT_CMD, 0, 0, NULL);
+	sqlite3_exec(
+		db,
+		"CREATE TABLE IF NOT EXISTS feeds("
+			"url TEXT,"
+			"name TEXT,"
+			"resource TEXT,"
+			"description TEXT"
+		");"
+		"CREATE TABLE IF NOT EXISTS items("
+			"feed TEXT,"
+			"title TEXT,"
+			"guid TEXT,"
+			"unread INTEGER(1),"
+			"url TEXT,"
+			"author TEXT,"
+			"category TEXT,"
+			"pubdate INTEGER(8),"
+			"upddate INTEGER(8),"
+			"comments TEXT,"
+			"content TEXT"
+		");",
+		0,
+		0,
+		NULL
+	);
 	free(path);
 	return 0; // success
 }

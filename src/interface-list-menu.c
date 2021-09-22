@@ -36,18 +36,18 @@ create_list_menu(void)
 void
 resize_list_menu(void)
 {
-	if (LINES > windows_count) {
-		windows = realloc(windows, sizeof(WINDOW *) * (LINES - 1));
-		for (int i = windows_count - 1; i < (LINES - 1); ++i) {
+	int new_windows_count = LINES - 1;
+	if (new_windows_count > windows_count) {
+		windows = realloc(windows, sizeof(WINDOW *) * new_windows_count);
+		for (int i = windows_count - 1; i < new_windows_count; ++i) {
 			windows[i] = newwin(1, COLS, i, 0);
 		}
-	} else if (LINES < windows_count) {
-		/* you might think that these windows that are not needed should be deleted.
+	} else if (new_windows_count < windows_count) {
+		/* You might think that these windows that are not needed anymore should be deleted,
 		 * but this function is called on screen resize, on which ncurses automatically
-		 * deletes all the windows that have gone out of bounds.
-		 * hence do nothing in this case... */
+		 * deletes everything that gone out of bounds. Hence do nothing in this case... */
 	}
-	windows_count = LINES - 1;
+	windows_count = new_windows_count;
 }
 
 WINDOW *

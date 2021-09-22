@@ -60,7 +60,14 @@ get_input_command(void)
 	else if (c == config_key_mark_read)    { return INPUT_MARK_READ; }
 	else if (c == config_key_mark_unread)  { return INPUT_MARK_UNREAD; }
 	else if (c == KEY_RESIZE) {
+		/* rearrange list menu windows */
 		resize_list_menu();
+
+		/* recreate a status window */
+		status_delete();
+		status_create();
+		status_clean();
+
 		return INPUT_RESIZE;
 	}
 	return INPUTS_COUNT;

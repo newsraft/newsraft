@@ -41,18 +41,32 @@ parse_stream_callback(void *contents, size_t length, size_t nmemb, void *userp)
 	return real_size;
 }
 
-static void
+static int
 init_item_bucket(struct item_bucket *bucket)
 {
-	bucket->guid = create_empty_string();
-	bucket->title = create_empty_string();
-	bucket->url = create_empty_string();
-	bucket->author = create_empty_string();
-	bucket->category = create_empty_string();
-	bucket->comments = create_empty_string();
-	bucket->content = create_empty_string();
+	if ((bucket->guid = create_empty_string()) == NULL) goto init_item_bucket_undo1;
+	if ((bucket->title = create_empty_string()) == NULL) goto init_item_bucket_undo2;
+	if ((bucket->url = create_empty_string()) == NULL) goto init_item_bucket_undo3;
+	if ((bucket->category = create_empty_string()) == NULL) goto init_item_bucket_undo4;
+	if ((bucket->comments = create_empty_string()) == NULL) goto init_item_bucket_undo5;
+	if ((bucket->content = create_empty_string()) == NULL) goto init_item_bucket_undo6;
+	bucket->authors = NULL;
+	bucket->authors_count = 0;
 	bucket->pubdate = 0;
 	bucket->upddate = 0;
+	return 0;
+init_item_bucket_undo6:
+	free_string(bucket->comments);
+init_item_bucket_undo5:
+	free_string(bucket->category);
+init_item_bucket_undo4:
+	free_string(bucket->url);
+init_item_bucket_undo3:
+	free_string(bucket->title);
+init_item_bucket_undo2:
+	free_string(bucket->guid);
+init_item_bucket_undo1:
+	return 1;
 }
 
 void
@@ -61,12 +75,18 @@ drop_item_bucket(struct item_bucket *bucket)
 	empty_string(bucket->guid);
 	empty_string(bucket->title);
 	empty_string(bucket->url);
-	empty_string(bucket->author);
 	empty_string(bucket->category);
 	empty_string(bucket->comments);
 	empty_string(bucket->content);
 	bucket->pubdate = 0;
 	bucket->upddate = 0;
+
+	for (size_t i = 0; i < bucket->authors_count; ++i) {
+		free_string(bucket->authors[i].name);
+		free_string(bucket->authors[i].link);
+		free_string(bucket->authors[i].email);
+	}
+	bucket->authors_count = 0;
 }
 
 static void
@@ -75,10 +95,15 @@ free_item_bucket(struct item_bucket *bucket)
 	free_string(bucket->guid);
 	free_string(bucket->title);
 	free_string(bucket->url);
-	free_string(bucket->author);
 	free_string(bucket->category);
 	free_string(bucket->comments);
 	free_string(bucket->content);
+	for (size_t i = 0; i < bucket->authors_count; ++i) {
+		free_string(bucket->authors[i].name);
+		free_string(bucket->authors[i].link);
+		free_string(bucket->authors[i].email);
+	}
+	free(bucket->authors);
 }
 
 static void XMLCALL
@@ -120,9 +145,15 @@ int
 feed_process(struct string *url)
 {
 	int error = 0;
+
+	struct item_bucket bucket;
+	if (init_item_bucket(&bucket) != 0) {
+		status_write("[fail] not enough memory");
+		error = 1;
+		return error;
+	}
+
 	XML_Parser parser = XML_ParserCreateNS(NULL, ':');
-	struct item_bucket new_bucket;
-	init_item_bucket(&new_bucket);
 	struct parser_data data = {
 		.value     = malloc(sizeof(char) * config_init_parser_buf_size),
 		.value_len = 0,
@@ -131,7 +162,7 @@ feed_process(struct string *url)
 		.pos       = IN_ROOT,
 		.prev_pos  = IN_ROOT,
 		.feed_url  = url,
-		.bucket    = &new_bucket,
+		.bucket    = &bucket,
 		.parser    = &parser,
 		.fail      = false,
 	};
@@ -174,7 +205,7 @@ feed_process(struct string *url)
 		}
 	}
 
-	free_item_bucket(&new_bucket);
+	free_item_bucket(&bucket);
 	free(data.value);
 	XML_ParserFree(parser);
 	curl_easy_cleanup(curl);

@@ -4,8 +4,8 @@
 
 struct {
 	const char *name;
-	XML_StartElementHandler start_element_handler;
-	XML_EndElementHandler end_element_handler;
+	XML_StartElementHandler parse_element_beginning;
+	XML_EndElementHandler parse_element_end;
 } namespace_handlers[] = {
 	{"http://www.w3.org/2005/Atom", &parse_atom10_element_beginning, &parse_atom10_element_end},
 	{"http://purl.org/rss/1.0/", &parse_rss10_element_beginning, &parse_rss10_element_end},
@@ -16,20 +16,20 @@ struct {
 };
 
 static char *
-get_namespace(const XML_Char *name)
+get_namespace_name(const XML_Char *name)
 {
 	char *separator_pos = strrchr(name, ':');
 	if (separator_pos == NULL) {
 		return NULL;
 	}
 	size_t namespace_len = separator_pos - name;
-	if (namespace_len > 10000U) {
-		debug_write(DBG_ERR, "bad namespace name\n");
+	if (namespace_len > 1000U) {
+		debug_write(DBG_ERR, "got enormous long length of namespace name\n");
 		return NULL;
 	}
 	char *namespace = malloc(sizeof(char) * (namespace_len + 1));
 	if (namespace == NULL) {
-		debug_write(DBG_ERR, "not enough memory for namespace name\n");
+		debug_write(DBG_ERR, "not enough memory for a name of namespace\n");
 		return NULL;
 	}
 	memcpy(namespace, name, sizeof(char) * namespace_len);
@@ -40,67 +40,73 @@ get_namespace(const XML_Char *name)
 static char *
 get_tag_name(const XML_Char *name)
 {
+	size_t tag_name_len;
 	char *separator_pos = strrchr(name, ':');
 	if (separator_pos == NULL) {
-		return NULL;
+		tag_name_len = strlen(name);
+	} else {
+		tag_name_len = name + strlen(name) - separator_pos - 1;
 	}
-	size_t tag_name_len = name + strlen(name) - separator_pos - 1;
-	if (tag_name_len > 10000U) {
-		debug_write(DBG_ERR, "bad tag name\n");
+	if (tag_name_len > 1000U) {
+		debug_write(DBG_ERR, "got enormous long length of tag name\n");
 		return NULL;
 	}
 	char *tag_name = malloc(sizeof(char) * (tag_name_len + 1));
 	if (tag_name == NULL) {
-		debug_write(DBG_ERR, "not enough memory for tag name\n");
+		debug_write(DBG_ERR, "not enough memory for a name of tag\n");
 		return NULL;
 	}
-	memcpy(tag_name, separator_pos + 1, sizeof(char) * tag_name_len);
+	if (separator_pos == NULL) {
+		memcpy(tag_name, name, sizeof(char) * tag_name_len);
+	} else {
+		memcpy(tag_name, separator_pos + 1, sizeof(char) * tag_name_len);
+	}
 	tag_name[tag_name_len] = '\0';
 	return tag_name;
 }
 
 int
 parse_namespace_element_beginning(void *userData, const XML_Char *name, const XML_Char **atts) {
-	char *namespace = get_namespace(name);
+	char *namespace = get_namespace_name(name);
 	if (namespace == NULL) {
-		return 1; // error
+		return 1; // failure
 	}
 	for (size_t i = 0; i < LENGTH(namespace_handlers); ++i) {
 		if (strcmp(namespace, namespace_handlers[i].name) == 0) {
 			char *tag_name = get_tag_name(name);
 			if (tag_name == NULL) {
 				free(namespace);
-				return 1; // error
+				return 1; // failure
 			}
-			namespace_handlers[i].start_element_handler(userData, tag_name, atts);
+			namespace_handlers[i].parse_element_beginning(userData, tag_name, atts);
 			free(tag_name);
-			break;
+			free(namespace);
+			return 0; // success
 		}
 	}
 	free(namespace);
-	return 0; // success
+	return 1; // failure
 }
 
 int
 parse_namespace_element_end(void *userData, const XML_Char *name) {
-	char *namespace = get_namespace(name);
+	char *namespace = get_namespace_name(name);
 	if (namespace == NULL) {
-		return 1; // error
+		return 1; // failure
 	}
 	for (size_t i = 0; i < LENGTH(namespace_handlers); ++i) {
 		if (strcmp(namespace, namespace_handlers[i].name) == 0) {
 			char *tag_name = get_tag_name(name);
 			if (tag_name == NULL) {
 				free(namespace);
-				return 1; // error
+				return 1; // failure
 			}
-			struct parser_data *data = userData;
-			strip_whitespace_from_edges(data->value, &data->value_len);
-			namespace_handlers[i].end_element_handler(userData, tag_name);
+			namespace_handlers[i].parse_element_end(userData, tag_name);
 			free(tag_name);
-			break;
+			free(namespace);
+			return 0; // success
 		}
 	}
 	free(namespace);
-	return 0; // success
+	return 1; // failure
 }

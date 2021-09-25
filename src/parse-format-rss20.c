@@ -4,20 +4,31 @@
 void XMLCALL
 parse_rss20_element_beginning(void *userData, const XML_Char *name, const XML_Char **atts)
 {
-	struct parser_data *data = userData;
-	++(data->depth);
-
 	if (parse_namespace_element_beginning(userData, name, atts) == 0) {
 		return;
 	}
 
+	struct parser_data *data = userData;
+	++(data->depth);
+
 	     if (strcmp(name, "item") == 0)        data->pos |= IN_ITEM_ELEMENT;
 	else if (strcmp(name, "title") == 0)       data->pos |= IN_TITLE_ELEMENT;
-	else if (strcmp(name, "description") == 0) data->pos |= IN_DESCRIPTION_ELEMENT;
 	else if (strcmp(name, "link") == 0)        data->pos |= IN_LINK_ELEMENT;
+	else if (strcmp(name, "description") == 0) data->pos |= IN_DESCRIPTION_ELEMENT;
 	else if (strcmp(name, "pubDate") == 0)     data->pos |= IN_PUBDATE_ELEMENT;
 	else if (strcmp(name, "guid") == 0)        data->pos |= IN_GUID_ELEMENT;
-	else if (strcmp(name, "author") == 0)      data->pos |= IN_AUTHOR_ELEMENT;
+	else if (strcmp(name, "author") == 0)      {
+		data->pos |= IN_AUTHOR_ELEMENT;
+		if ((data->pos & IN_ITEM_ELEMENT) != 0) {
+			++(data->bucket->authors_count);
+			data->bucket->authors = realloc(data->bucket->authors, sizeof(struct author) * data->bucket->authors_count);
+			if (data->bucket->authors != NULL) {
+				data->bucket->authors[data->bucket->authors_count - 1].name = NULL;
+				data->bucket->authors[data->bucket->authors_count - 1].link = NULL;
+				data->bucket->authors[data->bucket->authors_count - 1].email = NULL;
+			}
+		}
+	}
 	else if (strcmp(name, "category") == 0)    data->pos |= IN_CATEGORY_ELEMENT;
 	else if (strcmp(name, "comments") == 0)    data->pos |= IN_COMMENTS_ELEMENT;
 	else if (strcmp(name, "channel") == 0)     data->pos |= IN_CHANNEL_ELEMENT;
@@ -26,15 +37,17 @@ parse_rss20_element_beginning(void *userData, const XML_Char *name, const XML_Ch
 void XMLCALL
 parse_rss20_element_end(void *userData, const XML_Char *name)
 {
-	struct parser_data *data = userData;
-	--(data->depth);
-	strip_whitespace_from_edges(data->value, &data->value_len);
-
 	if (parse_namespace_element_end(userData, name) == 0) {
 		return;
 	}
 
+	struct parser_data *data = userData;
+	--(data->depth);
+
+	strip_whitespace_from_edges(data->value, &data->value_len);
+
 	if ((data->pos & IN_CHANNEL_ELEMENT) == 0) return;
+
 	if (strcmp(name, "item") == 0) {
 		data->pos &= ~IN_ITEM_ELEMENT;
 		try_item_bucket(data->bucket, data->feed_url);
@@ -69,8 +82,11 @@ parse_rss20_element_end(void *userData, const XML_Char *name)
 			cpy_string_array(data->bucket->guid, data->value, data->value_len);
 	} else if (strcmp(name, "author") == 0) {
 		data->pos &= ~IN_AUTHOR_ELEMENT;
-		if ((data->pos & IN_ITEM_ELEMENT) != 0)
-			cpy_string_array(data->bucket->author, data->value, data->value_len);
+		if ((data->pos & IN_ITEM_ELEMENT) != 0) {
+			if ((data->bucket->authors != NULL) && (data->bucket->authors_count != 0)) {
+				data->bucket->authors[data->bucket->authors_count - 1].email = create_string(data->value, data->value_len);
+			}
+		}
 	} else if (strcmp(name, "category") == 0) {
 		data->pos &= ~IN_CATEGORY_ELEMENT;
 		if ((data->pos & IN_ITEM_ELEMENT) != 0) {

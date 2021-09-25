@@ -6,6 +6,7 @@ parse_rss10_element_beginning(void *userData, const XML_Char *name, const XML_Ch
 {
 	(void)atts;
 	struct parser_data *data = userData;
+	++(data->depth);
 
 	if      (strcmp(name, "item") == 0)        data->pos |= IN_ITEM_ELEMENT;
 	else if (strcmp(name, "title") == 0)       data->pos |= IN_TITLE_ELEMENT;
@@ -19,6 +20,8 @@ void XMLCALL
 parse_rss10_element_end(void *userData, const XML_Char *name)
 {
 	struct parser_data *data = userData;
+	--(data->depth);
+	strip_whitespace_from_edges(data->value, &data->value_len);
 
 	if (strcmp(name, "item") == 0) {
 		data->pos &= ~IN_ITEM_ELEMENT;

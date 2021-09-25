@@ -2,7 +2,7 @@
 #include "feedeater.h"
 
 #define DEFAULT_CONFIG_MENU_SET_ENTRY_FORMAT "%-3n %t"
-#define DEFAULT_CONFIG_CONTENTS_META_DATA "feed,title,author,category,date,url,comments"
+#define DEFAULT_CONFIG_CONTENTS_META_DATA "feed,title,authors,categories,date,url,comments"
 #define DEFAULT_CONFIG_CONTENTS_DATE_FORMAT "%a, %d %b %Y %H:%M:%S %z"
 
 static void

@@ -63,6 +63,12 @@ struct parser_data {
 	bool fail;
 };
 
+struct author {
+	struct string *name;
+	struct string *link;
+	struct string *email;
+};
+
 // used to bufferize item before writing to disk
 // so we can reject it in case parsed item is already cached
 struct item_bucket {
@@ -70,9 +76,10 @@ struct item_bucket {
 	struct string *title;
 	struct string *url;
 	struct string *content;
-	struct string *author;
 	struct string *category;
 	struct string *comments;
+	struct author *authors;
+	size_t authors_count;
 	time_t pubdate;
 	time_t upddate;
 };
@@ -83,8 +90,8 @@ enum items_column {
 	ITEM_COLUMN_GUID,
 	ITEM_COLUMN_UNREAD,
 	ITEM_COLUMN_URL,
-	ITEM_COLUMN_AUTHOR,
-	ITEM_COLUMN_CATEGORY,
+	ITEM_COLUMN_AUTHORS,
+	ITEM_COLUMN_CATEGORIES,
 	ITEM_COLUMN_PUBDATE,
 	ITEM_COLUMN_UPDDATE,
 	ITEM_COLUMN_COMMENTS,
@@ -107,6 +114,9 @@ enum xml_pos {
 	IN_IMAGE_ELEMENT = 2048,
 	IN_UPDDATE_ELEMENT = 4096,
 	IN_CHANNEL_ELEMENT = 8192,
+	IN_NAME_ELEMENT = 16384,
+	IN_URL_ELEMENT = 32768,
+	IN_EMAIL_ELEMENT = 65536,
 };
 
 enum debug_level {

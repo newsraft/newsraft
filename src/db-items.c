@@ -68,22 +68,71 @@ is_item_unique(struct string *feed_url, struct item_bucket *bucket)
 	return is_item_unique;
 }
 
+static struct string *
+create_authors_string(struct author *authors, size_t authors_count)
+{
+	struct string *authors_list = create_empty_string();
+	if (authors_list == NULL) {
+		debug_write(DBG_ERR, "not enough memory for creating authors string\n");
+		return NULL;
+	}
+	bool added_name, added_email;
+	for (size_t i = 0; i < authors_count; ++i) {
+		added_name = false;
+		added_email = false;
+		if (i != 0) {
+			cat_string_array(authors_list, ", ", 2);
+		}
+		if ((authors[i].name != NULL) && (authors[i].name->len != 0)) {
+			cat_string_string(authors_list, authors[i].name);
+			added_name = true;
+		}
+		if ((authors[i].email != NULL) && (authors[i].email->len != 0)) {
+			if (added_name == true) {
+				cat_string_array(authors_list, " <", 2);
+			}
+			cat_string_string(authors_list, authors[i].email);
+			if (added_name == true) {
+				cat_string_char(authors_list, '>');
+			}
+			added_email = true;
+		}
+		if ((authors[i].link != NULL) && (authors[i].link->len != 0)) {
+			if (added_name == true || added_email == true) {
+				cat_string_array(authors_list, " (", 2);
+			}
+			cat_string_string(authors_list, authors[i].link);
+			if (added_name == true || added_email == true) {
+				cat_string_char(authors_list, ')');
+			}
+		}
+	}
+	return authors_list;
+}
+
 static void
 db_insert_item(struct string *feed_url, struct item_bucket *bucket)
 {
+	struct string *authors_list = create_authors_string(bucket->authors, bucket->authors_count);
+	if (authors_list == NULL) {
+		return;
+	}
+
 	sqlite3_stmt *s;
 	if (sqlite3_prepare_v2(db, "INSERT INTO items VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", -1, &s, 0) != SQLITE_OK) {
 		debug_write(DBG_ERR, "failed to prepare item insertion statement:\n");
 		DEBUG_WRITE_DB_PREPARE_FAIL;
+		free_string(authors_list);
 		return;
 	}
+
 	sqlite3_bind_text(s,  ITEM_COLUMN_FEED + 1,     feed_url->ptr, feed_url->len, NULL);
 	sqlite3_bind_text(s,  ITEM_COLUMN_TITLE + 1,    bucket->title->ptr, bucket->title->len, NULL);
 	sqlite3_bind_text(s,  ITEM_COLUMN_GUID + 1,     bucket->guid->ptr, bucket->guid->len, NULL);
 	sqlite3_bind_int(s,   ITEM_COLUMN_UNREAD + 1,   1);
 	sqlite3_bind_text(s,  ITEM_COLUMN_URL + 1,      bucket->url->ptr, bucket->url->len, NULL);
-	sqlite3_bind_text(s,  ITEM_COLUMN_AUTHOR + 1,   bucket->author->ptr, bucket->author->len, NULL);
-	sqlite3_bind_text(s,  ITEM_COLUMN_CATEGORY + 1, bucket->category->ptr, bucket->category->len, NULL);
+	sqlite3_bind_text(s,  ITEM_COLUMN_AUTHORS + 1,  authors_list->ptr, authors_list->len, NULL);
+	sqlite3_bind_text(s,  ITEM_COLUMN_CATEGORIES + 1, bucket->category->ptr, bucket->category->len, NULL);
 	sqlite3_bind_int64(s, ITEM_COLUMN_PUBDATE + 1,  (sqlite3_int64)(bucket->pubdate));
 	sqlite3_bind_int64(s, ITEM_COLUMN_UPDDATE + 1,  (sqlite3_int64)(bucket->upddate));
 	sqlite3_bind_text(s,  ITEM_COLUMN_COMMENTS + 1, bucket->comments->ptr, bucket->comments->len, NULL);
@@ -97,6 +146,7 @@ db_insert_item(struct string *feed_url, struct item_bucket *bucket)
 		debug_write(DBG_ERR, "item bucket insertion failed: %s\n", sqlite3_errmsg(db));
 	}
 	sqlite3_finalize(s);
+	free_string(authors_list);
 }
 
 void

@@ -9,8 +9,8 @@ struct {
 } meta_data[] = {
 	{"Feed", "feed", ITEM_COLUMN_FEED},
 	{"Title", "title", ITEM_COLUMN_TITLE},
-	{"Author", "author", ITEM_COLUMN_AUTHOR},
-	{"Category", "category", ITEM_COLUMN_CATEGORY},
+	{"Authors", "authors", ITEM_COLUMN_AUTHORS},
+	{"Categories", "categories", ITEM_COLUMN_CATEGORIES},
 	{"Link", "url", ITEM_COLUMN_URL},
 	{"Comments", "comments", ITEM_COLUMN_COMMENTS},
 };

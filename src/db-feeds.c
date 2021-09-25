@@ -2,7 +2,7 @@
 #include "feedeater.h"
 
 static bool
-is_feed_in_db(struct string *feed_url)
+is_feed_in_db(const struct string *feed_url)
 {
 	bool stored = false;
 	sqlite3_stmt *s;
@@ -19,7 +19,7 @@ is_feed_in_db(struct string *feed_url)
 }
 
 static bool
-make_sure_feed_is_in_db(struct string *feed_url)
+make_sure_feed_is_in_db(const struct string *feed_url)
 {
 	if (is_feed_in_db(feed_url) == true) {
 		return true;
@@ -39,7 +39,7 @@ make_sure_feed_is_in_db(struct string *feed_url)
 }
 
 void
-db_update_feed_text(struct string *feed_url, char *column, char *data, size_t data_len)
+db_update_feed_text(const struct string *feed_url, const char *column, const char *data, size_t data_len)
 {
 	if (make_sure_feed_is_in_db(feed_url) == false) {
 		debug_write(DBG_ERR, "could not create feed entry in database!\n");
@@ -64,7 +64,7 @@ db_update_feed_text(struct string *feed_url, char *column, char *data, size_t da
 }
 
 size_t
-get_unread_items_count_of_feed(struct string *url)
+get_unread_items_count_of_feed(const struct string *url)
 {
 	size_t unread_count = 0;
 	char cmd[] = "SELECT * FROM items WHERE feed = ? AND unread = ?";

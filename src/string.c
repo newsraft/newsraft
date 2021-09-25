@@ -3,7 +3,7 @@
 #include "feedeater.h"
 
 struct string *
-create_string(char *src, size_t len)
+create_string(const char *src, size_t len)
 {
 	struct string *str = malloc(sizeof(struct string));
 	if (str == NULL) {
@@ -36,7 +36,7 @@ create_empty_string(void)
 }
 
 void
-cpy_string_string(struct string *dest, struct string *src)
+cpy_string_string(struct string *dest, const struct string *src)
 {
 	dest->len = src->len;
 	if (dest->len > dest->lim) {
@@ -47,7 +47,7 @@ cpy_string_string(struct string *dest, struct string *src)
 }
 
 void
-cpy_string_array(struct string *dest, char *src_ptr, size_t src_len)
+cpy_string_array(struct string *dest, const char *src_ptr, size_t src_len)
 {
 	dest->len = src_len;
 	if (dest->len > dest->lim) {
@@ -58,7 +58,7 @@ cpy_string_array(struct string *dest, char *src_ptr, size_t src_len)
 }
 
 void
-cat_string_string(struct string *dest, struct string *src)
+cat_string_string(struct string *dest, const struct string *src)
 {
 	dest->len += src->len;
 	if (dest->len > dest->lim) {
@@ -69,7 +69,7 @@ cat_string_string(struct string *dest, struct string *src)
 }
 
 void
-cat_string_array(struct string *dest, char *src_ptr, size_t src_len)
+cat_string_array(struct string *dest, const char *src_ptr, size_t src_len)
 {
 	dest->len += src_len;
 	if (dest->len > dest->lim) {

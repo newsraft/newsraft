@@ -2,7 +2,7 @@
 #include "feedeater.h"
 
 static void
-delete_excess_items(struct string *feed_url) {
+delete_excess_items(const struct string *feed_url) {
 	sqlite3_stmt *s;
 	if (sqlite3_prepare_v2(db, "SELECT rowid FROM items WHERE feed = ? ORDER BY upddate DESC, pubdate DESC, rowid ASC", -1, &s, 0) != SQLITE_OK) {
 		debug_write(DBG_ERR, "failed to prepare excess items deletion statement:\n");
@@ -31,7 +31,7 @@ delete_excess_items(struct string *feed_url) {
 }
 
 static bool
-is_item_unique(struct string *feed_url, struct item_bucket *bucket)
+is_item_unique(const struct string *feed_url, const struct item_bucket *bucket)
 {
 	bool is_item_unique = false;
 	sqlite3_stmt *res;
@@ -76,13 +76,11 @@ create_authors_string(struct author *authors, size_t authors_count)
 		debug_write(DBG_ERR, "not enough memory for creating authors string\n");
 		return NULL;
 	}
-	bool added_name, added_email;
+	bool added_name, added_email, added_link;
 	for (size_t i = 0; i < authors_count; ++i) {
 		added_name = false;
 		added_email = false;
-		if (i != 0) {
-			cat_string_array(authors_list, ", ", 2);
-		}
+		added_link = false;
 		if ((authors[i].name != NULL) && (authors[i].name->len != 0)) {
 			cat_string_string(authors_list, authors[i].name);
 			added_name = true;
@@ -105,13 +103,19 @@ create_authors_string(struct author *authors, size_t authors_count)
 			if (added_name == true || added_email == true) {
 				cat_string_char(authors_list, ')');
 			}
+			added_link = true;
+		}
+		if ((i + 1 != authors_count) &&
+		    (added_name == true || added_email == true || added_link == true))
+		{
+			cat_string_array(authors_list, ", ", 2);
 		}
 	}
 	return authors_list;
 }
 
 static void
-db_insert_item(struct string *feed_url, struct item_bucket *bucket)
+db_insert_item(const struct string *feed_url, const struct item_bucket *bucket)
 {
 	struct string *authors_list = create_authors_string(bucket->authors, bucket->authors_count);
 	if (authors_list == NULL) {
@@ -126,17 +130,17 @@ db_insert_item(struct string *feed_url, struct item_bucket *bucket)
 		return;
 	}
 
-	sqlite3_bind_text(s,  ITEM_COLUMN_FEED + 1,     feed_url->ptr, feed_url->len, NULL);
-	sqlite3_bind_text(s,  ITEM_COLUMN_TITLE + 1,    bucket->title->ptr, bucket->title->len, NULL);
-	sqlite3_bind_text(s,  ITEM_COLUMN_GUID + 1,     bucket->guid->ptr, bucket->guid->len, NULL);
-	sqlite3_bind_int(s,   ITEM_COLUMN_UNREAD + 1,   1);
-	sqlite3_bind_text(s,  ITEM_COLUMN_URL + 1,      bucket->url->ptr, bucket->url->len, NULL);
-	sqlite3_bind_text(s,  ITEM_COLUMN_AUTHORS + 1,  authors_list->ptr, authors_list->len, NULL);
-	sqlite3_bind_text(s,  ITEM_COLUMN_CATEGORIES + 1, bucket->category->ptr, bucket->category->len, NULL);
-	sqlite3_bind_int64(s, ITEM_COLUMN_PUBDATE + 1,  (sqlite3_int64)(bucket->pubdate));
-	sqlite3_bind_int64(s, ITEM_COLUMN_UPDDATE + 1,  (sqlite3_int64)(bucket->upddate));
-	sqlite3_bind_text(s,  ITEM_COLUMN_COMMENTS + 1, bucket->comments->ptr, bucket->comments->len, NULL);
-	sqlite3_bind_text(s,  ITEM_COLUMN_CONTENT + 1,  bucket->content->ptr, bucket->content->len, NULL);
+	sqlite3_bind_text(s,  ITEM_COLUMN_FEED + 1,       feed_url->ptr, feed_url->len, NULL);
+	sqlite3_bind_text(s,  ITEM_COLUMN_TITLE + 1,      bucket->title->ptr, bucket->title->len, NULL);
+	sqlite3_bind_text(s,  ITEM_COLUMN_GUID + 1,       bucket->guid->ptr, bucket->guid->len, NULL);
+	sqlite3_bind_int(s,   ITEM_COLUMN_UNREAD + 1,     1);
+	sqlite3_bind_text(s,  ITEM_COLUMN_URL + 1,        bucket->url->ptr, bucket->url->len, NULL);
+	sqlite3_bind_text(s,  ITEM_COLUMN_AUTHORS + 1,    authors_list->ptr, authors_list->len, NULL);
+	sqlite3_bind_text(s,  ITEM_COLUMN_CATEGORIES + 1, bucket->categories->ptr, bucket->categories->len, NULL);
+	sqlite3_bind_int64(s, ITEM_COLUMN_PUBDATE + 1,    (sqlite3_int64)(bucket->pubdate));
+	sqlite3_bind_int64(s, ITEM_COLUMN_UPDDATE + 1,    (sqlite3_int64)(bucket->upddate));
+	sqlite3_bind_text(s,  ITEM_COLUMN_COMMENTS + 1,   bucket->comments->ptr, bucket->comments->len, NULL);
+	sqlite3_bind_text(s,  ITEM_COLUMN_CONTENT + 1,    bucket->content->ptr, bucket->content->len, NULL);
 	if (sqlite3_step(s) == SQLITE_DONE) {
 		// only try to delete excess items if limit is set
 		if (config_max_items != 0) {
@@ -150,7 +154,7 @@ db_insert_item(struct string *feed_url, struct item_bucket *bucket)
 }
 
 void
-try_item_bucket(struct item_bucket *bucket, struct string *feed_url)
+try_item_bucket(const struct item_bucket *bucket, const struct string *feed_url)
 {
 	if (is_item_unique(feed_url, bucket) == true) {
 		db_insert_item(feed_url, bucket);

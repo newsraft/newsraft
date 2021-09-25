@@ -6,7 +6,7 @@
 
 // return most sensible string for set line
 static char *
-set_image(struct set_line *set)
+set_image(const struct set_line *set)
 {
 	if (set->name != NULL) {
 		return set->name->ptr;
@@ -24,7 +24,7 @@ set_image(struct set_line *set)
 }
 
 void
-print_set_format(size_t index, struct set_line *set)
+print_set_format(size_t index, const struct set_line *set)
 {
 	char *iter = config_menu_set_entry_format;
 	char *percent_ptr = strchr(iter, '%');

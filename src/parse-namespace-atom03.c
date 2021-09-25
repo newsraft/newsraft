@@ -12,14 +12,12 @@ parse_atom03_element_beginning(void *userData, const XML_Char *name, const XML_C
 	else if (strcmp(name, "summary") == 0)  data->pos |= IN_DESCRIPTION_ELEMENT;
 	else if (strcmp(name, "link") == 0)     {
 		data->pos |= IN_LINK_ELEMENT;
-		size_t i;
-		for (i = 0; atts[i] != NULL && strcmp(atts[i], "href") != 0; ++i) {};
-		if (atts[i] != NULL) ++i;
-		if (atts[i] != NULL) {
+		const char *href_link = get_value_of_attribute_key(atts, "href");
+		if (href_link != NULL) {
 			if ((data->pos & IN_ITEM_ELEMENT) != 0)
-				cpy_string_array(data->bucket->url, (char *)atts[i], strlen(atts[i]));
+				cpy_string_array(data->bucket->url, href_link, strlen(href_link));
 			else
-				db_update_feed_text(data->feed_url, "resource", (void *)atts[i], strlen(atts[i]));
+				db_update_feed_text(data->feed_url, "resource", href_link, strlen(href_link));
 		}
 	}
 	else if (strcmp(name, "id") == 0)       data->pos |= IN_GUID_ELEMENT;
@@ -123,7 +121,10 @@ parse_atom03_element_end(void *userData, const XML_Char *name)
 		}
 	} else if (strcmp(name, "category") == 0) {
 		data->pos &= ~IN_CATEGORY_ELEMENT;
-		if ((data->pos & IN_ITEM_ELEMENT) != 0)
-			cpy_string_array(data->bucket->category, data->value, data->value_len);
+		if ((data->pos & IN_ITEM_ELEMENT) == 0) {
+			/* global category, todo */
+		} else {
+			add_category_to_item_bucket(data->bucket, data->value, data->value_len);
+		}
 	}
 }

@@ -2,7 +2,7 @@
 #include "feedeater.h"
 
 struct wstring *
-convert_string_to_wstring(struct string *src)
+convert_string_to_wstring(const struct string *src)
 {
 	struct wstring *wstr = malloc(sizeof(struct wstring));
 	if (wstr == NULL) {

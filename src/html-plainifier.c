@@ -14,8 +14,8 @@ free_atts(char ***atts, size_t atts_count)
 	if (*atts == NULL) {
 		return;
 	}
-	for (size_t a = 0; a < atts_count; ++a) {
-		free((*atts)[a]);
+	for (size_t i = 0; i < atts_count; ++i) {
+		free((*atts)[i]);
 	}
 	free(*atts);
 	*atts = NULL;
@@ -170,8 +170,8 @@ plainify_html(char *buf_with_entities, size_t buf_len)
 				free_atts(&atts, atts_count);
 				atts_count = 0;
 				att_char = 0;
-			} else if ((status & HTML_PREFORMATTED) == 0 && (buf->ptr[i] == '\n' || buf->ptr[i] == ' ')) {
-				if (j != 0 && text[j - 1] != ' ' && text[j - 1] != '\n') {
+			} else if ((status & HTML_PREFORMATTED) == 0 && (buf->ptr[i] == ' ' || buf->ptr[i] == '\n' || buf->ptr[i] == '\t')) {
+				if (j != 0 && text[j - 1] != ' ' && text[j - 1] != '\n' && text[j - 1] != '\t') {
 					text[j++] = ' ';
 				}
 			} else {

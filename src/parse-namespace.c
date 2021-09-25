@@ -18,7 +18,7 @@ struct {
 static char *
 get_namespace_name(const XML_Char *name)
 {
-	char *separator_pos = strrchr(name, ':');
+	char *separator_pos = strrchr(name, NAMESPACE_SEPARATOR);
 	if (separator_pos == NULL) {
 		return NULL;
 	}
@@ -41,7 +41,7 @@ static char *
 get_tag_name(const XML_Char *name)
 {
 	size_t tag_name_len;
-	char *separator_pos = strrchr(name, ':');
+	char *separator_pos = strrchr(name, NAMESPACE_SEPARATOR);
 	if (separator_pos == NULL) {
 		tag_name_len = strlen(name);
 	} else {

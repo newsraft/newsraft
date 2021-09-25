@@ -4,7 +4,7 @@
 #include "feedeater.h"
 
 time_t
-parse_date_rfc822(char *date_str, size_t date_len)
+parse_date_rfc822(const char *date_str, size_t date_len)
 {
 	if (date_len == 0) {
 		return 0;
@@ -23,7 +23,7 @@ parse_date_rfc822(char *date_str, size_t date_len)
 }
 
 time_t
-parse_date_rfc3339(char *date_str, size_t date_len)
+parse_date_rfc3339(const char *date_str, size_t date_len)
 {
 	if (date_len == 0) {
 		return 0;
@@ -42,7 +42,7 @@ parse_date_rfc3339(char *date_str, size_t date_len)
 }
 
 struct string *
-get_config_date_str(time_t *time_ptr)
+get_config_date_str(const time_t *time_ptr)
 {
 	struct tm ts = *gmtime(time_ptr);
 	char time_str[200];

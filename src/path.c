@@ -159,7 +159,7 @@ get_data_dir_path(void)
 }
 
 int
-set_feeds_path(char *path)
+set_feeds_path(const char *path)
 {
 	feeds_file_path = malloc(sizeof(char) * (strlen(path) + 1));
 	if (feeds_file_path != NULL) {
@@ -170,7 +170,7 @@ set_feeds_path(char *path)
 }
 
 int
-set_config_path(char *path)
+set_config_path(const char *path)
 {
 	config_file_path = malloc(sizeof(char) * (strlen(path) + 1));
 	if (config_file_path != NULL) {
@@ -181,7 +181,7 @@ set_config_path(char *path)
 }
 
 int
-set_db_path(char *path)
+set_db_path(const char *path)
 {
 	db_file_path = malloc(sizeof(char) * (strlen(path) + 1));
 	if (db_file_path != NULL) {

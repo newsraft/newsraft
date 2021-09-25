@@ -15,7 +15,7 @@ status_create(void)
 }
 
 void
-status_write(char *format, ...)
+status_write(const char *format, ...)
 {
 	va_list args;
 	va_start(args, format);

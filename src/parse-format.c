@@ -41,71 +41,6 @@ parse_stream_callback(void *contents, size_t length, size_t nmemb, void *userp)
 	return real_size;
 }
 
-static int
-init_item_bucket(struct item_bucket *bucket)
-{
-	if ((bucket->guid = create_empty_string()) == NULL) goto init_item_bucket_undo1;
-	if ((bucket->title = create_empty_string()) == NULL) goto init_item_bucket_undo2;
-	if ((bucket->url = create_empty_string()) == NULL) goto init_item_bucket_undo3;
-	if ((bucket->category = create_empty_string()) == NULL) goto init_item_bucket_undo4;
-	if ((bucket->comments = create_empty_string()) == NULL) goto init_item_bucket_undo5;
-	if ((bucket->content = create_empty_string()) == NULL) goto init_item_bucket_undo6;
-	bucket->authors = NULL;
-	bucket->authors_count = 0;
-	bucket->pubdate = 0;
-	bucket->upddate = 0;
-	return 0;
-init_item_bucket_undo6:
-	free_string(bucket->comments);
-init_item_bucket_undo5:
-	free_string(bucket->category);
-init_item_bucket_undo4:
-	free_string(bucket->url);
-init_item_bucket_undo3:
-	free_string(bucket->title);
-init_item_bucket_undo2:
-	free_string(bucket->guid);
-init_item_bucket_undo1:
-	return 1;
-}
-
-void
-drop_item_bucket(struct item_bucket *bucket)
-{
-	empty_string(bucket->guid);
-	empty_string(bucket->title);
-	empty_string(bucket->url);
-	empty_string(bucket->category);
-	empty_string(bucket->comments);
-	empty_string(bucket->content);
-	bucket->pubdate = 0;
-	bucket->upddate = 0;
-
-	for (size_t i = 0; i < bucket->authors_count; ++i) {
-		free_string(bucket->authors[i].name);
-		free_string(bucket->authors[i].link);
-		free_string(bucket->authors[i].email);
-	}
-	bucket->authors_count = 0;
-}
-
-static void
-free_item_bucket(struct item_bucket *bucket)
-{
-	free_string(bucket->guid);
-	free_string(bucket->title);
-	free_string(bucket->url);
-	free_string(bucket->category);
-	free_string(bucket->comments);
-	free_string(bucket->content);
-	for (size_t i = 0; i < bucket->authors_count; ++i) {
-		free_string(bucket->authors[i].name);
-		free_string(bucket->authors[i].link);
-		free_string(bucket->authors[i].email);
-	}
-	free(bucket->authors);
-}
-
 static void XMLCALL
 process_element_start(void *userData, const XML_Char *name, const XML_Char **atts) {
 	struct parser_data *data = userData;
@@ -142,7 +77,7 @@ process_element_finish(void *userData, const XML_Char *name) {
 }
 
 int
-feed_process(struct string *url)
+feed_process(const struct string *url)
 {
 	int error = 0;
 
@@ -153,7 +88,7 @@ feed_process(struct string *url)
 		return error;
 	}
 
-	XML_Parser parser = XML_ParserCreateNS(NULL, ':');
+	XML_Parser parser = XML_ParserCreateNS(NULL, NAMESPACE_SEPARATOR);
 	struct parser_data data = {
 		.value     = malloc(sizeof(char) * config_init_parser_buf_size),
 		.value_len = 0,

@@ -9,6 +9,7 @@
 #include <wchar.h>
 #define LENGTH(A) (sizeof(A)/sizeof(*A))
 #define DEBUG_WRITE_DB_PREPARE_FAIL debug_write(DBG_WARN, "failed to prepare statement: %s\n", sqlite3_errmsg(db))
+#define NAMESPACE_SEPARATOR ' '
 
 struct string {
 	char *ptr;
@@ -57,7 +58,7 @@ struct parser_data {
 	int depth;
 	int pos;
 	int prev_pos;
-	struct string *feed_url;
+	const struct string *feed_url;
 	struct item_bucket *bucket;
 	XML_Parser *parser;
 	bool fail;
@@ -65,8 +66,8 @@ struct parser_data {
 
 struct author {
 	struct string *name;
-	struct string *link;
 	struct string *email;
+	struct string *link;
 };
 
 // used to bufferize item before writing to disk
@@ -76,8 +77,8 @@ struct item_bucket {
 	struct string *title;
 	struct string *url;
 	struct string *content;
-	struct string *category;
 	struct string *comments;
+	struct string *categories;
 	struct author *authors;
 	size_t authors_count;
 	time_t pubdate;
@@ -154,21 +155,21 @@ void free_list_menu(void);
 void enter_sets_menu_loop(void);
 int load_sets(void);
 void free_sets(void);
-void print_set_format(size_t index, struct set_line *set);
+void print_set_format(size_t index, const struct set_line *set);
 
 // items
-int enter_items_menu_loop(struct set_condition *st);
+int enter_items_menu_loop(const struct set_condition *st);
 
 // contents
 int cat_item_meta_data_to_buf(struct string *buf, sqlite3_stmt *res);
 struct string *expand_html_entities(char *buf, size_t buf_len);
-struct string *plainify_html(char *buff, size_t buff_len);
+struct string *plainify_html(char *buf, size_t buff_len);
 int enter_item_contents_menu_loop(int rowid);
 
 // path
-int set_feeds_path(char *path);
-int set_config_path(char *path);
-int set_db_path(char *path);
+int set_feeds_path(const char *path);
+int set_config_path(const char *path);
+int set_db_path(const char *path);
 char *get_feeds_path(void);
 char *get_config_path(void);
 char *get_db_path(void);
@@ -178,12 +179,12 @@ void free_config_data(void);
 int load_config(void);
 
 // date parsing
-time_t parse_date_rfc822(char *date_str, size_t date_len);
-time_t parse_date_rfc3339(char *date_str, size_t date_len);
-struct string *get_config_date_str(time_t *time_ptr);
+time_t parse_date_rfc822(const char *date_str, size_t date_len);
+time_t parse_date_rfc3339(const char *date_str, size_t date_len);
+struct string *get_config_date_str(const time_t *time_ptr);
 
 // feed parsing
-int feed_process(struct string *url);
+int feed_process(const struct string *url);
 void drop_item_bucket(struct item_bucket *bucket);
 
 // tags
@@ -199,13 +200,13 @@ void free_tags(void);
 int db_init(void);
 void db_stop(void);
 int db_update_item_int(int rowid, const char *state, int value);
-void db_update_feed_text(struct string *feed_url, char *column, char *data, size_t data_len);
-size_t get_unread_items_count_of_feed(struct string *url);
-void try_item_bucket(struct item_bucket *bucket, struct string *feed_url);
+void db_update_feed_text(const struct string *feed_url, const char *column, const char *data, size_t data_len);
+size_t get_unread_items_count_of_feed(const struct string *url);
+void try_item_bucket(const struct item_bucket *bucket, const struct string *feed_url);
 
 // functions related to window which displays informational messages (see status.c file)
 int status_create(void);
-void status_write(char *format, ...);
+void status_write(const char *format, ...);
 void status_clean(void);
 void status_delete(void);
 
@@ -217,19 +218,27 @@ int handle_input(void);
 void input_delete(void);
 
 // string
-struct string *create_string(char *src, size_t len);
+struct string *create_string(const char *src, size_t len);
 struct string *create_empty_string(void);
-void cpy_string_string(struct string *dest, struct string *src);
-void cpy_string_array(struct string *dest, char *src_ptr, size_t src_len);
-void cat_string_string(struct string *dest, struct string *src);
-void cat_string_array(struct string *dest, char *src, size_t src_len);
+void cpy_string_string(struct string *dest, const struct string *src);
+void cpy_string_array(struct string *dest, const char *src_ptr, size_t src_len);
+void cat_string_string(struct string *dest, const struct string *src);
+void cat_string_array(struct string *dest, const char *src, size_t src_len);
 void cat_string_char(struct string *dest, char c);
 void empty_string(struct string *str);
 void free_string(struct string *str);
 void strip_whitespace_from_edges(char *str, size_t *len);
 // wstring
-struct wstring *convert_string_to_wstring(struct string *src);
+struct wstring *convert_string_to_wstring(const struct string *src);
 void free_wstring(struct wstring *wstr);
+
+const char *get_value_of_attribute_key(const XML_Char **atts, const char *key);
+
+// item bucket functions
+int init_item_bucket(struct item_bucket *bucket);
+void drop_item_bucket(struct item_bucket *bucket);
+void free_item_bucket(struct item_bucket *bucket);
+void add_category_to_item_bucket(const struct item_bucket *bucket, const char *category, size_t category_len);
 
 // xml element handlers
 int parse_namespace_element_beginning        (void *userData, const XML_Char *name, const XML_Char **atts);
@@ -248,7 +257,7 @@ void XMLCALL parse_dc_element_beginning      (void *userData, const XML_Char *na
 void XMLCALL parse_dc_element_end            (void *userData, const XML_Char *name);
 
 // debug
-int debug_init(char *path);
+int debug_init(const char *path);
 void debug_write(enum debug_level lvl, const char *format, ...);
 void debug_stop(void);
 

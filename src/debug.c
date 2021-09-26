@@ -9,14 +9,14 @@ debug_init(const char *path)
 {
 	if (path == NULL) {
 		fprintf(stderr, "path to debug file is empty!\n");
-		return 1;
+		return 1; // failure
 	}
 	f = fopen(path, "w");
 	if (f == NULL) {
 		fprintf(stderr, "could not open \"%s\" for writing a debug information!\n", path);
-		return 1;
+		return 1; // failure
 	}
-	return 0;
+	return 0; // success
 }
 
 void

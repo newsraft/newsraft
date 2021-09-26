@@ -54,6 +54,7 @@ feedeater_src = [
 	'src/interface-status.c',
 	'src/interface-input.c',
 	'src/items.c',
+	'src/items-format.c',
 	'src/date-utils.c',
 	'src/parse.c',
 	'src/parse-format.c',

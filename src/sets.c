@@ -408,7 +408,7 @@ enter_sets_menu_loop(void)
 	struct set_condition *st;
 	while (1) {
 		dest = handle_input();
-		if (dest == INPUT_SOFT_QUIT || dest == INPUT_HARD_QUIT) {
+		if (dest == INPUT_QUIT_SOFT || dest == INPUT_QUIT_HARD) {
 			break;
 		}
 		if ((st = create_set_condition(&sets[view_sel])) == NULL) {
@@ -417,9 +417,9 @@ enter_sets_menu_loop(void)
 		}
 		dest = enter_items_menu_loop(st);
 		free_set_condition(st);
-		if (dest == INPUT_HARD_QUIT) { /* exit the program */
+		if (dest == INPUT_QUIT_HARD) { /* exit the program */
 			break;
-		} else if (dest == INPUT_SOFT_QUIT) { /* return to sets menu again */
+		} else if (dest == INPUT_QUIT_SOFT) { /* return to sets menu again */
 			set_sets_input_handlers();
 			clear();
 			refresh();

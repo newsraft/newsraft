@@ -54,29 +54,29 @@ main(int argc, char **argv)
 	}
 
 	int error = 0;
-	if (load_config() != 0)      { error = 1; goto main_undo1; }
-	if (db_init() != 0)          { error = 2; goto main_undo2; }
-	if (load_sets() != 0)        { error = 3; goto main_undo3; }
-	if (initscr() == NULL)       { error = 4; goto main_undo4; }
-	if (create_list_menu() != 0) { error = 5; goto main_undo5; }
-	if (status_create() != 0)    { error = 6; goto main_undo6; }
-	if (input_create() != 0)     { error = 7; goto main_undo7; }
+	if (load_default_binds() != 0) { error = 1; goto main_undo1; }
+	if (load_config() != 0)        { error = 2; goto main_undo2; }
+	if (db_init() != 0)            { error = 3; goto main_undo3; }
+	if (load_sets() != 0)          { error = 4; goto main_undo4; }
+	if (initscr() == NULL)         { error = 5; goto main_undo5; }
+	if (create_list_menu() != 0)   { error = 6; goto main_undo6; }
+	if (status_create() != 0)      { error = 7; goto main_undo7; }
 
 	enter_sets_menu_loop();
 
-	input_delete();
-main_undo7:
 	status_delete();
-main_undo6:
+main_undo7:
 	free_list_menu();
-main_undo5:
+main_undo6:
 	endwin();
-main_undo4:
+main_undo5:
 	free_sets();
-main_undo3:
+main_undo4:
 	db_stop();
-main_undo2:
+main_undo3:
 	free_config_data();
+main_undo2:
+	free_binds();
 main_undo1:
 	debug_stop();
 	return error;

@@ -6,7 +6,7 @@
 #include <sys/stat.h>
 #include "feedeater.h"
 
-#define SELECT_CMD_PART_1 "SELECT rowid, feed, title unread FROM items WHERE"
+#define SELECT_CMD_PART_1 "SELECT rowid, feed, title, unread FROM items WHERE"
 #define SELECT_CMD_PART_3 " ORDER BY upddate DESC, pubdate DESC, rowid ASC"
 
 static struct item_line *items = NULL;
@@ -16,13 +16,26 @@ static size_t view_sel;
 static size_t view_min;
 static size_t view_max;
 
+static void
+free_items(void)
+{
+	if (items == NULL) return;
+	for (size_t i = 0; i < items_count; ++i) {
+		free_string(items[i].feed_url);
+		free_string(items[i].title);
+	}
+	free(items);
+	items = NULL;
+	items_count = 0;
+}
+
 static int
 load_items(const struct set_condition *st)
 {
 	char *cmd = malloc(sizeof(SELECT_CMD_PART_1) + st->db_cmd->len + sizeof(SELECT_CMD_PART_3) + 1);
 	if (cmd == NULL) {
 		status_write("[error] not enough memory");
-		return 1;
+		return 1; // failure
 	}
 	strcpy(cmd, SELECT_CMD_PART_1);
 	strcat(cmd, st->db_cmd->ptr);
@@ -59,27 +72,29 @@ load_items(const struct set_condition *st)
 		debug_write(DBG_ERR, "failed to prepare SELECT statement: %s\n", sqlite3_errmsg(db));
 		error = 1;
 	}
+
 	sqlite3_finalize(res);
 	free(cmd);
+
 	if (error == 1) {
-		return 1;
+		return 1; // failure
 	}
+
 	if (view_sel == SIZE_MAX) {
 		status_write("[error] no items found");
-		return 1; // no items found
+		return 1; // failure, no items found
 	}
-	return 0;
+
+	return 0; // success
 }
 
 static void
 item_expose(size_t index)
 {
-	struct item_line *item = &items[index];
-	werase(item->window);
-	mvwprintw(item->window, 0, 3, item->is_unread ? "N" : " ");
-	mvwprintw(item->window, 0, 6, "%s", item->title ? item->title->ptr : "<untitled>");
-	mvwchgat(item->window, 0, 0, -1, (index == view_sel) ? A_REVERSE : A_NORMAL, 0, NULL);
-	wrefresh(item->window);
+	werase(items[index].window);
+	print_item_format(index, &items[index]);
+	mvwchgat(items[index].window, 0, 0, -1, (index == view_sel) ? A_REVERSE : A_NORMAL, 0, NULL);
+	wrefresh(items[index].window);
 }
 
 static void
@@ -92,19 +107,6 @@ show_items(void)
 }
 
 static void
-free_items(void)
-{
-	if (items == NULL) return;
-	for (size_t i = 0; i < items_count; ++i) {
-		free_string(items[i].feed_url);
-		free_string(items[i].title);
-	}
-	free(items);
-	items = NULL;
-	items_count = 0;
-}
-
-static void // TODO: generalize view_select within interface-list-menu.c
 view_select(size_t i)
 {
 	size_t new_sel = i;
@@ -140,12 +142,30 @@ view_select(size_t i)
 }
 
 static void
-mark_item_unread(size_t index, bool value)
+mark_item_read(size_t index)
 {
-	struct item_line *item = &items[index];
-	if (db_update_item_int(item->rowid, "unread", value)) {
-		item->is_unread = value;
-		item_expose(index);
+	if (items[index].is_unread == 0) {
+		return;
+	}
+	if (db_update_item_int(items[index].rowid, "unread", 0)) {
+		items[index].is_unread = 0;
+		if (index >= view_min && index <= view_max) {
+			item_expose(index);
+		}
+	}
+}
+
+static void
+mark_item_unread(size_t index)
+{
+	if (items[index].is_unread == 1) {
+		return;
+	}
+	if (db_update_item_int(items[index].rowid, "unread", 1)) {
+		items[index].is_unread = 1;
+		if (index >= view_min && index <= view_max) {
+			item_expose(index);
+		}
 	}
 }
 
@@ -174,15 +194,31 @@ view_select_last(void)
 }
 
 static void
-input_mark_item_read(void)
+mark_selected_item_read(void)
 {
-	mark_item_unread(view_sel, false);
+	mark_item_read(view_sel);
 }
 
 static void
-input_mark_item_unread(void)
+mark_selected_item_unread(void)
 {
-	mark_item_unread(view_sel, true);
+	mark_item_unread(view_sel);
+}
+
+static void
+mark_all_items_read(void)
+{
+	for (size_t i = 0; i < items_count; ++i) {
+		mark_item_read(i);
+	}
+}
+
+static void
+mark_all_items_unread(void)
+{
+	for (size_t i = 0; i < items_count; ++i) {
+		mark_item_unread(i);
+	}
 }
 
 static void
@@ -200,8 +236,10 @@ set_items_input_handlers(void)
 	set_input_handler(INPUT_SELECT_PREV, &view_select_prev);
 	set_input_handler(INPUT_SELECT_FIRST, &view_select_first);
 	set_input_handler(INPUT_SELECT_LAST, &view_select_last);
-	set_input_handler(INPUT_MARK_READ, &input_mark_item_read);
-	set_input_handler(INPUT_MARK_UNREAD, &input_mark_item_unread);
+	set_input_handler(INPUT_MARK_READ, &mark_selected_item_read);
+	set_input_handler(INPUT_MARK_READ_ALL, &mark_all_items_read);
+	set_input_handler(INPUT_MARK_UNREAD, &mark_selected_item_unread);
+	set_input_handler(INPUT_MARK_UNREAD_ALL, &mark_all_items_unread);
 	set_input_handler(INPUT_RESIZE, &redraw_items_by_resize);
 }
 
@@ -224,17 +262,17 @@ enter_items_menu_loop(const struct set_condition *st)
 	int dest;
 	while (1) {
 		dest = handle_input();
-		if (dest == INPUT_SOFT_QUIT || dest == INPUT_HARD_QUIT) {
+		if (dest == INPUT_QUIT_SOFT || dest == INPUT_QUIT_HARD) {
 			break;
 		} else if (dest == INPUT_ENTER) {
 			debug_write(DBG_INFO, "trying to view an \"%s\" item of \"%s\" feed\n",
 						items[view_sel].title ? items[view_sel].title->ptr : "<untitled>",
 						items[view_sel].feed_url->ptr);
 			dest = enter_item_contents_menu_loop(items[view_sel].rowid);
-			if (dest == INPUT_HARD_QUIT) {
+			if (dest == INPUT_QUIT_HARD) {
 				break;
-			} else if (dest == INPUT_SOFT_QUIT) {
-				items[view_sel].is_unread = false;
+			} else if (dest == INPUT_QUIT_SOFT) {
+				items[view_sel].is_unread = 0;
 				set_items_input_handlers();
 				clear();
 				refresh();

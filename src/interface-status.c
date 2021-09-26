@@ -11,6 +11,19 @@ status_create(void)
 		fprintf(stderr, "could not create status line\n");
 		return 1;
 	}
+	if (cbreak() == ERR) {
+		fprintf(stderr, "can't disable line buffering and erase/kill character-processing\n");
+		return 1;
+	}
+	if (curs_set(0) == ERR) { // try to hide cursor
+		debug_write(DBG_ERR, "can't hide cursor\n");
+	}
+	if (noecho() == ERR) {
+		debug_write(DBG_ERR, "can't disable echoing of characters typed by the user\n");
+	}
+	if (keypad(stdscr, TRUE) == ERR) { // used to enable arrow keys, function keys...
+		debug_write(DBG_ERR, "can't enable extended keys\n");
+	}
 	return 0;
 }
 

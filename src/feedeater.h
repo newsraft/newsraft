@@ -129,17 +129,19 @@ enum debug_level {
 
 enum input_cmd {
 	INPUT_SELECT_NEXT = 0,
+	INPUT_SELECT_NEXT_PAGE,
 	INPUT_SELECT_PREV,
+	INPUT_SELECT_PREV_PAGE,
 	INPUT_SELECT_FIRST,
 	INPUT_SELECT_LAST,
 	INPUT_ENTER,
 	INPUT_RELOAD,
 	INPUT_RELOAD_ALL,
-	INPUT_SOFT_QUIT,
-	INPUT_HARD_QUIT,
+	INPUT_QUIT_SOFT,
+	INPUT_QUIT_HARD,
 	INPUT_MARK_READ,
-	INPUT_MARK_UNREAD,
 	INPUT_MARK_READ_ALL,
+	INPUT_MARK_UNREAD,
 	INPUT_MARK_UNREAD_ALL,
 	INPUT_RESIZE,
 	INPUTS_COUNT,
@@ -159,6 +161,7 @@ void print_set_format(size_t index, const struct set_line *set);
 
 // items
 int enter_items_menu_loop(const struct set_condition *st);
+void print_item_format(size_t index, const struct item_line *item);
 
 // contents
 int cat_item_meta_data_to_buf(struct string *buf, sqlite3_stmt *res);
@@ -176,6 +179,7 @@ char *get_db_path(void);
 
 // config processing
 void free_config_data(void);
+int assign_default_values_to_empty_config_strings(void);
 int load_config(void);
 
 // date parsing
@@ -211,11 +215,12 @@ void status_clean(void);
 void status_delete(void);
 
 // functions related to window which handles user input (see interface-input.c file)
-int input_create(void);
 void reset_input_handlers(void);
 void set_input_handler(enum input_cmd, void (*func)(void));
 int handle_input(void);
-void input_delete(void);
+int assign_command_to_key(int bind_key, enum input_cmd bind_cmd);
+int load_default_binds(void);
+void free_binds(void);
 
 // string
 struct string *create_string(const char *src, size_t len);
@@ -266,14 +271,7 @@ extern sqlite3 *db;
 extern size_t config_max_items; // 0 == inf
 extern size_t config_init_parser_buf_size;
 extern char*  config_menu_set_entry_format;
+extern char*  config_menu_item_entry_format;
 extern char*  config_contents_meta_data;
 extern char*  config_contents_date_format;
-extern char   config_key_mark_read;
-extern char   config_key_mark_read_all;
-extern char   config_key_mark_unread;
-extern char   config_key_mark_unread_all;
-extern char   config_key_download;
-extern char   config_key_download_all;
-extern char   config_key_soft_quit;
-extern char   config_key_hard_quit;
 #endif // FEEDEATER_H

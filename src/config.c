@@ -1,19 +1,13 @@
 #include <string.h>
 #include "feedeater.h"
 
-static void
-free_config_strings(void)
+void
+free_config_data(void)
 {
 	free(config_menu_set_entry_format);
 	free(config_menu_item_entry_format);
 	free(config_contents_meta_data);
 	free(config_contents_date_format);
-}
-
-void
-free_config_data(void)
-{
-	free_config_strings();
 }
 
 int

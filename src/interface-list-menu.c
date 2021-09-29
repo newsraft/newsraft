@@ -2,6 +2,8 @@
 
 static WINDOW **windows = NULL;
 static int windows_count;
+int list_menu_height;
+int list_menu_width;
 
 void
 free_list_menu(void)
@@ -12,19 +14,48 @@ free_list_menu(void)
 	free(windows);
 }
 
+static int
+get_terminal_size(void)
+{
+	list_menu_height = getmaxy(stdscr) - 1;
+	if ((list_menu_height + 1) == ERR) {
+		debug_write(DBG_ERR, "failed to get height of the terminal\n");
+		return 1; // failure
+	}
+	if (list_menu_height < 1) {
+		debug_write(DBG_ERR, "terminal is too short\n");
+		return 1; // failure
+	}
+
+	list_menu_width = getmaxx(stdscr);
+	if (list_menu_width == ERR) {
+		debug_write(DBG_ERR, "failed to get width of the terminal\n");
+		return 1; // failure
+	}
+	if (list_menu_width < 4) {
+		debug_write(DBG_ERR, "terminal is too narrow\n");
+		return 1; // failure
+	}
+
+	return 0; // success
+}
+
 int
 create_list_menu(void)
 {
-	if (LINES < 2) {
-		return 1;
+	if (get_terminal_size() != 0) {
+		fprintf(stderr, "failed to get terminal size\n");
+		return 1; // failure
 	}
-	windows_count = LINES - 1;
-	windows = realloc(windows, sizeof(WINDOW *) * windows_count);
+
+	windows_count = list_menu_height;
+	windows = malloc(sizeof(WINDOW *) * windows_count);
 	if (windows == NULL) {
-		return 1;
+		fprintf(stderr, "not enough memory for creating list menu\n");
+		return 1; // failure
 	}
 	for (int i = 0; i < windows_count; ++i) {
-		windows[i] = newwin(1, COLS, i, 0);
+		windows[i] = newwin(1, list_menu_width, i, 0);
 		if (windows[i] == NULL) {
 			free_list_menu();
 			return 1;
@@ -36,18 +67,22 @@ create_list_menu(void)
 void
 resize_list_menu(void)
 {
-	int new_windows_count = LINES - 1;
+	get_terminal_size();
+
+	int new_windows_count = list_menu_height;
 	if (new_windows_count > windows_count) {
 		windows = realloc(windows, sizeof(WINDOW *) * new_windows_count);
 		for (int i = windows_count - 1; i < new_windows_count; ++i) {
-			windows[i] = newwin(1, COLS, i, 0);
+			windows[i] = newwin(1, list_menu_width, i, 0);
 		}
-	} else if (new_windows_count < windows_count) {
-		/* You might think that these windows that are not needed anymore should be deleted,
-		 * but this function is called on screen resize, on which ncurses automatically
-		 * deletes everything that gone out of bounds. Hence do nothing in this case... */
 	}
+	// if (new_windows_count < windows_count) {
+	//     You might think that these windows that are not needed anymore should be deleted,
+	//     but this function is called on screen resize, on which ncurses automatically
+	//     deletes everything that entirely gone out of bounds. Hence do nothing in this case...
+	// }
 	windows_count = new_windows_count;
+	refresh();
 }
 
 WINDOW *

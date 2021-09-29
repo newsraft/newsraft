@@ -158,10 +158,12 @@ void enter_sets_menu_loop(void);
 int load_sets(void);
 void free_sets(void);
 void print_set_format(size_t index, const struct set_line *set);
+void resize_sets_global_action(void);
 
 // items
 int enter_items_menu_loop(const struct set_condition *st);
 void print_item_format(size_t index, const struct item_line *item);
+void resize_items_global_action(void);
 
 // contents
 int cat_item_meta_data_to_buf(struct string *buf, sqlite3_stmt *res);
@@ -267,6 +269,8 @@ void debug_write(enum debug_level lvl, const char *format, ...);
 void debug_stop(void);
 
 extern sqlite3 *db;
+extern int list_menu_height;
+extern int list_menu_width;
 
 extern size_t config_max_items; // 0 == inf
 extern size_t config_init_parser_buf_size;

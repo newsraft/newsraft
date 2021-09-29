@@ -7,10 +7,10 @@
 
 static struct set_line *sets = NULL;
 static size_t sets_count = 0;
-static size_t view_sel;
-// [view_min; view_max] is index range of displayed sets
-static size_t view_min;
-static size_t view_max;
+
+static size_t view_sel; // index of selected item
+static size_t view_min; // index of first visible item
+static size_t view_max; // index of last visible item
 
 void
 free_sets(void)
@@ -272,13 +272,13 @@ view_select(size_t i)
 	}
 
 	if (new_sel > view_max) {
-		view_min = new_sel - LINES + 2;
+		view_min = new_sel - (list_menu_height - 1);
 		view_max = new_sel;
 		view_sel = new_sel;
 		show_sets();
 	} else if (new_sel < view_min) {
 		view_min = new_sel;
-		view_max = new_sel + LINES - 2;
+		view_max = new_sel + (list_menu_height - 1);
 		view_sel = new_sel;
 		show_sets();
 	} else {
@@ -373,10 +373,18 @@ reload_all_feeds(void)
 	}
 }
 
-static void
-redraw_sets_by_resize(void)
+void
+resize_sets_global_action(void)
 {
-	view_max = view_min + LINES - 2;
+	view_min = view_sel;
+	view_max = view_min + (list_menu_height - 1);
+}
+
+static void
+resize_sets_local_action(void)
+{
+	clear();
+	refresh();
 	show_sets();
 }
 
@@ -390,50 +398,51 @@ set_sets_input_handlers(void)
 	set_input_handler(INPUT_SELECT_LAST, &view_select_last);
 	set_input_handler(INPUT_RELOAD, &reload_current_set);
 	set_input_handler(INPUT_RELOAD_ALL, &reload_all_feeds);
-	set_input_handler(INPUT_RESIZE, &redraw_sets_by_resize);
+	set_input_handler(INPUT_RESIZE, &resize_sets_local_action);
 }
 
 void
 enter_sets_menu_loop(void)
 {
 	view_min = 0;
-	view_max = LINES - 2;
-	set_sets_input_handlers();
+	view_max = list_menu_height - 1;
+
 	clear();
 	refresh();
 	show_sets();
 
-	int dest;
-	size_t new_unread_count;
+	set_sets_input_handlers();
+
+	int destination;
 	struct set_condition *st;
 	while (1) {
-		dest = handle_input();
-		if (dest == INPUT_QUIT_SOFT || dest == INPUT_QUIT_HARD) {
+		destination = handle_input();
+		if (destination == INPUT_QUIT_SOFT || destination == INPUT_QUIT_HARD) {
 			break;
 		}
 		if ((st = create_set_condition(&sets[view_sel])) == NULL) {
 			/* error message is written to status by create_set_condition */
 			continue;
 		}
-		dest = enter_items_menu_loop(st);
-		free_set_condition(st);
-		if (dest == INPUT_QUIT_HARD) { /* exit the program */
-			break;
-		} else if (dest == INPUT_QUIT_SOFT) { /* return to sets menu again */
+
+		destination = enter_items_menu_loop(st);
+
+		if (destination == INPUT_QUIT_SOFT) { /* stay in sets menu */
 			set_sets_input_handlers();
-			clear();
-			refresh();
-			show_sets();
 			if (sets[view_sel].link != NULL) {
-				/* check if feed changed its read state */
-				new_unread_count = get_unread_items_count_of_feed(sets[view_sel].link);
-				if (sets[view_sel].unread_count != new_unread_count) {
-					sets[view_sel].unread_count = new_unread_count;
-					set_expose(view_sel);
-				}
+				sets[view_sel].unread_count = get_unread_items_count_of_feed(sets[view_sel].link);
 			} else if (sets[view_sel].tags != NULL) {
 				/* TODO check if filter changed its read state */
 			}
+			clear();
+			refresh();
+			show_sets();
+		}
+
+		free_set_condition(st);
+
+		if (destination == INPUT_QUIT_HARD) { /* exit the program */
+			break;
 		}
 	}
 }

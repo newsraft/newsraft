@@ -33,6 +33,8 @@ get_input_command(void)
 
 		/* rearrange list menu windows */
 		resize_list_menu();
+		resize_sets_global_action();
+		resize_items_global_action();
 
 		/* recreate a status window */
 		status_delete();

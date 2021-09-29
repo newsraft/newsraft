@@ -5,8 +5,8 @@
 
 static WINDOW *window;
 static int view_min; // index of first visible line (row)
-static int view_area_height;
 static int pad_height;
+static struct string *contents;
 
 static sqlite3_stmt *
 find_item_by_its_rowid_in_db(int rowid)
@@ -57,11 +57,11 @@ get_contents_of_item(sqlite3_stmt *res)
 }
 
 static int
-calculate_pad_height_for_wstring(struct wstring *wstr)
+calculate_pad_height_for_wstring(const struct wstring *wstr)
 {
 	int pad_height = 1, not_newline = 0;
 	for (size_t i = 0; i < wstr->len; ++i) {
-		if ((wstr->ptr[i] == L'\n') || (not_newline > COLS)) {
+		if ((wstr->ptr[i] == L'\n') || (not_newline > list_menu_width)) {
 			not_newline = 0;
 			++pad_height;
 		} else {
@@ -72,11 +72,11 @@ calculate_pad_height_for_wstring(struct wstring *wstr)
 }
 
 static int
-calculate_pad_height_for_string(struct string *buf)
+calculate_pad_height_for_string(const struct string *buf)
 {
 	int pad_height = 1, not_newline = 0;
 	for (size_t i = 0; i < buf->len; ++i) {
-		if ((buf->ptr[i] == '\n') || (not_newline > COLS)) {
+		if ((buf->ptr[i] == '\n') || (not_newline > list_menu_width)) {
 			not_newline = 0;
 			++pad_height;
 		} else {
@@ -96,12 +96,12 @@ make_sure_pad_has_enough_lines(WINDOW *pad, int needed_lines)
 	if (needed_lines > pad_height) {
 		debug_write(DBG_WARN, "pad had to expand from %d to %d lines!\n", pad_height, needed_lines);
 		pad_height = needed_lines;
-		wresize(pad, pad_height, COLS);
+		wresize(pad, pad_height, list_menu_width);
 	}
 }
 
 static void
-write_wstring_to_pad_without_linebreaks(WINDOW *pad, struct wstring *wbuf)
+write_wstring_to_pad_without_linebreaks(WINDOW *pad, const struct wstring *wbuf)
 {
 	int newlines = 0;
 	wchar_t *iter = wbuf->ptr;
@@ -109,11 +109,11 @@ write_wstring_to_pad_without_linebreaks(WINDOW *pad, struct wstring *wbuf)
 	while (1) {
 		newline_char = wcschr(iter, L'\n');
 		if (newline_char != NULL) {
-			while (newline_char - iter > COLS) {
+			while (newline_char - iter > list_menu_width) {
 				make_sure_pad_has_enough_lines(pad, newlines + 1);
 				wmove(pad, newlines++, 0);
-				waddnwstr(pad, iter, COLS);
-				iter += COLS;
+				waddnwstr(pad, iter, list_menu_width);
+				iter += list_menu_width;
 			}
 			make_sure_pad_has_enough_lines(pad, newlines + 1);
 			wmove(pad, newlines++, 0);
@@ -123,8 +123,8 @@ write_wstring_to_pad_without_linebreaks(WINDOW *pad, struct wstring *wbuf)
 			while (iter < wbuf->ptr + wbuf->len) {
 				make_sure_pad_has_enough_lines(pad, newlines + 1);
 				wmove(pad, newlines++, 0);
-				waddnwstr(pad, iter, COLS);
-				iter += COLS;
+				waddnwstr(pad, iter, list_menu_width);
+				iter += list_menu_width;
 			}
 			break;
 		}
@@ -132,7 +132,7 @@ write_wstring_to_pad_without_linebreaks(WINDOW *pad, struct wstring *wbuf)
 }
 
 static void
-write_string_to_pad_without_linebreaks(WINDOW *pad, struct string *buf)
+write_string_to_pad_without_linebreaks(WINDOW *pad, const struct string *buf)
 {
 	int newlines = 0;
 	char *iter = buf->ptr;
@@ -140,11 +140,11 @@ write_string_to_pad_without_linebreaks(WINDOW *pad, struct string *buf)
 	while (1) {
 		newline_char = strchr(iter, '\n');
 		if (newline_char != NULL) {
-			while (newline_char - iter > COLS) {
+			while (newline_char - iter > list_menu_width) {
 				make_sure_pad_has_enough_lines(pad, newlines + 1);
 				wmove(pad, newlines++, 0);
-				waddnstr(pad, iter, COLS);
-				iter += COLS;
+				waddnstr(pad, iter, list_menu_width);
+				iter += list_menu_width;
 			}
 			make_sure_pad_has_enough_lines(pad, newlines + 1);
 			wmove(pad, newlines++, 0);
@@ -154,8 +154,8 @@ write_string_to_pad_without_linebreaks(WINDOW *pad, struct string *buf)
 			while (iter < buf->ptr + buf->len) {
 				make_sure_pad_has_enough_lines(pad, newlines + 1);
 				wmove(pad, newlines++, 0);
-				waddnstr(pad, iter, COLS);
-				iter += COLS;
+				waddnstr(pad, iter, list_menu_width);
+				iter += list_menu_width;
 			}
 			break;
 		}
@@ -163,17 +163,17 @@ write_string_to_pad_without_linebreaks(WINDOW *pad, struct string *buf)
 }
 
 static WINDOW *
-create_contents_window(struct string *buf)
+create_window_with_contents()
 {
 	WINDOW *pad;
 	if (1) { // buffer is multi-byte
-		struct wstring *wbuf = convert_string_to_wstring(buf);
+		struct wstring *wbuf = convert_string_to_wstring(contents);
 		if (wbuf == NULL) {
 			return NULL;
 		}
 
 		pad_height = calculate_pad_height_for_wstring(wbuf);
-		pad = newpad(pad_height, COLS);
+		pad = newpad(pad_height, list_menu_width);
 		if (pad == NULL) {
 			debug_write(DBG_ERR, "could not create pad window for item contents\n");
 			free_wstring(wbuf);
@@ -184,14 +184,14 @@ create_contents_window(struct string *buf)
 
 		free_wstring(wbuf);
 	} else { // buffer is single-byte
-		pad_height = calculate_pad_height_for_string(buf);
-		pad = newpad(pad_height, COLS);
+		pad_height = calculate_pad_height_for_string(contents);
+		pad = newpad(pad_height, list_menu_width);
 		if (pad == NULL) {
 			debug_write(DBG_ERR, "could not create pad window for item contents\n");
 			return NULL;
 		}
 
-		write_string_to_pad_without_linebreaks(pad, buf);
+		write_string_to_pad_without_linebreaks(pad, contents);
 	}
 	return pad;
 }
@@ -202,12 +202,12 @@ scroll_view(int offset)
 	int new_view_min = view_min + offset;
 	if (new_view_min < 0) {
 		new_view_min = 0;
-	} else if (new_view_min + view_area_height >= pad_height) {
-		new_view_min = pad_height - view_area_height;
+	} else if (new_view_min + list_menu_height >= pad_height) {
+		new_view_min = pad_height - list_menu_height;
 	}
 	if (new_view_min != view_min) {
 		view_min = new_view_min;
-		prefresh(window, view_min, 0, 0, 0, view_area_height - 1, COLS - 1);
+		prefresh(window, view_min, 0, 0, 0, list_menu_height - 1, list_menu_width - 1);
 	}
 }
 
@@ -217,43 +217,59 @@ scroll_view_top(void)
 	int new_view_min = 0;
 	if (new_view_min != view_min) {
 		view_min = new_view_min;
-		prefresh(window, view_min, 0, 0, 0, view_area_height - 1, COLS - 1);
+		prefresh(window, view_min, 0, 0, 0, list_menu_height - 1, list_menu_width - 1);
 	}
 }
 
 static void
 scroll_view_bot(void)
 {
-	int new_view_min = pad_height - view_area_height;
+	int new_view_min = pad_height - list_menu_height;
 	if (new_view_min != view_min) {
 		view_min = new_view_min;
-		prefresh(window, view_min, 0, 0, 0, view_area_height - 1 , COLS - 1);
+		prefresh(window, view_min, 0, 0, 0, list_menu_height - 1 , list_menu_width - 1);
 	}
 }
 
 static void
-view_select_next(void){
+scroll_down_a_line(void){
 	scroll_view(1);
 }
 
 static void
-view_select_prev(void){
+scroll_down_a_page(void){
+	scroll_view(list_menu_height);
+}
+
+static void
+scroll_up_a_line(void){
 	scroll_view(-1);
+}
+
+static void
+scroll_up_a_page(void){
+	scroll_view(-list_menu_height);
 }
 
 static void
 redraw_content_by_resize(void)
 {
-	view_area_height = LINES - 1;
-	prefresh(window, view_min, 0, 0, 0, view_area_height - 1, COLS - 1);
+	delwin(window);
+	window = create_window_with_contents();
+	clear();
+	refresh();
+	view_min = 0;
+	prefresh(window, view_min, 0, 0, 0, list_menu_height - 1, list_menu_width - 1);
 }
 
 static void
 set_content_input_handlers(void)
 {
 	reset_input_handlers();
-	set_input_handler(INPUT_SELECT_NEXT, &view_select_next);
-	set_input_handler(INPUT_SELECT_PREV, &view_select_prev);
+	set_input_handler(INPUT_SELECT_NEXT, &scroll_down_a_line);
+	set_input_handler(INPUT_SELECT_NEXT_PAGE, &scroll_down_a_page);
+	set_input_handler(INPUT_SELECT_PREV, &scroll_up_a_line);
+	set_input_handler(INPUT_SELECT_PREV_PAGE, &scroll_up_a_page);
 	set_input_handler(INPUT_SELECT_FIRST, &scroll_view_top);
 	set_input_handler(INPUT_SELECT_LAST, &scroll_view_bot);
 	set_input_handler(INPUT_RESIZE, &redraw_content_by_resize);
@@ -262,31 +278,43 @@ set_content_input_handlers(void)
 int
 enter_item_contents_menu_loop(int rowid)
 {
-	pad_height = 0;
-	view_area_height = LINES - 1;
+	debug_write(DBG_INFO, "trying to view an item with the rowid %d\n", rowid);
+
 	view_min = 0;
+	pad_height = 0;
+
 	sqlite3_stmt *res = find_item_by_its_rowid_in_db(rowid);
 	if (res == NULL) {
-		return INPUTS_COUNT; // error
+		return INPUTS_COUNT; // failure
 	}
-	struct string *buf = get_contents_of_item(res);
+
+	contents = get_contents_of_item(res);
 	sqlite3_finalize(res);
-	if (buf == NULL) {
-		return INPUTS_COUNT; // error
+	if (contents == NULL) {
+		return INPUTS_COUNT; // failure
 	}
-	window = create_contents_window(buf);
-	free_string(buf);
+
+	window = create_window_with_contents();
 	if (window == NULL) {
 		status_write("could not obtain contents of item");
-		return INPUTS_COUNT; // error
+		free_string(contents);
+		return INPUTS_COUNT; // failure
 	}
-	db_update_item_int(rowid, "unread", 0);
+
 	clear();
 	refresh();
-	prefresh(window, view_min, 0, 0, 0, view_area_height - 1, COLS - 1);
-	int dest;
+	prefresh(window, view_min, 0, 0, 0, list_menu_height - 1, list_menu_width - 1);
+
 	set_content_input_handlers();
-	while ((dest = handle_input()) == INPUT_ENTER);
+	db_update_item_int(rowid, "unread", 0);
+
+	int destination;
+	do {
+		destination = handle_input();
+	} while ((destination != INPUT_QUIT_SOFT) && (destination != INPUT_QUIT_HARD));
+
+	free_string(contents);
 	delwin(window);
-	return dest;
+
+	return destination;
 }

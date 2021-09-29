@@ -11,10 +11,10 @@
 
 static struct item_line *items = NULL;
 static size_t items_count = 0;
-static size_t view_sel;
-// [view_min; view_max] is index range of displayed items
-static size_t view_min;
-static size_t view_max;
+
+static size_t view_sel; // index of selected item
+static size_t view_min; // index of first visible item
+static size_t view_max; // index of last visible item
 
 static void
 free_items(void)
@@ -124,13 +124,13 @@ view_select(size_t i)
 	}
 
 	if (new_sel > view_max) {
-		view_min = new_sel - LINES + 2;
+		view_min = new_sel - (list_menu_height - 1);
 		view_max = new_sel;
 		view_sel = new_sel;
 		show_items();
 	} else if (new_sel < view_min) {
 		view_min = new_sel;
-		view_max = new_sel + LINES - 2;
+		view_max = new_sel + (list_menu_height - 1);
 		view_sel = new_sel;
 		show_items();
 	} else {
@@ -221,10 +221,18 @@ mark_all_items_unread(void)
 	}
 }
 
-static void
-redraw_items_by_resize(void)
+void
+resize_items_global_action(void)
 {
-	view_max = view_min + LINES - 2;
+	view_min = view_sel;
+	view_max = view_min + (list_menu_height - 1);
+}
+
+static void
+resize_items_local_action(void)
+{
+	clear();
+	refresh();
 	show_items();
 }
 
@@ -240,7 +248,7 @@ set_items_input_handlers(void)
 	set_input_handler(INPUT_MARK_READ_ALL, &mark_all_items_read);
 	set_input_handler(INPUT_MARK_UNREAD, &mark_selected_item_unread);
 	set_input_handler(INPUT_MARK_UNREAD_ALL, &mark_all_items_unread);
-	set_input_handler(INPUT_RESIZE, &redraw_items_by_resize);
+	set_input_handler(INPUT_RESIZE, &resize_items_local_action);
 }
 
 int
@@ -252,34 +260,36 @@ enter_items_menu_loop(const struct set_condition *st)
 			return INPUTS_COUNT;
 		}
 	}
+
 	view_min = 0;
-	view_max = LINES - 2;
-	set_items_input_handlers();
+	view_max = list_menu_height - 1;
+
 	clear();
 	refresh();
 	show_items();
 
-	int dest;
+	set_items_input_handlers();
+
+	int destination;
 	while (1) {
-		dest = handle_input();
-		if (dest == INPUT_QUIT_SOFT || dest == INPUT_QUIT_HARD) {
-			break;
-		} else if (dest == INPUT_ENTER) {
-			debug_write(DBG_INFO, "trying to view an \"%s\" item of \"%s\" feed\n",
-						items[view_sel].title ? items[view_sel].title->ptr : "<untitled>",
-						items[view_sel].feed_url->ptr);
-			dest = enter_item_contents_menu_loop(items[view_sel].rowid);
-			if (dest == INPUT_QUIT_HARD) {
-				break;
-			} else if (dest == INPUT_QUIT_SOFT) {
-				items[view_sel].is_unread = 0;
+		destination = handle_input();
+		if (destination == INPUT_ENTER) {
+			destination = enter_item_contents_menu_loop(items[view_sel].rowid);
+			if (destination == INPUT_QUIT_SOFT) {
 				set_items_input_handlers();
+				items[view_sel].is_unread = 0;
 				clear();
 				refresh();
 				show_items();
+			} else if (destination == INPUT_QUIT_HARD) {
+				break;
 			}
+		} else if ((destination == INPUT_QUIT_SOFT) || (destination == INPUT_QUIT_HARD)) {
+			break;
 		}
 	}
+
 	free_items();
-	return dest;
+
+	return destination;
 }

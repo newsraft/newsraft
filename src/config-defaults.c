@@ -6,7 +6,7 @@ size_t config_max_items = 100; // 0 == inf
 size_t config_init_parser_buf_size = 100000;
 
 /* don't initialize char pointers with string literals because then they will be immutable */
-#define DEFAULT_CONFIG_MENU_SET_ENTRY_FORMAT "%-3n %t"
+#define DEFAULT_CONFIG_MENU_SET_ENTRY_FORMAT " %3n  %t"
 char *config_menu_set_entry_format = NULL;
 #define DEFAULT_CONFIG_MENU_ITEM_ENTRY_FORMAT " %n  %t"
 char *config_menu_item_entry_format = NULL;

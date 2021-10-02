@@ -1,0 +1,79 @@
+.TH "FEEDEATER" "1" "2021-10-03"
+
+.SH "NAME"
+feedeater \- a feed reader for terminal
+.sp
+
+.SH "SYNOPSIS"
+feedeater [-f \fIfeeds_file\fR] [-c \fIconfig_file\fR] [-d \fIdata_file\fR] [-D \fIdebug_file\fR]
+.sp
+feedeater -v
+.sp
+feedeater -h
+.sp
+
+.SH "DESCRIPTION"
+feedeater is terminal-based application for reading feed channels in various Web syndication formats. feedeater is greatly inspired by newsboat.
+.sp
+
+.SH "OPTIONS"
+\-f \fIPATH\fR
+.RS 4
+force use of \fIPATH\fR as feeds file
+.RE
+.sp
+\-c \fIPATH\fR
+.RS 4
+force use of \fIPATH\fR as config file
+.RE
+.sp
+\-d \fIPATH\fR
+.RS 4
+force use of \fIPATH\fR as database file
+.RE
+.sp
+\-D \fIPATH\fR
+.RS 4
+write debug information to \fIPATH\fR file
+.RE
+.sp
+\-v
+.RS 4
+output version information and successfully exit
+.RE
+.sp
+\-h
+.RS 4
+output help information and successfully exit
+.RE
+.sp
+
+.SH "FILES"
+.SS "FEEDS FILE"
+what it is used for and its search order
+
+.SS "CONFIG FILE"
+what it is used for and its search order
+
+.SS "DATABASE FILE"
+what it is used for and its search order
+
+.SH "CONFIGURATION"
+.SS "FEEDS FILE"
+info about feeds file syntax
+
+.SS "CONFIG FILE"
+info about config file syntax
+
+.SH "ENVIRONMENT"
+.SS HOME
+Path to home directory.
+
+.SS XDG_CONFIG_HOME
+Path to base directory for configuration files.
+
+.SS XDG_DATA_HOME
+Path to base directory for data files.
+
+.SH "AUTHOR"
+Grigory Kirillov

@@ -9,11 +9,11 @@ status_create(void)
 	status_win = newwin(1, list_menu_width, list_menu_height, 0); // create status window
 	if (status_win == NULL) {
 		fprintf(stderr, "could not create status line\n");
-		return 1;
+		return 1; // failure
 	}
 	if (cbreak() == ERR) {
 		fprintf(stderr, "can't disable line buffering and erase/kill character-processing\n");
-		return 1;
+		return 1; // failure
 	}
 	if (curs_set(0) == ERR) { // try to hide cursor
 		debug_write(DBG_ERR, "can't hide cursor\n");
@@ -24,7 +24,7 @@ status_create(void)
 	if (keypad(stdscr, TRUE) == ERR) { // used to enable arrow keys, function keys...
 		debug_write(DBG_ERR, "can't enable extended keys\n");
 	}
-	return 0;
+	return 0; // success
 }
 
 void

@@ -53,7 +53,7 @@ assign_default_values_to_empty_config_strings(void)
 			strcpy(config_menu_set_entry_format, DEFAULT_CONFIG_MENU_SET_ENTRY_FORMAT);
 		}
 	}
-	if (config_menu_item_entry_format == NULL) {
+	if ((error == 0) && (config_menu_item_entry_format == NULL)) {
 		config_menu_item_entry_format = malloc(sizeof(char) * (strlen(DEFAULT_CONFIG_MENU_ITEM_ENTRY_FORMAT) + 1));
 		if (config_menu_item_entry_format == NULL) {
 			error = 1;
@@ -61,7 +61,7 @@ assign_default_values_to_empty_config_strings(void)
 			strcpy(config_menu_item_entry_format, DEFAULT_CONFIG_MENU_ITEM_ENTRY_FORMAT);
 		}
 	}
-	if (config_contents_meta_data == NULL) {
+	if ((error == 0) && (config_contents_meta_data == NULL)) {
 		config_contents_meta_data = malloc(sizeof(char) * (strlen(DEFAULT_CONFIG_CONTENTS_META_DATA) + 1));
 		if (config_contents_meta_data == NULL) {
 			error = 1;
@@ -69,7 +69,7 @@ assign_default_values_to_empty_config_strings(void)
 			strcpy(config_contents_meta_data, DEFAULT_CONFIG_CONTENTS_META_DATA);
 		}
 	}
-	if (config_contents_date_format == NULL) {
+	if ((error == 0) && (config_contents_date_format == NULL)) {
 		config_contents_date_format = malloc(sizeof(char) * (strlen(DEFAULT_CONFIG_CONTENTS_DATE_FORMAT) + 1));
 		if (config_contents_date_format == NULL) {
 			error = 1;

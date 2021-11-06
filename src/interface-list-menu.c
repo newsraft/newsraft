@@ -58,10 +58,10 @@ create_list_menu(void)
 		windows[i] = newwin(1, list_menu_width, i, 0);
 		if (windows[i] == NULL) {
 			free_list_menu();
-			return 1;
+			return 1; // failure
 		}
 	}
-	return 0;
+	return 0; // success
 }
 
 void
@@ -88,5 +88,8 @@ resize_list_menu(void)
 WINDOW *
 get_list_entry_by_index(size_t index)
 {
-	return index < (size_t)windows_count ? windows[index] : NULL;
+	if (index < (size_t)windows_count) {
+		return windows[index]; // success
+	}
+	return NULL; // failure
 }

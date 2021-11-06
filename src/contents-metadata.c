@@ -4,15 +4,16 @@
 
 struct {
 	const char *name;
-	const char *column; /* name of column in database items table */
+	const size_t name_len;
+	const char *column; /* name of corresponding column in database's items table */
 	const int num;
 } meta_data[] = {
-	{"Feed", "feed", ITEM_COLUMN_FEED},
-	{"Title", "title", ITEM_COLUMN_TITLE},
-	{"Authors", "authors", ITEM_COLUMN_AUTHORS},
-	{"Categories", "categories", ITEM_COLUMN_CATEGORIES},
-	{"Link", "url", ITEM_COLUMN_URL},
-	{"Comments", "comments", ITEM_COLUMN_COMMENTS},
+	{"Feed",       4,  "feed",       ITEM_COLUMN_FEED},
+	{"Title",      5,  "title",      ITEM_COLUMN_TITLE},
+	{"Authors",    7,  "authors",    ITEM_COLUMN_AUTHORS},
+	{"Categories", 10, "categories", ITEM_COLUMN_CATEGORIES},
+	{"Link",       4,  "url",        ITEM_COLUMN_URL},
+	{"Comments",   8,  "comments",   ITEM_COLUMN_COMMENTS},
 };
 
 static void
@@ -46,10 +47,7 @@ cat_item_meta_data_entry_to_buf(struct string *buf, sqlite3_stmt *res, int meta_
 	if (text_len == 0) {
 		return;
 	}
-	cat_string_array(buf,
-	                 (char *)meta_data[meta_data_index].name,
-	                 /* strlen is optimized by compiler, right? */
-	                 strlen(meta_data[meta_data_index].name));
+	cat_string_array(buf, (char *)meta_data[meta_data_index].name, meta_data[meta_data_index].name_len);
 	cat_string_array(buf, ": ", (size_t)2);
 	cat_string_array(buf, text, text_len);
 	cat_string_char(buf, '\n');
@@ -61,7 +59,7 @@ cat_item_meta_data_to_buf(struct string *buf, sqlite3_stmt *res)
 	char *restrict draft_meta_data_order = malloc(sizeof(char) * (strlen(config_contents_meta_data) + 1));
 	if (draft_meta_data_order == NULL) {
 		debug_write(DBG_ERR, "not enough memory for tokenizing order of meta data tags\n");
-		return 1; // fail
+		return 1; // failure
 	}
 	strcpy(draft_meta_data_order, config_contents_meta_data);
 	char *saveptr = NULL;

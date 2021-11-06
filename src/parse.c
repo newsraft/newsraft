@@ -4,13 +4,14 @@
 const char *
 get_value_of_attribute_key(const XML_Char **atts, const char *key)
 {
-	/* expat says that atts is name/value array, so iterate with the step of 2 */
+	/* expat says that atts is name/value array (looks like [name1, value1, name2, value2, ...])
+	 * so iterate with the step of 2 */
 	for (size_t i = 0; atts[i] != NULL; i = i + 2) {
 		if (strcmp(atts[i], key) == 0) {
-			return atts[i + 1];
+			return atts[i + 1]; // success
 		}
 	}
-	return NULL;
+	return NULL; // failure, didn't find an attribute with key name
 }
 
 int
@@ -26,7 +27,7 @@ init_item_bucket(struct item_bucket *bucket)
 	bucket->authors_count = 0;
 	bucket->pubdate = 0;
 	bucket->upddate = 0;
-	return 0;
+	return 0; // success
 init_item_bucket_undo6:
 	free_string(bucket->comments);
 init_item_bucket_undo5:
@@ -38,7 +39,7 @@ init_item_bucket_undo3:
 init_item_bucket_undo2:
 	free_string(bucket->guid);
 init_item_bucket_undo1:
-	return 1;
+	return 1; // failure
 }
 
 void

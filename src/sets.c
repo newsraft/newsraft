@@ -307,25 +307,25 @@ static void
 set_reload_filter(struct set_line *set, size_t index)
 {
 	(void)index;
-	struct set_condition *st;
-	if ((st = create_set_condition(set)) == NULL) {
+	struct set_condition *sc;
+	if ((sc = create_set_condition(set)) == NULL) {
 		/* error message is written to status by create_set_condition */
 		return;
 	}
 	/* Here we trying to reload all feed urls related to this filter. */
-	for (size_t i = 0; i < st->urls_count; ++i) {
-		status_write("[loading] %s", st->urls[i]->ptr);
-		if (feed_process(st->urls[i]) == 0) {
+	for (size_t i = 0; i < sc->urls_count; ++i) {
+		status_write("[loading] %s", sc->urls[i]->ptr);
+		if (feed_process(sc->urls[i]) == 0) {
 			status_clean();
 			// TODO: change unread status of updated feed somehow
-			/*bool unread_status = is_feed_unread(st->urls[i]);*/
+			/*bool unread_status = is_feed_unread(sc->urls[i]);*/
 			/*if (set->is_unread != unread_status) {*/
 				/*set->is_unread = unread_status;*/
 				/*set_expose(index);*/
 			/*}*/
 		}
 	}
-	free_set_condition(st);
+	free_set_condition(sc);
 }
 
 static void
@@ -414,18 +414,18 @@ enter_sets_menu_loop(void)
 	set_sets_input_handlers();
 
 	int destination;
-	struct set_condition *st;
+	struct set_condition *sc;
 	while (1) {
 		destination = handle_input();
 		if (destination == INPUT_QUIT_SOFT || destination == INPUT_QUIT_HARD) {
 			break;
 		}
-		if ((st = create_set_condition(&sets[view_sel])) == NULL) {
+		if ((sc = create_set_condition(&sets[view_sel])) == NULL) {
 			/* error message is written to status by create_set_condition */
 			continue;
 		}
 
-		destination = enter_items_menu_loop(st);
+		destination = enter_items_menu_loop(sc);
 
 		if (destination == INPUT_QUIT_SOFT) { /* stay in sets menu */
 			set_sets_input_handlers();
@@ -439,7 +439,7 @@ enter_sets_menu_loop(void)
 			show_sets();
 		}
 
-		free_set_condition(st);
+		free_set_condition(sc);
 
 		if (destination == INPUT_QUIT_HARD) { /* exit the program */
 			break;

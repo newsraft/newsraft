@@ -10,17 +10,17 @@ init_tag_with_first_url(char *tag_name, struct string *url)
 	size_t tag_index = tags_count++;
 	tags = realloc(tags, sizeof(struct feed_tag) * tags_count);
 	if (tags == NULL) {
-		return 1; // error
+		return 1; // failure
 	}
 	tags[tag_index].name = malloc(sizeof(char) * (strlen(tag_name) + 1));
 	if (tags[tag_index].name == NULL) {
 		/* initialize urls to avoid freeing of random memory in free_tags call */
 		tags[tag_index].urls = NULL;
-		return 1; // error
+		return 1; // failure
 	}
 	tags[tag_index].urls = malloc(sizeof(struct string *));
 	if (tags[tag_index].urls == NULL) {
-		return 1; // error
+		return 1; // failure
 	}
 	tags[tag_index].urls_count = 1;
 	tags[tag_index].urls[0] = url;
@@ -34,7 +34,7 @@ append_another_url_to_tag(size_t tag_index, struct string *feed_url)
 	size_t url_index = tags[tag_index].urls_count++;
 	tags[tag_index].urls = realloc(tags[tag_index].urls, sizeof(struct string *) * tags[tag_index].urls_count);
 	if (tags[tag_index].urls == NULL) {
-		return 1; // error
+		return 1; // failure
 	}
 	tags[tag_index].urls[url_index] = feed_url;
 	return 0; // success

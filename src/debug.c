@@ -8,7 +8,7 @@ int
 debug_init(const char *path)
 {
 	if (path == NULL) {
-		fprintf(stderr, "path to debug file is empty!\n");
+		fprintf(stderr, "path to the debug file is not set!\n");
 		return 1; // failure
 	}
 	f = fopen(path, "w");

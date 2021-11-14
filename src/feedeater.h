@@ -242,7 +242,7 @@ void free_wstring(struct wstring *wstr);
 const char *get_value_of_attribute_key(const XML_Char **atts, const char *key);
 
 // item bucket functions
-int init_item_bucket(struct item_bucket *bucket);
+struct item_bucket *create_item_bucket(void);
 void drop_item_bucket(struct item_bucket *bucket);
 void free_item_bucket(struct item_bucket *bucket);
 void add_category_to_item_bucket(const struct item_bucket *bucket, const char *category, size_t category_len);

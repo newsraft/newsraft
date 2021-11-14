@@ -33,7 +33,7 @@ parse_stream_callback(void *contents, size_t length, size_t nmemb, void *userp)
 	XML_Parser parser = (XML_Parser)userp;
 	struct parser_data *data = (struct parser_data *)XML_GetUserData(parser);
 	size_t real_size = length * nmemb;
-	if (data->fail == false && XML_Parse(parser, contents, real_size, 0) == 0) {
+	if (data->fail == false && XML_Parse(parser, contents, real_size, (XML_Bool)false) == 0) {
 		debug_write(DBG_ERR, "parsing response failed: %s\n",
 		            XML_ErrorString(XML_GetErrorCode(parser)));
 		data->fail = true;
@@ -81,11 +81,11 @@ feed_process(const struct string *url)
 {
 	int error = 0;
 
-	struct item_bucket bucket;
-	if (init_item_bucket(&bucket) != 0) {
+	struct item_bucket *bucket = create_item_bucket();
+	if (bucket == NULL) {
 		status_write("[fail] not enough memory");
 		error = 1;
-		return error;
+		return error; // failure
 	}
 
 	XML_Parser parser = XML_ParserCreateNS(NULL, NAMESPACE_SEPARATOR);
@@ -97,7 +97,7 @@ feed_process(const struct string *url)
 		.pos       = IN_ROOT,
 		.prev_pos  = IN_ROOT,
 		.feed_url  = url,
-		.bucket    = &bucket,
+		.bucket    = bucket,
 		.parser    = &parser,
 		.fail      = false,
 	};
@@ -110,8 +110,7 @@ feed_process(const struct string *url)
 	curl_easy_setopt(curl, CURLOPT_FAILONERROR, 1);
 	curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1);
 	curl_easy_setopt(curl, CURLOPT_MAXREDIRS, 10);
-	/* enable all supported built-in encodings with empty string */
-	/* curl 7.72.0 has: identity, deflate, gzip, br, zstd */
+	// empty string enables all supported built-in encodings
 	curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "");
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &parse_stream_callback);
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)parser);
@@ -140,7 +139,7 @@ feed_process(const struct string *url)
 		}
 	}
 
-	free_item_bucket(&bucket);
+	free_item_bucket(bucket);
 	free(data.value);
 	XML_ParserFree(parser);
 	curl_easy_cleanup(curl);

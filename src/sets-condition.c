@@ -53,7 +53,7 @@ create_set_condition_for_filter(struct string *tags_expr)
 	size_t word_len = 0, i = 0, old_urls_count;
 	size_t word_lim = INIT_WORD_BUFF_SIZE;
 	struct feed_tag *tag;
-	char *word = malloc(sizeof(char) * word_lim);
+	char *word = malloc(sizeof(char) * word_lim); // buffer for tags' names
 	if (word == NULL) {
 		free_set_condition(sc);
 		debug_write(DBG_ERR, "can't allocate memory for word thing to create set condition!\n");

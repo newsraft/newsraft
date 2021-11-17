@@ -40,7 +40,7 @@ load_items(const struct set_condition *st)
 	strcpy(cmd, SELECT_CMD_PART_1);
 	strcat(cmd, st->db_cmd->ptr);
 	strcat(cmd, SELECT_CMD_PART_3);
-	debug_write(DBG_INFO, "item SELECT statement command: %s\n", cmd);
+	debug_write(DBG_INFO, "Item SELECT statement command: %s\n", cmd);
 	int error = 0;
 	view_sel = SIZE_MAX;
 	sqlite3_stmt *res;
@@ -69,7 +69,7 @@ load_items(const struct set_condition *st)
 		}
 	} else {
 		status_write("[error] invalid tag expression");
-		debug_write(DBG_ERR, "failed to prepare SELECT statement: %s\n", sqlite3_errmsg(db));
+		debug_write(DBG_FAIL, "Failed to prepare SELECT statement: %s\n", sqlite3_errmsg(db));
 		error = 1;
 	}
 

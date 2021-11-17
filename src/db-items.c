@@ -4,23 +4,25 @@
 static void
 delete_excess_items(const struct string *feed_url) {
 	sqlite3_stmt *s;
-	if (sqlite3_prepare_v2(db, "SELECT rowid FROM items WHERE feed = ? ORDER BY upddate DESC, pubdate DESC, rowid ASC", -1, &s, 0) != SQLITE_OK) {
-		debug_write(DBG_ERR, "failed to prepare excess items deletion statement:\n");
+	if (sqlite3_prepare_v2(db, "SELECT rowid FROM items WHERE feed = ? ORDER BY upddate DESC, pubdate DESC, rowid DESC", -1, &s, 0) != SQLITE_OK) {
+		debug_write(DBG_FAIL, "Failed to prepare an excess items deletion statement:\n");
 		DEBUG_WRITE_DB_PREPARE_FAIL;
 		return;
 	}
 	sqlite3_bind_text(s, 1, feed_url->ptr, feed_url->len, NULL);
 	sqlite3_stmt *t;
-	size_t item_id = 0;
+	size_t item_iterator = 0;
 	while (sqlite3_step(s) == SQLITE_ROW) {
-		++item_id;
-		if (item_id < config_max_items + 1) {
+		++item_iterator;
+		if (item_iterator <= config_max_items) {
 			continue;
 		}
 		if (sqlite3_prepare_v2(db, "DELETE FROM items WHERE rowid = ?", -1, &t, 0) == SQLITE_OK) {
 			sqlite3_bind_int(t, 1, sqlite3_column_int(s, 0));
-			if (sqlite3_step(t) != SQLITE_DONE) {
-				debug_write(DBG_ERR, "deletion of excess item failed!\n");
+			if (sqlite3_step(t) == SQLITE_DONE) {
+				debug_write(DBG_INFO, "Successfully deleted an item.\n");
+			} else {
+				debug_write(DBG_FAIL, "Deletion of the excess item is failed!\n");
 			}
 			sqlite3_finalize(t);
 		} else {
@@ -73,7 +75,7 @@ create_authors_string(struct author *authors, size_t authors_count)
 {
 	struct string *authors_list = create_empty_string();
 	if (authors_list == NULL) {
-		debug_write(DBG_ERR, "not enough memory for creating authors string\n");
+		debug_write(DBG_FAIL, "Not enough memory for creating authors string in item bucket!\n");
 		return NULL;
 	}
 	bool added_name, added_email, added_link;
@@ -124,7 +126,7 @@ db_insert_item(const struct string *feed_url, const struct item_bucket *bucket)
 
 	sqlite3_stmt *s;
 	if (sqlite3_prepare_v2(db, "INSERT INTO items VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", -1, &s, 0) != SQLITE_OK) {
-		debug_write(DBG_ERR, "failed to prepare item insertion statement:\n");
+		debug_write(DBG_FAIL, "Failed to prepare item insertion statement:\n");
 		DEBUG_WRITE_DB_PREPARE_FAIL;
 		free_string(authors_list);
 		return;
@@ -147,7 +149,7 @@ db_insert_item(const struct string *feed_url, const struct item_bucket *bucket)
 			delete_excess_items(feed_url);
 		}
 	} else {
-		debug_write(DBG_ERR, "item bucket insertion failed: %s\n", sqlite3_errmsg(db));
+		debug_write(DBG_FAIL, "Item bucket insertion failed: %s\n", sqlite3_errmsg(db));
 	}
 	sqlite3_finalize(s);
 	free_string(authors_list);

@@ -42,7 +42,7 @@ void
 db_update_feed_text(const struct string *feed_url, const char *column, const char *data, size_t data_len)
 {
 	if (make_sure_feed_is_in_db(feed_url) == false) {
-		debug_write(DBG_ERR, "could not create feed entry in database!\n");
+		debug_write(DBG_FAIL, "Could not create feed entry in database!\n");
 		return;
 	}
 	char *cmd = malloc(sizeof(char) * (37 + strlen(column)));

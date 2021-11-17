@@ -34,8 +34,7 @@ parse_stream_callback(void *contents, size_t length, size_t nmemb, void *userp)
 	struct parser_data *data = (struct parser_data *)XML_GetUserData(parser);
 	size_t real_size = length * nmemb;
 	if (data->fail == false && XML_Parse(parser, contents, real_size, (XML_Bool)false) == 0) {
-		debug_write(DBG_ERR, "parsing response failed: %s\n",
-		            XML_ErrorString(XML_GetErrorCode(parser)));
+		debug_write(DBG_FAIL, "Parsing response failed: %s\n", XML_ErrorString(XML_GetErrorCode(parser)));
 		data->fail = true;
 	}
 	return real_size;
@@ -132,7 +131,7 @@ feed_process(const struct string *url)
 		/* final XML_Parse */
 		if (XML_Parse(parser, NULL, 0, (XML_Bool)true) == XML_STATUS_ERROR) {
 			status_write("[invalid format] %s", url->ptr);
-			debug_write(DBG_ERR, "%" XML_FMT_STR " at line %" XML_FMT_INT_MOD "u\n",
+			debug_write(DBG_FAIL, "%" XML_FMT_STR " at line %" XML_FMT_INT_MOD "u\n",
 			            XML_ErrorString(XML_GetErrorCode(parser)),
 			            XML_GetCurrentLineNumber(parser));
 			error = 1;

@@ -28,10 +28,9 @@ debug_write(enum debug_level lvl, const char *format, ...)
 	va_list args;
 	va_start(args, format);
 	switch (lvl) {
-		case DBG_INFO: fprintf(f, "INFO    ) "); break;
-		case DBG_OK:   fprintf(f, "OK      ] "); break;
-		case DBG_WARN: fprintf(f, "WARNING } "); break;
-		case DBG_ERR:  fprintf(f, "ERROR   > "); break;
+		case DBG_INFO: fprintf(f, "[INFO] "); break;
+		case DBG_WARN: fprintf(f, "[WARN] "); break;
+		case DBG_FAIL: fprintf(f, "[FAIL] "); break;
 	}
 	vfprintf(f, format, args);
 	va_end(args);

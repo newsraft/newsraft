@@ -73,15 +73,17 @@ set_input_handler(enum input_cmd cmd, void (*func)(void))
 int
 assign_command_to_key(int bind_key, enum input_cmd bind_cmd)
 {
+	debug_write(DBG_INFO, "Trying to bind a key with the code %d.\n", bind_key);
+
 	if (bind_key == KEY_RESIZE) {
-		debug_write(DBG_WARN, "KEY_RESIZE must not be bound!\n");
+		debug_write(DBG_WARN, "Key with the code KEY_RESIZE must not be bound!\n");
 		return 1; // failure
 	}
 
 	/* Check if bind_key key is bound already */
 	for (size_t i = 0; i < binds_count; ++i) {
 		if (binds[i].key == bind_key) {
-			/* It is bound, just reassign a command */
+			debug_write(DBG_INFO, "Key with the code %d is already bound. Reassigning a command.\n", bind_key);
 			binds[i].cmd = bind_cmd;
 			return 0; // success
 		}
@@ -90,16 +92,18 @@ assign_command_to_key(int bind_key, enum input_cmd bind_cmd)
 	size_t bind_index = binds_count++;
 	binds = realloc(binds, sizeof(struct input_binding) * binds_count);
 	if (binds == NULL) {
-		fprintf(stderr, "not enough memory for defining a binding\n");
+		fprintf(stderr, "Not enough memory for assigning a command to a new key!\n");
 		return 1; // failure
 	}
 	binds[bind_index].key = bind_key;
 	binds[bind_index].cmd = bind_cmd;
+	debug_write(DBG_INFO, "Key with the code %d is successfully bound!\n", bind_key);
 	return 0; // success
 }
 
 void
 free_binds(void)
 {
+	debug_write(DBG_INFO, "Freeing key binds.\n");
 	free(binds);
 }

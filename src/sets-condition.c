@@ -15,16 +15,16 @@ create_set_condition_for_feed(struct string *feed_url)
 {
 	struct set_condition *sc = malloc(sizeof(struct set_condition));
 	if (sc == NULL) {
-		debug_write(DBG_ERR, "can't allocate memory for feed set_condition!\n");
+		debug_write(DBG_FAIL, "Can not allocate memory for feed set_condition!\n");
 		return NULL;
 	}
 	if ((sc->db_cmd = create_string(" feed = ?", 9)) == NULL) {
-		debug_write(DBG_ERR, "can't allocate memory for WHERE condition of set_condition!\n");
+		debug_write(DBG_FAIL, "Can not allocate memory for WHERE condition of set_condition!\n");
 		free(sc);
 		return NULL;
 	}
 	if ((sc->urls = malloc(sizeof(struct string *))) == NULL) {
-		debug_write(DBG_ERR, "can't allocate memory for urls of set_condition!\n");
+		debug_write(DBG_FAIL, "Can not allocate memory for urls of set_condition!\n");
 		free_string(sc->db_cmd);
 		free(sc);
 		return NULL;
@@ -39,11 +39,11 @@ create_set_condition_for_filter(struct string *tags_expr)
 {
 	struct set_condition *sc = malloc(sizeof(struct set_condition));
 	if (sc == NULL) {
-		debug_write(DBG_ERR, "can't allocate memory for feed set_condition!\n");
+		debug_write(DBG_FAIL, "Can not allocate memory for feed set_condition!\n");
 		return NULL;
 	}
 	if ((sc->db_cmd = create_empty_string()) == NULL) {
-		debug_write(DBG_ERR, "can't allocate memory for WHERE condition of set_condition!\n");
+		debug_write(DBG_FAIL, "Can not allocate memory for WHERE condition of set_condition!\n");
 		free(sc);
 		return NULL;
 	}
@@ -56,7 +56,7 @@ create_set_condition_for_filter(struct string *tags_expr)
 	char *word = malloc(sizeof(char) * word_lim); // buffer for tags' names
 	if (word == NULL) {
 		free_set_condition(sc);
-		debug_write(DBG_ERR, "can't allocate memory for word thing to create set condition!\n");
+		debug_write(DBG_FAIL, "Can not allocate memory for word thing to create set condition!\n");
 		return NULL;
 	}
 	while (1) {

@@ -60,9 +60,9 @@ tag_feed(char *tag_name, struct string *url)
 		}
 	}
 	if (error == 0) {
-		debug_write(DBG_OK, "feed \"%s\" is tagged as \"%s\"\n", url->ptr, tag_name);
+		debug_write(DBG_INFO, "Feed \"%s\" is tagged as \"%s\".\n", url->ptr, tag_name);
 	} else {
-		debug_write(DBG_ERR, "not enough memory for tagging the \"%s\" feed as \"%s\"\n", url->ptr, tag_name);
+		debug_write(DBG_FAIL, "Not enough memory for tagging the feed \"%s\" as \"%s\"\n", url->ptr, tag_name);
 	}
 	return error;
 }

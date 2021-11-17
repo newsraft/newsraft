@@ -14,14 +14,15 @@ find_item_by_its_rowid_in_db(int rowid)
 	sqlite3_stmt *res;
 	if (sqlite3_prepare_v2(db, "SELECT * FROM items WHERE rowid = ? LIMIT 1", -1, &res, 0) != SQLITE_OK) {
 		DEBUG_WRITE_DB_PREPARE_FAIL;
-		return NULL; // fail
+		return NULL; // failure
 	}
 	sqlite3_bind_int(res, 1, rowid);
 	if (sqlite3_step(res) != SQLITE_ROW) {
-		debug_write(DBG_WARN, "could not find that item\n");
+		debug_write(DBG_WARN, "Could not find an item with the rowid %d!\n", rowid);
 		sqlite3_finalize(res);
-		return NULL; // fail
+		return NULL; // failure
 	}
+	debug_write(DBG_INFO, "Item with the rowid %d is found.\n", rowid);
 	return res; // success
 }
 
@@ -30,7 +31,6 @@ get_contents_of_item(sqlite3_stmt *res)
 {
 	struct string *buf = create_empty_string();
 	if (buf == NULL) {
-		debug_write(DBG_ERR, "can't create buffer for content of item\n");
 		return NULL;
 	}
 
@@ -94,7 +94,7 @@ void
 make_sure_pad_has_enough_lines(WINDOW *pad, int needed_lines)
 {
 	if (needed_lines > pad_height) {
-		debug_write(DBG_WARN, "pad had to expand from %d to %d lines!\n", pad_height, needed_lines);
+		debug_write(DBG_WARN, "Due to unfixed bug, pad had to expand from %d to %d lines!\n", pad_height, needed_lines);
 		pad_height = needed_lines;
 		wresize(pad, pad_height, list_menu_width);
 	}
@@ -175,7 +175,7 @@ create_window_with_contents()
 		pad_height = calculate_pad_height_for_wstring(wbuf);
 		pad = newpad(pad_height, list_menu_width);
 		if (pad == NULL) {
-			debug_write(DBG_ERR, "could not create pad window for item contents\n");
+			debug_write(DBG_FAIL, "Could not create pad window for item contents!\n");
 			free_wstring(wbuf);
 			return NULL;
 		}
@@ -187,7 +187,7 @@ create_window_with_contents()
 		pad_height = calculate_pad_height_for_string(contents);
 		pad = newpad(pad_height, list_menu_width);
 		if (pad == NULL) {
-			debug_write(DBG_ERR, "could not create pad window for item contents\n");
+			debug_write(DBG_FAIL, "Could not create pad window for item contents!\n");
 			return NULL;
 		}
 
@@ -278,7 +278,7 @@ set_content_input_handlers(void)
 int
 enter_item_contents_menu_loop(int rowid)
 {
-	debug_write(DBG_INFO, "trying to view an item with the rowid %d\n", rowid);
+	debug_write(DBG_INFO, "Trying to view an item with the rowid %d.\n", rowid);
 
 	view_min = 0;
 	pad_height = 0;

@@ -8,7 +8,7 @@
 #include <time.h>
 #include <wchar.h>
 #define LENGTH(A) (sizeof(A)/sizeof(*A))
-#define DEBUG_WRITE_DB_PREPARE_FAIL debug_write(DBG_WARN, "failed to prepare statement: %s\n", sqlite3_errmsg(db))
+#define DEBUG_WRITE_DB_PREPARE_FAIL debug_write(DBG_FAIL, "Failed to prepare an SQL statement: %s\n", sqlite3_errmsg(db))
 #define NAMESPACE_SEPARATOR ' '
 
 struct string {
@@ -122,9 +122,8 @@ enum xml_pos {
 
 enum debug_level {
 	DBG_INFO = 0,
-	DBG_OK = 1,
-	DBG_WARN = 2,
-	DBG_ERR = 3,
+	DBG_WARN = 1,
+	DBG_FAIL = 2,
 };
 
 enum input_cmd {

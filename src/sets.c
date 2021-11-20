@@ -294,12 +294,14 @@ set_reload_feed(struct set_line *set, size_t index)
 {
 	status_write("[loading] %s", set->link->ptr);
 	if (update_feed(set->link) == 0) {
-		status_clean();
 		size_t new_unread_count = get_unread_items_count_of_feed(set->link);
 		if (set->unread_count != new_unread_count) {
 			set->unread_count = new_unread_count;
 			set_expose(index);
 		}
+		status_clean();
+	} else {
+		status_write("[FAILURE] Failed to update %s feed.", set->link->ptr);
 	}
 }
 
@@ -313,11 +315,11 @@ set_reload_filter(struct set_line *set, size_t index)
 		return;
 	}
 	size_t feed_unread_count;
+	size_t errors = 0;
 	/* Here we trying to reload all feed urls related to this filter. */
 	for (size_t i = 0; i < sc->urls_count; ++i) {
 		status_write("[loading] %s", sc->urls[i]->ptr);
 		if (update_feed(sc->urls[i]) == 0) {
-			status_clean();
 			for (size_t j = 0; j < sets_count; ++j) {
 				if ((sets[j].link != NULL) && (strcmp(sets[j].link->ptr, sc->urls[i]->ptr) == 0)) {
 					feed_unread_count = get_unread_items_count_of_feed(sets[j].link);
@@ -330,9 +332,18 @@ set_reload_filter(struct set_line *set, size_t index)
 					break;
 				}
 			}
+		} else {
+			++errors;
 		}
 	}
 	free_set_condition(sc);
+	if (errors == 0) {
+		status_clean();
+	} else if (errors == 1) {
+		status_write("[FAILURE] Failed to update 1 feed.");
+	} else {
+		status_write("[FAILURE] Failed to update %u feeds.", errors);
+	}
 }
 
 static void

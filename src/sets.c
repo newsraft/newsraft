@@ -312,17 +312,24 @@ set_reload_filter(struct set_line *set, size_t index)
 		/* error message is written to status by create_set_condition */
 		return;
 	}
+	size_t feed_unread_count;
 	/* Here we trying to reload all feed urls related to this filter. */
 	for (size_t i = 0; i < sc->urls_count; ++i) {
 		status_write("[loading] %s", sc->urls[i]->ptr);
 		if (feed_process(sc->urls[i]) == 0) {
 			status_clean();
-			// TODO: change unread status of updated feed somehow
-			/*bool unread_status = is_feed_unread(sc->urls[i]);*/
-			/*if (set->is_unread != unread_status) {*/
-				/*set->is_unread = unread_status;*/
-				/*set_expose(index);*/
-			/*}*/
+			for (size_t j = 0; j < sets_count; ++j) {
+				if ((sets[j].link != NULL) && (strcmp(sets[j].link->ptr, sc->urls[i]->ptr) == 0)) {
+					feed_unread_count = get_unread_items_count_of_feed(sets[j].link);
+					if (sets[j].unread_count != feed_unread_count) {
+						sets[j].unread_count = feed_unread_count;
+						if ((j >= view_min) && (j <= view_max)) {
+							set_expose(j);
+						}
+					}
+					break;
+				}
+			}
 		}
 	}
 	free_set_condition(sc);

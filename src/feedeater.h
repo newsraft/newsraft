@@ -3,13 +3,11 @@
 #include <ncurses.h>
 #include <stdbool.h>
 #include <inttypes.h>
-#include <expat.h>
 #include <sqlite3.h>
 #include <time.h>
 #include <wchar.h>
 #define LENGTH(A) (sizeof(A)/sizeof(*A))
 #define DEBUG_WRITE_DB_PREPARE_FAIL debug_write(DBG_FAIL, "Failed to prepare an SQL statement: %s\n", sqlite3_errmsg(db))
-#define NAMESPACE_SEPARATOR ' '
 
 struct string {
 	char *ptr;
@@ -51,75 +49,6 @@ struct item_line {
 	int rowid;               // id of row related to this item
 };
 
-struct parser_data {
-	char *value;
-	size_t value_len;
-	size_t value_lim;
-	int depth;
-	int pos;
-	int prev_pos;
-	const struct string *feed_url;
-	struct item_bucket *bucket;
-	XML_Parser *parser;
-	bool fail;
-};
-
-struct author {
-	struct string *name;
-	struct string *email;
-	struct string *link;
-};
-
-// used to bufferize item before writing to disk
-// so we can reject it in case parsed item is already cached
-struct item_bucket {
-	struct string *guid;
-	struct string *title;
-	struct string *url;
-	struct string *content;
-	struct string *comments;
-	struct string *categories;
-	struct author *authors;
-	size_t authors_count;
-	time_t pubdate;
-	time_t upddate;
-};
-
-enum items_column {
-	ITEM_COLUMN_FEED,
-	ITEM_COLUMN_TITLE,
-	ITEM_COLUMN_GUID,
-	ITEM_COLUMN_UNREAD,
-	ITEM_COLUMN_URL,
-	ITEM_COLUMN_AUTHORS,
-	ITEM_COLUMN_CATEGORIES,
-	ITEM_COLUMN_PUBDATE,
-	ITEM_COLUMN_UPDDATE,
-	ITEM_COLUMN_COMMENTS,
-	ITEM_COLUMN_CONTENT,
-};
-
-enum xml_pos {
-	IN_ROOT = 0,
-	IN_ITEM_ELEMENT = 1,
-	IN_TITLE_ELEMENT = 2,
-	IN_DESCRIPTION_ELEMENT = 4,
-	IN_LINK_ELEMENT = 8,
-	IN_PUBDATE_ELEMENT = 16,
-	IN_GUID_ELEMENT = 32,
-	IN_AUTHOR_ELEMENT = 64,
-	IN_CATEGORY_ELEMENT = 128,
-	IN_COMMENTS_ELEMENT = 256,
-	IN_ENCLOSURE_ELEMENT = 512,
-	IN_SOURCE_ELEMENT = 1024,
-	IN_IMAGE_ELEMENT = 2048,
-	IN_UPDDATE_ELEMENT = 4096,
-	IN_CHANNEL_ELEMENT = 8192,
-	IN_NAME_ELEMENT = 16384,
-	IN_URL_ELEMENT = 32768,
-	IN_EMAIL_ELEMENT = 65536,
-};
-
 enum debug_level {
 	DBG_INFO = 0,
 	DBG_WARN = 1,
@@ -144,6 +73,20 @@ enum input_cmd {
 	INPUT_MARK_UNREAD_ALL,
 	INPUT_RESIZE,
 	INPUTS_COUNT,
+};
+
+enum item_column {
+	ITEM_COLUMN_FEED,
+	ITEM_COLUMN_TITLE,
+	ITEM_COLUMN_GUID,
+	ITEM_COLUMN_UNREAD,
+	ITEM_COLUMN_URL,
+	ITEM_COLUMN_AUTHORS,
+	ITEM_COLUMN_CATEGORIES,
+	ITEM_COLUMN_PUBDATE,
+	ITEM_COLUMN_UPDDATE,
+	ITEM_COLUMN_COMMENTS,
+	ITEM_COLUMN_CONTENT,
 };
 
 // list interface
@@ -188,10 +131,6 @@ time_t parse_date_rfc822(const char *date_str, size_t date_len);
 time_t parse_date_rfc3339(const char *date_str, size_t date_len);
 struct string *get_config_date_str(const time_t *time_ptr);
 
-// feed parsing
-int feed_process(const struct string *url);
-void drop_item_bucket(struct item_bucket *bucket);
-
 // tags
 int tag_feed(char *tag_name, struct string *url);
 // convert data of set to sql WHERE condition
@@ -207,7 +146,6 @@ void db_stop(void);
 int db_update_item_int(int rowid, const char *state, int value);
 void db_update_feed_text(const struct string *feed_url, const char *column, const char *data, size_t data_len);
 size_t get_unread_items_count_of_feed(const struct string *url);
-void try_item_bucket(const struct item_bucket *bucket, const struct string *feed_url);
 
 // functions related to window which displays informational messages (see status.c file)
 int status_create(void);
@@ -238,34 +176,14 @@ void strip_whitespace_from_edges(char *str, size_t *len);
 struct wstring *convert_string_to_wstring(const struct string *src);
 void free_wstring(struct wstring *wstr);
 
-const char *get_value_of_attribute_key(const XML_Char **atts, const char *key);
-
-// item bucket functions
-struct item_bucket *create_item_bucket(void);
-void drop_item_bucket(struct item_bucket *bucket);
-void free_item_bucket(struct item_bucket *bucket);
-void add_category_to_item_bucket(const struct item_bucket *bucket, const char *category, size_t category_len);
-
-// xml element handlers
-int parse_namespace_element_beginning        (void *userData, const XML_Char *name, const XML_Char **atts);
-int parse_namespace_element_end              (void *userData, const XML_Char *name);
-void XMLCALL parse_rss20_element_beginning   (void *userData, const XML_Char *name, const XML_Char **atts);
-void XMLCALL parse_rss20_element_end         (void *userData, const XML_Char *name);
-void XMLCALL parse_generic_element_beginning (void *userData, const XML_Char *name, const XML_Char **atts);
-void XMLCALL parse_generic_element_end       (void *userData, const XML_Char *name);
-void XMLCALL parse_rss10_element_beginning   (void *userData, const XML_Char *name, const XML_Char **atts);
-void XMLCALL parse_rss10_element_end         (void *userData, const XML_Char *name);
-void XMLCALL parse_atom10_element_beginning  (void *userData, const XML_Char *name, const XML_Char **atts);
-void XMLCALL parse_atom10_element_end        (void *userData, const XML_Char *name);
-void XMLCALL parse_atom03_element_beginning  (void *userData, const XML_Char *name, const XML_Char **atts);
-void XMLCALL parse_atom03_element_end        (void *userData, const XML_Char *name);
-void XMLCALL parse_dc_element_beginning      (void *userData, const XML_Char *name, const XML_Char **atts);
-void XMLCALL parse_dc_element_end            (void *userData, const XML_Char *name);
-
 // debug
 int debug_init(const char *path);
 void debug_write(enum debug_level lvl, const char *format, ...);
 void debug_stop(void);
+
+// Download, process and store a new items of feed.
+// See "update_feed" directory for implementation.
+int update_feed(const struct string *url);
 
 extern sqlite3 *db;
 extern int list_menu_height;

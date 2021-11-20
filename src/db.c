@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include "feedeater.h"
 
 sqlite3 *db;

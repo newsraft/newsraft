@@ -1,4 +1,5 @@
 #include "feedeater.h"
+#include "update_feed/update_feed.h"
 
 /* Generic parsing is based on processing of namespace tags.
  * Thus if tag does belong to some namespace and feedeater recognizes it,

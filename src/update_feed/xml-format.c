@@ -6,6 +6,7 @@
 #include <sys/stat.h>
 #include <curl/curl.h>
 #include "feedeater.h"
+#include "update_feed/update_feed.h"
 
 static void
 character_data_handler(void *userData, const XML_Char *s, int s_len)
@@ -76,7 +77,7 @@ process_element_finish(void *userData, const XML_Char *name) {
 }
 
 int
-feed_process(const struct string *url)
+update_feed(const struct string *url)
 {
 	int error = 0;
 

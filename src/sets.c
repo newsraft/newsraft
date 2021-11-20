@@ -293,7 +293,7 @@ static void
 set_reload_feed(struct set_line *set, size_t index)
 {
 	status_write("[loading] %s", set->link->ptr);
-	if (feed_process(set->link) == 0) {
+	if (update_feed(set->link) == 0) {
 		status_clean();
 		size_t new_unread_count = get_unread_items_count_of_feed(set->link);
 		if (set->unread_count != new_unread_count) {
@@ -316,7 +316,7 @@ set_reload_filter(struct set_line *set, size_t index)
 	/* Here we trying to reload all feed urls related to this filter. */
 	for (size_t i = 0; i < sc->urls_count; ++i) {
 		status_write("[loading] %s", sc->urls[i]->ptr);
-		if (feed_process(sc->urls[i]) == 0) {
+		if (update_feed(sc->urls[i]) == 0) {
 			status_clean();
 			for (size_t j = 0; j < sets_count; ++j) {
 				if ((sets[j].link != NULL) && (strcmp(sets[j].link->ptr, sc->urls[i]->ptr) == 0)) {
@@ -333,6 +333,27 @@ set_reload_filter(struct set_line *set, size_t index)
 		}
 	}
 	free_set_condition(sc);
+}
+
+static void
+reload_current_set(void)
+{
+	struct set_line *set = &(sets[view_sel]);
+	if (set->link != NULL) {
+		set_reload_feed(set, view_sel);
+	} else if (set->tags != NULL) {
+		set_reload_filter(set, view_sel);
+	}
+}
+
+static void
+reload_all_feeds(void)
+{
+	for (size_t i = 0; i < sets_count; ++i) {
+		if (sets[i].link != NULL) {
+			set_reload_feed(&sets[i], i);
+		}
+	}
 }
 
 static void
@@ -357,27 +378,6 @@ static void
 view_select_last(void)
 {
 	view_select((sets_count == 0) ? (0) : (sets_count - 1));
-}
-
-static void
-reload_current_set(void)
-{
-	struct set_line *set = &(sets[view_sel]);
-	if (set->link != NULL) {
-		set_reload_feed(set, view_sel);
-	} else if (set->tags != NULL) {
-		set_reload_filter(set, view_sel);
-	}
-}
-
-static void
-reload_all_feeds(void)
-{
-	for (size_t i = 0; i < sets_count; ++i) {
-		if (sets[i].link != NULL) {
-			set_reload_feed(&sets[i], i);
-		}
-	}
 }
 
 void

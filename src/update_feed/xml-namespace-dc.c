@@ -1,5 +1,6 @@
 #include <string.h>
 #include "feedeater.h"
+#include "update_feed/update_feed.h"
 
 void XMLCALL
 parse_dc_element_beginning(void *userData, const XML_Char *name, const XML_Char **atts)

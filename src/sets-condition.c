@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include "feedeater.h"
 
 #define INIT_WORD_BUFF_SIZE 50 // do not set it to 0

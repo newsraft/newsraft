@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include "feedeater.h"
 
 static WINDOW **windows = NULL;

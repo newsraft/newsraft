@@ -1,16 +1,18 @@
+#include <stdio.h>
 #include <string.h>
 #include "feedeater.h"
+#include "update_feed/update_feed.h"
 
 void XMLCALL
-parse_atom03_element_beginning(void *userData, const XML_Char *name, const XML_Char **atts)
+parse_atom10_element_beginning(void *userData, const XML_Char *name, const XML_Char **atts)
 {
 	struct parser_data *data = userData;
 	++(data->depth);
 
-	if      (strcmp(name, "entry") == 0)    data->pos |= IN_ITEM_ELEMENT;
-	else if (strcmp(name, "title") == 0)    data->pos |= IN_TITLE_ELEMENT;
-	else if (strcmp(name, "summary") == 0)  data->pos |= IN_DESCRIPTION_ELEMENT;
-	else if (strcmp(name, "link") == 0)     {
+	if      (strcmp(name, "entry") == 0)     data->pos |= IN_ITEM_ELEMENT;
+	else if (strcmp(name, "title") == 0)     data->pos |= IN_TITLE_ELEMENT;
+	else if (strcmp(name, "summary") == 0)   data->pos |= IN_DESCRIPTION_ELEMENT;
+	else if (strcmp(name, "link") == 0)      {
 		data->pos |= IN_LINK_ELEMENT;
 		const char *href_link = get_value_of_attribute_key(atts, "href");
 		if (href_link != NULL) {
@@ -20,9 +22,9 @@ parse_atom03_element_beginning(void *userData, const XML_Char *name, const XML_C
 				db_update_feed_text(data->feed_url, "resource", href_link, strlen(href_link));
 		}
 	}
-	else if (strcmp(name, "id") == 0)       data->pos |= IN_GUID_ELEMENT;
-	else if (strcmp(name, "issued") == 0)   data->pos |= IN_PUBDATE_ELEMENT;
-	else if (strcmp(name, "modified") == 0) data->pos |= IN_UPDDATE_ELEMENT;
+	else if (strcmp(name, "id") == 0)        data->pos |= IN_GUID_ELEMENT;
+	else if (strcmp(name, "published") == 0) data->pos |= IN_PUBDATE_ELEMENT;
+	else if (strcmp(name, "updated") == 0)   data->pos |= IN_UPDDATE_ELEMENT;
 	else if (strcmp(name, "author") == 0)    {
 		data->pos |= IN_AUTHOR_ELEMENT;
 		if ((data->pos & IN_ITEM_ELEMENT) == 0) {
@@ -37,14 +39,14 @@ parse_atom03_element_beginning(void *userData, const XML_Char *name, const XML_C
 			}
 		}
 	}
-	else if (strcmp(name, "name") == 0)     data->pos |= IN_NAME_ELEMENT;
-	else if (strcmp(name, "url") == 0)      data->pos |= IN_URL_ELEMENT;
-	else if (strcmp(name, "email") == 0)    data->pos |= IN_EMAIL_ELEMENT;
-	else if (strcmp(name, "category") == 0) data->pos |= IN_CATEGORY_ELEMENT;
+	else if (strcmp(name, "name") == 0)      data->pos |= IN_NAME_ELEMENT;
+	else if (strcmp(name, "uri") == 0)       data->pos |= IN_URL_ELEMENT;
+	else if (strcmp(name, "email") == 0)     data->pos |= IN_EMAIL_ELEMENT;
+	else if (strcmp(name, "category") == 0)  data->pos |= IN_CATEGORY_ELEMENT;
 }
 
 void XMLCALL
-parse_atom03_element_end(void *userData, const XML_Char *name)
+parse_atom10_element_end(void *userData, const XML_Char *name)
 {
 	struct parser_data *data = userData;
 	--(data->depth);
@@ -72,13 +74,13 @@ parse_atom03_element_end(void *userData, const XML_Char *name)
 		data->pos &= ~IN_GUID_ELEMENT;
 		if ((data->pos & IN_ITEM_ELEMENT) != 0)
 			cpy_string_array(data->bucket->guid, data->value, data->value_len);
-	} else if (strcmp(name, "issued") == 0) {
+	} else if (strcmp(name, "published") == 0) {
 		data->pos &= ~IN_PUBDATE_ELEMENT;
 		if ((data->pos & IN_ITEM_ELEMENT) != 0) {
 			time_t rawtime = parse_date_rfc3339(data->value, data->value_len);
 			if (rawtime != 0) data->bucket->pubdate = rawtime;
 		}
-	} else if (strcmp(name, "modified") == 0) {
+	} else if (strcmp(name, "updated") == 0) {
 		data->pos &= ~IN_UPDDATE_ELEMENT;
 		if ((data->pos & IN_ITEM_ELEMENT) != 0) {
 			time_t rawtime = parse_date_rfc3339(data->value, data->value_len);
@@ -97,7 +99,7 @@ parse_atom03_element_end(void *userData, const XML_Char *name)
 				}
 			}
 		}
-	} else if (strcmp(name, "url") == 0) {
+	} else if (strcmp(name, "uri") == 0) {
 		data->pos &= ~IN_URL_ELEMENT;
 		if ((data->pos & IN_AUTHOR_ELEMENT) != 0) {
 			if ((data->pos & IN_ITEM_ELEMENT) == 0) {

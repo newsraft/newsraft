@@ -1,4 +1,6 @@
+#include <stdlib.h>
 #include "feedeater.h"
+#include "update_feed/update_feed.h"
 
 struct item_bucket *
 create_item_bucket(void)

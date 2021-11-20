@@ -1,5 +1,6 @@
 #include <string.h>
 #include "feedeater.h"
+#include "update_feed/update_feed.h"
 
 const char *
 get_value_of_attribute_key(const XML_Char **atts, const char *key)

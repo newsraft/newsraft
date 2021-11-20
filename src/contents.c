@@ -306,7 +306,7 @@ enter_item_contents_menu_loop(int rowid)
 	prefresh(window, view_min, 0, 0, 0, list_menu_height - 1, list_menu_width - 1);
 
 	set_content_input_handlers();
-	db_update_item_int(rowid, "unread", 0);
+	db_make_item_read(rowid);
 
 	int destination;
 	do {

@@ -143,7 +143,6 @@ void free_tags(void);
 // db
 int db_init(void);
 void db_stop(void);
-int db_update_item_int(int rowid, const char *state, int value);
 void db_update_feed_text(const struct string *feed_url, const char *column, const char *data, size_t data_len);
 size_t get_unread_items_count_of_feed(const struct string *url);
 

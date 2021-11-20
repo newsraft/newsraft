@@ -1,7 +1,7 @@
 #include <string.h>
 #include "feedeater.h"
 
-int
+static int
 db_update_item_int(int rowid, const char *column, int value)
 {
 	int success = 0;
@@ -21,4 +21,16 @@ db_update_item_int(int rowid, const char *column, int value)
 		DEBUG_WRITE_DB_PREPARE_FAIL;
 	}
 	return success;
+}
+
+int
+db_make_item_read(int rowid)
+{
+	return db_update_item_int(rowid, "unread", 0);
+}
+
+int
+db_make_item_unread(int rowid)
+{
+	return db_update_item_int(rowid, "unread", 1);
 }

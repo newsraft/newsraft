@@ -147,7 +147,7 @@ mark_item_read(size_t index)
 	if (items[index].is_unread == 0) {
 		return;
 	}
-	if (db_update_item_int(items[index].rowid, "unread", 0)) {
+	if (db_make_item_read(items[index].rowid)) {
 		items[index].is_unread = 0;
 		if (index >= view_min && index <= view_max) {
 			item_expose(index);
@@ -161,7 +161,7 @@ mark_item_unread(size_t index)
 	if (items[index].is_unread == 1) {
 		return;
 	}
-	if (db_update_item_int(items[index].rowid, "unread", 1)) {
+	if (db_make_item_unread(items[index].rowid)) {
 		items[index].is_unread = 1;
 		if (index >= view_min && index <= view_max) {
 			item_expose(index);

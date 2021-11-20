@@ -25,6 +25,13 @@ enum xml_pos {
 	IN_EMAIL_ELEMENT = 65536,
 };
 
+struct link {
+	struct string *url; // string with the url to data
+	struct string *type; // standard MIME type of data
+	size_t size; // size of data in bytes
+	size_t duration; // duration of data (if it is a audio or video)
+};
+
 struct author {
 	struct string *name;
 	struct string *email;
@@ -40,6 +47,8 @@ struct item_bucket {
 	struct string *content;
 	struct string *comments;
 	struct string *categories;
+	struct link *links;
+	size_t links_count;
 	struct author *authors;
 	size_t authors_count;
 	time_t pubdate;

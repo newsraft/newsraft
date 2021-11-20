@@ -13,6 +13,8 @@ create_item_bucket(void)
 	if ((bucket->categories = create_empty_string()) == NULL) goto create_item_bucket_undo5;
 	if ((bucket->comments = create_empty_string()) == NULL) goto create_item_bucket_undo6;
 	if ((bucket->content = create_empty_string()) == NULL) goto create_item_bucket_undo7;
+	bucket->links = NULL;
+	bucket->links_count = 0;
 	bucket->authors = NULL;
 	bucket->authors_count = 0;
 	bucket->pubdate = 0;
@@ -46,6 +48,12 @@ drop_item_bucket(struct item_bucket *bucket)
 	bucket->pubdate = 0;
 	bucket->upddate = 0;
 
+	for (size_t i = 0; i < bucket->links_count; ++i) {
+		free_string(bucket->links[i].url);
+		free_string(bucket->links[i].type);
+	}
+	bucket->links_count = 0;
+
 	for (size_t i = 0; i < bucket->authors_count; ++i) {
 		free_string(bucket->authors[i].name);
 		free_string(bucket->authors[i].link);
@@ -64,12 +72,19 @@ free_item_bucket(struct item_bucket *bucket)
 	free_string(bucket->comments);
 	free_string(bucket->content);
 
+	for (size_t i = 0; i < bucket->links_count; ++i) {
+		free_string(bucket->links[i].url);
+		free_string(bucket->links[i].type);
+	}
+	free(bucket->links);
+
 	for (size_t i = 0; i < bucket->authors_count; ++i) {
 		free_string(bucket->authors[i].name);
 		free_string(bucket->authors[i].link);
 		free_string(bucket->authors[i].email);
 	}
 	free(bucket->authors);
+
 	free(bucket);
 }
 

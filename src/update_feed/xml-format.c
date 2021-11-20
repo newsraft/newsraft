@@ -83,7 +83,7 @@ update_feed(const struct string *url)
 
 	struct item_bucket *bucket = create_item_bucket();
 	if (bucket == NULL) {
-		status_write("[fail] not enough memory");
+		debug_write(DBG_FAIL, "Could not allocate enough memory for item bucket to start updating a feed!\n");
 		error = 1;
 		return error; // failure
 	}

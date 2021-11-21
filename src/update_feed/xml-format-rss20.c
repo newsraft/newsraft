@@ -3,14 +3,11 @@
 #include "update_feed/update_feed.h"
 
 void XMLCALL
-parse_rss20_element_beginning(void *userData, const XML_Char *name, const XML_Char **atts)
+parse_rss20_element_start(struct parser_data *data, const XML_Char *name, const XML_Char **atts)
 {
-	if (parse_namespace_element_beginning(userData, name, atts) == 0) {
+	if (parse_namespace_element_start(data, name, atts) == 0) {
 		return;
 	}
-
-	struct parser_data *data = userData;
-	++(data->depth);
 
 	     if (strcmp(name, "item") == 0)        data->pos |= IN_ITEM_ELEMENT;
 	else if (strcmp(name, "title") == 0)       data->pos |= IN_TITLE_ELEMENT;
@@ -36,14 +33,11 @@ parse_rss20_element_beginning(void *userData, const XML_Char *name, const XML_Ch
 }
 
 void XMLCALL
-parse_rss20_element_end(void *userData, const XML_Char *name)
+parse_rss20_element_end(struct parser_data *data, const XML_Char *name)
 {
-	if (parse_namespace_element_end(userData, name) == 0) {
+	if (parse_namespace_element_end(data, name) == 0) {
 		return;
 	}
-
-	struct parser_data *data = userData;
-	--(data->depth);
 
 	strip_whitespace_from_edges(data->value, &data->value_len);
 
@@ -90,10 +84,10 @@ parse_rss20_element_end(void *userData, const XML_Char *name)
 		}
 	} else if (strcmp(name, "category") == 0) {
 		data->pos &= ~IN_CATEGORY_ELEMENT;
-		if ((data->pos & IN_ITEM_ELEMENT) == 0) {
-			/* global category, todo */
-		} else {
+		if ((data->pos & IN_ITEM_ELEMENT) != 0) {
 			add_category_to_item_bucket(data->bucket, data->value, data->value_len);
+		} else {
+			/* global category, todo */
 		}
 	} else if (strcmp(name, "comments") == 0) {
 		data->pos &= ~IN_COMMENTS_ELEMENT;

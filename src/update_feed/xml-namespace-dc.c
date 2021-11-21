@@ -3,11 +3,9 @@
 #include "update_feed/update_feed.h"
 
 void XMLCALL
-parse_dc_element_beginning(void *userData, const XML_Char *name, const XML_Char **atts)
+parse_dc_element_start(struct parser_data *data, const XML_Char *name, const XML_Char **atts)
 {
 	(void)atts;
-	struct parser_data *data = userData;
-	++(data->depth);
 
 	     if (strcmp(name, "title") == 0)       data->pos |= IN_TITLE_ELEMENT;
 	else if (strcmp(name, "description") == 0) data->pos |= IN_DESCRIPTION_ELEMENT;
@@ -28,10 +26,8 @@ parse_dc_element_beginning(void *userData, const XML_Char *name, const XML_Char 
 }
 
 void XMLCALL
-parse_dc_element_end(void *userData, const XML_Char *name)
+parse_dc_element_end(struct parser_data *data, const XML_Char *name)
 {
-	struct parser_data *data = userData;
-	--(data->depth);
 	strip_whitespace_from_edges(data->value, &data->value_len);
 
 	if (strcmp(name, "title") == 0) {

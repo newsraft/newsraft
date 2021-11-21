@@ -12,7 +12,6 @@ static void
 character_data_handler(void *userData, const XML_Char *s, int s_len)
 {
 	struct parser_data *data = userData;
-	if (data->prev_pos != data->pos) data->value_len = 0;
 	if (data->value_len + s_len > data->value_lim) {
 		// multiply by 2 to minimize number of further realloc calls
 		data->value_lim = (data->value_len + s_len) * 2;
@@ -25,7 +24,6 @@ character_data_handler(void *userData, const XML_Char *s, int s_len)
 	memcpy(data->value + data->value_len, s, s_len);
 	data->value_len += s_len;
 	*(data->value + data->value_len) = '\0';
-	data->prev_pos = data->pos;
 }
 
 static size_t
@@ -45,6 +43,11 @@ static void XMLCALL
 process_element_start(void *userData, const XML_Char *name, const XML_Char **atts) {
 	struct parser_data *data = userData;
 	++(data->depth);
+	data->value_len = 0;
+	if (data->start_handle != NULL) {
+		data->start_handle(data, name, atts);
+		return;
+	}
 	if (data->depth != 1) {
 		return;
 	}
@@ -59,21 +62,26 @@ process_element_start(void *userData, const XML_Char *name, const XML_Char **att
 					strcmp(atts[i], "0.92") == 0 ||
 					strcmp(atts[i], "0.91") == 0))
 				{
-					XML_SetElementHandler(*(data->parser), &parse_rss20_element_beginning, &parse_rss20_element_end);
+					data->start_handle = &parse_rss20_element_start;
+					data->end_handle = &parse_rss20_element_end;
 					return;
 				}
 				break;
 			}
 		}
 	}
-	XML_SetElementHandler(*(data->parser), &parse_generic_element_beginning, &parse_generic_element_end);
+	data->start_handle = &parse_generic_element_start;
+	data->end_handle = &parse_generic_element_end;
 }
 
 static void XMLCALL
-process_element_finish(void *userData, const XML_Char *name) {
-	(void)name;
+process_element_end(void *userData, const XML_Char *name) {
 	struct parser_data *data = userData;
 	--(data->depth);
+	if (data->end_handle != NULL) {
+		data->end_handle(data, name);
+		return;
+	}
 }
 
 int
@@ -90,20 +98,22 @@ update_feed(const struct string *url)
 
 	XML_Parser parser = XML_ParserCreateNS(NULL, NAMESPACE_SEPARATOR);
 	struct parser_data data = {
-		.value     = malloc(sizeof(char) * config_init_parser_buf_size),
-		.value_len = 0,
-		.value_lim = config_init_parser_buf_size,
-		.depth     = 0,
-		.pos       = IN_ROOT,
-		.prev_pos  = IN_ROOT,
-		.feed_url  = url,
-		.bucket    = bucket,
-		.parser    = &parser,
-		.fail      = false,
+		.value        = malloc(sizeof(char) * config_init_parser_buf_size),
+		.value_len    = 0,
+		.value_lim    = config_init_parser_buf_size,
+		.depth        = 0,
+		.pos          = IN_ROOT,
+		.feed_url     = url,
+		.bucket       = bucket,
+		.parser       = &parser,
+		.start_handle = NULL,
+		.end_handle   = NULL,
+		.fail         = false,
 	};
 	XML_SetUserData(parser, &data);
+	// A single block of contiguous text free of markup may still result in a sequence of calls to CharacterDataHandler.
 	XML_SetCharacterDataHandler(parser, &character_data_handler);
-	XML_SetElementHandler(parser, &process_element_start, &process_element_finish);
+	XML_SetElementHandler(parser, &process_element_start, &process_element_end);
 
 	CURL *curl = curl_easy_init();
 	curl_easy_setopt(curl, CURLOPT_URL, url->ptr);

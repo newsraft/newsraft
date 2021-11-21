@@ -4,11 +4,8 @@
 #include "update_feed/update_feed.h"
 
 void XMLCALL
-parse_atom10_element_beginning(void *userData, const XML_Char *name, const XML_Char **atts)
+parse_atom10_element_start(struct parser_data *data, const XML_Char *name, const XML_Char **atts)
 {
-	struct parser_data *data = userData;
-	++(data->depth);
-
 	if      (strcmp(name, "entry") == 0)     data->pos |= IN_ITEM_ELEMENT;
 	else if (strcmp(name, "title") == 0)     data->pos |= IN_TITLE_ELEMENT;
 	else if (strcmp(name, "summary") == 0)   data->pos |= IN_DESCRIPTION_ELEMENT;
@@ -46,10 +43,8 @@ parse_atom10_element_beginning(void *userData, const XML_Char *name, const XML_C
 }
 
 void XMLCALL
-parse_atom10_element_end(void *userData, const XML_Char *name)
+parse_atom10_element_end(struct parser_data *data, const XML_Char *name)
 {
-	struct parser_data *data = userData;
-	--(data->depth);
 	strip_whitespace_from_edges(data->value, &data->value_len);
 
 	if (strcmp(name, "entry") == 0) {

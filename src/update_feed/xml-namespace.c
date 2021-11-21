@@ -5,15 +5,15 @@
 
 struct {
 	const char *name;
-	XML_StartElementHandler parse_element_beginning;
-	XML_EndElementHandler parse_element_end;
+	void (*parse_element_start)(struct parser_data *data, const XML_Char *name, const XML_Char **atts);
+	void (*parse_element_end)(struct parser_data *data, const XML_Char *name);
 } namespace_handlers[] = {
-	{"http://www.w3.org/2005/Atom", &parse_atom10_element_beginning, &parse_atom10_element_end},
-	{"http://purl.org/rss/1.0/", &parse_rss10_element_beginning, &parse_rss10_element_end},
-	{"http://purl.org/dc/elements/1.1/", &parse_dc_element_beginning, &parse_dc_element_end},
-	{"http://purl.org/atom/ns#", &parse_atom03_element_beginning, &parse_atom03_element_end},
-	{"http://channel.netscape.com/rdf/simple/0.9/", &parse_rss10_element_beginning, &parse_rss10_element_end},
-	{"http://purl.org/net/rss1.1#", &parse_rss10_element_beginning, &parse_rss10_element_end},
+	{"http://www.w3.org/2005/Atom", &parse_atom10_element_start, &parse_atom10_element_end},
+	{"http://purl.org/rss/1.0/", &parse_rss10_element_start, &parse_rss10_element_end},
+	{"http://purl.org/dc/elements/1.1/", &parse_dc_element_start, &parse_dc_element_end},
+	{"http://purl.org/atom/ns#", &parse_atom03_element_start, &parse_atom03_element_end},
+	{"http://channel.netscape.com/rdf/simple/0.9/", &parse_rss10_element_start, &parse_rss10_element_end},
+	{"http://purl.org/net/rss1.1#", &parse_rss10_element_start, &parse_rss10_element_end},
 };
 
 static char *
@@ -67,7 +67,7 @@ get_tag_name(const XML_Char *name)
 }
 
 int
-parse_namespace_element_beginning(void *userData, const XML_Char *name, const XML_Char **atts) {
+parse_namespace_element_start(struct parser_data *data, const XML_Char *name, const XML_Char **atts) {
 	char *namespace = get_namespace_name(name);
 	if (namespace == NULL) {
 		return 1; // failure
@@ -79,7 +79,7 @@ parse_namespace_element_beginning(void *userData, const XML_Char *name, const XM
 				free(namespace);
 				return 1; // failure
 			}
-			namespace_handlers[i].parse_element_beginning(userData, tag_name, atts);
+			namespace_handlers[i].parse_element_start(data, tag_name, atts);
 			free(tag_name);
 			free(namespace);
 			return 0; // success
@@ -90,7 +90,7 @@ parse_namespace_element_beginning(void *userData, const XML_Char *name, const XM
 }
 
 int
-parse_namespace_element_end(void *userData, const XML_Char *name) {
+parse_namespace_element_end(struct parser_data *data, const XML_Char *name) {
 	char *namespace = get_namespace_name(name);
 	if (namespace == NULL) {
 		return 1; // failure
@@ -102,7 +102,7 @@ parse_namespace_element_end(void *userData, const XML_Char *name) {
 				free(namespace);
 				return 1; // failure
 			}
-			namespace_handlers[i].parse_element_end(userData, tag_name);
+			namespace_handlers[i].parse_element_end(data, tag_name);
 			free(tag_name);
 			free(namespace);
 			return 0; // success

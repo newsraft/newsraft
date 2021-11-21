@@ -61,10 +61,11 @@ struct parser_data {
 	size_t value_lim;
 	int depth;
 	int pos;
-	int prev_pos;
 	const struct string *feed_url;
 	struct item_bucket *bucket;
 	XML_Parser *parser;
+	void (*start_handle)(struct parser_data *data, const XML_Char *name, const XML_Char **atts);
+	void (*end_handle)(struct parser_data *data, const XML_Char *name);
 	bool fail;
 };
 
@@ -78,18 +79,18 @@ void free_item_bucket(struct item_bucket *bucket);
 void add_category_to_item_bucket(const struct item_bucket *bucket, const char *category, size_t category_len);
 
 // xml element handlers
-int parse_namespace_element_beginning        (void *userData, const XML_Char *name, const XML_Char **atts);
-int parse_namespace_element_end              (void *userData, const XML_Char *name);
-void XMLCALL parse_rss20_element_beginning   (void *userData, const XML_Char *name, const XML_Char **atts);
-void XMLCALL parse_rss20_element_end         (void *userData, const XML_Char *name);
-void XMLCALL parse_generic_element_beginning (void *userData, const XML_Char *name, const XML_Char **atts);
-void XMLCALL parse_generic_element_end       (void *userData, const XML_Char *name);
-void XMLCALL parse_rss10_element_beginning   (void *userData, const XML_Char *name, const XML_Char **atts);
-void XMLCALL parse_rss10_element_end         (void *userData, const XML_Char *name);
-void XMLCALL parse_atom10_element_beginning  (void *userData, const XML_Char *name, const XML_Char **atts);
-void XMLCALL parse_atom10_element_end        (void *userData, const XML_Char *name);
-void XMLCALL parse_atom03_element_beginning  (void *userData, const XML_Char *name, const XML_Char **atts);
-void XMLCALL parse_atom03_element_end        (void *userData, const XML_Char *name);
-void XMLCALL parse_dc_element_beginning      (void *userData, const XML_Char *name, const XML_Char **atts);
-void XMLCALL parse_dc_element_end            (void *userData, const XML_Char *name);
+int parse_namespace_element_start(struct parser_data *data, const XML_Char *name, const XML_Char **atts);
+int parse_namespace_element_end  (struct parser_data *data, const XML_Char *name);
+void parse_rss20_element_start   (struct parser_data *data, const XML_Char *name, const XML_Char **atts);
+void parse_rss20_element_end     (struct parser_data *data, const XML_Char *name);
+void parse_generic_element_start (struct parser_data *data, const XML_Char *name, const XML_Char **atts);
+void parse_generic_element_end   (struct parser_data *data, const XML_Char *name);
+void parse_rss10_element_start   (struct parser_data *data, const XML_Char *name, const XML_Char **atts);
+void parse_rss10_element_end     (struct parser_data *data, const XML_Char *name);
+void parse_atom10_element_start  (struct parser_data *data, const XML_Char *name, const XML_Char **atts);
+void parse_atom10_element_end    (struct parser_data *data, const XML_Char *name);
+void parse_atom03_element_start  (struct parser_data *data, const XML_Char *name, const XML_Char **atts);
+void parse_atom03_element_end    (struct parser_data *data, const XML_Char *name);
+void parse_dc_element_start      (struct parser_data *data, const XML_Char *name, const XML_Char **atts);
+void parse_dc_element_end        (struct parser_data *data, const XML_Char *name);
 #endif // UPDATE_FEED_H

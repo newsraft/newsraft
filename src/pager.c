@@ -1,60 +1,12 @@
-#include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
 #include "feedeater.h"
+
+// Here, a pager is such a thing that serves as a text viewer.
 
 static WINDOW *window;
 static int view_min; // index of first visible line (row)
 static int pad_height;
 static struct string *contents;
-
-static sqlite3_stmt *
-find_item_by_its_rowid_in_db(int rowid)
-{
-	sqlite3_stmt *res;
-	if (sqlite3_prepare_v2(db, "SELECT * FROM items WHERE rowid = ? LIMIT 1", -1, &res, 0) != SQLITE_OK) {
-		DEBUG_WRITE_DB_PREPARE_FAIL;
-		return NULL; // failure
-	}
-	sqlite3_bind_int(res, 1, rowid);
-	if (sqlite3_step(res) != SQLITE_ROW) {
-		debug_write(DBG_WARN, "Could not find an item with the rowid %d!\n", rowid);
-		sqlite3_finalize(res);
-		return NULL; // failure
-	}
-	debug_write(DBG_INFO, "Item with the rowid %d is found.\n", rowid);
-	return res; // success
-}
-
-static struct string *
-get_contents_of_item(sqlite3_stmt *res)
-{
-	struct string *buf = create_empty_string();
-	if (buf == NULL) {
-		return NULL;
-	}
-
-	if (cat_item_meta_data_to_buf(buf, res) != 0) {
-		free_string(buf);
-		return NULL;
-	}
-
-	char *text = (char *)sqlite3_column_text(res, ITEM_COLUMN_CONTENT);
-	if (text != NULL) {
-		size_t text_len = strlen(text);
-		if (text_len != 0) {
-			struct string *plain_text = plainify_html(text, text_len);
-			if (plain_text != NULL) {
-				if (plain_text->len != 0) {
-					cat_string_char(buf, '\n');
-					cat_string_string(buf, plain_text);
-				}
-				free_string(plain_text);
-			}
-		}
-	}
-	return buf;
-}
 
 static int
 calculate_pad_height_for_wstring(const struct wstring *wstr)
@@ -90,7 +42,7 @@ calculate_pad_height_for_string(const struct string *buf)
  * functions are returning wrong number of lines needed for pad to store all data of buf.
  * TODO >> fix these two functions above, please << TODO
  * but for now use this function to resize pad everytime there is so much data in buffer. */
-void
+static void
 make_sure_pad_has_enough_lines(WINDOW *pad, int needed_lines)
 {
 	if (needed_lines > pad_height) {
@@ -163,7 +115,7 @@ write_string_to_pad_without_linebreaks(WINDOW *pad, const struct string *buf)
 }
 
 static WINDOW *
-create_window_with_contents()
+create_window_with_contents(void)
 {
 	WINDOW *pad;
 	if (1) { // buffer is multi-byte
@@ -193,6 +145,10 @@ create_window_with_contents()
 
 		write_string_to_pad_without_linebreaks(pad, contents);
 	}
+	clear();
+	refresh();
+	view_min = 0;
+	prefresh(pad, view_min, 0, 0, 0, list_menu_height - 1, list_menu_width - 1);
 	return pad;
 }
 
@@ -256,14 +212,10 @@ redraw_content_by_resize(void)
 {
 	delwin(window);
 	window = create_window_with_contents();
-	clear();
-	refresh();
-	view_min = 0;
-	prefresh(window, view_min, 0, 0, 0, list_menu_height - 1, list_menu_width - 1);
 }
 
 static void
-set_content_input_handlers(void)
+set_pager_view_input_handlers(void)
 {
 	reset_input_handlers();
 	set_input_handler(INPUT_SELECT_NEXT, &scroll_down_a_line);
@@ -276,44 +228,19 @@ set_content_input_handlers(void)
 }
 
 int
-enter_item_contents_menu_loop(int rowid)
+pager_view(struct string *data)
 {
-	debug_write(DBG_INFO, "Trying to view an item with the rowid %d.\n", rowid);
-
-	view_min = 0;
-	pad_height = 0;
-
-	sqlite3_stmt *res = find_item_by_its_rowid_in_db(rowid);
-	if (res == NULL) {
-		return INPUTS_COUNT; // failure
-	}
-
-	contents = get_contents_of_item(res);
-	sqlite3_finalize(res);
-	if (contents == NULL) {
-		return INPUTS_COUNT; // failure
-	}
+	contents = data;
 
 	window = create_window_with_contents();
-	if (window == NULL) {
-		status_write("could not obtain contents of item");
-		free_string(contents);
-		return INPUTS_COUNT; // failure
-	}
 
-	clear();
-	refresh();
-	prefresh(window, view_min, 0, 0, 0, list_menu_height - 1, list_menu_width - 1);
-
-	set_content_input_handlers();
-	db_make_item_read(rowid);
+	set_pager_view_input_handlers();
 
 	int destination;
 	do {
 		destination = handle_input();
 	} while ((destination != INPUT_QUIT_SOFT) && (destination != INPUT_QUIT_HARD));
 
-	free_string(contents);
 	delwin(window);
 
 	return destination;

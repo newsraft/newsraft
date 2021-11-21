@@ -251,6 +251,54 @@ set_items_input_handlers(void)
 	set_input_handler(INPUT_RESIZE, &resize_items_local_action);
 }
 
+static sqlite3_stmt *
+find_item_by_its_rowid_in_db(int rowid)
+{
+	sqlite3_stmt *res;
+	if (sqlite3_prepare_v2(db, "SELECT * FROM items WHERE rowid = ? LIMIT 1", -1, &res, 0) != SQLITE_OK) {
+		DEBUG_WRITE_DB_PREPARE_FAIL;
+		return NULL; // failure
+	}
+	sqlite3_bind_int(res, 1, rowid);
+	if (sqlite3_step(res) != SQLITE_ROW) {
+		debug_write(DBG_WARN, "Could not find an item with the rowid %d!\n", rowid);
+		sqlite3_finalize(res);
+		return NULL; // failure
+	}
+	debug_write(DBG_INFO, "Item with the rowid %d is found.\n", rowid);
+	return res; // success
+}
+
+static struct string *
+get_contents_of_item(sqlite3_stmt *res)
+{
+	struct string *buf = create_empty_string();
+	if (buf == NULL) {
+		return NULL;
+	}
+
+	if (cat_item_meta_data_to_buf(buf, res) != 0) {
+		free_string(buf);
+		return NULL;
+	}
+
+	char *text = (char *)sqlite3_column_text(res, ITEM_COLUMN_CONTENT);
+	if (text != NULL) {
+		size_t text_len = strlen(text);
+		if (text_len != 0) {
+			struct string *plain_text = plainify_html(text, text_len);
+			if (plain_text != NULL) {
+				if (plain_text->len != 0) {
+					cat_string_char(buf, '\n');
+					cat_string_string(buf, plain_text);
+				}
+				free_string(plain_text);
+			}
+		}
+	}
+	return buf;
+}
+
 int
 enter_items_menu_loop(const struct set_condition *st)
 {
@@ -271,10 +319,29 @@ enter_items_menu_loop(const struct set_condition *st)
 	set_items_input_handlers();
 
 	int destination;
+	struct string *contents;
+	sqlite3_stmt *res;
 	while (1) {
 		destination = handle_input();
 		if (destination == INPUT_ENTER) {
-			destination = enter_item_contents_menu_loop(items[view_sel].rowid);
+			debug_write(DBG_INFO, "Trying to view an item with the rowid %d.\n", items[view_sel].rowid);
+
+			res = find_item_by_its_rowid_in_db(items[view_sel].rowid);
+			if (res == NULL) {
+				continue;
+			}
+
+			contents = get_contents_of_item(res);
+			sqlite3_finalize(res);
+			if (contents == NULL) {
+				continue;
+			}
+
+			destination = pager_view(contents);
+
+			db_make_item_read(items[view_sel].rowid);
+			free_string(contents);
+
 			if (destination == INPUT_QUIT_SOFT) {
 				set_items_input_handlers();
 				items[view_sel].is_unread = 0;

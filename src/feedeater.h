@@ -108,6 +108,7 @@ void print_item_format(size_t index, const struct item_line *item);
 void resize_items_global_action(void);
 
 // contents
+int pager_view(struct string *data);
 int cat_item_meta_data_to_buf(struct string *buf, sqlite3_stmt *res);
 struct string *expand_html_entities(char *buf, size_t buf_len);
 struct string *plainify_html(char *buf, size_t buff_len);

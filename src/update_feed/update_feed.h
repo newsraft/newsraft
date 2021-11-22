@@ -63,7 +63,7 @@ struct parser_data {
 	int pos;
 	const struct string *feed_url;
 	struct item_bucket *bucket;
-	XML_Parser *parser;
+	XML_Parser parser;
 	void (*start_handle)(struct parser_data *data, const XML_Char *name, const XML_Char **atts);
 	void (*end_handle)(struct parser_data *data, const XML_Char *name);
 	bool fail;

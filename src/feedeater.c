@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <locale.h>
 #include <unistd.h>
+#include <curl/curl.h>
 #include "feedeater.h"
 
 int
@@ -55,21 +56,24 @@ main(int argc, char **argv)
 	}
 
 	int error = 0;
-	if (load_default_binds() != 0) { error = 1; goto main_undo1; }
-	if (load_config() != 0)        { error = 2; goto main_undo2; }
-	if (db_init() != 0)            { error = 3; goto main_undo3; }
-	if (load_sets() != 0)          { error = 4; goto main_undo4; }
-	if (initscr() == NULL)         { error = 5; goto main_undo5; }
-	if (create_list_menu() != 0)   { error = 6; goto main_undo6; }
-	if (status_create() != 0)      { error = 7; goto main_undo7; }
+	if (load_default_binds() != 0)                  { error = 1; goto main_undo1; }
+	if (load_config() != 0)                         { error = 2; goto main_undo2; }
+	if (db_init() != 0)                             { error = 3; goto main_undo3; }
+	if (load_sets() != 0)                           { error = 4; goto main_undo4; }
+	if (curl_global_init(CURL_GLOBAL_DEFAULT) != 0) { error = 5; goto main_undo5; }
+	if (initscr() == NULL)                          { error = 6; goto main_undo6; }
+	if (create_list_menu() != 0)                    { error = 7; goto main_undo7; }
+	if (status_create() != 0)                       { error = 8; goto main_undo8; }
 
 	enter_sets_menu_loop();
 
 	status_delete();
-main_undo7:
+main_undo8:
 	free_list_menu();
-main_undo6:
+main_undo7:
 	endwin();
+main_undo6:
+	curl_global_cleanup();
 main_undo5:
 	free_sets();
 main_undo4:

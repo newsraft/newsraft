@@ -25,6 +25,13 @@ enum xml_pos {
 	IN_EMAIL_ELEMENT = 65536,
 };
 
+enum parse_error {
+	PARSE_OKAY = 0,
+	PARSE_FAIL_NOT_ENOUGH_MEMORY,
+	PARSE_FAIL_CURL_EASY_PERFORM_ERROR,
+	PARSE_FAIL_XML_PARSE_ERROR,
+};
+
 struct link {
 	struct string *url; // string with the url to data
 	struct string *type; // standard MIME type of data
@@ -64,9 +71,9 @@ struct parser_data {
 	const struct string *feed_url;
 	struct item_bucket *bucket;
 	XML_Parser parser;
-	void (*start_handle)(struct parser_data *data, const XML_Char *name, const XML_Char **atts);
-	void (*end_handle)(struct parser_data *data, const XML_Char *name);
-	bool fail;
+	void (*start_handler)(struct parser_data *data, const XML_Char *name, const XML_Char **atts);
+	void (*end_handler)(struct parser_data *data, const XML_Char *name);
+	enum parse_error error;
 };
 
 const char *get_value_of_attribute_key(const XML_Char **atts, const char *key);

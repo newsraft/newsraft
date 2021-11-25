@@ -399,7 +399,7 @@ resize_sets_global_action(void)
 }
 
 static void
-resize_sets_local_action(void)
+redraw_sets_windows(void)
 {
 	clear();
 	refresh();
@@ -416,7 +416,7 @@ set_sets_input_handlers(void)
 	set_input_handler(INPUT_SELECT_LAST, &view_select_last);
 	set_input_handler(INPUT_RELOAD, &reload_current_set);
 	set_input_handler(INPUT_RELOAD_ALL, &reload_all_feeds);
-	set_input_handler(INPUT_RESIZE, &resize_sets_local_action);
+	set_input_handler(INPUT_RESIZE, &redraw_sets_windows);
 }
 
 void
@@ -425,9 +425,7 @@ enter_sets_menu_loop(void)
 	view_min = 0;
 	view_max = list_menu_height - 1;
 
-	clear();
-	refresh();
-	show_sets();
+	redraw_sets_windows();
 
 	set_sets_input_handlers();
 
@@ -452,9 +450,7 @@ enter_sets_menu_loop(void)
 			} else if (sets[view_sel].tags != NULL) {
 				/* TODO check if filter changed its read state */
 			}
-			clear();
-			refresh();
-			show_sets();
+			redraw_sets_windows();
 		}
 
 		free_set_condition(sc);

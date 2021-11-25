@@ -7,7 +7,9 @@
 #include "feedeater.h"
 
 #define SELECT_CMD_PART_1 "SELECT rowid, feed, title, unread FROM items WHERE"
-#define SELECT_CMD_PART_3 " ORDER BY upddate DESC, pubdate DESC, rowid ASC"
+#define SELECT_CMD_PART_1_LEN 50
+#define SELECT_CMD_PART_3 " ORDER BY upddate DESC, pubdate DESC, rowid DESC"
+#define SELECT_CMD_PART_3_LEN 48
 
 static struct item_line *items = NULL;
 static size_t items_count = 0;
@@ -32,15 +34,16 @@ free_items(void)
 static int
 load_items(const struct set_condition *st)
 {
-	char *cmd = malloc(sizeof(SELECT_CMD_PART_1) + st->db_cmd->len + sizeof(SELECT_CMD_PART_3) + 1);
+	char *cmd = malloc(sizeof(char) * (SELECT_CMD_PART_1_LEN + st->db_cmd->len + SELECT_CMD_PART_3_LEN + 1));
 	if (cmd == NULL) {
-		status_write("[error] not enough memory");
+		status_write("[FAIL] Not enough memory!");
+		debug_write(DBG_FAIL, "Could not allocate enough memory for loading items!\n");
 		return 1; // failure
 	}
 	strcpy(cmd, SELECT_CMD_PART_1);
 	strcat(cmd, st->db_cmd->ptr);
 	strcat(cmd, SELECT_CMD_PART_3);
-	debug_write(DBG_INFO, "Item SELECT statement command: %s\n", cmd);
+	debug_write(DBG_INFO, "Items SELECT statement: %s\n", cmd);
 	int error = 0;
 	view_sel = SIZE_MAX;
 	sqlite3_stmt *res;
@@ -229,7 +232,7 @@ resize_items_global_action(void)
 }
 
 static void
-resize_items_local_action(void)
+redraw_items_windows(void)
 {
 	clear();
 	refresh();
@@ -248,7 +251,7 @@ set_items_input_handlers(void)
 	set_input_handler(INPUT_MARK_READ_ALL, &mark_all_items_read);
 	set_input_handler(INPUT_MARK_UNREAD, &mark_selected_item_unread);
 	set_input_handler(INPUT_MARK_UNREAD_ALL, &mark_all_items_unread);
-	set_input_handler(INPUT_RESIZE, &resize_items_local_action);
+	set_input_handler(INPUT_RESIZE, &redraw_items_windows);
 }
 
 static sqlite3_stmt *
@@ -312,9 +315,7 @@ enter_items_menu_loop(const struct set_condition *st)
 	view_min = 0;
 	view_max = list_menu_height - 1;
 
-	clear();
-	refresh();
-	show_items();
+	redraw_items_windows();
 
 	set_items_input_handlers();
 
@@ -345,9 +346,7 @@ enter_items_menu_loop(const struct set_condition *st)
 			if (destination == INPUT_QUIT_SOFT) {
 				set_items_input_handlers();
 				items[view_sel].is_unread = 0;
-				clear();
-				refresh();
-				show_items();
+				redraw_items_windows();
 			} else if (destination == INPUT_QUIT_HARD) {
 				break;
 			}

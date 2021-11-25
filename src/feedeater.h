@@ -6,6 +6,7 @@
 #include <sqlite3.h>
 #include <time.h>
 #include <wchar.h>
+#define APPLICATION_VERSION "0.0.0"
 #define LENGTH(A) (sizeof(A)/sizeof(*A))
 #define DEBUG_WRITE_DB_PREPARE_FAIL debug_write(DBG_FAIL, "Failed to prepare an SQL statement: %s\n", sqlite3_errmsg(db))
 
@@ -35,8 +36,8 @@ struct set_condition {
 
 struct set_line {
 	struct string *name; // what is displayed in menu
-	struct string *link; // this is feed url if set is feed
-	struct string *tags; // this is tags expression if set is filter
+	struct string *link; // this is feed url if set is feed NULL otherwise
+	struct string *tags; // this is tags expression if set is filter NULL otherwise
 	size_t unread_count;
 	WINDOW *window;
 };
@@ -180,7 +181,7 @@ void free_wstring(struct wstring *wstr);
 
 // debug
 int debug_init(const char *path);
-void debug_write(enum debug_level lvl, const char *format, ...);
+void debug_write(enum debug_level level, const char *format, ...);
 void debug_stop(void);
 
 // Download, process and store a new items of feed.

@@ -60,6 +60,16 @@ static const struct entity_entry entities[] = {
 	{"amp",           "38",    "26",    "&"},
 	{"lt",            "60",    "3C",    "<"},
 	{"gt",            "62",    "3E",    ">"},
+	{"rightarrow",    "8594",  "2192",  "→"},
+	{"RightArrow",    "8594",  "2192",  "→"},
+	{"rarr",          "8594",  "2192",  "→"},
+	{"Rightarrow",    "8658",  "21D2",  "⇒"},
+	{"rArr",          "8658",  "21D2",  "⇒"},
+	{"Rarr",          "8608",  "21A0",  "↠"},
+	{"rdsh",          "8627",  "21B3",  "↳"},
+	{"rdca",          "10551", "2937",  "⤷"},
+	{NULL,            "65038", "FE0E",  ""},
+	{NULL,            "65039", "FE0F",  ""},
 	{"half",          "189",   "BD",    "½"},
 	{"frac12",        "189",   "BD",    "½"},
 	{"frac13",        "8531",  "2153",  "⅓"},
@@ -142,7 +152,7 @@ translate_entity(char *entity)
 		}
 	} else { // entity is of word type
 		for (size_t i = 0; i < LENGTH(entities); ++i) {
-			if (strcmp(entity, entities[i].name) == 0) {
+			if ((entities[i].name != NULL) && (strcmp(entity, entities[i].name) == 0)) {
 				return entities[i].value;
 			}
 		}

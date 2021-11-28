@@ -38,17 +38,6 @@ create_empty_string(void)
 }
 
 void
-cpy_string_string(struct string *dest, const struct string *src)
-{
-	dest->len = src->len;
-	if (dest->len > dest->lim) {
-		dest->lim = dest->len;
-		dest->ptr = realloc(dest->ptr, dest->lim + 1);
-	}
-	strcpy(dest->ptr, src->ptr);
-}
-
-void
 cpy_string_array(struct string *dest, const char *src_ptr, size_t src_len)
 {
 	dest->len = src_len;
@@ -60,14 +49,9 @@ cpy_string_array(struct string *dest, const char *src_ptr, size_t src_len)
 }
 
 void
-cat_string_string(struct string *dest, const struct string *src)
+cpy_string_string(struct string *dest, const struct string *src)
 {
-	dest->len += src->len;
-	if (dest->len > dest->lim) {
-		dest->lim = dest->len;
-		dest->ptr = realloc(dest->ptr, dest->lim + 1);
-	}
-	strncat(dest->ptr, src->ptr, src->len);
+	cpy_string_array(dest, src->ptr, src->len);
 }
 
 void
@@ -79,6 +63,12 @@ cat_string_array(struct string *dest, const char *src_ptr, size_t src_len)
 		dest->ptr = realloc(dest->ptr, dest->lim + 1);
 	}
 	strncat(dest->ptr, src_ptr, src_len);
+}
+
+void
+cat_string_string(struct string *dest, const struct string *src)
+{
+	cat_string_array(dest, src->ptr, src->len);
 }
 
 void

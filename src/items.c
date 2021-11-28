@@ -32,16 +32,16 @@ free_items(void)
 }
 
 static int
-load_items(const struct set_condition *st)
+load_items(const struct set_condition *sc)
 {
-	char *cmd = malloc(sizeof(char) * (SELECT_CMD_PART_1_LEN + st->db_cmd->len + SELECT_CMD_PART_3_LEN + 1));
+	char *cmd = malloc(sizeof(char) * (SELECT_CMD_PART_1_LEN + sc->db_cmd->len + SELECT_CMD_PART_3_LEN + 1));
 	if (cmd == NULL) {
-		status_write("[FAIL] Not enough memory!");
+		status_write("Failed to load items: not enough memory!");
 		debug_write(DBG_FAIL, "Could not allocate enough memory for loading items!\n");
 		return 1; // failure
 	}
 	strcpy(cmd, SELECT_CMD_PART_1);
-	strcat(cmd, st->db_cmd->ptr);
+	strcat(cmd, sc->db_cmd->ptr);
 	strcat(cmd, SELECT_CMD_PART_3);
 	debug_write(DBG_INFO, "Items SELECT statement: %s\n", cmd);
 	int error = 0;
@@ -50,8 +50,8 @@ load_items(const struct set_condition *st)
 	if (sqlite3_prepare_v2(db, cmd, -1, &res, 0) == SQLITE_OK) {
 		size_t item_index;
 		char *text;
-		for (size_t i = 0; i < st->urls_count; ++i) {
-			sqlite3_bind_text(res, i + 1, st->urls[i]->ptr, st->urls[i]->len, NULL);
+		for (size_t i = 0; i < sc->urls_count; ++i) {
+			sqlite3_bind_text(res, i + 1, sc->urls[i]->ptr, sc->urls[i]->len, NULL);
 		}
 		while (sqlite3_step(res) == SQLITE_ROW) {
 			item_index = items_count++;
@@ -71,7 +71,7 @@ load_items(const struct set_condition *st)
 			items[item_index].is_unread = sqlite3_column_int(res, 3);
 		}
 	} else {
-		status_write("[error] invalid tag expression");
+		status_write("No items matched this tag expression!");
 		debug_write(DBG_FAIL, "Failed to prepare SELECT statement: %s\n", sqlite3_errmsg(db));
 		error = 1;
 	}
@@ -303,10 +303,10 @@ get_contents_of_item(sqlite3_stmt *res)
 }
 
 int
-enter_items_menu_loop(const struct set_condition *st)
+enter_items_menu_loop(const struct set_condition *sc)
 {
 	if (items == NULL) {
-		if (load_items(st) != 0) {
+		if (load_items(sc) != 0) {
 			free_items();
 			return INPUTS_COUNT;
 		}

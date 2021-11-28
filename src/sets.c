@@ -29,13 +29,13 @@ static int
 parse_sets_file(void) {
 	char *path = get_feeds_path();
 	if (path == NULL) {
-		fprintf(stderr, "could not find feeds file!\n");
+		fprintf(stderr, "Could not find feeds file!\n");
 		return 1;
 	}
 	FILE *f = fopen(path, "r");
 	free(path);
 	if (f == NULL) {
-		fprintf(stderr, "could not open feeds file!\n");
+		fprintf(stderr, "Could not open feeds file!\n");
 		return 1;
 	}
 	size_t set_index, word_len;
@@ -179,7 +179,7 @@ parse_sets_file(void) {
 	fclose(f);
 	if (error != 0) {
 		if (error == 1) {
-			fprintf(stderr, "not enough memory for parsing feeds file\n");
+			fprintf(stderr, "Not enough memory for parsing feeds file!\n");
 		}
 	}
 	return error;
@@ -189,7 +189,7 @@ int
 load_sets(void)
 {
 	if (parse_sets_file() != 0) {
-		fprintf(stderr, "failed to load sets from file!\n");
+		fprintf(stderr, "Failed to load sets from file!\n");
 		free_sets();
 		return 1; // failure
 	}
@@ -204,7 +204,7 @@ load_sets(void)
 	}
 
 	if (view_sel == SIZE_MAX) {
-		fprintf(stderr, "none of feeds loaded!\n");
+		fprintf(stderr, "None of feeds loaded!\n");
 		free_sets();
 		return 1; // failure
 	}
@@ -292,7 +292,7 @@ view_select(size_t i)
 static void
 set_reload_feed(struct set_line *set, size_t index)
 {
-	status_write("[loading] %s", set->link->ptr);
+	status_write("Loading %s", set->link->ptr);
 	if (update_feed(set->link) == 0) {
 		size_t new_unread_count = get_unread_items_count_of_feed(set->link);
 		if (set->unread_count != new_unread_count) {
@@ -301,7 +301,7 @@ set_reload_feed(struct set_line *set, size_t index)
 		}
 		status_clean();
 	} else {
-		status_write("[FAILURE] Failed to update %s feed.", set->link->ptr);
+		status_write("Failed to update %s", set->link->ptr);
 	}
 }
 
@@ -318,7 +318,7 @@ set_reload_filter(struct set_line *set, size_t index)
 	size_t errors = 0;
 	/* Here we trying to reload all feed urls related to this filter. */
 	for (size_t i = 0; i < sc->urls_count; ++i) {
-		status_write("[loading] %s", sc->urls[i]->ptr);
+		status_write("Loading %s", sc->urls[i]->ptr);
 		if (update_feed(sc->urls[i]) == 0) {
 			for (size_t j = 0; j < sets_count; ++j) {
 				if ((sets[j].link != NULL) && (strcmp(sets[j].link->ptr, sc->urls[i]->ptr) == 0)) {
@@ -340,9 +340,9 @@ set_reload_filter(struct set_line *set, size_t index)
 	if (errors == 0) {
 		status_clean();
 	} else if (errors == 1) {
-		status_write("[FAILURE] Failed to update 1 feed.");
+		status_write("Failed to update 1 feed.");
 	} else {
-		status_write("[FAILURE] Failed to update %u feeds.", errors);
+		status_write("Failed to update %u feeds.", errors);
 	}
 }
 

@@ -167,10 +167,10 @@ void free_binds(void);
 // string
 struct string *create_string(const char *src, size_t len);
 struct string *create_empty_string(void);
-void cpy_string_string(struct string *dest, const struct string *src);
 void cpy_string_array(struct string *dest, const char *src_ptr, size_t src_len);
-void cat_string_string(struct string *dest, const struct string *src);
+void cpy_string_string(struct string *dest, const struct string *src);
 void cat_string_array(struct string *dest, const char *src, size_t src_len);
+void cat_string_string(struct string *dest, const struct string *src);
 void cat_string_char(struct string *dest, char c);
 void empty_string(struct string *str);
 void free_string(struct string *str);

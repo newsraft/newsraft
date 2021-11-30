@@ -2,8 +2,8 @@
 #include <string.h>
 #include "feedeater.h"
 
-#define SELECT_CMD_PART_1 "SELECT rowid, title, unread FROM items WHERE"
-#define SELECT_CMD_PART_1_LEN 44
+#define SELECT_CMD_PART_1 "SELECT rowid, title, unread FROM items WHERE "
+#define SELECT_CMD_PART_1_LEN 45
 #define SELECT_CMD_PART_3 " ORDER BY upddate DESC, pubdate DESC, rowid DESC"
 #define SELECT_CMD_PART_3_LEN 48
 

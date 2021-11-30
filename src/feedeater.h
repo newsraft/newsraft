@@ -24,20 +24,21 @@ struct wstring {
 
 struct feed_tag {
 	char *name;
-	struct string **urls;
+	const struct string **urls;
 	size_t urls_count;
 };
 
 struct set_condition {
-	struct string *db_cmd; // WHERE condition string
-	struct string **urls;  // array of urls to replace the placeholders in db_cmd
-	size_t urls_count;     // number of elements in urls array
+	struct string *db_cmd;       // WHERE condition string
+	const struct string **urls;  // array of urls to replace the placeholders in db_cmd
+	size_t urls_count;           // number of elements in urls array
 };
 
 struct set_line {
 	struct string *name; // what is displayed in menu
 	struct string *link; // this is feed url if set is feed NULL otherwise
 	struct string *tags; // this is tags expression if set is filter NULL otherwise
+	const struct set_condition *cond;
 	size_t unread_count;
 	WINDOW *window;
 };
@@ -133,19 +134,19 @@ time_t parse_date_rfc3339(const char *date_str, size_t date_len);
 struct string *get_config_date_str(const time_t *time_ptr);
 
 // tags
-int tag_feed(char *tag_name, struct string *url);
-// convert data of set to sql WHERE condition
-struct set_condition * create_set_condition(struct set_line *set);
-void free_set_condition(struct set_condition *cond);
+int tag_feed(const char *tag_name, const struct string *url);
+const struct set_condition *create_set_condition_for_feed(const struct string *feed_url);
+const struct set_condition *create_set_condition_for_filter(const struct string *tags_expr);
+void free_set_condition(const struct set_condition *cond);
 void debug_tags_summary(void);
-struct feed_tag *get_tag_by_name(char *name);
+const struct feed_tag *get_tag_by_name(const char *name);
 void free_tags(void);
 
 // db
 int db_init(void);
 void db_stop(void);
 void db_update_feed_text(const struct string *feed_url, const char *column, const char *data, size_t data_len);
-size_t get_unread_items_count_of_feed(const struct string *url);
+size_t get_unread_items_count(const struct set_condition *sc);
 int db_make_item_read(int rowid);
 int db_make_item_unread(int rowid);
 

@@ -6,7 +6,7 @@ static struct feed_tag *tags = NULL;
 static size_t tags_count = 0;
 
 static int
-init_tag_with_first_url(char *tag_name, struct string *url)
+init_tag_with_first_url(const char *tag_name, const struct string *url)
 {
 	size_t tag_index = tags_count++;
 	tags = realloc(tags, sizeof(struct feed_tag) * tags_count);
@@ -30,7 +30,7 @@ init_tag_with_first_url(char *tag_name, struct string *url)
 }
 
 static int
-append_another_url_to_tag(size_t tag_index, struct string *feed_url)
+append_another_url_to_tag(size_t tag_index, const struct string *feed_url)
 {
 	size_t url_index = tags[tag_index].urls_count++;
 	tags[tag_index].urls = realloc(tags[tag_index].urls, sizeof(struct string *) * tags[tag_index].urls_count);
@@ -42,7 +42,7 @@ append_another_url_to_tag(size_t tag_index, struct string *feed_url)
 }
 
 int
-tag_feed(char *tag_name, struct string *url)
+tag_feed(const char *tag_name, const struct string *url)
 {
 	size_t i;
 	int error = 0;
@@ -97,8 +97,8 @@ free_tags(void)
 	free(tags);
 }
 
-struct feed_tag *
-get_tag_by_name(char *name)
+const struct feed_tag *
+get_tag_by_name(const char *name)
 {
 	for (size_t i = 0; i < tags_count; ++i) {
 		if (strcmp(name, tags[i].name) == 0) {

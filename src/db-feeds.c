@@ -64,15 +64,31 @@ db_update_feed_text(const struct string *feed_url, const char *column, const cha
 	free(cmd);
 }
 
+#define SELECT_CMD_START "SELECT rowid FROM items WHERE unread=? AND "
+#define SELECT_CMD_START_LEN 43
+
 size_t
-get_unread_items_count_of_feed(const struct string *url)
+get_unread_items_count(const struct set_condition *sc)
 {
+	if (sc == NULL) {
+		return 0;
+	}
+	char *cmd = malloc(sizeof(char) * (SELECT_CMD_START_LEN + sc->db_cmd->len + 1));
+	if (cmd == NULL) {
+		return 0; // failure
+	}
+
+	strcpy(cmd, SELECT_CMD_START);
+	strcat(cmd, sc->db_cmd->ptr);
+	debug_write(DBG_INFO, "Items SELECT statement: %s\n", cmd);
+
 	size_t unread_count = 0;
-	char cmd[] = "SELECT * FROM items WHERE feed = ? AND unread = ?";
 	sqlite3_stmt *res;
 	if (sqlite3_prepare_v2(db, cmd, -1, &res, 0) == SQLITE_OK) {
-		sqlite3_bind_text(res, 1, url->ptr, url->len, NULL);
-		sqlite3_bind_int(res,  2, 1);
+		sqlite3_bind_int(res, 1, 1);
+		for (size_t i = 0; i < sc->urls_count; ++i) {
+			sqlite3_bind_text(res, i + 2, sc->urls[i]->ptr, sc->urls[i]->len, NULL);
+		}
 		while (sqlite3_step(res) == SQLITE_ROW) {
 			++unread_count;
 		}
@@ -80,5 +96,8 @@ get_unread_items_count_of_feed(const struct string *url)
 	} else {
 		DEBUG_WRITE_DB_PREPARE_FAIL;
 	}
+
+	free(cmd);
+	debug_write(DBG_INFO, "Unread count of filter: %d\n", unread_count);
 	return unread_count;
 }

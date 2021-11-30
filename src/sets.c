@@ -21,6 +21,7 @@ free_sets(void)
 		free_string(sets[i].name);
 		free_string(sets[i].link);
 		free_string(sets[i].tags);
+		free_set_condition(sets[i].cond);
 	}
 	free(sets);
 }
@@ -70,6 +71,7 @@ parse_sets_file(void) {
 		sets[set_index].name = NULL;
 		sets[set_index].link = NULL;
 		sets[set_index].tags = NULL;
+		sets[set_index].cond = NULL;
 		sets[set_index].unread_count = 0;
 
 		word_len = 0;
@@ -139,7 +141,6 @@ parse_sets_file(void) {
 				error = 1;
 				break;
 			}
-			sets[set_index].unread_count = get_unread_items_count_of_feed(sets[set_index].link);
 			while (c == ' ' || c == '\t') { c = fgetc(f); }
 			// process name
 			if (c == '"') {
@@ -192,6 +193,30 @@ load_sets(void)
 		fprintf(stderr, "Failed to load sets from file!\n");
 		free_sets();
 		return 1; // failure
+	}
+
+	bool error = false;
+
+	for (size_t i = 0; i < sets_count; ++i) {
+		if ((sets[i].link == NULL) && (sets[i].tags == NULL)) {
+			continue;
+		}
+		if (sets[i].link != NULL) {
+			sets[i].cond = create_set_condition_for_feed(sets[i].link);
+		} else if (sets[i].tags != NULL) {
+			sets[i].cond = create_set_condition_for_filter(sets[i].tags);
+		}
+		if (sets[i].cond == NULL) {
+			fprintf(stderr, "Error occurred on \"%s\" entry!\n", sets[i].tags != NULL ? sets[i].tags->ptr : sets[i].link->ptr);
+			error = true;
+		}
+		sets[i].unread_count = get_unread_items_count(sets[i].cond);
+	}
+
+	if (error == true) {
+		fprintf(stderr, "Was not able to create conditions for entries!\n");
+		free_sets();
+		return 1;
 	}
 
 	view_sel = SIZE_MAX;
@@ -294,7 +319,7 @@ set_reload_feed(struct set_line *set, size_t index)
 {
 	status_write("Loading %s", set->link->ptr);
 	if (update_feed(set->link) == 0) {
-		size_t new_unread_count = get_unread_items_count_of_feed(set->link);
+		size_t new_unread_count = get_unread_items_count(set->cond);
 		if (set->unread_count != new_unread_count) {
 			set->unread_count = new_unread_count;
 			set_expose(index);
@@ -309,20 +334,19 @@ static void
 set_reload_filter(struct set_line *set, size_t index)
 {
 	(void)index;
-	struct set_condition *sc;
-	if ((sc = create_set_condition(set)) == NULL) {
-		/* error message is written to status by create_set_condition */
+	if (sets[index].cond == NULL) {
+		status_write("There was a problem generating search condition for that set!");
 		return;
 	}
 	size_t feed_unread_count;
 	size_t errors = 0;
 	/* Here we trying to reload all feed urls related to this filter. */
-	for (size_t i = 0; i < sc->urls_count; ++i) {
-		status_write("Loading %s", sc->urls[i]->ptr);
-		if (update_feed(sc->urls[i]) == 0) {
+	for (size_t i = 0; i < set->cond->urls_count; ++i) {
+		status_write("Loading %s", set->cond->urls[i]->ptr);
+		if (update_feed(set->cond->urls[i]) == 0) {
 			for (size_t j = 0; j < sets_count; ++j) {
-				if ((sets[j].link != NULL) && (strcmp(sets[j].link->ptr, sc->urls[i]->ptr) == 0)) {
-					feed_unread_count = get_unread_items_count_of_feed(sets[j].link);
+				if ((sets[j].link != NULL) && (strcmp(sets[j].link->ptr, set->cond->urls[i]->ptr) == 0)) {
+					feed_unread_count = get_unread_items_count(sets[j].cond);
 					if (sets[j].unread_count != feed_unread_count) {
 						sets[j].unread_count = feed_unread_count;
 						if ((j >= view_min) && (j <= view_max)) {
@@ -336,8 +360,12 @@ set_reload_filter(struct set_line *set, size_t index)
 			++errors;
 		}
 	}
-	free_set_condition(sc);
 	if (errors == 0) {
+		size_t new_unread_count = get_unread_items_count(set->cond);
+		if (set->unread_count != new_unread_count) {
+			set->unread_count = new_unread_count;
+			set_expose(index);
+		}
 		status_clean();
 	} else if (errors == 1) {
 		status_write("Failed to update 1 feed.");
@@ -430,30 +458,24 @@ enter_sets_menu_loop(void)
 	set_sets_input_handlers();
 
 	int destination;
-	struct set_condition *sc;
 	while (1) {
 		destination = handle_input();
 		if (destination == INPUT_QUIT_SOFT || destination == INPUT_QUIT_HARD) {
 			break;
 		}
-		if ((sc = create_set_condition(&sets[view_sel])) == NULL) {
-			/* error message is written to status by create_set_condition */
+
+		if (sets[view_sel].cond == NULL) {
+			status_write("There was a problem generating search condition for that set!");
 			continue;
 		}
 
-		destination = enter_items_menu_loop(sc);
+		destination = enter_items_menu_loop(sets[view_sel].cond);
 
 		if (destination == INPUT_QUIT_SOFT) { /* stay in sets menu */
 			set_sets_input_handlers();
-			if (sets[view_sel].link != NULL) {
-				sets[view_sel].unread_count = get_unread_items_count_of_feed(sets[view_sel].link);
-			} else if (sets[view_sel].tags != NULL) {
-				/* TODO check if filter changed its read state */
-			}
+			sets[view_sel].unread_count = get_unread_items_count(sets[view_sel].cond);
 			redraw_sets_windows();
 		}
-
-		free_set_condition(sc);
 
 		if (destination == INPUT_QUIT_HARD) { /* exit the program */
 			break;

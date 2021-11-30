@@ -42,12 +42,18 @@ parse_date_rfc3339(const char *date_str, size_t date_len)
 }
 
 struct string *
-get_config_date_str(const time_t *time_ptr)
+get_config_date_str(const time_t *time)
 {
-	struct tm ts = *gmtime(time_ptr);
-	char time_str[200];
-	if (strftime(time_str, sizeof(time_str), config_contents_date_format, &ts) != 0) {
-		return create_string(time_str, strlen(time_str));
+	struct tm ts = *gmtime(time);
+	char time_ptr[200];
+	if (strftime(time_ptr, sizeof(time_ptr), config_contents_date_format, &ts) == 0) {
+		debug_write(DBG_FAIL, "Failed to create date string (strftime returned zero)!\n");
+		return NULL; // failure
 	}
-	return NULL;
+	struct string *time_str = create_string(time_ptr, strlen(time_ptr));
+	if (time_str == NULL) {
+		debug_write(DBG_FAIL, "Not enough memory for date string creation!\n");
+		return NULL; // failure
+	}
+	return time_str; // success
 }

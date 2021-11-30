@@ -61,7 +61,7 @@ main(int argc, char **argv)
 	if (db_init() != 0)                             { error = 3; goto main_undo3; }
 	if (load_sets() != 0)                           { error = 4; goto main_undo4; }
 	if (curl_global_init(CURL_GLOBAL_DEFAULT) != 0) { error = 5; goto main_undo5; }
-	if (initscr() == NULL)                          { error = 6; goto main_undo6; }
+	if (curses_init() != 0)                         { error = 6; goto main_undo6; }
 	if (create_list_menu() != 0)                    { error = 7; goto main_undo7; }
 	if (status_create() != 0)                       { error = 8; goto main_undo8; }
 

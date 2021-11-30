@@ -44,7 +44,6 @@ struct set_line {
 
 struct item_line {
 	struct string *title;
-	struct string *feed_url;
 	bool is_unread;
 	WINDOW *window;
 	int rowid;               // id of row related to this item
@@ -149,6 +148,8 @@ void db_update_feed_text(const struct string *feed_url, const char *column, cons
 size_t get_unread_items_count_of_feed(const struct string *url);
 int db_make_item_read(int rowid);
 int db_make_item_unread(int rowid);
+
+int curses_init(void);
 
 // functions related to window which displays informational messages (see status.c file)
 int status_create(void);

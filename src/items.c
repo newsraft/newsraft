@@ -1,18 +1,14 @@
-#include <stdio.h>
 #include <stdlib.h>
-#include <ctype.h>
 #include <string.h>
-#include <sys/types.h>
-#include <sys/stat.h>
 #include "feedeater.h"
 
-#define SELECT_CMD_PART_1 "SELECT rowid, feed, title, unread FROM items WHERE"
-#define SELECT_CMD_PART_1_LEN 50
+#define SELECT_CMD_PART_1 "SELECT rowid, title, unread FROM items WHERE"
+#define SELECT_CMD_PART_1_LEN 44
 #define SELECT_CMD_PART_3 " ORDER BY upddate DESC, pubdate DESC, rowid DESC"
 #define SELECT_CMD_PART_3_LEN 48
 
-static struct item_line *items = NULL;
-static size_t items_count = 0;
+static struct item_line *items;
+static size_t items_count;
 
 static size_t view_sel; // index of selected item
 static size_t view_min; // index of first visible item
@@ -23,12 +19,9 @@ free_items(void)
 {
 	if (items == NULL) return;
 	for (size_t i = 0; i < items_count; ++i) {
-		free_string(items[i].feed_url);
 		free_string(items[i].title);
 	}
 	free(items);
-	items = NULL;
-	items_count = 0;
 }
 
 static int
@@ -37,7 +30,7 @@ load_items(const struct set_condition *sc)
 	char *cmd = malloc(sizeof(char) * (SELECT_CMD_PART_1_LEN + sc->db_cmd->len + SELECT_CMD_PART_3_LEN + 1));
 	if (cmd == NULL) {
 		status_write("Failed to load items: not enough memory!");
-		debug_write(DBG_FAIL, "Could not allocate enough memory for loading items!\n");
+		debug_write(DBG_FAIL, "Not enough memory for loading items!\n");
 		return 1; // failure
 	}
 	strcpy(cmd, SELECT_CMD_PART_1);
@@ -50,28 +43,32 @@ load_items(const struct set_condition *sc)
 	if (sqlite3_prepare_v2(db, cmd, -1, &res, 0) == SQLITE_OK) {
 		size_t item_index;
 		char *text;
+		struct item_line *temp; // need to check if realloc failed
 		for (size_t i = 0; i < sc->urls_count; ++i) {
 			sqlite3_bind_text(res, i + 1, sc->urls[i]->ptr, sc->urls[i]->len, NULL);
 		}
 		while (sqlite3_step(res) == SQLITE_ROW) {
 			item_index = items_count++;
-			items = realloc(items, sizeof(struct item_line) * items_count);
-			items[item_index].feed_url = NULL;
+			temp = realloc(items, sizeof(struct item_line) * items_count);
+			if (temp == NULL) {
+				debug_write(DBG_FAIL, "Not enough memory for loading items (realloc returned NULL)!\n");
+				--items_count;
+				error = 1;
+				break;
+			}
+			items = temp;
 			items[item_index].title = NULL;
 			if (view_sel == SIZE_MAX) {
 				view_sel = item_index;
 			}
 			items[item_index].rowid = sqlite3_column_int(res, 0);
 			if ((text = (char *)sqlite3_column_text(res, 1)) != NULL) {
-				items[item_index].feed_url = create_string(text, strlen(text));
-			}
-			if ((text = (char *)sqlite3_column_text(res, 2)) != NULL) {
 				items[item_index].title = create_string(text, strlen(text));
 			}
-			items[item_index].is_unread = sqlite3_column_int(res, 3);
+			items[item_index].is_unread = sqlite3_column_int(res, 2);
 		}
 	} else {
-		status_write("No items matched this tag expression!");
+		status_write("There is some error with the tag expression!");
 		debug_write(DBG_FAIL, "Failed to prepare SELECT statement: %s\n", sqlite3_errmsg(db));
 		error = 1;
 	}
@@ -84,7 +81,7 @@ load_items(const struct set_condition *sc)
 	}
 
 	if (view_sel == SIZE_MAX) {
-		status_write("[error] no items found");
+		status_write("Items not found!");
 		return 1; // failure, no items found
 	}
 
@@ -305,6 +302,9 @@ get_contents_of_item(sqlite3_stmt *res)
 int
 enter_items_menu_loop(const struct set_condition *sc)
 {
+	items = NULL;
+	items_count = 0;
+
 	if (items == NULL) {
 		if (load_items(sc) != 0) {
 			free_items();

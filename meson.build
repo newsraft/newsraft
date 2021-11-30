@@ -50,6 +50,7 @@ feedeater_src = [
 	'src/sets-format.c',
 	'src/sets-tags.c',
 	'src/sets-condition.c',
+	'src/interface.c',
 	'src/interface-list-menu.c',
 	'src/interface-status.c',
 	'src/interface-input.c',

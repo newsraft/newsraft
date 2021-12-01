@@ -4,9 +4,7 @@ Feed reader for terminal
 
 ## Description
 
-Terminal-based application for reading feed channels in various Web syndication formats.
-
-Feedeater uses [ncurses](https://invisible-island.net/ncurses) to draw interface, [curl](https://curl.se) to download feeds, [Expat](https://libexpat.github.io) to process XML and [SQLite](https://www.sqlite.org) to store data. All configuration is done through command-line arguments, environment variables and files.
+Feedeater is a piece of software that aggregates syndicated web content such as blogs, newspapers and podcasts in one location for easy viewing in your terminal. The updates distributed may include news posts, journal tables of contents, audio and video recordings, etc.
 
 Feedeater is greatly inspired by [Newsboat](https://www.newsboat.org).
 
@@ -27,5 +25,11 @@ Feedeater is greatly inspired by [Newsboat](https://www.newsboat.org).
 ## Building
 
 	meson setup builddir
+
 	cd builddir
+
 	meson compile
+
+## Configuration
+
+All of the configuration is done through files.

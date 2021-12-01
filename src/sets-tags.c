@@ -61,27 +61,11 @@ tag_feed(const char *tag_name, const struct string *url)
 		}
 	}
 	if (error == 0) {
-		debug_write(DBG_INFO, "Feed \"%s\" is tagged as \"%s\".\n", url->ptr, tag_name);
+		INFO("Feed \"%s\" is tagged as \"%s\".", url->ptr, tag_name);
 	} else {
-		debug_write(DBG_FAIL, "Not enough memory for tagging the feed \"%s\" as \"%s\"\n", url->ptr, tag_name);
+		FAIL("Not enough memory for tagging the feed \"%s\" as \"%s\"!", url->ptr, tag_name);
 	}
 	return error;
-}
-
-void
-debug_tags_summary(void)
-{
-	if (tags_count == 0) {
-		debug_write(DBG_INFO, "no feeds were tagged!\n");
-		return;
-	}
-	debug_write(DBG_INFO, "tags summary:\n");
-	for (size_t i = 0; i < tags_count; ++i) {
-		debug_write(DBG_INFO, "    feeds related to tag \"%s\":\n", tags[i].name);
-		for (size_t j = 0; j < tags[i].urls_count; ++j) {
-			debug_write(DBG_INFO, "        %s\n", tags[i].urls[j]->ptr);
-		}
-	}
 }
 
 void

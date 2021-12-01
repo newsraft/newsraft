@@ -47,12 +47,12 @@ get_config_date_str(const time_t *time)
 	struct tm ts = *gmtime(time);
 	char time_ptr[200];
 	if (strftime(time_ptr, sizeof(time_ptr), config_contents_date_format, &ts) == 0) {
-		debug_write(DBG_FAIL, "Failed to create date string (strftime returned zero)!\n");
+		FAIL("Failed to create date string (strftime returned zero)!");
 		return NULL; // failure
 	}
 	struct string *time_str = create_string(time_ptr, strlen(time_ptr));
 	if (time_str == NULL) {
-		debug_write(DBG_FAIL, "Not enough memory for date string creation!\n");
+		FAIL("Not enough memory for date string creation (create_string returned NULL)!");
 		return NULL; // failure
 	}
 	return time_str; // success

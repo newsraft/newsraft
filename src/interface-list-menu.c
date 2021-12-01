@@ -20,21 +20,21 @@ get_terminal_size(void)
 {
 	list_menu_height = getmaxy(stdscr) - 1;
 	if ((list_menu_height + 1) == ERR) {
-		debug_write(DBG_FAIL, "Failed to get height of the terminal!\n");
+		FAIL("Failed to get height of the terminal!");
 		return 1; // failure
 	}
 	if (list_menu_height < 1) {
-		debug_write(DBG_FAIL, "Terminal is too short!\n");
+		FAIL("Terminal is too short!\n");
 		return 1; // failure
 	}
 
 	list_menu_width = getmaxx(stdscr);
 	if (list_menu_width == ERR) {
-		debug_write(DBG_FAIL, "Failed to get width of the terminal!\n");
+		FAIL("Failed to get width of the terminal!");
 		return 1; // failure
 	}
 	if (list_menu_width < 4) {
-		debug_write(DBG_FAIL, "Terminal is too narrow!\n");
+		FAIL("Terminal is too narrow!");
 		return 1; // failure
 	}
 

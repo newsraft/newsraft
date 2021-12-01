@@ -4,7 +4,7 @@ project(
 	license: 'MIT',
 	default_options: [
 		'c_std=c18',
-		'warning_level=3',
+		'warning_level=2',
 		'buildtype=release',
 	],
 	version: 'this is not even pre-alpha',
@@ -37,7 +37,7 @@ feedeater_dep = [
 feedeater_src = [
 	'src/feedeater.h',
 	'src/feedeater.c',
-	'src/debug.c',
+	'src/log.c',
 	'src/path.c',
 	'src/string.c',
 	'src/wstring.c',

@@ -63,7 +63,7 @@ cat_item_meta_data_to_buf(struct string *buf, sqlite3_stmt *res)
 {
 	char *restrict draft_meta_data_order = malloc(sizeof(char) * (strlen(config_contents_meta_data) + 1));
 	if (draft_meta_data_order == NULL) {
-		debug_write(DBG_FAIL, "Not enough memory for tokenizing the order of metadata tags!\n");
+		FAIL("Not enough memory for tokenizing the order of metadata entries!");
 		return 1; // failure
 	}
 

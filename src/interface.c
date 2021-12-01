@@ -12,13 +12,13 @@ curses_init(void)
 		return 1; // failure
 	}
 	if (curs_set(0) == ERR) { // try to hide cursor
-		debug_write(DBG_FAIL, "Can not hide cursor!\n");
+		FAIL("Can not hide cursor!");
 	}
 	if (noecho() == ERR) {
-		debug_write(DBG_FAIL, "Can not disable echoing of characters typed by the user!\n");
+		FAIL("Can not disable echoing of characters typed by the user!");
 	}
 	if (keypad(stdscr, TRUE) == ERR) { // used to enable arrow keys, function keys...
-		debug_write(DBG_FAIL, "Can not enable extended keys!\n");
+		FAIL("Can not enable extended keys!");
 	}
 	return 0; // success
 }

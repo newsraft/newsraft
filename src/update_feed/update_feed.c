@@ -80,7 +80,7 @@ character_data_handler(void *userData, const XML_Char *s, int s_len)
 		data.value_lim = (data.value_len + s_len) * 2;
 		char *tmp = realloc(data.value, sizeof(char) * (data.value_lim + 1));
 		if (tmp == NULL) {
-			debug_write(DBG_FAIL, "Not enough memory for element character data!\n");
+			FAIL("Not enough memory for element character data!");
 			data.error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}
@@ -98,7 +98,7 @@ parse_stream_callback(void *contents, size_t length, size_t nmemb, void *userp)
 	size_t real_size = length * nmemb;
 	if (data.error == PARSE_OKAY) {
 		if (XML_Parse(data.parser, contents, real_size, (XML_Bool)false) != XML_STATUS_OK) {
-			debug_write(DBG_FAIL, "A parse error occurred: %s\n", XML_ErrorString(XML_GetErrorCode(data.parser)));
+			FAIL("A parse error occurred: %s", XML_ErrorString(XML_GetErrorCode(data.parser)));
 			data.error = PARSE_FAIL_XML_PARSE_ERROR;
 		}
 	}
@@ -110,20 +110,20 @@ update_feed(const struct string *url)
 {
 	struct item_bucket *bucket = create_item_bucket();
 	if (bucket == NULL) {
-		debug_write(DBG_FAIL, "Could not allocate enough memory for item bucket to start updating a feed!\n");
+		FAIL("Could not allocate enough memory for item bucket to start updating a feed!");
 		return PARSE_FAIL_NOT_ENOUGH_MEMORY; // failure
 	}
 
 	XML_Parser parser = XML_ParserCreateNS(NULL, NAMESPACE_SEPARATOR);
 	if (parser == NULL) {
-		debug_write(DBG_FAIL, "Something went wrong during parser struct creation, can not start updating a feed!\n");
+		FAIL("Something went wrong during parser struct creation, can not start updating a feed!");
 		free_item_bucket(bucket);
 		return PARSE_FAIL_NOT_ENOUGH_MEMORY; // failure
 	}
 
 	data.value        = malloc(sizeof(char) * config_init_parser_buf_size);
 	if (data.value == NULL) {
-		debug_write(DBG_FAIL, "Could not allocate enough memory for parser buffer to start updating a feed!\n");
+		FAIL("Could not allocate enough memory for parser buffer to start updating a feed!");
 		free_item_bucket(bucket);
 		XML_ParserFree(parser);
 		return PARSE_FAIL_NOT_ENOUGH_MEMORY; // failure
@@ -144,7 +144,7 @@ update_feed(const struct string *url)
 
 	CURL *curl = curl_easy_init();
 	if (curl == NULL) {
-		debug_write(DBG_FAIL, "Something went wrong during curl easy handle creation, can not start updating a feed!\n");
+		FAIL("Something went wrong during curl easy handle creation, can not start updating a feed!");
 		free_item_bucket(bucket);
 		XML_ParserFree(parser);
 		free(data.value);
@@ -167,13 +167,14 @@ update_feed(const struct string *url)
 	if (res != CURLE_OK) {
 		size_t curl_errbuf_len = strlen(curl_errbuf);
 		if (curl_errbuf_len != 0) {
-			debug_write(DBG_WARN, "curl_easy_perform call failed: %s%s",
-			                      curl_errbuf, ((curl_errbuf[curl_errbuf_len - 1] == '\n') ? "" : "\n"));
+			if (curl_errbuf[curl_errbuf_len - 1] == '\n') {
+				curl_errbuf[curl_errbuf_len - 1] = '\0';
+			}
+			WARN("curl_easy_perform failed: %s", curl_errbuf);
 		} else {
-			debug_write(DBG_WARN, "curl_easy_perform call failed: %s\n",
-			                      curl_easy_strerror(res));
+			WARN("curl_easy_perform failed: %s", curl_easy_strerror(res));
 		}
-		debug_write(DBG_FAIL, "Feed update stopped due to fail in curl request!\n");
+		FAIL("Feed update stopped due to fail in curl request!");
 		free_item_bucket(bucket);
 		XML_ParserFree(parser);
 		free(data.value);
@@ -182,15 +183,13 @@ update_feed(const struct string *url)
 	}
 
 	if (data.error == PARSE_FAIL_NOT_ENOUGH_MEMORY) {
-		debug_write(DBG_FAIL, "Feed update stopped due to shortage of memory!\n");
+		FAIL("Feed update stopped due to shortage of memory!");
 	} else if (data.error == PARSE_FAIL_XML_PARSE_ERROR) {
-		debug_write(DBG_FAIL, "Feed update stopped due to parse error!\n");
+		FAIL("Feed update stopped due to parse error!");
 	}
 
 	if (XML_Parse(parser, NULL, 0, (XML_Bool)true) != XML_STATUS_OK) {
-		debug_write(DBG_FAIL, "%" XML_FMT_STR " at line %" XML_FMT_INT_MOD "u\n",
-		                      XML_ErrorString(XML_GetErrorCode(parser)),
-		                      XML_GetCurrentLineNumber(parser));
+		FAIL("%" XML_FMT_STR " at line %" XML_FMT_INT_MOD "u\n", XML_ErrorString(XML_GetErrorCode(parser)), XML_GetCurrentLineNumber(parser));
 		data.error = PARSE_FAIL_XML_PARSE_ERROR;
 	}
 

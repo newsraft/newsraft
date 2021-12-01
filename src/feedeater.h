@@ -8,7 +8,11 @@
 #include <wchar.h>
 #define APPLICATION_VERSION "0.0.0"
 #define LENGTH(A) (sizeof(A)/sizeof(*A))
-#define DEBUG_WRITE_DB_PREPARE_FAIL debug_write(DBG_FAIL, "Failed to prepare an SQL statement: %s\n", sqlite3_errmsg(db))
+
+#define INFO(A, ...) do { if (log_stream != NULL) { fprintf(log_stream, "[INFO] " A "\n", ##__VA_ARGS__); } } while (0)
+#define WARN(A, ...) do { if (log_stream != NULL) { fprintf(log_stream, "[WARN] " A "\n", ##__VA_ARGS__); } } while (0)
+#define FAIL(A, ...) do { if (log_stream != NULL) { fprintf(log_stream, "[FAIL] " A "\n", ##__VA_ARGS__); } } while (0)
+#define DEBUG_WRITE_DB_PREPARE_FAIL do { if (log_stream != NULL) { fprintf(log_stream, "[FAIL] Failed to prepare an SQL statement: %s\n", sqlite3_errmsg(db)); } } while (0)
 
 struct string {
 	char *ptr;
@@ -48,12 +52,6 @@ struct item_line {
 	bool is_unread;
 	WINDOW *window;
 	int rowid;               // id of row related to this item
-};
-
-enum debug_level {
-	DBG_INFO = 0,
-	DBG_WARN = 1,
-	DBG_FAIL = 2,
 };
 
 enum input_cmd {
@@ -138,7 +136,6 @@ int tag_feed(const char *tag_name, const struct string *url);
 const struct set_condition *create_set_condition_for_feed(const struct string *feed_url);
 const struct set_condition *create_set_condition_for_filter(const struct string *tags_expr);
 void free_set_condition(const struct set_condition *cond);
-void debug_tags_summary(void);
 const struct feed_tag *get_tag_by_name(const char *name);
 void free_tags(void);
 
@@ -182,14 +179,14 @@ struct wstring *convert_string_to_wstring(const struct string *src);
 void free_wstring(struct wstring *wstr);
 
 // debug
-int debug_init(const char *path);
-void debug_write(enum debug_level level, const char *format, ...);
-void debug_stop(void);
+int log_init(const char *path);
+void log_stop(void);
 
 // Download, process and store a new items of feed.
 // See "update_feed" directory for implementation.
 int update_feed(const struct string *url);
 
+extern FILE *log_stream;
 extern sqlite3 *db;
 extern int list_menu_height;
 extern int list_menu_width;

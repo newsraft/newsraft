@@ -157,7 +157,7 @@ translate_entity(char *entity)
 			}
 		}
 	}
-	debug_write(DBG_WARN, "Met an unknown HTML entity: %s\n", entity);
+	WARN("Met an unknown HTML entity: %s", entity);
 	return NULL;
 }
 
@@ -166,7 +166,7 @@ expand_html_entities(char *buf, size_t buf_len)
 {
 	char *data = malloc(sizeof(char) * (buf_len + 1));
 	if (data == NULL) {
-		debug_write(DBG_FAIL, "Could not allocate enough memory for expanding HTML entities of item contents!\n");
+		FAIL("Not enough memory for expanding HTML entities of item contents!");
 		return NULL;
 	}
 	size_t data_len = 0;

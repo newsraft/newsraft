@@ -25,12 +25,12 @@ get_namespace_name(const XML_Char *name)
 	}
 	size_t namespace_len = separator_pos - name;
 	if (namespace_len > 1000U) {
-		debug_write(DBG_FAIL, "Got enormous long namespace name!\n");
+		FAIL("Got enormous long namespace name!");
 		return NULL;
 	}
 	char *namespace = malloc(sizeof(char) * (namespace_len + 1));
 	if (namespace == NULL) {
-		debug_write(DBG_FAIL, "Not enough memory for a name of namespace!\n");
+		FAIL("Not enough memory for a name of namespace!");
 		return NULL;
 	}
 	memcpy(namespace, name, sizeof(char) * namespace_len);
@@ -49,12 +49,12 @@ get_tag_name(const XML_Char *name)
 		tag_name_len = name + strlen(name) - separator_pos - 1;
 	}
 	if (tag_name_len > 1000U) {
-		debug_write(DBG_FAIL, "Got enormous long tag name!\n");
+		FAIL("Got enormous long tag name!");
 		return NULL;
 	}
 	char *tag_name = malloc(sizeof(char) * (tag_name_len + 1));
 	if (tag_name == NULL) {
-		debug_write(DBG_FAIL, "Not enough memory for a name of tag!\n");
+		FAIL("Not enough memory for a name of tag!");
 		return NULL;
 	}
 	if (separator_pos == NULL) {

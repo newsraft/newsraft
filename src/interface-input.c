@@ -74,17 +74,17 @@ set_input_handler(enum input_cmd cmd, void (*func)(void))
 int
 assign_command_to_key(int bind_key, enum input_cmd bind_cmd)
 {
-	debug_write(DBG_INFO, "Trying to bind a key with the code %d.\n", bind_key);
+	INFO("Trying to bind a key with the code %d.", bind_key);
 
 	if (bind_key == KEY_RESIZE) {
-		debug_write(DBG_WARN, "Key with the code KEY_RESIZE must not be bound!\n");
+		WARN("Key with the code KEY_RESIZE must not be bound!");
 		return 1; // failure
 	}
 
 	/* Check if bind_key key is bound already */
 	for (size_t i = 0; i < binds_count; ++i) {
 		if (binds[i].key == bind_key) {
-			debug_write(DBG_INFO, "Key with the code %d is already bound. Reassigning a command.\n", bind_key);
+			INFO("Key with the code %d is already bound. Reassigning a command.", bind_key);
 			binds[i].cmd = bind_cmd;
 			return 0; // success
 		}
@@ -98,13 +98,13 @@ assign_command_to_key(int bind_key, enum input_cmd bind_cmd)
 	}
 	binds[bind_index].key = bind_key;
 	binds[bind_index].cmd = bind_cmd;
-	debug_write(DBG_INFO, "Key with the code %d is successfully bound!\n", bind_key);
+	INFO("Key with the code %d is successfully bound!", bind_key);
 	return 0; // success
 }
 
 void
 free_binds(void)
 {
-	debug_write(DBG_INFO, "Freeing key binds.\n");
+	INFO("Freeing key binds.");
 	free(binds);
 }

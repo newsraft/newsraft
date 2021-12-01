@@ -46,7 +46,7 @@ static void
 make_sure_pad_has_enough_lines(WINDOW *pad, int needed_lines)
 {
 	if (needed_lines > pad_height) {
-		debug_write(DBG_WARN, "Due to unfixed bug, pad had to expand from %d to %d lines!\n", pad_height, needed_lines);
+		WARN("Due to unfixed bug, pad had to expand from %d to %d lines!", pad_height, needed_lines);
 		pad_height = needed_lines;
 		wresize(pad, pad_height, list_menu_width);
 	}
@@ -127,7 +127,7 @@ create_window_with_contents(void)
 		pad_height = calculate_pad_height_for_wstring(wbuf);
 		pad = newpad(pad_height, list_menu_width);
 		if (pad == NULL) {
-			debug_write(DBG_FAIL, "Could not create pad window for item contents!\n");
+			FAIL("Could not create pad window for item contents!");
 			free_wstring(wbuf);
 			return NULL;
 		}
@@ -139,7 +139,7 @@ create_window_with_contents(void)
 		pad_height = calculate_pad_height_for_string(contents);
 		pad = newpad(pad_height, list_menu_width);
 		if (pad == NULL) {
-			debug_write(DBG_FAIL, "Could not create pad window for item contents!\n");
+			FAIL("Could not create pad window for item contents!");
 			return NULL;
 		}
 

@@ -6,7 +6,7 @@ static void
 delete_excess_items(const struct string *feed_url) {
 	sqlite3_stmt *s;
 	if (sqlite3_prepare_v2(db, "SELECT rowid FROM items WHERE feed = ? ORDER BY upddate DESC, pubdate DESC, rowid DESC", -1, &s, 0) != SQLITE_OK) {
-		debug_write(DBG_FAIL, "Failed to prepare an excess items deletion statement:\n");
+		FAIL("Failed to prepare an excess items deletion statement:");
 		DEBUG_WRITE_DB_PREPARE_FAIL;
 		return;
 	}
@@ -21,9 +21,9 @@ delete_excess_items(const struct string *feed_url) {
 		if (sqlite3_prepare_v2(db, "DELETE FROM items WHERE rowid = ?", -1, &t, 0) == SQLITE_OK) {
 			sqlite3_bind_int(t, 1, sqlite3_column_int(s, 0));
 			if (sqlite3_step(t) == SQLITE_DONE) {
-				debug_write(DBG_INFO, "Successfully deleted an item.\n");
+				INFO("Successfully deleted an item.");
 			} else {
-				debug_write(DBG_FAIL, "Deletion of the excess item is failed!\n");
+				FAIL("Deletion of the excess item is failed!");
 			}
 			sqlite3_finalize(t);
 		} else {
@@ -76,7 +76,7 @@ create_authors_string(struct author *authors, size_t authors_count)
 {
 	struct string *authors_list = create_empty_string();
 	if (authors_list == NULL) {
-		debug_write(DBG_FAIL, "Not enough memory for creating authors string in item bucket!\n");
+		FAIL("Not enough memory for creating authors string in item bucket!");
 		return NULL;
 	}
 	bool added_name, added_email, added_link;
@@ -127,7 +127,7 @@ db_insert_item(const struct string *feed_url, const struct item_bucket *bucket)
 
 	sqlite3_stmt *s;
 	if (sqlite3_prepare_v2(db, "INSERT INTO items VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", -1, &s, 0) != SQLITE_OK) {
-		debug_write(DBG_FAIL, "Failed to prepare item insertion statement:\n");
+		FAIL("Failed to prepare item insertion statement:");
 		DEBUG_WRITE_DB_PREPARE_FAIL;
 		free_string(authors_list);
 		return;
@@ -150,7 +150,7 @@ db_insert_item(const struct string *feed_url, const struct item_bucket *bucket)
 			delete_excess_items(feed_url);
 		}
 	} else {
-		debug_write(DBG_FAIL, "Item bucket insertion failed: %s\n", sqlite3_errmsg(db));
+		FAIL("Item bucket insertion failed: %s", sqlite3_errmsg(db));
 	}
 	sqlite3_finalize(s);
 	free_string(authors_list);

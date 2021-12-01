@@ -5,7 +5,7 @@
 void
 free_config_data(void)
 {
-	debug_write(DBG_INFO, "Freeing configuration strings.\n");
+	INFO("Freeing configuration strings.");
 	free(config_menu_set_entry_format);
 	free(config_menu_item_entry_format);
 	free(config_contents_meta_data);
@@ -23,7 +23,7 @@ load_config(void)
 		error = 1;
 	}
 	if (error != 0) {
-		debug_write(DBG_FAIL, "Some error occurred during configuration loading!\n");
+		FAIL("Some error occurred during configuration loading!");
 		free_config_data();
 	}
 	return error;

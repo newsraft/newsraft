@@ -30,13 +30,13 @@ load_items(const struct set_condition *sc)
 	char *cmd = malloc(sizeof(char) * (SELECT_CMD_PART_1_LEN + sc->db_cmd->len + SELECT_CMD_PART_3_LEN + 1));
 	if (cmd == NULL) {
 		status_write("Failed to load items: not enough memory!");
-		debug_write(DBG_FAIL, "Not enough memory for loading items!\n");
+		FAIL("Not enough memory for loading items!");
 		return 1; // failure
 	}
 	strcpy(cmd, SELECT_CMD_PART_1);
 	strcat(cmd, sc->db_cmd->ptr);
 	strcat(cmd, SELECT_CMD_PART_3);
-	debug_write(DBG_INFO, "Items SELECT statement: %s\n", cmd);
+	INFO("Items SELECT statement: %s", cmd);
 	int error = 0;
 	view_sel = SIZE_MAX;
 	sqlite3_stmt *res;
@@ -51,7 +51,7 @@ load_items(const struct set_condition *sc)
 			item_index = items_count++;
 			temp = realloc(items, sizeof(struct item_line) * items_count);
 			if (temp == NULL) {
-				debug_write(DBG_FAIL, "Not enough memory for loading items (realloc returned NULL)!\n");
+				FAIL("Not enough memory for loading items (realloc returned NULL)!");
 				--items_count;
 				error = 1;
 				break;
@@ -69,7 +69,7 @@ load_items(const struct set_condition *sc)
 		}
 	} else {
 		status_write("There is some error with the tag expression!");
-		debug_write(DBG_FAIL, "Failed to prepare SELECT statement: %s\n", sqlite3_errmsg(db));
+		DEBUG_WRITE_DB_PREPARE_FAIL;
 		error = 1;
 	}
 
@@ -261,11 +261,11 @@ find_item_by_its_rowid_in_db(int rowid)
 	}
 	sqlite3_bind_int(res, 1, rowid);
 	if (sqlite3_step(res) != SQLITE_ROW) {
-		debug_write(DBG_WARN, "Could not find an item with the rowid %d!\n", rowid);
+		WARN("Could not find an item with the rowid %d!", rowid);
 		sqlite3_finalize(res);
 		return NULL; // failure
 	}
-	debug_write(DBG_INFO, "Item with the rowid %d is found.\n", rowid);
+	INFO("Item with the rowid %d is found.", rowid);
 	return res; // success
 }
 
@@ -325,7 +325,7 @@ enter_items_menu_loop(const struct set_condition *sc)
 	while (1) {
 		destination = handle_input();
 		if (destination == INPUT_ENTER) {
-			debug_write(DBG_INFO, "Trying to view an item with the rowid %d.\n", items[view_sel].rowid);
+			INFO("Trying to view an item with the rowid %d.", items[view_sel].rowid);
 
 			res = find_item_by_its_rowid_in_db(items[view_sel].rowid);
 			if (res == NULL) {

@@ -7,13 +7,13 @@ create_string(const char *src, size_t len)
 {
 	struct string *str = malloc(sizeof(struct string));
 	if (str == NULL) {
-		debug_write(DBG_FAIL, "Not enough memory for string creation!\n");
+		FAIL("Not enough memory for string creation!");
 		return NULL;
 	}
 	/* always create a string even in cases where the src is set to NULL */
 	str->ptr = malloc(sizeof(char) * (len + 1));
 	if (str->ptr == NULL) {
-		debug_write(DBG_FAIL, "Not enough memory for string creation!\n");
+		FAIL("Not enough memory for string creation!");
 		free(str);
 		return NULL;
 	}

@@ -234,8 +234,6 @@ load_sets(void)
 		return 1; // failure
 	}
 
-	debug_tags_summary();
-
 	return 0; // success
 }
 

@@ -11,7 +11,7 @@ main(int argc, char **argv)
 	setlocale(LC_ALL, "");
 
 	int opt;
-	while ((opt = getopt(argc, argv, "vhf:c:d:D:")) != -1) {
+	while ((opt = getopt(argc, argv, "vhf:c:d:l:")) != -1) {
 		switch (opt) {
 			case 'f':
 				if (set_feeds_path(optarg) != 0) {
@@ -28,8 +28,8 @@ main(int argc, char **argv)
 					exit(EXIT_FAILURE);
 				}
 				break;
-			case 'D':
-				if (debug_init(optarg) != 0) {
+			case 'l':
+				if (log_init(optarg) != 0) {
 					exit(EXIT_FAILURE);
 				}
 				break;
@@ -43,7 +43,7 @@ main(int argc, char **argv)
 				        "-f PATH  force use of PATH as feeds file\n"
 				        "-c PATH  force use of PATH as config file\n"
 				        "-d PATH  force use of PATH as database file\n"
-				        "-D PATH  write debug information to PATH\n"
+				        "-l PATH  write log information to PATH\n"
 				        "-v       print version and successfully exit\n"
 				        "-h       print this message and successfully exit\n");
 				exit(EXIT_SUCCESS);
@@ -83,6 +83,6 @@ main_undo3:
 main_undo2:
 	free_binds();
 main_undo1:
-	debug_stop();
+	log_stop();
 	return error;
 }

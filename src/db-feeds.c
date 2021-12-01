@@ -43,7 +43,7 @@ void
 db_update_feed_text(const struct string *feed_url, const char *column, const char *data, size_t data_len)
 {
 	if (make_sure_feed_is_in_db(feed_url) == false) {
-		debug_write(DBG_FAIL, "Could not create feed entry in database!\n");
+		FAIL("Could not create feed entry in database!");
 		return;
 	}
 	char *cmd = malloc(sizeof(char) * (37 + strlen(column)));
@@ -70,17 +70,19 @@ db_update_feed_text(const struct string *feed_url, const char *column, const cha
 size_t
 get_unread_items_count(const struct set_condition *sc)
 {
+	INFO("Trying to count unread items by their condition.");
 	if (sc == NULL) {
-		return 0;
+		WARN("Condition is unset, can not count unread items!");
+		return 0; // failure
 	}
 	char *cmd = malloc(sizeof(char) * (SELECT_CMD_START_LEN + sc->db_cmd->len + 1));
 	if (cmd == NULL) {
+		FAIL("Not enough memory for a SQL statement to count unread items!");
 		return 0; // failure
 	}
 
 	strcpy(cmd, SELECT_CMD_START);
 	strcat(cmd, sc->db_cmd->ptr);
-	debug_write(DBG_INFO, "Items SELECT statement: %s\n", cmd);
 
 	size_t unread_count = 0;
 	sqlite3_stmt *res;
@@ -93,11 +95,11 @@ get_unread_items_count(const struct set_condition *sc)
 			++unread_count;
 		}
 		sqlite3_finalize(res);
+		INFO("Successfully counted the number of unread items: %zu", unread_count);
 	} else {
 		DEBUG_WRITE_DB_PREPARE_FAIL;
 	}
 
 	free(cmd);
-	debug_write(DBG_INFO, "Unread count of filter: %d\n", unread_count);
 	return unread_count;
 }

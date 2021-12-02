@@ -175,6 +175,9 @@ void empty_string(struct string *str);
 void free_string(struct string *str);
 void strip_whitespace_from_edges(char *str, size_t *len);
 // wstring
+struct wstring *create_wstring(const wchar_t *src, size_t len);
+void cat_wstring_array(struct wstring *dest, const wchar_t *src_ptr, size_t src_len);
+void cat_wstring_wchar(struct wstring *dest, wchar_t wc);
 struct wstring *convert_string_to_wstring(const struct string *src);
 void free_wstring(struct wstring *wstr);
 
@@ -197,4 +200,5 @@ extern char*  config_menu_set_entry_format;
 extern char*  config_menu_item_entry_format;
 extern char*  config_contents_meta_data;
 extern char*  config_contents_date_format;
+extern char*  config_break_at;
 #endif // FEEDEATER_H

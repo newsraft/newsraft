@@ -10,6 +10,7 @@ free_config_data(void)
 	free(config_menu_item_entry_format);
 	free(config_contents_meta_data);
 	free(config_contents_date_format);
+	free(config_break_at);
 }
 
 int
@@ -20,10 +21,10 @@ load_config(void)
 	/* 	error = 1; */
 	/* } */
 	if (assign_default_values_to_empty_config_strings() != 0) {
+		fprintf(stderr, "Not enough memory for assigning default values to empty config strings!\n");
 		error = 1;
 	}
 	if (error != 0) {
-		FAIL("Some error occurred during configuration loading!");
 		free_config_data();
 	}
 	return error;

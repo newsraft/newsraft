@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include <string.h>
 #include "feedeater.h"
 
@@ -8,52 +9,83 @@ static int view_min; // index of first visible line (row)
 static int pad_height;
 static struct string *contents;
 
-static int
-calculate_pad_height_for_wstring(const struct wstring *wstr)
+static bool
+is_wchar_a_breaker(wchar_t wc)
 {
-	int pad_height = 1, not_newline = 0;
-	for (size_t i = 0; i < wstr->len; ++i) {
-		if ((wstr->ptr[i] == L'\n') || (not_newline > list_menu_width)) {
-			not_newline = 0;
-			++pad_height;
+	size_t i = 0;
+	while (config_break_at[i] != '\0') {
+		if (config_break_at[i] == wctob(wc)) {
+			return true; // yes
+		}
+		++i;
+	}
+	return false; // no
+}
+
+static struct wstring *
+split_wstring_into_lines(struct wstring *wstr)
+{
+	struct wstring *broken_wstr = create_wstring(NULL, 0);
+	if (broken_wstr == NULL) {
+		return NULL; // failure
+	}
+
+	wchar_t *line = malloc(sizeof(wchar_t) * (list_menu_width + 1));
+	if (line == NULL) {
+		free_wstring(broken_wstr);
+		return NULL; // failure
+	}
+	ssize_t line_len = 0;
+	ssize_t new_line_len;
+
+	wchar_t *iter = wstr->ptr;
+	size_t last_breaker_index_in_line = SIZE_MAX;
+
+	while (*iter != L'\0') {
+		if (line_len == list_menu_width) {
+			line[line_len] = L'\0';
+
+			if (last_breaker_index_in_line == SIZE_MAX) {
+				cat_wstring_array(broken_wstr, line, line_len);
+				line_len = 0;
+			} else {
+				cat_wstring_array(broken_wstr, line, last_breaker_index_in_line + 1);
+				new_line_len = 0;
+				for (ssize_t i = last_breaker_index_in_line + 1; i < line_len; ++i) {
+					line[new_line_len++] = line[i];
+				}
+				line[new_line_len] = L'\0';
+				line_len = new_line_len;
+			}
+
+			cat_wstring_wchar(broken_wstr, L'\n');
+
+			last_breaker_index_in_line = SIZE_MAX;
+		} else if (*iter == L'\n') {
+			cat_wstring_array(broken_wstr, line, line_len);
+			cat_wstring_wchar(broken_wstr, L'\n');
+			line_len = 0;
+			last_breaker_index_in_line = SIZE_MAX;
+			++iter;
 		} else {
-			++not_newline;
+			line[line_len++] = *iter;
+			if (is_wchar_a_breaker(*iter)) {
+				last_breaker_index_in_line = line_len - 1;
+			}
+			++iter;
 		}
 	}
-	return pad_height;
-}
 
-static int
-calculate_pad_height_for_string(const struct string *buf)
-{
-	int pad_height = 1, not_newline = 0;
-	for (size_t i = 0; i < buf->len; ++i) {
-		if ((buf->ptr[i] == '\n') || (not_newline > list_menu_width)) {
-			not_newline = 0;
-			++pad_height;
-		} else {
-			++not_newline;
-		}
-	}
-	return pad_height;
-}
+	cat_wstring_array(broken_wstr, line, line_len);
+	cat_wstring_wchar(broken_wstr, L'\n');
 
-/* in some cases calculate_pad_height_for_wstring and calculate_pad_height_for_string
- * functions are returning wrong number of lines needed for pad to store all data of buf.
- * TODO >> fix these two functions above, please << TODO
- * but for now use this function to resize pad everytime there is so much data in buffer. */
-static void
-make_sure_pad_has_enough_lines(WINDOW *pad, int needed_lines)
-{
-	if (needed_lines > pad_height) {
-		WARN("Due to unfixed bug, pad had to expand from %d to %d lines!", pad_height, needed_lines);
-		pad_height = needed_lines;
-		wresize(pad, pad_height, list_menu_width);
-	}
+	free(line);
+
+	return broken_wstr; // success
 }
 
 static void
-write_wstring_to_pad_without_linebreaks(WINDOW *pad, const struct wstring *wbuf)
+write_broken_wstring_to_pad(WINDOW *pad, const struct wstring *wbuf)
 {
 	int newlines = 0;
 	wchar_t *iter = wbuf->ptr;
@@ -61,19 +93,11 @@ write_wstring_to_pad_without_linebreaks(WINDOW *pad, const struct wstring *wbuf)
 	while (1) {
 		newline_char = wcschr(iter, L'\n');
 		if (newline_char != NULL) {
-			while (newline_char - iter > list_menu_width) {
-				make_sure_pad_has_enough_lines(pad, newlines + 1);
-				wmove(pad, newlines++, 0);
-				waddnwstr(pad, iter, list_menu_width);
-				iter += list_menu_width;
-			}
-			make_sure_pad_has_enough_lines(pad, newlines + 1);
 			wmove(pad, newlines++, 0);
 			waddnwstr(pad, iter, newline_char - iter);
 			iter = newline_char + 1;
 		} else {
 			while (iter < wbuf->ptr + wbuf->len) {
-				make_sure_pad_has_enough_lines(pad, newlines + 1);
 				wmove(pad, newlines++, 0);
 				waddnwstr(pad, iter, list_menu_width);
 				iter += list_menu_width;
@@ -83,72 +107,87 @@ write_wstring_to_pad_without_linebreaks(WINDOW *pad, const struct wstring *wbuf)
 	}
 }
 
-static void
-write_string_to_pad_without_linebreaks(WINDOW *pad, const struct string *buf)
-{
-	int newlines = 0;
-	char *iter = buf->ptr;
-	char *newline_char;
-	while (1) {
-		newline_char = strchr(iter, '\n');
-		if (newline_char != NULL) {
-			while (newline_char - iter > list_menu_width) {
-				make_sure_pad_has_enough_lines(pad, newlines + 1);
-				wmove(pad, newlines++, 0);
-				waddnstr(pad, iter, list_menu_width);
-				iter += list_menu_width;
-			}
-			make_sure_pad_has_enough_lines(pad, newlines + 1);
-			wmove(pad, newlines++, 0);
-			waddnstr(pad, iter, newline_char - iter);
-			iter = newline_char + 1;
-		} else {
-			while (iter < buf->ptr + buf->len) {
-				make_sure_pad_has_enough_lines(pad, newlines + 1);
-				wmove(pad, newlines++, 0);
-				waddnstr(pad, iter, list_menu_width);
-				iter += list_menu_width;
-			}
-			break;
-		}
-	}
-}
+/* static void */
+/* write_string_to_pad(WINDOW *pad, const struct string *buf) */
+/* { */
+/* 	int newlines = 0; */
+/* 	char *iter = buf->ptr; */
+/* 	char *newline_char; */
+/* 	while (1) { */
+/* 		newline_char = strchr(iter, '\n'); */
+/* 		if (newline_char != NULL) { */
+/* 			while (newline_char - iter > list_menu_width) { */
+/* 				wmove(pad, newlines++, 0); */
+/* 				waddnstr(pad, iter, list_menu_width); */
+/* 				iter += list_menu_width; */
+/* 			} */
+/* 			wmove(pad, newlines++, 0); */
+/* 			waddnstr(pad, iter, newline_char - iter); */
+/* 			iter = newline_char + 1; */
+/* 		} else { */
+/* 			while (iter < buf->ptr + buf->len) { */
+/* 				wmove(pad, newlines++, 0); */
+/* 				waddnstr(pad, iter, list_menu_width); */
+/* 				iter += list_menu_width; */
+/* 			} */
+/* 			break; */
+/* 		} */
+/* 	} */
+/* } */
 
 static WINDOW *
 create_window_with_contents(void)
 {
 	WINDOW *pad;
-	if (1) { // buffer is multi-byte
+	if (1) { // buffer is multi-byte (i never seen a feed that is not Unicode in my life)
 		struct wstring *wbuf = convert_string_to_wstring(contents);
 		if (wbuf == NULL) {
 			return NULL;
 		}
 
-		pad_height = calculate_pad_height_for_wstring(wbuf);
-		pad = newpad(pad_height, list_menu_width);
-		if (pad == NULL) {
-			FAIL("Could not create pad window for item contents!");
-			free_wstring(wbuf);
-			return NULL;
-		}
-
-		write_wstring_to_pad_without_linebreaks(pad, wbuf);
-
+		// Create string that is splitted with newlines in a blocks of at most N characters,
+		// where N is the current width of terminal.
+		struct wstring *broken_wbuf = split_wstring_into_lines(wbuf);
 		free_wstring(wbuf);
-	} else { // buffer is single-byte
-		pad_height = calculate_pad_height_for_string(contents);
-		pad = newpad(pad_height, list_menu_width);
-		if (pad == NULL) {
-			FAIL("Could not create pad window for item contents!");
+		if (broken_wbuf == NULL) {
+			FAIL("Not enough memory for breaking a string into lines!");
 			return NULL;
 		}
 
-		write_string_to_pad_without_linebreaks(pad, contents);
+		// As long as we splitted contents with newlines, we can get required height for
+		// pad window by counting newline characters in broken_wbuf.
+		pad_height = 0;
+		for (size_t i = 0; i < broken_wbuf->len; ++i) {
+			if (broken_wbuf->ptr[i] == L'\n') ++pad_height;
+		}
+
+		pad = newpad(pad_height, list_menu_width);
+		if (pad == NULL) {
+			FAIL("Could not create pad window for item contents!");
+			free_wstring(broken_wbuf);
+			return NULL;
+		}
+
+		write_broken_wstring_to_pad(pad, broken_wbuf);
+
+		free_wstring(broken_wbuf);
+	} else { // buffer is single-byte. again, never happens
+		/* pad_height = calculate_pad_height_for_string(contents); */
+		/* pad = newpad(pad_height, list_menu_width); */
+		/* if (pad == NULL) { */
+		/* 	FAIL("Could not create pad window for item contents!"); */
+		/* 	return NULL; */
+		/* } */
+
+		/* write_string_to_pad(pad, contents); */
 	}
+
+	view_min = 0;
+
 	clear();
 	refresh();
-	view_min = 0;
 	prefresh(pad, view_min, 0, 0, 0, list_menu_height - 1, list_menu_width - 1);
+
 	return pad;
 }
 
@@ -233,15 +272,23 @@ pager_view(struct string *data)
 	contents = data;
 
 	window = create_window_with_contents();
+	if (window == NULL) {
+		status_write("Can not create window for items contents!");
+		return INPUT_QUIT_SOFT; // failure
+	}
 
 	set_pager_view_input_handlers();
 
 	int destination;
 	do {
+		if (window == NULL) {
+			status_write("That resize hurts!");
+			return INPUT_QUIT_SOFT; // failure
+		}
 		destination = handle_input();
 	} while ((destination != INPUT_QUIT_SOFT) && (destination != INPUT_QUIT_HARD));
 
 	delwin(window);
 
-	return destination;
+	return destination; // success
 }

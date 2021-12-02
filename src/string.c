@@ -43,7 +43,7 @@ cpy_string_array(struct string *dest, const char *src_ptr, size_t src_len)
 	dest->len = src_len;
 	if (dest->len > dest->lim) {
 		dest->lim = dest->len;
-		dest->ptr = realloc(dest->ptr, dest->lim + 1);
+		dest->ptr = realloc(dest->ptr, sizeof(char) * (dest->lim + 1));
 	}
 	strcpy(dest->ptr, src_ptr);
 }
@@ -60,7 +60,7 @@ cat_string_array(struct string *dest, const char *src_ptr, size_t src_len)
 	dest->len += src_len;
 	if (dest->len > dest->lim) {
 		dest->lim = dest->len;
-		dest->ptr = realloc(dest->ptr, dest->lim + 1);
+		dest->ptr = realloc(dest->ptr, sizeof(char) * (dest->lim + 1));
 	}
 	strncat(dest->ptr, src_ptr, src_len);
 }
@@ -77,7 +77,7 @@ cat_string_char(struct string *dest, char c)
 	dest->len += 1;
 	if (dest->len > dest->lim) {
 		dest->lim = dest->len;
-		dest->ptr = realloc(dest->ptr, dest->lim + 1);
+		dest->ptr = realloc(dest->ptr, sizeof(char) * (dest->lim + 1));
 	}
 	*(dest->ptr + dest->len - 1) = c;
 	*(dest->ptr + dest->len) = '\0';

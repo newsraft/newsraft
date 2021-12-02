@@ -5,15 +5,12 @@
 size_t config_max_items = 100; // 0 == inf
 size_t config_init_parser_buf_size = 100000;
 
-/* don't initialize char pointers with string literals because then they will be immutable */
-#define DEFAULT_CONFIG_MENU_SET_ENTRY_FORMAT " %3n  %t"
+// Don't initialize char pointers with string literals because then they will be immutable :(
 char *config_menu_set_entry_format = NULL;
-#define DEFAULT_CONFIG_MENU_ITEM_ENTRY_FORMAT " %n  %t"
 char *config_menu_item_entry_format = NULL;
-#define DEFAULT_CONFIG_CONTENTS_META_DATA "feed,title,authors,categories,date,url,comments"
 char *config_contents_meta_data = NULL;
-#define DEFAULT_CONFIG_CONTENTS_DATE_FORMAT "%a, %d %b %Y %H:%M:%S %z"
 char *config_contents_date_format = NULL;
+char *config_break_at = NULL;
 
 int
 load_default_binds(void)
@@ -41,44 +38,29 @@ load_default_binds(void)
 	return 0; // success
 }
 
+static bool
+assign_default_value_to_empty_config_string(char **str, const char *value, const size_t value_len)
+{
+	if (*str != NULL) {
+		return true; // success, string already has some value
+	}
+	*str = malloc(sizeof(char) * (value_len + 1));
+	if (*str == NULL) {
+		return false; // failure
+	}
+	strncpy(*str, value, value_len);
+	*(*str + value_len) = '\0';
+	return true; // success
+}
+
 int
 assign_default_values_to_empty_config_strings(void)
 {
-	int error = 0;
-	if (config_menu_set_entry_format == NULL) {
-		config_menu_set_entry_format = malloc(sizeof(char) * (strlen(DEFAULT_CONFIG_MENU_SET_ENTRY_FORMAT) + 1));
-		if (config_menu_set_entry_format == NULL) {
-			error = 1;
-		} else {
-			strcpy(config_menu_set_entry_format, DEFAULT_CONFIG_MENU_SET_ENTRY_FORMAT);
-		}
-	}
-	if ((error == 0) && (config_menu_item_entry_format == NULL)) {
-		config_menu_item_entry_format = malloc(sizeof(char) * (strlen(DEFAULT_CONFIG_MENU_ITEM_ENTRY_FORMAT) + 1));
-		if (config_menu_item_entry_format == NULL) {
-			error = 1;
-		} else {
-			strcpy(config_menu_item_entry_format, DEFAULT_CONFIG_MENU_ITEM_ENTRY_FORMAT);
-		}
-	}
-	if ((error == 0) && (config_contents_meta_data == NULL)) {
-		config_contents_meta_data = malloc(sizeof(char) * (strlen(DEFAULT_CONFIG_CONTENTS_META_DATA) + 1));
-		if (config_contents_meta_data == NULL) {
-			error = 1;
-		} else {
-			strcpy(config_contents_meta_data, DEFAULT_CONFIG_CONTENTS_META_DATA);
-		}
-	}
-	if ((error == 0) && (config_contents_date_format == NULL)) {
-		config_contents_date_format = malloc(sizeof(char) * (strlen(DEFAULT_CONFIG_CONTENTS_DATE_FORMAT) + 1));
-		if (config_contents_date_format == NULL) {
-			error = 1;
-		} else {
-			strcpy(config_contents_date_format, DEFAULT_CONFIG_CONTENTS_DATE_FORMAT);
-		}
-	}
-	if (error != 0) {
-		fprintf(stderr, "not enough memory for assigning default values to empty config strings\n");
-	}
-	return error;
+#define ADVTECS(A, B, C) if (assign_default_value_to_empty_config_string(A, B, C) == false) { return 1; /* failure */ }
+	ADVTECS(&config_menu_set_entry_format, " %3n  %t", 8)
+	ADVTECS(&config_menu_item_entry_format, " %n  %t", 7)
+	ADVTECS(&config_contents_meta_data, "feed,title,authors,categories,date,url,comments", 47)
+	ADVTECS(&config_contents_date_format, "%a, %d %b %Y %H:%M:%S %z", 24)
+	ADVTECS(&config_break_at, " \t!@*-+;:,./?", 13) // tab ('\t') is an individual character
+	return 0; // success
 }

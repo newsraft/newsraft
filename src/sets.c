@@ -216,13 +216,13 @@ load_sets(void)
 	if (error == true) {
 		fprintf(stderr, "Was not able to create conditions for entries!\n");
 		free_sets();
-		return 1;
+		return 1; // failure
 	}
 
 	view_sel = SIZE_MAX;
 	// put first non-decorative set in selection
 	for (size_t i = 0; i < sets_count; ++i) {
-		if (sets[i].tags != NULL || sets[i].link != NULL) {
+		if (sets[i].cond != NULL) {
 			view_sel = i;
 			break;
 		}
@@ -268,19 +268,19 @@ view_select(size_t i)
 		new_sel = sets_count - 1;
 	}
 
-	if (sets[new_sel].link == NULL && sets[new_sel].tags == NULL) {
+	if (sets[new_sel].cond == NULL) {
 		// skip decorations
 		size_t temp_new_sel = new_sel;
 		if (new_sel > view_sel) {
 			for (size_t j = view_sel; j < sets_count; ++j) {
-				if (sets[j].link != NULL || sets[j].tags != NULL) {
+				if (sets[j].cond != NULL) {
 					temp_new_sel = j;
 					if (temp_new_sel >= new_sel) break;
 				}
 			}
 		} else if (new_sel < view_sel) {
 			for (size_t j = view_sel; ; --j) {
-				if (sets[j].link != NULL || sets[j].tags != NULL) {
+				if (sets[j].cond != NULL) {
 					temp_new_sel = j;
 					if (j <= new_sel) break;
 				}
@@ -290,7 +290,7 @@ view_select(size_t i)
 		new_sel = temp_new_sel;
 	}
 
-	if ((sets[new_sel].link == NULL && sets[new_sel].tags == NULL) || new_sel == view_sel) {
+	if ((sets[new_sel].cond == NULL) || (new_sel == view_sel)) {
 		return;
 	}
 
@@ -313,6 +313,24 @@ view_select(size_t i)
 }
 
 static void
+update_items_count_of_feed_by_its_url(const struct string *url)
+{
+	size_t set_unread_count;
+	for (size_t i = 0; i < sets_count; ++i) {
+		if ((sets[i].link != NULL) && (strcmp(sets[i].link->ptr, url->ptr) == 0)) {
+			set_unread_count = get_unread_items_count(sets[i].cond);
+			if (sets[i].unread_count != set_unread_count) {
+				sets[i].unread_count = set_unread_count;
+				if ((i >= view_min) && (i <= view_max)) {
+					set_expose(i);
+				}
+			}
+			break;
+		}
+	}
+}
+
+static void
 set_reload_feed(struct set_line *set, size_t index)
 {
 	status_write("Loading %s", set->link->ptr);
@@ -331,45 +349,92 @@ set_reload_feed(struct set_line *set, size_t index)
 static void
 set_reload_filter(struct set_line *set, size_t index)
 {
-	(void)index;
-	if (sets[index].cond == NULL) {
-		status_write("There was a problem generating search condition for that set!");
+	size_t set_unread_count;
+	size_t errors = 0;
+	const struct string **processed_urls = NULL;
+	size_t processed_urls_count = 0;
+	bool skip_that_url = false;
+
+	// Here we trying to reload all feed urls related to this filter.
+	for (size_t i = 0; i < set->cond->urls_count; ++i) {
+
+		for (size_t j = 0; j < processed_urls_count; ++j) {
+			if (set->cond->urls[i] == processed_urls[j]) {
+				skip_that_url = true;
+				break;
+			}
+		}
+		if (skip_that_url == true) {
+			skip_that_url = false;
+			continue;
+		}
+		++processed_urls_count;
+		processed_urls = realloc(processed_urls, sizeof(struct string *) * processed_urls_count);
+		if (processed_urls == NULL) {
+			errors = SIZE_MAX;
+			break;
+		}
+		processed_urls[processed_urls_count - 1] = set->cond->urls[i];
+
+		status_write("Loading %s", set->cond->urls[i]->ptr);
+		if (update_feed(set->cond->urls[i]) != 0) {
+			++errors;
+			continue;
+		}
+
+		update_items_count_of_feed_by_its_url(set->cond->urls[i]);
+	}
+
+	free(processed_urls);
+
+	if (errors == SIZE_MAX) {
+		status_write("Shortage of memory occurred!");
 		return;
 	}
-	size_t feed_unread_count;
-	size_t errors = 0;
-	/* Here we trying to reload all feed urls related to this filter. */
-	for (size_t i = 0; i < set->cond->urls_count; ++i) {
-		status_write("Loading %s", set->cond->urls[i]->ptr);
-		if (update_feed(set->cond->urls[i]) == 0) {
-			for (size_t j = 0; j < sets_count; ++j) {
-				if ((sets[j].link != NULL) && (strcmp(sets[j].link->ptr, set->cond->urls[i]->ptr) == 0)) {
-					feed_unread_count = get_unread_items_count(sets[j].cond);
-					if (sets[j].unread_count != feed_unread_count) {
-						sets[j].unread_count = feed_unread_count;
-						if ((j >= view_min) && (j <= view_max)) {
-							set_expose(j);
-						}
-					}
-					break;
-				}
-			}
-		} else {
-			++errors;
-		}
+
+	set_unread_count = get_unread_items_count(set->cond);
+	if (set->unread_count != set_unread_count) {
+		set->unread_count = set_unread_count;
+		set_expose(index);
 	}
+
 	if (errors == 0) {
-		size_t new_unread_count = get_unread_items_count(set->cond);
-		if (set->unread_count != new_unread_count) {
-			set->unread_count = new_unread_count;
-			set_expose(index);
-		}
 		status_clean();
 	} else if (errors == 1) {
 		status_write("Failed to update 1 feed.");
 	} else {
 		status_write("Failed to update %u feeds.", errors);
 	}
+}
+
+static void
+update_unread_items_count_of_feeds_related_to_filter_condition(const struct set_condition *sc)
+{
+	const struct string **processed_urls = NULL;
+	size_t processed_urls_count = 0;
+	bool skip_that_url = false;
+	for (size_t i = 0; i < sc->urls_count; ++i) {
+
+		for (size_t j = 0; j < processed_urls_count; ++j) {
+			if (sc->urls[i] == processed_urls[j]) {
+				skip_that_url = true;
+				break;
+			}
+		}
+		if (skip_that_url == true) {
+			skip_that_url = false;
+			continue;
+		}
+		++processed_urls_count;
+		processed_urls = realloc(processed_urls, sizeof(struct string *) * processed_urls_count);
+		if (processed_urls == NULL) {
+			break;
+		}
+		processed_urls[processed_urls_count - 1] = sc->urls[i];
+
+		update_items_count_of_feed_by_its_url(sc->urls[i]);
+	}
+	free(processed_urls);
 }
 
 static void
@@ -463,7 +528,6 @@ enter_sets_menu_loop(void)
 		}
 
 		if (sets[view_sel].cond == NULL) {
-			status_write("There was a problem generating search condition for that set!");
 			continue;
 		}
 
@@ -471,6 +535,14 @@ enter_sets_menu_loop(void)
 
 		if (destination == INPUT_QUIT_SOFT) { /* stay in sets menu */
 			set_sets_input_handlers();
+
+			if (sets[view_sel].link != NULL) {
+				// TODO
+				//update_unread_items_count_of_filters_containing_given_url(sets[view_sel].link);
+			} else if (sets[view_sel].tags != NULL) {
+				update_unread_items_count_of_feeds_related_to_filter_condition(sets[view_sel].cond);
+			}
+
 			sets[view_sel].unread_count = get_unread_items_count(sets[view_sel].cond);
 			redraw_sets_windows();
 		}

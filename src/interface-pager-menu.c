@@ -76,8 +76,10 @@ split_wstring_into_lines(struct wstring *wstr)
 		}
 	}
 
-	cat_wstring_array(broken_wstr, line, line_len);
-	cat_wstring_wchar(broken_wstr, L'\n');
+	if (line_len != 0) {
+		cat_wstring_array(broken_wstr, line, line_len);
+		cat_wstring_wchar(broken_wstr, L'\n');
+	}
 
 	free(line);
 
@@ -88,23 +90,15 @@ static void
 write_broken_wstring_to_pad(WINDOW *pad, const struct wstring *wbuf)
 {
 	int newlines = 0;
-	wchar_t *iter = wbuf->ptr;
-	wchar_t *newline_char;
-	while (1) {
+	const wchar_t *iter = wbuf->ptr;
+	const wchar_t *newline_char = wcschr(iter, L'\n');
+	while (newline_char != NULL) {
+		wmove(pad, newlines++, 0);
+		waddnwstr(pad, iter, newline_char - iter);
+		iter = newline_char + 1;
 		newline_char = wcschr(iter, L'\n');
-		if (newline_char != NULL) {
-			wmove(pad, newlines++, 0);
-			waddnwstr(pad, iter, newline_char - iter);
-			iter = newline_char + 1;
-		} else {
-			while (iter < wbuf->ptr + wbuf->len) {
-				wmove(pad, newlines++, 0);
-				waddnwstr(pad, iter, list_menu_width);
-				iter += list_menu_width;
-			}
-			break;
-		}
 	}
+	INFO("Wrote %d lines to pad window.", newlines);
 }
 
 /* static void */
@@ -146,7 +140,7 @@ create_window_with_contents(void)
 		}
 
 		// Create string that is splitted with newlines in a blocks of at most N characters,
-		// where N is the current width of terminal.
+		// where N is the current width of terminal. Last block of text is also terminated with newline.
 		struct wstring *broken_wbuf = split_wstring_into_lines(wbuf);
 		free_wstring(wbuf);
 		if (broken_wbuf == NULL) {
@@ -161,9 +155,10 @@ create_window_with_contents(void)
 			if (broken_wbuf->ptr[i] == L'\n') ++pad_height;
 		}
 
+		INFO("Creating pad window with %d height and %d width.", pad_height, list_menu_width);
 		pad = newpad(pad_height, list_menu_width);
 		if (pad == NULL) {
-			FAIL("Could not create pad window for item contents!");
+			FAIL("Failed to create pad window for item contents (newpad returned NULL)!");
 			free_wstring(broken_wbuf);
 			return NULL;
 		}

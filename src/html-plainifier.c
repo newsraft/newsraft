@@ -149,15 +149,10 @@ format_text(char *text, size_t *iter)
 }
 
 struct string *
-plainify_html(char *buf_with_entities, size_t buf_len)
+plainify_html(const char *str, size_t str_len)
 {
-	struct string *buf = expand_html_entities(buf_with_entities, buf_len);
-	if (buf == NULL) {
-		return NULL;
-	}
-	char *text = malloc(sizeof(char) * (buf->len + 1));
+	char *text = malloc(sizeof(char) * (str_len + 1));
 	if (text == NULL) {
-		free_string(buf);
 		return NULL;
 	}
 
@@ -167,19 +162,19 @@ plainify_html(char *buf_with_entities, size_t buf_len)
 	       att_index,      /* index of last attribute of html tag */
 	       att_limit,      /* maximum length of current attribute */
 	       att_char;       /* actual length of current attribute */
-	bool   in_tag = false; /* shows if buf->ptr[i] character belongs to html tag */
+	bool   in_tag = false; /* shows if str[i] character belongs to html tag */
 	bool   error = false;  /* shows if error occurred in loop */
 
 	// parse html text char-by-char
-	for (size_t i = 0; i < buf->len; ++i) {
+	for (size_t i = 0; i < str_len; ++i) {
 		if (in_tag == true) {
-			if (buf->ptr[i] == '>') {
+			if (str[i] == '>') {
 				in_tag = false;
 				if (atts != NULL) {
 					atts[att_index][att_char] = '\0';
 					format_text(text, &j);
 				}
-			} else if (buf->ptr[i] == ' ' || buf->ptr[i] == '\n') {
+			} else if (str[i] == ' ' || str[i] == '\n') {
 				if (atts != NULL) {
 					atts[att_index][att_char] = '\0';
 					att_char = 0;
@@ -206,24 +201,23 @@ plainify_html(char *buf_with_entities, size_t buf_len)
 						break;
 					}
 				}
-				atts[att_index][att_char++] = buf->ptr[i];
+				atts[att_index][att_char++] = str[i];
 			}
 		} else {
-			if (buf->ptr[i] == '<') {
+			if (str[i] == '<') {
 				in_tag = true;
 				free_atts();
 				att_char = 0;
-			} else if ((status & HTML_PREFORMATTED) == 0 && (buf->ptr[i] == ' ' || buf->ptr[i] == '\n' || buf->ptr[i] == '\t')) {
+			} else if ((status & HTML_PREFORMATTED) == 0 && (str[i] == ' ' || str[i] == '\n' || str[i] == '\t')) {
 				if (j != 0 && text[j - 1] != ' ' && text[j - 1] != '\n' && text[j - 1] != '\t') {
 					text[j++] = ' ';
 				}
 			} else {
-				text[j++] = buf->ptr[i];
+				text[j++] = str[i];
 			}
 		}
 	}
 
-	free_string(buf);
 	free_atts();
 
 	if (error == true) {
@@ -231,16 +225,16 @@ plainify_html(char *buf_with_entities, size_t buf_len)
 		return NULL;
 	}
 
-	struct string *text_buf = malloc(sizeof(struct string));
-	if (text_buf == NULL) {
-		free(text);
+	text[j] = '\0';
+
+	struct string *expanded_text = expand_html_entities(text, j);
+	free(text);
+	if (expanded_text == NULL) {
+		FAIL("Failed to expand HTML entities of contents!");
 		return NULL;
 	}
-	text[j] = '\0';
-	text_buf->ptr = text;
-	text_buf->len = j;
 
-	strip_whitespace_from_edges(text_buf->ptr, &(text_buf->len));
+	strip_whitespace_from_edges(expanded_text->ptr, &(expanded_text->len));
 
-	return text_buf;
+	return expanded_text;
 }

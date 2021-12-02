@@ -162,9 +162,9 @@ translate_entity(char *entity)
 }
 
 struct string *
-expand_html_entities(char *buf, size_t buf_len)
+expand_html_entities(const char *str, size_t str_len)
 {
-	char *data = malloc(sizeof(char) * (buf_len + 1));
+	char *data = malloc(sizeof(char) * (str_len + 1));
 	if (data == NULL) {
 		FAIL("Not enough memory for expanding HTML entities of item contents!");
 		return NULL;
@@ -174,9 +174,9 @@ expand_html_entities(char *buf, size_t buf_len)
 	char entity_name[MAX_ENTITY_NAME_LENGTH + 1];
 	const char *entity_value;
 	size_t entity_len;
-	for (size_t i = 0; i < buf_len; ++i) {
+	for (size_t i = 0; i < str_len; ++i) {
 		if (in_entity == true) {
-			if (buf[i] == ';') {
+			if (str[i] == ';') {
 				in_entity = false;
 				entity_name[entity_len] = '\0';
 				entity_value = translate_entity(entity_name);
@@ -200,15 +200,15 @@ expand_html_entities(char *buf, size_t buf_len)
 					strcat(data, entity_name);
 					data_len += strlen(entity_name) + 1;
 				} else {
-					entity_name[entity_len++] = buf[i];
+					entity_name[entity_len++] = str[i];
 				}
 			}
 		} else {
-			if (buf[i] == '&') {
+			if (str[i] == '&') {
 				in_entity = true;
 				entity_len = 0;
 			} else {
-				data[data_len++] = buf[i];
+				data[data_len++] = str[i];
 			}
 		}
 	}

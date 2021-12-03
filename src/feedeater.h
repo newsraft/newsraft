@@ -165,16 +165,17 @@ void free_binds(void);
 // string
 struct string *create_string(const char *src, size_t len);
 struct string *create_empty_string(void);
-void cpy_string_array(struct string *dest, const char *src_ptr, size_t src_len);
-void cpy_string_string(struct string *dest, const struct string *src);
-void cat_string_array(struct string *dest, const char *src, size_t src_len);
-void cat_string_string(struct string *dest, const struct string *src);
-void cat_string_char(struct string *dest, char c);
+struct string *cpyas(struct string *dest, const char *src_ptr, size_t src_len);
+struct string *cpyss(struct string *dest, const struct string *src);
+struct string *catas(struct string *dest, const char *src, size_t src_len);
+struct string *catss(struct string *dest, const struct string *src);
+struct string *catcs(struct string *dest, char c);
 void empty_string(struct string *str);
 void free_string(struct string *str);
 void strip_whitespace_from_edges(char *str, size_t *len);
 // wstring
 struct wstring *create_wstring(const wchar_t *src, size_t len);
+struct wstring *create_empty_wstring(void);
 void cat_wstring_array(struct wstring *dest, const wchar_t *src_ptr, size_t src_len);
 void cat_wstring_wchar(struct wstring *dest, wchar_t wc);
 struct wstring *convert_string_to_wstring(const struct string *src);

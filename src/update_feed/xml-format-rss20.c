@@ -50,19 +50,19 @@ parse_rss20_element_end(struct parser_data *data, const XML_Char *name)
 	} else if (strcmp(name, "title") == 0) {
 		data->pos &= ~IN_TITLE_ELEMENT;
 		if ((data->pos & IN_ITEM_ELEMENT) != 0)
-			cpy_string_array(data->bucket->title, data->value, data->value_len);
+			cpyas(data->bucket->title, data->value, data->value_len);
 		else
 			db_update_feed_text(data->feed_url, "name", data->value, data->value_len);
 	} else if (strcmp(name, "description") == 0) {
 		data->pos &= ~IN_DESCRIPTION_ELEMENT;
 		if ((data->pos & IN_ITEM_ELEMENT) != 0)
-			cpy_string_array(data->bucket->content, data->value, data->value_len);
+			cpyas(data->bucket->content, data->value, data->value_len);
 		else
 			db_update_feed_text(data->feed_url, "description", data->value, data->value_len);
 	} else if (strcmp(name, "link") == 0) {
 		data->pos &= ~IN_LINK_ELEMENT;
 		if ((data->pos & IN_ITEM_ELEMENT) != 0)
-			cpy_string_array(data->bucket->url, data->value, data->value_len);
+			cpyas(data->bucket->url, data->value, data->value_len);
 		else
 			db_update_feed_text(data->feed_url, "resource", data->value, data->value_len);
 	} else if (strcmp(name, "pubDate") == 0) {
@@ -74,7 +74,7 @@ parse_rss20_element_end(struct parser_data *data, const XML_Char *name)
 	} else if (strcmp(name, "guid") == 0) {
 		data->pos &= ~IN_GUID_ELEMENT;
 		if ((data->pos & IN_ITEM_ELEMENT) != 0)
-			cpy_string_array(data->bucket->guid, data->value, data->value_len);
+			cpyas(data->bucket->guid, data->value, data->value_len);
 	} else if (strcmp(name, "author") == 0) {
 		data->pos &= ~IN_AUTHOR_ELEMENT;
 		if ((data->pos & IN_ITEM_ELEMENT) != 0) {
@@ -92,7 +92,7 @@ parse_rss20_element_end(struct parser_data *data, const XML_Char *name)
 	} else if (strcmp(name, "comments") == 0) {
 		data->pos &= ~IN_COMMENTS_ELEMENT;
 		if ((data->pos & IN_ITEM_ELEMENT) != 0)
-			cpy_string_array(data->bucket->comments, data->value, data->value_len);
+			cpyas(data->bucket->comments, data->value, data->value_len);
 	} else if (strcmp(name, "channel") == 0) {
 		data->pos &= ~IN_CHANNEL_ELEMENT;
 	}

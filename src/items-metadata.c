@@ -21,10 +21,9 @@ const struct meta_data_entry meta_data[] = {
 static int
 cat_item_date_entry_to_buf(struct string *buf, sqlite3_stmt *res)
 {
-	time_t item_date = 0,
-	       item_pubdate = (time_t)sqlite3_column_int64(res, ITEM_COLUMN_PUBDATE),
-	       item_upddate = (time_t)sqlite3_column_int64(res, ITEM_COLUMN_UPDDATE);
-	item_date = item_pubdate > item_upddate ? item_pubdate : item_upddate;
+	time_t item_pubdate = (time_t)sqlite3_column_int64(res, ITEM_COLUMN_PUBDATE);
+	time_t item_upddate = (time_t)sqlite3_column_int64(res, ITEM_COLUMN_UPDDATE);
+	time_t item_date = item_pubdate > item_upddate ? item_pubdate : item_upddate;
 	if (item_date == 0) {
 		return 0; // success. it is not an error because this item simply does not have date set
 	}
@@ -32,9 +31,9 @@ cat_item_date_entry_to_buf(struct string *buf, sqlite3_stmt *res)
 	if (date_str == NULL) {
 		return 1; // failure
 	}
-	cat_string_array(buf, "Date: ", (size_t)6);
-	cat_string_string(buf, date_str);
-	cat_string_char(buf, '\n');
+	catas(buf, "Date: ", (size_t)6);
+	catss(buf, date_str);
+	catcs(buf, '\n');
 	free_string(date_str);
 	return 0; // success
 }
@@ -51,10 +50,10 @@ cat_item_meta_data_entry_to_buf(struct string *buf, sqlite3_stmt *res, int meta_
 		return 0; // success. it is not an error because this item simply does not have that meta data entry
 	}
 	// TODO: add error checks for strings concatenation
-	cat_string_array(buf, (char *)meta_data[meta_data_index].name, meta_data[meta_data_index].name_len);
-	cat_string_array(buf, ": ", (size_t)2);
-	cat_string_array(buf, text, text_len);
-	cat_string_char(buf, '\n');
+	catas(buf, (char *)meta_data[meta_data_index].name, meta_data[meta_data_index].name_len);
+	catas(buf, ": ", (size_t)2);
+	catas(buf, text, text_len);
+	catcs(buf, '\n');
 	return 0; // success
 }
 

@@ -25,7 +25,7 @@ is_wchar_a_breaker(wchar_t wc)
 static struct wstring *
 split_wstring_into_lines(struct wstring *wstr)
 {
-	struct wstring *broken_wstr = create_wstring(NULL, 0);
+	struct wstring *broken_wstr = create_empty_wstring();
 	if (broken_wstr == NULL) {
 		return NULL; // failure
 	}

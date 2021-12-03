@@ -291,8 +291,8 @@ get_contents_of_item(sqlite3_stmt *res)
 			struct string *plain_text = plainify_html(text, text_len);
 			if (plain_text != NULL) {
 				if (plain_text->len != 0) {
-					cat_string_char(buf, '\n');
-					cat_string_string(buf, plain_text);
+					catcs(buf, '\n');
+					catss(buf, plain_text);
 				}
 				free_string(plain_text);
 			}

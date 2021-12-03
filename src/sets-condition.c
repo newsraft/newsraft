@@ -51,7 +51,7 @@ append_urls_of_tag_to_set_condition(struct set_condition *sc, const struct feed_
 	char word[100];
 	size_t word_len;
 
-	cat_string_char(sc->db_cmd, '(');
+	catcs(sc->db_cmd, '(');
 
 	for (size_t i = 0; i < tag->urls_count; ++i) {
 
@@ -73,12 +73,12 @@ append_urls_of_tag_to_set_condition(struct set_condition *sc, const struct feed_
 			word_len = sprintf(word, "feed=?%lu", sc->urls_count);
 		}
 
-		cat_string_array(sc->db_cmd, word, word_len);
-		if ((i + 1) != tag->urls_count) cat_string_array(sc->db_cmd, " OR ", 4);
+		catas(sc->db_cmd, word, word_len);
+		if ((i + 1) != tag->urls_count) catas(sc->db_cmd, " OR ", 4);
 
 	}
 
-	cat_string_char(sc->db_cmd, ')');
+	catcs(sc->db_cmd, ')');
 
 	return 0; // success
 }
@@ -130,17 +130,17 @@ create_set_condition_for_filter(const struct string *tags_expr)
 				}
 			}
 			if (c == '&') {
-				cat_string_array(sc->db_cmd, " AND ", 5);
+				catas(sc->db_cmd, " AND ", 5);
 			} else if (c == '|') {
-				cat_string_array(sc->db_cmd, " OR ", 4);
+				catas(sc->db_cmd, " OR ", 4);
 			} else if (c == ')') {
-				cat_string_char(sc->db_cmd, ')');
+				catcs(sc->db_cmd, ')');
 			} else if (c == '\0') {
 				break;
 			}
 		} else if (c == '(') {
 			if (word_len == 0) {
-				cat_string_char(sc->db_cmd, '(');
+				catcs(sc->db_cmd, '(');
 			} else {
 				error = true;
 				break;
@@ -165,7 +165,7 @@ create_set_condition_for_filter(const struct string *tags_expr)
 		return NULL; // failure
 	}
 
-	cat_string_char(sc->db_cmd, ')');
+	catcs(sc->db_cmd, ')');
 
 	return sc; // success
 }

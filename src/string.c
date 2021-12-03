@@ -8,27 +8,26 @@ create_string(const char *src, size_t len)
 	struct string *str = malloc(sizeof(struct string));
 	if (str == NULL) {
 		FAIL("Not enough memory for string creation!");
-		return NULL;
+		return NULL; // failure
 	}
-	/* always create a string even in cases where the src is set to NULL */
 	str->ptr = malloc(sizeof(char) * (len + 1));
 	if (str->ptr == NULL) {
 		FAIL("Not enough memory for string creation!");
 		free(str);
-		return NULL;
+		return NULL; // failure
 	}
-	if (src == NULL) {
-		str->len = 0;
-		str->lim = len;
-	} else {
+	if (src != NULL) {
 		if (len != 0) {
 			memcpy(str->ptr, src, sizeof(char) * len);
 		}
 		str->len = len;
 		str->lim = len;
+	} else {
+		str->len = 0;
+		str->lim = len;
 	}
 	*(str->ptr + len) = '\0';
-	return str;
+	return str; // success
 }
 
 struct string *
@@ -37,50 +36,80 @@ create_empty_string(void)
 	return create_string(NULL, 0);
 }
 
-void
-cpy_string_array(struct string *dest, const char *src_ptr, size_t src_len)
+// Copy array to string.
+struct string *
+cpyas(struct string *dest, const char *src_ptr, size_t src_len)
 {
-	dest->len = src_len;
-	if (dest->len > dest->lim) {
-		dest->lim = dest->len;
-		dest->ptr = realloc(dest->ptr, sizeof(char) * (dest->lim + 1));
+	if (src_len > dest->lim) {
+		char *temp = realloc(dest->ptr, sizeof(char) * (src_len + 1));
+		if (temp != NULL) {
+			dest->ptr = temp;
+			dest->lim = src_len;
+		} else {
+			free_string(dest);
+			return NULL; // failure
+		}
 	}
-	strcpy(dest->ptr, src_ptr);
+	memcpy(dest->ptr, src_ptr, sizeof(char) * src_len);
+	*(dest->ptr + src_len) = '\0';
+	dest->len = src_len;
+	return dest; // success
 }
 
-void
-cpy_string_string(struct string *dest, const struct string *src)
+// Copy string to string.
+struct string *
+cpyss(struct string *dest, const struct string *src)
 {
-	cpy_string_array(dest, src->ptr, src->len);
+	return cpyas(dest, src->ptr, src->len);
 }
 
-void
-cat_string_array(struct string *dest, const char *src_ptr, size_t src_len)
+// Concatenate array to string.
+struct string *
+catas(struct string *dest, const char *src_ptr, size_t src_len)
 {
-	dest->len += src_len;
-	if (dest->len > dest->lim) {
-		dest->lim = dest->len;
-		dest->ptr = realloc(dest->ptr, sizeof(char) * (dest->lim + 1));
+	size_t new_len = dest->len + src_len;
+	if (new_len > dest->lim) {
+		char *temp = realloc(dest->ptr, sizeof(char) * (new_len + 1));
+		if (temp != NULL) {
+			dest->ptr = temp;
+			dest->lim = new_len;
+		} else {
+			free_string(dest);
+			return NULL; // failure
+		}
 	}
 	strncat(dest->ptr, src_ptr, src_len);
+	*(dest->ptr + new_len) = '\0';
+	dest->len = new_len;
+	return dest; // success
 }
 
-void
-cat_string_string(struct string *dest, const struct string *src)
+// Concatenate string to string.
+struct string *
+catss(struct string *dest, const struct string *src)
 {
-	cat_string_array(dest, src->ptr, src->len);
+	return catas(dest, src->ptr, src->len);
 }
 
-void
-cat_string_char(struct string *dest, char c)
+// Concatenate character to string.
+struct string *
+catcs(struct string *dest, char c)
 {
-	dest->len += 1;
-	if (dest->len > dest->lim) {
-		dest->lim = dest->len;
-		dest->ptr = realloc(dest->ptr, sizeof(char) * (dest->lim + 1));
+	size_t new_len = dest->len + 1;
+	if (new_len > dest->lim) {
+		char *temp = realloc(dest->ptr, sizeof(char) * (new_len + 1));
+		if (temp != NULL) {
+			dest->ptr = temp;
+			dest->lim = new_len;
+		} else {
+			free_string(dest);
+			return NULL; // failure
+		}
 	}
+	dest->len = new_len;
 	*(dest->ptr + dest->len - 1) = c;
 	*(dest->ptr + dest->len) = '\0';
+	return dest; // success
 }
 
 void

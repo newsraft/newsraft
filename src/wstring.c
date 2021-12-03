@@ -8,27 +8,32 @@ create_wstring(const wchar_t *src, size_t len)
 	struct wstring *wstr = malloc(sizeof(struct wstring));
 	if (wstr == NULL) {
 		FAIL("Not enough memory for wstring creation!");
-		return NULL;
+		return NULL; // failure
 	}
-	/* always create a wstring even in cases where the src is set to NULL */
 	wstr->ptr = malloc(sizeof(wchar_t) * (len + 1));
 	if (wstr->ptr == NULL) {
 		FAIL("Not enough memory for wstring creation!");
 		free(wstr);
-		return NULL;
+		return NULL; // failure
 	}
-	if (src == NULL) {
-		wstr->len = 0;
-		wstr->lim = len;
-	} else {
+	if (src != NULL) {
 		if (len != 0) {
 			memcpy(wstr->ptr, src, sizeof(wchar_t) * len);
 		}
 		wstr->len = len;
 		wstr->lim = len;
+	} else {
+		wstr->len = 0;
+		wstr->lim = len;
 	}
 	*(wstr->ptr + len) = '\0';
-	return wstr;
+	return wstr; // success
+}
+
+struct wstring *
+create_empty_wstring(void)
+{
+	return create_wstring(NULL, 0);
 }
 
 void
@@ -59,26 +64,26 @@ convert_string_to_wstring(const struct string *src)
 {
 	struct wstring *wstr = malloc(sizeof(struct wstring));
 	if (wstr == NULL) {
-		return NULL;
+		return NULL; // failure
 	}
 	wstr->len = mbstowcs(NULL, src->ptr, 0);
 	if (wstr->len == (size_t)-1) {
 		free(wstr);
-		return NULL;
+		return NULL; // failure
 	}
 	wstr->ptr = malloc(sizeof(wchar_t) * (wstr->len + 1));
 	if (wstr->ptr == NULL) {
 		free(wstr);
-		return NULL;
+		return NULL; // failure
 	}
 	if (mbstowcs(wstr->ptr, src->ptr, wstr->len + 1) == (size_t)-1) {
 		free(wstr->ptr);
 		free(wstr);
-		return NULL;
+		return NULL; // failure
 	}
 	wstr->ptr[wstr->len] = L'\0';
 	wstr->lim = wstr->len;
-	return wstr;
+	return wstr; // success
 }
 
 void

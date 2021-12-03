@@ -85,33 +85,33 @@ create_authors_string(struct author *authors, size_t authors_count)
 		added_email = false;
 		added_link = false;
 		if ((authors[i].name != NULL) && (authors[i].name->len != 0)) {
-			cat_string_string(authors_list, authors[i].name);
+			catss(authors_list, authors[i].name);
 			added_name = true;
 		}
 		if ((authors[i].email != NULL) && (authors[i].email->len != 0)) {
 			if (added_name == true) {
-				cat_string_array(authors_list, " <", 2);
+				catas(authors_list, " <", 2);
 			}
-			cat_string_string(authors_list, authors[i].email);
+			catss(authors_list, authors[i].email);
 			if (added_name == true) {
-				cat_string_char(authors_list, '>');
+				catcs(authors_list, '>');
 			}
 			added_email = true;
 		}
 		if ((authors[i].link != NULL) && (authors[i].link->len != 0)) {
 			if (added_name == true || added_email == true) {
-				cat_string_array(authors_list, " (", 2);
+				catas(authors_list, " (", 2);
 			}
-			cat_string_string(authors_list, authors[i].link);
+			catss(authors_list, authors[i].link);
 			if (added_name == true || added_email == true) {
-				cat_string_char(authors_list, ')');
+				catcs(authors_list, ')');
 			}
 			added_link = true;
 		}
 		if ((i + 1 != authors_count) &&
 		    (added_name == true || added_email == true || added_link == true))
 		{
-			cat_string_array(authors_list, ", ", 2);
+			catas(authors_list, ", ", 2);
 		}
 	}
 	return authors_list;

@@ -95,7 +95,7 @@ add_category_to_item_bucket(const struct item_bucket *bucket, const char *catego
 		return;
 	}
 	if (bucket->categories->len != 0) {
-		cat_string_array(bucket->categories, ", ", 2);
+		catas(bucket->categories, ", ", 2);
 	}
-	cat_string_array(bucket->categories, category, category_len);
+	catas(bucket->categories, category, category_len);
 }

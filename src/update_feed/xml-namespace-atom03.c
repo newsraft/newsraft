@@ -13,7 +13,7 @@ parse_atom03_element_start(struct parser_data *data, const XML_Char *name, const
 		const char *href_link = get_value_of_attribute_key(atts, "href");
 		if (href_link != NULL) {
 			if ((data->pos & IN_ITEM_ELEMENT) != 0)
-				cpy_string_array(data->bucket->url, href_link, strlen(href_link));
+				cpyas(data->bucket->url, href_link, strlen(href_link));
 			else
 				db_update_feed_text(data->feed_url, "resource", href_link, strlen(href_link));
 		}
@@ -53,13 +53,13 @@ parse_atom03_element_end(struct parser_data *data, const XML_Char *name)
 	} else if (strcmp(name, "title") == 0) {
 		data->pos &= ~IN_TITLE_ELEMENT;
 		if ((data->pos & IN_ITEM_ELEMENT) != 0)
-			cpy_string_array(data->bucket->title, data->value, data->value_len);
+			cpyas(data->bucket->title, data->value, data->value_len);
 		else
 			db_update_feed_text(data->feed_url, "name", data->value, data->value_len);
 	} else if (strcmp(name, "summary") == 0) {
 		data->pos &= ~IN_DESCRIPTION_ELEMENT;
 		if ((data->pos & IN_ITEM_ELEMENT) != 0)
-			cpy_string_array(data->bucket->content, data->value, data->value_len);
+			cpyas(data->bucket->content, data->value, data->value_len);
 		else
 			db_update_feed_text(data->feed_url, "description", data->value, data->value_len);
 	} else if (strcmp(name, "link") == 0) {
@@ -67,7 +67,7 @@ parse_atom03_element_end(struct parser_data *data, const XML_Char *name)
 	} else if (strcmp(name, "id") == 0) {
 		data->pos &= ~IN_GUID_ELEMENT;
 		if ((data->pos & IN_ITEM_ELEMENT) != 0)
-			cpy_string_array(data->bucket->guid, data->value, data->value_len);
+			cpyas(data->bucket->guid, data->value, data->value_len);
 	} else if (strcmp(name, "issued") == 0) {
 		data->pos &= ~IN_PUBDATE_ELEMENT;
 		if ((data->pos & IN_ITEM_ELEMENT) != 0) {

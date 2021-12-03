@@ -4,6 +4,10 @@ Feedeater uses [ncurses](https://invisible-island.net/ncurses) to draw interface
 
 # Code guidelines
 
+## Indentation characters
+
+One tab per one level of indentation.
+
 ## Naming convention
 
 Use underscores to separate words in names (variables, functions, structures, etc)
@@ -12,6 +16,18 @@ For example:
 
 ```
 static size_t sets_count = 0;
+```
+
+## Control statements decoration
+
+Every control statement must be followed by parentheses to describe compound statement even if it has only one command. The first parenthesis must be on the same line with the control expression, and the closing parenthesis must be on a separate line.
+
+For example:
+
+```
+for (size_t i = 0; i < items_count; ++i) {
+	mark_item_read(i);
+}
 ```
 
 ## Function definitions

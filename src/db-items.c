@@ -50,7 +50,7 @@ db_mark_item_unread(int rowid)
 	return db_update_item_int(rowid, "unread", 1);
 }
 
-#define SELECT_CMD_START "SELECT COUNT(*) FROM items WHERE unread=? AND "
+#define SELECT_CMD_START "SELECT COUNT(*) FROM items WHERE unread=1 AND "
 #define SELECT_CMD_START_LEN 46
 
 int
@@ -75,9 +75,8 @@ get_unread_items_count(const struct set_condition *sc)
 	int unread_count = 0;
 	sqlite3_stmt *res;
 	if (sqlite3_prepare_v2(db, cmd, -1, &res, 0) == SQLITE_OK) {
-		sqlite3_bind_int(res, 1, 1);
 		for (size_t i = 0; i < sc->urls_count; ++i) {
-			sqlite3_bind_text(res, i + 2, sc->urls[i]->ptr, sc->urls[i]->len, NULL);
+			sqlite3_bind_text(res, i + 1, sc->urls[i]->ptr, sc->urls[i]->len, NULL);
 		}
 		if (sqlite3_step(res) == SQLITE_ROW) {
 			unread_count = sqlite3_column_int(res, 0);

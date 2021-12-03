@@ -349,32 +349,10 @@ set_reload_feed(struct set_line *set, size_t index)
 static void
 set_reload_filter(struct set_line *set, size_t index)
 {
-	int set_unread_count;
 	size_t errors = 0;
-	const struct string **processed_urls = NULL;
-	size_t processed_urls_count = 0;
-	bool skip_that_url = false;
 
 	// Here we trying to reload all feed urls related to this filter.
 	for (size_t i = 0; i < set->cond->urls_count; ++i) {
-
-		for (size_t j = 0; j < processed_urls_count; ++j) {
-			if (set->cond->urls[i] == processed_urls[j]) {
-				skip_that_url = true;
-				break;
-			}
-		}
-		if (skip_that_url == true) {
-			skip_that_url = false;
-			continue;
-		}
-		++processed_urls_count;
-		processed_urls = realloc(processed_urls, sizeof(struct string *) * processed_urls_count);
-		if (processed_urls == NULL) {
-			errors = SIZE_MAX;
-			break;
-		}
-		processed_urls[processed_urls_count - 1] = set->cond->urls[i];
 
 		status_write("Loading %s", set->cond->urls[i]->ptr);
 		if (update_feed(set->cond->urls[i]) != 0) {
@@ -385,14 +363,7 @@ set_reload_filter(struct set_line *set, size_t index)
 		update_items_count_of_feed_by_its_url(set->cond->urls[i]);
 	}
 
-	free(processed_urls);
-
-	if (errors == SIZE_MAX) {
-		status_write("Shortage of memory occurred!");
-		return;
-	}
-
-	set_unread_count = get_unread_items_count(set->cond);
+	int set_unread_count = get_unread_items_count(set->cond);
 	if (set->unread_count != set_unread_count) {
 		set->unread_count = set_unread_count;
 		set_expose(index);
@@ -410,31 +381,9 @@ set_reload_filter(struct set_line *set, size_t index)
 static void
 update_unread_items_count_of_feeds_related_to_filter_condition(const struct set_condition *sc)
 {
-	const struct string **processed_urls = NULL;
-	size_t processed_urls_count = 0;
-	bool skip_that_url = false;
 	for (size_t i = 0; i < sc->urls_count; ++i) {
-
-		for (size_t j = 0; j < processed_urls_count; ++j) {
-			if (sc->urls[i] == processed_urls[j]) {
-				skip_that_url = true;
-				break;
-			}
-		}
-		if (skip_that_url == true) {
-			skip_that_url = false;
-			continue;
-		}
-		++processed_urls_count;
-		processed_urls = realloc(processed_urls, sizeof(struct string *) * processed_urls_count);
-		if (processed_urls == NULL) {
-			break;
-		}
-		processed_urls[processed_urls_count - 1] = sc->urls[i];
-
 		update_items_count_of_feed_by_its_url(sc->urls[i]);
 	}
-	free(processed_urls);
 }
 
 static void

@@ -69,7 +69,7 @@ load_items(const struct set_condition *sc)
 		}
 	} else {
 		status_write("There is some error with the tag expression!");
-		DEBUG_WRITE_DB_PREPARE_FAIL;
+		FAIL_SQLITE_PREPARE;
 		error = 1;
 	}
 
@@ -145,13 +145,14 @@ static void
 mark_item_read(size_t index)
 {
 	if (items[index].is_unread == 0) {
-		return;
+		return; // success, item is already read
 	}
-	if (db_make_item_read(items[index].rowid)) {
-		items[index].is_unread = 0;
-		if (index >= view_min && index <= view_max) {
-			item_expose(index);
-		}
+	if (db_mark_item_read(items[index].rowid) != 0) {
+		return; // failure
+	}
+	items[index].is_unread = 0;
+	if ((index >= view_min) && (index <= view_max)) {
+		item_expose(index);
 	}
 }
 
@@ -159,13 +160,14 @@ static void
 mark_item_unread(size_t index)
 {
 	if (items[index].is_unread == 1) {
-		return;
+		return; // success, item is already unread
 	}
-	if (db_make_item_unread(items[index].rowid)) {
-		items[index].is_unread = 1;
-		if (index >= view_min && index <= view_max) {
-			item_expose(index);
-		}
+	if (db_mark_item_unread(items[index].rowid) != 0) {
+		return; // failure
+	}
+	items[index].is_unread = 1;
+	if ((index >= view_min) && (index <= view_max)) {
+		item_expose(index);
 	}
 }
 
@@ -256,7 +258,7 @@ find_item_by_its_rowid_in_db(int rowid)
 {
 	sqlite3_stmt *res;
 	if (sqlite3_prepare_v2(db, "SELECT * FROM items WHERE rowid = ? LIMIT 1", -1, &res, 0) != SQLITE_OK) {
-		DEBUG_WRITE_DB_PREPARE_FAIL;
+		FAIL_SQLITE_PREPARE;
 		return NULL; // failure
 	}
 	sqlite3_bind_int(res, 1, rowid);
@@ -340,7 +342,7 @@ enter_items_menu_loop(const struct set_condition *sc)
 
 			destination = pager_view(contents);
 
-			db_make_item_read(items[view_sel].rowid);
+			db_mark_item_read(items[view_sel].rowid);
 			free_string(contents);
 
 			if (destination == INPUT_QUIT_SOFT) {

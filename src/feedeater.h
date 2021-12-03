@@ -12,7 +12,7 @@
 #define INFO(A, ...) do { if (log_stream != NULL) { fprintf(log_stream, "[INFO] " A "\n", ##__VA_ARGS__); } } while (0)
 #define WARN(A, ...) do { if (log_stream != NULL) { fprintf(log_stream, "[WARN] " A "\n", ##__VA_ARGS__); } } while (0)
 #define FAIL(A, ...) do { if (log_stream != NULL) { fprintf(log_stream, "[FAIL] " A "\n", ##__VA_ARGS__); } } while (0)
-#define DEBUG_WRITE_DB_PREPARE_FAIL do { if (log_stream != NULL) { fprintf(log_stream, "[FAIL] Failed to prepare an SQL statement: %s\n", sqlite3_errmsg(db)); } } while (0)
+#define FAIL_SQLITE_PREPARE FAIL("Failed to prepare an SQL statement: %s", sqlite3_errmsg(db))
 
 struct string {
 	char *ptr;
@@ -142,10 +142,9 @@ void free_tags(void);
 // db
 int db_init(void);
 void db_stop(void);
-void db_update_feed_text(const struct string *feed_url, const char *column, const char *data, size_t data_len);
+int db_mark_item_read(int rowid);
+int db_mark_item_unread(int rowid);
 size_t get_unread_items_count(const struct set_condition *sc);
-int db_make_item_read(int rowid);
-int db_make_item_unread(int rowid);
 
 int curses_init(void);
 

@@ -14,7 +14,7 @@ is_feed_in_db(const struct string *feed_url)
 		}
 		sqlite3_finalize(s);
 	} else {
-		DEBUG_WRITE_DB_PREPARE_FAIL;
+		FAIL_SQLITE_PREPARE;
 	}
 	return stored;
 }
@@ -34,7 +34,7 @@ make_sure_feed_is_in_db(const struct string *feed_url)
 		}
 		sqlite3_finalize(s);
 	} else {
-		DEBUG_WRITE_DB_PREPARE_FAIL;
+		FAIL_SQLITE_PREPARE;
 	}
 	return created;
 }
@@ -43,13 +43,15 @@ void
 db_update_feed_text(const struct string *feed_url, const char *column, const char *data, size_t data_len)
 {
 	if (make_sure_feed_is_in_db(feed_url) == false) {
-		FAIL("Could not create feed entry in database!");
-		return;
+		FAIL("Can not create feed entry in database!");
+		return; // failure
 	}
+
 	char *cmd = malloc(sizeof(char) * (37 + strlen(column)));
 	if (cmd == NULL) {
-		return;
+		return; // failure
 	}
+
 	// BEFORE CHANGING FORMAT STRING LO^OK ABOVE
 	sprintf(cmd, "UPDATE feeds SET %s = ? WHERE url = ?", column);
 	sqlite3_stmt *res;
@@ -59,47 +61,8 @@ db_update_feed_text(const struct string *feed_url, const char *column, const cha
 		sqlite3_step(res);
 		sqlite3_finalize(res);
 	} else {
-		DEBUG_WRITE_DB_PREPARE_FAIL;
-	}
-	free(cmd);
-}
-
-#define SELECT_CMD_START "SELECT rowid FROM items WHERE unread=? AND "
-#define SELECT_CMD_START_LEN 43
-
-size_t
-get_unread_items_count(const struct set_condition *sc)
-{
-	INFO("Trying to count unread items by their condition.");
-	if (sc == NULL) {
-		WARN("Condition is unset, can not count unread items!");
-		return 0; // failure
-	}
-	char *cmd = malloc(sizeof(char) * (SELECT_CMD_START_LEN + sc->db_cmd->len + 1));
-	if (cmd == NULL) {
-		FAIL("Not enough memory for a SQL statement to count unread items!");
-		return 0; // failure
-	}
-
-	strcpy(cmd, SELECT_CMD_START);
-	strcat(cmd, sc->db_cmd->ptr);
-
-	size_t unread_count = 0;
-	sqlite3_stmt *res;
-	if (sqlite3_prepare_v2(db, cmd, -1, &res, 0) == SQLITE_OK) {
-		sqlite3_bind_int(res, 1, 1);
-		for (size_t i = 0; i < sc->urls_count; ++i) {
-			sqlite3_bind_text(res, i + 2, sc->urls[i]->ptr, sc->urls[i]->len, NULL);
-		}
-		while (sqlite3_step(res) == SQLITE_ROW) {
-			++unread_count;
-		}
-		sqlite3_finalize(res);
-		INFO("Successfully counted the number of unread items: %zu", unread_count);
-	} else {
-		DEBUG_WRITE_DB_PREPARE_FAIL;
+		FAIL_SQLITE_PREPARE;
 	}
 
 	free(cmd);
-	return unread_count;
 }

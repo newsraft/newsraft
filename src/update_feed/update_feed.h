@@ -76,6 +76,7 @@ struct parser_data {
 	enum parse_error error;
 };
 
+void db_update_feed_text(const struct string *feed_url, const char *column, const char *data, size_t data_len);
 const char *get_value_of_attribute_key(const XML_Char **atts, const char *key);
 void try_item_bucket(const struct item_bucket *bucket, const struct string *feed_url);
 

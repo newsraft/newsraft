@@ -7,7 +7,7 @@ delete_excess_items(const struct string *feed_url) {
 	sqlite3_stmt *s;
 	if (sqlite3_prepare_v2(db, "SELECT rowid FROM items WHERE feed = ? ORDER BY upddate DESC, pubdate DESC, rowid DESC", -1, &s, 0) != SQLITE_OK) {
 		FAIL("Failed to prepare an excess items deletion statement:");
-		DEBUG_WRITE_DB_PREPARE_FAIL;
+		FAIL_SQLITE_PREPARE;
 		return;
 	}
 	sqlite3_bind_text(s, 1, feed_url->ptr, feed_url->len, NULL);
@@ -27,7 +27,7 @@ delete_excess_items(const struct string *feed_url) {
 			}
 			sqlite3_finalize(t);
 		} else {
-			DEBUG_WRITE_DB_PREPARE_FAIL;
+			FAIL_SQLITE_PREPARE;
 		}
 	}
 	sqlite3_finalize(s);
@@ -50,7 +50,7 @@ is_item_unique(const struct string *feed_url, const struct item_bucket *bucket)
 			}
 			sqlite3_finalize(res);
 		} else {
-			DEBUG_WRITE_DB_PREPARE_FAIL;
+			FAIL_SQLITE_PREPARE;
 		}
 	} else { // check uniqueness by url, title, upddate and pubdate
 		char cmd[] = "SELECT * FROM items WHERE feed = ? AND url = ? AND title = ? AND upddate = ? AND pubdate = ? LIMIT 1";
@@ -65,7 +65,7 @@ is_item_unique(const struct string *feed_url, const struct item_bucket *bucket)
 			}
 			sqlite3_finalize(res);
 		} else {
-			DEBUG_WRITE_DB_PREPARE_FAIL;
+			FAIL_SQLITE_PREPARE;
 		}
 	}
 	return is_item_unique;
@@ -128,7 +128,7 @@ db_insert_item(const struct string *feed_url, const struct item_bucket *bucket)
 	sqlite3_stmt *s;
 	if (sqlite3_prepare_v2(db, "INSERT INTO items VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", -1, &s, 0) != SQLITE_OK) {
 		FAIL("Failed to prepare item insertion statement:");
-		DEBUG_WRITE_DB_PREPARE_FAIL;
+		FAIL_SQLITE_PREPARE;
 		free_string(authors_list);
 		return;
 	}

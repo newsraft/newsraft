@@ -43,7 +43,7 @@ struct set_line {
 	struct string *link; // this is feed url if set is feed NULL otherwise
 	struct string *tags; // this is tags expression if set is filter NULL otherwise
 	const struct set_condition *cond;
-	size_t unread_count;
+	int unread_count;
 	WINDOW *window;
 };
 
@@ -144,7 +144,7 @@ int db_init(void);
 void db_stop(void);
 int db_mark_item_read(int rowid);
 int db_mark_item_unread(int rowid);
-size_t get_unread_items_count(const struct set_condition *sc);
+int get_unread_items_count(const struct set_condition *sc);
 
 int curses_init(void);
 

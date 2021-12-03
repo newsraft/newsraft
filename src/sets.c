@@ -315,7 +315,7 @@ view_select(size_t i)
 static void
 update_items_count_of_feed_by_its_url(const struct string *url)
 {
-	size_t set_unread_count;
+	int set_unread_count;
 	for (size_t i = 0; i < sets_count; ++i) {
 		if ((sets[i].link != NULL) && (strcmp(sets[i].link->ptr, url->ptr) == 0)) {
 			set_unread_count = get_unread_items_count(sets[i].cond);
@@ -335,7 +335,7 @@ set_reload_feed(struct set_line *set, size_t index)
 {
 	status_write("Loading %s", set->link->ptr);
 	if (update_feed(set->link) == 0) {
-		size_t new_unread_count = get_unread_items_count(set->cond);
+		int new_unread_count = get_unread_items_count(set->cond);
 		if (set->unread_count != new_unread_count) {
 			set->unread_count = new_unread_count;
 			set_expose(index);
@@ -349,7 +349,7 @@ set_reload_feed(struct set_line *set, size_t index)
 static void
 set_reload_filter(struct set_line *set, size_t index)
 {
-	size_t set_unread_count;
+	int set_unread_count;
 	size_t errors = 0;
 	const struct string **processed_urls = NULL;
 	size_t processed_urls_count = 0;

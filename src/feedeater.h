@@ -42,7 +42,7 @@ struct set_line {
 	struct string *name; // what is displayed in menu
 	struct string *link; // this is feed url if set is feed NULL otherwise
 	struct string *tags; // this is tags expression if set is filter NULL otherwise
-	const struct set_condition *cond;
+	struct set_condition *cond;
 	int unread_count;
 	WINDOW *window;
 };
@@ -133,9 +133,9 @@ struct string *get_config_date_str(const time_t *time_ptr);
 
 // tags
 int tag_feed(const char *tag_name, const struct string *url);
-const struct set_condition *create_set_condition_for_feed(const struct string *feed_url);
-const struct set_condition *create_set_condition_for_filter(const struct string *tags_expr);
-void free_set_condition(const struct set_condition *cond);
+struct set_condition *create_set_condition_for_feed(const struct string *feed_url);
+struct set_condition *create_set_condition_for_filter(const struct string *tags_expr);
+void free_set_condition(struct set_condition *cond);
 const struct feed_tag *get_tag_by_name(const char *name);
 void free_tags(void);
 
@@ -165,11 +165,11 @@ void free_binds(void);
 // string
 struct string *create_string(const char *src, size_t len);
 struct string *create_empty_string(void);
-struct string *cpyas(struct string *dest, const char *src_ptr, size_t src_len);
-struct string *cpyss(struct string *dest, const struct string *src);
-struct string *catas(struct string *dest, const char *src, size_t src_len);
-struct string *catss(struct string *dest, const struct string *src);
-struct string *catcs(struct string *dest, char c);
+int cpyas(struct string *dest, const char *src_ptr, size_t src_len);
+int cpyss(struct string *dest, const struct string *src);
+int catas(struct string *dest, const char *src, size_t src_len);
+int catss(struct string *dest, const struct string *src);
+int catcs(struct string *dest, char c);
 void empty_string(struct string *str);
 void free_string(struct string *str);
 void strip_whitespace_from_edges(char *str, size_t *len);

@@ -37,7 +37,7 @@ create_empty_string(void)
 }
 
 // Copy array to string.
-struct string *
+int
 cpyas(struct string *dest, const char *src_ptr, size_t src_len)
 {
 	if (src_len > dest->lim) {
@@ -46,25 +46,25 @@ cpyas(struct string *dest, const char *src_ptr, size_t src_len)
 			dest->ptr = temp;
 			dest->lim = src_len;
 		} else {
-			free_string(dest);
-			return NULL; // failure
+			FAIL("Not enough memory for copying array to string.");
+			return 1; // failure
 		}
 	}
 	memcpy(dest->ptr, src_ptr, sizeof(char) * src_len);
 	*(dest->ptr + src_len) = '\0';
 	dest->len = src_len;
-	return dest; // success
+	return 0; // success
 }
 
 // Copy string to string.
-struct string *
+int
 cpyss(struct string *dest, const struct string *src)
 {
 	return cpyas(dest, src->ptr, src->len);
 }
 
 // Concatenate array to string.
-struct string *
+int
 catas(struct string *dest, const char *src_ptr, size_t src_len)
 {
 	size_t new_len = dest->len + src_len;
@@ -74,25 +74,25 @@ catas(struct string *dest, const char *src_ptr, size_t src_len)
 			dest->ptr = temp;
 			dest->lim = new_len;
 		} else {
-			free_string(dest);
-			return NULL; // failure
+			FAIL("Not enough memory for concatenating array to string.");
+			return 1; // failure
 		}
 	}
 	strncat(dest->ptr, src_ptr, src_len);
 	*(dest->ptr + new_len) = '\0';
 	dest->len = new_len;
-	return dest; // success
+	return 0; // success
 }
 
 // Concatenate string to string.
-struct string *
+int
 catss(struct string *dest, const struct string *src)
 {
 	return catas(dest, src->ptr, src->len);
 }
 
 // Concatenate character to string.
-struct string *
+int
 catcs(struct string *dest, char c)
 {
 	size_t new_len = dest->len + 1;
@@ -102,14 +102,14 @@ catcs(struct string *dest, char c)
 			dest->ptr = temp;
 			dest->lim = new_len;
 		} else {
-			free_string(dest);
-			return NULL; // failure
+			FAIL("Not enough memory for concatenating character to string.");
+			return 1; // failure
 		}
 	}
 	dest->len = new_len;
 	*(dest->ptr + dest->len - 1) = c;
 	*(dest->ptr + dest->len) = '\0';
-	return dest; // success
+	return 0; // success
 }
 
 void

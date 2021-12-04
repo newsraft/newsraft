@@ -1,57 +1,85 @@
 #include <stdlib.h>
 #include "feedeater.h"
 
+// Note to the future.
+// When disastrous failure (like shortage of memory) occurrs in
+// "create_set_condition_for_feed" or "create_set_condition_for_filter",
+// print failure messages to stderr, because at the moment of creation of
+// set conditions there is no curses interface, and on errors of such kind
+// application is supposed to exit as soon as possible. Hence it is better
+// to display error message just in front of disappointed user, rather than
+// silently writing them to log file leaving the user confused (moreover,
+// in most cases the log file is not even written).
+
 #define INIT_WORD_BUFF_SIZE 50 // do not set it to 0
 
 void
-free_set_condition(const struct set_condition *sc)
+free_set_condition(struct set_condition *sc)
 {
 	if (sc == NULL) {
 		return;
 	}
 	free(sc->urls);
 	free_string(sc->db_cmd);
-	free((void *)sc);
+	free(sc);
 }
 
-const struct set_condition *
+// On success returns pointer to set_condition struct.
+// On failure returns NULL.
+struct set_condition *
 create_set_condition_for_feed(const struct string *feed_url)
 {
 	struct set_condition *sc = malloc(sizeof(struct set_condition));
 	if (sc == NULL) {
-		FAIL("Not enough memory for feed set condition!");
-		return NULL; // failure
+		fprintf(stderr, "Not enough memory for feed set condition!\n");
+		return NULL;
 	}
 	if ((sc->db_cmd = create_string("(feed=?1)", 9)) == NULL) {
-		FAIL("Not enough memory for WHERE condition of feed set condition!");
+		fprintf(stderr, "Not enough memory for WHERE condition of feed set condition!\n");
 		free(sc);
-		return NULL; // failure
+		return NULL;
 	}
 	if ((sc->urls = malloc(sizeof(struct string *))) == NULL) {
-		FAIL("Not enough memory for urls list of feed set condition!");
+		fprintf(stderr, "Not enough memory for urls list of feed set condition!\n");
 		free_string(sc->db_cmd);
 		free(sc);
-		return NULL; // failure
+		return NULL;
 	}
 	sc->urls[0] = feed_url;
 	sc->urls_count = 1;
-	return sc; // success
+	return sc;
 }
 
+// On success returns 0.
+// On failure returns non-zero:
+// 	on shortage of memory returns 1.
 static int
-append_urls_of_tag_to_set_condition(struct set_condition *sc, const struct feed_tag *tag)
+append_urls_of_tag_to_set_condition(struct set_condition *sc, const char *tag_name)
 {
-	if (tag->urls_count == 0) {
-		FAIL("Tag is empty!");
-		return 1; // failure
+	const struct feed_tag *tag = get_tag_by_name(tag_name);
+
+	if (tag == NULL) {
+		// There is no tags under that name, so just append FALSE to WHERE condition.
+		if (catcs(sc->db_cmd, '0') != 0) {
+			return 1;
+		}
+		return 0;
+	}
+
+	// tag always has at least one url
+	//if (tag->urls_count == 0) {
+	//	// Lu Lu Lu, I've got some apples, Lu Lu Lu, you got some too...
+	//}
+
+	if (catcs(sc->db_cmd, '(') != 0) {
+		return 1;
 	}
 
 	bool found_this_url_in_sc;
 	size_t index_of_url_in_sc;
 	char word[100];
 	size_t word_len;
-
-	catcs(sc->db_cmd, '(');
+	const struct string **temp;
 
 	for (size_t i = 0; i < tag->urls_count; ++i) {
 
@@ -67,49 +95,64 @@ append_urls_of_tag_to_set_condition(struct set_condition *sc, const struct feed_
 		if (found_this_url_in_sc == true) {
 			word_len = sprintf(word, "feed=?%lu", index_of_url_in_sc + 1);
 		} else {
+			temp = realloc(sc->urls, sizeof(struct string *) * (sc->urls_count + 1));
+			if (temp != NULL) {
+				sc->urls = temp;
+			} else {
+				return 1;
+			}
 			++(sc->urls_count);
-			sc->urls = realloc(sc->urls, sizeof(struct string *) * sc->urls_count);
 			sc->urls[sc->urls_count - 1] = tag->urls[i];
 			word_len = sprintf(word, "feed=?%lu", sc->urls_count);
 		}
 
-		catas(sc->db_cmd, word, word_len);
-		if ((i + 1) != tag->urls_count) catas(sc->db_cmd, " OR ", 4);
+		if (catas(sc->db_cmd, word, word_len) != 0) {
+			return 1;
+		}
+		if ((i + 1) != tag->urls_count) {
+			if (catas(sc->db_cmd, " OR ", 4) != 0) {
+				return 1;
+			}
+		}
 
 	}
 
-	catcs(sc->db_cmd, ')');
+	if (catcs(sc->db_cmd, ')') != 0) {
+		return 1;
+	}
 
-	return 0; // success
+	return 0;
 }
 
-
-const struct set_condition *
+// On success returns pointer to set_condition struct.
+// On failure returns NULL.
+struct set_condition *
 create_set_condition_for_filter(const struct string *tags_expr)
 {
 	struct set_condition *sc = malloc(sizeof(struct set_condition));
 	if (sc == NULL) {
-		FAIL("Not enough memory for filter set condition!");
-		return NULL; // failure
+		fprintf(stderr, "Not enough memory for filter set condition!\n");
+		return NULL;
 	}
 	if ((sc->db_cmd = create_string("(", 1)) == NULL) {
-		FAIL("Not enough memory for WHERE condition of filter set condition!");
+		fprintf(stderr, "Not enough memory for WHERE condition of filter set condition!\n");
 		free(sc);
-		return NULL; // failure
+		return NULL;
 	}
 	sc->urls = NULL;
 	sc->urls_count = 0;
 
 	char c;
-	bool error = false;
-	size_t word_len = 0, i = 0;
+	int error = 0;
+	size_t word_len = 0;
+	size_t i = 0;
 	size_t word_lim = INIT_WORD_BUFF_SIZE;
-	const struct feed_tag *tag;
+	char *temp;
 
 	char *word = malloc(sizeof(char) * word_lim); // buffer for tags' names
 	if (word == NULL) {
+		fprintf(stderr, "Not enough memory for word thing to create set condition!");
 		free_set_condition(sc);
-		FAIL("Not enough memory for word thing to create set condition!");
 		return NULL;
 	}
 
@@ -119,22 +162,26 @@ create_set_condition_for_filter(const struct string *tags_expr)
 			if (word_len != 0) {
 				word[word_len] = '\0';
 				word_len = 0;
-				tag = get_tag_by_name(word);
-				if (tag == NULL) {
-					error = true;
-					break;
-				}
-				if (append_urls_of_tag_to_set_condition(sc, tag) != 0) {
-					error = true;
+				if (append_urls_of_tag_to_set_condition(sc, word) != 0) {
+					error = 1;
 					break;
 				}
 			}
 			if (c == '&') {
-				catas(sc->db_cmd, " AND ", 5);
+				if (catas(sc->db_cmd, " AND ", 5) != 0) {
+					error = 1;
+					break;
+				}
 			} else if (c == '|') {
-				catas(sc->db_cmd, " OR ", 4);
+				if (catas(sc->db_cmd, " OR ", 4) != 0) {
+					error = 1;
+					break;
+				}
 			} else if (c == ')') {
-				catcs(sc->db_cmd, ')');
+				if (catcs(sc->db_cmd, ')') != 0) {
+					error = 1;
+					break;
+				}
 			} else if (c == '\0') {
 				break;
 			}
@@ -142,15 +189,17 @@ create_set_condition_for_filter(const struct string *tags_expr)
 			if (word_len == 0) {
 				catcs(sc->db_cmd, '(');
 			} else {
-				error = true;
+				error = 2;
 				break;
 			}
 		} else {
 			if (word_len == (word_lim - 1)) {
 				word_lim = word_lim * 2;
-				word = realloc(word, sizeof(char) * word_lim);
-				if (word == NULL) {
-					error = true;
+				temp = realloc(word, sizeof(char) * word_lim);
+				if (temp != NULL) {
+					word = temp;
+				} else {
+					error = 1;
 					break;
 				}
 			}
@@ -160,12 +209,21 @@ create_set_condition_for_filter(const struct string *tags_expr)
 
 	free(word);
 
-	if (error == true) {
+	if (error != 0) {
+		if (error == 1) {
+			fprintf(stderr, "Not enough memory for filter set condition!\n");
+		} else if (error == 2) {
+			fprintf(stderr, "You can not place '(' right after tag name!\n");
+		}
 		free_set_condition(sc);
-		return NULL; // failure
+		return NULL;
 	}
 
-	catcs(sc->db_cmd, ')');
+	if (catcs(sc->db_cmd, ')') != 0) {
+		fprintf(stderr, "Not enough memory for filter set condition!\n");
+		free_set_condition(sc);
+		return NULL;
+	}
 
-	return sc; // success
+	return sc;
 }

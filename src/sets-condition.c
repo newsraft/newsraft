@@ -187,7 +187,10 @@ create_set_condition_for_filter(const struct string *tags_expr)
 			}
 		} else if (c == '(') {
 			if (word_len == 0) {
-				catcs(sc->db_cmd, '(');
+				if (catcs(sc->db_cmd, '(') != 0) {
+					error = 1;
+					break;
+				}
 			} else {
 				error = 2;
 				break;

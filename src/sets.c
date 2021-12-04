@@ -313,19 +313,61 @@ view_select(size_t i)
 }
 
 static void
-update_items_count_of_feed_by_its_url(const struct string *url)
+update_unread_items_count(struct set_line *set, size_t index)
 {
-	int set_unread_count;
-	for (size_t i = 0; i < sets_count; ++i) {
-		if ((sets[i].link != NULL) && (strcmp(sets[i].link->ptr, url->ptr) == 0)) {
-			set_unread_count = get_unread_items_count(sets[i].cond);
-			if (sets[i].unread_count != set_unread_count) {
-				sets[i].unread_count = set_unread_count;
-				if ((i >= view_min) && (i <= view_max)) {
-					set_expose(i);
+	int new_unread_count = get_unread_items_count(set->cond);
+	if (set->unread_count != new_unread_count) {
+		set->unread_count = new_unread_count;
+		if ((index >= view_min) && (index <= view_max)) {
+			set_expose(index);
+		}
+	}
+}
+
+static void
+update_unread_items_count_recursively(struct set_line *set, size_t index)
+{
+	if (set->tags != NULL) { // set is filter
+		// Here we are trying to update unread items count of
+		// all sets (feeds and filters) related to this filter.
+		// Feed is considered related to some filter if its link
+		// is equal to one of the filter's URLs.
+		// Filter is considered related to some filter if it has
+		// URL that is equal to one of the another filter's URLs.
+		for (size_t i = 0; i < set->cond->urls_count; ++i) {
+			for (size_t j = 0; j < sets_count; ++j) {
+				if (sets[j].link != NULL) { // sets[j] is feed
+					if (sets[j].link == set->cond->urls[i]) {
+						// Feed link matched one of the filters URLs, update sets[j]
+						update_unread_items_count(&(sets[j]), j);
+					}
+				} else if (sets[j].tags != NULL) { // sets[j] is filter
+					for (size_t k = 0; k < sets[j].cond->urls_count; ++k) {
+						if (sets[j].cond->urls[k] == set->cond->urls[i]) {
+							// Filters set and sets[j] have common URL, update sets[j]
+							update_unread_items_count(&(sets[j]), j);
+							break;
+						}
+					}
 				}
 			}
-			break;
+		}
+	} else if (set->link != NULL) { // set is feed
+		// Update unread items count of that set.
+		update_unread_items_count(set, index);
+		// Here we are trying to update unread items count of
+		// all filters related to this feed.
+		// Filter is considered related to some feed if it has
+		// URL that is equal to the feed's link.
+		for (size_t j = 0; j < sets_count; ++j) {
+			if (sets[j].tags != NULL) { // sets[j] is filter
+				for (size_t k = 0; k < sets[j].cond->urls_count; ++k) {
+					if (sets[j].cond->urls[k] == set->link) {
+						update_unread_items_count(&(sets[j]), j);
+						break;
+					}
+				}
+			}
 		}
 	}
 }
@@ -335,11 +377,7 @@ set_reload_feed(struct set_line *set, size_t index)
 {
 	status_write("Loading %s", set->link->ptr);
 	if (update_feed(set->link) == 0) {
-		int new_unread_count = get_unread_items_count(set->cond);
-		if (set->unread_count != new_unread_count) {
-			set->unread_count = new_unread_count;
-			set_expose(index);
-		}
+		update_unread_items_count_recursively(set, index);
 		status_clean();
 	} else {
 		status_write("Failed to update %s", set->link->ptr);
@@ -353,21 +391,14 @@ set_reload_filter(struct set_line *set, size_t index)
 
 	// Here we trying to reload all feed urls related to this filter.
 	for (size_t i = 0; i < set->cond->urls_count; ++i) {
-
 		status_write("Loading %s", set->cond->urls[i]->ptr);
 		if (update_feed(set->cond->urls[i]) != 0) {
 			++errors;
 			continue;
 		}
-
-		update_items_count_of_feed_by_its_url(set->cond->urls[i]);
 	}
 
-	int set_unread_count = get_unread_items_count(set->cond);
-	if (set->unread_count != set_unread_count) {
-		set->unread_count = set_unread_count;
-		set_expose(index);
-	}
+	update_unread_items_count_recursively(set, index);
 
 	if (errors == 0) {
 		status_clean();
@@ -375,14 +406,6 @@ set_reload_filter(struct set_line *set, size_t index)
 		status_write("Failed to update 1 feed.");
 	} else {
 		status_write("Failed to update %u feeds.", errors);
-	}
-}
-
-static void
-update_unread_items_count_of_feeds_related_to_filter_condition(const struct set_condition *sc)
-{
-	for (size_t i = 0; i < sc->urls_count; ++i) {
-		update_items_count_of_feed_by_its_url(sc->urls[i]);
 	}
 }
 
@@ -485,14 +508,8 @@ enter_sets_menu_loop(void)
 		if (destination == INPUT_QUIT_SOFT) { /* stay in sets menu */
 			set_sets_input_handlers();
 
-			if (sets[view_sel].link != NULL) {
-				// TODO
-				//update_unread_items_count_of_filters_containing_given_url(sets[view_sel].link);
-			} else if (sets[view_sel].tags != NULL) {
-				update_unread_items_count_of_feeds_related_to_filter_condition(sets[view_sel].cond);
-			}
+			update_unread_items_count_recursively(&(sets[view_sel]), view_sel);
 
-			sets[view_sel].unread_count = get_unread_items_count(sets[view_sel].cond);
 			redraw_sets_windows();
 		}
 

@@ -58,11 +58,6 @@ get_unread_items_count(const struct set_condition *sc)
 {
 	INFO("Trying to count unread items by their condition.");
 
-	if (sc == NULL) {
-		WARN("Condition is unset, can not count unread items!");
-		return 0; // failure
-	}
-
 	char *cmd = malloc(sizeof(char) * (SELECT_CMD_START_LEN + sc->db_cmd->len + 1));
 	if (cmd == NULL) {
 		FAIL("Not enough memory for a SQL statement to count unread items!");

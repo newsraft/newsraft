@@ -216,7 +216,7 @@ create_set_condition_for_filter(const struct string *tags_expr)
 		if (error == 1) {
 			fprintf(stderr, "Not enough memory for filter set condition!\n");
 		} else if (error == 2) {
-			fprintf(stderr, "You can not place '(' right after tag name!\n");
+			fprintf(stderr, "Bad place for \"(\" in \"%s\"!\n", tags_expr->ptr);
 		}
 		free_set_condition(sc);
 		return NULL;

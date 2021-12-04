@@ -32,6 +32,8 @@ free_sets(void)
 	free(sets);
 }
 
+// On success returns 0.
+// On failure returns non-zero.
 static int
 parse_sets_file(void) {
 	char *path = get_feeds_path();
@@ -192,13 +194,15 @@ parse_sets_file(void) {
 	return error;
 }
 
+// On success returns 0.
+// On failure returns non-zero.
 int
 load_sets(void)
 {
 	if (parse_sets_file() != 0) {
 		fprintf(stderr, "Failed to load sets from file!\n");
 		free_sets();
-		return 1; // failure
+		return 1;
 	}
 
 	bool error = false;
@@ -213,8 +217,10 @@ load_sets(void)
 			sets[i].cond = create_set_condition_for_filter(sets[i].tags);
 		}
 		if (sets[i].cond == NULL) {
-			fprintf(stderr, "Error occurred on \"%s\" entry!\n", sets[i].tags != NULL ? sets[i].tags->ptr : sets[i].link->ptr);
+			// Error message is written by "create_set_condition_for_feed"
+			// or "create_set_condition_for_filter", no worries!
 			error = true;
+			break;
 		}
 		sets[i].unread_count = get_unread_items_count(sets[i].cond);
 	}
@@ -222,7 +228,7 @@ load_sets(void)
 	if (error == true) {
 		fprintf(stderr, "Was not able to create conditions for entries!\n");
 		free_sets();
-		return 1; // failure
+		return 1;
 	}
 
 	view_sel = SIZE_MAX;
@@ -237,13 +243,13 @@ load_sets(void)
 	if (view_sel == SIZE_MAX) {
 		fprintf(stderr, "None of feeds loaded!\n");
 		free_sets();
-		return 1; // failure
+		return 1;
 	}
 
-	return 0; // success
+	return 0;
 }
 
-// return most sensible string for set line
+// Returns most sensible string for set line name.
 static char *
 set_image(const struct set_line *set)
 {
@@ -288,7 +294,6 @@ view_select(size_t i)
 {
 	size_t new_sel = i;
 
-	// perform boundary check
 	if (new_sel >= sets_count) {
 		if (sets_count == 0) {
 			return;
@@ -297,7 +302,8 @@ view_select(size_t i)
 	}
 
 	if (sets[new_sel].cond == NULL) {
-		// skip decorations
+		// If set's condition is NULL, then it is a decoration.
+		// Here we make sure that user never selects decorations.
 		size_t temp_new_sel = new_sel;
 		if (new_sel > view_sel) {
 			for (size_t j = view_sel; j < sets_count; ++j) {
@@ -333,10 +339,11 @@ view_select(size_t i)
 		view_sel = new_sel;
 		show_sets();
 	} else {
-		size_t old_sel = view_sel;
+		mvwchgat(sets[view_sel].window, 0, 0, -1, A_NORMAL, 0, NULL);
+		wrefresh(sets[view_sel].window);
 		view_sel = new_sel;
-		set_expose(old_sel);
-		set_expose(view_sel);
+		mvwchgat(sets[view_sel].window, 0, 0, -1, A_REVERSE, 0, NULL);
+		wrefresh(sets[view_sel].window);
 	}
 }
 

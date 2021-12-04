@@ -143,10 +143,11 @@ view_select(size_t i)
 		view_sel = new_sel;
 		show_items();
 	} else {
-		size_t old_sel = view_sel;
+		mvwchgat(items[view_sel].window, 0, 0, -1, A_NORMAL, 0, NULL);
+		wrefresh(items[view_sel].window);
 		view_sel = new_sel;
-		item_expose(old_sel);
-		item_expose(view_sel);
+		mvwchgat(items[view_sel].window, 0, 0, -1, A_REVERSE, 0, NULL);
+		wrefresh(items[view_sel].window);
 	}
 }
 

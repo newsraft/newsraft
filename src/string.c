@@ -37,6 +37,8 @@ create_empty_string(void)
 }
 
 // Copy array to string.
+// On success returns 0.
+// On failure returns non-zero.
 int
 cpyas(struct string *dest, const char *src_ptr, size_t src_len)
 {
@@ -47,13 +49,13 @@ cpyas(struct string *dest, const char *src_ptr, size_t src_len)
 			dest->lim = src_len;
 		} else {
 			FAIL("Not enough memory for copying array to string.");
-			return 1; // failure
+			return 1;
 		}
 	}
 	memcpy(dest->ptr, src_ptr, sizeof(char) * src_len);
 	*(dest->ptr + src_len) = '\0';
 	dest->len = src_len;
-	return 0; // success
+	return 0;
 }
 
 // Copy string to string.
@@ -64,6 +66,8 @@ cpyss(struct string *dest, const struct string *src)
 }
 
 // Concatenate array to string.
+// On success returns 0.
+// On failure returns non-zero.
 int
 catas(struct string *dest, const char *src_ptr, size_t src_len)
 {
@@ -75,13 +79,13 @@ catas(struct string *dest, const char *src_ptr, size_t src_len)
 			dest->lim = new_len;
 		} else {
 			FAIL("Not enough memory for concatenating array to string.");
-			return 1; // failure
+			return 1;
 		}
 	}
 	strncat(dest->ptr, src_ptr, src_len);
 	*(dest->ptr + new_len) = '\0';
 	dest->len = new_len;
-	return 0; // success
+	return 0;
 }
 
 // Concatenate string to string.
@@ -92,6 +96,8 @@ catss(struct string *dest, const struct string *src)
 }
 
 // Concatenate character to string.
+// On success returns 0.
+// On failure returns non-zero.
 int
 catcs(struct string *dest, char c)
 {
@@ -103,13 +109,13 @@ catcs(struct string *dest, char c)
 			dest->lim = new_len;
 		} else {
 			FAIL("Not enough memory for concatenating character to string.");
-			return 1; // failure
+			return 1;
 		}
 	}
 	dest->len = new_len;
 	*(dest->ptr + dest->len - 1) = c;
 	*(dest->ptr + dest->len) = '\0';
-	return 0; // success
+	return 0;
 }
 
 void

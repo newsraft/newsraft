@@ -12,6 +12,12 @@ static size_t view_sel; // index of selected item
 static size_t view_min; // index of first visible item
 static size_t view_max; // index of last visible item
 
+static struct format_arg fmt_args[] = {
+	{'n', 'd', {.i = 0}},
+	{'u', 'd', {.i = 0}},
+	{'t', 's', {.s = NULL}},
+};
+
 void
 free_sets(void)
 {
@@ -237,11 +243,33 @@ load_sets(void)
 	return 0; // success
 }
 
+// return most sensible string for set line
+static char *
+set_image(const struct set_line *set)
+{
+	if (set->name != NULL) {
+		return set->name->ptr;
+	} else {
+		if (set->link != NULL) {
+			return set->link->ptr;
+		} else {
+			if (set->tags != NULL) {
+				return set->tags->ptr;
+			} else {
+				return "";
+			}
+		}
+	}
+}
+
 static void
 set_expose(size_t index)
 {
 	werase(sets[index].window);
-	print_set_format(index, &sets[index]);
+	fmt_args[0].value.i = index + 1;
+	fmt_args[1].value.i = sets[index].unread_count;
+	fmt_args[2].value.s = set_image(&(sets[index]));
+	super_format_2000(sets[index].window, config_menu_set_entry_format, fmt_args, LENGTH(fmt_args));
 	mvwchgat(sets[index].window, 0, 0, -1, (index == view_sel) ? A_REVERSE : A_NORMAL, 0, NULL);
 	wrefresh(sets[index].window);
 }

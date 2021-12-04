@@ -54,6 +54,18 @@ struct item_line {
 	int rowid;               // id of row related to this item
 };
 
+union format_value {
+	int i;
+	char c;
+	char *s;
+};
+
+struct format_arg {
+	const char specifier;
+	const char type_specifier;
+	union format_value value;
+};
+
 enum input_cmd {
 	INPUT_SELECT_NEXT = 0,
 	INPUT_SELECT_NEXT_PAGE,
@@ -94,16 +106,17 @@ void resize_list_menu(void);
 WINDOW *get_list_entry_by_index(size_t i);
 void free_list_menu(void);
 
+// format
+void super_format_2000(WINDOW *window, char *fmt, struct format_arg *args, size_t args_count);
+
 // sets
 void enter_sets_menu_loop(void);
 int load_sets(void);
 void free_sets(void);
-void print_set_format(size_t index, const struct set_line *set);
 void resize_sets_global_action(void);
 
 // items
 int enter_items_menu_loop(const struct set_condition *st);
-void print_item_format(size_t index, const struct item_line *item);
 void resize_items_global_action(void);
 
 // contents

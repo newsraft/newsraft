@@ -14,6 +14,12 @@ static size_t view_sel; // index of selected item
 static size_t view_min; // index of first visible item
 static size_t view_max; // index of last visible item
 
+static struct format_arg fmt_args[] = {
+	{'n', 'd', {.i = 0}},
+	{'u', 'c', {.c = '\0'}},
+	{'t', 's', {.s = NULL}},
+};
+
 static void
 free_items(void)
 {
@@ -92,7 +98,10 @@ static void
 item_expose(size_t index)
 {
 	werase(items[index].window);
-	print_item_format(index, &items[index]);
+	fmt_args[0].value.i = index + 1;
+	fmt_args[1].value.c = items[index].is_unread == true ? 'N' : ' ';
+	fmt_args[2].value.s = items[index].title->ptr;
+	super_format_2000(items[index].window, config_menu_item_entry_format, fmt_args, LENGTH(fmt_args));
 	mvwchgat(items[index].window, 0, 0, -1, (index == view_sel) ? A_REVERSE : A_NORMAL, 0, NULL);
 	wrefresh(items[index].window);
 }

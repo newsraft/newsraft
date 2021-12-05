@@ -275,7 +275,7 @@ set_expose(size_t index)
 	fmt_args[0].value.i = index + 1;
 	fmt_args[1].value.i = sets[index].unread_count;
 	fmt_args[2].value.s = set_image(&(sets[index]));
-	super_format_2000(sets[index].window, config_menu_set_entry_format, fmt_args, LENGTH(fmt_args));
+	wprintw(sets[index].window, "%s", do_format(config_menu_set_entry_format, fmt_args, LENGTH(fmt_args)));
 	mvwchgat(sets[index].window, 0, 0, -1, (index == view_sel) ? A_REVERSE : A_NORMAL, 0, NULL);
 	wrefresh(sets[index].window);
 }

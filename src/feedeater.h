@@ -107,7 +107,9 @@ WINDOW *get_list_entry_by_index(size_t i);
 void free_list_menu(void);
 
 // format
-void super_format_2000(WINDOW *window, char *fmt, struct format_arg *args, size_t args_count);
+int reallocate_format_buffer(void);
+const char *do_format(char *fmt, struct format_arg *args, size_t args_count);
+void free_format_buffer(void);
 
 // sets
 void enter_sets_menu_loop(void);

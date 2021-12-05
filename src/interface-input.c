@@ -37,6 +37,8 @@ get_input_command(void)
 		resize_sets_global_action();
 		resize_items_global_action();
 
+		reallocate_format_buffer();
+
 		/* recreate a status window */
 		status_delete();
 		status_create();

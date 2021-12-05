@@ -64,9 +64,12 @@ main(int argc, char **argv)
 	if (curses_init() != 0)                         { error = 6; goto main_undo6; }
 	if (create_list_menu() != 0)                    { error = 7; goto main_undo7; }
 	if (status_create() != 0)                       { error = 8; goto main_undo8; }
+	if (reallocate_format_buffer() != 0)            { error = 9; goto main_undo9; }
 
 	enter_sets_menu_loop();
 
+	free_format_buffer();
+main_undo9:
 	status_delete();
 main_undo8:
 	free_list_menu();

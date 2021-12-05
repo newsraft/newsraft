@@ -1,14 +1,10 @@
-# Feedeater
+# Description
 
-Feed reader for terminal
-
-## Description
-
-Feedeater is a piece of software that aggregates syndicated web content such as blogs, newspapers and podcasts in one location for easy viewing in your terminal. The updates distributed may include news posts, journal tables of contents, audio and video recordings, etc.
+Feedeater is a piece of software that aggregates syndicated web content such as blogs, newspapers and podcasts in one location for easy access from your terminal.
 
 Feedeater is greatly inspired by [Newsboat](https://www.newsboat.org).
 
-## Dependencies
+# Dependencies
 
 * ncursesw >= 6.2
 
@@ -22,14 +18,25 @@ Feedeater is greatly inspired by [Newsboat](https://www.newsboat.org).
 
 * meson >= 0.58.1 (build-time)
 
-## Building
+# Building
 
-	meson setup builddir
+```
+meson setup builddir
+```
 
-	cd builddir
+```
+cd builddir
+```
 
-	meson compile
+```
+meson compile
+```
 
-## Configuration
+# Configuration
 
-All of the configuration is done through files.
+See [CONFIGURATION.md](https://gitlab.com/got2teas/feedeater/-/blob/main/CONFIGURATION.md).
+
+
+# Contributing
+
+See [CONTRIBUTING.md](https://gitlab.com/got2teas/feedeater/-/blob/main/CONTRIBUTING.md).

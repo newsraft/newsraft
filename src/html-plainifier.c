@@ -2,232 +2,338 @@
 #include <string.h>
 #include "feedeater.h"
 
-#define INIT_ATT_SIZE 30
+static void br_handler(void);
+static void hr_handler(void);
+static void block_start_handler(void);
+static void block_end_handler(void);
+static void heading_start_handler(void);
+static void heading_end_handler(void);
+static void li_start_handler(void);
+static void ul_start_handler(void);
+static void ul_end_handler(void);
+static void ol_start_handler(void);
+static void ol_end_handler(void);
+static void sup_start_handler(void);
+static void q_start_handler(void);
 
-enum html_status {
-	HTML_DEFAULT = 0,
-	HTML_ORDERED_LIST = 1,
-	HTML_UNORDERED_LIST = 2,
-	HTML_PREFORMATTED = 4,
+enum html_position {
+	HTML_NONE = 0,
+	HTML_PRE = 1,
+	HTML_STYLE = 2,
+	HTML_SCRIPT = 4,
 };
 
-static char **atts = NULL;                     // array of attributes of current html tag
-static size_t atts_count = 0;                  // number of attributes in current html tag
+enum list_type {
+	UNORDERED_LIST,
+	ORDERED_LIST,
+};
+
+struct tag_handler {
+	const char *const name;
+	const enum html_position pos;
+	void (*start_handler)(void);
+	void (*end_handler)(void);
+};
+
+struct tag_handler tag_handlers[] = {
+	{"a",          HTML_NONE,   NULL,                  NULL}, // TODO
+	{"b",          HTML_NONE,   NULL,                  NULL}, // TODO
+	{"i",          HTML_NONE,   NULL,                  NULL}, // TODO
+	{"em",         HTML_NONE,   NULL,                  NULL}, // TODO
+	{"mark",       HTML_NONE,   NULL,                  NULL}, // TODO
+	{"small",      HTML_NONE,   NULL,                  NULL}, // TODO
+	{"time",       HTML_NONE,   NULL,                  NULL}, // TODO
+	{"strong",     HTML_NONE,   NULL,                  NULL}, // TODO
+	{"p",          HTML_NONE,   heading_end_handler,   heading_end_handler},
+	{"details",    HTML_NONE,   heading_end_handler,   heading_end_handler},
+	{"blockquote", HTML_NONE,   heading_end_handler,   heading_end_handler},
+	{"div",        HTML_NONE,   block_start_handler,   block_end_handler},
+	{"summary",    HTML_NONE,   block_start_handler,   block_end_handler},
+	{"span",       HTML_NONE,   NULL,                  NULL},
+	{"code",       HTML_NONE,   NULL,                  NULL},
+	{"pre",        HTML_PRE,    heading_end_handler,   heading_end_handler},
+	{"li",         HTML_NONE,   li_start_handler,      block_end_handler},
+	{"ul",         HTML_NONE,   ul_start_handler,      ul_end_handler},
+	{"ol",         HTML_NONE,   ol_start_handler,      ol_end_handler},
+	{"br",         HTML_NONE,   br_handler,            NULL},
+	{"hr",         HTML_NONE,   hr_handler,            NULL},
+	{"h1",         HTML_NONE,   heading_start_handler, heading_end_handler},
+	{"h2",         HTML_NONE,   heading_start_handler, heading_end_handler},
+	{"h3",         HTML_NONE,   heading_start_handler, heading_end_handler},
+	{"h4",         HTML_NONE,   heading_start_handler, heading_end_handler},
+	{"h5",         HTML_NONE,   heading_start_handler, heading_end_handler},
+	{"h6",         HTML_NONE,   heading_start_handler, heading_end_handler},
+	{"sup",        HTML_NONE,   sup_start_handler,     NULL},
+	{"q",          HTML_NONE,   q_start_handler,       q_start_handler},
+	{"section",    HTML_NONE,   heading_start_handler, heading_end_handler},
+	{"footer",     HTML_NONE,   heading_start_handler, heading_end_handler},
+	{"style",      HTML_STYLE,  NULL,                  NULL},
+	{"script",     HTML_SCRIPT, NULL,                  NULL},
+
+};
+
+// Well...
+// Functions down there will be called hella lot of times per second!
+// Do we really need to ask our poor stack every single time to allocate?
+// This is real question, but for now leave everything in
+// the lifetime of the program because this might be a ?good? ?performance? ?boost?
+static enum list_type current_list_type = UNORDERED_LIST;
+static char *text;
+static size_t text_len;
+static char *tag_name;
+static size_t tag_name_len;
+static bool is_end_tag;
 static uint8_t list_depth;
-static uint8_t lists_length[10];
-static enum html_status status;
+static uint8_t lists_length[100]; // make dynamic TODO
+static enum html_position position;
+static char temp;
+static char tag[1000]; // make dynamic TODO
+static size_t tag_len;
 
 static void
-free_atts(void)
+br_handler(void)
 {
-	if (atts == NULL) {
-		return;
-	}
-	for (size_t i = 0; i < atts_count; ++i) {
-		free(atts[i]);
-	}
-	atts_count = 0;
-	free(atts);
-	atts = NULL;
+	text[text_len++] = '\n';
 }
 
-#define TAG_IS_BLOCK(A) (strcmp(A, "div")  == 0 || \
-                         strcmp(A, "/div") == 0 || \
-                         strcmp(A, "p")    == 0 || \
-                         strcmp(A, "/p")   == 0 || \
-                         strcmp(A, "ol")   == 0 || \
-                         strcmp(A, "/ol")  == 0 || \
-                         strcmp(A, "ul")   == 0 || \
-                         strcmp(A, "/ul")  == 0 || \
-                         strcmp(A, "dl")   == 0 || \
-                         strcmp(A, "/dl")  == 0 || \
-                         strcmp(A, "dt")   == 0 || \
-                         strcmp(A, "/dt")  == 0 || \
-                         strcmp(A, "dd")   == 0 || \
-                         strcmp(A, "/dd")  == 0 || \
-                         strcmp(A, "pre")  == 0 || \
-                         strcmp(A, "/pre") == 0)
-#define TAG_IS_HEADER_START(A) (strcmp(A, "h1") == 0 || \
-                                strcmp(A, "h2") == 0 || \
-                                strcmp(A, "h3") == 0 || \
-                                strcmp(A, "h4") == 0 || \
-                                strcmp(A, "h5") == 0 || \
-                                strcmp(A, "h6") == 0 || \
-                                strcmp(A, "footer") == 0)
-#define TAG_IS_HEADER_END(A) (strcmp(A, "/h1") == 0 || \
-                              strcmp(A, "/h2") == 0 || \
-                              strcmp(A, "/h3") == 0 || \
-                              strcmp(A, "/h4") == 0 || \
-                              strcmp(A, "/h5") == 0 || \
-                              strcmp(A, "/h6") == 0 || \
-                              strcmp(A, "/footer") == 0)
-
-/* Append some characters according to the current HTML attributes. */
 static void
-format_text(char *text, size_t *iter)
+block_start_handler(void)
 {
-	if (strcmp(atts[0], "ol") == 0) {
-		status |= HTML_ORDERED_LIST;
-		++list_depth;
-		lists_length[list_depth - 1] = 0;
-	} else if (strcmp(atts[0], "/ol") == 0) {
-		status &= HTML_ORDERED_LIST;
-		--list_depth;
-	} else if (strcmp(atts[0], "ul") == 0) {
-		status |= HTML_UNORDERED_LIST;
-		++list_depth;
-	} else if (strcmp(atts[0], "/ul") == 0) {
-		status &= HTML_UNORDERED_LIST;
-		--list_depth;
-	} else if (strcmp(atts[0], "pre") == 0) {
-		status |= HTML_PREFORMATTED;
-	} else if (strcmp(atts[0], "/pre") == 0) {
-		status &= ~HTML_PREFORMATTED;
+	if (text_len >= 1 && text[text_len - 1] == '\n') {
+		// nothing
+	} else {
+		text[text_len++] = '\n';
 	}
+}
 
-	if (*iter == 0) {
-		return;
+static void
+block_end_handler(void)
+{
+	if (text_len >= 1 && text[text_len - 1] == '\n') {
+		// nothing
+	} else {
+		text[text_len++] = '\n';
 	}
+}
 
-	if (TAG_IS_BLOCK(atts[0]) || TAG_IS_HEADER_END(atts[0])) {
-		if (text[*iter - 1] == '\n') {
-			if (*iter >= 2 && text[*iter - 2] == '\n') {
-				// enough
+static void
+hr_handler(void)
+{
+	block_start_handler();
+	for (int i = 0; i < list_menu_width; ++i) {
+		text[text_len++] = '-';
+	}
+	text[text_len++] = '\n';
+}
+
+static void
+heading_start_handler(void)
+{
+	if (text_len >= 1 && text[text_len - 1] == '\n') {
+		if (text_len >= 2 && text[text_len - 2] == '\n') {
+			if (text_len >= 3 && text[text_len - 3] == '\n') {
+				// nothing
 			} else {
-				text[(*iter)++] = '\n';
+				text[text_len++] = '\n';
 			}
 		} else {
-			text[(*iter)++] = '\n';
-			text[(*iter)++] = '\n';
+			text[text_len++] = '\n';
+			text[text_len++] = '\n';
 		}
-	} else if (TAG_IS_HEADER_START(atts[0])) {
-		if (text[*iter - 1] == '\n') {
-			if (*iter >= 2 && text[*iter - 2] == '\n') {
-				if (*iter >= 3 && text[*iter - 3] == '\n') {
-					// enough
-				} else {
-					text[(*iter)++] = '\n';
+	} else {
+		text[text_len++] = '\n';
+		text[text_len++] = '\n';
+		text[text_len++] = '\n';
+	}
+}
+
+static void
+heading_end_handler(void)
+{
+	if (text_len >= 1 && text[text_len - 1] == '\n') {
+		if (text_len >= 2 && text[text_len - 2] == '\n') {
+			// nothing
+		} else {
+			text[text_len++] = '\n';
+		}
+	} else {
+		text[text_len++] = '\n';
+		text[text_len++] = '\n';
+	}
+}
+
+static void
+li_start_handler(void)
+{
+	block_start_handler();
+	for (uint8_t i = 0; i < list_depth; ++i) {
+		text[text_len++] = ' ';
+		text[text_len++] = ' ';
+		text[text_len++] = ' ';
+	}
+	if (current_list_type == UNORDERED_LIST) {
+		text[text_len++] = '*';
+		text[text_len++] = ' ';
+		text[text_len++] = ' ';
+	} else {
+		++lists_length[list_depth - 1];
+		char *number_str = malloc(sizeof(char) * 10);
+		if (number_str != NULL) {
+			snprintf(number_str, 10, "%d. ", lists_length[list_depth - 1]);
+			text[text_len] = '\0';
+			strcat(text, number_str);
+			text_len += strlen(number_str);
+			free(number_str);
+		}
+	}
+}
+
+static void
+ul_start_handler(void)
+{
+	heading_end_handler();
+	current_list_type = UNORDERED_LIST;
+	++list_depth;
+}
+
+static void
+ul_end_handler(void)
+{
+	heading_end_handler();
+	--list_depth;
+}
+
+static void
+ol_start_handler(void)
+{
+	heading_end_handler();
+	current_list_type = ORDERED_LIST;
+	++list_depth;
+	lists_length[list_depth - 1] = 0;
+}
+
+static void
+ol_end_handler(void)
+{
+	heading_end_handler();
+	current_list_type = UNORDERED_LIST;
+	--list_depth;
+}
+
+static void
+sup_start_handler(void)
+{
+	text[text_len++] = '^';
+}
+
+static void
+q_start_handler(void)
+{
+	text[text_len++] = '"';
+}
+
+// Append some characters according to the current position in the HTML document.
+static inline void
+format_text(char *tag, size_t tag_len)
+{
+	if (tag[0] == '/') {
+		tag_name = tag + 1;
+		is_end_tag = true;
+	} else {
+		tag_name = tag;
+		is_end_tag = false;
+	}
+	tag_name_len = 0;
+
+	for (size_t i = 0; i < tag_len; ++i) {
+		if ((tag[i] == ' ') || (tag[i] == '\n') || (tag[i] == '\t')) {
+			break;
+		}
+		++tag_name_len;
+	}
+
+	temp = tag_name[tag_name_len];
+	tag_name[tag_name_len] = '\0';
+
+	for (size_t i = 0; i < LENGTH(tag_handlers); ++i) {
+		if (strcmp(tag_name, tag_handlers[i].name) == 0) {
+			tag_name[tag_name_len] = temp;
+			if (is_end_tag == true) {
+				if (tag_handlers[i].pos != HTML_NONE) {
+					position &= ~tag_handlers[i].pos;
+				}
+				if (tag_handlers[i].end_handler != NULL) {
+					tag_handlers[i].end_handler();
 				}
 			} else {
-				text[(*iter)++] = '\n';
-				text[(*iter)++] = '\n';
+				if (tag_handlers[i].pos != HTML_NONE) {
+					position |= tag_handlers[i].pos;
+				}
+				if (tag_handlers[i].start_handler != NULL) {
+					tag_handlers[i].start_handler();
+				}
 			}
-		} else {
-			text[(*iter)++] = '\n';
-			text[(*iter)++] = '\n';
-			text[(*iter)++] = '\n';
+			return;
 		}
-	} else if (strcmp(atts[0], "li") == 0) {
-		if (text[*iter - 1] != '\n') {
-			text[(*iter)++] = '\n';
-		}
-		text[(*iter)++] = ' ';
-		for (uint8_t i = 1; i < list_depth; ++i) {
-			text[(*iter)++] = ' ';
-			text[(*iter)++] = ' ';
-			text[(*iter)++] = ' ';
-			text[(*iter)++] = ' ';
-		}
-		if ((status & HTML_ORDERED_LIST) != 0) {
-			++lists_length[list_depth - 1];
-			char *number_str = malloc(sizeof(char) * 10);
-			if (number_str != NULL) {
-				snprintf(number_str, 10, "%d. ", lists_length[list_depth - 1]);
-				text[(*iter)] = '\0';
-				strcat(text, number_str);
-				(*iter) += strlen(number_str);
-				free(number_str);
-			}
-		} else {
-			text[(*iter)++] = '*';
-			text[(*iter)++] = ' ';
-			text[(*iter)++] = ' ';
-		}
-	} else if (strcmp(atts[0], "br") == 0) {
-		text[(*iter)++] = '\n';
 	}
+
+	tag_name[tag_name_len] = temp;
+
+	text[text_len++] = '<';
+	text[text_len] = '\0';
+	strcat(text, tag);
+	text_len += tag_len;
+	text[text_len++] = '>';
+	text[text_len] = '\0';
 }
 
 struct string *
 plainify_html(const char *str, size_t str_len)
 {
-	char *text = malloc(sizeof(char) * (str_len + 1));
+	text = malloc(sizeof(char) * (5 * str_len + 1));
 	if (text == NULL) {
 		return NULL;
 	}
+	text_len = 0;
+	position = HTML_NONE;
 
-	status = HTML_DEFAULT;
 	list_depth = 0;
-	size_t j = 0,          /* plain text iterator */
-	       att_index,      /* index of last attribute of html tag */
-	       att_limit,      /* maximum length of current attribute */
-	       att_char;       /* actual length of current attribute */
-	bool   in_tag = false; /* shows if str[i] character belongs to html tag */
-	bool   error = false;  /* shows if error occurred in loop */
+	bool   in_tag = false; // shows if str[i] character belongs to html tag
+	bool   error = false;  // shows if error occurred in loop
 
-	// parse html text char-by-char
 	for (size_t i = 0; i < str_len; ++i) {
-		if (in_tag == true) {
-			if (str[i] == '>') {
-				in_tag = false;
-				if (atts != NULL) {
-					atts[att_index][att_char] = '\0';
-					format_text(text, &j);
-				}
-			} else if (str[i] == ' ' || str[i] == '\n') {
-				if (atts != NULL) {
-					atts[att_index][att_char] = '\0';
-					att_char = 0;
-				}
-			} else {
-				if (att_char == 0) {
-					att_index = atts_count++;
-					atts = realloc(atts, sizeof(char *) * atts_count);
-					if (atts == NULL) {
-						error = true;
-						break;
-					}
-					att_limit = INIT_ATT_SIZE;
-					atts[att_index] = malloc(sizeof(char) * att_limit);
-					if (atts[att_index] == NULL) {
-						error = true;
-						break;
-					}
-				} else if (att_char + 1 >= att_limit) {
-					att_limit = (att_char + 1) * 2;
-					atts[att_index] = realloc(atts[att_index], sizeof(char) * att_limit);
-					if (atts[att_index] == NULL) {
-						error = true;
-						break;
-					}
-				}
-				atts[att_index][att_char++] = str[i];
-			}
-		} else {
+		if (in_tag == false) {
 			if (str[i] == '<') {
 				in_tag = true;
-				free_atts();
-				att_char = 0;
-			} else if ((status & HTML_PREFORMATTED) == 0 && (str[i] == ' ' || str[i] == '\n' || str[i] == '\t')) {
-				if (j != 0 && text[j - 1] != ' ' && text[j - 1] != '\n' && text[j - 1] != '\t') {
-					text[j++] = ' ';
+				tag_len = 0;
+			} else if (((position & HTML_STYLE) != 0) || ((position & HTML_SCRIPT) != 0)) {
+				continue;
+			} else if (((position & HTML_PRE) == 0) && ((str[i] == ' ') || (str[i] == '\n') || (str[i] == '\t'))) {
+				if ((text_len != 0) && (text[text_len - 1] != ' ') && (text[text_len - 1] != '\n') && (text[text_len - 1] != '\t')) {
+					text[text_len++] = ' ';
 				}
 			} else {
-				text[j++] = str[i];
+				text[text_len++] = str[i];
+			}
+		} else {
+			if (str[i] == '>') {
+				in_tag = false;
+				tag[tag_len] = '\0';
+				format_text(tag, tag_len);
+			} else {
+				tag[tag_len++] = str[i];
 			}
 		}
 	}
-
-	free_atts();
 
 	if (error == true) {
 		free(text);
 		return NULL;
 	}
 
-	text[j] = '\0';
+	text[text_len] = '\0';
 
-	struct string *expanded_text = expand_html_entities(text, j);
+	struct string *expanded_text = expand_html_entities(text, text_len);
 	free(text);
 	if (expanded_text == NULL) {
 		FAIL("Failed to expand HTML entities of contents!");

@@ -31,6 +31,7 @@ db_init(void)
 			"guid TEXT,"
 			"unread INTEGER(1),"
 			"url TEXT,"
+			"enclosures TEXT,"
 			"authors TEXT,"
 			"categories TEXT,"
 			"pubdate INTEGER(8),"

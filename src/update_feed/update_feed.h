@@ -54,8 +54,8 @@ struct item_bucket {
 	struct string *content;
 	struct string *comments;
 	struct string *categories;
-	struct link *links;
-	size_t links_count;
+	struct link *enclosures;
+	size_t enclosures_count;
 	struct author *authors;
 	size_t authors_count;
 	time_t pubdate;
@@ -85,14 +85,13 @@ struct item_bucket *create_item_bucket(void);
 void drop_item_bucket(struct item_bucket *bucket);
 void free_item_bucket(struct item_bucket *bucket);
 void add_category_to_item_bucket(const struct item_bucket *bucket, const char *category, size_t category_len);
+int add_enclosure_to_item_bucket(struct item_bucket *bucket, const char *url, const char *type, int size, int duration);
 
 // xml element handlers
 int parse_namespace_element_start(struct parser_data *data, const XML_Char *name, const XML_Char **atts);
 int parse_namespace_element_end  (struct parser_data *data, const XML_Char *name);
 void parse_rss20_element_start   (struct parser_data *data, const XML_Char *name, const XML_Char **atts);
 void parse_rss20_element_end     (struct parser_data *data, const XML_Char *name);
-void parse_generic_element_start (struct parser_data *data, const XML_Char *name, const XML_Char **atts);
-void parse_generic_element_end   (struct parser_data *data, const XML_Char *name);
 void parse_rss10_element_start   (struct parser_data *data, const XML_Char *name, const XML_Char **atts);
 void parse_rss10_element_end     (struct parser_data *data, const XML_Char *name);
 void parse_atom10_element_start  (struct parser_data *data, const XML_Char *name, const XML_Char **atts);
@@ -101,4 +100,6 @@ void parse_atom03_element_start  (struct parser_data *data, const XML_Char *name
 void parse_atom03_element_end    (struct parser_data *data, const XML_Char *name);
 void parse_dc_element_start      (struct parser_data *data, const XML_Char *name, const XML_Char **atts);
 void parse_dc_element_end        (struct parser_data *data, const XML_Char *name);
+
+extern int64_t rss20_pos;
 #endif // UPDATE_FEED_H

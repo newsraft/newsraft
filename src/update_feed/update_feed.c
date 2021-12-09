@@ -28,29 +28,27 @@ start_element_handler(void *userData, const XML_Char *name, const XML_Char **att
 	++(data.depth);
 	data.value_len = 0;
 	if (data.start_handler != NULL) {
-		data.start_handler(&data, name, atts);
-		return;
-	}
-	if (data.depth != 1) {
-		return;
-	}
-	const char *version;
-	if (strcmp(name, "rss") == 0) {
-		version = get_value_of_attribute_key(atts, "version");
-		if ((version != NULL) &&
-		    ((strcmp(version, "2.0") == 0)  ||
-		     (strcmp(version, "0.94") == 0) ||
-		     (strcmp(version, "0.93") == 0) ||
-		     (strcmp(version, "0.92") == 0) ||
-		     (strcmp(version, "0.91") == 0)))
-		{
-			data.start_handler = &parse_rss20_element_start;
-			data.end_handler = &parse_rss20_element_end;
-			return;
+		if (parse_namespace_element_start(&data, name, atts) != 0) {
+			data.start_handler(&data, name, atts);
+		}
+	} else {
+		if ((data.depth == 1) && (strcmp(name, "rss") == 0)) {
+			const char *version = get_value_of_attribute_key(atts, "version");
+			if ((version != NULL) &&
+				((strcmp(version, "2.0") == 0) ||
+				(strcmp(version, "0.94") == 0) ||
+				(strcmp(version, "0.93") == 0) ||
+				(strcmp(version, "0.92") == 0) ||
+				(strcmp(version, "0.91") == 0)))
+			{
+				data.start_handler = &parse_rss20_element_start;
+				data.end_handler = &parse_rss20_element_end;
+				return;
+			}
+		} else {
+			parse_namespace_element_start(&data, name, atts);
 		}
 	}
-	data.start_handler = &parse_generic_element_start;
-	data.end_handler = &parse_generic_element_end;
 }
 
 static void XMLCALL
@@ -61,10 +59,12 @@ end_element_handler(void *userData, const XML_Char *name)
 		return;
 	}
 	--(data.depth);
-	if (data.end_handler != NULL) {
-		data.end_handler(&data, name);
+	strip_whitespace_from_edges(data.value, &(data.value_len));
+	if (data.end_handler == NULL) {
+		parse_namespace_element_end(&data, name);
 		return;
 	}
+	data.end_handler(&data, name);
 }
 
 // Important note: a single block of contiguous text free of markup may still result in a sequence of calls to CharacterDataHandler.
@@ -162,6 +162,9 @@ update_feed(const struct string *url)
 	curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1L);
 	char curl_errbuf[CURL_ERROR_SIZE] = "";
 	curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, curl_errbuf);
+
+	// Drop position indicators.
+	rss20_pos = 0;
 
 	int res = curl_easy_perform(curl);
 	if (res != CURLE_OK) {

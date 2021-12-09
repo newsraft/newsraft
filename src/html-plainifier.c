@@ -29,19 +29,19 @@ enum list_type {
 	ORDERED_LIST,
 };
 
-struct tag_handler {
-	const char *const name;
-	const enum html_position pos;
-	void (*start_handler)(void);
-	void (*end_handler)(void);
-};
-
 struct list_level {
 	enum list_type type;
 	int length;
 };
 
-struct tag_handler tag_handlers[] = {
+struct tag_handler {
+	const char *const name;
+	const enum html_position pos;
+	void (*const start_handler)(void);
+	void (*const end_handler)(void);
+};
+
+static const struct tag_handler tag_handlers[] = {
 	{"span",       HTML_NONE,   NULL,                NULL},
 	{"code",       HTML_NONE,   NULL,                NULL}, // TODO
 	{"a",          HTML_NONE,   NULL,                NULL}, // TODO
@@ -75,7 +75,6 @@ struct tag_handler tag_handlers[] = {
 	{"q",          HTML_NONE,   q_start_handler,     q_start_handler},
 	{"style",      HTML_STYLE,  NULL,                NULL},
 	{"script",     HTML_SCRIPT, NULL,                NULL},
-
 };
 
 // Well...

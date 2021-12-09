@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 #include "feedeater.h"
 #include "update_feed/update_feed.h"
 
@@ -13,8 +14,8 @@ create_item_bucket(void)
 	if ((bucket->categories = create_empty_string()) == NULL) goto create_item_bucket_undo5;
 	if ((bucket->comments = create_empty_string()) == NULL) goto create_item_bucket_undo6;
 	if ((bucket->content = create_empty_string()) == NULL) goto create_item_bucket_undo7;
-	bucket->links = NULL;
-	bucket->links_count = 0;
+	bucket->enclosures = NULL;
+	bucket->enclosures_count = 0;
 	bucket->authors = NULL;
 	bucket->authors_count = 0;
 	bucket->pubdate = 0;
@@ -48,11 +49,11 @@ drop_item_bucket(struct item_bucket *bucket)
 	bucket->pubdate = 0;
 	bucket->upddate = 0;
 
-	for (size_t i = 0; i < bucket->links_count; ++i) {
-		free_string(bucket->links[i].url);
-		free_string(bucket->links[i].type);
+	for (size_t i = 0; i < bucket->enclosures_count; ++i) {
+		free_string(bucket->enclosures[i].url);
+		free_string(bucket->enclosures[i].type);
 	}
-	bucket->links_count = 0;
+	bucket->enclosures_count = 0;
 
 	for (size_t i = 0; i < bucket->authors_count; ++i) {
 		free_string(bucket->authors[i].name);
@@ -72,11 +73,11 @@ free_item_bucket(struct item_bucket *bucket)
 	free_string(bucket->comments);
 	free_string(bucket->content);
 
-	for (size_t i = 0; i < bucket->links_count; ++i) {
-		free_string(bucket->links[i].url);
-		free_string(bucket->links[i].type);
+	for (size_t i = 0; i < bucket->enclosures_count; ++i) {
+		free_string(bucket->enclosures[i].url);
+		free_string(bucket->enclosures[i].type);
 	}
-	free(bucket->links);
+	free(bucket->enclosures);
 
 	for (size_t i = 0; i < bucket->authors_count; ++i) {
 		free_string(bucket->authors[i].name);
@@ -98,4 +99,33 @@ add_category_to_item_bucket(const struct item_bucket *bucket, const char *catego
 		catas(bucket->categories, ", ", 2);
 	}
 	catas(bucket->categories, category, category_len);
+}
+
+// On success returns 0.
+// On failure returns non-zero.
+int
+add_enclosure_to_item_bucket(struct item_bucket *bucket, const char *url, const char *type, int size, int duration)
+{
+	++(bucket->enclosures_count);
+	struct link *temp = realloc(bucket->enclosures, sizeof(struct link) * bucket->enclosures_count);
+	if (temp == NULL) {
+		FAIL("Not enough memory for enclosure of RSS item");
+		return 1;
+	}
+	bucket->enclosures = temp;
+	bucket->enclosures[bucket->enclosures_count - 1].size = 0;
+	bucket->enclosures[bucket->enclosures_count - 1].duration = 0;
+	if (url != NULL) {
+		bucket->enclosures[bucket->enclosures_count - 1].url = create_string(url, strlen(url));
+	}
+	if (type != NULL) {
+		bucket->enclosures[bucket->enclosures_count - 1].type = create_string(type, strlen(type));
+	}
+	if (size != 0) {
+		bucket->enclosures[bucket->enclosures_count - 1].size = size;
+	}
+	if (duration != 0) {
+		bucket->enclosures[bucket->enclosures_count - 1].duration = duration;
+	}
+	return 0;
 }

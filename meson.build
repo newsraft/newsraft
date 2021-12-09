@@ -64,7 +64,6 @@ feedeater_src = [
 	'src/update_feed/db-insert-item.c',
 	'src/update_feed/db-update-feed.c',
 	'src/update_feed/xml.c',
-	'src/update_feed/xml-format-generic.c',
 	'src/update_feed/xml-format-rss20.c',
 	'src/update_feed/xml-namespace.c',
 	'src/update_feed/xml-namespace-atom10.c',

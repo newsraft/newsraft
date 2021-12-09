@@ -28,8 +28,6 @@ parse_dc_element_start(struct parser_data *data, const XML_Char *name, const XML
 void XMLCALL
 parse_dc_element_end(struct parser_data *data, const XML_Char *name)
 {
-	strip_whitespace_from_edges(data->value, &data->value_len);
-
 	if (strcmp(name, "title") == 0) {
 		data->pos &= ~IN_TITLE_ELEMENT;
 		if ((data->pos & IN_ITEM_ELEMENT) != 0)

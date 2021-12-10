@@ -16,6 +16,7 @@ const struct meta_data_entry meta_data[] = {
 	{"Categories", 10, "categories", ITEM_COLUMN_CATEGORIES},
 	{"Link",       4,  "url",        ITEM_COLUMN_URL},
 	{"Comments",   8,  "comments",   ITEM_COLUMN_COMMENTS},
+	{"Enclosures", 10, "enclosures", ITEM_COLUMN_ENCLOSURES},
 };
 
 static int
@@ -50,7 +51,7 @@ cat_item_meta_data_entry_to_buf(struct string *buf, sqlite3_stmt *res, int meta_
 		return 0; // success. it is not an error because this item simply does not have that meta data entry
 	}
 	// TODO: add error checks for strings concatenation
-	catas(buf, (char *)meta_data[meta_data_index].name, meta_data[meta_data_index].name_len);
+	catas(buf, meta_data[meta_data_index].name, meta_data[meta_data_index].name_len);
 	catas(buf, ": ", (size_t)2);
 	catas(buf, text, text_len);
 	catcs(buf, '\n');

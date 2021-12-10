@@ -55,9 +55,11 @@ struct item_bucket {
 	struct string *comments;
 	struct string *categories;
 	struct link *enclosures;
-	size_t enclosures_count;
+	size_t enclosures_len; // actual number of enclosures in enclosures buffer
+	size_t enclosures_lim; // shows how many enclosures can fit in current enclosures buffer
 	struct author *authors;
-	size_t authors_count;
+	size_t authors_len; // actual number of authors in authors buffer
+	size_t authors_lim; // shows how many authors can fit in current authors buffer
 	time_t pubdate;
 	time_t upddate;
 };
@@ -82,10 +84,17 @@ void try_item_bucket(const struct item_bucket *bucket, const struct string *feed
 
 // item bucket functions
 struct item_bucket *create_item_bucket(void);
-void drop_item_bucket(struct item_bucket *bucket);
+void empty_item_bucket(struct item_bucket *bucket);
 void free_item_bucket(struct item_bucket *bucket);
-void add_category_to_item_bucket(const struct item_bucket *bucket, const char *category, size_t category_len);
-int add_enclosure_to_item_bucket(struct item_bucket *bucket, const char *url, const char *type, int size, int duration);
+int add_category_to_item_bucket(const struct item_bucket *bucket, const char *category, size_t category_len);
+int expand_enclosures_of_item_bucket_by_one_element(struct item_bucket *bucket);
+int add_url_to_last_enclosure_of_item_bucket(struct item_bucket *bucket, const char *str, size_t str_len);
+int add_type_to_last_enclosure_of_item_bucket(struct item_bucket *bucket, const char *str, size_t str_len);
+int add_size_to_last_enclosure_of_item_bucket(struct item_bucket *bucket, const char *str);
+int expand_authors_of_item_bucket_by_one_element(struct item_bucket *bucket);
+int add_name_to_last_author_of_item_bucket(struct item_bucket *bucket, const char *str, size_t str_len);
+int add_email_to_last_author_of_item_bucket(struct item_bucket *bucket, const char *str, size_t str_len);
+int add_link_to_last_author_of_item_bucket(struct item_bucket *bucket, const char *str, size_t str_len);
 
 // xml element handlers
 int parse_namespace_element_start(struct parser_data *data, const XML_Char *name, const XML_Char **atts);
@@ -101,5 +110,5 @@ void parse_atom03_element_end    (struct parser_data *data, const XML_Char *name
 void parse_dc_element_start      (struct parser_data *data, const XML_Char *name, const XML_Char **atts);
 void parse_dc_element_end        (struct parser_data *data, const XML_Char *name);
 
-extern int64_t rss20_pos;
+extern int16_t rss20_pos;
 #endif // UPDATE_FEED_H

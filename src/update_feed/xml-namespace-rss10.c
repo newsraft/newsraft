@@ -21,7 +21,7 @@ parse_rss10_element_end(struct parser_data *data, const XML_Char *name)
 	if (strcmp(name, "item") == 0) {
 		data->pos &= ~IN_ITEM_ELEMENT;
 		try_item_bucket(data->bucket, data->feed_url);
-		drop_item_bucket(data->bucket);
+		empty_item_bucket(data->bucket);
 	} else if (strcmp(name, "title") == 0) {
 		data->pos &= ~IN_TITLE_ELEMENT;
 		if ((data->pos & IN_ITEM_ELEMENT) != 0)

@@ -11,16 +11,13 @@ parse_dc_element_start(struct parser_data *data, const XML_Char *name, const XML
 	else if (strcmp(name, "description") == 0) data->pos |= IN_DESCRIPTION_ELEMENT;
 	else if (strcmp(name, "creator") == 0)    {
 		data->pos |= IN_AUTHOR_ELEMENT;
-		if ((data->pos & IN_ITEM_ELEMENT) == 0) {
-			/* feed can have global author, todo */
-		} else {
-			++(data->bucket->authors_count);
-			data->bucket->authors = realloc(data->bucket->authors, sizeof(struct author) * data->bucket->authors_count);
-			if (data->bucket->authors != NULL) {
-				data->bucket->authors[data->bucket->authors_count - 1].name = NULL;
-				data->bucket->authors[data->bucket->authors_count - 1].link = NULL;
-				data->bucket->authors[data->bucket->authors_count - 1].email = NULL;
+		if ((data->pos & IN_ITEM_ELEMENT) != 0) {
+			if (expand_authors_of_item_bucket_by_one_element(data->bucket) != 0) {
+				data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+				return;
 			}
+		} else {
+			/* feed can have global author, todo */
 		}
 	}
 }
@@ -41,13 +38,16 @@ parse_dc_element_end(struct parser_data *data, const XML_Char *name)
 		else if ((data->pos & IN_CHANNEL_ELEMENT) != 0)
 			db_update_feed_text(data->feed_url, "description", data->value, data->value_len);
 	} else if (strcmp(name, "creator") == 0) {
-		data->pos &= ~IN_AUTHOR_ELEMENT;
-		if ((data->pos & IN_ITEM_ELEMENT) == 0) {
-			/* feed can have global author, todo */
-		} else {
-			if ((data->bucket->authors != NULL) && (data->bucket->authors_count != 0)) {
-				data->bucket->authors[data->bucket->authors_count - 1].name = create_string(data->value, data->value_len);
+		if ((data->pos & IN_AUTHOR_ELEMENT) != 0) {
+			if ((data->pos & IN_ITEM_ELEMENT) == 0) {
+				/* global author, todo */
+			} else {
+				if (add_name_to_last_author_of_item_bucket(data->bucket, data->value, data->value_len) != 0) {
+					data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+					return;
+				}
 			}
 		}
+		data->pos &= ~IN_AUTHOR_ELEMENT;
 	}
 }

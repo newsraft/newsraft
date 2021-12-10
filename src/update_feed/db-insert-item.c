@@ -71,16 +71,15 @@ is_item_unique(const struct string *feed_url, const struct item_bucket *bucket)
 	return is_item_unique;
 }
 
-static struct string *
-create_authors_string(struct author *authors, size_t authors_count)
+static inline struct string *
+create_authors_string(struct author *authors, size_t authors_len)
 {
 	struct string *authors_list = create_empty_string();
 	if (authors_list == NULL) {
-		FAIL("Not enough memory for creating authors string in item bucket!");
 		return NULL;
 	}
 	bool added_name, added_email, added_link;
-	for (size_t i = 0; i < authors_count; ++i) {
+	for (size_t i = 0; i < authors_len; ++i) {
 		added_name = false;
 		added_email = false;
 		added_link = false;
@@ -108,7 +107,7 @@ create_authors_string(struct author *authors, size_t authors_count)
 			}
 			added_link = true;
 		}
-		if ((i + 1 != authors_count) &&
+		if ((i + 1 != authors_len) &&
 		    (added_name == true || added_email == true || added_link == true))
 		{
 			catas(authors_list, ", ", 2);
@@ -117,18 +116,53 @@ create_authors_string(struct author *authors, size_t authors_count)
 	return authors_list;
 }
 
+static inline struct string *
+create_enclosures_string(struct link *enclosures, size_t enclosures_len)
+{
+	struct string *enclosures_list = create_empty_string();
+	if (enclosures_list == NULL) {
+		return NULL;
+	}
+	bool added_type;
+	for (size_t i = 0; i < enclosures_len; ++i) {
+		added_type = false;
+		if ((enclosures[i].url != NULL) && (enclosures[i].url->len != 0)) {
+			catcs(enclosures_list, '\n');
+			catss(enclosures_list, enclosures[i].url);
+		} else {
+			continue;
+		}
+		if ((enclosures[i].type != NULL) && (enclosures[i].type->len != 0)) {
+			catas(enclosures_list, " (", 2);
+			catss(enclosures_list, enclosures[i].type);
+			catcs(enclosures_list, ')');
+			added_type = true;
+		}
+	}
+	return enclosures_list;
+}
+
 static void
 db_insert_item(const struct string *feed_url, const struct item_bucket *bucket)
 {
-	struct string *authors_list = create_authors_string(bucket->authors, bucket->authors_count);
+	struct string *authors_list = create_authors_string(bucket->authors, bucket->authors_len);
 	if (authors_list == NULL) {
+		FAIL("Not enough memory for creating authors list in item bucket!");
+		return;
+	}
+
+	struct string *enclosures_list = create_enclosures_string(bucket->enclosures, bucket->enclosures_len);
+	if (enclosures_list == NULL) {
+		FAIL("Not enough memory for creating enclosures list in item bucket!");
+		free_string(authors_list);
 		return;
 	}
 
 	sqlite3_stmt *s;
-	if (sqlite3_prepare_v2(db, "INSERT INTO items VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", -1, &s, 0) != SQLITE_OK) {
+	if (sqlite3_prepare_v2(db, "INSERT INTO items VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", -1, &s, 0) != SQLITE_OK) {
 		FAIL("Failed to prepare item insertion statement:");
 		FAIL_SQLITE_PREPARE;
+		free_string(enclosures_list);
 		free_string(authors_list);
 		return;
 	}
@@ -138,6 +172,7 @@ db_insert_item(const struct string *feed_url, const struct item_bucket *bucket)
 	sqlite3_bind_text(s,  ITEM_COLUMN_GUID + 1,       bucket->guid->ptr, bucket->guid->len, NULL);
 	sqlite3_bind_int(s,   ITEM_COLUMN_UNREAD + 1,     1);
 	sqlite3_bind_text(s,  ITEM_COLUMN_URL + 1,        bucket->url->ptr, bucket->url->len, NULL);
+	sqlite3_bind_text(s,  ITEM_COLUMN_ENCLOSURES + 1, enclosures_list->ptr, enclosures_list->len, NULL);
 	sqlite3_bind_text(s,  ITEM_COLUMN_AUTHORS + 1,    authors_list->ptr, authors_list->len, NULL);
 	sqlite3_bind_text(s,  ITEM_COLUMN_CATEGORIES + 1, bucket->categories->ptr, bucket->categories->len, NULL);
 	sqlite3_bind_int64(s, ITEM_COLUMN_PUBDATE + 1,    (sqlite3_int64)(bucket->pubdate));
@@ -153,6 +188,7 @@ db_insert_item(const struct string *feed_url, const struct item_bucket *bucket)
 		FAIL("Item bucket insertion failed: %s", sqlite3_errmsg(db));
 	}
 	sqlite3_finalize(s);
+	free_string(enclosures_list);
 	free_string(authors_list);
 }
 

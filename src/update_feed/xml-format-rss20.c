@@ -2,6 +2,8 @@
 #include "feedeater.h"
 #include "update_feed/update_feed.h"
 
+// https://web.archive.org/web/20211208135333/https://validator.w3.org/feed/docs/rss2.html
+
 enum rss20_position {
 	RSS20_NONE = 0,
 	RSS20_ITEM = 1,
@@ -11,14 +13,13 @@ enum rss20_position {
 	RSS20_PUBDATE = 16,
 	RSS20_GUID = 32,
 	RSS20_AUTHOR = 64,
-	RSS20_ENCLOSURE = 128,
-	RSS20_SOURCE = 256,
-	RSS20_CATEGORY = 512,
-	RSS20_COMMENTS = 1024,
-	RSS20_CHANNEL = 2048,
+	RSS20_SOURCE = 128,
+	RSS20_CATEGORY = 256,
+	RSS20_COMMENTS = 512,
+	RSS20_CHANNEL = 1024,
 };
 
-int64_t rss20_pos = RSS20_NONE;
+int16_t rss20_pos = RSS20_NONE;
 
 static inline void
 item_start(void)
@@ -29,9 +30,12 @@ item_start(void)
 static inline void
 item_end(struct parser_data *data)
 {
+	if ((rss20_pos & RSS20_ITEM) == 0) {
+		return;
+	}
 	rss20_pos &= ~RSS20_ITEM;
 	try_item_bucket(data->bucket, data->feed_url);
-	drop_item_bucket(data->bucket);
+	empty_item_bucket(data->bucket);
 }
 
 static inline void
@@ -43,9 +47,15 @@ title_start(void)
 static inline void
 title_end(struct parser_data *data)
 {
+	if ((rss20_pos & RSS20_TITLE) == 0) {
+		return;
+	}
 	rss20_pos &= ~RSS20_TITLE;
 	if ((rss20_pos & RSS20_ITEM) != 0) {
-		cpyas(data->bucket->title, data->value, data->value_len);
+		if (cpyas(data->bucket->title, data->value, data->value_len) != 0) {
+			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+			return;
+		}
 	} else {
 		db_update_feed_text(data->feed_url, "name", data->value, data->value_len);
 	}
@@ -60,9 +70,15 @@ link_start(void)
 static inline void
 link_end(struct parser_data *data)
 {
+	if ((rss20_pos & RSS20_LINK) == 0) {
+		return;
+	}
 	rss20_pos &= ~RSS20_LINK;
 	if ((rss20_pos & RSS20_ITEM) != 0) {
-		cpyas(data->bucket->url, data->value, data->value_len);
+		if (cpyas(data->bucket->url, data->value, data->value_len) != 0) {
+			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+			return;
+		}
 	} else {
 		db_update_feed_text(data->feed_url, "resource", data->value, data->value_len);
 	}
@@ -77,9 +93,15 @@ description_start(void)
 static inline void
 description_end(struct parser_data *data)
 {
+	if ((rss20_pos & RSS20_DESCRIPTION) == 0) {
+		return;
+	}
 	rss20_pos &= ~RSS20_DESCRIPTION;
 	if ((rss20_pos & RSS20_ITEM) != 0) {
-		cpyas(data->bucket->content, data->value, data->value_len);
+		if (cpyas(data->bucket->content, data->value, data->value_len) != 0) {
+			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+			return;
+		}
 	} else {
 		db_update_feed_text(data->feed_url, "description", data->value, data->value_len);
 	}
@@ -94,12 +116,15 @@ pubDate_start(void)
 static inline void
 pubDate_end(struct parser_data *data)
 {
-	rss20_pos &= ~RSS20_PUBDATE;
-	if ((rss20_pos & RSS20_ITEM) != 0) {
-		data->bucket->pubdate = parse_date_rfc822(data->value, data->value_len);
-	} else {
-		// RSS 2.0 says that channel can have pubDate element, but who needs it?
+	if ((rss20_pos & RSS20_PUBDATE) == 0) {
+		return;
 	}
+	rss20_pos &= ~RSS20_PUBDATE;
+	if ((rss20_pos & RSS20_ITEM) == 0) {
+		// RSS 2.0 says that channel can have pubDate element, but who needs it?
+		return;
+	}
+	data->bucket->pubdate = parse_date_rfc822(data->value, data->value_len);
 }
 
 static inline void
@@ -111,69 +136,72 @@ guid_start(void)
 static inline void
 guid_end(struct parser_data *data)
 {
+	if ((rss20_pos & RSS20_GUID) == 0) {
+		return;
+	}
 	rss20_pos &= ~RSS20_GUID;
-	if ((rss20_pos & RSS20_ITEM) != 0) {
-		cpyas(data->bucket->guid, data->value, data->value_len);
+	if ((rss20_pos & RSS20_ITEM) == 0) {
+		return;
+	}
+	if (cpyas(data->bucket->guid, data->value, data->value_len) != 0) {
+		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		return;
 	}
 }
 
 static inline void
-author_start(struct parser_data *data)
+author_start(void)
 {
 	rss20_pos |= RSS20_AUTHOR;
-	if ((rss20_pos & RSS20_ITEM) == 0) {
-		return;
-	}
-	++(data->bucket->authors_count);
-	data->bucket->authors = realloc(data->bucket->authors, sizeof(struct author) * data->bucket->authors_count);
-	if (data->bucket->authors != NULL) {
-		data->bucket->authors[data->bucket->authors_count - 1].name = NULL;
-		data->bucket->authors[data->bucket->authors_count - 1].link = NULL;
-		data->bucket->authors[data->bucket->authors_count - 1].email = NULL;
-	}
 }
 
 static inline void
 author_end(struct parser_data *data)
 {
+	if ((rss20_pos & RSS20_AUTHOR) == 0) {
+		return;
+	}
 	rss20_pos &= ~RSS20_AUTHOR;
-	if ((rss20_pos & RSS20_ITEM) != 0) {
-		if ((data->bucket->authors != NULL) &&
-		    (data->bucket->authors_count != 0) &&
-		    (data->bucket->authors[data->bucket->authors_count - 1].email == NULL))
-		{
-			data->bucket->authors[data->bucket->authors_count - 1].email = create_string(data->value, data->value_len);
-		}
+	if ((rss20_pos & RSS20_ITEM) == 0) {
+		return;
+	}
+	if (expand_authors_of_item_bucket_by_one_element(data->bucket) != 0) {
+		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		return;
+	}
+	if (add_email_to_last_author_of_item_bucket(data->bucket, data->value, data->value_len) != 0) {
+		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		return;
 	}
 }
 
 static inline void
 enclosure_start(struct parser_data *data, const XML_Char **atts)
 {
-	rss20_pos |= RSS20_ENCLOSURE;
 	if ((rss20_pos & RSS20_ITEM) == 0) {
 		return;
 	}
-	const char *url = NULL, *type = NULL;
-	int length = 0;
+	if (expand_enclosures_of_item_bucket_by_one_element(data->bucket) != 0) {
+		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		return;
+	}
 	for (size_t i = 0; atts[i] != NULL; i = i + 2) {
 		if (strcmp(atts[i], "url") == 0) {
-			url = atts[i + 1];
+			if (add_url_to_last_enclosure_of_item_bucket(data->bucket, atts[i + 1], strlen(atts[i + 1])) != 0) {
+				data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+				return;
+			}
 		} else if (strcmp(atts[i], "type") == 0) {
-			type = atts[i + 1];
+			if (add_type_to_last_enclosure_of_item_bucket(data->bucket, atts[i + 1], strlen(atts[i + 1])) != 0) {
+				data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+				return;
+			}
 		} else if (strcmp(atts[i], "length") == 0) {
-			sscanf(atts[i + 1], "%d", &length);
+			// Do not check this call for errors, because its fail is not fatal. Everything that
+			// can go wrong is failure on sscanf owing to invalid (non-integer) value of length.
+			add_size_to_last_enclosure_of_item_bucket(data->bucket, atts[i + 1]);
 		}
 	}
-	if (add_enclosure_to_item_bucket(data->bucket, url, type, length, 0) != 0) {
-		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
-	}
-}
-
-static inline void
-enclosure_end(void)
-{
-	rss20_pos &= ~RSS20_ENCLOSURE;
 }
 
 static inline void
@@ -185,11 +213,17 @@ category_start(void)
 static inline void
 category_end(struct parser_data *data)
 {
+	if ((rss20_pos & RSS20_CATEGORY) == 0) {
+		return;
+	}
 	rss20_pos &= ~RSS20_CATEGORY;
-	if ((rss20_pos & RSS20_ITEM) != 0) {
-		add_category_to_item_bucket(data->bucket, data->value, data->value_len);
-	} else {
+	if ((rss20_pos & RSS20_ITEM) == 0) {
 		// RSS 2.0 says that channel can have category elements, but who needs them?
+		return;
+	}
+	if (add_category_to_item_bucket(data->bucket, data->value, data->value_len) != 0) {
+		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		return;
 	}
 }
 
@@ -202,9 +236,16 @@ comments_start(void)
 static inline void
 comments_end(struct parser_data *data)
 {
+	if ((rss20_pos & RSS20_COMMENTS) == 0) {
+		return;
+	}
 	rss20_pos &= ~RSS20_COMMENTS;
-	if ((rss20_pos & RSS20_ITEM) != 0) {
-		cpyas(data->bucket->comments, data->value, data->value_len);
+	if ((rss20_pos & RSS20_ITEM) == 0) {
+		return;
+	}
+	if (cpyas(data->bucket->comments, data->value, data->value_len) != 0) {
+		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		return;
 	}
 }
 
@@ -217,6 +258,9 @@ channel_start(void)
 static inline void
 channel_end(void)
 {
+	if ((rss20_pos & RSS20_CHANNEL) == 0) {
+		return;
+	}
 	rss20_pos &= ~RSS20_CHANNEL;
 }
 
@@ -230,7 +274,7 @@ parse_rss20_element_start(struct parser_data *data, const XML_Char *name, const 
 	else if (strcmp(name, "description") == 0) { description_start();         }
 	else if (strcmp(name, "pubDate")     == 0) { pubDate_start();             }
 	else if (strcmp(name, "guid")        == 0) { guid_start();                }
-	else if (strcmp(name, "author")      == 0) { author_start(data);          }
+	else if (strcmp(name, "author")      == 0) { author_start();              }
 	else if (strcmp(name, "enclosure")   == 0) { enclosure_start(data, atts); }
 	else if (strcmp(name, "category")    == 0) { category_start();            }
 	else if (strcmp(name, "comments")    == 0) { comments_start();            }
@@ -250,8 +294,9 @@ parse_rss20_element_end(struct parser_data *data, const XML_Char *name)
 	else if (strcmp(name, "pubDate")     == 0) { pubDate_end(data);     }
 	else if (strcmp(name, "guid")        == 0) { guid_end(data);        }
 	else if (strcmp(name, "author")      == 0) { author_end(data);      }
-	else if (strcmp(name, "enclosure")   == 0) { enclosure_end();       }
 	else if (strcmp(name, "category")    == 0) { category_end(data);    }
 	else if (strcmp(name, "comments")    == 0) { comments_end(data);    }
 	else if (strcmp(name, "channel")     == 0) { channel_end();         }
+	// In RSS 2.0 enclosure tag is a self-closing tag.
+	//else if (strcmp(name, "enclosure") == 0) {                        }
 }

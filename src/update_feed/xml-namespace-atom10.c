@@ -24,16 +24,13 @@ parse_atom10_element_start(struct parser_data *data, const XML_Char *name, const
 	else if (strcmp(name, "updated") == 0)   data->pos |= IN_UPDDATE_ELEMENT;
 	else if (strcmp(name, "author") == 0)    {
 		data->pos |= IN_AUTHOR_ELEMENT;
-		if ((data->pos & IN_ITEM_ELEMENT) == 0) {
-			/* feed can have global author, todo */
-		} else {
-			++(data->bucket->authors_count);
-			data->bucket->authors = realloc(data->bucket->authors, sizeof(struct author) * data->bucket->authors_count);
-			if (data->bucket->authors != NULL) {
-				data->bucket->authors[data->bucket->authors_count - 1].name = NULL;
-				data->bucket->authors[data->bucket->authors_count - 1].link = NULL;
-				data->bucket->authors[data->bucket->authors_count - 1].email = NULL;
+		if ((data->pos & IN_ITEM_ELEMENT) != 0) {
+			if (expand_authors_of_item_bucket_by_one_element(data->bucket) != 0) {
+				data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+				return;
 			}
+		} else {
+			/* feed can have global author, todo */
 		}
 	}
 	else if (strcmp(name, "name") == 0)      data->pos |= IN_NAME_ELEMENT;
@@ -48,7 +45,7 @@ parse_atom10_element_end(struct parser_data *data, const XML_Char *name)
 	if (strcmp(name, "entry") == 0) {
 		data->pos &= ~IN_ITEM_ELEMENT;
 		try_item_bucket(data->bucket, data->feed_url);
-		drop_item_bucket(data->bucket);
+		empty_item_bucket(data->bucket);
 	} else if (strcmp(name, "title") == 0) {
 		data->pos &= ~IN_TITLE_ELEMENT;
 		if ((data->pos & IN_ITEM_ELEMENT) != 0)
@@ -87,8 +84,9 @@ parse_atom10_element_end(struct parser_data *data, const XML_Char *name)
 			if ((data->pos & IN_ITEM_ELEMENT) == 0) {
 				/* global author, todo */
 			} else {
-				if ((data->bucket->authors != NULL) && (data->bucket->authors_count != 0)) {
-					data->bucket->authors[data->bucket->authors_count - 1].name = create_string(data->value, data->value_len);
+				if (add_name_to_last_author_of_item_bucket(data->bucket, data->value, data->value_len) != 0) {
+					data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+					return;
 				}
 			}
 		}
@@ -98,8 +96,9 @@ parse_atom10_element_end(struct parser_data *data, const XML_Char *name)
 			if ((data->pos & IN_ITEM_ELEMENT) == 0) {
 				/* global author, todo */
 			} else {
-				if ((data->bucket->authors != NULL) && (data->bucket->authors_count != 0)) {
-					data->bucket->authors[data->bucket->authors_count - 1].link = create_string(data->value, data->value_len);
+				if (add_link_to_last_author_of_item_bucket(data->bucket, data->value, data->value_len) != 0) {
+					data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+					return;
 				}
 			}
 		}
@@ -109,8 +108,9 @@ parse_atom10_element_end(struct parser_data *data, const XML_Char *name)
 			if ((data->pos & IN_ITEM_ELEMENT) == 0) {
 				/* global author, todo */
 			} else {
-				if ((data->bucket->authors != NULL) && (data->bucket->authors_count != 0)) {
-					data->bucket->authors[data->bucket->authors_count - 1].email = create_string(data->value, data->value_len);
+				if (add_email_to_last_author_of_item_bucket(data->bucket, data->value, data->value_len) != 0) {
+					data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+					return;
 				}
 			}
 		}

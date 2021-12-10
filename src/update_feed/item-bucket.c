@@ -3,24 +3,44 @@
 #include "feedeater.h"
 #include "update_feed/update_feed.h"
 
+static void *temp;
+
+// On success returns a pointer to struct item_bucket.
+// On failure returns NULL.
 struct item_bucket *
 create_item_bucket(void)
 {
 	struct item_bucket *bucket = malloc(sizeof(struct item_bucket));
-	if (bucket == NULL) goto create_item_bucket_undo1;
-	if ((bucket->guid = create_empty_string()) == NULL) goto create_item_bucket_undo2;
-	if ((bucket->title = create_empty_string()) == NULL) goto create_item_bucket_undo3;
-	if ((bucket->url = create_empty_string()) == NULL) goto create_item_bucket_undo4;
-	if ((bucket->categories = create_empty_string()) == NULL) goto create_item_bucket_undo5;
-	if ((bucket->comments = create_empty_string()) == NULL) goto create_item_bucket_undo6;
-	if ((bucket->content = create_empty_string()) == NULL) goto create_item_bucket_undo7;
+	if (bucket == NULL) {
+		goto create_item_bucket_undo1;
+	}
+	if ((bucket->guid = create_empty_string()) == NULL) {
+		goto create_item_bucket_undo2;
+	}
+	if ((bucket->title = create_empty_string()) == NULL) {
+		goto create_item_bucket_undo3;
+	}
+	if ((bucket->url = create_empty_string()) == NULL) {
+		goto create_item_bucket_undo4;
+	}
+	if ((bucket->categories = create_empty_string()) == NULL) {
+		goto create_item_bucket_undo5;
+	}
+	if ((bucket->comments = create_empty_string()) == NULL) {
+		goto create_item_bucket_undo6;
+	}
+	if ((bucket->content = create_empty_string()) == NULL) {
+		goto create_item_bucket_undo7;
+	}
 	bucket->enclosures = NULL;
-	bucket->enclosures_count = 0;
+	bucket->enclosures_len = 0;
+	bucket->enclosures_lim = 0;
 	bucket->authors = NULL;
-	bucket->authors_count = 0;
+	bucket->authors_len = 0;
+	bucket->authors_lim = 0;
 	bucket->pubdate = 0;
 	bucket->upddate = 0;
-	return bucket; // success
+	return bucket;
 create_item_bucket_undo7:
 	free_string(bucket->comments);
 create_item_bucket_undo6:
@@ -34,11 +54,11 @@ create_item_bucket_undo3:
 create_item_bucket_undo2:
 	free(bucket);
 create_item_bucket_undo1:
-	return NULL; // failure
+	return NULL;
 }
 
 void
-drop_item_bucket(struct item_bucket *bucket)
+empty_item_bucket(struct item_bucket *bucket)
 {
 	empty_string(bucket->guid);
 	empty_string(bucket->title);
@@ -48,19 +68,8 @@ drop_item_bucket(struct item_bucket *bucket)
 	empty_string(bucket->content);
 	bucket->pubdate = 0;
 	bucket->upddate = 0;
-
-	for (size_t i = 0; i < bucket->enclosures_count; ++i) {
-		free_string(bucket->enclosures[i].url);
-		free_string(bucket->enclosures[i].type);
-	}
-	bucket->enclosures_count = 0;
-
-	for (size_t i = 0; i < bucket->authors_count; ++i) {
-		free_string(bucket->authors[i].name);
-		free_string(bucket->authors[i].link);
-		free_string(bucket->authors[i].email);
-	}
-	bucket->authors_count = 0;
+	bucket->enclosures_len = 0;
+	bucket->authors_len = 0;
 }
 
 void
@@ -73,13 +82,13 @@ free_item_bucket(struct item_bucket *bucket)
 	free_string(bucket->comments);
 	free_string(bucket->content);
 
-	for (size_t i = 0; i < bucket->enclosures_count; ++i) {
+	for (size_t i = 0; i < bucket->enclosures_lim; ++i) {
 		free_string(bucket->enclosures[i].url);
 		free_string(bucket->enclosures[i].type);
 	}
 	free(bucket->enclosures);
 
-	for (size_t i = 0; i < bucket->authors_count; ++i) {
+	for (size_t i = 0; i < bucket->authors_lim; ++i) {
 		free_string(bucket->authors[i].name);
 		free_string(bucket->authors[i].link);
 		free_string(bucket->authors[i].email);
@@ -89,43 +98,129 @@ free_item_bucket(struct item_bucket *bucket)
 	free(bucket);
 }
 
-void
+// On success returns 0.
+// On failure returns non-zero.
+int
 add_category_to_item_bucket(const struct item_bucket *bucket, const char *category, size_t category_len)
 {
 	if ((category == NULL) || (category_len == 0)) {
-		return;
+		return 0; // Not an error, category is just empty.
 	}
 	if (bucket->categories->len != 0) {
-		catas(bucket->categories, ", ", 2);
+		if (catas(bucket->categories, ", ", 2) != 0) {
+			return 1;
+		}
 	}
-	catas(bucket->categories, category, category_len);
+	if (catas(bucket->categories, category, category_len) != 0) {
+		return 1;
+	}
+	return 0;
 }
 
 // On success returns 0.
 // On failure returns non-zero.
 int
-add_enclosure_to_item_bucket(struct item_bucket *bucket, const char *url, const char *type, int size, int duration)
+expand_enclosures_of_item_bucket_by_one_element(struct item_bucket *bucket)
 {
-	++(bucket->enclosures_count);
-	struct link *temp = realloc(bucket->enclosures, sizeof(struct link) * bucket->enclosures_count);
-	if (temp == NULL) {
-		FAIL("Not enough memory for enclosure of RSS item");
-		return 1;
+	if (bucket->enclosures_len == bucket->enclosures_lim) {
+		temp = realloc(bucket->enclosures, sizeof(struct link) * (bucket->enclosures_lim + 1));
+		if (temp == NULL) {
+			FAIL("Not enough memory for item enclosure.");
+			return 1;
+		}
+		bucket->enclosures = temp;
+		++(bucket->enclosures_lim);
+		if ((bucket->enclosures[bucket->enclosures_len].url = create_empty_string()) == NULL) {
+			FAIL("Not enough memory for item enclosure URL string.");
+			return 1;
+		}
+		if ((bucket->enclosures[bucket->enclosures_len].type = create_empty_string()) == NULL) {
+			FAIL("Not enough memory for item enclosure data type string.");
+			return 1;
+		}
+	} else {
+		empty_string(bucket->enclosures[bucket->enclosures_len].url);
+		empty_string(bucket->enclosures[bucket->enclosures_len].type);
 	}
-	bucket->enclosures = temp;
-	bucket->enclosures[bucket->enclosures_count - 1].size = 0;
-	bucket->enclosures[bucket->enclosures_count - 1].duration = 0;
-	if (url != NULL) {
-		bucket->enclosures[bucket->enclosures_count - 1].url = create_string(url, strlen(url));
-	}
-	if (type != NULL) {
-		bucket->enclosures[bucket->enclosures_count - 1].type = create_string(type, strlen(type));
-	}
-	if (size != 0) {
-		bucket->enclosures[bucket->enclosures_count - 1].size = size;
-	}
-	if (duration != 0) {
-		bucket->enclosures[bucket->enclosures_count - 1].duration = duration;
-	}
+	bucket->enclosures[bucket->enclosures_len].size = 0;
+	bucket->enclosures[bucket->enclosures_len].duration = 0;
+	++(bucket->enclosures_len);
 	return 0;
+}
+
+int
+add_url_to_last_enclosure_of_item_bucket(struct item_bucket *bucket, const char *str, size_t str_len)
+{
+	return cpyas(bucket->enclosures[bucket->enclosures_len - 1].url, str, str_len);
+}
+
+int
+add_type_to_last_enclosure_of_item_bucket(struct item_bucket *bucket, const char *str, size_t str_len)
+{
+	return cpyas(bucket->enclosures[bucket->enclosures_len - 1].type, str, str_len);
+}
+
+// On success returns 0.
+// On failure returns non-zero.
+int
+add_size_to_last_enclosure_of_item_bucket(struct item_bucket *bucket, const char *str)
+{
+	int size;
+	if (sscanf(str, "%d", &size) == 1) {
+		bucket->enclosures[bucket->enclosures_len - 1].size = size;
+		return 0;
+	}
+	return 1;
+}
+
+// On success returns 0.
+// On failure returns non-zero.
+int
+expand_authors_of_item_bucket_by_one_element(struct item_bucket *bucket)
+{
+	if (bucket->authors_len == bucket->authors_lim) {
+		temp = realloc(bucket->authors, sizeof(struct link) * (bucket->authors_lim + 1));
+		if (temp == NULL) {
+			FAIL("Not enough memory for item author.");
+			return 1;
+		}
+		bucket->authors = temp;
+		++(bucket->authors_lim);
+		if ((bucket->authors[bucket->authors_len].name = create_empty_string()) == NULL) {
+			FAIL("Not enough memory for item author name string.");
+			return 1;
+		}
+		if ((bucket->authors[bucket->authors_len].email = create_empty_string()) == NULL) {
+			FAIL("Not enough memory for item author email string.");
+			return 1;
+		}
+		if ((bucket->authors[bucket->authors_len].link = create_empty_string()) == NULL) {
+			FAIL("Not enough memory for item author link string.");
+			return 1;
+		}
+	} else {
+		empty_string(bucket->authors[bucket->authors_len].name);
+		empty_string(bucket->authors[bucket->authors_len].email);
+		empty_string(bucket->authors[bucket->authors_len].link);
+	}
+	++(bucket->authors_len);
+	return 0;
+}
+
+int
+add_name_to_last_author_of_item_bucket(struct item_bucket *bucket, const char *str, size_t str_len)
+{
+	return cpyas(bucket->authors[bucket->authors_len - 1].name, str, str_len);
+}
+
+int
+add_email_to_last_author_of_item_bucket(struct item_bucket *bucket, const char *str, size_t str_len)
+{
+	return cpyas(bucket->authors[bucket->authors_len - 1].email, str, str_len);
+}
+
+int
+add_link_to_last_author_of_item_bucket(struct item_bucket *bucket, const char *str, size_t str_len)
+{
+	return cpyas(bucket->authors[bucket->authors_len - 1].link, str, str_len);
 }

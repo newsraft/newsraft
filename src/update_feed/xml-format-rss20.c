@@ -19,7 +19,7 @@ enum rss20_position {
 	RSS20_CHANNEL = 1024,
 };
 
-int16_t rss20_pos = RSS20_NONE;
+int16_t rss20_pos;
 
 static inline void
 item_start(void)

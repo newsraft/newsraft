@@ -165,6 +165,7 @@ update_feed(const struct string *url)
 
 	// Drop position indicators.
 	rss20_pos = 0;
+	atom10_pos = 0;
 
 	int res = curl_easy_perform(curl);
 	if (res != CURLE_OK) {

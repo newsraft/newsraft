@@ -50,7 +50,7 @@ struct author {
 struct item_bucket {
 	struct string *guid;
 	struct string *title;
-	struct string *url;
+	struct string *url; // TODO: make this of struct link * type
 	struct string *content;
 	struct string *comments;
 	struct string *categories;
@@ -111,4 +111,5 @@ void parse_dc_element_start      (struct parser_data *data, const XML_Char *name
 void parse_dc_element_end        (struct parser_data *data, const XML_Char *name);
 
 extern int16_t rss20_pos;
+extern int16_t atom10_pos;
 #endif // UPDATE_FEED_H

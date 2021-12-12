@@ -408,60 +408,58 @@ update_unread_items_count_recursively(struct set_line *set, size_t index)
 }
 
 static void
-set_reload_feed(struct set_line *set, size_t index)
-{
-	status_write("Loading %s", set->link->ptr);
-	if (update_feed(set->link) == 0) {
-		update_unread_items_count_recursively(set, index);
-		status_clean();
-	} else {
-		status_write("Failed to update %s", set->link->ptr);
-	}
-}
-
-static void
-set_reload_filter(struct set_line *set, size_t index)
+reload_current_set(void)
 {
 	size_t errors = 0;
+	const struct string *failed_feed;
 
-	// Here we trying to reload all feed urls related to this filter.
-	for (size_t i = 0; i < set->cond->urls_count; ++i) {
-		status_write("Loading %s", set->cond->urls[i]->ptr);
-		if (update_feed(set->cond->urls[i]) != 0) {
+	for (size_t i = 0; i < sets[view_sel].cond->urls_count; ++i) {
+		status_write("(%d/%d) Loading %s", i + 1, sets[view_sel].cond->urls_count, sets[view_sel].cond->urls[i]->ptr);
+		if (update_feed(sets[view_sel].cond->urls[i]) != 0) {
+			failed_feed = sets[view_sel].cond->urls[i];
 			++errors;
-			continue;
 		}
 	}
 
-	update_unread_items_count_recursively(set, index);
+	if (errors != sets[view_sel].cond->urls_count) {
+		update_unread_items_count_recursively(&(sets[view_sel]), view_sel);
+	}
 
 	if (errors == 0) {
 		status_clean();
 	} else if (errors == 1) {
-		status_write("Failed to update 1 feed.");
+		status_write("Failed to update %s", failed_feed->ptr);
 	} else {
 		status_write("Failed to update %u feeds.", errors);
 	}
 }
 
 static void
-reload_current_set(void)
-{
-	struct set_line *set = &(sets[view_sel]);
-	if (set->link != NULL) {
-		set_reload_feed(set, view_sel);
-	} else if (set->tags != NULL) {
-		set_reload_filter(set, view_sel);
-	}
-}
-
-static void
 reload_all_feeds(void)
 {
+	size_t errors = 0;
+	size_t feeds_count = 1337; // TODO: count them somehow at startup
+	const struct string *failed_feed;
+
 	for (size_t i = 0; i < sets_count; ++i) {
-		if (sets[i].link != NULL) {
-			set_reload_feed(&sets[i], i);
+		if (sets[i].link == NULL) {
+			continue;
 		}
+		status_write("(%d/%d) Loading %s", i + 1, feeds_count, sets[i].link->ptr);
+		if (update_feed(sets[i].link) == 0) {
+			update_unread_items_count_recursively(&(sets[i]), i);
+		} else {
+			failed_feed = sets[i].link;
+			++errors;
+		}
+	}
+
+	if (errors == 0) {
+		status_clean();
+	} else if (errors == 1) {
+		status_write("Failed to update %s", failed_feed->ptr);
+	} else {
+		status_write("Failed to update %u feeds.", errors);
 	}
 }
 

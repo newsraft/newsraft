@@ -56,36 +56,36 @@ main(int argc, char **argv)
 	}
 
 	int error = 0;
-	if (load_default_binds() != 0)                  { error = 1; goto main_undo1; }
-	if (load_config() != 0)                         { error = 2; goto main_undo2; }
-	if (db_init() != 0)                             { error = 3; goto main_undo3; }
-	if (load_sets() != 0)                           { error = 4; goto main_undo4; }
-	if (curl_global_init(CURL_GLOBAL_DEFAULT) != 0) { error = 5; goto main_undo5; }
-	if (curses_init() != 0)                         { error = 6; goto main_undo6; }
-	if (create_list_menu() != 0)                    { error = 7; goto main_undo7; }
-	if (status_create() != 0)                       { error = 8; goto main_undo8; }
-	if (reallocate_format_buffer() != 0)            { error = 9; goto main_undo9; }
+	if (load_default_binds() != 0)                  { error = 1; goto undo1; }
+	if (load_config() != 0)                         { error = 2; goto undo2; }
+	if (db_init() != 0)                             { error = 3; goto undo3; }
+	if (load_sets() != 0)                           { error = 4; goto undo4; }
+	if (curl_global_init(CURL_GLOBAL_DEFAULT) != 0) { error = 5; goto undo5; }
+	if (curses_init() != 0)                         { error = 6; goto undo6; }
+	if (create_list_menu() != 0)                    { error = 7; goto undo7; }
+	if (status_create() != 0)                       { error = 8; goto undo8; }
+	if (reallocate_format_buffer() != 0)            { error = 9; goto undo9; }
 
 	enter_sets_menu_loop();
 
 	free_format_buffer();
-main_undo9:
+undo9:
 	status_delete();
-main_undo8:
+undo8:
 	free_list_menu();
-main_undo7:
+undo7:
 	endwin();
-main_undo6:
+undo6:
 	curl_global_cleanup();
-main_undo5:
+undo5:
 	free_sets();
-main_undo4:
+undo4:
 	db_stop();
-main_undo3:
+undo3:
 	free_config_data();
-main_undo2:
+undo2:
 	free_binds();
-main_undo1:
+undo1:
 	log_stop();
 	return error;
 }

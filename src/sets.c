@@ -260,7 +260,7 @@ load_sets(void)
 }
 
 // Returns most sensible string for set line name.
-static char *
+static inline char *
 set_image(const struct set_line *set)
 {
 	if (set->name != NULL) {
@@ -358,19 +358,19 @@ view_select(size_t i)
 }
 
 static void
-update_unread_items_count(struct set_line *set, size_t index)
+update_unread_items_count(struct set_line *set, size_t index, bool redraw)
 {
 	int new_unread_count = get_unread_items_count(set->cond);
 	if (set->unread_count != new_unread_count) {
 		set->unread_count = new_unread_count;
-		if ((index >= view_min) && (index <= view_max)) {
+		if ((redraw == true) && (index >= view_min) && (index <= view_max)) {
 			set_expose(index);
 		}
 	}
 }
 
 static void
-update_unread_items_count_recursively(struct set_line *set, size_t index)
+update_unread_items_count_recursively(struct set_line *set, size_t index, bool redraw)
 {
 	if (set->tags != NULL) { // set is filter
 		// Here we are trying to update unread items count of
@@ -384,13 +384,13 @@ update_unread_items_count_recursively(struct set_line *set, size_t index)
 				if (sets[j].link != NULL) { // sets[j] is feed
 					if (sets[j].link == set->cond->urls[i]) {
 						// Feed link matched one of the filters URLs, update sets[j]
-						update_unread_items_count(&(sets[j]), j);
+						update_unread_items_count(&(sets[j]), j, redraw);
 					}
 				} else if (sets[j].tags != NULL) { // sets[j] is filter
 					for (size_t k = 0; k < sets[j].cond->urls_count; ++k) {
 						if (sets[j].cond->urls[k] == set->cond->urls[i]) {
 							// Filters set and sets[j] have common URL, update sets[j]
-							update_unread_items_count(&(sets[j]), j);
+							update_unread_items_count(&(sets[j]), j, redraw);
 							break;
 						}
 					}
@@ -399,7 +399,7 @@ update_unread_items_count_recursively(struct set_line *set, size_t index)
 		}
 	} else if (set->link != NULL) { // set is feed
 		// Update unread items count of that set.
-		update_unread_items_count(set, index);
+		update_unread_items_count(set, index, redraw);
 		// Here we are trying to update unread items count of
 		// all filters related to this feed.
 		// Filter is considered related to some feed if it has
@@ -408,7 +408,7 @@ update_unread_items_count_recursively(struct set_line *set, size_t index)
 			if (sets[j].tags != NULL) { // sets[j] is filter
 				for (size_t k = 0; k < sets[j].cond->urls_count; ++k) {
 					if (sets[j].cond->urls[k] == set->link) {
-						update_unread_items_count(&(sets[j]), j);
+						update_unread_items_count(&(sets[j]), j, redraw);
 						break;
 					}
 				}
@@ -432,7 +432,7 @@ reload_current_set(void)
 	}
 
 	if (errors != sets[view_sel].cond->urls_count) {
-		update_unread_items_count_recursively(&(sets[view_sel]), view_sel);
+		update_unread_items_count_recursively(&(sets[view_sel]), view_sel, true);
 	}
 
 	if (errors == 0) {
@@ -456,7 +456,7 @@ reload_all_feeds(void)
 		}
 		status_write("(%d/%d) Loading %s", i + 1, feeds_count, sets[i].link->ptr);
 		if (update_feed(sets[i].link) == 0) {
-			update_unread_items_count_recursively(&(sets[i]), i);
+			update_unread_items_count_recursively(&(sets[i]), i, true);
 		} else {
 			failed_feed = sets[i].link;
 			++errors;
@@ -541,21 +541,13 @@ enter_sets_menu_loop(void)
 			break;
 		}
 
-		if (sets[view_sel].cond == NULL) {
-			continue;
-		}
-
 		destination = enter_items_menu_loop(sets[view_sel].cond);
 
-		if (destination == INPUT_QUIT_SOFT) { /* stay in sets menu */
+		if (destination == INPUT_QUIT_SOFT) {
 			set_sets_input_handlers();
-
-			update_unread_items_count_recursively(&(sets[view_sel]), view_sel);
-
+			update_unread_items_count_recursively(&(sets[view_sel]), view_sel, false);
 			redraw_sets_windows();
-		}
-
-		if (destination == INPUT_QUIT_HARD) { /* exit the program */
+		} else if (destination == INPUT_QUIT_HARD) {
 			break;
 		}
 	}

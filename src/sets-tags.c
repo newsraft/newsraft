@@ -2,61 +2,68 @@
 #include <string.h>
 #include "feedeater.h"
 
-static struct feed_tag *tags = NULL;
-static size_t tags_count = 0;
-
-static int
-init_tag_with_first_url(const char *tag_name, const struct string *url)
+// On success returns 0.
+// On failure returns non-zero.
+static inline int
+init_tag_with_first_url(struct feed_tag **head_tag_ptr, const char *tag_name, size_t tag_name_len, const struct string *url)
 {
-	size_t tag_index = tags_count++;
-	tags = realloc(tags, sizeof(struct feed_tag) * tags_count);
-	if (tags == NULL) {
-		return 1; // failure
+	*head_tag_ptr = malloc(sizeof(struct feed_tag));
+	if (*head_tag_ptr == NULL) {
+		return 1;
 	}
-	tags[tag_index].name = malloc(sizeof(char) * (strlen(tag_name) + 1));
-	if (tags[tag_index].name == NULL) {
-		/* initialize urls to avoid freeing of random memory in free_tags call */
-		tags[tag_index].urls = NULL;
-		return 1; // failure
+	(*head_tag_ptr)->next_tag = NULL;
+	(*head_tag_ptr)->name = malloc(sizeof(char) * (tag_name_len + 1));
+	if ((*head_tag_ptr)->name == NULL) {
+		// Initialize pointer to avoid freeing of random memory in free_tags call.
+		(*head_tag_ptr)->urls = NULL;
+		return 1;
 	}
-	tags[tag_index].urls = malloc(sizeof(struct string *));
-	if (tags[tag_index].urls == NULL) {
-		return 1; // failure
+	(*head_tag_ptr)->urls = malloc(sizeof(struct string *));
+	if ((*head_tag_ptr)->urls == NULL) {
+		return 1;
 	}
-	tags[tag_index].urls_count = 1;
-	tags[tag_index].urls[0] = url;
-	strcpy(tags[tag_index].name, tag_name);
-	return 0; // success
+	(*head_tag_ptr)->urls[0] = url;
+	(*head_tag_ptr)->urls_count = 1;
+	strcpy((*head_tag_ptr)->name, tag_name);
+	return 0;
 }
 
-static int
-append_another_url_to_tag(size_t tag_index, const struct string *feed_url)
+// On success returns 0.
+// On failure returns non-zero.
+static inline int
+append_another_url_to_tag(struct feed_tag *tag, const struct string *feed_url)
 {
-	size_t url_index = tags[tag_index].urls_count++;
-	tags[tag_index].urls = realloc(tags[tag_index].urls, sizeof(struct string *) * tags[tag_index].urls_count);
-	if (tags[tag_index].urls == NULL) {
-		return 1; // failure
+	const struct string **temp = realloc(tag->urls, sizeof(struct string *) * (tag->urls_count + 1));
+	if (temp == NULL) {
+		return 1;
 	}
-	tags[tag_index].urls[url_index] = feed_url;
-	return 0; // success
+	tag->urls = temp;
+	tag->urls[tag->urls_count] = feed_url;
+	++(tag->urls_count);
+	return 0;
 }
 
 int
-tag_feed(const char *tag_name, const struct string *url)
+tag_feed(struct feed_tag **head_tag_ptr, const char *tag_name, size_t tag_name_len, const struct string *url)
 {
-	size_t i;
-	int error = 0;
-	for (i = 0; i < tags_count; ++i) {
-		if (strcmp(tag_name, tags[i].name) == 0) {
-			if (append_another_url_to_tag(i, url) != 0) {
+	int error = -1;
+	struct feed_tag **tag_ptr = head_tag_ptr;
+	while (*tag_ptr != NULL) {
+		if (strcmp(tag_name, (*tag_ptr)->name) == 0) {
+			if (append_another_url_to_tag(*tag_ptr, url) == 0) {
+				error = 0;
+			} else {
 				error = 1;
 			}
 			break;
 		}
+		tag_ptr = &((*tag_ptr)->next_tag);
 	}
-	if (i == tags_count) {
+	if (error == -1) {
 		// the feed is being tagged with unknown (new) tag
-		if (init_tag_with_first_url(tag_name, url) != 0) {
+		if (init_tag_with_first_url(tag_ptr, tag_name, tag_name_len, url) == 0) {
+			error = 0;
+		} else {
 			error = 1;
 		}
 	}
@@ -68,26 +75,30 @@ tag_feed(const char *tag_name, const struct string *url)
 	return error;
 }
 
-void
-free_tags(void)
-{
-	if (tags == NULL) {
-		return;
-	}
-	for (size_t i = 0; i < tags_count; ++i) {
-		free(tags[i].name);
-		free(tags[i].urls);
-	}
-	free(tags);
-}
-
 const struct feed_tag *
-get_tag_by_name(const char *name)
+get_tag_by_name(const struct feed_tag *head_tag, const char *name)
 {
-	for (size_t i = 0; i < tags_count; ++i) {
-		if (strcmp(name, tags[i].name) == 0) {
-			return &(tags[i]);
+	const struct feed_tag *tag = head_tag;
+	while (tag != NULL) {
+		if (strcmp(name, tag->name) == 0) {
+			return tag;
 		}
+		tag = tag->next_tag;
 	}
 	return NULL;
+}
+
+void
+free_tags(struct feed_tag *head_tag)
+{
+	INFO("Freeing tags.");
+	struct feed_tag *tag = head_tag;
+	struct feed_tag *tmp;
+	while (tag != NULL) {
+		tmp = tag;
+		tag = tag->next_tag;
+		free(tmp->name);
+		free(tmp->urls);
+		free(tmp);
+	}
 }

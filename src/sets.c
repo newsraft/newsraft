@@ -7,6 +7,7 @@
 
 static struct set_line *sets = NULL;
 static size_t sets_count = 0;
+static size_t feeds_count = 0;
 
 static size_t view_sel; // index of selected item
 static size_t view_min; // index of first visible item
@@ -21,12 +22,11 @@ static struct format_arg fmt_args[] = {
 void
 free_sets(void)
 {
-	free_tags();
 	if (sets == NULL) return;
 	for (size_t i = 0; i < sets_count; ++i) {
-		free_string(sets[i].name);
-		free_string(sets[i].link);
-		free_string(sets[i].tags);
+		free_string((struct string *)sets[i].name);
+		free_string((struct string *)sets[i].link);
+		free_string((struct string *)sets[i].tags);
 		free_set_condition(sets[i].cond);
 	}
 	free(sets);
@@ -34,8 +34,8 @@ free_sets(void)
 
 // On success returns 0.
 // On failure returns non-zero.
-static int
-parse_sets_file(void) {
+static inline int
+parse_sets_file(struct feed_tag **head_tag_ptr) {
 	char *path = get_feeds_path();
 	if (path == NULL) {
 		fprintf(stderr, "Could not find feeds file!\n");
@@ -50,32 +50,36 @@ parse_sets_file(void) {
 	size_t set_index, word_len;
 	int error = 0;
 	char c, word[1000];
+	struct set_line *temp;
 
-	// this is line-by-line file processing loop:
-	// one iteration of loop == one processed line
+	// This is line-by-line file processing loop:
+	// one iteration of loop results in one processed line.
 	while (1) {
 
-		// get first non-whitespace character
+		// Get first non-whitespace character.
 		do { c = fgetc(f); } while (c == ' ' || c == '\t' || c == '\n');
 
 		if (c == '#') {
-			// skip a comment line
+			// Skip a comment line.
 			do { c = fgetc(f); } while (c != '\n' && c != EOF);
 			if (c == '\n') {
 				continue;
 			} else {
-				break; // quit on end of file
+				// Quit on end of file.
+				break;
 			}
+		} else if (c == EOF) {
+			// Quit on end of file.
+			break;
 		}
 
-		if (c == EOF) break; // quit on end of file
-
 		set_index = sets_count++;
-		sets = realloc(sets, sizeof(struct set_line) * sets_count);
-		if (sets == NULL) {
+		temp = realloc(sets, sizeof(struct set_line) * sets_count);
+		if (temp == NULL) {
 			error = 1;
 			break;
 		}
+		sets = temp;
 		sets[set_index].name = NULL;
 		sets[set_index].link = NULL;
 		sets[set_index].tags = NULL;
@@ -87,7 +91,7 @@ parse_sets_file(void) {
 
 			while (1) {
 				c = fgetc(f);
-				if (c == '\n' || c == EOF) { word[word_len] = '\0'; break; }
+				if (c == '\n' || c == EOF) { break; }
 				word[word_len++] = c;
 			}
 			sets[set_index].name = create_string(word, word_len);
@@ -100,14 +104,8 @@ parse_sets_file(void) {
 
 			while (1) {
 				c = fgetc(f);
-				if (c == ' ' || c == '\t') {
-					/* avoid any whitespace in tags expression */
-					continue;
-				}
-				if (c == '"' || c == '\n' || c == EOF) {
-					word[word_len] = '\0';
-					break;
-				}
+				if (c == ' ' || c == '\t') { continue; } // skip whitespace
+				if (c == '"' || c == '\n' || c == EOF) { break; }
 				word[word_len++] = c;
 			}
 			sets[set_index].tags = create_string(word, word_len);
@@ -120,20 +118,13 @@ parse_sets_file(void) {
 				word_len = 0;
 				while (1) {
 					c = fgetc(f);
-					if (c == '"' || c == '\n' || c == EOF) {
-						word[word_len] = '\0';
-						break;
-					}
+					if (c == '"' || c == '\n' || c == EOF) { break; }
 					word[word_len++] = c;
 				}
 				sets[set_index].name = create_string(word, word_len);
 				if (sets[set_index].name == NULL) {
 					error = 1;
 					break;
-				}
-				if (c == '"') {
-					/* skip everything in the line after closing double quote */
-					do { c = fgetc(f); } while (c != '\n' && c != EOF);
 				}
 			}
 
@@ -142,20 +133,20 @@ parse_sets_file(void) {
 			while (1) {
 				word[word_len++] = c;
 				c = fgetc(f);
-				if (c == ' ' || c == '\t' || c == '\n' || c == EOF) { word[word_len] = '\0'; break; }
+				if (c == ' ' || c == '\t' || c == '\n' || c == EOF) { break; }
 			}
 			sets[set_index].link = create_string(word, word_len);
 			if (sets[set_index].link == NULL) {
 				error = 1;
 				break;
 			}
-			while (c == ' ' || c == '\t') { c = fgetc(f); }
+			while (c == ' ' || c == '\t') { c = fgetc(f); } // skip whitespace
 			// process name
 			if (c == '"') {
 				word_len = 0;
 				while (1) {
 					c = fgetc(f);
-					if (c == '"' || c == '\n' || c == EOF) { word[word_len] = '\0'; break; }
+					if (c == '"' || c == '\n' || c == EOF) { break; }
 					word[word_len++] = c;
 				}
 				sets[set_index].name = create_string(word, word_len);
@@ -173,9 +164,10 @@ parse_sets_file(void) {
 				while (1) {
 					word[word_len++] = c;
 					c = fgetc(f);
-					if (c == ' ' || c == '\t' || c == '\n' || c == EOF) { word[word_len] = '\0'; break; }
+					if (c == ' ' || c == '\t' || c == '\n' || c == EOF) { break; }
 				}
-				if (tag_feed(word, sets[set_index].link) != 0) {
+				word[word_len] = '\0';
+				if (tag_feed(head_tag_ptr, word, word_len, sets[set_index].link) != 0) {
 					error = 1;
 					break;
 				}
@@ -183,12 +175,23 @@ parse_sets_file(void) {
 			}
 
 		}
-		if (c == EOF) break;
+
+		// Skip everything to the next newline character.
+		if (c != '\n') {
+			if (c == EOF) {
+				break;
+			}
+			do { c = fgetc(f); } while (c != '\n' && c != EOF);
+			if (c == EOF) {
+				break;
+			}
+		}
+
 	}
 	fclose(f);
 	if (error != 0) {
 		if (error == 1) {
-			fprintf(stderr, "Not enough memory for parsing feeds file!\n");
+			fprintf(stderr, "Not enough memory for parsing sets file!\n");
 		}
 	}
 	return error;
@@ -199,9 +202,12 @@ parse_sets_file(void) {
 int
 load_sets(void)
 {
-	if (parse_sets_file() != 0) {
+	struct feed_tag *head_tag = NULL;
+
+	if (parse_sets_file(&head_tag) != 0) {
 		fprintf(stderr, "Failed to load sets from file!\n");
 		free_sets();
+		free_tags(head_tag);
 		return 1;
 	}
 
@@ -213,17 +219,21 @@ load_sets(void)
 		}
 		if (sets[i].link != NULL) {
 			sets[i].cond = create_set_condition_for_feed(sets[i].link);
+			++feeds_count;
 		} else if (sets[i].tags != NULL) {
-			sets[i].cond = create_set_condition_for_filter(sets[i].tags);
+			sets[i].cond = create_set_condition_for_filter(head_tag, sets[i].tags);
 		}
 		if (sets[i].cond == NULL) {
 			// Error message is written by "create_set_condition_for_feed"
-			// or "create_set_condition_for_filter", no worries!
+			// or "create_set_condition_for_filter". No worries!
 			error = true;
 			break;
 		}
 		sets[i].unread_count = get_unread_items_count(sets[i].cond);
 	}
+
+	// We don't need tags anymore because all conditions are already created.
+	free_tags(head_tag);
 
 	if (error == true) {
 		fprintf(stderr, "Was not able to create conditions for entries!\n");
@@ -438,7 +448,6 @@ static void
 reload_all_feeds(void)
 {
 	size_t errors = 0;
-	size_t feeds_count = 1337; // TODO: count them somehow at startup
 	const struct string *failed_feed;
 
 	for (size_t i = 0; i < sets_count; ++i) {

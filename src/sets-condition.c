@@ -14,19 +14,19 @@
 #define INIT_WORD_BUFF_SIZE 50 // do not set it to 0
 
 void
-free_set_condition(struct set_condition *sc)
+free_set_condition(const struct set_condition *sc)
 {
 	if (sc == NULL) {
 		return;
 	}
 	free(sc->urls);
 	free_string(sc->db_cmd);
-	free(sc);
+	free((void *)sc);
 }
 
 // On success returns pointer to set_condition struct.
 // On failure returns NULL.
-struct set_condition *
+const struct set_condition *
 create_set_condition_for_feed(const struct string *feed_url)
 {
 	struct set_condition *sc = malloc(sizeof(struct set_condition));
@@ -53,10 +53,10 @@ create_set_condition_for_feed(const struct string *feed_url)
 // On success returns 0.
 // On failure returns non-zero:
 // 	on shortage of memory returns 1.
-static int
-append_urls_of_tag_to_set_condition(struct set_condition *sc, const char *tag_name)
+static inline int
+append_urls_of_tag_to_set_condition(const struct feed_tag *head_tag, struct set_condition *sc, const char *tag_name)
 {
-	const struct feed_tag *tag = get_tag_by_name(tag_name);
+	const struct feed_tag *tag = get_tag_by_name(head_tag, tag_name);
 
 	if (tag == NULL) {
 		// There is no tags under that name, so just append FALSE to WHERE condition.
@@ -126,8 +126,8 @@ append_urls_of_tag_to_set_condition(struct set_condition *sc, const char *tag_na
 
 // On success returns pointer to set_condition struct.
 // On failure returns NULL.
-struct set_condition *
-create_set_condition_for_filter(const struct string *tags_expr)
+const struct set_condition *
+create_set_condition_for_filter(const struct feed_tag *head_tag, const struct string *tags_expr)
 {
 	struct set_condition *sc = malloc(sizeof(struct set_condition));
 	if (sc == NULL) {
@@ -162,7 +162,7 @@ create_set_condition_for_filter(const struct string *tags_expr)
 			if (word_len != 0) {
 				word[word_len] = '\0';
 				word_len = 0;
-				if (append_urls_of_tag_to_set_condition(sc, word) != 0) {
+				if (append_urls_of_tag_to_set_condition(head_tag, sc, word) != 0) {
 					error = 1;
 					break;
 				}

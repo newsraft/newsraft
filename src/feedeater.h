@@ -26,10 +26,12 @@ struct wstring {
 	size_t lim;
 };
 
+// Linked list
 struct feed_tag {
 	char *name;
 	const struct string **urls;
 	size_t urls_count;
+	struct feed_tag *next_tag;
 };
 
 struct set_condition {
@@ -39,10 +41,10 @@ struct set_condition {
 };
 
 struct set_line {
-	struct string *name; // what is displayed in menu
-	struct string *link; // this is feed url if set is feed NULL otherwise
-	struct string *tags; // this is tags expression if set is filter NULL otherwise
-	struct set_condition *cond;
+	const struct string *name; // what is displayed in menu
+	const struct string *link; // this is feed url if set is feed NULL otherwise
+	const struct string *tags; // this is tags expression if set is filter NULL otherwise
+	const struct set_condition *cond;
 	int unread_count;
 	WINDOW *window;
 };
@@ -148,12 +150,12 @@ time_t parse_date_rfc3339(const char *date_str, size_t date_len);
 struct string *get_config_date_str(const time_t *time_ptr);
 
 // tags
-int tag_feed(const char *tag_name, const struct string *url);
-struct set_condition *create_set_condition_for_feed(const struct string *feed_url);
-struct set_condition *create_set_condition_for_filter(const struct string *tags_expr);
-void free_set_condition(struct set_condition *cond);
-const struct feed_tag *get_tag_by_name(const char *name);
-void free_tags(void);
+int tag_feed(struct feed_tag **head_tag_ptr, const char *tag_name, size_t tag_name_len, const struct string *url);
+const struct feed_tag *get_tag_by_name(const struct feed_tag *head_tag, const char *name);
+void free_tags(struct feed_tag *head_tag);
+const struct set_condition *create_set_condition_for_feed(const struct string *feed_url);
+const struct set_condition *create_set_condition_for_filter(const struct feed_tag *head_tag, const struct string *tags_expr);
+void free_set_condition(const struct set_condition *cond);
 
 // db
 int db_init(void);

@@ -1,6 +1,9 @@
+#ifdef FEEDEATER_FORMAT_SUPPORT_DUBLINCORE
 #include <string.h>
 #include "feedeater.h"
 #include "update_feed/update_feed.h"
+
+int16_t dc_pos;
 
 void XMLCALL
 parse_dc_element_start(struct parser_data *data, const XML_Char *name, const XML_Char **atts)
@@ -51,3 +54,4 @@ parse_dc_element_end(struct parser_data *data, const XML_Char *name)
 		data->pos &= ~IN_AUTHOR_ELEMENT;
 	}
 }
+#endif // FEEDEATER_FORMAT_SUPPORT_DUBLINCORE

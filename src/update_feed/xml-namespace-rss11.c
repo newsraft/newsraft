@@ -1,9 +1,12 @@
+#ifdef FEEDEATER_FORMAT_SUPPORT_RSS11
 #include <string.h>
 #include "feedeater.h"
 #include "update_feed/update_feed.h"
 
+int16_t rss11_pos;
+
 void XMLCALL
-parse_rss10_element_start(struct parser_data *data, const XML_Char *name, const XML_Char **atts)
+parse_rss11_element_start(struct parser_data *data, const XML_Char *name, const XML_Char **atts)
 {
 	(void)atts;
 
@@ -16,7 +19,7 @@ parse_rss10_element_start(struct parser_data *data, const XML_Char *name, const 
 }
 
 void XMLCALL
-parse_rss10_element_end(struct parser_data *data, const XML_Char *name)
+parse_rss11_element_end(struct parser_data *data, const XML_Char *name)
 {
 	if (strcmp(name, "item") == 0) {
 		data->pos &= ~IN_ITEM_ELEMENT;
@@ -48,3 +51,4 @@ parse_rss10_element_end(struct parser_data *data, const XML_Char *name)
 		data->pos &= ~IN_CHANNEL_ELEMENT;
 	}
 }
+#endif // FEEDEATER_FORMAT_SUPPORT_RSS11

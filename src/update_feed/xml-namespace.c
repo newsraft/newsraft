@@ -10,12 +10,20 @@ struct namespace_handler {
 };
 
 static const struct namespace_handler namespace_handlers[] = {
+#ifdef FEEDEATER_FORMAT_SUPPORT_ATOM10
 	{"http://www.w3.org/2005/Atom",                 &parse_atom10_element_start, &parse_atom10_element_end},
-	{"http://purl.org/rss/1.0/",                    &parse_rss10_element_start,  &parse_rss10_element_end},
+#endif
+#ifdef FEEDEATER_FORMAT_SUPPORT_DUBLINCORE
 	{"http://purl.org/dc/elements/1.1/",            &parse_dc_element_start,     &parse_dc_element_end},
+#endif
+#ifdef FEEDEATER_FORMAT_SUPPORT_ATOM03
 	{"http://purl.org/atom/ns#",                    &parse_atom03_element_start, &parse_atom03_element_end},
-	{"http://channel.netscape.com/rdf/simple/0.9/", &parse_rss10_element_start,  &parse_rss10_element_end},
-	{"http://purl.org/net/rss1.1#",                 &parse_rss10_element_start,  &parse_rss10_element_end},
+#endif
+#ifdef FEEDEATER_FORMAT_SUPPORT_RSS11
+	{"http://purl.org/rss/1.0/",                    &parse_rss11_element_start,  &parse_rss11_element_end},
+	{"http://channel.netscape.com/rdf/simple/0.9/", &parse_rss11_element_start,  &parse_rss11_element_end},
+	{"http://purl.org/net/rss1.1#",                 &parse_rss11_element_start,  &parse_rss11_element_end},
+#endif
 };
 
 static char *

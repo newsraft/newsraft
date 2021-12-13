@@ -1,3 +1,4 @@
+#ifdef FEEDEATER_FORMAT_SUPPORT_RSS20
 #include <string.h>
 #include "feedeater.h"
 #include "update_feed/update_feed.h"
@@ -300,3 +301,4 @@ parse_rss20_element_end(struct parser_data *data, const XML_Char *name)
 	// In RSS 2.0 enclosure tag is a self-closing tag.
 	//else if (strcmp(name, "enclosure") == 0) {                        }
 }
+#endif // FEEDEATER_FORMAT_SUPPORT_RSS20

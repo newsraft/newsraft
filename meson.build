@@ -25,6 +25,12 @@ add_project_arguments(
 		'-UXML_UNICODE_WCHAR_T',
 		# set string specifier to "s" because of argument above
 		'-DXML_FMT_STR="s"',
+		# support for various formats
+		'-DFEEDEATER_FORMAT_SUPPORT_RSS20',      # RSS 0.91, 0.92, 0.93, 0.94, 2.0
+		'-DFEEDEATER_FORMAT_SUPPORT_RSS11',      # RSS 0.9, 1.0, 1.1
+		'-DFEEDEATER_FORMAT_SUPPORT_ATOM10',     # Atom 1.0
+		'-DFEEDEATER_FORMAT_SUPPORT_ATOM03',     # Atom 0.3
+		'-DFEEDEATER_FORMAT_SUPPORT_DUBLINCORE',
 	],
 	language : 'c',
 )
@@ -69,7 +75,7 @@ feedeater_src = [
 	'src/update_feed/xml-namespace-atom10.c',
 	'src/update_feed/xml-namespace-atom03.c',
 	#'src/update_feed/xml-namespace-mrss.c',
-	'src/update_feed/xml-namespace-rss10.c',
+	'src/update_feed/xml-namespace-rss11.c',
 	#'src/update_feed/xml-namespace-rss10content.c',
 	'src/update_feed/xml-namespace-dc.c',
 	#'src/update_feed/xml-namespace-rss10syndication.c',
@@ -86,6 +92,7 @@ if get_option('buildtype') == 'release'
 else
 	add_project_arguments(
 		[
+			'-O3', # This may reveal some errors during compilation.
 			'-fanalyzer',
 			'-fdiagnostics-color=always',
 		],

@@ -96,20 +96,36 @@ int add_name_to_last_author_of_item_bucket(struct item_bucket *bucket, const cha
 int add_email_to_last_author_of_item_bucket(struct item_bucket *bucket, const char *str, size_t str_len);
 int add_link_to_last_author_of_item_bucket(struct item_bucket *bucket, const char *str, size_t str_len);
 
-// xml element handlers
-int parse_namespace_element_start(struct parser_data *data, const XML_Char *name, const XML_Char **atts);
-int parse_namespace_element_end  (struct parser_data *data, const XML_Char *name);
-void parse_rss20_element_start   (struct parser_data *data, const XML_Char *name, const XML_Char **atts);
-void parse_rss20_element_end     (struct parser_data *data, const XML_Char *name);
-void parse_rss10_element_start   (struct parser_data *data, const XML_Char *name, const XML_Char **atts);
-void parse_rss10_element_end     (struct parser_data *data, const XML_Char *name);
-void parse_atom10_element_start  (struct parser_data *data, const XML_Char *name, const XML_Char **atts);
-void parse_atom10_element_end    (struct parser_data *data, const XML_Char *name);
-void parse_atom03_element_start  (struct parser_data *data, const XML_Char *name, const XML_Char **atts);
-void parse_atom03_element_end    (struct parser_data *data, const XML_Char *name);
-void parse_dc_element_start      (struct parser_data *data, const XML_Char *name, const XML_Char **atts);
-void parse_dc_element_end        (struct parser_data *data, const XML_Char *name);
 
+// Element handlers
+
+int parse_namespace_element_start (struct parser_data *data, const XML_Char *name, const XML_Char **atts);
+int parse_namespace_element_end   (struct parser_data *data, const XML_Char *name);
+
+#ifdef FEEDEATER_FORMAT_SUPPORT_RSS20
 extern int16_t rss20_pos;
+void parse_rss20_element_start    (struct parser_data *data, const XML_Char *name, const XML_Char **atts);
+void parse_rss20_element_end      (struct parser_data *data, const XML_Char *name);
+#endif
+#ifdef FEEDEATER_FORMAT_SUPPORT_ATOM10
 extern int16_t atom10_pos;
+void parse_atom10_element_start   (struct parser_data *data, const XML_Char *name, const XML_Char **atts);
+void parse_atom10_element_end     (struct parser_data *data, const XML_Char *name);
+#endif
+#ifdef FEEDEATER_FORMAT_SUPPORT_ATOM03
+extern int16_t atom03_pos;
+void parse_atom03_element_start   (struct parser_data *data, const XML_Char *name, const XML_Char **atts);
+void parse_atom03_element_end     (struct parser_data *data, const XML_Char *name);
+#endif
+#ifdef FEEDEATER_FORMAT_SUPPORT_DUBLINCORE
+extern int16_t dc_pos;
+void parse_dc_element_start       (struct parser_data *data, const XML_Char *name, const XML_Char **atts);
+void parse_dc_element_end         (struct parser_data *data, const XML_Char *name);
+#endif
+#ifdef FEEDEATER_FORMAT_SUPPORT_RSS11
+extern int16_t rss11_pos;
+void parse_rss11_element_start    (struct parser_data *data, const XML_Char *name, const XML_Char **atts);
+void parse_rss11_element_end      (struct parser_data *data, const XML_Char *name);
+#endif
+
 #endif // UPDATE_FEED_H

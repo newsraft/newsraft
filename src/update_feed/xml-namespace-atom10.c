@@ -1,3 +1,4 @@
+#ifdef FEEDEATER_FORMAT_SUPPORT_ATOM10
 #include <stdio.h>
 #include <string.h>
 #include "feedeater.h"
@@ -359,3 +360,4 @@ parse_atom10_element_end(struct parser_data *data, const XML_Char *name)
 	// In Atom 1.0 category tag is a self-closing tag.
 	//else if (strcmp(name, "category") == 0) {                     }
 }
+#endif // FEEDEATER_FORMAT_SUPPORT_ATOM10

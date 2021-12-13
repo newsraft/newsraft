@@ -10,6 +10,26 @@
 
 static struct parser_data data;
 
+static inline void
+drop_position_indicators(void)
+{
+#ifdef FEEDEATER_FORMAT_SUPPORT_RSS20
+	rss20_pos = 0;
+#endif
+#ifdef FEEDEATER_FORMAT_SUPPORT_ATOM10
+	atom10_pos = 0;
+#endif
+#ifdef FEEDEATER_FORMAT_SUPPORT_ATOM03
+	atom03_pos = 0;
+#endif
+#ifdef FEEDEATER_FORMAT_SUPPORT_DUBLINCORE
+	dc_pos = 0;
+#endif
+#ifdef FEEDEATER_FORMAT_SUPPORT_RSS11
+	rss11_pos = 0;
+#endif
+}
+
 static void XMLCALL
 start_element_handler(void *userData, const XML_Char *name, const XML_Char **atts)
 {
@@ -163,9 +183,7 @@ update_feed(const struct string *url)
 	char curl_errbuf[CURL_ERROR_SIZE] = "";
 	curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, curl_errbuf);
 
-	// Drop position indicators.
-	rss20_pos = 0;
-	atom10_pos = 0;
+	drop_position_indicators();
 
 	int res = curl_easy_perform(curl);
 	if (res != CURLE_OK) {

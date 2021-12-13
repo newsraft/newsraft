@@ -1,6 +1,9 @@
+#ifdef FEEDEATER_FORMAT_SUPPORT_ATOM03
 #include <string.h>
 #include "feedeater.h"
 #include "update_feed/update_feed.h"
+
+int16_t atom03_pos;
 
 void XMLCALL
 parse_atom03_element_start(struct parser_data *data, const XML_Char *name, const XML_Char **atts)
@@ -122,3 +125,4 @@ parse_atom03_element_end(struct parser_data *data, const XML_Char *name)
 		}
 	}
 }
+#endif // FEEDEATER_FORMAT_SUPPORT_ATOM03

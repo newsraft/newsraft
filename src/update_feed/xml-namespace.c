@@ -29,7 +29,7 @@ static const struct namespace_handler namespace_handlers[] = {
 static char *
 get_namespace_name(const XML_Char *name)
 {
-	char *separator_pos = strrchr(name, NAMESPACE_SEPARATOR);
+	char *separator_pos = strchr(name, NAMESPACE_SEPARATOR);
 	if (separator_pos == NULL) {
 		return NULL;
 	}
@@ -48,32 +48,14 @@ get_namespace_name(const XML_Char *name)
 	return namespace;
 }
 
-static char *
+static const char *
 get_tag_name(const XML_Char *name)
 {
-	size_t tag_name_len;
-	char *separator_pos = strrchr(name, NAMESPACE_SEPARATOR);
-	if (separator_pos == NULL) {
-		tag_name_len = strlen(name);
-	} else {
-		tag_name_len = name + strlen(name) - separator_pos - 1;
+	const char *separator_pos = strchr(name, NAMESPACE_SEPARATOR);
+	if (separator_pos != NULL) {
+		return separator_pos + 1;
 	}
-	if (tag_name_len > 1000U) {
-		FAIL("Got enormous long tag name!");
-		return NULL;
-	}
-	char *tag_name = malloc(sizeof(char) * (tag_name_len + 1));
-	if (tag_name == NULL) {
-		FAIL("Not enough memory for a name of tag!");
-		return NULL;
-	}
-	if (separator_pos == NULL) {
-		memcpy(tag_name, name, sizeof(char) * tag_name_len);
-	} else {
-		memcpy(tag_name, separator_pos + 1, sizeof(char) * tag_name_len);
-	}
-	tag_name[tag_name_len] = '\0';
-	return tag_name;
+	return NULL;
 }
 
 int
@@ -84,13 +66,12 @@ parse_namespace_element_start(struct parser_data *data, const XML_Char *name, co
 	}
 	for (size_t i = 0; i < LENGTH(namespace_handlers); ++i) {
 		if (strcmp(namespace, namespace_handlers[i].name) == 0) {
-			char *tag_name = get_tag_name(name);
+			const char *tag_name = get_tag_name(name);
 			if (tag_name == NULL) {
 				free(namespace);
 				return 1; // failure
 			}
 			namespace_handlers[i].parse_element_start(data, tag_name, atts);
-			free(tag_name);
 			free(namespace);
 			return 0; // success
 		}
@@ -107,13 +88,12 @@ parse_namespace_element_end(struct parser_data *data, const XML_Char *name) {
 	}
 	for (size_t i = 0; i < LENGTH(namespace_handlers); ++i) {
 		if (strcmp(namespace, namespace_handlers[i].name) == 0) {
-			char *tag_name = get_tag_name(name);
+			const char *tag_name = get_tag_name(name);
 			if (tag_name == NULL) {
 				free(namespace);
 				return 1; // failure
 			}
 			namespace_handlers[i].parse_element_end(data, tag_name);
-			free(tag_name);
 			free(namespace);
 			return 0; // success
 		}

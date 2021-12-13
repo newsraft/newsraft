@@ -173,14 +173,12 @@ li_start_handler(void)
 		text[text_len++] = ' ';
 	} else {
 		++(list_levels[list_depth - 1].length);
-		char *number_str = malloc(sizeof(char) * 10);
-		if (number_str != NULL) {
-			snprintf(number_str, 10, "%d. ", list_levels[list_depth - 1].length);
-			text[text_len] = '\0';
-			strcat(text, number_str);
-			text_len += strlen(number_str);
-			free(number_str);
-		}
+		// 14 because 11 (max length of int) + 2 (dot and space) + 1 (terminator)
+		char number_str[14];
+		snprintf(number_str, 14, "%d. ", list_levels[list_depth - 1].length);
+		text[text_len] = '\0';
+		strcat(text, number_str);
+		text_len += strlen(number_str);
 	}
 }
 

@@ -41,29 +41,21 @@ error:
 	return 1;
 }
 
-static bool
-assign_default_value_to_empty_config_string(char **str, const char *value, const size_t value_len)
-{
-	if (*str != NULL) {
-		return true; // success, string already has some value
-	}
-	*str = malloc(sizeof(char) * (value_len + 1));
-	if (*str == NULL) {
-		return false; // failure
-	}
-	strncpy(*str, value, value_len);
-	*(*str + value_len) = '\0';
-	return true; // success
-}
-
 int
 assign_default_values_to_empty_config_strings(void)
 {
-#define ADVTECS(A, B, C) if (assign_default_value_to_empty_config_string(A, B, C) == false) { return 1; /* failure */ }
-	ADVTECS(&config_menu_set_entry_format, "%4.0u | %t", 10)
-	ADVTECS(&config_menu_item_entry_format, " %u | %t", 8)
-	ADVTECS(&config_contents_meta_data, "feed,title,authors,categories,date,url,comments,enclosures", 58)
-	ADVTECS(&config_contents_date_format, "%a, %d %b %Y %H:%M:%S %z", 24)
-	ADVTECS(&config_break_at, " \t!@*-+;:,./?", 13) // tab ('\t') is an individual character
-	return 0; // success
+#define ADVTECS(A, B, C) if (A == NULL) {                       \
+                         	A = malloc(sizeof(char) * (C + 1)); \
+                         	if (A == NULL) {                    \
+                         		return 1;                       \
+                         	}                                   \
+                         	strcpy(A, B);                       \
+                         }
+	ADVTECS(config_menu_set_entry_format,  "%4.0u | %t",               10)
+	ADVTECS(config_menu_item_entry_format, " %u | %t",                 8)
+	ADVTECS(config_contents_meta_data,     "feed,title,authors,categories,date,url,comments,enclosures", 58)
+	ADVTECS(config_contents_date_format,   "%a, %d %b %Y %H:%M:%S %z", 24)
+	ADVTECS(config_break_at,               " \t!@*-+;:,./?",           13) // '\t' is a separate character
+#undef ADVTECS
+	return 0;
 }

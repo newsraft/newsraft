@@ -263,7 +263,7 @@ set_items_input_handlers(void)
 	set_input_handler(INPUT_RESIZE, &redraw_items_windows);
 }
 
-static sqlite3_stmt *
+static inline sqlite3_stmt *
 find_item_by_its_rowid_in_db(int rowid)
 {
 	sqlite3_stmt *res;
@@ -281,7 +281,7 @@ find_item_by_its_rowid_in_db(int rowid)
 	return res; // success
 }
 
-static struct string *
+static inline const struct string *
 get_contents_of_item(sqlite3_stmt *res)
 {
 	struct string *buf = create_empty_string();
@@ -308,7 +308,32 @@ get_contents_of_item(sqlite3_stmt *res)
 			}
 		}
 	}
-	return buf;
+	return (const struct string *)buf;
+}
+
+static int
+enter_item_pager_loop(int rowid)
+{
+	INFO("Trying to view an item with the rowid %d.", rowid);
+
+	sqlite3_stmt *res = find_item_by_its_rowid_in_db(rowid);
+	if (res == NULL) {
+		return INPUTS_COUNT;
+	}
+
+	const struct string *contents = get_contents_of_item(res);
+
+	sqlite3_finalize(res);
+
+	if (contents == NULL) {
+		return INPUTS_COUNT;
+	}
+
+	int destination = pager_view(contents);
+
+	free_string((struct string *)contents);
+
+	return destination;
 }
 
 int
@@ -332,36 +357,20 @@ enter_items_menu_loop(const struct set_condition *sc)
 	set_items_input_handlers();
 
 	int destination;
-	struct string *contents;
-	sqlite3_stmt *res;
 	while (1) {
 		destination = handle_input();
 		if (destination == INPUT_ENTER) {
-			INFO("Trying to view an item with the rowid %d.", items[view_sel].rowid);
 
-			res = find_item_by_its_rowid_in_db(items[view_sel].rowid);
-			if (res == NULL) {
-				continue;
-			}
-
-			contents = get_contents_of_item(res);
-			sqlite3_finalize(res);
-			if (contents == NULL) {
-				continue;
-			}
-
-			destination = pager_view(contents);
-
-			db_mark_item_read(items[view_sel].rowid);
-			free_string(contents);
-
+			destination = enter_item_pager_loop(items[view_sel].rowid);
 			if (destination == INPUT_QUIT_SOFT) {
-				set_items_input_handlers();
 				items[view_sel].is_unread = 0;
+				db_mark_item_read(items[view_sel].rowid);
+				set_items_input_handlers();
 				redraw_items_windows();
 			} else if (destination == INPUT_QUIT_HARD) {
 				break;
 			}
+
 		} else if ((destination == INPUT_QUIT_SOFT) || (destination == INPUT_QUIT_HARD)) {
 			break;
 		}

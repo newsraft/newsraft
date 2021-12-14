@@ -7,7 +7,7 @@
 static WINDOW *window;
 static int view_min; // index of first visible line (row)
 static int pad_height;
-static struct string *contents;
+static const struct string *contents;
 
 static bool
 is_wchar_a_breaker(wchar_t wc)
@@ -262,7 +262,7 @@ set_pager_view_input_handlers(void)
 }
 
 int
-pager_view(struct string *data)
+pager_view(const struct string *data)
 {
 	contents = data;
 

@@ -125,7 +125,7 @@ int enter_items_menu_loop(const struct set_condition *st);
 void resize_items_global_action(void);
 
 // contents
-int pager_view(struct string *data);
+int pager_view(const struct string *data);
 int cat_item_meta_data_to_buf(struct string *buf, sqlite3_stmt *res);
 struct string *expand_html_entities(const char *str, size_t str_len);
 struct string *plainify_html(const char *str, size_t str_len);

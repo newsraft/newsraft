@@ -7,12 +7,15 @@
 #define MAX_ENTITY_NAME_LENGTH 13
 
 struct entity_entry {
-	const char *name;
+	const char *const name;
 	// Store numbers as strings to compare them without conversion.
-	const char *number;
-	const char *hex_number;
-	const char *value;
+	const char *const number;
+	const char *const hex_number;
+	const char *const value;
 };
+
+// Good list of HTML entities with their hexadecimal and decimal values.
+// https://dev.w3.org/html5/html-author/charref
 
 // WARNING!
 // Before you add here an entity whose value is longer than name,
@@ -48,6 +51,8 @@ static const struct entity_entry entities[] = {
 	{"rsaquo",        "8250",  "203A",  "›"},
 	{"hellip",        "8230",  "2026",  "…"},
 	{"mldr",          "8230",  "2026",  "…"},
+	{"bull",          "8226",  "2022",  "•"},
+	{"bullet",        "8226",  "2022",  "•"},
 	{"larrhk",        "8617",  "21A9",  "↩"},
 	{"hookleftarrow", "8617",  "21A9",  "↩"},
 	{"trade",         "8482",  "2122",  "™"},
@@ -99,6 +104,12 @@ static const struct entity_entry entities[] = {
 	{"pound",         "163",   "A3",    "£"},
 	{"cent",          "162",   "A2",    "¢"},
 	{"yen",           "165",   "A5",    "¥"},
+	{"Pi",            "928",   "3A0",   "Π"},
+	{"pi",            "960",   "3C0",   "π"},
+	{"Alpha",         "913",   "391",   "Α"},
+	{"alpha",         "945",   "3B1",   "α"},
+	{"Delta",         "916",   "394",   "Δ"},
+	{"delta",         "948",   "3B4",   "δ"},
 	{"hearts",        "9829",  "2665",  "♥"},
 	{"heartsuit",     "9829",  "2665",  "♥"},
 	{"diams",         "9830",  "2666",  "♦"},

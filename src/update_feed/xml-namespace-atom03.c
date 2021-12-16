@@ -3,126 +3,384 @@
 #include "feedeater.h"
 #include "update_feed/update_feed.h"
 
+// https://web.archive.org/web/20210303084351/https://pythonhosted.org/feedparser/annotated-atom03.html
+// https://web.archive.org/web/20210417183310/http://rakaz.nl/2005/07/moving-from-atom-03-to-10.html
+
+// Note to the future.
+// Atom 0.3 does not have category element.
+
+enum atom03_position {
+	ATOM03_NONE = 0,
+	ATOM03_ENTRY = 1,
+	ATOM03_ID = 2,
+	ATOM03_TITLE = 4,
+	ATOM03_SUMMARY = 8,
+	ATOM03_CONTENT = 16,
+	ATOM03_ISSUED = 32,
+	ATOM03_MODIFIED = 64,
+	ATOM03_AUTHOR = 128,
+	ATOM03_NAME = 256,
+	ATOM03_URL = 512,
+	ATOM03_EMAIL = 1024,
+};
+
 int16_t atom03_pos;
+
+static inline void
+entry_start(void)
+{
+	atom03_pos |= ATOM03_ENTRY;
+}
+
+static inline void
+entry_end(struct parser_data *data)
+{
+	if ((atom03_pos & ATOM03_ENTRY) == 0) {
+		return;
+	}
+	atom03_pos &= ~ATOM03_ENTRY;
+	try_item_bucket(data->bucket, data->feed_url);
+	empty_item_bucket(data->bucket);
+}
+
+static inline void
+title_start(void)
+{
+	atom03_pos |= ATOM03_TITLE;
+}
+
+static inline void
+title_end(struct parser_data *data)
+{
+	if ((atom03_pos & ATOM03_TITLE) == 0) {
+		return;
+	}
+	atom03_pos &= ~ATOM03_TITLE;
+	if ((atom03_pos & ATOM03_ENTRY) != 0) {
+		if (cpyas(data->bucket->title, data->value, data->value_len) != 0) {
+			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+			return;
+		}
+	} else {
+		db_update_feed_text(data->feed_url, "name", data->value, data->value_len);
+	}
+}
+
+// Atom 0.3 link element does not have length attribute.
+static inline void
+link_start(struct parser_data *data, const XML_Char **atts)
+{
+	const char *href = NULL, *type = NULL;
+	bool this_is_enclosure = false;
+	for (size_t i = 0; atts[i] != NULL; i = i + 2) {
+		if (strcmp(atts[i], "href") == 0) {
+			href = atts[i + 1];
+		} else if (strcmp(atts[i], "type") == 0) {
+			type = atts[i + 1];
+		} else if (strcmp(atts[i], "rel") == 0) {
+			if (strcmp(atts[i + 1], "alternate") == 0) {
+				this_is_enclosure = false;
+			} else if (strcmp(atts[i + 1], "self") == 0) {
+				// If link has "rel" attribute with "self" value then this
+				// link points to the feed itself, we don't need it.
+				return;
+			} else {
+				this_is_enclosure = true;
+			}
+		}
+	}
+	if (this_is_enclosure == true) {
+		if (expand_enclosures_of_item_bucket_by_one_element(data->bucket) != 0) {
+			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+			return;
+		}
+		if (href != NULL) {
+			if (add_url_to_last_enclosure_of_item_bucket(data->bucket, href, strlen(href)) != 0) {
+				data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+				return;
+			}
+		}
+		if (type != NULL) {
+			if (add_type_to_last_enclosure_of_item_bucket(data->bucket, type, strlen(type)) != 0) {
+				data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+				return;
+			}
+		}
+	} else {
+		if (href != NULL) {
+			if ((atom03_pos & ATOM03_ENTRY) != 0) {
+				if (cpyas(data->bucket->url, href, strlen(href)) != 0) {
+					data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+					return;
+				}
+			} else {
+				db_update_feed_text(data->feed_url, "resource", href, strlen(href));
+			}
+		}
+		// TODO: make bucket->url of struct link * type and set type and length
+	}
+}
+
+static inline void
+summary_start(struct parser_data *data, const XML_Char **atts)
+{
+	const char *type_str = get_value_of_attribute_key(atts, "type");
+	if ((type_str != NULL) && ((atom03_pos & ATOM03_ENTRY) != 0)) {
+		if (cpyas(data->bucket->summary_type, type_str, strlen(type_str)) != 0) {
+			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+			return;
+		}
+	}
+	atom03_pos |= ATOM03_SUMMARY;
+}
+
+static inline void
+summary_end(struct parser_data *data)
+{
+	if ((atom03_pos & ATOM03_SUMMARY) == 0) {
+		return;
+	}
+	atom03_pos &= ~ATOM03_SUMMARY;
+	if ((atom03_pos & ATOM03_ENTRY) != 0) {
+		if (cpyas(data->bucket->summary, data->value, data->value_len) != 0) {
+			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+			return;
+		}
+	} else {
+		db_update_feed_text(data->feed_url, "description", data->value, data->value_len);
+	}
+}
+
+static inline void
+content_start(struct parser_data *data, const XML_Char **atts)
+{
+	const char *type_str = get_value_of_attribute_key(atts, "type");
+	if ((type_str != NULL) && ((atom03_pos & ATOM03_ENTRY) != 0)) {
+		if (cpyas(data->bucket->content_type, type_str, strlen(type_str)) != 0) {
+			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+			return;
+		}
+	}
+	atom03_pos |= ATOM03_CONTENT;
+}
+
+static inline void
+content_end(struct parser_data *data)
+{
+	if ((atom03_pos & ATOM03_CONTENT) == 0) {
+		return;
+	}
+	atom03_pos &= ~ATOM03_CONTENT;
+	if ((atom03_pos & ATOM03_ENTRY) == 0) {
+		return;
+	}
+	if (cpyas(data->bucket->content, data->value, data->value_len) != 0) {
+		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		return;
+	}
+}
+
+static inline void
+id_start(void)
+{
+	atom03_pos |= ATOM03_ID;
+}
+
+static inline void
+id_end(struct parser_data *data)
+{
+	if ((atom03_pos & ATOM03_ID) == 0) {
+		return;
+	}
+	atom03_pos &= ~ATOM03_ID;
+	if ((atom03_pos & ATOM03_ENTRY) == 0) {
+		// In Atom 0.3 feed can have unique id, but who needs it?
+		return;
+	}
+	if (cpyas(data->bucket->guid, data->value, data->value_len) != 0) {
+		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		return;
+	}
+}
+
+static inline void
+issued_start(void)
+{
+	atom03_pos |= ATOM03_ISSUED;
+}
+
+static inline void
+issued_end(struct parser_data *data)
+{
+	if ((atom03_pos & ATOM03_ISSUED) == 0) {
+		return;
+	}
+	atom03_pos &= ~ATOM03_ISSUED;
+	if ((atom03_pos & ATOM03_ENTRY) == 0) {
+		// Atom 0.3 feed can have issued date but who needs it?
+		return;
+	}
+	data->bucket->pubdate = parse_date_rfc3339(data->value, data->value_len);
+}
+
+static inline void
+modified_start(void)
+{
+	atom03_pos |= ATOM03_MODIFIED;
+}
+
+static inline void
+modified_end(struct parser_data *data)
+{
+	if ((atom03_pos & ATOM03_MODIFIED) == 0) {
+		return;
+	}
+	atom03_pos &= ~ATOM03_MODIFIED;
+	if ((atom03_pos & ATOM03_ENTRY) == 0) {
+		// Atom 0.3 feed can have modified date but who needs it?
+		return;
+	}
+	data->bucket->upddate = parse_date_rfc3339(data->value, data->value_len);
+}
+
+static inline void
+author_start(struct parser_data *data)
+{
+	atom03_pos |= ATOM03_AUTHOR;
+	if ((atom03_pos & ATOM03_ENTRY) == 0) {
+		// Atom 0.3 says that feed must have at least one author, but who needs it?
+		return;
+	}
+	if (expand_authors_of_item_bucket_by_one_element(data->bucket) != 0) {
+		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		return;
+	}
+}
+
+static inline void
+author_end(void)
+{
+	if ((atom03_pos & ATOM03_AUTHOR) == 0) {
+		return;
+	}
+	atom03_pos &= ~ATOM03_AUTHOR;
+}
+
+static inline void
+name_start(void)
+{
+	atom03_pos |= ATOM03_NAME;
+}
+
+static inline void
+name_end(struct parser_data *data)
+{
+	if ((atom03_pos & ATOM03_NAME) == 0) {
+		return;
+	}
+	atom03_pos &= ~ATOM03_NAME;
+	if ((atom03_pos & ATOM03_AUTHOR) == 0) {
+		// So far name tag can be found only in author element.
+		return;
+	}
+	if ((atom03_pos & ATOM03_ENTRY) == 0) {
+		// Atom 0.3 says that feed can have global author, but who needs it?
+		return;
+	}
+	if (add_name_to_last_author_of_item_bucket(data->bucket, data->value, data->value_len) != 0) {
+		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		return;
+	}
+}
+
+static inline void
+url_start(void)
+{
+	atom03_pos |= ATOM03_URL;
+}
+
+static inline void
+url_end(struct parser_data *data)
+{
+	if ((atom03_pos & ATOM03_URL) == 0) {
+		return;
+	}
+	atom03_pos &= ~ATOM03_URL;
+	if ((atom03_pos & ATOM03_AUTHOR) == 0) {
+		// So far url tag can be found only in author element.
+		return;
+	}
+	if ((atom03_pos & ATOM03_ENTRY) == 0) {
+		// Atom 0.3 says that feed can have global author, but who needs it?
+		return;
+	}
+	if (add_link_to_last_author_of_item_bucket(data->bucket, data->value, data->value_len) != 0) {
+		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		return;
+	}
+}
+
+static inline void
+email_start(void)
+{
+	atom03_pos |= ATOM03_EMAIL;
+}
+
+static inline void
+email_end(struct parser_data *data)
+{
+	if ((atom03_pos & ATOM03_EMAIL) == 0) {
+		return;
+	}
+	atom03_pos &= ~ATOM03_EMAIL;
+	if ((atom03_pos & ATOM03_AUTHOR) == 0) {
+		// So far email tag can be found only in author element.
+		return;
+	}
+	if ((atom03_pos & ATOM03_ENTRY) == 0) {
+		// Atom 0.3 says that feed can have global author, but who needs it?
+		return;
+	}
+	if (add_email_to_last_author_of_item_bucket(data->bucket, data->value, data->value_len) != 0) {
+		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		return;
+	}
+}
 
 void XMLCALL
 parse_atom03_element_start(struct parser_data *data, const XML_Char *name, const XML_Char **atts)
 {
-	if      (strcmp(name, "entry") == 0)    data->pos |= IN_ITEM_ELEMENT;
-	else if (strcmp(name, "title") == 0)    data->pos |= IN_TITLE_ELEMENT;
-	else if (strcmp(name, "summary") == 0)  data->pos |= IN_DESCRIPTION_ELEMENT;
-	else if (strcmp(name, "link") == 0)     {
-		data->pos |= IN_LINK_ELEMENT;
-		const char *href_link = get_value_of_attribute_key(atts, "href");
-		if (href_link != NULL) {
-			if ((data->pos & IN_ITEM_ELEMENT) != 0)
-				cpyas(data->bucket->url, href_link, strlen(href_link));
-			else
-				db_update_feed_text(data->feed_url, "resource", href_link, strlen(href_link));
-		}
-	}
-	else if (strcmp(name, "id") == 0)       data->pos |= IN_GUID_ELEMENT;
-	else if (strcmp(name, "issued") == 0)   data->pos |= IN_PUBDATE_ELEMENT;
-	else if (strcmp(name, "modified") == 0) data->pos |= IN_UPDDATE_ELEMENT;
-	else if (strcmp(name, "author") == 0)    {
-		data->pos |= IN_AUTHOR_ELEMENT;
-		if ((data->pos & IN_ITEM_ELEMENT) != 0) {
-			if (expand_authors_of_item_bucket_by_one_element(data->bucket) != 0) {
-				data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
-				return;
-			}
-		} else {
-			/* feed can have global author, todo */
-		}
-	}
-	else if (strcmp(name, "name") == 0)     data->pos |= IN_NAME_ELEMENT;
-	else if (strcmp(name, "url") == 0)      data->pos |= IN_URL_ELEMENT;
-	else if (strcmp(name, "email") == 0)    data->pos |= IN_EMAIL_ELEMENT;
-	else if (strcmp(name, "category") == 0) data->pos |= IN_CATEGORY_ELEMENT;
+	     if (strcmp(name, "entry")       == 0) { entry_start();             }
+	else if (strcmp(name, "id")          == 0) { id_start();                }
+	else if (strcmp(name, "title")       == 0) { title_start();             }
+	else if (strcmp(name, "link")        == 0) { link_start(data, atts);    }
+	else if (strcmp(name, "summary")     == 0) { summary_start(data, atts); }
+	else if (strcmp(name, "content")     == 0) { content_start(data, atts); }
+	else if (strcmp(name, "issued")      == 0) { issued_start();            }
+	else if (strcmp(name, "modified")    == 0) { modified_start();          }
+	else if (strcmp(name, "author")      == 0) { author_start(data);        }
+	else if (strcmp(name, "contributor") == 0) { author_start(data);        }
+	else if (strcmp(name, "name")        == 0) { name_start();              }
+	else if (strcmp(name, "url")         == 0) { url_start();               }
+	else if (strcmp(name, "email")       == 0) { email_start();             }
 }
 
 void XMLCALL
 parse_atom03_element_end(struct parser_data *data, const XML_Char *name)
 {
-	if (strcmp(name, "entry") == 0) {
-		data->pos &= ~IN_ITEM_ELEMENT;
-		try_item_bucket(data->bucket, data->feed_url);
-		empty_item_bucket(data->bucket);
-	} else if (strcmp(name, "title") == 0) {
-		data->pos &= ~IN_TITLE_ELEMENT;
-		if ((data->pos & IN_ITEM_ELEMENT) != 0)
-			cpyas(data->bucket->title, data->value, data->value_len);
-		else
-			db_update_feed_text(data->feed_url, "name", data->value, data->value_len);
-	} else if (strcmp(name, "summary") == 0) {
-		data->pos &= ~IN_DESCRIPTION_ELEMENT;
-		if ((data->pos & IN_ITEM_ELEMENT) != 0)
-			cpyas(data->bucket->content, data->value, data->value_len);
-		else
-			db_update_feed_text(data->feed_url, "description", data->value, data->value_len);
-	} else if (strcmp(name, "link") == 0) {
-		data->pos &= ~IN_LINK_ELEMENT;
-	} else if (strcmp(name, "id") == 0) {
-		data->pos &= ~IN_GUID_ELEMENT;
-		if ((data->pos & IN_ITEM_ELEMENT) != 0)
-			cpyas(data->bucket->guid, data->value, data->value_len);
-	} else if (strcmp(name, "issued") == 0) {
-		data->pos &= ~IN_PUBDATE_ELEMENT;
-		if ((data->pos & IN_ITEM_ELEMENT) != 0) {
-			time_t rawtime = parse_date_rfc3339(data->value, data->value_len);
-			if (rawtime != 0) data->bucket->pubdate = rawtime;
-		}
-	} else if (strcmp(name, "modified") == 0) {
-		data->pos &= ~IN_UPDDATE_ELEMENT;
-		if ((data->pos & IN_ITEM_ELEMENT) != 0) {
-			time_t rawtime = parse_date_rfc3339(data->value, data->value_len);
-			if (rawtime != 0) data->bucket->upddate = rawtime;
-		}
-	} else if (strcmp(name, "author") == 0) {
-		data->pos &= ~IN_AUTHOR_ELEMENT;
-	} else if (strcmp(name, "name") == 0) {
-		data->pos &= ~IN_NAME_ELEMENT;
-		if ((data->pos & IN_AUTHOR_ELEMENT) != 0) {
-			if ((data->pos & IN_ITEM_ELEMENT) == 0) {
-				/* global author, todo */
-			} else {
-				if (add_name_to_last_author_of_item_bucket(data->bucket, data->value, data->value_len) != 0) {
-					data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
-					return;
-				}
-			}
-		}
-	} else if (strcmp(name, "url") == 0) {
-		data->pos &= ~IN_URL_ELEMENT;
-		if ((data->pos & IN_AUTHOR_ELEMENT) != 0) {
-			if ((data->pos & IN_ITEM_ELEMENT) == 0) {
-				/* global author, todo */
-			} else {
-				if (add_link_to_last_author_of_item_bucket(data->bucket, data->value, data->value_len) != 0) {
-					data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
-					return;
-				}
-			}
-		}
-	} else if (strcmp(name, "email") == 0) {
-		data->pos &= ~IN_EMAIL_ELEMENT;
-		if ((data->pos & IN_AUTHOR_ELEMENT) != 0) {
-			if ((data->pos & IN_ITEM_ELEMENT) == 0) {
-				/* global author, todo */
-			} else {
-				if (add_email_to_last_author_of_item_bucket(data->bucket, data->value, data->value_len) != 0) {
-					data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
-					return;
-				}
-			}
-		}
-	} else if (strcmp(name, "category") == 0) {
-		data->pos &= ~IN_CATEGORY_ELEMENT;
-		if ((data->pos & IN_ITEM_ELEMENT) == 0) {
-			/* global category, todo */
-		} else {
-			add_category_to_item_bucket(data->bucket, data->value, data->value_len);
-		}
-	}
+	     if (strcmp(name, "entry")       == 0) { entry_end(data);    }
+	else if (strcmp(name, "id")          == 0) { id_end(data);       }
+	else if (strcmp(name, "title")       == 0) { title_end(data);    }
+	else if (strcmp(name, "summary")     == 0) { summary_end(data);  }
+	else if (strcmp(name, "content")     == 0) { content_end(data);  }
+	else if (strcmp(name, "issued")      == 0) { issued_end(data);   }
+	else if (strcmp(name, "modified")    == 0) { modified_end(data); }
+	else if (strcmp(name, "author")      == 0) { author_end();       }
+	else if (strcmp(name, "contributor") == 0) { author_end();       }
+	else if (strcmp(name, "name")        == 0) { name_end(data);     }
+	else if (strcmp(name, "url")         == 0) { url_end(data);      }
+	else if (strcmp(name, "email")       == 0) { email_end(data);    }
+	// In Atom 0.3 link tag is a self-closing tag.
+	//else if (strcmp(name, "link")      == 0) {                     }
 }
 #endif // FEEDEATER_FORMAT_SUPPORT_ATOM03

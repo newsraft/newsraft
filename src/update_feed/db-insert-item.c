@@ -159,7 +159,7 @@ db_insert_item(const struct string *feed_url, const struct item_bucket *bucket)
 	}
 
 	sqlite3_stmt *s;
-	if (sqlite3_prepare_v2(db, "INSERT INTO items VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", -1, &s, 0) != SQLITE_OK) {
+	if (sqlite3_prepare_v2(db, "INSERT INTO items VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", -1, &s, 0) != SQLITE_OK) {
 		FAIL("Failed to prepare item insertion statement:");
 		FAIL_SQLITE_PREPARE;
 		free_string(enclosures_list);
@@ -167,18 +167,22 @@ db_insert_item(const struct string *feed_url, const struct item_bucket *bucket)
 		return;
 	}
 
-	sqlite3_bind_text(s,  ITEM_COLUMN_FEED + 1,       feed_url->ptr, feed_url->len, NULL);
-	sqlite3_bind_text(s,  ITEM_COLUMN_TITLE + 1,      bucket->title->ptr, bucket->title->len, NULL);
-	sqlite3_bind_text(s,  ITEM_COLUMN_GUID + 1,       bucket->guid->ptr, bucket->guid->len, NULL);
-	sqlite3_bind_int(s,   ITEM_COLUMN_UNREAD + 1,     1);
-	sqlite3_bind_text(s,  ITEM_COLUMN_URL + 1,        bucket->url->ptr, bucket->url->len, NULL);
-	sqlite3_bind_text(s,  ITEM_COLUMN_ENCLOSURES + 1, enclosures_list->ptr, enclosures_list->len, NULL);
-	sqlite3_bind_text(s,  ITEM_COLUMN_AUTHORS + 1,    authors_list->ptr, authors_list->len, NULL);
-	sqlite3_bind_text(s,  ITEM_COLUMN_CATEGORIES + 1, bucket->categories->ptr, bucket->categories->len, NULL);
-	sqlite3_bind_int64(s, ITEM_COLUMN_PUBDATE + 1,    (sqlite3_int64)(bucket->pubdate));
-	sqlite3_bind_int64(s, ITEM_COLUMN_UPDDATE + 1,    (sqlite3_int64)(bucket->upddate));
-	sqlite3_bind_text(s,  ITEM_COLUMN_COMMENTS + 1,   bucket->comments->ptr, bucket->comments->len, NULL);
-	sqlite3_bind_text(s,  ITEM_COLUMN_CONTENT + 1,    bucket->content->ptr, bucket->content->len, NULL);
+	sqlite3_bind_text(s,  ITEM_COLUMN_FEED         + 1, feed_url->ptr, feed_url->len, NULL);
+	sqlite3_bind_text(s,  ITEM_COLUMN_TITLE        + 1, bucket->title->ptr, bucket->title->len, NULL);
+	sqlite3_bind_text(s,  ITEM_COLUMN_GUID         + 1, bucket->guid->ptr, bucket->guid->len, NULL);
+	sqlite3_bind_int(s,   ITEM_COLUMN_UNREAD       + 1, 1);
+	sqlite3_bind_text(s,  ITEM_COLUMN_URL          + 1, bucket->url->ptr, bucket->url->len, NULL);
+	sqlite3_bind_text(s,  ITEM_COLUMN_ENCLOSURES   + 1, enclosures_list->ptr, enclosures_list->len, NULL);
+	sqlite3_bind_text(s,  ITEM_COLUMN_AUTHORS      + 1, authors_list->ptr, authors_list->len, NULL);
+	sqlite3_bind_text(s,  ITEM_COLUMN_CATEGORIES   + 1, bucket->categories->ptr, bucket->categories->len, NULL);
+	sqlite3_bind_int64(s, ITEM_COLUMN_PUBDATE      + 1, (sqlite3_int64)(bucket->pubdate));
+	sqlite3_bind_int64(s, ITEM_COLUMN_UPDDATE      + 1, (sqlite3_int64)(bucket->upddate));
+	sqlite3_bind_text(s,  ITEM_COLUMN_COMMENTS     + 1, bucket->comments->ptr, bucket->comments->len, NULL);
+	sqlite3_bind_text(s,  ITEM_COLUMN_SUMMARY      + 1, bucket->summary->ptr, bucket->summary->len, NULL);
+	sqlite3_bind_text(s,  ITEM_COLUMN_SUMMARY_TYPE + 1, bucket->summary_type->ptr, bucket->summary_type->len, NULL);
+	sqlite3_bind_text(s,  ITEM_COLUMN_CONTENT      + 1, bucket->content->ptr, bucket->content->len, NULL);
+	sqlite3_bind_text(s,  ITEM_COLUMN_CONTENT_TYPE + 1, bucket->content_type->ptr, bucket->content_type->len, NULL);
+
 	if (sqlite3_step(s) == SQLITE_DONE) {
 		// only try to delete excess items if limit is set
 		if (config_max_items != 0) {

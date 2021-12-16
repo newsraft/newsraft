@@ -37,7 +37,10 @@ db_init(void)
 			"pubdate INTEGER(8),"
 			"upddate INTEGER(8),"
 			"comments TEXT,"
-			"content TEXT"
+			"summary TEXT,"
+			"summary_type TEXT,"
+			"content TEXT,"
+			"content_type TEXT"
 		");",
 		0,
 		0,

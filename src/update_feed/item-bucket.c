@@ -29,8 +29,17 @@ create_item_bucket(void)
 	if ((bucket->comments = create_empty_string()) == NULL) {
 		goto undo6;
 	}
-	if ((bucket->content = create_empty_string()) == NULL) {
+	if ((bucket->summary = create_empty_string()) == NULL) {
 		goto undo7;
+	}
+	if ((bucket->summary_type = create_empty_string()) == NULL) {
+		goto undo8;
+	}
+	if ((bucket->content = create_empty_string()) == NULL) {
+		goto undo9;
+	}
+	if ((bucket->content_type = create_empty_string()) == NULL) {
+		goto undo10;
 	}
 	bucket->enclosures = NULL;
 	bucket->enclosures_len = 0;
@@ -41,6 +50,12 @@ create_item_bucket(void)
 	bucket->pubdate = 0;
 	bucket->upddate = 0;
 	return bucket;
+undo10:
+	free_string(bucket->content);
+undo9:
+	free_string(bucket->summary_type);
+undo8:
+	free_string(bucket->summary);
 undo7:
 	free_string(bucket->comments);
 undo6:
@@ -65,7 +80,10 @@ empty_item_bucket(struct item_bucket *bucket)
 	empty_string(bucket->url);
 	empty_string(bucket->categories);
 	empty_string(bucket->comments);
+	empty_string(bucket->summary);
+	empty_string(bucket->summary_type);
 	empty_string(bucket->content);
+	empty_string(bucket->content_type);
 	bucket->pubdate = 0;
 	bucket->upddate = 0;
 	bucket->enclosures_len = 0;
@@ -80,7 +98,10 @@ free_item_bucket(struct item_bucket *bucket)
 	free_string(bucket->url);
 	free_string(bucket->categories);
 	free_string(bucket->comments);
+	free_string(bucket->summary);
+	free_string(bucket->summary_type);
 	free_string(bucket->content);
+	free_string(bucket->content_type);
 
 	for (size_t i = 0; i < bucket->enclosures_lim; ++i) {
 		free_string(bucket->enclosures[i].url);

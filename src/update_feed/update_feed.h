@@ -45,21 +45,26 @@ struct author {
 	struct string *link;
 };
 
-// used to bufferize item before writing to disk
-// so we can reject it in case parsed item is already cached
+// Used to bufferize an item before writing it to the database,
+// so we can reject it in case if identical item is already cached.
 struct item_bucket {
 	struct string *guid;
 	struct string *title;
 	struct string *url; // TODO: make this of struct link * type
+	struct string *summary;
+	struct string *summary_type; // Format of text of summary (for example plain or html).
 	struct string *content;
+	struct string *content_type; // Format of text of content.
 	struct string *comments;
 	struct string *categories;
 	struct link *enclosures;
-	size_t enclosures_len; // actual number of enclosures in enclosures buffer
-	size_t enclosures_lim; // shows how many enclosures can fit in current enclosures buffer
+	size_t enclosures_len; // Actual number of enclosures in enclosures buffer.
+	size_t enclosures_lim; // Shows how many enclosures can fit in current enclosures buffer.
 	struct author *authors;
-	size_t authors_len; // actual number of authors in authors buffer
-	size_t authors_lim; // shows how many authors can fit in current authors buffer
+	size_t authors_len; // Actual number of authors in authors buffer.
+	size_t authors_lim; // Shows how many authors can fit in current authors buffer.
+	// Dates in this struct are represented in seconds since the Epoch (1970-01-01 00:00 UTC).
+	// If some date set to 0 then it is considered unset.
 	time_t pubdate;
 	time_t upddate;
 };

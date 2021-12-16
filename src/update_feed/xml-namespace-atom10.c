@@ -10,15 +10,16 @@
 enum atom10_position {
 	ATOM10_NONE = 0,
 	ATOM10_ENTRY = 1,
-	ATOM10_TITLE = 2,
-	ATOM10_SUMMARY = 4,
-	ATOM10_ID = 8,
-	ATOM10_PUBLISHED = 16,
-	ATOM10_UPDATED = 32,
-	ATOM10_AUTHOR = 64,
-	ATOM10_NAME = 128,
-	ATOM10_URI = 256,
-	ATOM10_EMAIL = 512,
+	ATOM10_ID = 2,
+	ATOM10_TITLE = 4,
+	ATOM10_SUMMARY = 8,
+	ATOM10_CONTENT = 16,
+	ATOM10_PUBLISHED = 32,
+	ATOM10_UPDATED = 64,
+	ATOM10_AUTHOR = 128,
+	ATOM10_NAME = 256,
+	ATOM10_URI = 512,
+	ATOM10_EMAIL = 1024,
 };
 
 int16_t atom10_pos;
@@ -125,8 +126,15 @@ link_start(struct parser_data *data, const XML_Char **atts)
 }
 
 static inline void
-summary_start(void)
+summary_start(struct parser_data *data, const XML_Char **atts)
 {
+	const char *type_str = get_value_of_attribute_key(atts, "type");
+	if ((type_str != NULL) && ((atom10_pos & ATOM10_ENTRY) != 0)) {
+		if (cpyas(data->bucket->summary_type, type_str, strlen(type_str)) != 0) {
+			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+			return;
+		}
+	}
 	atom10_pos |= ATOM10_SUMMARY;
 }
 
@@ -138,12 +146,41 @@ summary_end(struct parser_data *data)
 	}
 	atom10_pos &= ~ATOM10_SUMMARY;
 	if ((atom10_pos & ATOM10_ENTRY) != 0) {
-		if (cpyas(data->bucket->content, data->value, data->value_len) != 0) {
+		if (cpyas(data->bucket->summary, data->value, data->value_len) != 0) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}
 	} else {
 		db_update_feed_text(data->feed_url, "description", data->value, data->value_len);
+	}
+}
+
+static inline void
+content_start(struct parser_data *data, const XML_Char **atts)
+{
+	const char *type_str = get_value_of_attribute_key(atts, "type");
+	if ((type_str != NULL) && ((atom10_pos & ATOM10_ENTRY) != 0)) {
+		if (cpyas(data->bucket->content_type, type_str, strlen(type_str)) != 0) {
+			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+			return;
+		}
+	}
+	atom10_pos |= ATOM10_CONTENT;
+}
+
+static inline void
+content_end(struct parser_data *data)
+{
+	if ((atom10_pos & ATOM10_CONTENT) == 0) {
+		return;
+	}
+	atom10_pos &= ~ATOM10_CONTENT;
+	if ((atom10_pos & ATOM10_ENTRY) == 0) {
+		return;
+	}
+	if (cpyas(data->bucket->content, data->value, data->value_len) != 0) {
+		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		return;
 	}
 }
 
@@ -270,7 +307,7 @@ uri_end(struct parser_data *data)
 	}
 	atom10_pos &= ~ATOM10_URI;
 	if ((atom10_pos & ATOM10_AUTHOR) == 0) {
-		// So far name tag can be found only in author element.
+		// So far uri tag can be found only in author element.
 		return;
 	}
 	if ((atom10_pos & ATOM10_ENTRY) == 0) {
@@ -297,7 +334,7 @@ email_end(struct parser_data *data)
 	}
 	atom10_pos &= ~ATOM10_EMAIL;
 	if ((atom10_pos & ATOM10_AUTHOR) == 0) {
-		// So far name tag can be found only in author element.
+		// So far email tag can be found only in author element.
 		return;
 	}
 	if ((atom10_pos & ATOM10_ENTRY) == 0) {
@@ -328,33 +365,37 @@ category_start(struct parser_data *data, const XML_Char **atts)
 void XMLCALL
 parse_atom10_element_start(struct parser_data *data, const XML_Char *name, const XML_Char **atts)
 {
-	     if (strcmp(name, "entry")     == 0) { entry_start();              }
-	else if (strcmp(name, "title")     == 0) { title_start();              }
-	else if (strcmp(name, "link")      == 0) { link_start(data, atts);     }
-	else if (strcmp(name, "summary")   == 0) { summary_start();            }
-	else if (strcmp(name, "id")        == 0) { id_start();                 }
-	else if (strcmp(name, "published") == 0) { published_start();          }
-	else if (strcmp(name, "updated")   == 0) { updated_start();            }
-	else if (strcmp(name, "author")    == 0) { author_start(data);         }
-	else if (strcmp(name, "name")      == 0) { name_start();               }
-	else if (strcmp(name, "uri")       == 0) { uri_start();                }
-	else if (strcmp(name, "email")     == 0) { email_start();              }
-	else if (strcmp(name, "category")  == 0) { category_start(data, atts); }
+	     if (strcmp(name, "entry")       == 0) { entry_start();              }
+	else if (strcmp(name, "id")          == 0) { id_start();                 }
+	else if (strcmp(name, "title")       == 0) { title_start();              }
+	else if (strcmp(name, "link")        == 0) { link_start(data, atts);     }
+	else if (strcmp(name, "summary")     == 0) { summary_start(data, atts);  }
+	else if (strcmp(name, "content")     == 0) { content_start(data, atts);  }
+	else if (strcmp(name, "published")   == 0) { published_start();          }
+	else if (strcmp(name, "updated")     == 0) { updated_start();            }
+	else if (strcmp(name, "author")      == 0) { author_start(data);         }
+	else if (strcmp(name, "contributor") == 0) { author_start(data);         }
+	else if (strcmp(name, "name")        == 0) { name_start();               }
+	else if (strcmp(name, "uri")         == 0) { uri_start();                }
+	else if (strcmp(name, "email")       == 0) { email_start();              }
+	else if (strcmp(name, "category")    == 0) { category_start(data, atts); }
 }
 
 void XMLCALL
 parse_atom10_element_end(struct parser_data *data, const XML_Char *name)
 {
-	     if (strcmp(name, "entry")     == 0) { entry_end(data);     }
-	else if (strcmp(name, "title")     == 0) { title_end(data);     }
-	else if (strcmp(name, "summary")   == 0) { summary_end(data);   }
-	else if (strcmp(name, "id")        == 0) { id_end(data);        }
-	else if (strcmp(name, "published") == 0) { published_end(data); }
-	else if (strcmp(name, "updated")   == 0) { updated_end(data);   }
-	else if (strcmp(name, "author")    == 0) { author_end();        }
-	else if (strcmp(name, "name")      == 0) { name_end(data);      }
-	else if (strcmp(name, "uri")       == 0) { uri_end(data);       }
-	else if (strcmp(name, "email")     == 0) { email_end(data);     }
+	     if (strcmp(name, "entry")       == 0) { entry_end(data);     }
+	else if (strcmp(name, "id")          == 0) { id_end(data);        }
+	else if (strcmp(name, "title")       == 0) { title_end(data);     }
+	else if (strcmp(name, "summary")     == 0) { summary_end(data);   }
+	else if (strcmp(name, "content")     == 0) { content_end(data);   }
+	else if (strcmp(name, "published")   == 0) { published_end(data); }
+	else if (strcmp(name, "updated")     == 0) { updated_end(data);   }
+	else if (strcmp(name, "author")      == 0) { author_end();        }
+	else if (strcmp(name, "contributor") == 0) { author_end();        }
+	else if (strcmp(name, "name")        == 0) { name_end(data);      }
+	else if (strcmp(name, "uri")         == 0) { uri_end(data);       }
+	else if (strcmp(name, "email")       == 0) { email_end(data);     }
 	// In Atom 1.0 link tag is a self-closing tag.
 	//else if (strcmp(name, "link")     == 0) {                     }
 	// In Atom 1.0 category tag is a self-closing tag.

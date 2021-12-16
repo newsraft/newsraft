@@ -120,11 +120,9 @@ view_select(size_t i)
 {
 	size_t new_sel = i;
 
-	// perform boundary check
 	if (new_sel >= items_count) {
-		if (items_count == 0) {
-			return;
-		}
+		// Don't check if items_count is zero because program
+		// won't even get here when not a single item loaded.
 		new_sel = items_count - 1;
 	}
 

@@ -92,7 +92,7 @@ if get_option('buildtype') == 'release'
 else
 	add_project_arguments(
 		[
-			'-O3', # This may reveal some errors during compilation.
+			'-Og', # better debugging experience
 			'-fanalyzer',
 			'-fdiagnostics-color=always',
 		],

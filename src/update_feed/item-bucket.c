@@ -12,25 +12,25 @@ create_item_bucket(void)
 {
 	struct item_bucket *bucket = malloc(sizeof(struct item_bucket));
 	if (bucket == NULL) {
-		goto create_item_bucket_undo1;
+		goto undo1;
 	}
 	if ((bucket->guid = create_empty_string()) == NULL) {
-		goto create_item_bucket_undo2;
+		goto undo2;
 	}
 	if ((bucket->title = create_empty_string()) == NULL) {
-		goto create_item_bucket_undo3;
+		goto undo3;
 	}
 	if ((bucket->url = create_empty_string()) == NULL) {
-		goto create_item_bucket_undo4;
+		goto undo4;
 	}
 	if ((bucket->categories = create_empty_string()) == NULL) {
-		goto create_item_bucket_undo5;
+		goto undo5;
 	}
 	if ((bucket->comments = create_empty_string()) == NULL) {
-		goto create_item_bucket_undo6;
+		goto undo6;
 	}
 	if ((bucket->content = create_empty_string()) == NULL) {
-		goto create_item_bucket_undo7;
+		goto undo7;
 	}
 	bucket->enclosures = NULL;
 	bucket->enclosures_len = 0;
@@ -41,19 +41,19 @@ create_item_bucket(void)
 	bucket->pubdate = 0;
 	bucket->upddate = 0;
 	return bucket;
-create_item_bucket_undo7:
+undo7:
 	free_string(bucket->comments);
-create_item_bucket_undo6:
+undo6:
 	free_string(bucket->categories);
-create_item_bucket_undo5:
+undo5:
 	free_string(bucket->url);
-create_item_bucket_undo4:
+undo4:
 	free_string(bucket->title);
-create_item_bucket_undo3:
+undo3:
 	free_string(bucket->guid);
-create_item_bucket_undo2:
+undo2:
 	free(bucket);
-create_item_bucket_undo1:
+undo1:
 	return NULL;
 }
 
@@ -132,6 +132,7 @@ expand_enclosures_of_item_bucket_by_one_element(struct item_bucket *bucket)
 		++(bucket->enclosures_lim);
 		if ((bucket->enclosures[bucket->enclosures_len].url = create_empty_string()) == NULL) {
 			FAIL("Not enough memory for item enclosure URL string.");
+			bucket->enclosures[bucket->enclosures_len].type = NULL;
 			return 1;
 		}
 		if ((bucket->enclosures[bucket->enclosures_len].type = create_empty_string()) == NULL) {
@@ -188,10 +189,13 @@ expand_authors_of_item_bucket_by_one_element(struct item_bucket *bucket)
 		++(bucket->authors_lim);
 		if ((bucket->authors[bucket->authors_len].name = create_empty_string()) == NULL) {
 			FAIL("Not enough memory for item author name string.");
+			bucket->authors[bucket->authors_len].email = NULL;
+			bucket->authors[bucket->authors_len].link = NULL;
 			return 1;
 		}
 		if ((bucket->authors[bucket->authors_len].email = create_empty_string()) == NULL) {
 			FAIL("Not enough memory for item author email string.");
+			bucket->authors[bucket->authors_len].link = NULL;
 			return 1;
 		}
 		if ((bucket->authors[bucket->authors_len].link = create_empty_string()) == NULL) {

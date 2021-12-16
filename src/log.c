@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <stdarg.h>
 #include "feedeater.h"
 
 FILE *log_stream = NULL;

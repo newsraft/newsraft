@@ -305,14 +305,13 @@ view_select(size_t i)
 	size_t new_sel = i;
 
 	if (new_sel >= sets_count) {
-		if (sets_count == 0) {
-			return;
-		}
+		// Don't check if sets_count is zero because program
+		// won't even get here when not a single set loaded.
 		new_sel = sets_count - 1;
 	}
 
+	// If set's condition is NULL, then this set is a decoration.
 	if (sets[new_sel].cond == NULL) {
-		// If set's condition is NULL, then it is a decoration.
 		// Here we make sure that user never selects decorations.
 		size_t temp_new_sel = new_sel;
 		if (new_sel > view_sel) {
@@ -424,11 +423,13 @@ reload_current_set(void)
 	const struct string *failed_feed;
 
 	for (size_t i = 0; i < sets[view_sel].cond->urls_count; ++i) {
+
 		status_write("(%d/%d) Loading %s", i + 1, sets[view_sel].cond->urls_count, sets[view_sel].cond->urls[i]->ptr);
 		if (update_feed(sets[view_sel].cond->urls[i]) != 0) {
 			failed_feed = sets[view_sel].cond->urls[i];
 			++errors;
 		}
+
 	}
 
 	if (errors != sets[view_sel].cond->urls_count) {

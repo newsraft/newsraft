@@ -91,7 +91,7 @@ parse_stream_callback(char *contents, size_t length, size_t nmemb, struct parser
 }
 
 static inline void
-drop_position_indicators(void)
+initialize_position_indicators(void)
 {
 #ifdef FEEDEATER_FORMAT_SUPPORT_RSS20
 	rss20_pos = 0;
@@ -174,7 +174,7 @@ update_feed(const struct string *url)
 	char curl_errbuf[CURL_ERROR_SIZE] = "";
 	curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, curl_errbuf);
 
-	drop_position_indicators();
+	initialize_position_indicators();
 
 	int res = curl_easy_perform(curl);
 	if (res != CURLE_OK) {

@@ -8,7 +8,7 @@
 
 struct entity_entry {
 	const char *name;
-	// store numbers as strings to compare them without conversion
+	// Store numbers as strings to compare them without conversion.
 	const char *number;
 	const char *hex_number;
 	const char *value;
@@ -17,6 +17,7 @@ struct entity_entry {
 // WARNING!
 // Before you add here an entity whose value is longer than name,
 // you have to make the data buffer dynamic to avoid overflow!
+// So far all entities here have names longer than values.
 // Also don't forget to update MAX_ENTITY_NAME_LENGTH every time
 // you add another entity with the longest name.
 static const struct entity_entry entities[] = {
@@ -109,55 +110,71 @@ static const struct entity_entry entities[] = {
 	{"pertenk",       "8241",  "2031",  "‱"},
 };
 
-static size_t
-count_insignificant_zeros(char *entity)
+static inline size_t
+count_insignificant_zeros(const char *entity)
 {
-	size_t insignificant_zeros_count = 0;
-	for (size_t i = 0; entity[i] != '\0'; ++i) {
-		if (entity[i] == '0') {
-			++insignificant_zeros_count;
-		} else {
-			break;
-		}
+	size_t i = 0;
+	while (entity[i] == '0') {
+		++i;
 	}
-	return insignificant_zeros_count;
+	return i;
 }
 
-static const char *
+static inline const char *
 translate_entity(char *entity)
 {
-	if (entity[0] == '#') { // entity is of number type
-		// Shift by 1 character because we already know that 1st character is a '#'.
-		char *entity_number = entity + 1;
-		if (entity_number[0] == 'x') { // entity is of hexadecimal number type
-			// Shift by 1 more character because we know that 1st character of entity_number is 'x'.
-			entity_number += 1;
-			entity_number += count_insignificant_zeros(entity_number);
+	size_t i;
+
+	if (entity[0] == '#') {
+		// Entity starts with '#' so this is a number entity.
+		// Shift one character because we already know that this is a
+		// number entity and all number entities have '#' at the beginning.
+		char *num_entity = entity + 1;
+
+		if (num_entity[0] == 'x') {
+			// If number entity has 'x' right after '#' then this is a
+			// hexadecimal number entity and we should shift one more character.
+			num_entity += 1;
+
+			// Shift insignificant zeros of number.
+			num_entity += count_insignificant_zeros(num_entity);
+
 			// Convert all hex digits of entity to upper case.
-			for (size_t i = 0; entity_number[i] != '\0'; ++i) {
-				entity_number[i] = toupper(entity_number[i]);
+			for (i = 0; num_entity[i] != '\0'; ++i) {
+				num_entity[i] = toupper(num_entity[i]);
 			}
-			for (size_t i = 0; i < LENGTH(entities); ++i) {
-				if (strcmp(entity_number, entities[i].hex_number) == 0) {
+
+			for (i = 0; i < LENGTH(entities); ++i) {
+				if (strcmp(num_entity, entities[i].hex_number) == 0) {
 					return entities[i].value;
 				}
 			}
-		} else { // entity is of decimal number type
-			entity_number += count_insignificant_zeros(entity_number);
-			for (size_t i = 0; i < LENGTH(entities); ++i) {
-				if (strcmp(entity_number, entities[i].number) == 0) {
+
+		} else {
+
+			// Shift insignificant zeros of number.
+			num_entity += count_insignificant_zeros(num_entity);
+
+			for (i = 0; i < LENGTH(entities); ++i) {
+				if (strcmp(num_entity, entities[i].number) == 0) {
 					return entities[i].value;
 				}
 			}
+
 		}
-	} else { // entity is of word type
-		for (size_t i = 0; i < LENGTH(entities); ++i) {
+
+	} else {
+
+		for (i = 0; i < LENGTH(entities); ++i) {
 			if ((entities[i].name != NULL) && (strcmp(entity, entities[i].name) == 0)) {
 				return entities[i].value;
 			}
 		}
+
 	}
+
 	WARN("Met an unknown HTML entity: %s", entity);
+
 	return NULL;
 }
 
@@ -195,10 +212,10 @@ expand_html_entities(const char *str, size_t str_len)
 				if (entity_len == MAX_ENTITY_NAME_LENGTH) {
 					in_entity = false;
 					entity_name[entity_len] = '\0';
+					data[data_len++] = '&';
 					data[data_len] = '\0';
-					strcat(data, "&");
 					strcat(data, entity_name);
-					data_len += strlen(entity_name) + 1;
+					data_len += strlen(entity_name);
 				} else {
 					entity_name[entity_len++] = str[i];
 				}
@@ -219,7 +236,7 @@ expand_html_entities(const char *str, size_t str_len)
 		entity_name[entity_len] = '\0';
 		strcat(data, "&");
 		strcat(data, entity_name);
-		data_len += strlen(entity_name) + 1;
+		data_len += 1 + entity_len;
 	}
 
 	struct string *text_buf = malloc(sizeof(struct string));

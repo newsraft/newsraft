@@ -128,7 +128,7 @@ void parse_dc_element_start       (struct parser_data *data, const XML_Char *nam
 void parse_dc_element_end         (struct parser_data *data, const XML_Char *name);
 #endif
 #ifdef FEEDEATER_FORMAT_SUPPORT_RSS11
-extern int16_t rss11_pos;
+extern int8_t rss11_pos;
 void parse_rss11_element_start    (struct parser_data *data, const XML_Char *name, const XML_Char **atts);
 void parse_rss11_element_end      (struct parser_data *data, const XML_Char *name);
 #endif

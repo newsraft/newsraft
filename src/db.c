@@ -50,6 +50,45 @@ db_init(void)
 	return 0; // success
 }
 
+int
+db_begin_transaction(void)
+{
+	char *errmsg;
+	sqlite3_exec(db, "BEGIN TRANSACTION;", NULL, NULL, &errmsg);
+	if (errmsg != NULL) {
+		FAIL("Can not begin transaction: %s", errmsg);
+		sqlite3_free(errmsg);
+		return 1;
+	}
+	return 0;
+}
+
+int
+db_commit_transaction(void)
+{
+	char *errmsg;
+	sqlite3_exec(db, "COMMIT;", NULL, NULL, &errmsg);
+	if (errmsg != NULL) {
+		FAIL("Can not commit transaction: %s", errmsg);
+		sqlite3_free(errmsg);
+		return 1;
+	}
+	return 0;
+}
+
+int
+db_rollback_transaction(void)
+{
+	char *errmsg;
+	sqlite3_exec(db, "ROLLBACK;", NULL, NULL, &errmsg);
+	if (errmsg != NULL) {
+		FAIL("Can not rollback transaction: %s", errmsg);
+		sqlite3_free(errmsg);
+		return 1;
+	}
+	return 0;
+}
+
 void
 db_stop(void)
 {

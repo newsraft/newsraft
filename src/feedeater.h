@@ -163,6 +163,9 @@ void free_set_condition(const struct set_condition *cond);
 // db
 int db_init(void);
 void db_stop(void);
+int db_begin_transaction(void);
+int db_commit_transaction(void);
+int db_rollback_transaction(void);
 int db_mark_item_read(int rowid);
 int db_mark_item_unread(int rowid);
 int get_unread_items_count(const struct set_condition *sc);

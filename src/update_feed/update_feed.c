@@ -110,6 +110,8 @@ initialize_position_indicators(void)
 #endif
 }
 
+// On success returns PARSE_OKAY (zero).
+// On failure returns non-zero.
 int
 update_feed(const struct string *url)
 {
@@ -117,7 +119,7 @@ update_feed(const struct string *url)
 	data.value        = malloc(sizeof(char) * config_init_parser_buf_size);
 	if (data.value == NULL) {
 		FAIL("Not enough memory for parser buffer to start updating a feed!");
-		return PARSE_FAIL_NOT_ENOUGH_MEMORY; // failure
+		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 	}
 	data.value_len     = 0;
 	data.value_lim     = config_init_parser_buf_size - 1; // never forget about terminator
@@ -128,14 +130,14 @@ update_feed(const struct string *url)
 	if (data.bucket == NULL) {
 		FAIL("Not enough memory for item bucket to start updating a feed!");
 		free(data.value);
-		return PARSE_FAIL_NOT_ENOUGH_MEMORY; // failure
+		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 	}
 	data.parser        = XML_ParserCreateNS(NULL, NAMESPACE_SEPARATOR);
 	if (data.parser == NULL) {
 		FAIL("Something went wrong during parser struct creation, can not start updating a feed!");
 		free_item_bucket(data.bucket);
 		free(data.value);
-		return PARSE_FAIL_NOT_ENOUGH_MEMORY; // failure
+		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 	}
 	data.start_handler = NULL;
 	data.end_handler   = NULL;
@@ -158,7 +160,7 @@ update_feed(const struct string *url)
 		free_item_bucket(data.bucket);
 		XML_ParserFree(data.parser);
 		free(data.value);
-		return PARSE_FAIL_NOT_ENOUGH_MEMORY; // failure
+		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 	}
 	curl_easy_setopt(curl, CURLOPT_URL, url->ptr);
 	curl_easy_setopt(curl, CURLOPT_FAILONERROR, 1);
@@ -176,6 +178,14 @@ update_feed(const struct string *url)
 
 	initialize_position_indicators();
 
+	if (db_begin_transaction() != 0) {
+		free_item_bucket(data.bucket);
+		XML_ParserFree(data.parser);
+		free(data.value);
+		curl_easy_cleanup(curl);
+		return PARSE_FAIL_DB_TRANSACTION_ERROR;
+	}
+
 	int res = curl_easy_perform(curl);
 	if (res != CURLE_OK) {
 		size_t curl_errbuf_len = strlen(curl_errbuf);
@@ -188,6 +198,7 @@ update_feed(const struct string *url)
 			WARN("curl_easy_perform failed: %s", curl_easy_strerror(res));
 		}
 		WARN("Feed update stopped due to fail in curl request!");
+		db_rollback_transaction();
 		free_item_bucket(data.bucket);
 		XML_ParserFree(data.parser);
 		free(data.value);
@@ -209,6 +220,12 @@ update_feed(const struct string *url)
 			     XML_GetCurrentLineNumber(data.parser));
 			data.error = PARSE_FAIL_XML_PARSE_ERROR;
 		}
+	}
+
+	if (data.error == PARSE_OKAY) {
+		db_commit_transaction();
+	} else {
+		db_rollback_transaction();
 	}
 
 	free_item_bucket(data.bucket);

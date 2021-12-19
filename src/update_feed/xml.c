@@ -2,6 +2,29 @@
 #include "feedeater.h"
 #include "update_feed/update_feed.h"
 
+bool
+we_are_inside_item(struct parser_data *data)
+{
+	if (
+#ifdef FEEDEATER_FORMAT_SUPPORT_RSS20
+		((data->rss20_pos  & RSS20_ITEM)   != 0) ||
+#endif
+#ifdef FEEDEATER_FORMAT_SUPPORT_ATOM10
+		((data->atom10_pos & ATOM10_ENTRY) != 0) ||
+#endif
+#ifdef FEEDEATER_FORMAT_SUPPORT_ATOM03
+		((data->atom03_pos & ATOM03_ENTRY) != 0) ||
+#endif
+#ifdef FEEDEATER_FORMAT_SUPPORT_RSS11
+		((data->rss11_pos  & RSS11_ITEM)   != 0) ||
+#endif
+		0
+	) {
+		return true;
+	}
+	return false;
+}
+
 const char *
 get_value_of_attribute_key(const XML_Char **atts, const char *key)
 {

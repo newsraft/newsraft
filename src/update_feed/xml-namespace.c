@@ -48,7 +48,7 @@ get_namespace_name(const XML_Char *name)
 	return namespace;
 }
 
-static const char *
+static inline const char *
 get_tag_name(const XML_Char *name)
 {
 	const char *separator_pos = strchr(name, NAMESPACE_SEPARATOR);

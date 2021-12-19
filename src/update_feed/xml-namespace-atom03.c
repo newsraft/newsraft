@@ -9,54 +9,37 @@
 // Note to the future.
 // Atom 0.3 does not have category element.
 
-enum atom03_position {
-	ATOM03_NONE = 0,
-	ATOM03_ENTRY = 1,
-	ATOM03_ID = 2,
-	ATOM03_TITLE = 4,
-	ATOM03_SUMMARY = 8,
-	ATOM03_CONTENT = 16,
-	ATOM03_ISSUED = 32,
-	ATOM03_MODIFIED = 64,
-	ATOM03_AUTHOR = 128,
-	ATOM03_NAME = 256,
-	ATOM03_URL = 512,
-	ATOM03_EMAIL = 1024,
-};
-
-int16_t atom03_pos;
-
 static inline void
-entry_start(void)
+entry_start(struct parser_data *data)
 {
-	atom03_pos |= ATOM03_ENTRY;
+	data->atom03_pos |= ATOM03_ENTRY;
 }
 
 static inline void
 entry_end(struct parser_data *data)
 {
-	if ((atom03_pos & ATOM03_ENTRY) == 0) {
+	if ((data->atom03_pos & ATOM03_ENTRY) == 0) {
 		return;
 	}
-	atom03_pos &= ~ATOM03_ENTRY;
+	data->atom03_pos &= ~ATOM03_ENTRY;
 	try_item_bucket(data->bucket, data->feed_url);
 	empty_item_bucket(data->bucket);
 }
 
 static inline void
-title_start(void)
+title_start(struct parser_data *data)
 {
-	atom03_pos |= ATOM03_TITLE;
+	data->atom03_pos |= ATOM03_TITLE;
 }
 
 static inline void
 title_end(struct parser_data *data)
 {
-	if ((atom03_pos & ATOM03_TITLE) == 0) {
+	if ((data->atom03_pos & ATOM03_TITLE) == 0) {
 		return;
 	}
-	atom03_pos &= ~ATOM03_TITLE;
-	if ((atom03_pos & ATOM03_ENTRY) != 0) {
+	data->atom03_pos &= ~ATOM03_TITLE;
+	if ((data->atom03_pos & ATOM03_ENTRY) != 0) {
 		if (cpyas(data->bucket->title, data->value, data->value_len) != 0) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
@@ -108,7 +91,7 @@ link_start(struct parser_data *data, const XML_Char **atts)
 		}
 	} else {
 		if (href != NULL) {
-			if ((atom03_pos & ATOM03_ENTRY) != 0) {
+			if ((data->atom03_pos & ATOM03_ENTRY) != 0) {
 				if (cpyas(data->bucket->url, href, strlen(href)) != 0) {
 					data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 					return;
@@ -125,23 +108,23 @@ static inline void
 summary_start(struct parser_data *data, const XML_Char **atts)
 {
 	const char *type_str = get_value_of_attribute_key(atts, "type");
-	if ((type_str != NULL) && ((atom03_pos & ATOM03_ENTRY) != 0)) {
+	if ((type_str != NULL) && ((data->atom03_pos & ATOM03_ENTRY) != 0)) {
 		if (cpyas(data->bucket->summary_type, type_str, strlen(type_str)) != 0) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}
 	}
-	atom03_pos |= ATOM03_SUMMARY;
+	data->atom03_pos |= ATOM03_SUMMARY;
 }
 
 static inline void
 summary_end(struct parser_data *data)
 {
-	if ((atom03_pos & ATOM03_SUMMARY) == 0) {
+	if ((data->atom03_pos & ATOM03_SUMMARY) == 0) {
 		return;
 	}
-	atom03_pos &= ~ATOM03_SUMMARY;
-	if ((atom03_pos & ATOM03_ENTRY) != 0) {
+	data->atom03_pos &= ~ATOM03_SUMMARY;
+	if ((data->atom03_pos & ATOM03_ENTRY) != 0) {
 		if (cpyas(data->bucket->summary, data->value, data->value_len) != 0) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
@@ -155,23 +138,23 @@ static inline void
 content_start(struct parser_data *data, const XML_Char **atts)
 {
 	const char *type_str = get_value_of_attribute_key(atts, "type");
-	if ((type_str != NULL) && ((atom03_pos & ATOM03_ENTRY) != 0)) {
+	if ((type_str != NULL) && ((data->atom03_pos & ATOM03_ENTRY) != 0)) {
 		if (cpyas(data->bucket->content_type, type_str, strlen(type_str)) != 0) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}
 	}
-	atom03_pos |= ATOM03_CONTENT;
+	data->atom03_pos |= ATOM03_CONTENT;
 }
 
 static inline void
 content_end(struct parser_data *data)
 {
-	if ((atom03_pos & ATOM03_CONTENT) == 0) {
+	if ((data->atom03_pos & ATOM03_CONTENT) == 0) {
 		return;
 	}
-	atom03_pos &= ~ATOM03_CONTENT;
-	if ((atom03_pos & ATOM03_ENTRY) == 0) {
+	data->atom03_pos &= ~ATOM03_CONTENT;
+	if ((data->atom03_pos & ATOM03_ENTRY) == 0) {
 		return;
 	}
 	if (cpyas(data->bucket->content, data->value, data->value_len) != 0) {
@@ -181,19 +164,19 @@ content_end(struct parser_data *data)
 }
 
 static inline void
-id_start(void)
+id_start(struct parser_data *data)
 {
-	atom03_pos |= ATOM03_ID;
+	data->atom03_pos |= ATOM03_ID;
 }
 
 static inline void
 id_end(struct parser_data *data)
 {
-	if ((atom03_pos & ATOM03_ID) == 0) {
+	if ((data->atom03_pos & ATOM03_ID) == 0) {
 		return;
 	}
-	atom03_pos &= ~ATOM03_ID;
-	if ((atom03_pos & ATOM03_ENTRY) == 0) {
+	data->atom03_pos &= ~ATOM03_ID;
+	if ((data->atom03_pos & ATOM03_ENTRY) == 0) {
 		// In Atom 0.3 feed can have unique id, but who needs it?
 		return;
 	}
@@ -204,19 +187,19 @@ id_end(struct parser_data *data)
 }
 
 static inline void
-issued_start(void)
+issued_start(struct parser_data *data)
 {
-	atom03_pos |= ATOM03_ISSUED;
+	data->atom03_pos |= ATOM03_ISSUED;
 }
 
 static inline void
 issued_end(struct parser_data *data)
 {
-	if ((atom03_pos & ATOM03_ISSUED) == 0) {
+	if ((data->atom03_pos & ATOM03_ISSUED) == 0) {
 		return;
 	}
-	atom03_pos &= ~ATOM03_ISSUED;
-	if ((atom03_pos & ATOM03_ENTRY) == 0) {
+	data->atom03_pos &= ~ATOM03_ISSUED;
+	if ((data->atom03_pos & ATOM03_ENTRY) == 0) {
 		// Atom 0.3 feed can have issued date but who needs it?
 		return;
 	}
@@ -224,19 +207,19 @@ issued_end(struct parser_data *data)
 }
 
 static inline void
-modified_start(void)
+modified_start(struct parser_data *data)
 {
-	atom03_pos |= ATOM03_MODIFIED;
+	data->atom03_pos |= ATOM03_MODIFIED;
 }
 
 static inline void
 modified_end(struct parser_data *data)
 {
-	if ((atom03_pos & ATOM03_MODIFIED) == 0) {
+	if ((data->atom03_pos & ATOM03_MODIFIED) == 0) {
 		return;
 	}
-	atom03_pos &= ~ATOM03_MODIFIED;
-	if ((atom03_pos & ATOM03_ENTRY) == 0) {
+	data->atom03_pos &= ~ATOM03_MODIFIED;
+	if ((data->atom03_pos & ATOM03_ENTRY) == 0) {
 		// Atom 0.3 feed can have modified date but who needs it?
 		return;
 	}
@@ -246,8 +229,8 @@ modified_end(struct parser_data *data)
 static inline void
 author_start(struct parser_data *data)
 {
-	atom03_pos |= ATOM03_AUTHOR;
-	if ((atom03_pos & ATOM03_ENTRY) == 0) {
+	data->atom03_pos |= ATOM03_AUTHOR;
+	if ((data->atom03_pos & ATOM03_ENTRY) == 0) {
 		// Atom 0.3 says that feed must have at least one author, but who needs it?
 		return;
 	}
@@ -258,32 +241,32 @@ author_start(struct parser_data *data)
 }
 
 static inline void
-author_end(void)
+author_end(struct parser_data *data)
 {
-	if ((atom03_pos & ATOM03_AUTHOR) == 0) {
+	if ((data->atom03_pos & ATOM03_AUTHOR) == 0) {
 		return;
 	}
-	atom03_pos &= ~ATOM03_AUTHOR;
+	data->atom03_pos &= ~ATOM03_AUTHOR;
 }
 
 static inline void
-name_start(void)
+name_start(struct parser_data *data)
 {
-	atom03_pos |= ATOM03_NAME;
+	data->atom03_pos |= ATOM03_NAME;
 }
 
 static inline void
 name_end(struct parser_data *data)
 {
-	if ((atom03_pos & ATOM03_NAME) == 0) {
+	if ((data->atom03_pos & ATOM03_NAME) == 0) {
 		return;
 	}
-	atom03_pos &= ~ATOM03_NAME;
-	if ((atom03_pos & ATOM03_AUTHOR) == 0) {
+	data->atom03_pos &= ~ATOM03_NAME;
+	if ((data->atom03_pos & ATOM03_AUTHOR) == 0) {
 		// So far name tag can be found only in author element.
 		return;
 	}
-	if ((atom03_pos & ATOM03_ENTRY) == 0) {
+	if ((data->atom03_pos & ATOM03_ENTRY) == 0) {
 		// Atom 0.3 says that feed can have global author, but who needs it?
 		return;
 	}
@@ -294,23 +277,23 @@ name_end(struct parser_data *data)
 }
 
 static inline void
-url_start(void)
+url_start(struct parser_data *data)
 {
-	atom03_pos |= ATOM03_URL;
+	data->atom03_pos |= ATOM03_URL;
 }
 
 static inline void
 url_end(struct parser_data *data)
 {
-	if ((atom03_pos & ATOM03_URL) == 0) {
+	if ((data->atom03_pos & ATOM03_URL) == 0) {
 		return;
 	}
-	atom03_pos &= ~ATOM03_URL;
-	if ((atom03_pos & ATOM03_AUTHOR) == 0) {
+	data->atom03_pos &= ~ATOM03_URL;
+	if ((data->atom03_pos & ATOM03_AUTHOR) == 0) {
 		// So far url tag can be found only in author element.
 		return;
 	}
-	if ((atom03_pos & ATOM03_ENTRY) == 0) {
+	if ((data->atom03_pos & ATOM03_ENTRY) == 0) {
 		// Atom 0.3 says that feed can have global author, but who needs it?
 		return;
 	}
@@ -321,23 +304,23 @@ url_end(struct parser_data *data)
 }
 
 static inline void
-email_start(void)
+email_start(struct parser_data *data)
 {
-	atom03_pos |= ATOM03_EMAIL;
+	data->atom03_pos |= ATOM03_EMAIL;
 }
 
 static inline void
 email_end(struct parser_data *data)
 {
-	if ((atom03_pos & ATOM03_EMAIL) == 0) {
+	if ((data->atom03_pos & ATOM03_EMAIL) == 0) {
 		return;
 	}
-	atom03_pos &= ~ATOM03_EMAIL;
-	if ((atom03_pos & ATOM03_AUTHOR) == 0) {
+	data->atom03_pos &= ~ATOM03_EMAIL;
+	if ((data->atom03_pos & ATOM03_AUTHOR) == 0) {
 		// So far email tag can be found only in author element.
 		return;
 	}
-	if ((atom03_pos & ATOM03_ENTRY) == 0) {
+	if ((data->atom03_pos & ATOM03_ENTRY) == 0) {
 		// Atom 0.3 says that feed can have global author, but who needs it?
 		return;
 	}
@@ -350,19 +333,19 @@ email_end(struct parser_data *data)
 void XMLCALL
 parse_atom03_element_start(struct parser_data *data, const XML_Char *name, const XML_Char **atts)
 {
-	     if (strcmp(name, "entry")       == 0) { entry_start();             }
-	else if (strcmp(name, "id")          == 0) { id_start();                }
-	else if (strcmp(name, "title")       == 0) { title_start();             }
+	     if (strcmp(name, "entry")       == 0) { entry_start(data);         }
+	else if (strcmp(name, "id")          == 0) { id_start(data);            }
+	else if (strcmp(name, "title")       == 0) { title_start(data);         }
 	else if (strcmp(name, "link")        == 0) { link_start(data, atts);    }
 	else if (strcmp(name, "summary")     == 0) { summary_start(data, atts); }
 	else if (strcmp(name, "content")     == 0) { content_start(data, atts); }
-	else if (strcmp(name, "issued")      == 0) { issued_start();            }
-	else if (strcmp(name, "modified")    == 0) { modified_start();          }
+	else if (strcmp(name, "issued")      == 0) { issued_start(data);        }
+	else if (strcmp(name, "modified")    == 0) { modified_start(data);      }
 	else if (strcmp(name, "author")      == 0) { author_start(data);        }
 	else if (strcmp(name, "contributor") == 0) { author_start(data);        }
-	else if (strcmp(name, "name")        == 0) { name_start();              }
-	else if (strcmp(name, "url")         == 0) { url_start();               }
-	else if (strcmp(name, "email")       == 0) { email_start();             }
+	else if (strcmp(name, "name")        == 0) { name_start(data);          }
+	else if (strcmp(name, "url")         == 0) { url_start(data);           }
+	else if (strcmp(name, "email")       == 0) { email_start(data);         }
 }
 
 void XMLCALL
@@ -375,8 +358,8 @@ parse_atom03_element_end(struct parser_data *data, const XML_Char *name)
 	else if (strcmp(name, "content")     == 0) { content_end(data);  }
 	else if (strcmp(name, "issued")      == 0) { issued_end(data);   }
 	else if (strcmp(name, "modified")    == 0) { modified_end(data); }
-	else if (strcmp(name, "author")      == 0) { author_end();       }
-	else if (strcmp(name, "contributor") == 0) { author_end();       }
+	else if (strcmp(name, "author")      == 0) { author_end(data);   }
+	else if (strcmp(name, "contributor") == 0) { author_end(data);   }
 	else if (strcmp(name, "name")        == 0) { name_end(data);     }
 	else if (strcmp(name, "url")         == 0) { url_end(data);      }
 	else if (strcmp(name, "email")       == 0) { email_end(data);    }

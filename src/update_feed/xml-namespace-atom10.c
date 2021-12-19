@@ -7,54 +7,37 @@
 // https://web.archive.org/web/20211118181732/https://validator.w3.org/feed/docs/atom.html
 // https://web.archive.org/web/20211201194224/https://datatracker.ietf.org/doc/html/rfc4287
 
-enum atom10_position {
-	ATOM10_NONE = 0,
-	ATOM10_ENTRY = 1,
-	ATOM10_ID = 2,
-	ATOM10_TITLE = 4,
-	ATOM10_SUMMARY = 8,
-	ATOM10_CONTENT = 16,
-	ATOM10_PUBLISHED = 32,
-	ATOM10_UPDATED = 64,
-	ATOM10_AUTHOR = 128,
-	ATOM10_NAME = 256,
-	ATOM10_URI = 512,
-	ATOM10_EMAIL = 1024,
-};
-
-int16_t atom10_pos;
-
 static inline void
-entry_start(void)
+entry_start(struct parser_data *data)
 {
-	atom10_pos |= ATOM10_ENTRY;
+	data->atom10_pos |= ATOM10_ENTRY;
 }
 
 static inline void
 entry_end(struct parser_data *data)
 {
-	if ((atom10_pos & ATOM10_ENTRY) == 0) {
+	if ((data->atom10_pos & ATOM10_ENTRY) == 0) {
 		return;
 	}
-	atom10_pos &= ~ATOM10_ENTRY;
+	data->atom10_pos &= ~ATOM10_ENTRY;
 	try_item_bucket(data->bucket, data->feed_url);
 	empty_item_bucket(data->bucket);
 }
 
 static inline void
-title_start(void)
+title_start(struct parser_data *data)
 {
-	atom10_pos |= ATOM10_TITLE;
+	data->atom10_pos |= ATOM10_TITLE;
 }
 
 static inline void
 title_end(struct parser_data *data)
 {
-	if ((atom10_pos & ATOM10_TITLE) == 0) {
+	if ((data->atom10_pos & ATOM10_TITLE) == 0) {
 		return;
 	}
-	atom10_pos &= ~ATOM10_TITLE;
-	if ((atom10_pos & ATOM10_ENTRY) != 0) {
+	data->atom10_pos &= ~ATOM10_TITLE;
+	if ((data->atom10_pos & ATOM10_ENTRY) != 0) {
 		if (cpyas(data->bucket->title, data->value, data->value_len) != 0) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
@@ -112,7 +95,7 @@ link_start(struct parser_data *data, const XML_Char **atts)
 		}
 	} else {
 		if (href != NULL) {
-			if ((atom10_pos & ATOM10_ENTRY) != 0) {
+			if ((data->atom10_pos & ATOM10_ENTRY) != 0) {
 				if (cpyas(data->bucket->url, href, strlen(href)) != 0) {
 					data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 					return;
@@ -129,23 +112,23 @@ static inline void
 summary_start(struct parser_data *data, const XML_Char **atts)
 {
 	const char *type_str = get_value_of_attribute_key(atts, "type");
-	if ((type_str != NULL) && ((atom10_pos & ATOM10_ENTRY) != 0)) {
+	if ((type_str != NULL) && ((data->atom10_pos & ATOM10_ENTRY) != 0)) {
 		if (cpyas(data->bucket->summary_type, type_str, strlen(type_str)) != 0) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}
 	}
-	atom10_pos |= ATOM10_SUMMARY;
+	data->atom10_pos |= ATOM10_SUMMARY;
 }
 
 static inline void
 summary_end(struct parser_data *data)
 {
-	if ((atom10_pos & ATOM10_SUMMARY) == 0) {
+	if ((data->atom10_pos & ATOM10_SUMMARY) == 0) {
 		return;
 	}
-	atom10_pos &= ~ATOM10_SUMMARY;
-	if ((atom10_pos & ATOM10_ENTRY) != 0) {
+	data->atom10_pos &= ~ATOM10_SUMMARY;
+	if ((data->atom10_pos & ATOM10_ENTRY) != 0) {
 		if (cpyas(data->bucket->summary, data->value, data->value_len) != 0) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
@@ -159,23 +142,23 @@ static inline void
 content_start(struct parser_data *data, const XML_Char **atts)
 {
 	const char *type_str = get_value_of_attribute_key(atts, "type");
-	if ((type_str != NULL) && ((atom10_pos & ATOM10_ENTRY) != 0)) {
+	if ((type_str != NULL) && ((data->atom10_pos & ATOM10_ENTRY) != 0)) {
 		if (cpyas(data->bucket->content_type, type_str, strlen(type_str)) != 0) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}
 	}
-	atom10_pos |= ATOM10_CONTENT;
+	data->atom10_pos |= ATOM10_CONTENT;
 }
 
 static inline void
 content_end(struct parser_data *data)
 {
-	if ((atom10_pos & ATOM10_CONTENT) == 0) {
+	if ((data->atom10_pos & ATOM10_CONTENT) == 0) {
 		return;
 	}
-	atom10_pos &= ~ATOM10_CONTENT;
-	if ((atom10_pos & ATOM10_ENTRY) == 0) {
+	data->atom10_pos &= ~ATOM10_CONTENT;
+	if ((data->atom10_pos & ATOM10_ENTRY) == 0) {
 		return;
 	}
 	if (cpyas(data->bucket->content, data->value, data->value_len) != 0) {
@@ -185,19 +168,19 @@ content_end(struct parser_data *data)
 }
 
 static inline void
-id_start(void)
+id_start(struct parser_data *data)
 {
-	atom10_pos |= ATOM10_ID;
+	data->atom10_pos |= ATOM10_ID;
 }
 
 static inline void
 id_end(struct parser_data *data)
 {
-	if ((atom10_pos & ATOM10_ID) == 0) {
+	if ((data->atom10_pos & ATOM10_ID) == 0) {
 		return;
 	}
-	atom10_pos &= ~ATOM10_ID;
-	if ((atom10_pos & ATOM10_ENTRY) == 0) {
+	data->atom10_pos &= ~ATOM10_ID;
+	if ((data->atom10_pos & ATOM10_ENTRY) == 0) {
 		// In Atom 1.0 feed can have unique id, but who needs it?
 		return;
 	}
@@ -208,37 +191,37 @@ id_end(struct parser_data *data)
 }
 
 static inline void
-published_start(void)
+published_start(struct parser_data *data)
 {
-	atom10_pos |= ATOM10_PUBLISHED;
+	data->atom10_pos |= ATOM10_PUBLISHED;
 }
 
 static inline void
 published_end(struct parser_data *data)
 {
-	if ((atom10_pos & ATOM10_PUBLISHED) == 0) {
+	if ((data->atom10_pos & ATOM10_PUBLISHED) == 0) {
 		return;
 	}
-	atom10_pos &= ~ATOM10_PUBLISHED;
-	if ((atom10_pos & ATOM10_ENTRY) != 0) {
+	data->atom10_pos &= ~ATOM10_PUBLISHED;
+	if ((data->atom10_pos & ATOM10_ENTRY) != 0) {
 		data->bucket->pubdate = parse_date_rfc3339(data->value, data->value_len);
 	}
 }
 
 static inline void
-updated_start(void)
+updated_start(struct parser_data *data)
 {
-	atom10_pos |= ATOM10_UPDATED;
+	data->atom10_pos |= ATOM10_UPDATED;
 }
 
 static inline void
 updated_end(struct parser_data *data)
 {
-	if ((atom10_pos & ATOM10_UPDATED) == 0) {
+	if ((data->atom10_pos & ATOM10_UPDATED) == 0) {
 		return;
 	}
-	atom10_pos &= ~ATOM10_UPDATED;
-	if ((atom10_pos & ATOM10_ENTRY) != 0) {
+	data->atom10_pos &= ~ATOM10_UPDATED;
+	if ((data->atom10_pos & ATOM10_ENTRY) != 0) {
 		data->bucket->upddate = parse_date_rfc3339(data->value, data->value_len);
 	}
 }
@@ -246,8 +229,8 @@ updated_end(struct parser_data *data)
 static inline void
 author_start(struct parser_data *data)
 {
-	atom10_pos |= ATOM10_AUTHOR;
-	if ((atom10_pos & ATOM10_ENTRY) == 0) {
+	data->atom10_pos |= ATOM10_AUTHOR;
+	if ((data->atom10_pos & ATOM10_ENTRY) == 0) {
 		// Atom 1.0 says that feed can have global author, but who needs it?
 		return;
 	}
@@ -258,32 +241,32 @@ author_start(struct parser_data *data)
 }
 
 static inline void
-author_end(void)
+author_end(struct parser_data *data)
 {
-	if ((atom10_pos & ATOM10_AUTHOR) == 0) {
+	if ((data->atom10_pos & ATOM10_AUTHOR) == 0) {
 		return;
 	}
-	atom10_pos &= ~ATOM10_AUTHOR;
+	data->atom10_pos &= ~ATOM10_AUTHOR;
 }
 
 static inline void
-name_start(void)
+name_start(struct parser_data *data)
 {
-	atom10_pos |= ATOM10_NAME;
+	data->atom10_pos |= ATOM10_NAME;
 }
 
 static inline void
 name_end(struct parser_data *data)
 {
-	if ((atom10_pos & ATOM10_NAME) == 0) {
+	if ((data->atom10_pos & ATOM10_NAME) == 0) {
 		return;
 	}
-	atom10_pos &= ~ATOM10_NAME;
-	if ((atom10_pos & ATOM10_AUTHOR) == 0) {
+	data->atom10_pos &= ~ATOM10_NAME;
+	if ((data->atom10_pos & ATOM10_AUTHOR) == 0) {
 		// So far name tag can be found only in author element.
 		return;
 	}
-	if ((atom10_pos & ATOM10_ENTRY) == 0) {
+	if ((data->atom10_pos & ATOM10_ENTRY) == 0) {
 		// Atom 1.0 says that feed can have global author, but who needs it?
 		return;
 	}
@@ -294,23 +277,23 @@ name_end(struct parser_data *data)
 }
 
 static inline void
-uri_start(void)
+uri_start(struct parser_data *data)
 {
-	atom10_pos |= ATOM10_URI;
+	data->atom10_pos |= ATOM10_URI;
 }
 
 static inline void
 uri_end(struct parser_data *data)
 {
-	if ((atom10_pos & ATOM10_URI) == 0) {
+	if ((data->atom10_pos & ATOM10_URI) == 0) {
 		return;
 	}
-	atom10_pos &= ~ATOM10_URI;
-	if ((atom10_pos & ATOM10_AUTHOR) == 0) {
+	data->atom10_pos &= ~ATOM10_URI;
+	if ((data->atom10_pos & ATOM10_AUTHOR) == 0) {
 		// So far uri tag can be found only in author element.
 		return;
 	}
-	if ((atom10_pos & ATOM10_ENTRY) == 0) {
+	if ((data->atom10_pos & ATOM10_ENTRY) == 0) {
 		// Atom 1.0 says that feed can have global author, but who needs it?
 		return;
 	}
@@ -321,23 +304,23 @@ uri_end(struct parser_data *data)
 }
 
 static inline void
-email_start(void)
+email_start(struct parser_data *data)
 {
-	atom10_pos |= ATOM10_EMAIL;
+	data->atom10_pos |= ATOM10_EMAIL;
 }
 
 static inline void
 email_end(struct parser_data *data)
 {
-	if ((atom10_pos & ATOM10_EMAIL) == 0) {
+	if ((data->atom10_pos & ATOM10_EMAIL) == 0) {
 		return;
 	}
-	atom10_pos &= ~ATOM10_EMAIL;
-	if ((atom10_pos & ATOM10_AUTHOR) == 0) {
+	data->atom10_pos &= ~ATOM10_EMAIL;
+	if ((data->atom10_pos & ATOM10_AUTHOR) == 0) {
 		// So far email tag can be found only in author element.
 		return;
 	}
-	if ((atom10_pos & ATOM10_ENTRY) == 0) {
+	if ((data->atom10_pos & ATOM10_ENTRY) == 0) {
 		// Atom 1.0 says that feed can have global author, but who needs it?
 		return;
 	}
@@ -350,7 +333,7 @@ email_end(struct parser_data *data)
 static inline void
 category_start(struct parser_data *data, const XML_Char **atts)
 {
-	if ((atom10_pos & ATOM10_ENTRY) == 0) {
+	if ((data->atom10_pos & ATOM10_ENTRY) == 0) {
 		// Atom 1.0 says that feed can have global categories, but who needs it?
 		return;
 	}
@@ -365,19 +348,19 @@ category_start(struct parser_data *data, const XML_Char **atts)
 void XMLCALL
 parse_atom10_element_start(struct parser_data *data, const XML_Char *name, const XML_Char **atts)
 {
-	     if (strcmp(name, "entry")       == 0) { entry_start();              }
-	else if (strcmp(name, "id")          == 0) { id_start();                 }
-	else if (strcmp(name, "title")       == 0) { title_start();              }
+	     if (strcmp(name, "entry")       == 0) { entry_start(data);          }
+	else if (strcmp(name, "id")          == 0) { id_start(data);             }
+	else if (strcmp(name, "title")       == 0) { title_start(data);          }
 	else if (strcmp(name, "link")        == 0) { link_start(data, atts);     }
 	else if (strcmp(name, "summary")     == 0) { summary_start(data, atts);  }
 	else if (strcmp(name, "content")     == 0) { content_start(data, atts);  }
-	else if (strcmp(name, "published")   == 0) { published_start();          }
-	else if (strcmp(name, "updated")     == 0) { updated_start();            }
+	else if (strcmp(name, "published")   == 0) { published_start(data);      }
+	else if (strcmp(name, "updated")     == 0) { updated_start(data);        }
 	else if (strcmp(name, "author")      == 0) { author_start(data);         }
 	else if (strcmp(name, "contributor") == 0) { author_start(data);         }
-	else if (strcmp(name, "name")        == 0) { name_start();               }
-	else if (strcmp(name, "uri")         == 0) { uri_start();                }
-	else if (strcmp(name, "email")       == 0) { email_start();              }
+	else if (strcmp(name, "name")        == 0) { name_start(data);           }
+	else if (strcmp(name, "uri")         == 0) { uri_start(data);            }
+	else if (strcmp(name, "email")       == 0) { email_start(data);          }
 	else if (strcmp(name, "category")    == 0) { category_start(data, atts); }
 }
 
@@ -391,14 +374,14 @@ parse_atom10_element_end(struct parser_data *data, const XML_Char *name)
 	else if (strcmp(name, "content")     == 0) { content_end(data);   }
 	else if (strcmp(name, "published")   == 0) { published_end(data); }
 	else if (strcmp(name, "updated")     == 0) { updated_end(data);   }
-	else if (strcmp(name, "author")      == 0) { author_end();        }
-	else if (strcmp(name, "contributor") == 0) { author_end();        }
+	else if (strcmp(name, "author")      == 0) { author_end(data);    }
+	else if (strcmp(name, "contributor") == 0) { author_end(data);    }
 	else if (strcmp(name, "name")        == 0) { name_end(data);      }
 	else if (strcmp(name, "uri")         == 0) { uri_end(data);       }
 	else if (strcmp(name, "email")       == 0) { email_end(data);     }
 	// In Atom 1.0 link tag is a self-closing tag.
-	//else if (strcmp(name, "link")     == 0) {                     }
+	//else if (strcmp(name, "link")     == 0) {                       }
 	// In Atom 1.0 category tag is a self-closing tag.
-	//else if (strcmp(name, "category") == 0) {                     }
+	//else if (strcmp(name, "category") == 0) {                       }
 }
 #endif // FEEDEATER_FORMAT_SUPPORT_ATOM10

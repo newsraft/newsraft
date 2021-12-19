@@ -12,28 +12,29 @@ start_element_handler(struct parser_data *data, const XML_Char *name, const XML_
 	}
 	++(data->depth);
 	data->value_len = 0;
+	if (parse_namespace_element_start(data, name, atts) == 0) {
+		// Successfully processed an element by its namespace.
+		return;
+	}
 	if (data->start_handler != NULL) {
-		if (parse_namespace_element_start(data, name, atts) != 0) {
-			data->start_handler(data, name, atts);
-		}
-	} else {
-		if ((data->depth == 1) && (strcmp(name, "rss") == 0)) {
-			const char *version = get_value_of_attribute_key(atts, "version");
-			if ((version != NULL) &&
-				((strcmp(version, "2.0") == 0) ||
-				(strcmp(version, "0.94") == 0) ||
-				(strcmp(version, "0.93") == 0) ||
-				(strcmp(version, "0.92") == 0) ||
-				(strcmp(version, "0.91") == 0)))
-			{
-				data->start_handler = &parse_rss20_element_start;
-				data->end_handler = &parse_rss20_element_end;
-				return;
-			}
-		} else {
-			parse_namespace_element_start(data, name, atts);
+		data->start_handler(data, name, atts);
+		return;
+	}
+#ifdef FEEDEATER_FORMAT_SUPPORT_RSS20
+	if ((data->depth == 1) && (strcmp(name, "rss") == 0)) {
+		const char *version = get_value_of_attribute_key(atts, "version");
+		if ((version != NULL) &&
+			((strcmp(version, "2.0") == 0) ||
+			(strcmp(version, "0.94") == 0) ||
+			(strcmp(version, "0.93") == 0) ||
+			(strcmp(version, "0.92") == 0) ||
+			(strcmp(version, "0.91") == 0)))
+		{
+			data->start_handler = &parse_rss20_element_start;
+			data->end_handler = &parse_rss20_element_end;
 		}
 	}
+#endif
 }
 
 static void XMLCALL
@@ -44,11 +45,14 @@ end_element_handler(struct parser_data *data, const XML_Char *name)
 	}
 	--(data->depth);
 	strip_whitespace_from_edges(data->value, &(data->value_len));
-	if (data->end_handler == NULL) {
-		parse_namespace_element_end(data, name);
+	if (parse_namespace_element_end(data, name) == 0) {
+		// Successfully processed an element by its namespace.
 		return;
 	}
-	data->end_handler(data, name);
+	if (data->end_handler != NULL) {
+		data->end_handler(data, name);
+		return;
+	}
 }
 
 // Important note: a single block of contiguous text free of markup may still result in a sequence of calls to CharacterDataHandler.
@@ -90,26 +94,6 @@ parse_stream_callback(char *contents, size_t length, size_t nmemb, struct parser
 	return real_size;
 }
 
-static inline void
-initialize_position_indicators(void)
-{
-#ifdef FEEDEATER_FORMAT_SUPPORT_RSS20
-	rss20_pos = 0;
-#endif
-#ifdef FEEDEATER_FORMAT_SUPPORT_ATOM10
-	atom10_pos = 0;
-#endif
-#ifdef FEEDEATER_FORMAT_SUPPORT_ATOM03
-	atom03_pos = 0;
-#endif
-#ifdef FEEDEATER_FORMAT_SUPPORT_DUBLINCORE
-	dc_pos = 0;
-#endif
-#ifdef FEEDEATER_FORMAT_SUPPORT_RSS11
-	rss11_pos = 0;
-#endif
-}
-
 // On success returns PARSE_OKAY (zero).
 // On failure returns non-zero.
 int
@@ -123,9 +107,6 @@ update_feed(const struct string *url)
 	}
 	data.value_len     = 0;
 	data.value_lim     = config_init_parser_buf_size - 1; // never forget about terminator
-	data.depth         = 0;
-	data.pos           = IN_ROOT;
-	data.feed_url      = url;
 	data.bucket        = create_item_bucket();
 	if (data.bucket == NULL) {
 		FAIL("Not enough memory for item bucket to start updating a feed!");
@@ -139,6 +120,23 @@ update_feed(const struct string *url)
 		free(data.value);
 		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 	}
+	data.depth         = 0;
+	data.feed_url      = url;
+#ifdef FEEDEATER_FORMAT_SUPPORT_RSS20
+	data.rss20_pos     = RSS20_NONE;
+#endif
+#ifdef FEEDEATER_FORMAT_SUPPORT_ATOM10
+	data.atom10_pos    = ATOM10_NONE;
+#endif
+#ifdef FEEDEATER_FORMAT_SUPPORT_ATOM03
+	data.atom03_pos    = ATOM03_NONE;
+#endif
+#ifdef FEEDEATER_FORMAT_SUPPORT_DUBLINCORE
+	data.dc_pos        = DC_NONE;
+#endif
+#ifdef FEEDEATER_FORMAT_SUPPORT_RSS11
+	data.rss11_pos     = RSS11_NONE;
+#endif
 	data.start_handler = NULL;
 	data.end_handler   = NULL;
 	data.error         = PARSE_OKAY;
@@ -175,8 +173,6 @@ update_feed(const struct string *url)
 	curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1L);
 	char curl_errbuf[CURL_ERROR_SIZE] = "";
 	curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, curl_errbuf);
-
-	initialize_position_indicators();
 
 	if (db_begin_transaction() != 0) {
 		free_item_bucket(data.bucket);

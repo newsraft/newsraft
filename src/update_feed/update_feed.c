@@ -123,19 +123,22 @@ update_feed(const struct string *url)
 	data.depth         = 0;
 	data.feed_url      = url;
 #ifdef FEEDEATER_FORMAT_SUPPORT_RSS20
-	data.rss20_pos     = RSS20_NONE;
+	data.rss20_pos = RSS20_NONE;
 #endif
 #ifdef FEEDEATER_FORMAT_SUPPORT_ATOM10
-	data.atom10_pos    = ATOM10_NONE;
+	data.atom10_pos = ATOM10_NONE;
 #endif
 #ifdef FEEDEATER_FORMAT_SUPPORT_ATOM03
-	data.atom03_pos    = ATOM03_NONE;
+	data.atom03_pos = ATOM03_NONE;
 #endif
 #ifdef FEEDEATER_FORMAT_SUPPORT_DUBLINCORE
-	data.dc_pos        = DC_NONE;
+	data.dc_pos = DC_NONE;
 #endif
 #ifdef FEEDEATER_FORMAT_SUPPORT_RSS11
-	data.rss11_pos     = RSS11_NONE;
+	data.rss11_pos = RSS11_NONE;
+#endif
+#ifdef FEEDEATER_FORMAT_SUPPORT_RSS10CONTENT
+	data.rss10content_pos = RSS10CONTENT_NONE;
 #endif
 	data.start_handler = NULL;
 	data.end_handler   = NULL;

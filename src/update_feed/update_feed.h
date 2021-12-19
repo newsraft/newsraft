@@ -71,6 +71,9 @@ struct parser_data {
 #ifdef FEEDEATER_FORMAT_SUPPORT_RSS11
 	int8_t rss11_pos;
 #endif
+#ifdef FEEDEATER_FORMAT_SUPPORT_RSS10CONTENT
+	int8_t rss10content_pos;
+#endif
 	XML_Parser parser;
 	void (*start_handler)(struct parser_data *data, const XML_Char *name, const XML_Char **atts);
 	void (*end_handler)(struct parser_data *data, const XML_Char *name);
@@ -117,8 +120,8 @@ enum rss20_position {
 	RSS20_COMMENTS = 512,
 	RSS20_CHANNEL = 1024,
 };
-void parse_rss20_element_start    (struct parser_data *data, const XML_Char *name, const XML_Char **atts);
-void parse_rss20_element_end      (struct parser_data *data, const XML_Char *name);
+void parse_rss20_element_start (struct parser_data *data, const XML_Char *name, const XML_Char **atts);
+void parse_rss20_element_end   (struct parser_data *data, const XML_Char *name);
 #endif
 #ifdef FEEDEATER_FORMAT_SUPPORT_ATOM10
 enum atom10_position {
@@ -135,8 +138,8 @@ enum atom10_position {
 	ATOM10_URI = 512,
 	ATOM10_EMAIL = 1024,
 };
-void parse_atom10_element_start   (struct parser_data *data, const XML_Char *name, const XML_Char **atts);
-void parse_atom10_element_end     (struct parser_data *data, const XML_Char *name);
+void parse_atom10_element_start (struct parser_data *data, const XML_Char *name, const XML_Char **atts);
+void parse_atom10_element_end   (struct parser_data *data, const XML_Char *name);
 #endif
 #ifdef FEEDEATER_FORMAT_SUPPORT_ATOM03
 enum atom03_position {
@@ -153,8 +156,8 @@ enum atom03_position {
 	ATOM03_URL = 512,
 	ATOM03_EMAIL = 1024,
 };
-void parse_atom03_element_start   (struct parser_data *data, const XML_Char *name, const XML_Char **atts);
-void parse_atom03_element_end     (struct parser_data *data, const XML_Char *name);
+void parse_atom03_element_start (struct parser_data *data, const XML_Char *name, const XML_Char **atts);
+void parse_atom03_element_end   (struct parser_data *data, const XML_Char *name);
 #endif
 #ifdef FEEDEATER_FORMAT_SUPPORT_DUBLINCORE
 enum dc_position {
@@ -164,8 +167,8 @@ enum dc_position {
 	DC_CREATOR = 4,
 	DC_SUBJECT = 8,
 };
-void parse_dc_element_start       (struct parser_data *data, const XML_Char *name, const XML_Char **atts);
-void parse_dc_element_end         (struct parser_data *data, const XML_Char *name);
+void parse_dc_element_start (struct parser_data *data, const XML_Char *name, const XML_Char **atts);
+void parse_dc_element_end   (struct parser_data *data, const XML_Char *name);
 #endif
 #ifdef FEEDEATER_FORMAT_SUPPORT_RSS11
 enum rss11_position {
@@ -177,8 +180,16 @@ enum rss11_position {
 	RSS11_IMAGE = 16,
 	RSS11_URL = 32,
 };
-void parse_rss11_element_start    (struct parser_data *data, const XML_Char *name, const XML_Char **atts);
-void parse_rss11_element_end      (struct parser_data *data, const XML_Char *name);
+void parse_rss11_element_start (struct parser_data *data, const XML_Char *name, const XML_Char **atts);
+void parse_rss11_element_end   (struct parser_data *data, const XML_Char *name);
+#endif
+#ifdef FEEDEATER_FORMAT_SUPPORT_RSS10CONTENT
+enum rss10content_position {
+	RSS10CONTENT_NONE = 0,
+	RSS10CONTENT_ENCODED = 1,
+};
+void parse_rss10content_element_start (struct parser_data *data, const XML_Char *name, const XML_Char **atts);
+void parse_rss10content_element_end   (struct parser_data *data, const XML_Char *name);
 #endif
 
 #endif // UPDATE_FEED_H

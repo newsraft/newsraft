@@ -24,6 +24,9 @@ static const struct namespace_handler namespace_handlers[] = {
 	{"http://channel.netscape.com/rdf/simple/0.9/", &parse_rss11_element_start,  &parse_rss11_element_end},
 	{"http://purl.org/net/rss1.1#",                 &parse_rss11_element_start,  &parse_rss11_element_end},
 #endif
+#ifdef FEEDEATER_FORMAT_SUPPORT_RSS10CONTENT
+	{"http://purl.org/rss/1.0/modules/content/",    &parse_rss10content_element_start, &parse_rss10content_element_end},
+#endif
 };
 
 static char *

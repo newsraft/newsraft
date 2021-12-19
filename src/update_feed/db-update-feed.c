@@ -27,10 +27,15 @@ make_sure_feed_is_in_db(const struct string *feed_url)
 	}
 	bool created = false;
 	sqlite3_stmt *s;
-	if (sqlite3_prepare_v2(db, "INSERT INTO feeds (url) VALUES(?)", -1, &s, 0) == SQLITE_OK) {
+	if (sqlite3_prepare_v2(db, "INSERT INTO feeds VALUES(?, ?, ?, ?)", -1, &s, 0) == SQLITE_OK) {
 		sqlite3_bind_text(s, 1, feed_url->ptr, feed_url->len, NULL);
+		sqlite3_bind_text(s, 2, "", 0, NULL);
+		sqlite3_bind_text(s, 3, "", 0, NULL);
+		sqlite3_bind_text(s, 4, "", 0, NULL);
 		if (sqlite3_step(s) == SQLITE_DONE) {
 			created = true;
+		} else {
+			FAIL("Failed to insert new feed entry: %s", sqlite3_errmsg(db));
 		}
 		sqlite3_finalize(s);
 	} else {
@@ -43,7 +48,7 @@ void
 db_update_feed_text(const struct string *feed_url, const char *column, const char *data, size_t data_len)
 {
 	if (make_sure_feed_is_in_db(feed_url) == false) {
-		FAIL("Can not create feed entry in database!");
+		FAIL("Can not create feed entry for %s in database!", feed_url->ptr);
 		return; // failure
 	}
 

@@ -293,19 +293,25 @@ get_contents_of_item(sqlite3_stmt *res)
 	}
 
 	char *text = (char *)sqlite3_column_text(res, ITEM_COLUMN_CONTENT);
-	if (text != NULL) {
-		size_t text_len = strlen(text);
-		if (text_len != 0) {
-			struct string *plain_text = plainify_html(text, text_len);
-			if (plain_text != NULL) {
-				if (plain_text->len != 0) {
-					catcs(buf, '\n');
-					catss(buf, plain_text);
-				}
-				free_string(plain_text);
+	char *text_type = (char *)sqlite3_column_text(res, ITEM_COLUMN_CONTENT_TYPE);
+	size_t text_len = strlen(text);
+	if (text_len == 0) {
+		text = (char *)sqlite3_column_text(res, ITEM_COLUMN_SUMMARY);
+		text_type = (char *)sqlite3_column_text(res, ITEM_COLUMN_SUMMARY_TYPE);
+		text_len = strlen(text);
+	}
+
+	if (text_len != 0) {
+		struct string *plain_text = plainify_html(text, text_len);
+		if (plain_text != NULL) {
+			if (plain_text->len != 0) {
+				catcs(buf, '\n');
+				catss(buf, plain_text);
 			}
+			free_string(plain_text);
 		}
 	}
+
 	return (const struct string *)buf;
 }
 

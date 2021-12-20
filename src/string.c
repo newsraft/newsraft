@@ -7,14 +7,14 @@ create_string(const char *src, size_t len)
 {
 	struct string *str = malloc(sizeof(struct string));
 	if (str == NULL) {
-		FAIL("Not enough memory for string creation!");
-		return NULL; // failure
+		FAIL("Not enough memory for string structure!");
+		return NULL;
 	}
 	str->ptr = malloc(sizeof(char) * (len + 1));
 	if (str->ptr == NULL) {
-		FAIL("Not enough memory for string creation!");
+		FAIL("Not enough memory for string pointer!");
 		free(str);
-		return NULL; // failure
+		return NULL;
 	}
 	if (src != NULL) {
 		if (len != 0) {
@@ -27,7 +27,7 @@ create_string(const char *src, size_t len)
 		str->lim = len;
 	}
 	*(str->ptr + len) = '\0';
-	return str; // success
+	return str;
 }
 
 struct string *
@@ -73,10 +73,11 @@ catas(struct string *dest, const char *src_ptr, size_t src_len)
 {
 	size_t new_len = dest->len + src_len;
 	if (new_len > dest->lim) {
-		char *temp = realloc(dest->ptr, sizeof(char) * (new_len + 1));
+		// Multiply by 2 to decrease number of further realloc calls.
+		char *temp = realloc(dest->ptr, sizeof(char) * (new_len * 2 + 1));
 		if (temp != NULL) {
 			dest->ptr = temp;
-			dest->lim = new_len;
+			dest->lim = new_len * 2;
 		} else {
 			FAIL("Not enough memory for concatenating array to string.");
 			return 1;
@@ -136,44 +137,44 @@ free_string(struct string *str)
 }
 
 void
-strip_whitespace_from_edges(char *str, size_t *len)
+strip_whitespace_from_edges(struct string *str)
 {
-	if (*len == 0) {
+	if (str->len == 0) {
 		return;
 	}
 
-	size_t left_edge = 0, right_edge = *len - 1;
-	while ((*(str + left_edge) == ' '   ||
-	        *(str + left_edge) == '\t'  ||
-	        *(str + left_edge) == '\r'  ||
-	        *(str + left_edge) == '\n') &&
+	size_t left_edge = 0, right_edge = str->len - 1;
+	while ((*(str->ptr + left_edge) == ' '   ||
+	        *(str->ptr + left_edge) == '\t'  ||
+	        *(str->ptr + left_edge) == '\r'  ||
+	        *(str->ptr + left_edge) == '\n') &&
 	       left_edge <= right_edge)
 	{
 		++left_edge;
 	}
-	while ((*(str + right_edge) == ' '   ||
-	        *(str + right_edge) == '\t'  ||
-	        *(str + right_edge) == '\r'  ||
-	        *(str + right_edge) == '\n') &&
+	while ((*(str->ptr + right_edge) == ' '   ||
+	        *(str->ptr + right_edge) == '\t'  ||
+	        *(str->ptr + right_edge) == '\r'  ||
+	        *(str->ptr + right_edge) == '\n') &&
 	       right_edge >= left_edge)
 	{
 		--right_edge;
 	}
 
-	if ((left_edge == 0) && (right_edge == (*len - 1))) {
+	if ((left_edge == 0) && (right_edge == (str->len - 1))) {
 		return;
 	}
 
 	if (right_edge < left_edge) {
-		*(str + 0) = '\0';
-		*len = 0;
+		*(str->ptr + 0) = '\0';
+		str->len = 0;
 		return;
 	}
 
 	size_t stripped_string_len = right_edge - left_edge + 1;
 	for (size_t i = 0; i < stripped_string_len; ++i) {
-		*(str + i) = *(str + i + left_edge);
+		*(str->ptr + i) = *(str->ptr + i + left_edge);
 	}
-	*len = stripped_string_len;
-	*(str + stripped_string_len) = '\0';
+	str->len = stripped_string_len;
+	*(str->ptr + stripped_string_len) = '\0';
 }

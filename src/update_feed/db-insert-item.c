@@ -45,11 +45,11 @@ create_authors_string(const struct author *authors, size_t authors_len)
 		added_name = false;
 		added_email = false;
 		added_link = false;
-		if ((authors[i].name != NULL) && (authors[i].name->len != 0)) {
+		if (authors[i].name->len != 0) {
 			catss(authors_list, authors[i].name);
 			added_name = true;
 		}
-		if ((authors[i].email != NULL) && (authors[i].email->len != 0)) {
+		if (authors[i].email->len != 0) {
 			if (added_name == true) {
 				catas(authors_list, " <", 2);
 			}
@@ -59,7 +59,7 @@ create_authors_string(const struct author *authors, size_t authors_len)
 			}
 			added_email = true;
 		}
-		if ((authors[i].link != NULL) && (authors[i].link->len != 0)) {
+		if (authors[i].link->len != 0) {
 			if (added_name == true || added_email == true) {
 				catas(authors_list, " (", 2);
 			}
@@ -85,20 +85,40 @@ create_enclosures_string(const struct link *enclosures, size_t enclosures_len)
 	if (enclosures_list == NULL) {
 		return NULL;
 	}
-	bool added_type;
+	bool added_type, added_size;
+	struct string *readable_size;
 	for (size_t i = 0; i < enclosures_len; ++i) {
 		added_type = false;
-		if ((enclosures[i].url != NULL) && (enclosures[i].url->len != 0)) {
+		added_size = false;
+		if (enclosures[i].url->len != 0) {
 			catcs(enclosures_list, '\n');
 			catss(enclosures_list, enclosures[i].url);
 		} else {
 			continue;
 		}
-		if ((enclosures[i].type != NULL) && (enclosures[i].type->len != 0)) {
-			catas(enclosures_list, " (", 2);
+		if (enclosures[i].type->len != 0) {
+			catas(enclosures_list, " (type: ", 8);
 			catss(enclosures_list, enclosures[i].type);
-			catcs(enclosures_list, ')');
 			added_type = true;
+		}
+		if (enclosures[i].size != 0) {
+			if (added_type == true) {
+				catas(enclosures_list, ", size: ", 8);
+			} else {
+				catas(enclosures_list, " (size: ", 8);
+			}
+			readable_size = convert_bytes_to_human_readable_size_string(enclosures[i].size);
+			if (readable_size != NULL) {
+				catss(enclosures_list, readable_size);
+				free_string(readable_size);
+			} else {
+				free_string(enclosures_list);
+				return NULL;
+			}
+			added_size = true;
+		}
+		if ((added_type == true) || (added_size == true)) {
+			catcs(enclosures_list, ')');
 		}
 	}
 	return enclosures_list;

@@ -399,7 +399,7 @@ plainify_html(const char *str, size_t str_len)
 		return NULL;
 	}
 
-	strip_whitespace_from_edges(expanded_text->ptr, &(expanded_text->len));
+	strip_whitespace_from_edges(expanded_text);
 
 	return expanded_text;
 }

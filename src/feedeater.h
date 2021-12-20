@@ -148,8 +148,6 @@ int assign_default_values_to_empty_config_strings(void);
 int load_config(void);
 
 // date parsing
-time_t parse_date_rfc822(const char *date_str, size_t date_len);
-time_t parse_date_rfc3339(const char *date_str, size_t date_len);
 struct string *get_config_date_str(const time_t *time_ptr);
 
 // tags
@@ -196,7 +194,7 @@ int catss(struct string *dest, const struct string *src);
 int catcs(struct string *dest, char c);
 void empty_string(struct string *str);
 void free_string(struct string *str);
-void strip_whitespace_from_edges(char *str, size_t *len);
+void strip_whitespace_from_edges(struct string *str);
 // wstring
 struct wstring *create_wstring(const wchar_t *src, size_t len);
 struct wstring *create_empty_wstring(void);

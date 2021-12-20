@@ -38,12 +38,12 @@ title_end(struct parser_data *data)
 	}
 	data->atom10_pos &= ~ATOM10_TITLE;
 	if ((data->atom10_pos & ATOM10_ENTRY) != 0) {
-		if (cpyas(data->bucket->title, data->value, data->value_len) != 0) {
+		if (cpyss(data->bucket->title, data->value) != 0) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}
 	} else {
-		db_update_feed_text(data->feed_url, "name", data->value, data->value_len);
+		db_update_feed_text(data->feed_url, "name", data->value->ptr, data->value->len);
 	}
 }
 
@@ -129,12 +129,12 @@ summary_end(struct parser_data *data)
 	}
 	data->atom10_pos &= ~ATOM10_SUMMARY;
 	if ((data->atom10_pos & ATOM10_ENTRY) != 0) {
-		if (cpyas(data->bucket->summary, data->value, data->value_len) != 0) {
+		if (cpyss(data->bucket->summary, data->value) != 0) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}
 	} else {
-		db_update_feed_text(data->feed_url, "description", data->value, data->value_len);
+		db_update_feed_text(data->feed_url, "description", data->value->ptr, data->value->len);
 	}
 }
 
@@ -161,7 +161,7 @@ content_end(struct parser_data *data)
 	if ((data->atom10_pos & ATOM10_ENTRY) == 0) {
 		return;
 	}
-	if (cpyas(data->bucket->content, data->value, data->value_len) != 0) {
+	if (cpyss(data->bucket->content, data->value) != 0) {
 		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		return;
 	}
@@ -184,7 +184,7 @@ id_end(struct parser_data *data)
 		// In Atom 1.0 feed can have unique id, but who needs it?
 		return;
 	}
-	if (cpyas(data->bucket->guid, data->value, data->value_len) != 0) {
+	if (cpyss(data->bucket->guid, data->value) != 0) {
 		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		return;
 	}
@@ -204,7 +204,7 @@ published_end(struct parser_data *data)
 	}
 	data->atom10_pos &= ~ATOM10_PUBLISHED;
 	if ((data->atom10_pos & ATOM10_ENTRY) != 0) {
-		data->bucket->pubdate = parse_date_rfc3339(data->value, data->value_len);
+		data->bucket->pubdate = parse_date_rfc3339(data->value);
 	}
 }
 
@@ -222,7 +222,7 @@ updated_end(struct parser_data *data)
 	}
 	data->atom10_pos &= ~ATOM10_UPDATED;
 	if ((data->atom10_pos & ATOM10_ENTRY) != 0) {
-		data->bucket->upddate = parse_date_rfc3339(data->value, data->value_len);
+		data->bucket->upddate = parse_date_rfc3339(data->value);
 	}
 }
 
@@ -270,7 +270,7 @@ name_end(struct parser_data *data)
 		// Atom 1.0 says that feed can have global author, but who needs it?
 		return;
 	}
-	if (add_name_to_last_author_of_item_bucket(data->bucket, data->value, data->value_len) != 0) {
+	if (add_name_to_last_author_of_item_bucket(data->bucket, data->value) != 0) {
 		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		return;
 	}
@@ -297,7 +297,7 @@ uri_end(struct parser_data *data)
 		// Atom 1.0 says that feed can have global author, but who needs it?
 		return;
 	}
-	if (add_link_to_last_author_of_item_bucket(data->bucket, data->value, data->value_len) != 0) {
+	if (add_link_to_last_author_of_item_bucket(data->bucket, data->value) != 0) {
 		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		return;
 	}
@@ -324,7 +324,7 @@ email_end(struct parser_data *data)
 		// Atom 1.0 says that feed can have global author, but who needs it?
 		return;
 	}
-	if (add_email_to_last_author_of_item_bucket(data->bucket, data->value, data->value_len) != 0) {
+	if (add_email_to_last_author_of_item_bucket(data->bucket, data->value) != 0) {
 		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		return;
 	}
@@ -339,7 +339,9 @@ category_start(struct parser_data *data, const XML_Char **atts)
 	}
 	for (size_t i = 0; atts[i] != NULL; i = i + 2) {
 		if (strcmp(atts[i], "term") == 0) {
-			add_category_to_item_bucket(data->bucket, atts[i + 1], strlen(atts[i + 1]));
+			if (atts[i + 1] != NULL) {
+				add_category_to_item_bucket(data->bucket, atts[i + 1], strlen(atts[i + 1]));
+			}
 			break;
 		}
 	}

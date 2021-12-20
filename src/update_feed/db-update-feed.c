@@ -45,7 +45,7 @@ make_sure_feed_is_in_db(const struct string *feed_url)
 }
 
 void
-db_update_feed_text(const struct string *feed_url, const char *column, const char *data, size_t data_len)
+db_update_feed_text(const struct string *feed_url, const char *column, const char *value, size_t value_len)
 {
 	if (make_sure_feed_is_in_db(feed_url) == false) {
 		FAIL("Can not create feed entry for %s in database!", feed_url->ptr);
@@ -61,7 +61,7 @@ db_update_feed_text(const struct string *feed_url, const char *column, const cha
 	sprintf(cmd, "UPDATE feeds SET %s = ? WHERE url = ?", column);
 	sqlite3_stmt *res;
 	if (sqlite3_prepare_v2(db, cmd, -1, &res, 0) == SQLITE_OK) {
-		sqlite3_bind_text(res, 1, data, data_len, NULL);
+		sqlite3_bind_text(res, 1, value, value_len, NULL);
 		sqlite3_bind_text(res, 2, feed_url->ptr, feed_url->len, NULL);
 		sqlite3_step(res);
 		sqlite3_finalize(res);

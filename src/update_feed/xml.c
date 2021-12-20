@@ -1,5 +1,7 @@
+#include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
+#include "feedeater.h"
 #include "update_feed/update_feed.h"
 
 bool
@@ -36,4 +38,21 @@ get_value_of_attribute_key(const XML_Char **atts, const char *key)
 		}
 	}
 	return NULL; // failure, didn't find an attribute with key name
+}
+
+struct string *
+convert_bytes_to_human_readable_size_string(int bytes)
+{
+	float size = bytes;
+	int prefix = 0;
+	while ((size > 1024) && (prefix < 3)) {
+		size = size / 1024;
+		++prefix;
+	}
+	char hahahahahahhaaahhahahahah[30];
+	int lol = sprintf(hahahahahahhaaahhahahahah,
+	                  "%.2f %s",
+	                  size,
+	                  prefix == 2 ? "MB" : (prefix == 1 ? "KB" : (prefix == 0 ? "bytes" : "GB")));
+	return create_string(hahahahahahhaaahhahahahah, lol);
 }

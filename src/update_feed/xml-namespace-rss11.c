@@ -47,12 +47,12 @@ title_end(struct parser_data *data)
 	}
 	data->rss11_pos &= ~RSS11_TITLE;
 	if ((data->rss11_pos & RSS11_ITEM) != 0) {
-		if (cpyas(data->bucket->title, data->value, data->value_len) != 0) {
+		if (cpyss(data->bucket->title, data->value) != 0) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}
 	} else {
-		db_update_feed_text(data->feed_url, "name", data->value, data->value_len);
+		db_update_feed_text(data->feed_url, "name", data->value->ptr, data->value->len);
 	}
 }
 
@@ -70,12 +70,12 @@ link_end(struct parser_data *data)
 	}
 	data->rss11_pos &= ~RSS11_LINK;
 	if ((data->rss11_pos & RSS11_ITEM) != 0) {
-		if (cpyas(data->bucket->url, data->value, data->value_len) != 0) {
+		if (cpyss(data->bucket->url, data->value) != 0) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}
 	} else {
-		db_update_feed_text(data->feed_url, "resource", data->value, data->value_len);
+		db_update_feed_text(data->feed_url, "resource", data->value->ptr, data->value->len);
 	}
 }
 
@@ -93,12 +93,12 @@ description_end(struct parser_data *data)
 	}
 	data->rss11_pos &= ~RSS11_DESCRIPTION;
 	if ((data->rss11_pos & RSS11_ITEM) != 0) {
-		if (cpyas(data->bucket->content, data->value, data->value_len) != 0) {
+		if (cpyss(data->bucket->content, data->value) != 0) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}
 	} else {
-		db_update_feed_text(data->feed_url, "description", data->value, data->value_len);
+		db_update_feed_text(data->feed_url, "description", data->value->ptr, data->value->len);
 	}
 }
 

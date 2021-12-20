@@ -50,9 +50,7 @@ struct item_bucket {
 };
 
 struct parser_data {
-	char *value;
-	size_t value_len;
-	size_t value_lim;
+	struct string *value;
 	int depth;
 	const struct string *feed_url;
 	struct item_bucket *bucket;
@@ -80,24 +78,30 @@ struct parser_data {
 	enum parse_error error;
 };
 
-void db_update_feed_text(const struct string *feed_url, const char *column, const char *data, size_t data_len);
+void db_update_feed_text(const struct string *feed_url, const char *column, const char *value, size_t value_len);
 const char *get_value_of_attribute_key(const XML_Char **atts, const char *key);
 void try_item_bucket(const struct item_bucket *bucket, const struct string *feed_url);
 bool we_are_inside_item(const struct parser_data *data);
+
+// date
+time_t parse_date_rfc822(const struct string *value);
+time_t parse_date_rfc3339(const struct string *value);
+
+struct string *convert_bytes_to_human_readable_size_string(int bytes);
 
 // item bucket functions
 struct item_bucket *create_item_bucket(void);
 void empty_item_bucket(struct item_bucket *bucket);
 void free_item_bucket(struct item_bucket *bucket);
-int add_category_to_item_bucket(const struct item_bucket *bucket, const char *category, size_t category_len);
+int add_category_to_item_bucket(const struct item_bucket *bucket, const char *value, size_t value_len);
 int expand_enclosures_of_item_bucket_by_one_element(struct item_bucket *bucket);
-int add_url_to_last_enclosure_of_item_bucket(struct item_bucket *bucket, const char *str, size_t str_len);
-int add_type_to_last_enclosure_of_item_bucket(struct item_bucket *bucket, const char *str, size_t str_len);
-int add_size_to_last_enclosure_of_item_bucket(struct item_bucket *bucket, const char *str);
+int add_url_to_last_enclosure_of_item_bucket(struct item_bucket *bucket, const char *value, size_t value_len);
+int add_type_to_last_enclosure_of_item_bucket(struct item_bucket *bucket, const char *value, size_t value_len);
+int add_size_to_last_enclosure_of_item_bucket(struct item_bucket *bucket, const char *value);
 int expand_authors_of_item_bucket_by_one_element(struct item_bucket *bucket);
-int add_name_to_last_author_of_item_bucket(struct item_bucket *bucket, const char *str, size_t str_len);
-int add_email_to_last_author_of_item_bucket(struct item_bucket *bucket, const char *str, size_t str_len);
-int add_link_to_last_author_of_item_bucket(struct item_bucket *bucket, const char *str, size_t str_len);
+int add_name_to_last_author_of_item_bucket(struct item_bucket *bucket, const struct string *value);
+int add_email_to_last_author_of_item_bucket(struct item_bucket *bucket, const struct string *value);
+int add_link_to_last_author_of_item_bucket(struct item_bucket *bucket, const struct string *value);
 
 
 // Element handlers

@@ -36,12 +36,12 @@ title_end(struct parser_data *data)
 	}
 	data->rss20_pos &= ~RSS20_TITLE;
 	if ((data->rss20_pos & RSS20_ITEM) != 0) {
-		if (cpyas(data->bucket->title, data->value, data->value_len) != 0) {
+		if (cpyss(data->bucket->title, data->value) != 0) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}
 	} else {
-		db_update_feed_text(data->feed_url, "name", data->value, data->value_len);
+		db_update_feed_text(data->feed_url, "name", data->value->ptr, data->value->len);
 	}
 }
 
@@ -59,12 +59,12 @@ link_end(struct parser_data *data)
 	}
 	data->rss20_pos &= ~RSS20_LINK;
 	if ((data->rss20_pos & RSS20_ITEM) != 0) {
-		if (cpyas(data->bucket->url, data->value, data->value_len) != 0) {
+		if (cpyss(data->bucket->url, data->value) != 0) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}
 	} else {
-		db_update_feed_text(data->feed_url, "resource", data->value, data->value_len);
+		db_update_feed_text(data->feed_url, "resource", data->value->ptr, data->value->len);
 	}
 }
 
@@ -82,12 +82,12 @@ description_end(struct parser_data *data)
 	}
 	data->rss20_pos &= ~RSS20_DESCRIPTION;
 	if ((data->rss20_pos & RSS20_ITEM) != 0) {
-		if (cpyas(data->bucket->content, data->value, data->value_len) != 0) {
+		if (cpyss(data->bucket->content, data->value) != 0) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}
 	} else {
-		db_update_feed_text(data->feed_url, "description", data->value, data->value_len);
+		db_update_feed_text(data->feed_url, "description", data->value->ptr, data->value->len);
 	}
 }
 
@@ -108,7 +108,7 @@ pubDate_end(struct parser_data *data)
 		// RSS 2.0 says that channel can have pubDate element, but who needs it?
 		return;
 	}
-	data->bucket->pubdate = parse_date_rfc822(data->value, data->value_len);
+	data->bucket->pubdate = parse_date_rfc822(data->value);
 }
 
 static inline void
@@ -127,7 +127,7 @@ guid_end(struct parser_data *data)
 	if ((data->rss20_pos & RSS20_ITEM) == 0) {
 		return;
 	}
-	if (cpyas(data->bucket->guid, data->value, data->value_len) != 0) {
+	if (cpyss(data->bucket->guid, data->value) != 0) {
 		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		return;
 	}
@@ -153,7 +153,7 @@ author_end(struct parser_data *data)
 		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		return;
 	}
-	if (add_email_to_last_author_of_item_bucket(data->bucket, data->value, data->value_len) != 0) {
+	if (add_email_to_last_author_of_item_bucket(data->bucket, data->value) != 0) {
 		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		return;
 	}
@@ -205,7 +205,7 @@ category_end(struct parser_data *data)
 		// RSS 2.0 says that channel can have category elements, but who needs them?
 		return;
 	}
-	if (add_category_to_item_bucket(data->bucket, data->value, data->value_len) != 0) {
+	if (add_category_to_item_bucket(data->bucket, data->value->ptr, data->value->len) != 0) {
 		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		return;
 	}
@@ -227,7 +227,7 @@ comments_end(struct parser_data *data)
 	if ((data->rss20_pos & RSS20_ITEM) == 0) {
 		return;
 	}
-	if (cpyas(data->bucket->comments, data->value, data->value_len) != 0) {
+	if (cpyss(data->bucket->comments, data->value) != 0) {
 		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		return;
 	}

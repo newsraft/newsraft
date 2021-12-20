@@ -293,11 +293,11 @@ get_contents_of_item(sqlite3_stmt *res)
 	}
 
 	char *text = (char *)sqlite3_column_text(res, ITEM_COLUMN_CONTENT);
-	char *text_type = (char *)sqlite3_column_text(res, ITEM_COLUMN_CONTENT_TYPE);
+	//char *text_type = (char *)sqlite3_column_text(res, ITEM_COLUMN_CONTENT_TYPE);
 	size_t text_len = strlen(text);
 	if (text_len == 0) {
 		text = (char *)sqlite3_column_text(res, ITEM_COLUMN_SUMMARY);
-		text_type = (char *)sqlite3_column_text(res, ITEM_COLUMN_SUMMARY_TYPE);
+		//text_type = (char *)sqlite3_column_text(res, ITEM_COLUMN_SUMMARY_TYPE);
 		text_len = strlen(text);
 	}
 

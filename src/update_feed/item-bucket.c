@@ -3,8 +3,6 @@
 #include "feedeater.h"
 #include "update_feed/update_feed.h"
 
-static void *temp;
-
 // On success returns a pointer to struct item_bucket.
 // On failure returns NULL.
 struct item_bucket *
@@ -122,9 +120,9 @@ free_item_bucket(struct item_bucket *bucket)
 // On success returns 0.
 // On failure returns non-zero.
 int
-add_category_to_item_bucket(const struct item_bucket *bucket, const char *category, size_t category_len)
+add_category_to_item_bucket(const struct item_bucket *bucket, const char *value, size_t value_len)
 {
-	if ((category == NULL) || (category_len == 0)) {
+	if (value_len == 0) {
 		return 0; // Not an error, category is just empty.
 	}
 	if (bucket->categories->len != 0) {
@@ -132,7 +130,7 @@ add_category_to_item_bucket(const struct item_bucket *bucket, const char *catego
 			return 1;
 		}
 	}
-	if (catas(bucket->categories, category, category_len) != 0) {
+	if (catas(bucket->categories, value, value_len) != 0) {
 		return 1;
 	}
 	return 0;
@@ -144,7 +142,7 @@ int
 expand_enclosures_of_item_bucket_by_one_element(struct item_bucket *bucket)
 {
 	if (bucket->enclosures_len == bucket->enclosures_lim) {
-		temp = realloc(bucket->enclosures, sizeof(struct link) * (bucket->enclosures_lim + 1));
+		struct link *temp = realloc(bucket->enclosures, sizeof(struct link) * (bucket->enclosures_lim + 1));
 		if (temp == NULL) {
 			FAIL("Not enough memory for item enclosure.");
 			return 1;
@@ -171,24 +169,24 @@ expand_enclosures_of_item_bucket_by_one_element(struct item_bucket *bucket)
 }
 
 int
-add_url_to_last_enclosure_of_item_bucket(struct item_bucket *bucket, const char *str, size_t str_len)
+add_url_to_last_enclosure_of_item_bucket(struct item_bucket *bucket, const char *value, size_t value_len)
 {
-	return cpyas(bucket->enclosures[bucket->enclosures_len - 1].url, str, str_len);
+	return cpyas(bucket->enclosures[bucket->enclosures_len - 1].url, value, value_len);
 }
 
 int
-add_type_to_last_enclosure_of_item_bucket(struct item_bucket *bucket, const char *str, size_t str_len)
+add_type_to_last_enclosure_of_item_bucket(struct item_bucket *bucket, const char *value, size_t value_len)
 {
-	return cpyas(bucket->enclosures[bucket->enclosures_len - 1].type, str, str_len);
+	return cpyas(bucket->enclosures[bucket->enclosures_len - 1].type, value, value_len);
 }
 
 // On success returns 0.
 // On failure returns non-zero.
 int
-add_size_to_last_enclosure_of_item_bucket(struct item_bucket *bucket, const char *str)
+add_size_to_last_enclosure_of_item_bucket(struct item_bucket *bucket, const char *value)
 {
 	int size;
-	if (sscanf(str, "%d", &size) == 1) {
+	if (sscanf(value, "%d", &size) == 1) {
 		bucket->enclosures[bucket->enclosures_len - 1].size = size;
 		return 0;
 	}
@@ -201,7 +199,7 @@ int
 expand_authors_of_item_bucket_by_one_element(struct item_bucket *bucket)
 {
 	if (bucket->authors_len == bucket->authors_lim) {
-		temp = realloc(bucket->authors, sizeof(struct link) * (bucket->authors_lim + 1));
+		struct author *temp = realloc(bucket->authors, sizeof(struct author) * (bucket->authors_lim + 1));
 		if (temp == NULL) {
 			FAIL("Not enough memory for item author.");
 			return 1;
@@ -233,19 +231,19 @@ expand_authors_of_item_bucket_by_one_element(struct item_bucket *bucket)
 }
 
 int
-add_name_to_last_author_of_item_bucket(struct item_bucket *bucket, const char *str, size_t str_len)
+add_name_to_last_author_of_item_bucket(struct item_bucket *bucket, const struct string *value)
 {
-	return cpyas(bucket->authors[bucket->authors_len - 1].name, str, str_len);
+	return cpyss(bucket->authors[bucket->authors_len - 1].name, value);
 }
 
 int
-add_email_to_last_author_of_item_bucket(struct item_bucket *bucket, const char *str, size_t str_len)
+add_email_to_last_author_of_item_bucket(struct item_bucket *bucket, const struct string *value)
 {
-	return cpyas(bucket->authors[bucket->authors_len - 1].email, str, str_len);
+	return cpyss(bucket->authors[bucket->authors_len - 1].email, value);
 }
 
 int
-add_link_to_last_author_of_item_bucket(struct item_bucket *bucket, const char *str, size_t str_len)
+add_link_to_last_author_of_item_bucket(struct item_bucket *bucket, const struct string *value)
 {
-	return cpyas(bucket->authors[bucket->authors_len - 1].link, str, str_len);
+	return cpyss(bucket->authors[bucket->authors_len - 1].link, value);
 }

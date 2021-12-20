@@ -21,10 +21,10 @@ encoded_end(struct parser_data *data)
 	if (we_are_inside_item(data) == false) {
 		return;
 	}
-	if (data->bucket->content->len > data->value_len) {
+	if (data->bucket->content->len > data->value->len) {
 		return;
 	}
-	if (cpyas(data->bucket->content, data->value, data->value_len) != 0) {
+	if (cpyss(data->bucket->content, data->value) != 0) {
 		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		return;
 	}

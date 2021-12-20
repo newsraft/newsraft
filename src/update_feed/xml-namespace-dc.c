@@ -18,13 +18,13 @@ title_end(struct parser_data *data)
 	data->dc_pos &= ~DC_TITLE;
 	if (we_are_inside_item(data) == true) {
 		if (data->bucket->title->len == 0) {
-			if (cpyas(data->bucket->title, data->value, data->value_len) != 0) {
+			if (cpyss(data->bucket->title, data->value) != 0) {
 				data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 				return;
 			}
 		}
 	} else {
-		db_update_feed_text(data->feed_url, "name", data->value, data->value_len);
+		db_update_feed_text(data->feed_url, "name", data->value->ptr, data->value->len);
 	}
 }
 
@@ -46,7 +46,7 @@ creator_end(struct parser_data *data)
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}
-		if (add_name_to_last_author_of_item_bucket(data->bucket, data->value, data->value_len) != 0) {
+		if (add_name_to_last_author_of_item_bucket(data->bucket, data->value) != 0) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}
@@ -70,13 +70,13 @@ description_end(struct parser_data *data)
 	data->dc_pos &= ~DC_DESCRIPTION;
 	if (we_are_inside_item(data) == true) {
 		if (data->bucket->summary->len == 0) {
-			if (cpyas(data->bucket->summary, data->value, data->value_len) != 0) {
+			if (cpyss(data->bucket->summary, data->value) != 0) {
 				data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 				return;
 			}
 		}
 	} else {
-		db_update_feed_text(data->feed_url, "description", data->value, data->value_len);
+		db_update_feed_text(data->feed_url, "description", data->value->ptr, data->value->len);
 	}
 }
 
@@ -94,7 +94,7 @@ subject_end(struct parser_data *data)
 	}
 	data->dc_pos &= ~DC_SUBJECT;
 	if (we_are_inside_item(data) == true) {
-		if (add_category_to_item_bucket(data->bucket, data->value, data->value_len) != 0) {
+		if (add_category_to_item_bucket(data->bucket, data->value->ptr, data->value->len) != 0) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}

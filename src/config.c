@@ -1,6 +1,25 @@
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
+#include <ctype.h>
 #include "feedeater.h"
+
+struct string *
+get_config_date_str(const time_t *time)
+{
+	struct tm ts = *gmtime(time);
+	char time_ptr[200];
+	if (strftime(time_ptr, sizeof(time_ptr), config_contents_date_format, &ts) == 0) {
+		FAIL("Failed to create date string (strftime returned zero)!");
+		return NULL; // failure
+	}
+	struct string *time_str = create_string(time_ptr, strlen(time_ptr));
+	if (time_str == NULL) {
+		FAIL("Not enough memory for date string creation (create_string returned NULL)!");
+		return NULL; // failure
+	}
+	return time_str; // success
+}
 
 void
 free_config_data(void)

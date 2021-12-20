@@ -11,7 +11,7 @@ start_element_handler(struct parser_data *data, const XML_Char *name, const XML_
 		return;
 	}
 	++(data->depth);
-	data->value_len = 0;
+	empty_string(data->value);
 	if (parse_namespace_element_start(data, name, atts) == 0) {
 		// Successfully processed an element by its namespace.
 		return;
@@ -44,7 +44,7 @@ end_element_handler(struct parser_data *data, const XML_Char *name)
 		return;
 	}
 	--(data->depth);
-	strip_whitespace_from_edges(data->value, &(data->value_len));
+	strip_whitespace_from_edges(data->value);
 	if (parse_namespace_element_end(data, name) == 0) {
 		// Successfully processed an element by its namespace.
 		return;
@@ -59,23 +59,12 @@ end_element_handler(struct parser_data *data, const XML_Char *name)
 static void
 character_data_handler(struct parser_data *data, const XML_Char *s, int s_len)
 {
-	if (data->error != PARSE_OKAY) {
-		return;
-	}
-	if (data->value_len + s_len > data->value_lim) {
-		// multiply by 2 to minimize number of further realloc calls
-		data->value_lim = (data->value_len + s_len) * 2;
-		char *tmp = realloc(data->value, sizeof(char) * (data->value_lim + 1));
-		if (tmp == NULL) {
-			FAIL("Not enough memory for element character data!");
+	if (data->error == PARSE_OKAY) {
+		if (catas(data->value, s, s_len) != 0) {
+			FAIL("Not enough memory for character data of element!");
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
-			return;
 		}
-		data->value = tmp;
 	}
-	memcpy(data->value + data->value_len, s, s_len);
-	data->value_len += s_len;
-	*(data->value + data->value_len) = '\0';
 }
 
 static size_t
@@ -100,24 +89,22 @@ int
 update_feed(const struct string *url)
 {
 	struct parser_data data;
-	data.value        = malloc(sizeof(char) * config_init_parser_buf_size);
+	data.value        = create_string(NULL, config_init_parser_buf_size);
 	if (data.value == NULL) {
 		FAIL("Not enough memory for parser buffer to start updating a feed!");
 		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 	}
-	data.value_len     = 0;
-	data.value_lim     = config_init_parser_buf_size - 1; // never forget about terminator
 	data.bucket        = create_item_bucket();
 	if (data.bucket == NULL) {
 		FAIL("Not enough memory for item bucket to start updating a feed!");
-		free(data.value);
+		free_string(data.value);
 		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 	}
 	data.parser        = XML_ParserCreateNS(NULL, NAMESPACE_SEPARATOR);
 	if (data.parser == NULL) {
 		FAIL("Something went wrong during parser struct creation, can not start updating a feed!");
 		free_item_bucket(data.bucket);
-		free(data.value);
+		free_string(data.value);
 		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 	}
 	data.depth         = 0;
@@ -160,7 +147,7 @@ update_feed(const struct string *url)
 		FAIL("Something went wrong during curl easy handle creation, can not start updating a feed!");
 		free_item_bucket(data.bucket);
 		XML_ParserFree(data.parser);
-		free(data.value);
+		free_string(data.value);
 		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 	}
 	curl_easy_setopt(curl, CURLOPT_URL, url->ptr);
@@ -180,7 +167,7 @@ update_feed(const struct string *url)
 	if (db_begin_transaction() != 0) {
 		free_item_bucket(data.bucket);
 		XML_ParserFree(data.parser);
-		free(data.value);
+		free_string(data.value);
 		curl_easy_cleanup(curl);
 		return PARSE_FAIL_DB_TRANSACTION_ERROR;
 	}
@@ -200,7 +187,7 @@ update_feed(const struct string *url)
 		db_rollback_transaction();
 		free_item_bucket(data.bucket);
 		XML_ParserFree(data.parser);
-		free(data.value);
+		free_string(data.value);
 		curl_easy_cleanup(curl);
 		return PARSE_FAIL_CURL_EASY_PERFORM_ERROR;
 	}
@@ -229,7 +216,7 @@ update_feed(const struct string *url)
 
 	free_item_bucket(data.bucket);
 	XML_ParserFree(data.parser);
-	free(data.value);
+	free_string(data.value);
 	curl_easy_cleanup(curl);
 	return data.error;
 }

@@ -42,7 +42,6 @@ feedeater_dep = [
 	dependency('sqlite3'),
 ]
 feedeater_src = [
-	'src/feedeater.h',
 	'src/feedeater.c',
 	'src/log.c',
 	'src/path.c',

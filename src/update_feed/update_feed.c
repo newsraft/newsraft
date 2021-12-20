@@ -4,7 +4,7 @@
 #include "feedeater.h"
 #include "update_feed/update_feed.h"
 
-static void XMLCALL
+static void
 start_element_handler(struct parser_data *data, const XML_Char *name, const XML_Char **atts)
 {
 	if (data->error != PARSE_OKAY) {
@@ -37,7 +37,7 @@ start_element_handler(struct parser_data *data, const XML_Char *name, const XML_
 #endif
 }
 
-static void XMLCALL
+static void
 end_element_handler(struct parser_data *data, const XML_Char *name)
 {
 	if (data->error != PARSE_OKAY) {
@@ -56,7 +56,7 @@ end_element_handler(struct parser_data *data, const XML_Char *name)
 }
 
 // Important note: a single block of contiguous text free of markup may still result in a sequence of calls to CharacterDataHandler.
-static void XMLCALL
+static void
 character_data_handler(struct parser_data *data, const XML_Char *s, int s_len)
 {
 	if (data->error != PARSE_OKAY) {

@@ -2,7 +2,7 @@
 #include <string.h>
 #include "feedeater.h"
 
-static bool
+static inline bool
 is_feed_in_db(const struct string *feed_url)
 {
 	bool stored = false;
@@ -19,7 +19,7 @@ is_feed_in_db(const struct string *feed_url)
 	return stored;
 }
 
-static bool
+static inline bool
 make_sure_feed_is_in_db(const struct string *feed_url)
 {
 	if (is_feed_in_db(feed_url) == true) {

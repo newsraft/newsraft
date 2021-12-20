@@ -330,7 +330,7 @@ email_end(struct parser_data *data)
 	}
 }
 
-void XMLCALL
+void
 parse_atom03_element_start(struct parser_data *data, const XML_Char *name, const XML_Char **atts)
 {
 	     if (strcmp(name, "entry")       == 0) { entry_start(data);         }
@@ -348,7 +348,7 @@ parse_atom03_element_start(struct parser_data *data, const XML_Char *name, const
 	else if (strcmp(name, "email")       == 0) { email_start(data);         }
 }
 
-void XMLCALL
+void
 parse_atom03_element_end(struct parser_data *data, const XML_Char *name)
 {
 	     if (strcmp(name, "entry")       == 0) { entry_end(data);    }

@@ -1,9 +1,9 @@
 #include <string.h>
-#include "feedeater.h"
+#include <stdbool.h>
 #include "update_feed/update_feed.h"
 
 bool
-we_are_inside_item(struct parser_data *data)
+we_are_inside_item(const struct parser_data *data)
 {
 	if (
 #ifdef FEEDEATER_FORMAT_SUPPORT_RSS20

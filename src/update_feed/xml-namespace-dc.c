@@ -101,7 +101,7 @@ subject_end(struct parser_data *data)
 	}
 }
 
-void XMLCALL
+void
 parse_dc_element_start(struct parser_data *data, const XML_Char *name, const XML_Char **atts)
 {
 	(void)atts;
@@ -112,7 +112,7 @@ parse_dc_element_start(struct parser_data *data, const XML_Char *name, const XML
 	else if (strcmp(name, "subject") == 0)     { subject_start(data);     }
 }
 
-void XMLCALL
+void
 parse_dc_element_end(struct parser_data *data, const XML_Char *name)
 {
 	     if (strcmp(name, "title") == 0)       { title_end(data);       }

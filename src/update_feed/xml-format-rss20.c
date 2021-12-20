@@ -248,7 +248,7 @@ channel_end(struct parser_data *data)
 	data->rss20_pos &= ~RSS20_CHANNEL;
 }
 
-void XMLCALL
+void
 parse_rss20_element_start(struct parser_data *data, const XML_Char *name, const XML_Char **atts)
 {
 	(void)atts;
@@ -265,7 +265,7 @@ parse_rss20_element_start(struct parser_data *data, const XML_Char *name, const 
 	else if (strcmp(name, "channel")     == 0) { channel_start(data);         }
 }
 
-void XMLCALL
+void
 parse_rss20_element_end(struct parser_data *data, const XML_Char *name)
 {
 	if ((data->rss20_pos & RSS20_CHANNEL) == 0) {

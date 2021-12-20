@@ -345,7 +345,7 @@ category_start(struct parser_data *data, const XML_Char **atts)
 	}
 }
 
-void XMLCALL
+void
 parse_atom10_element_start(struct parser_data *data, const XML_Char *name, const XML_Char **atts)
 {
 	     if (strcmp(name, "entry")       == 0) { entry_start(data);          }
@@ -364,7 +364,7 @@ parse_atom10_element_start(struct parser_data *data, const XML_Char *name, const
 	else if (strcmp(name, "category")    == 0) { category_start(data, atts); }
 }
 
-void XMLCALL
+void
 parse_atom10_element_end(struct parser_data *data, const XML_Char *name)
 {
 	     if (strcmp(name, "entry")       == 0) { entry_end(data);     }

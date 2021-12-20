@@ -34,7 +34,7 @@ delete_excess_items(const struct string *feed_url) {
 }
 
 static inline struct string *
-create_authors_string(struct author *authors, size_t authors_len)
+create_authors_string(const struct author *authors, size_t authors_len)
 {
 	struct string *authors_list = create_empty_string();
 	if (authors_list == NULL) {
@@ -79,7 +79,7 @@ create_authors_string(struct author *authors, size_t authors_len)
 }
 
 static inline struct string *
-create_enclosures_string(struct link *enclosures, size_t enclosures_len)
+create_enclosures_string(const struct link *enclosures, size_t enclosures_len)
 {
 	struct string *enclosures_list = create_empty_string();
 	if (enclosures_list == NULL) {

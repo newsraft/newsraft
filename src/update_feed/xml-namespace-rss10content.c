@@ -34,14 +34,14 @@ encoded_end(struct parser_data *data)
 	}
 }
 
-void XMLCALL
+void
 parse_rss10content_element_start(struct parser_data *data, const XML_Char *name, const XML_Char **atts)
 {
 	(void)atts;
 	     if (strcmp(name, "encoded") == 0) { encoded_start(data); }
 }
 
-void XMLCALL
+void
 parse_rss10content_element_end(struct parser_data *data, const XML_Char *name)
 {
 	     if (strcmp(name, "encoded") == 0) { encoded_end(data); }

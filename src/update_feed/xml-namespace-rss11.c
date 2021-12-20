@@ -140,7 +140,7 @@ url_end(struct parser_data *data)
 	}
 }
 
-void XMLCALL
+void
 parse_rss11_element_start(struct parser_data *data, const XML_Char *name, const XML_Char **atts)
 {
 	(void)atts;
@@ -152,7 +152,7 @@ parse_rss11_element_start(struct parser_data *data, const XML_Char *name, const 
 	else if (strcmp(name, "url") == 0)         { url_start(data);         }
 }
 
-void XMLCALL
+void
 parse_rss11_element_end(struct parser_data *data, const XML_Char *name)
 {
 	     if (strcmp(name, "item") == 0)        { item_end(data);        }

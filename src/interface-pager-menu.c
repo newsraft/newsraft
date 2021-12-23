@@ -46,10 +46,10 @@ split_wstring_into_lines(struct wstring *wstr)
 			line[line_len] = L'\0';
 
 			if (last_breaker_index_in_line == SIZE_MAX) {
-				cat_wstring_array(broken_wstr, line, line_len);
+				wcatas(broken_wstr, line, line_len);
 				line_len = 0;
 			} else {
-				cat_wstring_array(broken_wstr, line, last_breaker_index_in_line + 1);
+				wcatas(broken_wstr, line, last_breaker_index_in_line + 1);
 				new_line_len = 0;
 				for (ssize_t i = last_breaker_index_in_line + 1; i < line_len; ++i) {
 					line[new_line_len++] = line[i];
@@ -58,12 +58,12 @@ split_wstring_into_lines(struct wstring *wstr)
 				line_len = new_line_len;
 			}
 
-			cat_wstring_wchar(broken_wstr, L'\n');
+			wcatcs(broken_wstr, L'\n');
 
 			last_breaker_index_in_line = SIZE_MAX;
 		} else if (*iter == L'\n') {
-			cat_wstring_array(broken_wstr, line, line_len);
-			cat_wstring_wchar(broken_wstr, L'\n');
+			wcatas(broken_wstr, line, line_len);
+			wcatcs(broken_wstr, L'\n');
 			line_len = 0;
 			last_breaker_index_in_line = SIZE_MAX;
 			++iter;
@@ -77,8 +77,8 @@ split_wstring_into_lines(struct wstring *wstr)
 	}
 
 	if (line_len != 0) {
-		cat_wstring_array(broken_wstr, line, line_len);
-		cat_wstring_wchar(broken_wstr, L'\n');
+		wcatas(broken_wstr, line, line_len);
+		wcatcs(broken_wstr, L'\n');
 	}
 
 	free(line);

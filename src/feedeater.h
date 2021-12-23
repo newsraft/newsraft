@@ -198,8 +198,8 @@ void strip_whitespace_from_edges(struct string *str);
 // wstring
 struct wstring *create_wstring(const wchar_t *src, size_t len);
 struct wstring *create_empty_wstring(void);
-void cat_wstring_array(struct wstring *dest, const wchar_t *src_ptr, size_t src_len);
-void cat_wstring_wchar(struct wstring *dest, wchar_t wc);
+int wcatas(struct wstring *dest, const wchar_t *src_ptr, size_t src_len);
+int wcatcs(struct wstring *dest, wchar_t c);
 struct wstring *convert_string_to_wstring(const struct string *src);
 void free_wstring(struct wstring *wstr);
 

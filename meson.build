@@ -3,8 +3,8 @@ project(
 	'c',
 	license: 'MIT',
 	default_options: [
-		'c_std=c18',
-		'warning_level=2',
+		'c_std=gnu18',
+		'warning_level=3',
 		'buildtype=release',
 	],
 	version: 'this is not even pre-alpha',

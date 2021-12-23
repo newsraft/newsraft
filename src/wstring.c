@@ -7,27 +7,26 @@ create_wstring(const wchar_t *src, size_t len)
 {
 	struct wstring *wstr = malloc(sizeof(struct wstring));
 	if (wstr == NULL) {
-		FAIL("Not enough memory for wstring creation!");
-		return NULL; // failure
+		FAIL("Not enough memory for wstring structure!");
+		return NULL;
 	}
 	wstr->ptr = malloc(sizeof(wchar_t) * (len + 1));
 	if (wstr->ptr == NULL) {
-		FAIL("Not enough memory for wstring creation!");
+		FAIL("Not enough memory for wstring pointer!");
 		free(wstr);
-		return NULL; // failure
+		return NULL;
 	}
 	if (src != NULL) {
 		if (len != 0) {
 			memcpy(wstr->ptr, src, sizeof(wchar_t) * len);
 		}
 		wstr->len = len;
-		wstr->lim = len;
 	} else {
 		wstr->len = 0;
-		wstr->lim = len;
 	}
-	*(wstr->ptr + len) = '\0';
-	return wstr; // success
+	wstr->lim = len;
+	*(wstr->ptr + len) = L'\0';
+	return wstr;
 }
 
 struct wstring *
@@ -36,27 +35,86 @@ create_empty_wstring(void)
 	return create_wstring(NULL, 0);
 }
 
-void
-cat_wstring_array(struct wstring *dest, const wchar_t *src_ptr, size_t src_len)
+// Copy array to wstring.
+// On success returns 0.
+// On failure returns non-zero.
+int
+wcpyas(struct wstring *dest, const wchar_t *src_ptr, size_t src_len)
 {
-	dest->len += src_len;
-	if (dest->len > dest->lim) {
-		dest->lim = dest->len;
-		dest->ptr = realloc(dest->ptr, sizeof(wchar_t) * (dest->lim + 1));
+	if (src_len > dest->lim) {
+		// Multiply by 2 to decrease number of further realloc calls.
+		wchar_t *temp = realloc(dest->ptr, sizeof(wchar_t) * (src_len * 2 + 1));
+		if (temp == NULL) {
+			FAIL("Not enough memory for copying array to wstring!");
+			return 1;
+		}
+		dest->ptr = temp;
+		dest->lim = src_len * 2;
 	}
-	wcsncat(dest->ptr, src_ptr, src_len);
+	memcpy(dest->ptr, src_ptr, sizeof(wchar_t) * src_len);
+	*(dest->ptr + src_len) = L'\0';
+	dest->len = src_len;
+	return 0;
 }
 
-void
-cat_wstring_wchar(struct wstring *dest, wchar_t wc)
+// Copy wstring to wstring.
+int
+wcpyss(struct wstring *dest, const struct wstring *src)
 {
-	dest->len += 1;
-	if (dest->len > dest->lim) {
-		dest->lim = dest->len;
-		dest->ptr = realloc(dest->ptr, sizeof(wchar_t) * (dest->lim + 1));
+	return wcpyas(dest, src->ptr, src->len);
+}
+
+// Concatenate array to wstring.
+// On success returns 0.
+// On failure returns non-zero.
+int
+wcatas(struct wstring *dest, const wchar_t *src_ptr, size_t src_len)
+{
+	size_t new_len = dest->len + src_len;
+	if (new_len > dest->lim) {
+		// Multiply by 2 to decrease number of further realloc calls.
+		wchar_t *temp = realloc(dest->ptr, sizeof(wchar_t) * (new_len * 2 + 1));
+		if (temp == NULL) {
+			FAIL("Not enough memory for concatenating array to wstring!");
+			return 1;
+		}
+		dest->ptr = temp;
+		dest->lim = new_len * 2;
 	}
-	*(dest->ptr + dest->len - 1) = wc;
+	wcsncat(dest->ptr, src_ptr, src_len);
+	*(dest->ptr + new_len) = L'\0';
+	dest->len = new_len;
+	return 0;
+}
+
+// Concatenate wstring to wstring.
+int
+wcatss(struct wstring *dest, const struct wstring *src)
+{
+	return wcatas(dest, src->ptr, src->len);
+}
+
+// Concatenate character to wstring.
+// On success returns 0.
+// On failure returns non-zero.
+int
+wcatcs(struct wstring *dest, wchar_t c)
+{
+	size_t new_len = dest->len + 1;
+	if (new_len > dest->lim) {
+		// Multiply by 2 to decrease number of further realloc calls.
+		wchar_t *temp = realloc(dest->ptr, sizeof(wchar_t) * (new_len * 2 + 1));
+		if (temp == NULL) {
+			FAIL("Not enough memory for concatenating character to wstring!");
+			return 1;
+		}
+		dest->ptr = temp;
+		dest->lim = new_len * 2;
+	}
+	*(dest->ptr + dest->len) = c;
+	dest->len = new_len;
 	*(dest->ptr + dest->len) = L'\0';
+	return 0;
 }
 
 struct wstring *

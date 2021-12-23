@@ -21,11 +21,10 @@ create_string(const char *src, size_t len)
 			memcpy(str->ptr, src, sizeof(char) * len);
 		}
 		str->len = len;
-		str->lim = len;
 	} else {
 		str->len = 0;
-		str->lim = len;
 	}
+	str->lim = len;
 	*(str->ptr + len) = '\0';
 	return str;
 }
@@ -43,14 +42,14 @@ int
 cpyas(struct string *dest, const char *src_ptr, size_t src_len)
 {
 	if (src_len > dest->lim) {
-		char *temp = realloc(dest->ptr, sizeof(char) * (src_len + 1));
-		if (temp != NULL) {
-			dest->ptr = temp;
-			dest->lim = src_len;
-		} else {
-			FAIL("Not enough memory for copying array to string.");
+		// Multiply by 2 to decrease number of further realloc calls.
+		char *temp = realloc(dest->ptr, sizeof(char) * (src_len * 2 + 1));
+		if (temp == NULL) {
+			FAIL("Not enough memory for copying array to string!");
 			return 1;
 		}
+		dest->ptr = temp;
+		dest->lim = src_len * 2;
 	}
 	memcpy(dest->ptr, src_ptr, sizeof(char) * src_len);
 	*(dest->ptr + src_len) = '\0';
@@ -75,13 +74,12 @@ catas(struct string *dest, const char *src_ptr, size_t src_len)
 	if (new_len > dest->lim) {
 		// Multiply by 2 to decrease number of further realloc calls.
 		char *temp = realloc(dest->ptr, sizeof(char) * (new_len * 2 + 1));
-		if (temp != NULL) {
-			dest->ptr = temp;
-			dest->lim = new_len * 2;
-		} else {
-			FAIL("Not enough memory for concatenating array to string.");
+		if (temp == NULL) {
+			FAIL("Not enough memory for concatenating array to string!");
 			return 1;
 		}
+		dest->ptr = temp;
+		dest->lim = new_len * 2;
 	}
 	strncat(dest->ptr, src_ptr, src_len);
 	*(dest->ptr + new_len) = '\0';
@@ -104,17 +102,17 @@ catcs(struct string *dest, char c)
 {
 	size_t new_len = dest->len + 1;
 	if (new_len > dest->lim) {
-		char *temp = realloc(dest->ptr, sizeof(char) * (new_len + 1));
-		if (temp != NULL) {
-			dest->ptr = temp;
-			dest->lim = new_len;
-		} else {
-			FAIL("Not enough memory for concatenating character to string.");
+		// Multiply by 2 to decrease number of further realloc calls.
+		char *temp = realloc(dest->ptr, sizeof(char) * (new_len * 2 + 1));
+		if (temp == NULL) {
+			FAIL("Not enough memory for concatenating character to string!");
 			return 1;
 		}
+		dest->ptr = temp;
+		dest->lim = new_len * 2;
 	}
+	*(dest->ptr + dest->len) = c;
 	dest->len = new_len;
-	*(dest->ptr + dest->len - 1) = c;
 	*(dest->ptr + dest->len) = '\0';
 	return 0;
 }

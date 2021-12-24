@@ -68,6 +68,13 @@ struct format_arg {
 	union format_value value;
 };
 
+// Linked list
+struct content_list {
+	struct string *content;
+	char *content_type;
+	struct content_list *next;
+};
+
 enum input_cmd {
 	INPUT_SELECT_NEXT = 0,
 	INPUT_SELECT_NEXT_PAGE,
@@ -128,7 +135,7 @@ int enter_items_menu_loop(const struct set_condition *st);
 void resize_items_global_action(void);
 
 // contents
-int pager_view(const struct string *data);
+int pager_view(const struct content_list *data_list);
 int cat_item_meta_data_to_buf(struct string *buf, sqlite3_stmt *res);
 struct string *expand_html_entities(const char *str, size_t str_len);
 struct string *plainify_html(const char *str, size_t str_len);
@@ -200,6 +207,7 @@ struct wstring *create_wstring(const wchar_t *src, size_t len);
 struct wstring *create_empty_wstring(void);
 int wcatas(struct wstring *dest, const wchar_t *src_ptr, size_t src_len);
 int wcatcs(struct wstring *dest, wchar_t c);
+int wcatss(struct wstring *dest, const struct wstring *src);
 struct wstring *convert_string_to_wstring(const struct string *src);
 void free_wstring(struct wstring *wstr);
 
@@ -207,9 +215,20 @@ void free_wstring(struct wstring *wstr);
 int log_init(const char *path);
 void log_stop(void);
 
+struct content_list *create_content_list_for_item(int rowid);
+void free_content_list(struct content_list *list);
+
+bool is_wchar_a_breaker(wchar_t wc);
+
 // Download, process and store a new items of feed.
 // See "update_feed" directory for implementation.
 int update_feed(const struct string *url);
+
+// Convert series of texts of different formats to one big
+// content string that can be written to pad window without
+// additional splitting into lines or any other processing.
+// See "render_data" directory for implementation.
+struct wstring *render_data(const struct content_list *data_list);
 
 extern FILE *log_stream;
 extern sqlite3 *db;

@@ -261,82 +261,17 @@ set_items_input_handlers(void)
 	set_input_handler(INPUT_RESIZE, &redraw_items_windows);
 }
 
-static inline sqlite3_stmt *
-find_item_by_its_rowid_in_db(int rowid)
-{
-	sqlite3_stmt *res;
-	if (sqlite3_prepare_v2(db, "SELECT * FROM items WHERE rowid = ? LIMIT 1", -1, &res, 0) != SQLITE_OK) {
-		FAIL_SQLITE_PREPARE;
-		return NULL; // failure
-	}
-	sqlite3_bind_int(res, 1, rowid);
-	if (sqlite3_step(res) != SQLITE_ROW) {
-		WARN("Could not find an item with the rowid %d!", rowid);
-		sqlite3_finalize(res);
-		return NULL; // failure
-	}
-	INFO("Item with the rowid %d is found.", rowid);
-	return res; // success
-}
-
-static inline const struct string *
-get_contents_of_item(sqlite3_stmt *res)
-{
-	struct string *buf = create_empty_string();
-	if (buf == NULL) {
-		return NULL;
-	}
-
-	if (cat_item_meta_data_to_buf(buf, res) != 0) {
-		free_string(buf);
-		return NULL;
-	}
-
-	char *text = (char *)sqlite3_column_text(res, ITEM_COLUMN_CONTENT);
-	//char *text_type = (char *)sqlite3_column_text(res, ITEM_COLUMN_CONTENT_TYPE);
-	size_t text_len = strlen(text);
-	if (text_len == 0) {
-		text = (char *)sqlite3_column_text(res, ITEM_COLUMN_SUMMARY);
-		//text_type = (char *)sqlite3_column_text(res, ITEM_COLUMN_SUMMARY_TYPE);
-		text_len = strlen(text);
-	}
-
-	if (text_len != 0) {
-		struct string *plain_text = plainify_html(text, text_len);
-		if (plain_text != NULL) {
-			if (plain_text->len != 0) {
-				catcs(buf, '\n');
-				catss(buf, plain_text);
-			}
-			free_string(plain_text);
-		}
-	}
-
-	return (const struct string *)buf;
-}
-
-static int
+static inline int
 enter_item_pager_loop(int rowid)
 {
 	INFO("Trying to view an item with the rowid %d.", rowid);
-
-	sqlite3_stmt *res = find_item_by_its_rowid_in_db(rowid);
-	if (res == NULL) {
+	struct content_list *list = create_content_list_for_item(rowid);
+	if (list == NULL) {
+		FAIL("Can not create content list for item!");
 		return INPUTS_COUNT;
 	}
-
-	const struct string *contents = get_contents_of_item(res);
-
-	sqlite3_finalize(res);
-
-	if (contents == NULL) {
-		return INPUTS_COUNT;
-	}
-
-	int destination = pager_view(contents);
-
-	free_string((struct string *)contents);
-
+	int destination = pager_view(list);
+	free_content_list(list);
 	return destination;
 }
 

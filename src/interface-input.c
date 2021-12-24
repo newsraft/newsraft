@@ -35,10 +35,16 @@ get_input_command(void)
 	}
 
 	if (c == KEY_RESIZE) {
-		/* if getch() returns KEY_RESIZE, then user's terminal got resized */
+		// If getch() returns KEY_RESIZE, then user's terminal got resized.
 
 		/* rearrange list menu windows */
 		resize_list_menu();
+		if ((list_menu_width == 0) || (list_menu_height == 0)) {
+			// Some really crazy resize happend. This state is really
+			// dangerous, better just break all loops and exit the program.
+			return INPUT_QUIT_HARD;
+		}
+
 		resize_sets_global_action();
 		resize_items_global_action();
 

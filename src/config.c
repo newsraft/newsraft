@@ -21,6 +21,19 @@ get_config_date_str(const time_t *time)
 	return time_str; // success
 }
 
+bool
+is_wchar_a_breaker(wchar_t wc)
+{
+	size_t i = 0;
+	while (config_break_at[i] != '\0') {
+		if (config_break_at[i] == wctob(wc)) {
+			return true;
+		}
+		++i;
+	}
+	return false;
+}
+
 void
 free_config_data(void)
 {

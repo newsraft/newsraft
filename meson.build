@@ -61,9 +61,8 @@ feedeater_src = [
 	'src/interface-input.c',
 	'src/interface-pager-menu.c',
 	'src/items.c',
+	'src/items-content.c',
 	'src/items-metadata.c',
-	'src/html-entities.c',
-	'src/html-plainifier.c',
 	'src/update_feed/update_feed.c',
 	'src/update_feed/item-bucket.c',
 	'src/update_feed/db-insert-item.c',
@@ -79,6 +78,10 @@ feedeater_src = [
 	'src/update_feed/xml-namespace-rss10content.c',
 	'src/update_feed/xml-namespace-dc.c',
 	#'src/update_feed/xml-namespace-rss10syndication.c',
+	'src/render_data/render_data.c',
+	'src/render_data/render-text-plain.c',
+	'src/render_data/render-text-html.c',
+	'src/render_data/render-text-html-entities.c',
 ]
 feedeater_inc = include_directories('src')
 

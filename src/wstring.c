@@ -25,7 +25,7 @@ create_wstring(const wchar_t *src, size_t len)
 		wstr->len = 0;
 	}
 	wstr->lim = len;
-	*(wstr->ptr + len) = L'\0';
+	*(wstr->ptr + wstr->len) = L'\0';
 	return wstr;
 }
 

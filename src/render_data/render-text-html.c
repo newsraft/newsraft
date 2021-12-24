@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
-#include "feedeater.h"
+#include "render_data.h"
 
 #define INITIAL_TAG_BUFFER_SIZE 1000 // must be greater than 1
 #define MAX_NESTED_LISTS_DEPTH 10
@@ -325,81 +325,152 @@ format_text(char *tag, size_t tag_len)
 	return 0;
 }
 
-struct string *
-plainify_html(const char *str, size_t str_len)
+/* struct string * */
+/* plainify_html(const char *str, size_t str_len) */
+struct wstring *
+render_text_html(const struct wstring *wstr)
 {
-	text = malloc(sizeof(char) * (5 * str_len + 1));
-	if (text == NULL) {
+	struct wstring *t = create_wstring(NULL, wstr->len);
+	if (t == NULL) {
+		FAIL("Not enough memory for text buffer to render HTML!");
 		return NULL;
 	}
-	char *tag = malloc(sizeof(char) * INITIAL_TAG_BUFFER_SIZE);
-	if (tag == NULL) {
-		free(text);
-		return NULL;
-	}
-	text_len = 0;
-	size_t tag_lim = INITIAL_TAG_BUFFER_SIZE - 1;
 
-	list_depth = 0;
-	position = HTML_NONE;
+	wchar_t *tag = malloc(sizeof(wchar_t) * INITIAL_TAG_BUFFER_SIZE);
+	if (tag == NULL) {
+		FAIL("Not enough memory for tag buffer to render HTML!");
+		free_wstring(t);
+		return NULL;
+	}
+
+	struct line *line = create_line();
+	if (line == NULL) {
+		FAIL("Not enough memory for line buffer to render HTML!");
+		free(tag);
+		free_wstring(t);
+		return NULL;
+	}
 
 	size_t tag_len;
-	bool in_tag = false; // shows if str[i] character belongs to html tag
-	bool error = false;  // shows if error occurred in loop
-	char *temp_ptr;
+	size_t tag_lim = INITIAL_TAG_BUFFER_SIZE - 1;
 
-	for (size_t i = 0; i < str_len; ++i) {
+	bool in_tag = false;
+	bool error = false;
+
+	const wchar_t *i = wstr->ptr;
+
+	position = HTML_NONE;
+
+	while (*i != L'\0') {
 		if (in_tag == false) {
-			if (str[i] == '<') {
+			if (*i == L'<') {
 				in_tag = true;
 				tag_len = 0;
 			} else if ((position & (HTML_STYLE|HTML_SCRIPT)) != 0) {
-				// Do not write characters of style and script elements.
+				// Ignore contents of style and script elements.
+				++i;
 				continue;
-			} else if (((position & HTML_PRE) == 0) && ((str[i] == ' ') || (str[i] == '\n') || (str[i] == '\t'))) {
-				if ((text_len != 0) && (text[text_len - 1] != ' ') && (text[text_len - 1] != '\n') && (text[text_len - 1] != '\t')) {
-					text[text_len++] = ' ';
+			} else if (((position & HTML_PRE) == 0) &&
+			           ((*i == L' ') || (*i == L'\n') || (*i == L'\t')))
+			{
+				if ((line->len != 0) &&
+				    (line->ptr[line->len - 1] != ' ') &&
+				    (line->ptr[line->len - 1] != '\n') &&
+				    (line->ptr[line->len - 1] != '\t'))
+				{
+					line_char(line, L' ', t);
 				}
 			} else {
-				text[text_len++] = str[i];
+				line_char(line, *i, t);
 			}
 		} else {
-			if (str[i] == '>') {
+			if (*i == L'>') {
 				in_tag = false;
-				tag[tag_len] = '\0';
-				format_text(tag, tag_len);
-			} else {
-				if (tag_len == tag_lim) {
-					tag_lim *= 2;
-					temp_ptr = realloc(tag, sizeof(char) * (tag_lim + 1));
-					if (temp_ptr == NULL) {
-						error = true;
-						break;
-					}
-					tag = temp_ptr;
-				}
-				tag[tag_len++] = str[i];
+				tag[tag_len] = L'\0';
 			}
 		}
+		++i;
 	}
+
+	line_finish(line, t);
+	free_line(line);
 
 	free(tag);
 
-	if (error == true) {
-		free(text);
-		return NULL;
-	}
+	return t;
 
-	text[text_len] = '\0';
+	/* text = malloc(sizeof(wchar_t) * ( + 1)); */
+	/* if (text == NULL) { */
+	/* 	return NULL; */
+	/* } */
+	/* char *tag = malloc(sizeof(char) * INITIAL_TAG_BUFFER_SIZE); */
+	/* if (tag == NULL) { */
+	/* 	free(text); */
+	/* 	return NULL; */
+	/* } */
+	/* text_len = 0; */
+	/* size_t tag_lim = INITIAL_TAG_BUFFER_SIZE - 1; */
 
-	struct string *expanded_text = expand_html_entities(text, text_len);
-	free(text);
-	if (expanded_text == NULL) {
-		FAIL("Failed to expand HTML entities of contents!");
-		return NULL;
-	}
+	/* list_depth = 0; */
+	/* position = HTML_NONE; */
 
-	strip_whitespace_from_edges(expanded_text);
+	/* size_t tag_len; */
+	/* bool in_tag = false; // shows if str[i] character belongs to html tag */
+	/* bool error = false;  // shows if error occurred in loop */
+	/* char *temp_ptr; */
 
-	return expanded_text;
+	/* for (size_t i = 0; i < str_len; ++i) { */
+	/* 	if (in_tag == false) { */
+	/* 		if (str[i] == '<') { */
+	/* 			in_tag = true; */
+	/* 			tag_len = 0; */
+	/* 		} else if ((position & (HTML_STYLE|HTML_SCRIPT)) != 0) { */
+	/* 			// Do not write characters of style and script elements. */
+	/* 			continue; */
+	/* 		} else if (((position & HTML_PRE) == 0) && ((str[i] == ' ') || (str[i] == '\n') || (str[i] == '\t'))) { */
+	/* 			if ((text_len != 0) && (text[text_len - 1] != ' ') && (text[text_len - 1] != '\n') && (text[text_len - 1] != '\t')) { */
+	/* 				text[text_len++] = ' '; */
+	/* 			} */
+	/* 		} else { */
+	/* 			text[text_len++] = str[i]; */
+	/* 		} */
+	/* 	} else { */
+	/* 		if (str[i] == '>') { */
+	/* 			in_tag = false; */
+	/* 			tag[tag_len] = '\0'; */
+	/* 			format_text(tag, tag_len); */
+	/* 		} else { */
+	/* 			if (tag_len == tag_lim) { */
+	/* 				tag_lim *= 2; */
+	/* 				temp_ptr = realloc(tag, sizeof(char) * (tag_lim + 1)); */
+	/* 				if (temp_ptr == NULL) { */
+	/* 					error = true; */
+	/* 					break; */
+	/* 				} */
+	/* 				tag = temp_ptr; */
+	/* 			} */
+	/* 			tag[tag_len++] = str[i]; */
+	/* 		} */
+	/* 	} */
+	/* } */
+
+	/* free(tag); */
+
+	/* if (error == true) { */
+	/* 	free(text); */
+	/* 	return NULL; */
+	/* } */
+
+	/* text[text_len] = '\0'; */
+
+	/* struct string *expanded_text = expand_html_entities(text, text_len); */
+	/* free(text); */
+	/* if (expanded_text == NULL) { */
+	/* 	FAIL("Failed to expand HTML entities of contents!"); */
+	/* 	return NULL; */
+	/* } */
+
+	/* strip_whitespace_from_edges(expanded_text); */
+
+	/* return expanded_text; */
 }

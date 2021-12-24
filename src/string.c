@@ -25,7 +25,7 @@ create_string(const char *src, size_t len)
 		str->len = 0;
 	}
 	str->lim = len;
-	*(str->ptr + len) = '\0';
+	*(str->ptr + str->len) = '\0';
 	return str;
 }
 

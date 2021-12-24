@@ -79,6 +79,7 @@ feedeater_src = [
 	'src/update_feed/xml-namespace-dc.c',
 	#'src/update_feed/xml-namespace-rss10syndication.c',
 	'src/render_data/render_data.c',
+	'src/render_data/line.c',
 	'src/render_data/render-text-plain.c',
 	'src/render_data/render-text-html.c',
 	'src/render_data/render-text-html-entities.c',
@@ -98,6 +99,9 @@ else
 			'-Og', # better debugging experience
 			'-fanalyzer',
 			'-fdiagnostics-color=always',
+			## for clang
+			#'-Xanalyzer',
+			#'-Qunused-arguments',
 		],
 		language : 'c',
 	)

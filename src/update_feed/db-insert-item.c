@@ -5,7 +5,7 @@
 static inline void
 delete_excess_items(const struct string *feed_url) {
 	sqlite3_stmt *s;
-	if (sqlite3_prepare_v2(db, "SELECT rowid FROM items WHERE feed = ? ORDER BY upddate DESC, pubdate DESC, rowid DESC", -1, &s, 0) != SQLITE_OK) {
+	if (sqlite3_prepare_v2(db, "SELECT rowid FROM items WHERE feed = ? ORDER BY upddate ASC, pubdate ASC, rowid ASC", -1, &s, 0) != SQLITE_OK) {
 		FAIL("Failed to prepare an excess items deletion statement:");
 		FAIL_SQLITE_PREPARE;
 		return;

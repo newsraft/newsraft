@@ -4,8 +4,8 @@
 
 #define SELECT_CMD_PART_1 "SELECT rowid, title, unread FROM items WHERE "
 #define SELECT_CMD_PART_1_LEN 45
-#define SELECT_CMD_PART_3 " ORDER BY upddate DESC, pubdate DESC, rowid DESC"
-#define SELECT_CMD_PART_3_LEN 48
+#define SELECT_CMD_PART_3 " ORDER BY upddate ASC, pubdate ASC, rowid ASC"
+#define SELECT_CMD_PART_3_LEN 45
 
 static struct item_line *items;
 static size_t items_count;

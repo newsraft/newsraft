@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include "render_data.h"
 
 struct line *
@@ -73,10 +74,12 @@ line_char(struct line *line, wchar_t c, struct wstring *target)
 }
 
 int
-line_string(struct line *line, struct wstring *target, const wchar_t *str, size_t str_len)
+line_string(struct line *line, struct wstring *target, const wchar_t *str)
 {
-	for (size_t i = 0; (i < str_len) && (str[i] != L'\0'); ++i) {
-		line_char(line, str[i], target);
+	const wchar_t *iter = str;
+	while (*iter != L'\0') {
+		line_char(line, *iter, target);
+		++iter;
 	}
 	return 0;
 }

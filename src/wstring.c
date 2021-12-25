@@ -145,6 +145,13 @@ convert_string_to_wstring(const struct string *src)
 }
 
 void
+empty_wstring(struct wstring *wstr)
+{
+	wstr->len = 0;
+	*(wstr->ptr + 0) = L'\0';
+}
+
+void
 free_wstring(struct wstring *wstr)
 {
 	if (wstr == NULL) {

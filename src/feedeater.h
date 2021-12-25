@@ -209,6 +209,7 @@ int wcatas(struct wstring *dest, const wchar_t *src_ptr, size_t src_len);
 int wcatcs(struct wstring *dest, wchar_t c);
 int wcatss(struct wstring *dest, const struct wstring *src);
 struct wstring *convert_string_to_wstring(const struct string *src);
+void empty_wstring(struct wstring *wstr);
 void free_wstring(struct wstring *wstr);
 
 // debug

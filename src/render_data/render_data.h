@@ -20,5 +20,5 @@ const wchar_t *translate_html_entity(wchar_t *entity);
 struct line *create_line(void);
 void free_line(struct line *line);
 int line_char(struct line *line, wchar_t c, struct wstring *target);
-int line_string(struct line *line, struct wstring *target, const wchar_t *str, size_t str_len);
+int line_string(struct line *line, struct wstring *target, const wchar_t *str);
 #endif // RENDER_DATA_H

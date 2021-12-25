@@ -2,7 +2,6 @@
 #include <string.h>
 #include "render_data.h"
 
-#define INITIAL_TAG_BUFFER_SIZE 1000 // must be greater than 1
 #define MAX_NESTED_LISTS_DEPTH 10
 #define SPACES_PER_INDENTATION_LEVEL 4
 
@@ -20,7 +19,7 @@ enum list_type {
 
 struct list_level {
 	enum list_type type;
-	int length;
+	uint16_t length;
 };
 
 static uint8_t list_depth;
@@ -66,14 +65,14 @@ li_start_handler(struct line *line, struct wstring *text)
 	add_newlines(line, text, 1);
 	line->indent = list_depth * SPACES_PER_INDENTATION_LEVEL;
 	if (list_levels[list_depth - 1].type == UNORDERED_LIST) {
-		line_string(line, text, L"*  ", 3);;
+		line_string(line, text, L"*  ");;
 		line->indent += 3;
 	} else {
 		++(list_levels[list_depth - 1].length);
-		// 14 because 11 (max length of int) + 2 (dot and space) + 1 (terminator)
-		wchar_t number_str[14];
-		size_t number_str_len = swprintf(number_str, 14, L"%d. ", list_levels[list_depth - 1].length);
-		line_string(line, text, number_str, number_str_len);
+		// 9 = 5 (for longest uint16_t) + 2 (for dot and space) + 1 (for terminator) + 1 (for luck lol)
+		wchar_t number_str[9];
+		size_t number_str_len = swprintf(number_str, 9, L"%d. ", list_levels[list_depth - 1].length);
+		line_string(line, text, number_str);
 		line->indent += number_str_len;
 	}
 }
@@ -245,22 +244,22 @@ end_handler(wchar_t *t, struct line *l, struct wstring *w, enum html_position *p
 
 // Append some characters according to the current position in the HTML document.
 static inline int
-format_text(wchar_t *tag, size_t tag_len, struct line *line, struct wstring *text, enum html_position *pos)
+format_text(struct wstring *tag, struct line *line, struct wstring *text, enum html_position *pos)
 {
 	wchar_t *tag_name;
 	bool is_end_tag;
 
-	if (tag[0] == L'/') {
-		tag_name = tag + 1;
+	if (tag->ptr[0] == L'/') {
+		tag_name = tag->ptr + 1;
 		is_end_tag = true;
 	} else {
-		tag_name = tag;
+		tag_name = tag->ptr;
 		is_end_tag = false;
 	}
 
 	size_t tag_name_len = 0;
-	for (size_t i = 0; i < tag_len; ++i) {
-		if ((tag[i] == L' ') || (tag[i] == L'\n') || (tag[i] == L'\t')) {
+	for (size_t i = 0; i < tag->len; ++i) {
+		if ((tag->ptr[i] == L' ') || (tag->ptr[i] == L'\n') || (tag->ptr[i] == L'\t')) {
 			break;
 		}
 		++tag_name_len;
@@ -282,14 +281,12 @@ format_text(wchar_t *tag, size_t tag_len, struct line *line, struct wstring *tex
 	tag_name[tag_name_len] = temp;
 
 	line_char(line, L'<', text);
-	line_string(line, text, tag, tag_len);
+	line_string(line, text, tag->ptr);
 	line_char(line, L'>', text);
 
 	return 0;
 }
 
-/* struct string * */
-/* plainify_html(const char *str, size_t str_len) */
 struct wstring *
 render_text_html(const struct wstring *wstr)
 {
@@ -298,44 +295,40 @@ render_text_html(const struct wstring *wstr)
 		FAIL("Not enough memory for text buffer to render HTML!");
 		return NULL;
 	}
-	wchar_t *tag = malloc(sizeof(wchar_t) * INITIAL_TAG_BUFFER_SIZE);
+
+	struct wstring *tag = create_wstring(NULL, 100);
 	if (tag == NULL) {
 		FAIL("Not enough memory for tag buffer to render HTML!");
 		free_wstring(t);
 		return NULL;
 	}
+
 	struct line *line = create_line();
 	if (line == NULL) {
 		FAIL("Not enough memory for line buffer to render HTML!");
-		free(tag);
+		free_wstring(tag);
 		free_wstring(t);
 		return NULL;
 	}
 
-	size_t tag_len;
-	size_t tag_lim = INITIAL_TAG_BUFFER_SIZE - 1;
-
-	void *temp_ptr;
-
 	bool in_tag = false;
+	bool in_entity = false;
 	bool error = false;
 
-	bool in_entity = false;
-	size_t entity_len;
 	wchar_t entity_name[MAX_ENTITY_NAME_LENGTH + 1];
+	size_t entity_len;
 	const wchar_t *entity_value;
-
-	const wchar_t *i = wstr->ptr;
 
 	list_depth = 0;
 	enum html_position position = HTML_NONE;
 
+	const wchar_t *i = wstr->ptr;
 	while (*i != L'\0') {
 		if (in_tag == false) {
 			if (in_entity == false) {
 				if (*i == L'<') {
 					in_tag = true;
-					tag_len = 0;
+					empty_wstring(tag);
 				} else if (*i == L'&') {
 					in_entity = true;
 					entity_len = 0;
@@ -347,32 +340,39 @@ render_text_html(const struct wstring *wstr)
 						((*i == L' ') || (*i == L'\n') || (*i == L'\t')))
 				{
 					if ((line->len != 0) &&
-						(line->ptr[line->len - 1] != ' ') &&
-						(line->ptr[line->len - 1] != '\n') &&
-						(line->ptr[line->len - 1] != '\t'))
+						(line->ptr[line->len - 1] != L' ') &&
+						(line->ptr[line->len - 1] != L'\n') &&
+						(line->ptr[line->len - 1] != L'\t'))
 					{
-						line_char(line, L' ', t);
+						if (line_char(line, L' ', t) != 0) {
+							error = true;
+							break;
+						}
 					}
 				} else {
-					line_char(line, *i, t);
+					if (line_char(line, *i, t) != 0) {
+						error = true;
+						break;
+					}
 				}
 			} else { // All entity characters go here.
 				if (*i == L';') {
 					in_entity = false;
-					entity_name[entity_len] = '\0';
+					entity_name[entity_len] = L'\0';
 					entity_value = translate_html_entity(entity_name);
 					if (entity_value != NULL) {
-						line_string(line, t, entity_value, wcslen(entity_value));
+						line_string(line, t, entity_value);
 					} else {
 						line_char(line, L'&', t);
-						line_string(line, t, entity_name, entity_len);
+						line_string(line, t, entity_name);
 						line_char(line, L';', t);
 					}
 				} else {
 					if (entity_len == MAX_ENTITY_NAME_LENGTH) {
 						in_entity = false;
+						entity_name[entity_len] = L'\0';
 						line_char(line, L'&', t);
-						line_string(line, t, entity_name, entity_len);
+						line_string(line, t, entity_name);
 					} else {
 						entity_name[entity_len++] = *i;
 					}
@@ -381,27 +381,21 @@ render_text_html(const struct wstring *wstr)
 		} else { // All tag characters go here.
 			if (*i == L'>') {
 				in_tag = false;
-				tag[tag_len] = L'\0';
-				format_text(tag, tag_len, line, t, &position);
+				format_text(tag, line, t, &position);
 			} else {
-				if (tag_len == tag_lim) {
-					temp_ptr = realloc(tag, sizeof(wchar_t) * (tag_lim * 2 + 1));
-					if (temp_ptr == NULL) {
-						error = true;
-						break;
-					}
-					tag = temp_ptr;
-					tag_lim = tag_lim * 2;
+				if (wcatcs(tag, *i) != 0) {
+					error = true;
+					break;
 				}
-				tag[tag_len++] = *i;
 			}
 		}
 		++i;
 	}
 
-	free(tag);
+	free_wstring(tag);
 
 	if (error == true) {
+		FAIL("Not enough memory for rendering HTML!");
 		free_line(line);
 		free_wstring(t);
 		return NULL;
@@ -413,15 +407,4 @@ render_text_html(const struct wstring *wstr)
 	free_line(line);
 
 	return t;
-
-	/* struct string *expanded_text = expand_html_entities(text, text_len); */
-	/* free(text); */
-	/* if (expanded_text == NULL) { */
-	/* 	FAIL("Failed to expand HTML entities of contents!"); */
-	/* 	return NULL; */
-	/* } */
-
-	/* strip_whitespace_from_edges(expanded_text); */
-
-	/* return expanded_text; */
 }

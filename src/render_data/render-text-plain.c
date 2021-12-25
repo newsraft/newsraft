@@ -17,7 +17,9 @@ render_text_plain(const struct wstring *wstr)
 		line_char(line, *iter, result);
 		++iter;
 	}
-	line_finish(line, result);
+	if (line->len != 0) {
+		line_char(line, L'\n', result);
+	}
 	free_line(line);
 	return result;
 }

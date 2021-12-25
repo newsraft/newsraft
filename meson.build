@@ -1,14 +1,15 @@
 project(
 	'feedeater',
 	'c',
-	license: 'MIT',
 	default_options: [
 		'c_std=gnu18',
 		'warning_level=3',
 		'buildtype=release',
 	],
+	license: 'MIT',
 	version: 'this is not even pre-alpha',
 )
+
 add_project_arguments(
 	[
 		# enable namespaces functionality of expat
@@ -33,84 +34,84 @@ add_project_arguments(
 		'-DFEEDEATER_FORMAT_SUPPORT_DUBLINCORE',
 		'-DFEEDEATER_FORMAT_SUPPORT_RSS10CONTENT',
 	],
-	language : 'c',
+	language: 'c',
 )
-feedeater_dep = [
-	dependency('ncursesw'),
-	dependency('libcurl'),
-	dependency('expat'),
-	dependency('sqlite3'),
-]
-feedeater_src = [
-	'src/feedeater.c',
-	'src/log.c',
-	'src/path.c',
-	'src/string.c',
-	'src/wstring.c',
-	'src/db.c',
-	'src/db-items.c',
-	'src/config.c',
-	'src/format.c',
-	'src/config-defaults.c',
-	'src/sets.c',
-	'src/sets-tags.c',
-	'src/sets-condition.c',
-	'src/interface.c',
-	'src/interface-list-menu.c',
-	'src/interface-status.c',
-	'src/interface-input.c',
-	'src/interface-pager-menu.c',
-	'src/items.c',
-	'src/items-content.c',
-	'src/items-metadata.c',
-	'src/update_feed/update_feed.c',
-	'src/update_feed/item-bucket.c',
-	'src/update_feed/db-insert-item.c',
-	'src/update_feed/db-update-feed.c',
-	'src/update_feed/date-utils.c',
-	'src/update_feed/xml.c',
-	'src/update_feed/xml-format-rss20.c',
-	'src/update_feed/xml-namespace.c',
-	'src/update_feed/xml-namespace-atom10.c',
-	'src/update_feed/xml-namespace-atom03.c',
-	#'src/update_feed/xml-namespace-mrss.c',
-	'src/update_feed/xml-namespace-rss11.c',
-	'src/update_feed/xml-namespace-rss10content.c',
-	'src/update_feed/xml-namespace-dc.c',
-	#'src/update_feed/xml-namespace-rss10syndication.c',
-	'src/render_data/render_data.c',
-	'src/render_data/line.c',
-	'src/render_data/render-text-plain.c',
-	'src/render_data/render-text-html.c',
-	'src/render_data/render-text-html-entities.c',
-]
-feedeater_inc = include_directories('src')
 
 if get_option('buildtype') == 'release'
 	add_project_arguments(
 		[
 			'-fdiagnostics-color=never',
 		],
-		language : 'c',
+		language: 'c',
 	)
 else
 	add_project_arguments(
 		[
-			'-Og', # better debugging experience
-			'-fanalyzer',
 			'-fdiagnostics-color=always',
-			## for clang
-			#'-Xanalyzer',
-			#'-Qunused-arguments',
+			#'-fanalyzer',
+			#'-Og', # meson takes care of it
+			#'-Xanalyzer', # for clang
+			#'-Qunused-arguments', # for clang
 		],
-		language : 'c',
+		language: 'c',
 	)
+	# run "ninja cppcheck" to run code analysis
+	run_target('cppcheck', command: ['cppcheck', '--project=' + join_paths(meson.build_root(), 'compile_commands.json')])
 endif
 
 executable(
 	'feedeater',
+	include_directories: [
+		include_directories('src'),
+	],
+	sources: [
+		'src/feedeater.c',
+		'src/log.c',
+		'src/path.c',
+		'src/string.c',
+		'src/wstring.c',
+		'src/db.c',
+		'src/db-items.c',
+		'src/config.c',
+		'src/format.c',
+		'src/config-defaults.c',
+		'src/sets.c',
+		'src/sets-tags.c',
+		'src/sets-condition.c',
+		'src/interface.c',
+		'src/interface-list-menu.c',
+		'src/interface-status.c',
+		'src/interface-input.c',
+		'src/interface-pager-menu.c',
+		'src/items.c',
+		'src/items-content.c',
+		'src/items-metadata.c',
+		'src/update_feed/update_feed.c',
+		'src/update_feed/item-bucket.c',
+		'src/update_feed/db-insert-item.c',
+		'src/update_feed/db-update-feed.c',
+		'src/update_feed/date-utils.c',
+		'src/update_feed/xml.c',
+		'src/update_feed/xml-format-rss20.c',
+		'src/update_feed/xml-namespace.c',
+		'src/update_feed/xml-namespace-atom10.c',
+		'src/update_feed/xml-namespace-atom03.c',
+		#'src/update_feed/xml-namespace-mrss.c',
+		'src/update_feed/xml-namespace-rss11.c',
+		'src/update_feed/xml-namespace-rss10content.c',
+		'src/update_feed/xml-namespace-dc.c',
+		#'src/update_feed/xml-namespace-rss10syndication.c',
+		'src/render_data/render_data.c',
+		'src/render_data/line.c',
+		'src/render_data/render-text-plain.c',
+		'src/render_data/render-text-html.c',
+		'src/render_data/render-text-html-entities.c',
+	],
+	dependencies: [
+		dependency('ncursesw'),
+		dependency('libcurl'),
+		dependency('expat'),
+		dependency('sqlite3'),
+	],
 	#link_args: ['-static'],
-	sources: feedeater_src,
-	dependencies: feedeater_dep,
-	include_directories: feedeater_inc,
 )

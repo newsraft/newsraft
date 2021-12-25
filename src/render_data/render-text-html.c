@@ -55,7 +55,7 @@ hr_handler(struct line *line, struct wstring *text)
 {
 	add_newlines(line, text, 1);
 	for (size_t i = 0; i < line->lim; ++i) {
-		line_char(line, L'-', text);
+		line_char(line, L'─', text);
 	}
 	line_char(line, L'\n', text);
 }

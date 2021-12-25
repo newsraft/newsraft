@@ -51,8 +51,8 @@ assign_default_values_to_empty_config_strings(void)
                          	}                                   \
                          	strcpy(A, B);                       \
                          }
-	ADVTECS(config_menu_set_entry_format,  "%4.0u | %t",               10)
-	ADVTECS(config_menu_item_entry_format, " %u | %t",                 8)
+	ADVTECS(config_menu_set_entry_format,  "%4.0u │ %t",               12)
+	ADVTECS(config_menu_item_entry_format, " %u │ %t",                 10)
 	ADVTECS(config_contents_meta_data,     "feed,title,authors,categories,date,url,comments,enclosures", 58)
 	ADVTECS(config_contents_date_format,   "%a, %d %b %Y %H:%M:%S %z", 24)
 	ADVTECS(config_break_at,               " \t!@*-+;:,./?",           13) // '\t' is a separate character

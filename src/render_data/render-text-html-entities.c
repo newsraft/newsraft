@@ -3,146 +3,140 @@
 #include <ctype.h>
 #include "feedeater.h"
 
-// This has to be the length of the longest entity name in entities array.
-#define MAX_ENTITY_NAME_LENGTH 13
-
 struct entity_entry {
-	const char *const name;
+	const wchar_t *const name;
 	// Store numbers as strings to compare them without conversion.
-	const char *const number;
-	const char *const hex_number;
-	const char *const value;
+	const wchar_t *const number;
+	const wchar_t *const hex_number;
+	const wchar_t *const value;
 };
 
 // Good list of HTML entities with their hexadecimal and decimal values.
 // https://dev.w3.org/html5/html-author/charref
 
 // WARNING!
-// Before you add here an entity whose value is longer than name,
-// you have to make the data buffer dynamic to avoid overflow!
-// So far all entities here have names longer than values.
-// Also don't forget to update MAX_ENTITY_NAME_LENGTH every time
+// Don't forget to update MAX_ENTITY_NAME_LENGTH every time
 // you add another entity with the longest name.
 static const struct entity_entry entities[] = {
-	{"nbsp",          "160",   "A0",    " "},
-	{"lsquo",         "8216",  "2018",  "‘"},
-	{"rsquo",         "8217",  "2019",  "’"},
-	{"rsquor",        "8217",  "2019",  "’"},
-	{"sbquo",         "8218",  "201A",  "‚"},
-	{"lsquor",        "8218",  "201A",  "‚"},
-	{"ldquo",         "8220",  "201C",  "“"},
-	{"rdquo",         "8221",  "201D",  "”"},
-	{"rdquor",        "8221",  "201D",  "”"},
-	{"bdquo",         "8222",  "201E",  "„"},
-	{"ldquor",        "8222",  "201E",  "„"},
-	{"laquo",         "171",   "AB",    "«"},
-	{"raquo",         "187",   "BB",    "»"},
-	{"dash",          "8208",  "2010",  "-"},
-	{"hyphen",        "8208",  "2010",  "-"},
-	{"ndash",         "8211",  "2013",  "–"},
-	{"mdash",         "8212",  "2014",  "—"},
-	{"horbar",        "8213",  "2015",  "―"},
-	{"quot",          "34",    "22",    "\""},
-	{"apos",          "39",    "27",    "'"},
-	{"num",           "35",    "23",    "#"},
-	{"colon",         "58",    "3A",    ":"},
-	{"semi",          "59",    "3B",    ";"},
-	{"lsaquo",        "8249",  "2039",  "‹"},
-	{"rsaquo",        "8250",  "203A",  "›"},
-	{"hellip",        "8230",  "2026",  "…"},
-	{"mldr",          "8230",  "2026",  "…"},
-	{"bull",          "8226",  "2022",  "•"},
-	{"bullet",        "8226",  "2022",  "•"},
-	{"larrhk",        "8617",  "21A9",  "↩"},
-	{"hookleftarrow", "8617",  "21A9",  "↩"},
-	{"trade",         "8482",  "2122",  "™"},
-	{"copy",          "169",   "A9",    "©"},
-	{"reg",           "174",   "AE",    "®"},
-	{"numero",        "8470",  "2116",  "№"},
-	{"sect",          "167",   "A7",    "§"},
-	{"sup1",          "185",   "B9",    "¹"},
-	{"sup2",          "178",   "B2",    "²"},
-	{"sup3",          "179",   "B3",    "³"},
-	{"amp",           "38",    "26",    "&"},
-	{"lt",            "60",    "3C",    "<"},
-	{"gt",            "62",    "3E",    ">"},
-	{"rightarrow",    "8594",  "2192",  "→"},
-	{"RightArrow",    "8594",  "2192",  "→"},
-	{"rarr",          "8594",  "2192",  "→"},
-	{"Rightarrow",    "8658",  "21D2",  "⇒"},
-	{"rArr",          "8658",  "21D2",  "⇒"},
-	{"Rarr",          "8608",  "21A0",  "↠"},
-	{"rdsh",          "8627",  "21B3",  "↳"},
-	{"rdca",          "10551", "2937",  "⤷"},
-	{NULL,            "65038", "FE0E",  ""},
-	{NULL,            "65039", "FE0F",  ""},
-	{"half",          "189",   "BD",    "½"},
-	{"frac12",        "189",   "BD",    "½"},
-	{"frac13",        "8531",  "2153",  "⅓"},
-	{"frac23",        "8532",  "2154",  "⅔"},
-	{"frac14",        "188",   "BC",    "¼"},
-	{"frac34",        "190",   "BE",    "¾"},
-	{"frac15",        "8533",  "2155",  "⅕"},
-	{"frac25",        "8534",  "2156",  "⅖"},
-	{"frac35",        "8535",  "2157",  "⅗"},
-	{"frac45",        "8536",  "2158",  "⅘"},
-	{"frac16",        "8537",  "2159",  "⅙"},
-	{"frac56",        "8538",  "215A",  "⅚"},
-	{"frac18",        "8539",  "215B",  "⅛"},
-	{"frac38",        "8540",  "215C",  "⅜"},
-	{"frac58",        "8541",  "215D",  "⅝"},
-	{"frac78",        "8542",  "215E",  "⅞"},
-	{"check",         "10003", "2713",  "✓"},
-	{"checkmark",     "10003", "2713",  "✓"},
-	{"deg",           "176",   "B0",    "°"},
-	{"divide",        "247",   "F7",    "÷"},
-	{"div",           "247",   "F7",    "÷"},
-	{"dagger",        "8224",  "2020",  "†"},
-	{"permil",        "8240",  "2030",  "‰"},
-	{"dollar",        "36",    "24",    "$"},
-	{"euro",          "8364",  "20AC",  "€"},
-	{"pound",         "163",   "A3",    "£"},
-	{"cent",          "162",   "A2",    "¢"},
-	{"yen",           "165",   "A5",    "¥"},
-	{"Pi",            "928",   "3A0",   "Π"},
-	{"pi",            "960",   "3C0",   "π"},
-	{"Alpha",         "913",   "391",   "Α"},
-	{"alpha",         "945",   "3B1",   "α"},
-	{"Delta",         "916",   "394",   "Δ"},
-	{"delta",         "948",   "3B4",   "δ"},
-	{"hearts",        "9829",  "2665",  "♥"},
-	{"heartsuit",     "9829",  "2665",  "♥"},
-	{"diams",         "9830",  "2666",  "♦"},
-	{"diamondsuit",   "9830",  "2666",  "♦"},
-	{"clubs",         "9827",  "2663",  "♣"},
-	{"clubsuit",      "9827",  "2663",  "♣"},
-	{"spades",        "9824",  "2660",  "♠"},
-	{"spadesuit",     "9824",  "2660",  "♠"},
-	{"pertenk",       "8241",  "2031",  "‱"},
+	{L"nbsp",          L"160",   L"A0",    L" "},
+	{L"lsquo",         L"8216",  L"2018",  L"‘"},
+	{L"rsquo",         L"8217",  L"2019",  L"’"},
+	{L"rsquor",        L"8217",  L"2019",  L"’"},
+	{L"sbquo",         L"8218",  L"201A",  L"‚"},
+	{L"lsquor",        L"8218",  L"201A",  L"‚"},
+	{L"ldquo",         L"8220",  L"201C",  L"“"},
+	{L"rdquo",         L"8221",  L"201D",  L"”"},
+	{L"rdquor",        L"8221",  L"201D",  L"”"},
+	{L"bdquo",         L"8222",  L"201E",  L"„"},
+	{L"ldquor",        L"8222",  L"201E",  L"„"},
+	{L"laquo",         L"171",   L"AB",    L"«"},
+	{L"raquo",         L"187",   L"BB",    L"»"},
+	{L"dash",          L"8208",  L"2010",  L"-"},
+	{L"hyphen",        L"8208",  L"2010",  L"-"},
+	{L"ndash",         L"8211",  L"2013",  L"–"},
+	{L"mdash",         L"8212",  L"2014",  L"—"},
+	{L"horbar",        L"8213",  L"2015",  L"―"},
+	{L"quot",          L"34",    L"22",    L"\""},
+	{L"apos",          L"39",    L"27",    L"'"},
+	{L"num",           L"35",    L"23",    L"#"},
+	{L"colon",         L"58",    L"3A",    L":"},
+	{L"semi",          L"59",    L"3B",    L";"},
+	{L"lsaquo",        L"8249",  L"2039",  L"‹"},
+	{L"rsaquo",        L"8250",  L"203A",  L"›"},
+	{L"hellip",        L"8230",  L"2026",  L"…"},
+	{L"mldr",          L"8230",  L"2026",  L"…"},
+	{L"bull",          L"8226",  L"2022",  L"•"},
+	{L"bullet",        L"8226",  L"2022",  L"•"},
+	{L"larrhk",        L"8617",  L"21A9",  L"↩"},
+	{L"hookleftarrow", L"8617",  L"21A9",  L"↩"},
+	{L"trade",         L"8482",  L"2122",  L"™"},
+	{L"copy",          L"169",   L"A9",    L"©"},
+	{L"reg",           L"174",   L"AE",    L"®"},
+	{L"numero",        L"8470",  L"2116",  L"№"},
+	{L"sect",          L"167",   L"A7",    L"§"},
+	{L"sup1",          L"185",   L"B9",    L"¹"},
+	{L"sup2",          L"178",   L"B2",    L"²"},
+	{L"sup3",          L"179",   L"B3",    L"³"},
+	{L"amp",           L"38",    L"26",    L"&"},
+	{L"lt",            L"60",    L"3C",    L"<"},
+	{L"gt",            L"62",    L"3E",    L">"},
+	{L"rightarrow",    L"8594",  L"2192",  L"→"},
+	{L"RightArrow",    L"8594",  L"2192",  L"→"},
+	{L"rarr",          L"8594",  L"2192",  L"→"},
+	{L"Rightarrow",    L"8658",  L"21D2",  L"⇒"},
+	{L"rArr",          L"8658",  L"21D2",  L"⇒"},
+	{L"Rarr",          L"8608",  L"21A0",  L"↠"},
+	{L"rdsh",          L"8627",  L"21B3",  L"↳"},
+	{L"rdca",          L"10551", L"2937",  L"⤷"},
+	{NULL,             L"65038", L"FE0E",  L""},
+	{NULL,             L"65039", L"FE0F",  L""},
+	{L"half",          L"189",   L"BD",    L"½"},
+	{L"frac12",        L"189",   L"BD",    L"½"},
+	{L"frac13",        L"8531",  L"2153",  L"⅓"},
+	{L"frac23",        L"8532",  L"2154",  L"⅔"},
+	{L"frac14",        L"188",   L"BC",    L"¼"},
+	{L"frac34",        L"190",   L"BE",    L"¾"},
+	{L"frac15",        L"8533",  L"2155",  L"⅕"},
+	{L"frac25",        L"8534",  L"2156",  L"⅖"},
+	{L"frac35",        L"8535",  L"2157",  L"⅗"},
+	{L"frac45",        L"8536",  L"2158",  L"⅘"},
+	{L"frac16",        L"8537",  L"2159",  L"⅙"},
+	{L"frac56",        L"8538",  L"215A",  L"⅚"},
+	{L"frac18",        L"8539",  L"215B",  L"⅛"},
+	{L"frac38",        L"8540",  L"215C",  L"⅜"},
+	{L"frac58",        L"8541",  L"215D",  L"⅝"},
+	{L"frac78",        L"8542",  L"215E",  L"⅞"},
+	{L"check",         L"10003", L"2713",  L"✓"},
+	{L"checkmark",     L"10003", L"2713",  L"✓"},
+	{L"deg",           L"176",   L"B0",    L"°"},
+	{L"divide",        L"247",   L"F7",    L"÷"},
+	{L"div",           L"247",   L"F7",    L"÷"},
+	{L"dagger",        L"8224",  L"2020",  L"†"},
+	{L"permil",        L"8240",  L"2030",  L"‰"},
+	{L"dollar",        L"36",    L"24",    L"$"},
+	{L"euro",          L"8364",  L"20AC",  L"€"},
+	{L"pound",         L"163",   L"A3",    L"£"},
+	{L"cent",          L"162",   L"A2",    L"¢"},
+	{L"yen",           L"165",   L"A5",    L"¥"},
+	{L"Pi",            L"928",   L"3A0",   L"Π"},
+	{L"pi",            L"960",   L"3C0",   L"π"},
+	{L"Alpha",         L"913",   L"391",   L"Α"},
+	{L"alpha",         L"945",   L"3B1",   L"α"},
+	{L"Delta",         L"916",   L"394",   L"Δ"},
+	{L"delta",         L"948",   L"3B4",   L"δ"},
+	{L"hearts",        L"9829",  L"2665",  L"♥"},
+	{L"heartsuit",     L"9829",  L"2665",  L"♥"},
+	{L"diams",         L"9830",  L"2666",  L"♦"},
+	{L"diamondsuit",   L"9830",  L"2666",  L"♦"},
+	{L"clubs",         L"9827",  L"2663",  L"♣"},
+	{L"clubsuit",      L"9827",  L"2663",  L"♣"},
+	{L"spades",        L"9824",  L"2660",  L"♠"},
+	{L"spadesuit",     L"9824",  L"2660",  L"♠"},
+	{L"pertenk",       L"8241",  L"2031",  L"‱"},
 };
 
 static inline size_t
-count_insignificant_zeros(const char *entity)
+count_insignificant_zeros(const wchar_t *entity)
 {
 	size_t i = 0;
-	while (entity[i] == '0') {
+	while (entity[i] == L'0') {
 		++i;
 	}
 	return i;
 }
 
-static inline const char *
-translate_entity(char *entity)
+const wchar_t *
+translate_html_entity(wchar_t *entity)
 {
 	size_t i;
 
-	if (entity[0] == '#') {
+	if (entity[0] == L'#') {
 		// Entity starts with '#' so this is a number entity.
 		// Shift one character because we already know that this is a
 		// number entity and all number entities have '#' at the beginning.
-		char *num_entity = entity + 1;
+		wchar_t *num_entity = entity + 1;
 
-		if (num_entity[0] == 'x') {
+		if (num_entity[0] == L'x') {
 			// If number entity has 'x' right after '#' then this is a
 			// hexadecimal number entity and we should shift one more character.
 			num_entity += 1;
@@ -151,12 +145,12 @@ translate_entity(char *entity)
 			num_entity += count_insignificant_zeros(num_entity);
 
 			// Convert all hex digits of entity to upper case.
-			for (i = 0; num_entity[i] != '\0'; ++i) {
-				num_entity[i] = toupper(num_entity[i]);
+			for (i = 0; num_entity[i] != L'\0'; ++i) {
+				num_entity[i] = towupper(num_entity[i]);
 			}
 
 			for (i = 0; i < LENGTH(entities); ++i) {
-				if (strcmp(num_entity, entities[i].hex_number) == 0) {
+				if (wcscmp(num_entity, entities[i].hex_number) == 0) {
 					return entities[i].value;
 				}
 			}
@@ -167,7 +161,7 @@ translate_entity(char *entity)
 			num_entity += count_insignificant_zeros(num_entity);
 
 			for (i = 0; i < LENGTH(entities); ++i) {
-				if (strcmp(num_entity, entities[i].number) == 0) {
+				if (wcscmp(num_entity, entities[i].number) == 0) {
 					return entities[i].value;
 				}
 			}
@@ -177,86 +171,14 @@ translate_entity(char *entity)
 	} else {
 
 		for (i = 0; i < LENGTH(entities); ++i) {
-			if ((entities[i].name != NULL) && (strcmp(entity, entities[i].name) == 0)) {
+			if ((entities[i].name != NULL) && (wcscmp(entity, entities[i].name) == 0)) {
 				return entities[i].value;
 			}
 		}
 
 	}
 
-	WARN("Met an unknown HTML entity: %s", entity);
+	WARN("Met an unknown HTML entity: %ls", entity);
 
 	return NULL;
-}
-
-struct string *
-expand_html_entities(const char *str, size_t str_len)
-{
-	char *data = malloc(sizeof(char) * (str_len + 1));
-	if (data == NULL) {
-		FAIL("Not enough memory for expanding HTML entities of item contents!");
-		return NULL;
-	}
-	size_t data_len = 0;
-	bool in_entity = false;
-	char entity_name[MAX_ENTITY_NAME_LENGTH + 1];
-	const char *entity_value;
-	size_t entity_len;
-	for (size_t i = 0; i < str_len; ++i) {
-		if (in_entity == true) {
-			if (str[i] == ';') {
-				in_entity = false;
-				entity_name[entity_len] = '\0';
-				entity_value = translate_entity(entity_name);
-				if (entity_value != NULL) {
-					data[data_len] = '\0';
-					strcat(data, entity_value);
-					data_len += strlen(entity_value);
-				} else {
-					data[data_len++] = '&';
-					data[data_len] = '\0';
-					strcat(data, entity_name);
-					data_len += entity_len;
-					data[data_len++] = ';';
-				}
-			} else {
-				if (entity_len == MAX_ENTITY_NAME_LENGTH) {
-					in_entity = false;
-					entity_name[entity_len] = '\0';
-					data[data_len++] = '&';
-					data[data_len] = '\0';
-					strcat(data, entity_name);
-					data_len += strlen(entity_name);
-				} else {
-					entity_name[entity_len++] = str[i];
-				}
-			}
-		} else {
-			if (str[i] == '&') {
-				in_entity = true;
-				entity_len = 0;
-			} else {
-				data[data_len++] = str[i];
-			}
-		}
-	}
-
-	data[data_len] = '\0';
-
-	if (in_entity == true) {
-		entity_name[entity_len] = '\0';
-		strcat(data, "&");
-		strcat(data, entity_name);
-		data_len += 1 + entity_len;
-	}
-
-	struct string *text_buf = malloc(sizeof(struct string));
-	if (text_buf == NULL) {
-		free(data);
-		return NULL;
-	}
-	text_buf->ptr = data;
-	text_buf->len = data_len;
-
-	return text_buf;
 }

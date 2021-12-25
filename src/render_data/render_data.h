@@ -2,6 +2,9 @@
 #define RENDER_DATA_H
 #include "feedeater.h"
 
+// This has to be the length of the longest HTML entity name in entities array.
+#define MAX_ENTITY_NAME_LENGTH 13
+
 struct line {
 	wchar_t *ptr;  // Actual text string that represents line.
 	size_t len;    // Shows number of characters in line.
@@ -12,9 +15,10 @@ struct line {
 
 struct wstring *render_text_plain(const struct wstring *wstr);
 struct wstring *render_text_html(const struct wstring *wstr);
+const wchar_t *translate_html_entity(wchar_t *entity);
 
 struct line *create_line(void);
 void free_line(struct line *line);
 int line_char(struct line *line, wchar_t c, struct wstring *target);
-int line_string(struct line *line, struct wstring *target, wchar_t *str, size_t str_len);
+int line_string(struct line *line, struct wstring *target, const wchar_t *str, size_t str_len);
 #endif // RENDER_DATA_H

@@ -320,6 +320,11 @@ render_text_html(const struct wstring *wstr)
 	bool in_tag = false;
 	bool error = false;
 
+	bool in_entity = false;
+	size_t entity_len;
+	wchar_t entity_name[MAX_ENTITY_NAME_LENGTH + 1];
+	const wchar_t *entity_value;
+
 	const wchar_t *i = wstr->ptr;
 
 	list_depth = 0;
@@ -327,27 +332,53 @@ render_text_html(const struct wstring *wstr)
 
 	while (*i != L'\0') {
 		if (in_tag == false) {
-			if (*i == L'<') {
-				in_tag = true;
-				tag_len = 0;
-			} else if ((position & (HTML_STYLE|HTML_SCRIPT)) != 0) {
-				// Ignore contents of style and script elements.
-				++i;
-				continue;
-			} else if (((position & HTML_PRE) == 0) &&
-			           ((*i == L' ') || (*i == L'\n') || (*i == L'\t')))
-			{
-				if ((line->len != 0) &&
-				    (line->ptr[line->len - 1] != ' ') &&
-				    (line->ptr[line->len - 1] != '\n') &&
-				    (line->ptr[line->len - 1] != '\t'))
+			if (in_entity == false) {
+				if (*i == L'<') {
+					in_tag = true;
+					tag_len = 0;
+				} else if (*i == L'&') {
+					in_entity = true;
+					entity_len = 0;
+				} else if ((position & (HTML_STYLE|HTML_SCRIPT)) != 0) {
+					// Ignore contents of style and script elements.
+					++i;
+					continue;
+				} else if (((position & HTML_PRE) == 0) &&
+						((*i == L' ') || (*i == L'\n') || (*i == L'\t')))
 				{
-					line_char(line, L' ', t);
+					if ((line->len != 0) &&
+						(line->ptr[line->len - 1] != ' ') &&
+						(line->ptr[line->len - 1] != '\n') &&
+						(line->ptr[line->len - 1] != '\t'))
+					{
+						line_char(line, L' ', t);
+					}
+				} else {
+					line_char(line, *i, t);
 				}
-			} else {
-				line_char(line, *i, t);
+			} else { // All entity characters go here.
+				if (*i == L';') {
+					in_entity = false;
+					entity_name[entity_len] = '\0';
+					entity_value = translate_html_entity(entity_name);
+					if (entity_value != NULL) {
+						line_string(line, t, entity_value, wcslen(entity_value));
+					} else {
+						line_char(line, L'&', t);
+						line_string(line, t, entity_name, entity_len);
+						line_char(line, L';', t);
+					}
+				} else {
+					if (entity_len == MAX_ENTITY_NAME_LENGTH) {
+						in_entity = false;
+						line_char(line, L'&', t);
+						line_string(line, t, entity_name, entity_len);
+					} else {
+						entity_name[entity_len++] = *i;
+					}
+				}
 			}
-		} else {
+		} else { // All tag characters go here.
 			if (*i == L'>') {
 				in_tag = false;
 				tag[tag_len] = L'\0';

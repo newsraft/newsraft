@@ -136,7 +136,7 @@ void resize_items_global_action(void);
 
 // contents
 int pager_view(const struct content_list *data_list);
-int cat_item_meta_data_to_buf(struct string *buf, sqlite3_stmt *res);
+struct string *get_meta_data_of_item(sqlite3_stmt *res);
 struct string *expand_html_entities(const char *str, size_t str_len);
 struct string *plainify_html(const char *str, size_t str_len);
 int enter_item_contents_menu_loop(int rowid);

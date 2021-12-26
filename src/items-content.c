@@ -18,22 +18,6 @@ find_item_by_its_rowid_in_db(int rowid)
 	return res; // success
 }
 
-static inline const struct string *
-get_contents_of_item(sqlite3_stmt *res)
-{
-	struct string *buf = create_empty_string();
-	if (buf == NULL) {
-		return NULL;
-	}
-
-	if (cat_item_meta_data_to_buf(buf, res) != 0) {
-		free_string(buf);
-		return NULL;
-	}
-
-	return (const struct string *)buf;
-}
-
 static int
 append_content(struct content_list **list, const char *content, size_t content_len, const char *content_type, size_t content_type_len)
 {
@@ -93,8 +77,13 @@ create_content_list_for_item(int rowid)
 		return NULL;
 	}
 
+	struct string *meta_data = get_meta_data_of_item(res);
+	if (meta_data == NULL) {
+		sqlite3_finalize(res);
+		return NULL;
+	}
+
 	struct content_list *list = NULL;
-	/* const struct string *contents = get_contents_of_item(res); */
 
 	// Append data from content or summary column
 	char *text = (char *)sqlite3_column_text(res, ITEM_COLUMN_CONTENT);
@@ -105,13 +94,19 @@ create_content_list_for_item(int rowid)
 		text_type = (char *)sqlite3_column_text(res, ITEM_COLUMN_SUMMARY_TYPE);
 		text_len = strlen(text);
 	}
+
+	append_content(&list, meta_data->ptr, meta_data->len, "text/plain", 10);
+	free_string(meta_data);
+
 	if (text_len != 0) {
 		if (append_content(&list, text, text_len, text_type, strlen(text_type)) != 0) {
 			free_content_list(list);
+			sqlite3_finalize(res);
 			return NULL;
 		}
 	}
 
 	sqlite3_finalize(res);
+
 	return list;
 }

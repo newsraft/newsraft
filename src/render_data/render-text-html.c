@@ -288,7 +288,7 @@ format_text(struct wstring *tag, struct line *line, struct wstring *text, enum h
 }
 
 struct wstring *
-render_text_html(const struct wstring *wstr)
+render_text_html(const struct wstring *wstr, struct line *line)
 {
 	struct wstring *t = create_wstring(NULL, wstr->len);
 	if (t == NULL) {
@@ -299,14 +299,6 @@ render_text_html(const struct wstring *wstr)
 	struct wstring *tag = create_wstring(NULL, 100);
 	if (tag == NULL) {
 		FAIL("Not enough memory for tag buffer to render HTML!");
-		free_wstring(t);
-		return NULL;
-	}
-
-	struct line *line = create_line();
-	if (line == NULL) {
-		FAIL("Not enough memory for line buffer to render HTML!");
-		free_wstring(tag);
 		free_wstring(t);
 		return NULL;
 	}
@@ -396,15 +388,9 @@ render_text_html(const struct wstring *wstr)
 
 	if (error == true) {
 		FAIL("Not enough memory for rendering HTML!");
-		free_line(line);
 		free_wstring(t);
 		return NULL;
 	}
-
-	if (line->len != 0) {
-		line_char(line, L'\n', t);
-	}
-	free_line(line);
 
 	return t;
 }

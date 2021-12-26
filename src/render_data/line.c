@@ -1,35 +1,6 @@
 #include <stdlib.h>
 #include "render_data.h"
 
-struct line *
-create_line(void)
-{
-	struct line *line = malloc(sizeof(struct line));
-	if (line == NULL) {
-		return NULL;
-	}
-	line->ptr = malloc(sizeof(wchar_t) * (list_menu_width + 1));
-	if (line->ptr == NULL) {
-		free(line);
-		return NULL;
-	}
-	line->len = 0;
-	line->lim = list_menu_width;
-	line->pin = SIZE_MAX;
-	line->indent = 0;
-	return line;
-}
-
-void
-free_line(struct line *line)
-{
-	if (line == NULL) {
-		return;
-	}
-	free(line->ptr);
-	free(line);
-}
-
 int
 line_char(struct line *line, wchar_t c, struct wstring *target)
 {

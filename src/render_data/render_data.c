@@ -3,7 +3,7 @@
 
 struct data_handler {
 	const char *const type;
-	struct wstring *(*handle)(const struct wstring *);
+	struct wstring *(*handle)(const struct wstring *, struct line *);
 };
 
 // Besides formatting according to the content type, these handlers must
@@ -31,26 +31,38 @@ render_data(const struct content_list *data_list)
 		FAIL("Not enough memory to render data!");
 		return NULL;
 	}
+	struct line line;
+	line.ptr = malloc(sizeof(wchar_t) * (list_menu_width + 1));
+	if (line.ptr == NULL) {
+		FAIL("Not enough memory for line buffer to render data!");
+		free_wstring(text);
+		return NULL;
+	}
+	line.len = 0;
+	line.lim = list_menu_width;
+	line.pin = SIZE_MAX;
+	line.indent = 0;
 	struct wstring *converted_str;
 	struct wstring *temp_str;
 	const struct content_list *temp_list = data_list;
 	bool found_handler;
 	while (temp_list != NULL) {
-		found_handler = false;
 		converted_str = convert_string_to_wstring(temp_list->content);
 		if (converted_str == NULL) {
+			free(line.ptr);
 			free_wstring(text);
 			return NULL;
 		}
+		found_handler = false;
 		for (size_t i = 0; i < LENGTH(handlers); ++i) {
 			if (strcmp(temp_list->content_type, handlers[i].type) == 0) {
 				found_handler = true;
-				temp_str = handlers[i].handle(converted_str);
+				temp_str = handlers[i].handle(converted_str, &line);
 				break;
 			}
 		}
 		if (found_handler == false) {
-			temp_str = render_text_plain(converted_str);
+			temp_str = render_text_plain(converted_str, &line);
 		}
 		if (temp_str != NULL) {
 			wcatss(text, temp_str);
@@ -59,5 +71,10 @@ render_data(const struct content_list *data_list)
 		free_wstring(converted_str);
 		temp_list = temp_list->next;
 	}
+	if (line.len != 0) {
+		line_char(&line, L'\n', text);
+	}
+	// TODO: strip whitespace of of text
+	free(line.ptr);
 	return text;
 }

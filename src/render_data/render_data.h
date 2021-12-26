@@ -13,12 +13,10 @@ struct line {
 	size_t indent; // Shows how many spaces must be printed in the beginning of line.
 };
 
-struct wstring *render_text_plain(const struct wstring *wstr);
-struct wstring *render_text_html(const struct wstring *wstr);
+struct wstring *render_text_plain(const struct wstring *wstr, struct line *line);
+struct wstring *render_text_html(const struct wstring *wstr, struct line *line);
 const wchar_t *translate_html_entity(wchar_t *entity);
 
-struct line *create_line(void);
-void free_line(struct line *line);
 int line_char(struct line *line, wchar_t c, struct wstring *target);
 int line_string(struct line *line, struct wstring *target, const wchar_t *str);
 #endif // RENDER_DATA_H

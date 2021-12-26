@@ -81,7 +81,7 @@ catas(struct string *dest, const char *src_ptr, size_t src_len)
 		dest->ptr = temp;
 		dest->lim = new_len * 2;
 	}
-	strncat(dest->ptr, src_ptr, src_len);
+	memcpy(dest->ptr + dest->len, src_ptr, sizeof(char) * src_len);
 	*(dest->ptr + new_len) = '\0';
 	dest->len = new_len;
 	return 0;

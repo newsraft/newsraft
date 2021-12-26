@@ -7,29 +7,29 @@
 struct string *
 get_config_date_str(const time_t *time)
 {
-	struct tm ts = *gmtime(time);
-	char time_ptr[200];
-	if (strftime(time_ptr, sizeof(time_ptr), config_contents_date_format, &ts) == 0) {
-		FAIL("Failed to create date string (strftime returned zero)!");
-		return NULL; // failure
+	char date_ptr[200];
+	size_t date_len = strftime(date_ptr, sizeof(date_ptr), config_contents_date_format, gmtime(time));
+	if (date_len == 0) {
+		FAIL("Failed to create date string!");
+		return NULL;
 	}
-	struct string *time_str = create_string(time_ptr, strlen(time_ptr));
-	if (time_str == NULL) {
-		FAIL("Not enough memory for date string creation (create_string returned NULL)!");
-		return NULL; // failure
+	struct string *date_str = create_string(date_ptr, date_len);
+	if (date_str == NULL) {
+		FAIL("Not enough memory for date string!");
+		return NULL;
 	}
-	return time_str; // success
+	return date_str;
 }
 
 bool
 is_wchar_a_breaker(wchar_t wc)
 {
-	size_t i = 0;
-	while (config_break_at[i] != '\0') {
-		if (config_break_at[i] == wctob(wc)) {
+	const char *iter = config_break_at;
+	while (*iter != '\0') {
+		if (*iter == wctob(wc)) {
 			return true;
 		}
-		++i;
+		++iter;
 	}
 	return false;
 }

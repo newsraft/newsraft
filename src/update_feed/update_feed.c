@@ -208,6 +208,10 @@ update_feed(const struct string *url)
 		}
 	}
 
+	if (config_max_items != 0) {
+		delete_excess_items(url);
+	}
+
 	if (data.error == PARSE_OKAY) {
 		db_commit_transaction();
 	} else {

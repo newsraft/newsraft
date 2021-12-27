@@ -12,7 +12,6 @@
 #define INFO(A, ...) do { if (log_stream != NULL) { fprintf(log_stream, "[INFO] " A "\n", ##__VA_ARGS__); } } while (0)
 #define WARN(A, ...) do { if (log_stream != NULL) { fprintf(log_stream, "[WARN] " A "\n", ##__VA_ARGS__); } } while (0)
 #define FAIL(A, ...) do { if (log_stream != NULL) { fprintf(log_stream, "[FAIL] " A "\n", ##__VA_ARGS__); } } while (0)
-#define FAIL_SQLITE_PREPARE FAIL("Failed to prepare an SQL statement: %s", sqlite3_errmsg(db))
 
 struct string {
 	char *ptr;
@@ -168,6 +167,7 @@ void free_set_condition(const struct set_condition *cond);
 // db
 int db_init(void);
 void db_stop(void);
+int db_prepare(const char *zSql, int nByte, sqlite3_stmt **ppStmt, const char **pzTail);
 int db_begin_transaction(void);
 int db_commit_transaction(void);
 int db_rollback_transaction(void);

@@ -2,12 +2,12 @@
 #include "feedeater.h"
 #include "update_feed/update_feed.h"
 
-static inline void
+void
 delete_excess_items(const struct string *feed_url) {
+	INFO("Deleting excess items...");
 	sqlite3_stmt *s;
-	if (sqlite3_prepare_v2(db, "SELECT rowid FROM items WHERE feed = ? ORDER BY upddate ASC, pubdate ASC, rowid ASC", -1, &s, 0) != SQLITE_OK) {
+	if (db_prepare("SELECT rowid FROM items WHERE feed = ? ORDER BY upddate ASC, pubdate ASC, rowid ASC", -1, &s, NULL) != SQLITE_OK) {
 		FAIL("Failed to prepare an excess items deletion statement:");
-		FAIL_SQLITE_PREPARE;
 		return;
 	}
 	sqlite3_bind_text(s, 1, feed_url->ptr, feed_url->len, NULL);
@@ -18,16 +18,12 @@ delete_excess_items(const struct string *feed_url) {
 		if (item_iterator <= config_max_items) {
 			continue;
 		}
-		if (sqlite3_prepare_v2(db, "DELETE FROM items WHERE rowid = ?", -1, &t, 0) == SQLITE_OK) {
+		if (db_prepare("DELETE FROM items WHERE rowid = ?", -1, &t, NULL) == SQLITE_OK) {
 			sqlite3_bind_int(t, 1, sqlite3_column_int(s, 0));
-			if (sqlite3_step(t) == SQLITE_DONE) {
-				INFO("Successfully deleted an item.");
-			} else {
+			if (sqlite3_step(t) != SQLITE_DONE) {
 				FAIL("Deletion of the excess item is failed!");
 			}
 			sqlite3_finalize(t);
-		} else {
-			FAIL_SQLITE_PREPARE;
 		}
 	}
 	sqlite3_finalize(s);
@@ -144,13 +140,12 @@ db_insert_item(const struct string *feed_url, const struct item_bucket *bucket, 
 	int prepare_status;
 
 	if (rowid == -1) {
-		prepare_status = sqlite3_prepare_v2(db, "INSERT INTO items VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", -1, &s, 0);
+		prepare_status = db_prepare("INSERT INTO items VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", -1, &s, NULL);
 	} else {
-		prepare_status = sqlite3_prepare_v2(db, "UPDATE items SET feed = ?, title = ?, guid = ?, unread = ?, url = ?, enclosures = ?, authors = ?, categories = ?, pubdate = ?, upddate = ?, comments = ?, summary = ?, summary_type = ?, content = ?, content_type = ? WHERE rowid = ?;", -1, &s, 0);
+		prepare_status = db_prepare("UPDATE items SET feed = ?, title = ?, guid = ?, unread = ?, url = ?, enclosures = ?, authors = ?, categories = ?, pubdate = ?, upddate = ?, comments = ?, summary = ?, summary_type = ?, content = ?, content_type = ? WHERE rowid = ?;", -1, &s, NULL);
 	}
 
 	if (prepare_status != SQLITE_OK) {
-		FAIL_SQLITE_PREPARE;
 		free_string(enclosures_list);
 		free_string(authors_list);
 		return;
@@ -175,12 +170,7 @@ db_insert_item(const struct string *feed_url, const struct item_bucket *bucket, 
 		sqlite3_bind_int(s, ITEM_COLUMN_CONTENT_TYPE + 2, rowid);
 	}
 
-	if (sqlite3_step(s) == SQLITE_DONE) {
-		if ((rowid == -1) && (config_max_items != 0)) {
-			// Try to delete excess items only if the limit is set.
-			delete_excess_items(feed_url);
-		}
-	} else {
+	if (sqlite3_step(s) != SQLITE_DONE) {
 		if (rowid == -1) {
 			FAIL("Item insertion failed: %s", sqlite3_errmsg(db));
 		} else {
@@ -205,13 +195,12 @@ try_item_bucket(const struct item_bucket *bucket, const struct string *feed_url)
 		// Most convenient way of verifying item uniqueness is to check
 		// its unique ID.
 		char cmd[] = "SELECT rowid, pubdate, upddate, content FROM items WHERE feed = ? AND guid = ? LIMIT 1";
-		if (sqlite3_prepare_v2(db, cmd, -1, &res, 0) == SQLITE_OK) {
+		if (db_prepare(cmd, -1, &res, NULL) == SQLITE_OK) {
 			sqlite3_bind_text(res, 1, feed_url->ptr, feed_url->len, NULL);
 			sqlite3_bind_text(res, 2, bucket->guid->ptr, bucket->guid->len, NULL);
 			step_status = sqlite3_step(res);
 		} else {
 			FAIL("Failed to prepare SELECT statement for searching item duplicate by guid!");
-			FAIL_SQLITE_PREPARE;
 			return;
 		}
 	} else {
@@ -219,14 +208,13 @@ try_item_bucket(const struct item_bucket *bucket, const struct string *feed_url)
 		// to be set so all we can do here is to check uniqueness by some other
 		// identifiers and I think that URL and title are good for this.
 		char cmd[] = "SELECT rowid, pubdate, upddate, content FROM items WHERE feed = ? AND url = ? AND title = ? LIMIT 1";
-		if (sqlite3_prepare_v2(db, cmd, -1, &res, 0) == SQLITE_OK) {
+		if (db_prepare(cmd, -1, &res, NULL) == SQLITE_OK) {
 			sqlite3_bind_text(res, 1, feed_url->ptr, feed_url->len, NULL);
 			sqlite3_bind_text(res, 2, bucket->url->ptr, bucket->url->len, NULL);
 			sqlite3_bind_text(res, 3, bucket->title->ptr, bucket->title->len, NULL);
 			step_status = sqlite3_step(res);
 		} else {
 			FAIL("Failed to prepare SELECT statement for searching item duplicate by url and title!");
-			FAIL_SQLITE_PREPARE;
 			return;
 		}
 	}

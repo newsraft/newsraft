@@ -5,18 +5,16 @@
 static inline bool
 is_feed_in_db(const struct string *feed_url)
 {
-	bool stored = false;
 	sqlite3_stmt *s;
-	if (sqlite3_prepare_v2(db, "SELECT * FROM feeds WHERE url = ? LIMIT 1", -1, &s, 0) == SQLITE_OK) {
+	if (db_prepare("SELECT * FROM feeds WHERE url = ? LIMIT 1", -1, &s, NULL) == SQLITE_OK) {
 		sqlite3_bind_text(s, 1, feed_url->ptr, feed_url->len, NULL);
 		if (sqlite3_step(s) == SQLITE_ROW) {
-			stored = true;
+			sqlite3_finalize(s);
+			return true;
 		}
 		sqlite3_finalize(s);
-	} else {
-		FAIL_SQLITE_PREPARE;
 	}
-	return stored;
+	return false;
 }
 
 static inline bool
@@ -25,30 +23,29 @@ make_sure_feed_is_in_db(const struct string *feed_url)
 	if (is_feed_in_db(feed_url) == true) {
 		return true;
 	}
-	bool created = false;
 	sqlite3_stmt *s;
-	if (sqlite3_prepare_v2(db, "INSERT INTO feeds VALUES(?, ?, ?, ?)", -1, &s, 0) == SQLITE_OK) {
+	if (db_prepare("INSERT INTO feeds VALUES(?, ?, ?, ?)", -1, &s, NULL) == SQLITE_OK) {
 		sqlite3_bind_text(s, 1, feed_url->ptr, feed_url->len, NULL);
 		sqlite3_bind_text(s, 2, "", 0, NULL);
 		sqlite3_bind_text(s, 3, "", 0, NULL);
 		sqlite3_bind_text(s, 4, "", 0, NULL);
 		if (sqlite3_step(s) == SQLITE_DONE) {
-			created = true;
-		} else {
-			FAIL("Failed to insert new feed entry: %s", sqlite3_errmsg(db));
+			sqlite3_finalize(s);
+			return true;
 		}
+		FAIL("Failed to insert new feed entry: %s", sqlite3_errmsg(db));
 		sqlite3_finalize(s);
-	} else {
-		FAIL_SQLITE_PREPARE;
 	}
-	return created;
+	return false;
 }
 
 void
 db_update_feed_text(const struct string *feed_url, const char *column, const char *value, size_t value_len)
 {
+	INFO("Updating \"%s\" column of feed \"%s\" with value \"%s\"...", column, feed_url->ptr, value);
+
 	if (make_sure_feed_is_in_db(feed_url) == false) {
-		FAIL("Can not create feed entry for %s in database!", feed_url->ptr);
+		FAIL("Can not create feed entry for \"%s\" in database!", feed_url->ptr);
 		return; // failure
 	}
 
@@ -60,13 +57,11 @@ db_update_feed_text(const struct string *feed_url, const char *column, const cha
 	// BEFORE CHANGING FORMAT STRING LO^OK ABOVE
 	sprintf(cmd, "UPDATE feeds SET %s = ? WHERE url = ?", column);
 	sqlite3_stmt *res;
-	if (sqlite3_prepare_v2(db, cmd, -1, &res, 0) == SQLITE_OK) {
+	if (db_prepare(cmd, -1, &res, NULL) == SQLITE_OK) {
 		sqlite3_bind_text(res, 1, value, value_len, NULL);
 		sqlite3_bind_text(res, 2, feed_url->ptr, feed_url->len, NULL);
 		sqlite3_step(res);
 		sqlite3_finalize(res);
-	} else {
-		FAIL_SQLITE_PREPARE;
 	}
 
 	free(cmd);

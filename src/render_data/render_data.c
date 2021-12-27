@@ -19,6 +19,7 @@ static const struct data_handler handlers[] = {
 	{"", &render_text_html}, // In many cases empty type means that
 	                         // text is HTML formatted.
 	{"text/html", &render_text_html},
+	{"html", &render_text_html},
 	//{"text/markdown"} TODO
 	//{"text/x-rst"} TODO
 };

@@ -21,6 +21,11 @@ status_write(const char *format, ...)
 	va_start(args, format);
 	werase(status_win);
 	wmove(status_win, 0, 0);
+	if (log_stream != NULL) {
+		INFO("Writing the following message to status window:");
+		vfprintf(log_stream, format, args);
+		fputc('\n', log_stream);
+	}
 	vw_printw(status_win, format, args);
 	wrefresh(status_win);
 	va_end(args);

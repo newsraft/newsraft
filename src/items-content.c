@@ -4,8 +4,7 @@ static inline sqlite3_stmt *
 find_item_by_its_rowid_in_db(int rowid)
 {
 	sqlite3_stmt *res;
-	if (sqlite3_prepare_v2(db, "SELECT * FROM items WHERE rowid = ? LIMIT 1", -1, &res, 0) != SQLITE_OK) {
-		FAIL_SQLITE_PREPARE;
+	if (db_prepare("SELECT * FROM items WHERE rowid = ? LIMIT 1", -1, &res, NULL) != SQLITE_OK) {
 		return NULL; // failure
 	}
 	sqlite3_bind_int(res, 1, rowid);

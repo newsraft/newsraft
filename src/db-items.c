@@ -20,7 +20,7 @@ db_update_item_int(int rowid, const char *column, int value)
 	int error = 1;
 
 	sqlite3_stmt *res;
-	if (sqlite3_prepare_v2(db, cmd, -1, &res, 0) == SQLITE_OK) {
+	if (db_prepare(cmd, -1, &res, NULL) == SQLITE_OK) {
 		sqlite3_bind_int(res, 1, value);
 		sqlite3_bind_int(res, 2, rowid);
 		if (sqlite3_step(res) == SQLITE_DONE) {
@@ -29,8 +29,6 @@ db_update_item_int(int rowid, const char *column, int value)
 			WARN("For some reason column was not updated with new value!");
 		}
 		sqlite3_finalize(res);
-	} else {
-		FAIL_SQLITE_PREPARE;
 	}
 
 	free(cmd);
@@ -69,7 +67,7 @@ get_unread_items_count(const struct set_condition *sc)
 
 	int unread_count = 0;
 	sqlite3_stmt *res;
-	if (sqlite3_prepare_v2(db, cmd, -1, &res, 0) == SQLITE_OK) {
+	if (db_prepare(cmd, -1, &res, NULL) == SQLITE_OK) {
 		for (size_t i = 0; i < sc->urls_count; ++i) {
 			sqlite3_bind_text(res, i + 1, sc->urls[i]->ptr, sc->urls[i]->len, NULL);
 		}
@@ -78,8 +76,6 @@ get_unread_items_count(const struct set_condition *sc)
 			INFO("Successfully counted the number of unread items: %d", unread_count);
 		}
 		sqlite3_finalize(res);
-	} else {
-		FAIL_SQLITE_PREPARE;
 	}
 
 	free(cmd);

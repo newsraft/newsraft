@@ -2,11 +2,6 @@
 #include <string.h>
 #include "feedeater.h"
 
-#define SELECT_CMD_PART_1 "SELECT rowid, title, unread FROM items WHERE "
-#define SELECT_CMD_PART_1_LEN 45
-#define SELECT_CMD_PART_3 " ORDER BY upddate ASC, pubdate ASC, rowid ASC"
-#define SELECT_CMD_PART_3_LEN 45
-
 static struct item_line *items;
 static size_t items_count;
 
@@ -33,50 +28,52 @@ free_items(void)
 static int
 load_items(const struct set_condition *sc)
 {
+#define SELECT_CMD_PART_1 "SELECT rowid, title, unread FROM items WHERE "
+#define SELECT_CMD_PART_1_LEN 45
+#define SELECT_CMD_PART_3 " ORDER BY upddate ASC, pubdate ASC, rowid ASC"
+#define SELECT_CMD_PART_3_LEN 45
 	char *cmd = malloc(sizeof(char) * (SELECT_CMD_PART_1_LEN + sc->db_cmd->len + SELECT_CMD_PART_3_LEN + 1));
 	if (cmd == NULL) {
 		status_write("Failed to load items: not enough memory!");
 		FAIL("Not enough memory for loading items!");
-		return 1; // failure
+		return 1;
 	}
 	strcpy(cmd, SELECT_CMD_PART_1);
 	strcat(cmd, sc->db_cmd->ptr);
 	strcat(cmd, SELECT_CMD_PART_3);
-	INFO("Items SELECT statement: %s", cmd);
-	int error = 0;
 	view_sel = SIZE_MAX;
 	sqlite3_stmt *res;
-	if (sqlite3_prepare_v2(db, cmd, -1, &res, 0) == SQLITE_OK) {
-		size_t item_index;
-		char *text;
-		struct item_line *temp; // need to check if realloc failed
-		for (size_t i = 0; i < sc->urls_count; ++i) {
-			sqlite3_bind_text(res, i + 1, sc->urls[i]->ptr, sc->urls[i]->len, NULL);
-		}
-		while (sqlite3_step(res) == SQLITE_ROW) {
-			item_index = items_count++;
-			temp = realloc(items, sizeof(struct item_line) * items_count);
-			if (temp == NULL) {
-				FAIL("Not enough memory for loading items (realloc returned NULL)!");
-				--items_count;
-				error = 1;
-				break;
-			}
-			items = temp;
-			items[item_index].title = NULL;
-			if (view_sel == SIZE_MAX) {
-				view_sel = item_index;
-			}
-			items[item_index].rowid = sqlite3_column_int(res, 0);
-			if ((text = (char *)sqlite3_column_text(res, 1)) != NULL) {
-				items[item_index].title = create_string(text, strlen(text));
-			}
-			items[item_index].is_unread = sqlite3_column_int(res, 2);
-		}
-	} else {
+	if (db_prepare(cmd, -1, &res, NULL) != SQLITE_OK) {
 		status_write("There is some error with the tag expression!");
-		FAIL_SQLITE_PREPARE;
-		error = 1;
+		free(cmd);
+		return 1;
+	}
+	size_t item_index;
+	char *text;
+	struct item_line *temp; // need to check if realloc failed
+	for (size_t i = 0; i < sc->urls_count; ++i) {
+		sqlite3_bind_text(res, i + 1, sc->urls[i]->ptr, sc->urls[i]->len, NULL);
+	}
+	int error = 0;
+	while (sqlite3_step(res) == SQLITE_ROW) {
+		item_index = items_count++;
+		temp = realloc(items, sizeof(struct item_line) * items_count);
+		if (temp == NULL) {
+			FAIL("Not enough memory for loading items (realloc returned NULL)!");
+			--items_count;
+			error = 1;
+			break;
+		}
+		items = temp;
+		items[item_index].title = NULL;
+		if (view_sel == SIZE_MAX) {
+			view_sel = item_index;
+		}
+		items[item_index].rowid = sqlite3_column_int(res, 0);
+		if ((text = (char *)sqlite3_column_text(res, 1)) != NULL) {
+			items[item_index].title = create_string(text, strlen(text));
+		}
+		items[item_index].is_unread = sqlite3_column_int(res, 2);
 	}
 
 	sqlite3_finalize(res);
@@ -281,11 +278,11 @@ enter_items_menu_loop(const struct set_condition *sc)
 	items = NULL;
 	items_count = 0;
 
-	if (items == NULL) {
-		if (load_items(sc) != 0) {
-			free_items();
-			return INPUTS_COUNT;
-		}
+	INFO("Loading items...");
+	if (load_items(sc) != 0) {
+		FAIL("Failed to load items!");
+		free_items();
+		return INPUTS_COUNT;
 	}
 
 	view_min = 0;

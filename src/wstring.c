@@ -160,3 +160,46 @@ free_wstring(struct wstring *wstr)
 	free(wstr->ptr);
 	free(wstr);
 }
+
+void
+strip_whitespace_from_wstring(struct wstring *wstr)
+{
+	if (wstr->len == 0) {
+		return;
+	}
+
+	size_t left_edge = 0, right_edge = wstr->len - 1;
+	while ((*(wstr->ptr + left_edge) == L' '   ||
+	        *(wstr->ptr + left_edge) == L'\t'  ||
+	        *(wstr->ptr + left_edge) == L'\r'  ||
+	        *(wstr->ptr + left_edge) == L'\n') &&
+	       left_edge <= right_edge)
+	{
+		++left_edge;
+	}
+	while ((*(wstr->ptr + right_edge) == L' '   ||
+	        *(wstr->ptr + right_edge) == L'\t'  ||
+	        *(wstr->ptr + right_edge) == L'\r'  ||
+	        *(wstr->ptr + right_edge) == L'\n') &&
+	       right_edge >= left_edge)
+	{
+		--right_edge;
+	}
+
+	if ((left_edge == 0) && (right_edge == (wstr->len - 1))) {
+		return;
+	}
+
+	if (right_edge < left_edge) {
+		*(wstr->ptr + 0) = L'\0';
+		wstr->len = 0;
+		return;
+	}
+
+	size_t stripped_wstring_len = right_edge - left_edge + 1;
+	for (size_t i = 0; i < stripped_wstring_len; ++i) {
+		*(wstr->ptr + i) = *(wstr->ptr + i + left_edge);
+	}
+	wstr->len = stripped_wstring_len;
+	*(wstr->ptr + stripped_wstring_len) = L'\0';
+}

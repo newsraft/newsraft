@@ -72,9 +72,12 @@ render_data(const struct content_list *data_list)
 		temp_list = temp_list->next;
 	}
 	if (line.len != 0) {
+		// Squeeze out line remainings to text by sending newline character.
 		line_char(&line, L'\n', text);
 	}
-	// TODO: strip whitespace of of text
 	free(line.ptr);
+	strip_whitespace_from_wstring(text);
+	// We still need last newline to count in last line of text.
+	wcatcs(text, L'\n');
 	return text;
 }

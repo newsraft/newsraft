@@ -135,7 +135,7 @@ free_string(struct string *str)
 }
 
 void
-strip_whitespace_from_edges(struct string *str)
+strip_whitespace_from_string(struct string *str)
 {
 	if (str->len == 0) {
 		return;

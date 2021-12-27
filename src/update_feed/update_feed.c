@@ -44,7 +44,7 @@ end_element_handler(struct parser_data *data, const XML_Char *name)
 		return;
 	}
 	--(data->depth);
-	strip_whitespace_from_edges(data->value);
+	strip_whitespace_from_string(data->value);
 	if (parse_namespace_element_end(data, name) == 0) {
 		// Successfully processed an element by its namespace.
 		return;

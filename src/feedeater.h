@@ -201,7 +201,7 @@ int catss(struct string *dest, const struct string *src);
 int catcs(struct string *dest, char c);
 void empty_string(struct string *str);
 void free_string(struct string *str);
-void strip_whitespace_from_edges(struct string *str);
+void strip_whitespace_from_string(struct string *str);
 // wstring
 struct wstring *create_wstring(const wchar_t *src, size_t len);
 struct wstring *create_empty_wstring(void);
@@ -211,6 +211,7 @@ int wcatss(struct wstring *dest, const struct wstring *src);
 struct wstring *convert_string_to_wstring(const struct string *src);
 void empty_wstring(struct wstring *wstr);
 void free_wstring(struct wstring *wstr);
+void strip_whitespace_from_wstring(struct wstring *wstr);
 
 // debug
 int log_init(const char *path);

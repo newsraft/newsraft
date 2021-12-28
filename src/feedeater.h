@@ -114,7 +114,7 @@ enum item_column {
 
 // list interface
 int create_list_menu(void);
-void resize_list_menu(void);
+int adjust_list_menu(void);
 WINDOW *get_list_entry_by_index(size_t i);
 void free_list_menu(void);
 
@@ -176,6 +176,7 @@ int db_mark_item_unread(int rowid);
 int get_unread_items_count(const struct set_condition *sc);
 
 int curses_init(void);
+bool obtain_terminal_size(void);
 
 // functions related to window which displays informational messages (see status.c file)
 int status_create(void);

@@ -62,7 +62,7 @@ main(int argc, char **argv)
 	if (load_sets() != 0)                           { error = 4; goto undo4; }
 	if (curl_global_init(CURL_GLOBAL_DEFAULT) != 0) { error = 5; goto undo5; }
 	if (curses_init() != 0)                         { error = 6; goto undo6; }
-	if (create_list_menu() != 0)                    { error = 7; goto undo7; }
+	if (adjust_list_menu() != 0)                    { error = 7; goto undo7; }
 	if (status_create() != 0)                       { error = 8; goto undo8; }
 	if (reallocate_format_buffer() != 0)            { error = 9; goto undo9; }
 

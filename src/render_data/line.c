@@ -25,7 +25,7 @@ line_char(struct line *line, wchar_t c, struct wstring *target)
 	if (line->len != line->lim) {
 		return 0;
 	}
-	if (line->pin == SIZE_MAX) {
+	if ((line->pin == SIZE_MAX) || ((line->pin + 1) == line->len)) {
 		wcatas(target, line->ptr, line->len);
 		line->len = 0;
 	} else {
@@ -38,8 +38,8 @@ line_char(struct line *line, wchar_t c, struct wstring *target)
 			line->ptr[new_len++] = line->ptr[i];
 		}
 		line->len = new_len;
-		line->pin = SIZE_MAX;
 	}
+	line->pin = SIZE_MAX;
 	wcatcs(target, L'\n');
 	return 0;
 }

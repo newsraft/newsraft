@@ -30,8 +30,8 @@ load_items(const struct set_condition *sc)
 {
 #define SELECT_CMD_PART_1 "SELECT rowid, title, unread FROM items WHERE "
 #define SELECT_CMD_PART_1_LEN 45
-#define SELECT_CMD_PART_3 " ORDER BY upddate ASC, pubdate ASC, rowid ASC"
-#define SELECT_CMD_PART_3_LEN 45
+#define SELECT_CMD_PART_3 " ORDER BY upddate DESC, pubdate DESC, rowid DESC"
+#define SELECT_CMD_PART_3_LEN 48
 	char *cmd = malloc(sizeof(char) * (SELECT_CMD_PART_1_LEN + sc->db_cmd->len + SELECT_CMD_PART_3_LEN + 1));
 	if (cmd == NULL) {
 		status_write("Failed to load items: not enough memory!");

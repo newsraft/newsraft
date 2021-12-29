@@ -75,33 +75,12 @@ create_content_list_for_item(int rowid)
 	if (res == NULL) {
 		return NULL;
 	}
-
 	struct content_list *list = NULL;
-
-	if (append_meta_data_of_item(&list, res) != 0) {
+	if (populate_content_list_with_data_of_item(&list, res) != 0) {
+		free_content_list(list);
 		sqlite3_finalize(res);
 		return NULL;
 	}
-
-	// Append data from content or summary column
-	char *text = (char *)sqlite3_column_text(res, ITEM_COLUMN_CONTENT);
-	char *text_type = (char *)sqlite3_column_text(res, ITEM_COLUMN_CONTENT_TYPE);
-	size_t text_len = strlen(text);
-	if (text_len == 0) {
-		text = (char *)sqlite3_column_text(res, ITEM_COLUMN_SUMMARY);
-		text_type = (char *)sqlite3_column_text(res, ITEM_COLUMN_SUMMARY_TYPE);
-		text_len = strlen(text);
-	}
-
-	if (text_len != 0) {
-		if (append_content(&list, text, text_len, text_type, strlen(text_type)) != 0) {
-			free_content_list(list);
-			sqlite3_finalize(res);
-			return NULL;
-		}
-	}
-
 	sqlite3_finalize(res);
-
 	return list;
 }

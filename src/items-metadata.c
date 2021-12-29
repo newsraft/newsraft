@@ -2,23 +2,26 @@
 #include <string.h>
 #include "feedeater.h"
 
-struct meta_data_entry {
-	const char *const prefix;   // String to write before entry data.
+struct data_entry {
+	const char *const field;            // Name of field to match in config_contents_meta_data.
+	const char *const prefix;           // String to write before entry data.
 	const size_t prefix_len;
-	const char *const suffix;   // String to write after entry data.
+	const char *const suffix;           // String to write after entry data.
 	const size_t suffix_len;
-	const char *const column;   // Name of field to match in config_contents_meta_data.
-	const enum item_column num; // Column index from which to take data.
+	const enum item_column data_column; // Column index from which to take data.
+	const enum item_column type_column; // Column index from which to take data type.
 };
 
-static const struct meta_data_entry meta_data[] = {
-	{"Feed: ",       6,  "\n", 1, "feed",       ITEM_COLUMN_FEED},
-	{"Title: ",      7,  "\n", 1, "title",      ITEM_COLUMN_TITLE},
-	{"Authors: ",    9,  "\n", 1, "authors",    ITEM_COLUMN_AUTHORS},
-	{"Categories: ", 12, "\n", 1, "categories", ITEM_COLUMN_CATEGORIES},
-	{"Link: ",       6,  "\n", 1, "url",        ITEM_COLUMN_URL},
-	{"Comments: ",   10, "\n", 1, "comments",   ITEM_COLUMN_COMMENTS},
-	{"Enclosures: ", 12, "\n", 1, "enclosures", ITEM_COLUMN_ENCLOSURES},
+static const struct data_entry entries[] = {
+	{"feed",       "Feed: ",       6,  "\n", 1, ITEM_COLUMN_FEED,       ITEM_COLUMN_NONE},
+	{"title",      "Title: ",      7,  "\n", 1, ITEM_COLUMN_TITLE,      ITEM_COLUMN_NONE},
+	{"authors",    "Authors: ",    9,  "\n", 1, ITEM_COLUMN_AUTHORS,    ITEM_COLUMN_NONE},
+	{"categories", "Categories: ", 12, "\n", 1, ITEM_COLUMN_CATEGORIES, ITEM_COLUMN_NONE},
+	{"url",        "Link: ",       6,  "\n", 1, ITEM_COLUMN_URL,        ITEM_COLUMN_NONE},
+	{"comments",   "Comments: ",   10, "\n", 1, ITEM_COLUMN_COMMENTS,   ITEM_COLUMN_NONE},
+	{"enclosures", "Enclosures: ", 12, "\n", 1, ITEM_COLUMN_ENCLOSURES, ITEM_COLUMN_NONE},
+	{"summary",    "\n",           1,  "\n", 1, ITEM_COLUMN_SUMMARY,    ITEM_COLUMN_SUMMARY_TYPE},
+	{"content",    "\n",           1,  "\n", 1, ITEM_COLUMN_CONTENT,    ITEM_COLUMN_CONTENT_TYPE},
 };
 
 // On success returns true.
@@ -96,7 +99,7 @@ append_upddate(struct content_list **list, sqlite3_stmt *res)
 static bool
 append_meta_data_entry(struct content_list **list, sqlite3_stmt *res, int index)
 {
-	char *text = (char *)sqlite3_column_text(res, meta_data[index].num);
+	char *text = (char *)sqlite3_column_text(res, entries[index].data_column);
 	if (text == NULL) {
 		return true; // It is not an error because this item simply does not have value set.
 	}
@@ -108,15 +111,24 @@ append_meta_data_entry(struct content_list **list, sqlite3_stmt *res, int index)
 	if (entry == NULL) {
 		return false;
 	}
-	if (append_content(list, meta_data[index].prefix, meta_data[index].prefix_len, "plain", 5) != 0) {
+	if (append_content(list, entries[index].prefix, entries[index].prefix_len, "plain", 5) != 0) {
 		free_string(entry);
 		return false;
 	}
-	if (append_content(list, entry->ptr, entry->len, "plain", 5) != 0) {
+	char *text_type;
+	size_t text_type_len;
+	if (entries[index].type_column != ITEM_COLUMN_NONE) {
+		text_type = (char *)sqlite3_column_text(res, entries[index].type_column);
+		text_type_len = strlen(text_type);
+	} else {
+		text_type = "";
+		text_type_len = 0;
+	}
+	if (append_content(list, entry->ptr, entry->len, text_type, text_type_len) != 0) {
 		free_string(entry);
 		return false;
 	}
-	if (append_content(list, meta_data[index].suffix, meta_data[index].suffix_len, "plain", 5) != 0) {
+	if (append_content(list, entries[index].suffix, entries[index].suffix_len, "plain", 5) != 0) {
 		free_string(entry);
 		return false;
 	}
@@ -125,7 +137,7 @@ append_meta_data_entry(struct content_list **list, sqlite3_stmt *res, int index)
 }
 
 int
-append_meta_data_of_item(struct content_list **list, sqlite3_stmt *res)
+populate_content_list_with_data_of_item(struct content_list **list, sqlite3_stmt *res)
 {
 	char *restrict draft_meta_data_order = malloc(sizeof(char) * (strlen(config_contents_meta_data) + 1));
 	if (draft_meta_data_order == NULL) {
@@ -149,8 +161,8 @@ append_meta_data_of_item(struct content_list **list, sqlite3_stmt *res)
 				error = true;
 			}
 		} else {
-			for (size_t i = 0; i < LENGTH(meta_data); ++i) {
-				if (strcmp(meta_data_entry, meta_data[i].column) == 0) {
+			for (size_t i = 0; i < LENGTH(entries); ++i) {
+				if (strcmp(meta_data_entry, entries[i].field) == 0) {
 					if (append_meta_data_entry(list, res, i) == false) {
 						error = true;
 					}

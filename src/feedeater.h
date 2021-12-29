@@ -110,6 +110,7 @@ enum item_column {
 	ITEM_COLUMN_SUMMARY_TYPE,
 	ITEM_COLUMN_CONTENT,
 	ITEM_COLUMN_CONTENT_TYPE,
+	ITEM_COLUMN_NONE,
 };
 
 // list interface
@@ -134,7 +135,7 @@ int enter_items_menu_loop(const struct set_condition *st);
 // contents
 int pager_view(const struct content_list *data_list);
 int append_content(struct content_list **list, const char *content, size_t content_len, const char *content_type, size_t content_type_len);
-int append_meta_data_of_item(struct content_list **data_list, sqlite3_stmt *res);
+int populate_content_list_with_data_of_item(struct content_list **data_list, sqlite3_stmt *res);
 struct string *expand_html_entities(const char *str, size_t str_len);
 struct string *plainify_html(const char *str, size_t str_len);
 int enter_item_contents_menu_loop(int rowid);

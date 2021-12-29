@@ -6,7 +6,7 @@
 #include <sqlite3.h>
 #include <time.h>
 #include <wchar.h>
-#define APPLICATION_VERSION "0.0.0"
+#define FEEDEATER_VERSION "0.0.0"
 #define LENGTH(A) (sizeof(A)/sizeof(*A))
 
 #define INFO(A, ...) do { if (log_stream != NULL) { fprintf(log_stream, "[INFO] " A "\n", ##__VA_ARGS__); } } while (0)

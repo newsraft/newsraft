@@ -18,7 +18,7 @@ log_init(const char *path)
 		return 1;
 	}
 	INFO("Opened log file.");
-	INFO("feedeater version: " APPLICATION_VERSION);
+	INFO("feedeater version: " FEEDEATER_VERSION);
 	return 0;
 }
 

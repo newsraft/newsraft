@@ -19,24 +19,60 @@ static const struct meta_data_entry meta_data[] = {
 	{"Enclosures: ", 12, "enclosures", ITEM_COLUMN_ENCLOSURES},
 };
 
-static int
-cat_item_date_entry_to_buf(struct string *buf, sqlite3_stmt *res)
+// On success returns true.
+// On failure returns false.
+static inline bool
+cat_item_pubdate_to_buf(struct string *buf, sqlite3_stmt *res)
 {
 	time_t item_pubdate = (time_t)sqlite3_column_int64(res, ITEM_COLUMN_PUBDATE);
-	time_t item_upddate = (time_t)sqlite3_column_int64(res, ITEM_COLUMN_UPDDATE);
-	time_t item_date = item_pubdate > item_upddate ? item_pubdate : item_upddate;
-	if (item_date == 0) {
-		return 0; // success. it is not an error because this item simply does not have date set
+	if (item_pubdate == 0) {
+		return true; // It is not an error because this item simply does not have pubdate set.
 	}
-	struct string *date_str = get_config_date_str(&item_date);
+	struct string *date_str = get_config_date_str(&item_pubdate);
 	if (date_str == NULL) {
-		return 1; // failure
+		return false;
 	}
-	catas(buf, "Date: ", (size_t)6);
-	catss(buf, date_str);
-	catcs(buf, '\n');
+	if (catas(buf, "Published: ", (size_t)11) != 0) {
+		free_string(date_str);
+		return false;
+	}
+	if (catss(buf, date_str) != 0) {
+		free_string(date_str);
+		return false;
+	}
 	free_string(date_str);
-	return 0; // success
+	if (catcs(buf, '\n') != 0) {
+		return false;
+	}
+	return true;
+}
+
+// On success returns true.
+// On failure returns false.
+static inline bool
+cat_item_upddate_to_buf(struct string *buf, sqlite3_stmt *res)
+{
+	time_t item_upddate = (time_t)sqlite3_column_int64(res, ITEM_COLUMN_UPDDATE);
+	if (item_upddate == 0) {
+		return true; // It is not an error because this item simply does not have upddate set.
+	}
+	struct string *date_str = get_config_date_str(&item_upddate);
+	if (date_str == NULL) {
+		return false;
+	}
+	if (catas(buf, "Updated: ", (size_t)9) != 0) {
+		free_string(date_str);
+		return false;
+	}
+	if (catss(buf, date_str) != 0) {
+		free_string(date_str);
+		return false;
+	}
+	free_string(date_str);
+	if (catcs(buf, '\n') != 0) {
+		return false;
+	}
+	return true;
 }
 
 static int
@@ -79,8 +115,12 @@ get_meta_data_of_item(sqlite3_stmt *res)
 	char *saveptr = NULL;
 	char *meta_data_entry = strtok_r(draft_meta_data_order, ",", &saveptr);
 	while (meta_data_entry != NULL) {
-		if (strcmp(meta_data_entry, "date") == 0) {
-			if (cat_item_date_entry_to_buf(buf, res) != 0) {
+		if (strcmp(meta_data_entry, "pubdate") == 0) {
+			if (cat_item_pubdate_to_buf(buf, res) == false) {
+				error = true;
+			}
+		} else if (strcmp(meta_data_entry, "upddate") == 0) {
+			if (cat_item_upddate_to_buf(buf, res) == false) {
 				error = true;
 			}
 		} else {

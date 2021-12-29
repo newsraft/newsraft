@@ -127,11 +127,9 @@ void free_format_buffer(void);
 void enter_sets_menu_loop(void);
 int load_sets(void);
 void free_sets(void);
-void resize_sets_global_action(void);
 
 // items
 int enter_items_menu_loop(const struct set_condition *st);
-void resize_items_global_action(void);
 
 // contents
 int pager_view(const struct content_list *data_list);

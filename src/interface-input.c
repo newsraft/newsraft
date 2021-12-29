@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdio.h>
 #include "feedeater.h"
 
 // Linked list
@@ -36,24 +37,20 @@ get_input_command(void)
 
 	if (c == KEY_RESIZE) {
 		// If getch() returns KEY_RESIZE, then user's terminal got resized.
-		// We have to redraw everything that is in the view right now, and
-		// also make inactive interfaces know that they must do their resize
-		// callback on another activation.
 
 		if (obtain_terminal_size() == false) {
-			// Some really crazy resize happend. This state is really
-			// dangerous, better just break all loops and exit the program.
+			// Some really crazy resize happend. It is either a glitch or
+			// user deliberately trying to break something. This state is really
+			// dangerous anyways, better just break all loops and exit the program.
+			fprintf(stderr, "Don't flex around with me, okay?\n");
 			return INPUT_QUIT_HARD;
 		}
 
-		// Rearrange list menu windows.
 		adjust_list_menu();
-		resize_sets_global_action();
-		resize_items_global_action();
 
 		reallocate_format_buffer();
 
-		/* recreate a status window */
+		// Recreate a status window.
 		status_delete();
 		status_create();
 		status_clean();

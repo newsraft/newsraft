@@ -497,18 +497,16 @@ view_select_last(void)
 	view_select((sets_count == 0) ? (0) : (sets_count - 1));
 }
 
-void
-resize_sets_global_action(void)
-{
-	view_min = view_sel;
-	view_max = view_min + (list_menu_height - 1);
-}
-
 static void
 redraw_sets_windows(void)
 {
 	clear();
 	refresh();
+	view_max = view_min + (list_menu_height - 1);
+	if (view_max < view_sel) {
+		view_max = view_sel;
+		view_min = view_max - (list_menu_height - 1);
+	}
 	show_sets();
 }
 

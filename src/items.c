@@ -228,18 +228,16 @@ mark_all_items_unread(void)
 	}
 }
 
-void
-resize_items_global_action(void)
-{
-	view_min = view_sel;
-	view_max = view_min + (list_menu_height - 1);
-}
-
 static void
 redraw_items_windows(void)
 {
 	clear();
 	refresh();
+	view_max = view_min + (list_menu_height - 1);
+	if (view_max < view_sel) {
+		view_max = view_sel;
+		view_min = view_max - (list_menu_height - 1);
+	}
 	show_items();
 }
 

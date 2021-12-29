@@ -25,9 +25,16 @@ entry_end(struct parser_data *data)
 }
 
 static inline void
-title_start(struct parser_data *data)
+title_start(struct parser_data *data, const XML_Char **atts)
 {
 	data->atom10_pos |= ATOM10_TITLE;
+	const char *type = get_value_of_attribute_key(atts, "type");
+	if (type != NULL) {
+		if (cpyas(data->bucket->title_type, type, strlen(type)) != 0) {
+			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+			return;
+		}
+	}
 }
 
 static inline void
@@ -352,7 +359,7 @@ parse_atom10_element_start(struct parser_data *data, const XML_Char *name, const
 {
 	     if (strcmp(name, "entry")       == 0) { entry_start(data);          }
 	else if (strcmp(name, "id")          == 0) { id_start(data);             }
-	else if (strcmp(name, "title")       == 0) { title_start(data);          }
+	else if (strcmp(name, "title")       == 0) { title_start(data, atts);    }
 	else if (strcmp(name, "link")        == 0) { link_start(data, atts);     }
 	else if (strcmp(name, "summary")     == 0) { summary_start(data, atts);  }
 	else if (strcmp(name, "content")     == 0) { content_start(data, atts);  }

@@ -30,6 +30,7 @@ struct author {
 struct item_bucket {
 	struct string *guid;
 	struct string *title;
+	struct string *title_type;
 	struct string *url; // TODO: make this of struct link * type
 	struct string *summary;
 	struct string *summary_type; // Format of text of summary (for example plain or html).

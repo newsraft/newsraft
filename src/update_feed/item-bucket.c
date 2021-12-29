@@ -18,26 +18,29 @@ create_item_bucket(void)
 	if ((bucket->title = create_empty_string()) == NULL) {
 		goto undo3;
 	}
-	if ((bucket->url = create_empty_string()) == NULL) {
+	if ((bucket->title_type = create_empty_string()) == NULL) {
 		goto undo4;
 	}
-	if ((bucket->categories = create_empty_string()) == NULL) {
+	if ((bucket->url = create_empty_string()) == NULL) {
 		goto undo5;
 	}
-	if ((bucket->comments = create_empty_string()) == NULL) {
+	if ((bucket->categories = create_empty_string()) == NULL) {
 		goto undo6;
 	}
-	if ((bucket->summary = create_empty_string()) == NULL) {
+	if ((bucket->comments = create_empty_string()) == NULL) {
 		goto undo7;
 	}
-	if ((bucket->summary_type = create_empty_string()) == NULL) {
+	if ((bucket->summary = create_empty_string()) == NULL) {
 		goto undo8;
 	}
-	if ((bucket->content = create_empty_string()) == NULL) {
+	if ((bucket->summary_type = create_empty_string()) == NULL) {
 		goto undo9;
 	}
-	if ((bucket->content_type = create_empty_string()) == NULL) {
+	if ((bucket->content = create_empty_string()) == NULL) {
 		goto undo10;
+	}
+	if ((bucket->content_type = create_empty_string()) == NULL) {
+		goto undo11;
 	}
 	bucket->enclosures = NULL;
 	bucket->enclosures_len = 0;
@@ -48,18 +51,20 @@ create_item_bucket(void)
 	bucket->pubdate = 0;
 	bucket->upddate = 0;
 	return bucket;
-undo10:
+undo11:
 	free_string(bucket->content);
-undo9:
+undo10:
 	free_string(bucket->summary_type);
-undo8:
+undo9:
 	free_string(bucket->summary);
-undo7:
+undo8:
 	free_string(bucket->comments);
-undo6:
+undo7:
 	free_string(bucket->categories);
-undo5:
+undo6:
 	free_string(bucket->url);
+undo5:
+	free_string(bucket->title_type);
 undo4:
 	free_string(bucket->title);
 undo3:
@@ -75,6 +80,7 @@ empty_item_bucket(struct item_bucket *bucket)
 {
 	empty_string(bucket->guid);
 	empty_string(bucket->title);
+	empty_string(bucket->title_type);
 	empty_string(bucket->url);
 	empty_string(bucket->categories);
 	empty_string(bucket->comments);
@@ -93,6 +99,7 @@ free_item_bucket(struct item_bucket *bucket)
 {
 	free_string(bucket->guid);
 	free_string(bucket->title);
+	free_string(bucket->title_type);
 	free_string(bucket->url);
 	free_string(bucket->categories);
 	free_string(bucket->comments);

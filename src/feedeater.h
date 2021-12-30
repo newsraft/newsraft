@@ -138,12 +138,15 @@ int populate_content_list_with_data_of_item(struct content_list **data_list, sql
 int enter_item_contents_menu_loop(int rowid);
 
 // path
-int set_feeds_path(const char *path);
-int set_config_path(const char *path);
-int set_db_path(const char *path);
-char *get_feeds_path(void);
-char *get_config_path(void);
-char *get_db_path(void);
+bool set_feeds_path(const char *path);
+bool set_config_path(const char *path);
+bool set_db_path(const char *path);
+const char *get_feeds_path(void);
+const char *get_config_path(void);
+const char *get_db_path(void);
+void free_feeds_path(void);
+void free_config_path(void);
+void free_db_path(void);
 
 // config processing
 void free_config_data(void);

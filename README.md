@@ -6,17 +6,19 @@ Feedeater is greatly inspired by [Newsboat](https://www.newsboat.org).
 
 # Dependencies
 
-* ncursesw >= 6.2
+* [ncursesw](https://invisible-island.net/ncurses) >= 6.2
 
-* libcurl >= 7.75.0
+* [libcurl](https://github.com/curl/curl) >= 7.75.0
 
-* expat >= 2.2.10
+* [expat](https://github.com/libexpat/libexpat) >= 2.2.10
 
-* sqlite >= 3.35.4
+* [sqlite](https://www.sqlite.org) >= 3.35.4
 
-* gcc >= 8.1.0 (build-time)
+* [gcc](https://gcc.gnu.org) >= 8.1.0 (build-time)
 
-* meson >= 0.58.1 (build-time)
+* [meson](https://github.com/mesonbuild/meson) >= 0.58.1 (build-time)
+
+* [scdoc](https://git.sr.ht/~sircmpwn/scdoc) >= 1.11.2 (build-time, for man page)
 
 # Building
 
@@ -34,8 +36,7 @@ meson compile
 
 # Configuration
 
-See [CONFIGURATION.md](https://gitlab.com/got2teas/feedeater/-/blob/main/CONFIGURATION.md).
-
+Check out man page.
 
 # Contributing
 

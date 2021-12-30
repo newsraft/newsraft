@@ -26,25 +26,25 @@ main(int argc, char **argv)
 	int opt;
 	while ((opt = getopt(argc, argv, "f:c:d:vhl:")) != -1) {
 		if (opt == 'f') {
-			if (set_feeds_path(optarg) != 0) {
+			if (set_feeds_path(optarg) == false) {
 				error = 2;
 				goto undo1;
 			}
 		} else if (opt == 'c') {
-			if (set_config_path(optarg) != 0) {
+			if (set_config_path(optarg) == false) {
 				error = 3;
 				goto undo1;
 			}
 		} else if (opt == 'd') {
-			if (set_db_path(optarg) != 0) {
+			if (set_db_path(optarg) == false) {
 				error = 4;
 				goto undo1;
 			}
-		} else if (opt == 'v') {
-			fprintf(stderr, FEEDEATER_VERSION "\n");
-			goto undo1;
 		} else if (opt == 'h') {
 			print_usage();
+			goto undo1;
+		} else if (opt == 'v') {
+			fprintf(stderr, FEEDEATER_VERSION "\n");
 			goto undo1;
 		} else if (opt == 'l') {
 			if (log_init(optarg) != 0) {
@@ -90,5 +90,8 @@ undo2:
 undo1:
 	log_stop();
 undo0:
+	free_feeds_path();
+	free_config_path();
+	free_db_path();
 	return error;
 }

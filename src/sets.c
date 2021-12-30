@@ -36,13 +36,12 @@ free_sets(void)
 // On failure returns non-zero.
 static inline int
 parse_sets_file(struct feed_tag **head_tag_ptr) {
-	char *path = get_feeds_path();
+	const char *path = get_feeds_path();
 	if (path == NULL) {
-		fprintf(stderr, "Could not find feeds file!\n");
+		// Error message is written by get_feeds_path().
 		return 1;
 	}
 	FILE *f = fopen(path, "r");
-	free(path);
 	if (f == NULL) {
 		fprintf(stderr, "Could not open feeds file!\n");
 		return 1;

@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <dirent.h>
-#include <unistd.h>
 #include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -13,195 +12,296 @@
 
 #define MAXPATH 4096 // maximum length of path
 
-#define FEEDS_FILE_NAME "feeds"
-#define CONFIG_FILE_NAME "config"
-#define DB_FILE_NAME "feedeater.sqlite3"
-
 static char *feeds_file_path = NULL;
 static char *config_file_path = NULL;
 static char *db_file_path = NULL;
 
-static char *
-get_conf_dir_path(void)
-{
-	char *conf_dir_path = malloc(sizeof(char) * (MAXPATH + 1));
-	if (conf_dir_path == NULL) {
-		fprintf(stderr, "failed to allocate memory for path to config directory\n");
-		return NULL;
-	}
-
-	DIR *d;
-	size_t env_var_len;
-
-	char *env_var = getenv("XDG_CONFIG_HOME");
-	if (env_var != NULL) {
-		env_var_len = strlen(env_var);
-		if (env_var_len != 0) {
-			strcpy(conf_dir_path, env_var);
-			strcat(conf_dir_path, "/feedeater");
-			d = opendir(conf_dir_path);
-			if (d != NULL) {
-				closedir(d);
-				return conf_dir_path;
-			}
-		}
-	}
-
-	env_var = getenv("HOME");
-	if (env_var != NULL) {
-		env_var_len = strlen(env_var);
-		if (env_var_len != 0) {
-			strcpy(conf_dir_path, env_var);
-			strcat(conf_dir_path, "/.config/feedeater");
-			d = opendir(conf_dir_path);
-			if (d != NULL) {
-				closedir(d);
-				return conf_dir_path;
-			}
-			strcpy(conf_dir_path, env_var);
-			strcat(conf_dir_path, "/.feedeater");
-			d = opendir(conf_dir_path);
-			if (d != NULL) {
-				closedir(d);
-				return conf_dir_path;
-			}
-		}
-	}
-
-	fprintf(stderr, "failed to find config directory\n");
-	free(conf_dir_path);
-	return NULL;
-}
-
-static char *
-get_data_dir_path(void)
-{
-	char *data_dir_path = malloc(sizeof(char) * (MAXPATH + 1));
-	if (data_dir_path == NULL) {
-		fprintf(stderr, "failed to allocate memory for path to data directory\n");
-		return NULL;
-	}
-
-	DIR *d;
-	size_t env_var_len;
-
-	char *env_var = getenv("XDG_DATA_HOME");
-	if (env_var != NULL) {
-		env_var_len = strlen(env_var);
-		if (env_var_len != 0) {
-			strcpy(data_dir_path, env_var);
-			mkdir(data_dir_path, 0777);
-			strcat(data_dir_path, "/feedeater");
-			mkdir(data_dir_path, 0777);
-			d = opendir(data_dir_path);
-			if (d != NULL) {
-				closedir(d);
-				return data_dir_path;
-			}
-		}
-	}
-
-	env_var = getenv("HOME");
-	if (env_var != NULL) {
-		env_var_len = strlen(env_var);
-		if (env_var_len != 0) {
-			strcpy(data_dir_path, env_var);
-			strcat(data_dir_path, "/.local");
-			mkdir(data_dir_path, 0777);
-			strcat(data_dir_path, "/share");
-			mkdir(data_dir_path, 0777);
-			strcat(data_dir_path, "/feedeater");
-			mkdir(data_dir_path, 0777);
-			d = opendir(data_dir_path);
-			if (d != NULL) {
-				closedir(d);
-				return data_dir_path;
-			}
-		}
-	}
-
-	fprintf(stderr, "failed to find data directory\n");
-	free(data_dir_path);
-	return NULL;
-}
-
-int
+bool
 set_feeds_path(const char *path)
 {
-	feeds_file_path = malloc(sizeof(char) * (strlen(path) + 1));
-	if (feeds_file_path != NULL) {
-		strcpy(feeds_file_path, path);
-		return 0;
+	char *temp = realloc(feeds_file_path, sizeof(char) * (strlen(path) + 1));
+	if (temp == NULL) {
+		return false;
 	}
-	return 1;
+	feeds_file_path = temp;
+	strcpy(feeds_file_path, path);
+	return true;
 }
 
-int
+bool
 set_config_path(const char *path)
 {
-	config_file_path = malloc(sizeof(char) * (strlen(path) + 1));
-	if (config_file_path != NULL) {
-		strcpy(config_file_path, path);
-		return 0;
+	char *temp = realloc(config_file_path, sizeof(char) * (strlen(path) + 1));
+	if (temp == NULL) {
+		return false;
 	}
-	return 1;
+	config_file_path = temp;
+	strcpy(config_file_path, path);
+	return true;
 }
 
-int
+bool
 set_db_path(const char *path)
 {
-	db_file_path = malloc(sizeof(char) * (strlen(path) + 1));
-	if (db_file_path != NULL) {
-		strcpy(db_file_path, path);
-		return 0;
+	char *temp = realloc(db_file_path, sizeof(char) * (strlen(path) + 1));
+	if (temp == NULL) {
+		return false;
 	}
-	return 1;
+	db_file_path = temp;
+	strcpy(db_file_path, path);
+	return true;
 }
 
-char *
+const char *
 get_feeds_path(void)
 {
 	if (feeds_file_path != NULL) {
-		return feeds_file_path;
+		return (const char *)feeds_file_path;
 	}
 
-	char *feeds_path = get_conf_dir_path();
-	if (feeds_path != NULL) {
-		strcat(feeds_path, "/" FEEDS_FILE_NAME);
-		return feeds_path;
+	char *new_path = malloc(sizeof(char) * (MAXPATH + 1));
+	if (new_path == NULL) {
+		fprintf(stderr, "Not enough memory for feeds path!\n");
+		return NULL;
 	}
+
+	FILE *f;
+	char *env_var = getenv("XDG_CONFIG_HOME");
+	size_t env_var_len;
+
+	// Order in which to look up a feeds file:
+	// 1. $XDG_CONFIG_HOME/feedeater/feeds
+	// 2. $HOME/.config/feedeater/feeds
+	// 3. $HOME/.feedeater/feeds
+
+	if (env_var != NULL) {
+		env_var_len = strlen(env_var);
+		if (env_var_len != 0) {
+			strcpy(new_path, env_var);
+			strcat(new_path, "/feedeater/feeds");
+			f = fopen(new_path, "r");
+			if (f != NULL) {
+				fclose(f);
+				feeds_file_path = new_path;
+				return (const char *)feeds_file_path; // 1
+			}
+		}
+	}
+
+	env_var = getenv("HOME");
+	if (env_var != NULL) {
+		env_var_len = strlen(env_var);
+		if (env_var_len != 0) {
+			strcpy(new_path, env_var);
+			strcat(new_path, "/.config/feedeater/feeds");
+			f = fopen(new_path, "r");
+			if (f != NULL) {
+				fclose(f);
+				feeds_file_path = new_path;
+				return (const char *)feeds_file_path; // 2
+			}
+			strcpy(new_path, env_var);
+			strcat(new_path, "/.feedeater/feeds");
+			f = fopen(new_path, "r");
+			if (f != NULL) {
+				fclose(f);
+				feeds_file_path = new_path;
+				return (const char *)feeds_file_path; // 3
+			}
+		}
+	}
+
+	fprintf(stderr, "Can not find feeds file!\n");
+
+	free(new_path);
 
 	return NULL;
 }
 
-char *
+const char *
 get_config_path(void)
 {
 	if (config_file_path != NULL) {
-		return config_file_path;
+		return (const char *)config_file_path;
 	}
 
-	char *config_path = get_conf_dir_path();
-	if (config_path != NULL) {
-		strcat(config_path, "/" CONFIG_FILE_NAME);
-		return config_path;
+	char *new_path = malloc(sizeof(char) * (MAXPATH + 1));
+	if (new_path == NULL) {
+		fprintf(stderr, "Not enough memory for config path!\n");
+		return NULL;
 	}
+
+	FILE *f;
+	char *env_var = getenv("XDG_CONFIG_HOME");
+	size_t env_var_len;
+
+	// Order in which to look up a config file:
+	// 1. $XDG_CONFIG_HOME/feedeater/config
+	// 2. $HOME/.config/feedeater/config
+	// 3. $HOME/.feedeater/config
+
+	if (env_var != NULL) {
+		env_var_len = strlen(env_var);
+		if (env_var_len != 0) {
+			strcpy(new_path, env_var);
+			strcat(new_path, "/feedeater/config");
+			f = fopen(new_path, "r");
+			if (f != NULL) {
+				fclose(f);
+				config_file_path = new_path;
+				return (const char *)config_file_path; // 1
+			}
+		}
+	}
+
+	env_var = getenv("HOME");
+	if (env_var != NULL) {
+		env_var_len = strlen(env_var);
+		if (env_var_len != 0) {
+			strcpy(new_path, env_var);
+			strcat(new_path, "/.config/feedeater/config");
+			f = fopen(new_path, "r");
+			if (f != NULL) {
+				fclose(f);
+				config_file_path = new_path;
+				return (const char *)config_file_path; // 2
+			}
+			strcpy(new_path, env_var);
+			strcat(new_path, "/.feedeater/config");
+			f = fopen(new_path, "r");
+			if (f != NULL) {
+				fclose(f);
+				config_file_path = new_path;
+				return (const char *)config_file_path; // 3
+			}
+		}
+	}
+
+	// Do not write error message because config file is optional.
+
+	free(new_path);
 
 	return NULL;
 }
 
-char *
+const char *
 get_db_path(void)
 {
 	if (db_file_path != NULL) {
-		return db_file_path;
+		return (const char *)db_file_path;
 	}
 
-	char *db_path = get_data_dir_path();
-	if (db_path != NULL) {
-		strcat(db_path, "/" DB_FILE_NAME);
-		return db_path;
+	char *new_path = malloc(sizeof(char) * (MAXPATH + 1));
+	if (new_path == NULL) {
+		fprintf(stderr, "Not enough memory for database path!\n");
+		return NULL;
 	}
+
+	FILE *f;
+	char *env_var = getenv("XDG_DATA_HOME");
+	size_t env_var_len;
+	bool xdg_dir_is_set = false;
+	bool home_dir_is_set = false;
+
+	// Order in which to look up a database file:
+	// 1. $XDG_DATA_HOME/feedeater/feedeater.sqlite3
+	// 2. $HOME/.local/share/feedeater/feedeater.sqlite3
+
+	if (env_var != NULL) {
+		env_var_len = strlen(env_var);
+		if (env_var_len != 0) {
+			xdg_dir_is_set = true;
+			strcpy(new_path, env_var);
+			strcat(new_path, "/feedeater/feedeater.sqlite3");
+			f = fopen(new_path, "r");
+			if (f != NULL) {
+				fclose(f);
+				db_file_path = new_path;
+				return (const char *)db_file_path; // 1
+			}
+		}
+	}
+
+	env_var = getenv("HOME");
+	if (env_var != NULL) {
+		env_var_len = strlen(env_var);
+		if (env_var_len != 0) {
+			home_dir_is_set = true;
+			strcpy(new_path, env_var);
+			strcat(new_path, "/.local/share/feedeater/feedeater.sqlite3");
+			f = fopen(new_path, "r");
+			if (f != NULL) {
+				fclose(f);
+				db_file_path = new_path;
+				return (const char *)db_file_path; // 2
+			}
+		}
+	}
+
+	// If we got to this point then database file does not exist.
+	// We have to create new one!
+
+	DIR *d;
+
+	if (xdg_dir_is_set == true) {
+		env_var = getenv("XDG_DATA_HOME");
+		strcpy(new_path, env_var);
+		mkdir(new_path, 0777);
+		strcat(new_path, "/feedeater");
+		mkdir(new_path, 0777);
+		d = opendir(new_path);
+		if (d != NULL) {
+			closedir(d);
+			strcat(new_path, "/feedeater.sqlite3");
+			db_file_path = new_path;
+			return (const char *)db_file_path; // 1
+		} else {
+			fprintf(stderr, "Creation of \"%s\" directory has failed!\n", new_path);
+		}
+	} else if (home_dir_is_set == true) {
+		env_var = getenv("HOME");
+		strcpy(new_path, env_var);
+		mkdir(new_path, 0777);
+		strcat(new_path, "/.local");
+		mkdir(new_path, 0777);
+		strcat(new_path, "/share");
+		mkdir(new_path, 0777);
+		strcat(new_path, "/feedeater");
+		mkdir(new_path, 0777);
+		d = opendir(new_path);
+		if (d != NULL) {
+			closedir(d);
+			strcat(new_path, "/feedeater.sqlite3");
+			db_file_path = new_path;
+			return (const char *)db_file_path; // 2
+		} else {
+			fprintf(stderr, "Creation of \"%s\" directory has failed!\n", new_path);
+		}
+	} else {
+		fprintf(stderr, "Neither XDG_DATA_HOME or HOME is set!\n");
+	}
+
+	fprintf(stderr, "Creation of data directories failed!\n");
+
+	free(new_path);
 
 	return NULL;
+}
+
+void
+free_feeds_path(void)
+{
+	free(feeds_file_path);
+}
+
+void
+free_config_path(void)
+{
+	free(config_file_path);
+}
+
+void
+free_db_path(void)
+{
+	free(db_file_path);
 }

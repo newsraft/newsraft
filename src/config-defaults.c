@@ -2,7 +2,7 @@
 #include <string.h>
 #include "feedeater.h"
 
-size_t config_max_items = 100; // 0 == inf
+size_t config_max_items = 0; // 0 == inf
 size_t config_init_parser_buf_size = 1048576; // 1 MiB
 
 // Don't initialize char pointers with string literals because then they will be immutable :(

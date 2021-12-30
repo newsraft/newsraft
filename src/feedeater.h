@@ -114,7 +114,6 @@ enum item_column {
 };
 
 // list interface
-int create_list_menu(void);
 int adjust_list_menu(void);
 WINDOW *get_list_entry_by_index(size_t i);
 void free_list_menu(void);
@@ -136,8 +135,6 @@ int enter_items_menu_loop(const struct set_condition *st);
 int pager_view(const struct content_list *data_list);
 int append_content(struct content_list **list, const char *content, size_t content_len, const char *content_type, size_t content_type_len);
 int populate_content_list_with_data_of_item(struct content_list **data_list, sqlite3_stmt *res);
-struct string *expand_html_entities(const char *str, size_t str_len);
-struct string *plainify_html(const char *str, size_t str_len);
 int enter_item_contents_menu_loop(int rowid);
 
 // path
@@ -214,7 +211,6 @@ void empty_wstring(struct wstring *wstr);
 void free_wstring(struct wstring *wstr);
 void strip_whitespace_from_wstring(struct wstring *wstr);
 
-// debug
 int log_init(const char *path);
 void log_stop(void);
 

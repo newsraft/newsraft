@@ -6,7 +6,7 @@ static inline bool
 is_feed_in_db(const struct string *feed_url)
 {
 	sqlite3_stmt *s;
-	if (db_prepare("SELECT * FROM feeds WHERE url = ? LIMIT 1", -1, &s, NULL) == SQLITE_OK) {
+	if (db_prepare("SELECT * FROM feeds WHERE url = ? LIMIT 1", 42, &s, NULL) == SQLITE_OK) {
 		sqlite3_bind_text(s, 1, feed_url->ptr, feed_url->len, NULL);
 		if (sqlite3_step(s) == SQLITE_ROW) {
 			sqlite3_finalize(s);
@@ -24,7 +24,7 @@ make_sure_feed_is_in_db(const struct string *feed_url)
 		return true;
 	}
 	sqlite3_stmt *s;
-	if (db_prepare("INSERT INTO feeds VALUES(?, ?, ?, ?)", -1, &s, NULL) == SQLITE_OK) {
+	if (db_prepare("INSERT INTO feeds VALUES(?, ?, ?, ?)", 37, &s, NULL) == SQLITE_OK) {
 		sqlite3_bind_text(s, 1, feed_url->ptr, feed_url->len, NULL);
 		sqlite3_bind_text(s, 2, "", 0, NULL);
 		sqlite3_bind_text(s, 3, "", 0, NULL);

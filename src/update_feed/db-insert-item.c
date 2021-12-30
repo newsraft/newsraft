@@ -6,7 +6,7 @@ void
 delete_excess_items(const struct string *feed_url) {
 	INFO("Deleting excess items...");
 	sqlite3_stmt *s;
-	if (db_prepare("SELECT rowid FROM items WHERE feed = ? ORDER BY upddate DESC, pubdate DESC, rowid DESC", -1, &s, NULL) != SQLITE_OK) {
+	if (db_prepare("SELECT rowid FROM items WHERE feed = ? ORDER BY upddate DESC, pubdate DESC, rowid DESC", 87, &s, NULL) != SQLITE_OK) {
 		FAIL("Failed to prepare an excess items deletion statement:");
 		return;
 	}
@@ -18,7 +18,7 @@ delete_excess_items(const struct string *feed_url) {
 		if (item_iterator <= config_max_items) {
 			continue;
 		}
-		if (db_prepare("DELETE FROM items WHERE rowid = ?", -1, &t, NULL) == SQLITE_OK) {
+		if (db_prepare("DELETE FROM items WHERE rowid = ?", 34, &t, NULL) == SQLITE_OK) {
 			sqlite3_bind_int(t, 1, sqlite3_column_int(s, 0));
 			if (sqlite3_step(t) != SQLITE_DONE) {
 				FAIL("Deletion of the excess item is failed!");
@@ -140,9 +140,9 @@ db_insert_item(const struct string *feed_url, const struct item_bucket *bucket, 
 	int prepare_status;
 
 	if (rowid == -1) {
-		prepare_status = db_prepare("INSERT INTO items VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", -1, &s, NULL);
+		prepare_status = db_prepare("INSERT INTO items VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", 72, &s, NULL);
 	} else {
-		prepare_status = db_prepare("UPDATE items SET feed = ?, title = ?, guid = ?, unread = ?, url = ?, enclosures = ?, authors = ?, categories = ?, pubdate = ?, upddate = ?, comments = ?, summary = ?, summary_type = ?, content = ?, content_type = ? WHERE rowid = ?;", -1, &s, NULL);
+		prepare_status = db_prepare("UPDATE items SET feed = ?, title = ?, guid = ?, unread = ?, url = ?, enclosures = ?, authors = ?, categories = ?, pubdate = ?, upddate = ?, comments = ?, summary = ?, summary_type = ?, content = ?, content_type = ? WHERE rowid = ?;", 232, &s, NULL);
 	}
 
 	if (prepare_status != SQLITE_OK) {
@@ -194,8 +194,7 @@ try_item_bucket(const struct item_bucket *bucket, const struct string *feed_url)
 	if (bucket->guid->len > 0) {
 		// Most convenient way of verifying item uniqueness is to check
 		// its unique ID.
-		char cmd[] = "SELECT rowid, pubdate, upddate, content FROM items WHERE feed = ? AND guid = ? LIMIT 1";
-		if (db_prepare(cmd, -1, &res, NULL) == SQLITE_OK) {
+		if (db_prepare("SELECT rowid, pubdate, upddate, content FROM items WHERE feed = ? AND guid = ? LIMIT 1", 87, &res, NULL) == SQLITE_OK) {
 			sqlite3_bind_text(res, 1, feed_url->ptr, feed_url->len, NULL);
 			sqlite3_bind_text(res, 2, bucket->guid->ptr, bucket->guid->len, NULL);
 			step_status = sqlite3_step(res);
@@ -207,8 +206,7 @@ try_item_bucket(const struct item_bucket *bucket, const struct string *feed_url)
 		// Unique IDs are cool but not every feed format requires these IDs
 		// to be set so all we can do here is to check uniqueness by some other
 		// identifiers and I think that URL and title are good for this.
-		char cmd[] = "SELECT rowid, pubdate, upddate, content FROM items WHERE feed = ? AND url = ? AND title = ? LIMIT 1";
-		if (db_prepare(cmd, -1, &res, NULL) == SQLITE_OK) {
+		if (db_prepare("SELECT rowid, pubdate, upddate, content FROM items WHERE feed = ? AND url = ? AND title = ? LIMIT 1", 100, &res, NULL) == SQLITE_OK) {
 			sqlite3_bind_text(res, 1, feed_url->ptr, feed_url->len, NULL);
 			sqlite3_bind_text(res, 2, bucket->url->ptr, bucket->url->len, NULL);
 			sqlite3_bind_text(res, 3, bucket->title->ptr, bucket->title->len, NULL);

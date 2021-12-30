@@ -25,43 +25,45 @@ free_items(void)
 	free(items);
 }
 
-static int
+// On success returns true.
+// On failure returns false.
+static bool
 load_items(const struct set_condition *sc)
 {
 #define SELECT_CMD_PART_1 "SELECT rowid, title, unread FROM items WHERE "
 #define SELECT_CMD_PART_1_LEN 45
 #define SELECT_CMD_PART_3 " ORDER BY upddate DESC, pubdate DESC, rowid DESC"
 #define SELECT_CMD_PART_3_LEN 48
-	char *cmd = malloc(sizeof(char) * (SELECT_CMD_PART_1_LEN + sc->db_cmd->len + SELECT_CMD_PART_3_LEN + 1));
+	size_t cmd_size = sizeof(char) * (SELECT_CMD_PART_1_LEN + sc->db_cmd->len + SELECT_CMD_PART_3_LEN + 1);
+	char *cmd = malloc(cmd_size);
 	if (cmd == NULL) {
-		status_write("Failed to load items: not enough memory!");
-		FAIL("Not enough memory for loading items!");
-		return 1;
+		status_write("Not enough memory for select statement!");
+		return false;
 	}
 	strcpy(cmd, SELECT_CMD_PART_1);
 	strcat(cmd, sc->db_cmd->ptr);
 	strcat(cmd, SELECT_CMD_PART_3);
-	view_sel = SIZE_MAX;
 	sqlite3_stmt *res;
-	if (db_prepare(cmd, -1, &res, NULL) != SQLITE_OK) {
+	if (db_prepare(cmd, cmd_size, &res, NULL) != SQLITE_OK) {
 		status_write("There is some error with the tag expression!");
 		free(cmd);
-		return 1;
+		return false;
 	}
+	view_sel = SIZE_MAX;
 	size_t item_index;
 	char *text;
 	struct item_line *temp; // need to check if realloc failed
 	for (size_t i = 0; i < sc->urls_count; ++i) {
 		sqlite3_bind_text(res, i + 1, sc->urls[i]->ptr, sc->urls[i]->len, NULL);
 	}
-	int error = 0;
+	bool error = false;
 	while (sqlite3_step(res) == SQLITE_ROW) {
 		item_index = items_count++;
 		temp = realloc(items, sizeof(struct item_line) * items_count);
 		if (temp == NULL) {
 			FAIL("Not enough memory for loading items (realloc returned NULL)!");
 			--items_count;
-			error = 1;
+			error = true;
 			break;
 		}
 		items = temp;
@@ -79,16 +81,16 @@ load_items(const struct set_condition *sc)
 	sqlite3_finalize(res);
 	free(cmd);
 
-	if (error == 1) {
-		return 1; // failure
+	if (error == true) {
+		return false;
 	}
 
 	if (view_sel == SIZE_MAX) {
 		status_write("Items not found!");
-		return 1; // failure, no items found
+		return false;
 	}
 
-	return 0; // success
+	return true;
 }
 
 static void
@@ -277,7 +279,7 @@ enter_items_menu_loop(const struct set_condition *sc)
 	items_count = 0;
 
 	INFO("Loading items...");
-	if (load_items(sc) != 0) {
+	if (load_items(sc) == false) {
 		FAIL("Failed to load items!");
 		free_items();
 		return INPUTS_COUNT;

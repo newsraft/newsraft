@@ -8,7 +8,8 @@ db_update_item_int(int rowid, const char *column, int value)
 	INFO("Updating column \"%s\" with integer value \"%d\" of item with rowid \"%d\".", column, value, rowid);
 
 	// Size of this buffer depends on the size of strings below.
-	char *cmd = malloc(sizeof(char) * (17 + strlen(column) + 20 + 1));
+	size_t cmd_size = sizeof(char) * (17 + strlen(column) + 20 + 1);
+	char *cmd = malloc(cmd_size);
 	if (cmd == NULL) {
 		FAIL("Not enough memory for updating that column!");
 		return 1; // failure
@@ -20,7 +21,7 @@ db_update_item_int(int rowid, const char *column, int value)
 	int error = 1;
 
 	sqlite3_stmt *res;
-	if (db_prepare(cmd, -1, &res, NULL) == SQLITE_OK) {
+	if (db_prepare(cmd, cmd_size, &res, NULL) == SQLITE_OK) {
 		sqlite3_bind_int(res, 1, value);
 		sqlite3_bind_int(res, 2, rowid);
 		if (sqlite3_step(res) == SQLITE_DONE) {
@@ -56,7 +57,8 @@ get_unread_items_count(const struct set_condition *sc)
 {
 	INFO("Trying to count unread items by their condition.");
 
-	char *cmd = malloc(sizeof(char) * (SELECT_CMD_START_LEN + sc->db_cmd->len + 1));
+	size_t cmd_size = sizeof(char) * (SELECT_CMD_START_LEN + sc->db_cmd->len + 1);
+	char *cmd = malloc(cmd_size);
 	if (cmd == NULL) {
 		FAIL("Not enough memory for a SQL statement to count unread items!");
 		return 0; // failure
@@ -67,7 +69,7 @@ get_unread_items_count(const struct set_condition *sc)
 
 	int unread_count = 0;
 	sqlite3_stmt *res;
-	if (db_prepare(cmd, -1, &res, NULL) == SQLITE_OK) {
+	if (db_prepare(cmd, cmd_size, &res, NULL) == SQLITE_OK) {
 		for (size_t i = 0; i < sc->urls_count; ++i) {
 			sqlite3_bind_text(res, i + 1, sc->urls[i]->ptr, sc->urls[i]->len, NULL);
 		}

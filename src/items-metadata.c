@@ -37,7 +37,7 @@ append_pubdate(struct content_list **list, sqlite3_stmt *res)
 	if (pubdate_entry == NULL) {
 		return false;
 	}
-	struct string *date_str = get_config_date_str(&item_pubdate);
+	struct string *date_str = get_config_date_str(item_pubdate);
 	if (date_str == NULL) {
 		free_string(pubdate_entry);
 		return false;
@@ -69,7 +69,7 @@ append_upddate(struct content_list **list, sqlite3_stmt *res)
 	if (item_upddate == 0) {
 		return true; // It is not an error because this item simply does not have upddate set.
 	}
-	struct string *date_str = get_config_date_str(&item_upddate);
+	struct string *date_str = get_config_date_str(item_upddate);
 	if (date_str == NULL) {
 		return false;
 	}

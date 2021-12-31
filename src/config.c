@@ -4,11 +4,19 @@
 #include <ctype.h>
 #include "feedeater.h"
 
+static inline time_t
+get_local_offset_relative_to_utc(void)
+{
+	time_t rawtime = time(NULL);
+	return rawtime - mktime(gmtime(&rawtime));
+}
+
 struct string *
-get_config_date_str(const time_t *time)
+get_config_date_str(time_t time)
 {
 	char date_ptr[200];
-	size_t date_len = strftime(date_ptr, sizeof(date_ptr), config_contents_date_format, gmtime(time));
+	time_t local_time = time + get_local_offset_relative_to_utc();
+	size_t date_len = strftime(date_ptr, sizeof(date_ptr), config_contents_date_format, localtime(&local_time));
 	if (date_len == 0) {
 		FAIL("Failed to create date string!");
 		return NULL;

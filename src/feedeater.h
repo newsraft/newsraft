@@ -165,7 +165,7 @@ int assign_default_values_to_empty_config_strings(void);
 int load_config(void);
 
 // date parsing
-struct string *get_config_date_str(const time_t *time_ptr);
+struct string *get_config_date_str(time_t time_ptr);
 
 // tags
 int tag_feed(struct feed_tag **head_tag_ptr, const char *tag_name, size_t tag_name_len, const struct string *url);

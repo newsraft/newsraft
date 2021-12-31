@@ -6,7 +6,7 @@ void
 delete_excess_items(const struct string *feed_url) {
 	INFO("Deleting excess items...");
 	sqlite3_stmt *s;
-	if (db_prepare("SELECT rowid FROM items WHERE feed = ? ORDER BY upddate DESC, pubdate DESC, rowid DESC", 87, &s, NULL) != SQLITE_OK) {
+	if (db_prepare("SELECT rowid FROM items WHERE feed_url = ? ORDER BY upddate DESC, pubdate DESC, rowid DESC;", 92, &s, NULL) != SQLITE_OK) {
 		FAIL("Failed to prepare an excess items deletion statement:");
 		return;
 	}
@@ -142,7 +142,7 @@ db_insert_item(const struct string *feed_url, const struct item_bucket *bucket, 
 	if (rowid == -1) {
 		prepare_status = db_prepare("INSERT INTO items VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", 72, &s, NULL);
 	} else {
-		prepare_status = db_prepare("UPDATE items SET feed = ?, title = ?, guid = ?, unread = ?, url = ?, enclosures = ?, authors = ?, categories = ?, pubdate = ?, upddate = ?, comments = ?, summary = ?, summary_type = ?, content = ?, content_type = ? WHERE rowid = ?;", 232, &s, NULL);
+		prepare_status = db_prepare("UPDATE items SET feed_url = ?, title = ?, guid = ?, link = ?, unread = ?, enclosures = ?, authors = ?, categories = ?, pubdate = ?, upddate = ?, comments = ?, summary = ?, summary_type = ?, content = ?, content_type = ? WHERE rowid = ?;", 237, &s, NULL);
 	}
 
 	if (prepare_status != SQLITE_OK) {
@@ -151,11 +151,11 @@ db_insert_item(const struct string *feed_url, const struct item_bucket *bucket, 
 		return;
 	}
 
-	sqlite3_bind_text(s,  ITEM_COLUMN_FEED         + 1, feed_url->ptr, feed_url->len, NULL);
+	sqlite3_bind_text(s,  ITEM_COLUMN_FEED_URL     + 1, feed_url->ptr, feed_url->len, NULL);
 	sqlite3_bind_text(s,  ITEM_COLUMN_TITLE        + 1, bucket->title->ptr, bucket->title->len, NULL);
 	sqlite3_bind_text(s,  ITEM_COLUMN_GUID         + 1, bucket->guid->ptr, bucket->guid->len, NULL);
+	sqlite3_bind_text(s,  ITEM_COLUMN_LINK         + 1, bucket->url->ptr, bucket->url->len, NULL);
 	sqlite3_bind_int(s,   ITEM_COLUMN_UNREAD       + 1, 1);
-	sqlite3_bind_text(s,  ITEM_COLUMN_URL          + 1, bucket->url->ptr, bucket->url->len, NULL);
 	sqlite3_bind_text(s,  ITEM_COLUMN_ENCLOSURES   + 1, enclosures_list->ptr, enclosures_list->len, NULL);
 	sqlite3_bind_text(s,  ITEM_COLUMN_AUTHORS      + 1, authors_list->ptr, authors_list->len, NULL);
 	sqlite3_bind_text(s,  ITEM_COLUMN_CATEGORIES   + 1, bucket->categories->ptr, bucket->categories->len, NULL);
@@ -194,7 +194,7 @@ try_item_bucket(const struct item_bucket *bucket, const struct string *feed_url)
 	if (bucket->guid->len > 0) {
 		// Most convenient way of verifying item uniqueness is to check
 		// its unique ID.
-		if (db_prepare("SELECT rowid, pubdate, upddate, content FROM items WHERE feed = ? AND guid = ? LIMIT 1", 87, &res, NULL) == SQLITE_OK) {
+		if (db_prepare("SELECT rowid, pubdate, upddate, content FROM items WHERE feed_url = ? AND guid = ? LIMIT 1;", 92, &res, NULL) == SQLITE_OK) {
 			sqlite3_bind_text(res, 1, feed_url->ptr, feed_url->len, NULL);
 			sqlite3_bind_text(res, 2, bucket->guid->ptr, bucket->guid->len, NULL);
 			step_status = sqlite3_step(res);
@@ -206,13 +206,13 @@ try_item_bucket(const struct item_bucket *bucket, const struct string *feed_url)
 		// Unique IDs are cool but not every feed format requires these IDs
 		// to be set so all we can do here is to check uniqueness by some other
 		// identifiers and I think that URL and title are good for this.
-		if (db_prepare("SELECT rowid, pubdate, upddate, content FROM items WHERE feed = ? AND url = ? AND title = ? LIMIT 1", 100, &res, NULL) == SQLITE_OK) {
+		if (db_prepare("SELECT rowid, pubdate, upddate, content FROM items WHERE feed_url = ? AND link = ? AND title = ? LIMIT 1;", 106, &res, NULL) == SQLITE_OK) {
 			sqlite3_bind_text(res, 1, feed_url->ptr, feed_url->len, NULL);
 			sqlite3_bind_text(res, 2, bucket->url->ptr, bucket->url->len, NULL);
 			sqlite3_bind_text(res, 3, bucket->title->ptr, bucket->title->len, NULL);
 			step_status = sqlite3_step(res);
 		} else {
-			FAIL("Failed to prepare SELECT statement for searching item duplicate by url and title!");
+			FAIL("Failed to prepare SELECT statement for searching item duplicate by link and title!");
 			return;
 		}
 	}

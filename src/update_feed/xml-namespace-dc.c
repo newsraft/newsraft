@@ -24,7 +24,10 @@ title_end(struct parser_data *data)
 			}
 		}
 	} else {
-		db_update_feed_text(data->feed_url, "name", data->value->ptr, data->value->len);
+		if (cpyss(data->feed->title, data->value) != 0) {
+			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+			return;
+		}
 	}
 }
 
@@ -76,7 +79,10 @@ description_end(struct parser_data *data)
 			}
 		}
 	} else {
-		db_update_feed_text(data->feed_url, "description", data->value->ptr, data->value->len);
+		if (cpyss(data->feed->summary, data->value) != 0) {
+			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+			return;
+		}
 	}
 }
 

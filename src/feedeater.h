@@ -94,12 +94,23 @@ enum input_cmd {
 	INPUTS_COUNT,
 };
 
+enum feed_column {
+	FEED_COLUMN_FEED_URL,
+	FEED_COLUMN_TITLE,
+	FEED_COLUMN_LINK,
+	FEED_COLUMN_AUTHORS,
+	FEED_COLUMN_CATEGORIES,
+	FEED_COLUMN_SUMMARY,
+	FEED_COLUMN_SUMMARY_TYPE,
+	FEED_COLUMN_NONE,
+};
+
 enum item_column {
-	ITEM_COLUMN_FEED,
+	ITEM_COLUMN_FEED_URL,
 	ITEM_COLUMN_TITLE,
 	ITEM_COLUMN_GUID,
+	ITEM_COLUMN_LINK,
 	ITEM_COLUMN_UNREAD,
-	ITEM_COLUMN_URL,
 	ITEM_COLUMN_ENCLOSURES,
 	ITEM_COLUMN_AUTHORS,
 	ITEM_COLUMN_CATEGORIES,
@@ -224,7 +235,7 @@ bool is_wchar_a_breaker(wchar_t wc);
 
 // Download, process and store a new items of feed.
 // See "update_feed" directory for implementation.
-int update_feed(const struct string *url);
+bool update_feed(const struct string *url);
 
 // Convert series of texts of different formats to one big
 // content string that can be written to pad window without

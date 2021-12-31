@@ -45,7 +45,10 @@ title_end(struct parser_data *data)
 			return;
 		}
 	} else {
-		db_update_feed_text(data->feed_url, "name", data->value->ptr, data->value->len);
+		if (cpyss(data->feed->title, data->value) != 0) {
+			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+			return;
+		}
 	}
 }
 
@@ -97,7 +100,10 @@ link_start(struct parser_data *data, const XML_Char **atts)
 					return;
 				}
 			} else {
-				db_update_feed_text(data->feed_url, "resource", href, strlen(href));
+				if (cpyas(data->feed->link, href, strlen(href)) != 0) {
+					data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+					return;
+				}
 			}
 		}
 		// TODO: make bucket->url of struct link * type and set type and length
@@ -130,7 +136,10 @@ summary_end(struct parser_data *data)
 			return;
 		}
 	} else {
-		db_update_feed_text(data->feed_url, "description", data->value->ptr, data->value->len);
+		if (cpyss(data->feed->summary, data->value) != 0) {
+			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+			return;
+		}
 	}
 }
 

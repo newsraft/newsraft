@@ -424,7 +424,7 @@ reload_current_set(void)
 	for (size_t i = 0; i < sets[view_sel].cond->urls_count; ++i) {
 
 		status_write("(%d/%d) Loading %s", i + 1, sets[view_sel].cond->urls_count, sets[view_sel].cond->urls[i]->ptr);
-		if (update_feed(sets[view_sel].cond->urls[i]) != 0) {
+		if (update_feed(sets[view_sel].cond->urls[i]) == false) {
 			failed_feed = sets[view_sel].cond->urls[i];
 			++errors;
 		}
@@ -455,7 +455,7 @@ reload_all_feeds(void)
 			continue;
 		}
 		status_write("(%d/%d) Loading %s", i + 1, feeds_count, sets[i].link->ptr);
-		if (update_feed(sets[i].link) == 0) {
+		if (update_feed(sets[i].link) == true) {
 			update_unread_items_count_recursively(&(sets[i]), i, true);
 		} else {
 			failed_feed = sets[i].link;

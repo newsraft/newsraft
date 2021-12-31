@@ -34,7 +34,7 @@ create_set_condition_for_feed(const struct string *feed_url)
 		fprintf(stderr, "Not enough memory for feed set condition!\n");
 		return NULL;
 	}
-	if ((sc->db_cmd = create_string("(feed=?1)", 9)) == NULL) {
+	if ((sc->db_cmd = create_string("(feed_url=?1)", 13)) == NULL) {
 		fprintf(stderr, "Not enough memory for WHERE condition of feed set condition!\n");
 		free(sc);
 		return NULL;
@@ -93,7 +93,7 @@ append_urls_of_tag_to_set_condition(const struct feed_tag *head_tag, struct set_
 		}
 
 		if (found_this_url_in_sc == true) {
-			word_len = sprintf(word, "feed=?%lu", index_of_url_in_sc + 1);
+			word_len = sprintf(word, "feed_url=?%lu", index_of_url_in_sc + 1);
 		} else {
 			temp = realloc(sc->urls, sizeof(struct string *) * (sc->urls_count + 1));
 			if (temp != NULL) {
@@ -103,7 +103,7 @@ append_urls_of_tag_to_set_condition(const struct feed_tag *head_tag, struct set_
 			}
 			++(sc->urls_count);
 			sc->urls[sc->urls_count - 1] = tag->urls[i];
-			word_len = sprintf(word, "feed=?%lu", sc->urls_count);
+			word_len = sprintf(word, "feed_url=?%lu", sc->urls_count);
 		}
 
 		if (catas(sc->db_cmd, word, word_len) != 0) {

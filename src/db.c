@@ -19,28 +19,32 @@ db_init(void)
 	sqlite3_exec(
 		db,
 		"CREATE TABLE IF NOT EXISTS feeds("
-			"url TEXT NOT NULL,"
-			"name TEXT NOT NULL,"
-			"resource TEXT NOT NULL,"
-			"description TEXT NOT NULL"
+			"feed_url TEXT NOT NULL UNIQUE," // url of feed itself
+			"title TEXT NOT NULL," // name of feed
+			"link TEXT NOT NULL," // url to related resource
+			"authors TEXT NOT NULL,"
+			"categories TEXT NOT NULL,"
+			"summary TEXT NOT NULL,"
+			"summary_type TEXT NOT NULL"
 		");"
 		"CREATE TABLE IF NOT EXISTS items("
-			"feed TEXT NOT NULL,"
-			"title TEXT NOT NULL,"
+			"feed_url TEXT NOT NULL," // url of feed this item belongs to
+			"title TEXT NOT NULL," // name of item
 			"guid TEXT NOT NULL,"
-			"unread INTEGER(1),"
-			"url TEXT NOT NULL,"
+			"link TEXT NOT NULL," // url to related resource
+			"unread INTEGER(1)," // 0 if item read and 1 if item unread
 			"enclosures TEXT NOT NULL,"
 			"authors TEXT NOT NULL,"
 			"categories TEXT NOT NULL,"
-			"pubdate INTEGER(8),"
-			"upddate INTEGER(8),"
+			"pubdate INTEGER(8)," // publication date in seconds since 1970
+			"upddate INTEGER(8)," // update date in seconds since 1970
 			"comments TEXT NOT NULL,"
 			"summary TEXT NOT NULL,"
 			"summary_type TEXT NOT NULL,"
 			"content TEXT NOT NULL,"
 			"content_type TEXT NOT NULL"
-		");",
+		");"
+		"VACUUM;",
 		0,
 		0,
 		NULL

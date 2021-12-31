@@ -85,30 +85,29 @@ parse_stream_callback(char *contents, size_t length, size_t nmemb, struct parser
 
 // On success returns PARSE_OKAY (zero).
 // On failure returns non-zero.
-int
+bool
 update_feed(const struct string *url)
 {
 	struct parser_data data;
-	data.value        = create_string(NULL, config_init_parser_buf_size);
-	if (data.value == NULL) {
-		FAIL("Not enough memory for parser buffer to start updating a feed!");
-		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+	data.error = PARSE_OKAY;
+	if ((data.value = create_string(NULL, config_init_parser_buf_size)) == NULL) {
+		data.error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		goto undo0;
 	}
-	data.bucket        = create_item_bucket();
-	if (data.bucket == NULL) {
-		FAIL("Not enough memory for item bucket to start updating a feed!");
-		free_string(data.value);
-		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+	if ((data.feed = create_feed_bucket()) == NULL) {
+		data.error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		goto undo1;
 	}
-	data.parser        = XML_ParserCreateNS(NULL, NAMESPACE_SEPARATOR);
-	if (data.parser == NULL) {
-		FAIL("Something went wrong during parser struct creation, can not start updating a feed!");
-		free_item_bucket(data.bucket);
-		free_string(data.value);
-		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+	if ((data.bucket = create_item_bucket()) == NULL) {
+		data.error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		goto undo2;
 	}
-	data.depth         = 0;
-	data.feed_url      = url;
+	if ((data.parser = XML_ParserCreateNS(NULL, NAMESPACE_SEPARATOR)) == NULL) {
+		data.error = PARSE_FAIL_XML_UNABLE_TO_CREATE_PARSER;
+		goto undo3;
+	}
+	data.depth = 0;
+	data.feed_url = url;
 #ifdef FEEDEATER_FORMAT_SUPPORT_RSS20
 	data.rss20_pos = RSS20_NONE;
 #endif
@@ -128,8 +127,7 @@ update_feed(const struct string *url)
 	data.rss10content_pos = RSS10CONTENT_NONE;
 #endif
 	data.start_handler = NULL;
-	data.end_handler   = NULL;
-	data.error         = PARSE_OKAY;
+	data.end_handler = NULL;
 
 	XML_SetElementHandler(
 		data.parser,
@@ -144,11 +142,8 @@ update_feed(const struct string *url)
 
 	CURL *curl = curl_easy_init();
 	if (curl == NULL) {
-		FAIL("Something went wrong during curl easy handle creation, can not start updating a feed!");
-		free_item_bucket(data.bucket);
-		XML_ParserFree(data.parser);
-		free_string(data.value);
-		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		data.error = PARSE_FAIL_CURL_UNABLE_TO_CREATE_HANDLE;
+		goto undo4;
 	}
 	curl_easy_setopt(curl, CURLOPT_URL, url->ptr);
 	curl_easy_setopt(curl, CURLOPT_FAILONERROR, 1);
@@ -165,11 +160,8 @@ update_feed(const struct string *url)
 	curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, curl_errbuf);
 
 	if (db_begin_transaction() != 0) {
-		free_item_bucket(data.bucket);
-		XML_ParserFree(data.parser);
-		free_string(data.value);
-		curl_easy_cleanup(curl);
-		return PARSE_FAIL_DB_TRANSACTION_ERROR;
+		data.error = PARSE_FAIL_DB_TRANSACTION_ERROR;
+		goto undo5;
 	}
 
 	int res = curl_easy_perform(curl);
@@ -183,19 +175,9 @@ update_feed(const struct string *url)
 		} else {
 			WARN("curl_easy_perform failed: %s", curl_easy_strerror(res));
 		}
-		WARN("Feed update stopped due to fail in curl request!");
 		db_rollback_transaction();
-		free_item_bucket(data.bucket);
-		XML_ParserFree(data.parser);
-		free_string(data.value);
-		curl_easy_cleanup(curl);
-		return PARSE_FAIL_CURL_EASY_PERFORM_ERROR;
-	}
-
-	if (data.error == PARSE_FAIL_NOT_ENOUGH_MEMORY) {
-		FAIL("Feed update stopped due to shortage of memory!");
-	} else if (data.error == PARSE_FAIL_XML_PARSE_ERROR) {
-		FAIL("Feed update stopped due to parse error!");
+		data.error = PARSE_FAIL_CURL_EASY_PERFORM_ERROR;
+		goto undo5;
 	}
 
 	if (XML_Parse(data.parser, NULL, 0, XML_TRUE) != XML_STATUS_OK) {
@@ -208,19 +190,42 @@ update_feed(const struct string *url)
 		}
 	}
 
-	if (config_max_items != 0) {
-		delete_excess_items(url);
-	}
-
 	if (data.error == PARSE_OKAY) {
+		insert_feed(url, data.feed);
+		if (config_max_items != 0) {
+			delete_excess_items(url);
+		}
 		db_commit_transaction();
 	} else {
 		db_rollback_transaction();
 	}
 
-	free_item_bucket(data.bucket);
-	XML_ParserFree(data.parser);
-	free_string(data.value);
+undo5:
 	curl_easy_cleanup(curl);
-	return data.error;
+undo4:
+	XML_ParserFree(data.parser);
+undo3:
+	free_item_bucket(data.bucket);
+undo2:
+	free_feed_bucket(data.feed);
+undo1:
+	free_string(data.value);
+undo0:
+	if (data.error == PARSE_OKAY) {
+		return true;
+	} else if (data.error == PARSE_FAIL_CURL_EASY_PERFORM_ERROR) {
+		// It is just a warning because perform can fail due to absence of network connection.
+		WARN("Feed update stopped due to fail in curl request!");
+	} else if (data.error == PARSE_FAIL_XML_PARSE_ERROR) {
+		FAIL("Feed update stopped due to parse error!");
+	} else if (data.error == PARSE_FAIL_NOT_ENOUGH_MEMORY) {
+		FAIL("Not enough memory for updating a feed!");
+	} else if (data.error == PARSE_FAIL_CURL_UNABLE_TO_CREATE_HANDLE) {
+		FAIL("Something went wrong during curl easy handle creation, can not start updating a feed!");
+	} else if (data.error == PARSE_FAIL_DB_TRANSACTION_ERROR) {
+		// Error message is written by db_begin_transaction().
+	} else if (data.error == PARSE_FAIL_XML_UNABLE_TO_CREATE_PARSER) {
+		FAIL("Something went wrong during parser struct creation, can not start updating a feed!");
+	}
+	return false;
 }

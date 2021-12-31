@@ -4,11 +4,13 @@
 
 #define NAMESPACE_SEPARATOR ' '
 
-enum parse_error {
+enum update_error {
 	PARSE_OKAY = 0,
 	PARSE_FAIL_NOT_ENOUGH_MEMORY,
-	PARSE_FAIL_CURL_EASY_PERFORM_ERROR,
 	PARSE_FAIL_XML_PARSE_ERROR,
+	PARSE_FAIL_XML_UNABLE_TO_CREATE_PARSER,
+	PARSE_FAIL_CURL_UNABLE_TO_CREATE_HANDLE,
+	PARSE_FAIL_CURL_EASY_PERFORM_ERROR,
 	PARSE_FAIL_DB_TRANSACTION_ERROR,
 };
 
@@ -23,6 +25,16 @@ struct author {
 	struct string *name;
 	struct string *email;
 	struct string *link;
+};
+
+// Used to bufferize a feed before writing it to the database,
+// so we can avoid frequent checks before inserting individual values.
+struct feed_bucket {
+	struct string *title;
+	struct string *link;
+	struct string *summary;
+	struct string *summary_type;
+	struct string *categories;
 };
 
 // Used to bufferize an item before writing it to the database,
@@ -54,6 +66,7 @@ struct parser_data {
 	struct string *value;
 	int depth;
 	const struct string *feed_url;
+	struct feed_bucket *feed;
 	struct item_bucket *bucket;
 #ifdef FEEDEATER_FORMAT_SUPPORT_RSS20
 	int16_t rss20_pos;
@@ -76,12 +89,11 @@ struct parser_data {
 	XML_Parser parser;
 	void (*start_handler)(struct parser_data *data, const XML_Char *name, const XML_Char **atts);
 	void (*end_handler)(struct parser_data *data, const XML_Char *name);
-	enum parse_error error;
+	enum update_error error;
 };
 
 void delete_excess_items(const struct string *feed_url);
 
-void db_update_feed_text(const struct string *feed_url, const char *column, const char *value, size_t value_len);
 const char *get_value_of_attribute_key(const XML_Char **atts, const char *key);
 void try_item_bucket(const struct item_bucket *bucket, const struct string *feed_url);
 bool we_are_inside_item(const struct parser_data *data);
@@ -91,6 +103,11 @@ time_t parse_date_rfc822(const struct string *value);
 time_t parse_date_rfc3339(const struct string *value);
 
 struct string *convert_bytes_to_human_readable_size_string(int bytes);
+
+// feed bucket functions
+struct feed_bucket *create_feed_bucket(void);
+bool insert_feed(const struct string *feed_url, struct feed_bucket *feed);
+void free_feed_bucket(struct feed_bucket *feed);
 
 // item bucket functions
 struct item_bucket *create_item_bucket(void);

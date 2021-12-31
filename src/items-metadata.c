@@ -13,11 +13,11 @@ struct data_entry {
 };
 
 static const struct data_entry entries[] = {
-	{"feed",       "Feed: ",       6,  "\n", 1, ITEM_COLUMN_FEED,       ITEM_COLUMN_NONE},
+	{"feed",       "Feed: ",       6,  "\n", 1, ITEM_COLUMN_FEED_URL,   ITEM_COLUMN_NONE},
 	{"title",      "Title: ",      7,  "\n", 1, ITEM_COLUMN_TITLE,      ITEM_COLUMN_NONE},
 	{"authors",    "Authors: ",    9,  "\n", 1, ITEM_COLUMN_AUTHORS,    ITEM_COLUMN_NONE},
 	{"categories", "Categories: ", 12, "\n", 1, ITEM_COLUMN_CATEGORIES, ITEM_COLUMN_NONE},
-	{"url",        "Link: ",       6,  "\n", 1, ITEM_COLUMN_URL,        ITEM_COLUMN_NONE},
+	{"link",       "Link: ",       6,  "\n", 1, ITEM_COLUMN_LINK,       ITEM_COLUMN_NONE},
 	{"comments",   "Comments: ",   10, "\n", 1, ITEM_COLUMN_COMMENTS,   ITEM_COLUMN_NONE},
 	{"enclosures", "Enclosures: ", 12, "\n", 1, ITEM_COLUMN_ENCLOSURES, ITEM_COLUMN_NONE},
 	{"summary",    "\n",           1,  "\n", 1, ITEM_COLUMN_SUMMARY,    ITEM_COLUMN_SUMMARY_TYPE},

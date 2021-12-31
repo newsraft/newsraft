@@ -172,9 +172,9 @@ db_insert_item(const struct string *feed_url, const struct item_bucket *bucket, 
 
 	if (sqlite3_step(s) != SQLITE_DONE) {
 		if (rowid == -1) {
-			FAIL("Item insertion failed: %s", sqlite3_errmsg(db));
+			FAIL("Item insertion failed: %s", db_error_string());
 		} else {
-			FAIL("Item update failed: %s", sqlite3_errmsg(db));
+			FAIL("Item update failed: %s", db_error_string());
 		}
 	}
 

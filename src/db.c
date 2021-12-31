@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include "feedeater.h"
 
-sqlite3 *db;
+static sqlite3 *db;
 
 int
 db_init(void)
@@ -106,4 +106,10 @@ db_prepare(const char *zSql, int nByte, sqlite3_stmt **ppStmt, const char **pzTa
 		FAIL("Failed to prepare \"%s\" statement: %s", zSql, sqlite3_errmsg(db));
 	}
 	return result;
+}
+
+const char *
+db_error_string(void)
+{
+	return sqlite3_errmsg(db);
 }

@@ -19,7 +19,7 @@ insert_feed(const struct string *feed_url, struct feed_bucket *feed)
 		sqlite3_finalize(s);
 		return true;
 	}
-	FAIL("Insertion of feed data failed: %s", sqlite3_errmsg(db));
+	FAIL("Insertion of feed data failed: %s", db_error_string());
 	sqlite3_finalize(s);
 	return false;
 }

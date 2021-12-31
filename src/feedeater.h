@@ -182,6 +182,7 @@ int db_prepare(const char *zSql, int nByte, sqlite3_stmt **ppStmt, const char **
 int db_begin_transaction(void);
 int db_commit_transaction(void);
 int db_rollback_transaction(void);
+const char *db_error_string(void);
 int db_mark_item_read(int rowid);
 int db_mark_item_unread(int rowid);
 int get_unread_items_count(const struct set_condition *sc);
@@ -244,7 +245,6 @@ bool update_feed(const struct string *url);
 struct wstring *render_data(const struct content_list *data_list);
 
 extern FILE *log_stream;
-extern sqlite3 *db;
 extern int list_menu_height;
 extern int list_menu_width;
 

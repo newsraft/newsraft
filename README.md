@@ -1,6 +1,6 @@
 # Description
 
-Feedeater is a piece of software that aggregates syndicated web content such as blogs, newspapers and podcasts in one location for easy access from your terminal.
+Feedeater is a piece of software that aggregates syndicated web content such as blogs, newspapers and podcasts in one location for easy access from your terminal via comfy curses interface.
 
 Feedeater is greatly inspired by [Newsboat](https://www.newsboat.org).
 
@@ -22,16 +22,20 @@ Feedeater is greatly inspired by [Newsboat](https://www.newsboat.org).
 
 # Building
 
+To build an executable:
+
 ```
 meson setup builddir
 ```
 
 ```
-cd builddir
+meson compile -C builddir
 ```
 
+To generate a man page:
+
 ```
-meson compile
+scdoc < feedeater.scd > feedeater.1
 ```
 
 # Configuration

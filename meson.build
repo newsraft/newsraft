@@ -33,6 +33,7 @@ add_project_arguments(
 		'-DFEEDEATER_FORMAT_SUPPORT_ATOM03',       # Atom 0.3
 		'-DFEEDEATER_FORMAT_SUPPORT_DUBLINCORE',
 		'-DFEEDEATER_FORMAT_SUPPORT_RSS10CONTENT',
+		'-DFEEDEATER_FORMAT_SUPPORT_YANDEX',
 	],
 	language: 'c',
 )
@@ -101,6 +102,7 @@ executable(
 		'src/update_feed/xml-namespace-rss11.c',
 		'src/update_feed/xml-namespace-rss10content.c',
 		'src/update_feed/xml-namespace-dc.c',
+		'src/update_feed/xml-namespace-yandex.c',
 		#'src/update_feed/xml-namespace-rss10syndication.c',
 		'src/render_data/render_data.c',
 		'src/render_data/line.c',

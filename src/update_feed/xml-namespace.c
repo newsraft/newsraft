@@ -16,6 +16,9 @@ static const struct namespace_handler namespace_handlers[] = {
 #ifdef FEEDEATER_FORMAT_SUPPORT_DUBLINCORE
 	{"http://purl.org/dc/elements/1.1/",            &parse_dc_element_start,     &parse_dc_element_end},
 #endif
+#ifdef FEEDEATER_FORMAT_SUPPORT_YANDEX
+	{"http://news.yandex.ru",                       &parse_yandex_element_start, &parse_yandex_element_end},
+#endif
 #ifdef FEEDEATER_FORMAT_SUPPORT_ATOM03
 	{"http://purl.org/atom/ns#",                    &parse_atom03_element_start, &parse_atom03_element_end},
 #endif
@@ -26,6 +29,9 @@ static const struct namespace_handler namespace_handlers[] = {
 #endif
 #ifdef FEEDEATER_FORMAT_SUPPORT_RSS10CONTENT
 	{"http://purl.org/rss/1.0/modules/content/",    &parse_rss10content_element_start, &parse_rss10content_element_end},
+#endif
+#ifdef FEEDEATER_FORMAT_SUPPORT_RSS20
+	{"http://backend.userland.com/rss2",            &parse_rss20_element_start, &parse_rss20_element_end},
 #endif
 };
 

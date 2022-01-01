@@ -80,6 +80,9 @@ struct parser_data {
 #ifdef FEEDEATER_FORMAT_SUPPORT_DUBLINCORE
 	int8_t dc_pos;
 #endif
+#ifdef FEEDEATER_FORMAT_SUPPORT_YANDEX
+	int8_t yandex_pos;
+#endif
 #ifdef FEEDEATER_FORMAT_SUPPORT_RSS11
 	int8_t rss11_pos;
 #endif
@@ -193,6 +196,15 @@ enum dc_position {
 };
 void parse_dc_element_start (struct parser_data *data, const XML_Char *name, const XML_Char **atts);
 void parse_dc_element_end   (struct parser_data *data, const XML_Char *name);
+#endif
+#ifdef FEEDEATER_FORMAT_SUPPORT_YANDEX
+enum yandex_position {
+	YANDEX_NONE = 0,
+	YANDEX_FULLTEXT = 1,
+	YANDEX_GENRE = 2,
+};
+void parse_yandex_element_start (struct parser_data *data, const XML_Char *name, const XML_Char **atts);
+void parse_yandex_element_end   (struct parser_data *data, const XML_Char *name);
 #endif
 #ifdef FEEDEATER_FORMAT_SUPPORT_RSS11
 enum rss11_position {

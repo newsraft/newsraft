@@ -120,6 +120,9 @@ update_feed(const struct string *url)
 #ifdef FEEDEATER_FORMAT_SUPPORT_DUBLINCORE
 	data.dc_pos = DC_NONE;
 #endif
+#ifdef FEEDEATER_FORMAT_SUPPORT_YANDEX
+	data.yandex_pos = YANDEX_NONE;
+#endif
 #ifdef FEEDEATER_FORMAT_SUPPORT_RSS11
 	data.rss11_pos = RSS11_NONE;
 #endif

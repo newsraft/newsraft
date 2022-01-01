@@ -74,6 +74,16 @@ struct content_list {
 	struct content_list *next;
 };
 
+struct config_data {
+	size_t max_items; // 0 == inf
+	size_t init_parser_buf_size;
+	char *menu_set_entry_format;
+	char *menu_item_entry_format;
+	char *contents_meta_data;
+	char *contents_date_format;
+	char *break_at;
+};
+
 enum input_cmd {
 	INPUT_SELECT_NEXT = 0,
 	INPUT_SELECT_NEXT_PAGE,
@@ -247,12 +257,6 @@ struct wstring *render_data(const struct content_list *data_list);
 extern FILE *log_stream;
 extern int list_menu_height;
 extern int list_menu_width;
+extern struct config_data cfg;
 
-extern size_t config_max_items; // 0 == inf
-extern size_t config_init_parser_buf_size;
-extern char*  config_menu_set_entry_format;
-extern char*  config_menu_item_entry_format;
-extern char*  config_contents_meta_data;
-extern char*  config_contents_date_format;
-extern char*  config_break_at;
 #endif // FEEDEATER_H

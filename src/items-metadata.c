@@ -139,13 +139,13 @@ append_meta_data_entry(struct content_list **list, sqlite3_stmt *res, int index)
 int
 populate_content_list_with_data_of_item(struct content_list **list, sqlite3_stmt *res)
 {
-	char *restrict draft_meta_data_order = malloc(sizeof(char) * (strlen(config_contents_meta_data) + 1));
+	char *restrict draft_meta_data_order = malloc(sizeof(char) * (strlen(cfg.contents_meta_data) + 1));
 	if (draft_meta_data_order == NULL) {
 		FAIL("Not enough memory for tokenizing the order of metadata entries!");
 		return 1;
 	}
 
-	strcpy(draft_meta_data_order, config_contents_meta_data);
+	strcpy(draft_meta_data_order, cfg.contents_meta_data);
 
 	bool error = false;
 

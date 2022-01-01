@@ -2,16 +2,6 @@
 #include <string.h>
 #include "feedeater.h"
 
-size_t config_max_items = 0; // 0 == inf
-size_t config_init_parser_buf_size = 1048576; // 1 MiB
-
-// Don't initialize char pointers with string literals because then they will be immutable :(
-char *config_menu_set_entry_format = NULL;
-char *config_menu_item_entry_format = NULL;
-char *config_contents_meta_data = NULL;
-char *config_contents_date_format = NULL;
-char *config_break_at = NULL;
-
 int
 load_default_binds(void)
 {
@@ -44,18 +34,18 @@ error:
 int
 assign_default_values_to_empty_config_strings(void)
 {
-#define ADVTECS(A, B, C) if (A == NULL) {                       \
-                         	A = malloc(sizeof(char) * (C + 1)); \
-                         	if (A == NULL) {                    \
-                         		return 1;                       \
-                         	}                                   \
-                         	strcpy(A, B);                       \
+#define ADVTECS(A, B, C) if (A == NULL) {                 \
+                         	A = malloc(sizeof(char) * C); \
+                         	if (A == NULL) {              \
+                         		return 1;                 \
+                         	}                             \
+                         	memcpy(A, B, C);              \
                          }
-	ADVTECS(config_menu_set_entry_format,  "%4.0u │ %t",               12)
-	ADVTECS(config_menu_item_entry_format, " %u │ %t",                 10)
-	ADVTECS(config_contents_meta_data,     "feed,title,authors,categories,pubdate,upddate,link,comments,enclosures,summary,content", 86)
-	ADVTECS(config_contents_date_format,   "%a, %d %b %Y %H:%M:%S %z", 24)
-	ADVTECS(config_break_at,               " \t!@*-+;:,./?",           13) // '\t' is a separate character
+	ADVTECS(cfg.menu_set_entry_format,  "%4.0u │ %t",               13)
+	ADVTECS(cfg.menu_item_entry_format, " %u │ %t",                 11)
+	ADVTECS(cfg.contents_meta_data,     "feed,title,authors,categories,pubdate,upddate,link,comments,enclosures,summary,content", 87)
+	ADVTECS(cfg.contents_date_format,   "%a, %d %b %Y %H:%M:%S %z", 25)
+	ADVTECS(cfg.break_at,               " \t!@*-+;:,./?",           14) // '\t' is a separate character
 #undef ADVTECS
 	return 0;
 }

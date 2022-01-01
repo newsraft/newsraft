@@ -15,7 +15,7 @@ delete_excess_items(const struct string *feed_url) {
 	size_t item_iterator = 0;
 	while (sqlite3_step(s) == SQLITE_ROW) {
 		++item_iterator;
-		if (item_iterator <= config_max_items) {
+		if (item_iterator <= cfg.max_items) {
 			continue;
 		}
 		if (db_prepare("DELETE FROM items WHERE rowid = ?", 34, &t, NULL) == SQLITE_OK) {

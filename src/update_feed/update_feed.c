@@ -90,7 +90,7 @@ update_feed(const struct string *url)
 {
 	struct parser_data data;
 	data.error = PARSE_OKAY;
-	if ((data.value = create_string(NULL, config_init_parser_buf_size)) == NULL) {
+	if ((data.value = create_string(NULL, cfg.init_parser_buf_size)) == NULL) {
 		data.error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		goto undo0;
 	}
@@ -192,7 +192,7 @@ update_feed(const struct string *url)
 
 	if (data.error == PARSE_OKAY) {
 		insert_feed(url, data.feed);
-		if (config_max_items != 0) {
+		if (cfg.max_items != 0) {
 			delete_excess_items(url);
 		}
 		db_commit_transaction();

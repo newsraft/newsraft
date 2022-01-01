@@ -100,7 +100,7 @@ item_expose(size_t index)
 	fmt_args[0].value.i = index + 1;
 	fmt_args[1].value.c = items[index].is_unread == true ? 'N' : ' ';
 	fmt_args[2].value.s = items[index].title->ptr;
-	wprintw(items[index].window, "%s", do_format(config_menu_item_entry_format, fmt_args, LENGTH(fmt_args)));
+	wprintw(items[index].window, "%s", do_format(cfg.menu_item_entry_format, fmt_args, LENGTH(fmt_args)));
 	mvwchgat(items[index].window, 0, 0, -1, (index == view_sel) ? A_REVERSE : A_NORMAL, 0, NULL);
 	wrefresh(items[index].window);
 }

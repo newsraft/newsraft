@@ -35,6 +35,9 @@ struct feed_bucket {
 	struct string *summary;
 	struct string *summary_type;
 	struct string *categories;
+	struct string *language;
+	struct string *generator;
+	struct string *rights;
 };
 
 // Used to bufferize an item before writing it to the database,
@@ -145,7 +148,8 @@ enum rss20_position {
 	RSS20_SOURCE = 128,
 	RSS20_CATEGORY = 256,
 	RSS20_COMMENTS = 512,
-	RSS20_CHANNEL = 1024,
+	RSS20_LANGUAGE = 1024,
+	RSS20_CHANNEL = 2048,
 };
 void parse_rss20_element_start (struct parser_data *data, const XML_Char *name, const XML_Char **atts);
 void parse_rss20_element_end   (struct parser_data *data, const XML_Char *name);

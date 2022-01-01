@@ -243,6 +243,25 @@ comments_end(struct parser_data *data)
 }
 
 static inline void
+language_start(struct parser_data *data)
+{
+	data->rss20_pos |= RSS20_LANGUAGE;
+}
+
+static inline void
+language_end(struct parser_data *data)
+{
+	if ((data->rss20_pos & RSS20_LANGUAGE) == 0) {
+		return;
+	}
+	data->rss20_pos &= ~RSS20_LANGUAGE;
+	if (cpyss(data->feed->language, data->value) != 0) {
+		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		return;
+	}
+}
+
+static inline void
 channel_start(struct parser_data *data)
 {
 	data->rss20_pos |= RSS20_CHANNEL;
@@ -271,6 +290,7 @@ parse_rss20_element_start(struct parser_data *data, const XML_Char *name, const 
 	else if (strcmp(name, "enclosure")   == 0) { enclosure_start(data, atts); }
 	else if (strcmp(name, "category")    == 0) { category_start(data);        }
 	else if (strcmp(name, "comments")    == 0) { comments_start(data);        }
+	else if (strcmp(name, "language")    == 0) { language_start(data);        }
 	else if (strcmp(name, "channel")     == 0) { channel_start(data);         }
 }
 
@@ -289,6 +309,7 @@ parse_rss20_element_end(struct parser_data *data, const XML_Char *name)
 	else if (strcmp(name, "author")      == 0) { author_end(data);      }
 	else if (strcmp(name, "category")    == 0) { category_end(data);    }
 	else if (strcmp(name, "comments")    == 0) { comments_end(data);    }
+	else if (strcmp(name, "language")    == 0) { language_end(data);    }
 	else if (strcmp(name, "channel")     == 0) { channel_end(data);     }
 	// In RSS 2.0 enclosure tag is a self-closing tag.
 	//else if (strcmp(name, "enclosure") == 0) {                        }

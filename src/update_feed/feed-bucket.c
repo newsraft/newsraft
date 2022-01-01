@@ -27,7 +27,22 @@ create_feed_bucket(void)
 	if ((feed->categories = create_empty_string()) == NULL) {
 		goto undo6;
 	}
+	if ((feed->language = create_empty_string()) == NULL) {
+		goto undo7;
+	}
+	if ((feed->generator = create_empty_string()) == NULL) {
+		goto undo8;
+	}
+	if ((feed->rights = create_empty_string()) == NULL) {
+		goto undo9;
+	}
 	return feed;
+undo9:
+	free_string(feed->generator);
+undo8:
+	free_string(feed->language);
+undo7:
+	free_string(feed->categories);
 undo6:
 	free_string(feed->summary_type);
 undo5:
@@ -53,5 +68,8 @@ free_feed_bucket(struct feed_bucket *feed)
 	free_string(feed->summary);
 	free_string(feed->summary_type);
 	free_string(feed->categories);
+	free_string(feed->language);
+	free_string(feed->generator);
+	free_string(feed->rights);
 	free(feed);
 }

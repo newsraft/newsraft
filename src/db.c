@@ -23,9 +23,14 @@ db_init(void)
 			"title TEXT NOT NULL," // name of feed
 			"link TEXT NOT NULL," // url to related resource
 			"authors TEXT NOT NULL,"
+			"editors TEXT NOT NULL,"
+			"webmasters TEXT NOT NULL,"
 			"categories TEXT NOT NULL,"
+			"language TEXT NOT NULL,"
 			"summary TEXT NOT NULL,"
-			"summary_type TEXT NOT NULL"
+			"summary_type TEXT NOT NULL,"
+			"generator TEXT NOT NULL,"
+			"rights TEXT NOT NULL"
 		");"
 		"CREATE TABLE IF NOT EXISTS items("
 			"feed_url TEXT NOT NULL," // url of feed this item belongs to

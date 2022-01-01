@@ -250,7 +250,7 @@ author_start(struct parser_data *data)
 		// Atom 1.0 says that feed can have global author, but who needs it?
 		return;
 	}
-	if (expand_authors_of_item_bucket_by_one_element(data->bucket) != 0) {
+	if (expand_person_list_by_one_element(&(data->bucket->authors)) == false) {
 		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		return;
 	}
@@ -278,17 +278,15 @@ name_end(struct parser_data *data)
 		return;
 	}
 	data->atom10_pos &= ~ATOM10_NAME;
-	if ((data->atom10_pos & ATOM10_AUTHOR) == 0) {
-		// So far name tag can be found only in author element.
-		return;
-	}
 	if ((data->atom10_pos & ATOM10_ENTRY) == 0) {
 		// Atom 1.0 says that feed can have global author, but who needs it?
 		return;
 	}
-	if (add_name_to_last_author_of_item_bucket(data->bucket, data->value) != 0) {
-		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
-		return;
+	if ((data->atom10_pos & ATOM10_AUTHOR) != 0) {
+		if (add_name_to_last_person(&(data->bucket->authors), data->value) != 0) {
+			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+			return;
+		}
 	}
 }
 
@@ -305,17 +303,15 @@ uri_end(struct parser_data *data)
 		return;
 	}
 	data->atom10_pos &= ~ATOM10_URI;
-	if ((data->atom10_pos & ATOM10_AUTHOR) == 0) {
-		// So far uri tag can be found only in author element.
-		return;
-	}
 	if ((data->atom10_pos & ATOM10_ENTRY) == 0) {
 		// Atom 1.0 says that feed can have global author, but who needs it?
 		return;
 	}
-	if (add_link_to_last_author_of_item_bucket(data->bucket, data->value) != 0) {
-		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
-		return;
+	if ((data->atom10_pos & ATOM10_AUTHOR) != 0) {
+		if (add_link_to_last_person(&(data->bucket->authors), data->value) != 0) {
+			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+			return;
+		}
 	}
 }
 
@@ -332,17 +328,15 @@ email_end(struct parser_data *data)
 		return;
 	}
 	data->atom10_pos &= ~ATOM10_EMAIL;
-	if ((data->atom10_pos & ATOM10_AUTHOR) == 0) {
-		// So far email tag can be found only in author element.
-		return;
-	}
 	if ((data->atom10_pos & ATOM10_ENTRY) == 0) {
 		// Atom 1.0 says that feed can have global author, but who needs it?
 		return;
 	}
-	if (add_email_to_last_author_of_item_bucket(data->bucket, data->value) != 0) {
-		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
-		return;
+	if ((data->atom10_pos & ATOM10_AUTHOR) != 0) {
+		if (add_email_to_last_person(&(data->bucket->authors), data->value) != 0) {
+			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+			return;
+		}
 	}
 }
 

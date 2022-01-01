@@ -30,51 +30,6 @@ delete_excess_items(const struct string *feed_url) {
 }
 
 static inline struct string *
-create_authors_string(const struct author *authors, size_t authors_len)
-{
-	struct string *authors_list = create_empty_string();
-	if (authors_list == NULL) {
-		return NULL;
-	}
-	bool added_name, added_email, added_link;
-	for (size_t i = 0; i < authors_len; ++i) {
-		added_name = false;
-		added_email = false;
-		added_link = false;
-		if (authors[i].name->len != 0) {
-			catss(authors_list, authors[i].name);
-			added_name = true;
-		}
-		if (authors[i].email->len != 0) {
-			if (added_name == true) {
-				catas(authors_list, " <", 2);
-			}
-			catss(authors_list, authors[i].email);
-			if (added_name == true) {
-				catcs(authors_list, '>');
-			}
-			added_email = true;
-		}
-		if (authors[i].link->len != 0) {
-			if (added_name == true || added_email == true) {
-				catas(authors_list, " (", 2);
-			}
-			catss(authors_list, authors[i].link);
-			if (added_name == true || added_email == true) {
-				catcs(authors_list, ')');
-			}
-			added_link = true;
-		}
-		if ((i + 1 != authors_len) &&
-		    (added_name == true || added_email == true || added_link == true))
-		{
-			catas(authors_list, ", ", 2);
-		}
-	}
-	return authors_list;
-}
-
-static inline struct string *
 create_enclosures_string(const struct link *enclosures, size_t enclosures_len)
 {
 	struct string *enclosures_list = create_empty_string();
@@ -123,7 +78,7 @@ create_enclosures_string(const struct link *enclosures, size_t enclosures_len)
 static inline void
 db_insert_item(const struct string *feed_url, const struct item_bucket *bucket, int rowid)
 {
-	struct string *authors_list = create_authors_string(bucket->authors, bucket->authors_len);
+	struct string *authors_list = generate_person_list_string(&(bucket->authors));
 	if (authors_list == NULL) {
 		FAIL("Not enough memory for creating authors list of item bucket!");
 		return;

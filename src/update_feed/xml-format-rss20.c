@@ -158,11 +158,11 @@ author_end(struct parser_data *data)
 	if ((data->rss20_pos & RSS20_ITEM) == 0) {
 		return;
 	}
-	if (expand_authors_of_item_bucket_by_one_element(data->bucket) != 0) {
+	if (expand_person_list_by_one_element(&(data->bucket->authors)) == false) {
 		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		return;
 	}
-	if (add_email_to_last_author_of_item_bucket(data->bucket, data->value) != 0) {
+	if (add_email_to_last_person(&(data->bucket->authors), data->value) != 0) {
 		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		return;
 	}

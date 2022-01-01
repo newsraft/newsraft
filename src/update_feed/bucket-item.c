@@ -45,9 +45,7 @@ create_item_bucket(void)
 	bucket->enclosures = NULL;
 	bucket->enclosures_len = 0;
 	bucket->enclosures_lim = 0;
-	bucket->authors = NULL;
-	bucket->authors_len = 0;
-	bucket->authors_lim = 0;
+	initialize_person_list(&(bucket->authors));
 	bucket->pubdate = 0;
 	bucket->upddate = 0;
 	return bucket;
@@ -91,7 +89,7 @@ empty_item_bucket(struct item_bucket *bucket)
 	bucket->pubdate = 0;
 	bucket->upddate = 0;
 	bucket->enclosures_len = 0;
-	bucket->authors_len = 0;
+	empty_person_list(&(bucket->authors));
 }
 
 void
@@ -114,12 +112,7 @@ free_item_bucket(struct item_bucket *bucket)
 	}
 	free(bucket->enclosures);
 
-	for (size_t i = 0; i < bucket->authors_lim; ++i) {
-		free_string(bucket->authors[i].name);
-		free_string(bucket->authors[i].link);
-		free_string(bucket->authors[i].email);
-	}
-	free(bucket->authors);
+	free_person_list(&(bucket->authors));
 
 	free(bucket);
 }
@@ -198,59 +191,4 @@ add_size_to_last_enclosure_of_item_bucket(struct item_bucket *bucket, const char
 		return 0;
 	}
 	return 1;
-}
-
-// On success returns 0.
-// On failure returns non-zero.
-int
-expand_authors_of_item_bucket_by_one_element(struct item_bucket *bucket)
-{
-	if (bucket->authors_len == bucket->authors_lim) {
-		struct author *temp = realloc(bucket->authors, sizeof(struct author) * (bucket->authors_lim + 1));
-		if (temp == NULL) {
-			FAIL("Not enough memory for item author.");
-			return 1;
-		}
-		bucket->authors = temp;
-		++(bucket->authors_lim);
-		if ((bucket->authors[bucket->authors_len].name = create_empty_string()) == NULL) {
-			FAIL("Not enough memory for item author name string.");
-			bucket->authors[bucket->authors_len].email = NULL;
-			bucket->authors[bucket->authors_len].link = NULL;
-			return 1;
-		}
-		if ((bucket->authors[bucket->authors_len].email = create_empty_string()) == NULL) {
-			FAIL("Not enough memory for item author email string.");
-			bucket->authors[bucket->authors_len].link = NULL;
-			return 1;
-		}
-		if ((bucket->authors[bucket->authors_len].link = create_empty_string()) == NULL) {
-			FAIL("Not enough memory for item author link string.");
-			return 1;
-		}
-	} else {
-		empty_string(bucket->authors[bucket->authors_len].name);
-		empty_string(bucket->authors[bucket->authors_len].email);
-		empty_string(bucket->authors[bucket->authors_len].link);
-	}
-	++(bucket->authors_len);
-	return 0;
-}
-
-int
-add_name_to_last_author_of_item_bucket(struct item_bucket *bucket, const struct string *value)
-{
-	return cpyss(bucket->authors[bucket->authors_len - 1].name, value);
-}
-
-int
-add_email_to_last_author_of_item_bucket(struct item_bucket *bucket, const struct string *value)
-{
-	return cpyss(bucket->authors[bucket->authors_len - 1].email, value);
-}
-
-int
-add_link_to_last_author_of_item_bucket(struct item_bucket *bucket, const struct string *value)
-{
-	return cpyss(bucket->authors[bucket->authors_len - 1].link, value);
 }

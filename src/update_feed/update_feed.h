@@ -21,10 +21,16 @@ struct link {
 	size_t duration; // duration of data (if it is a audio or video)
 };
 
-struct author {
+struct person {
 	struct string *name;
 	struct string *email;
 	struct string *link;
+};
+
+struct person_list {
+	struct person *list;
+	size_t len;
+	size_t lim;
 };
 
 // Used to bufferize a feed before writing it to the database,
@@ -56,9 +62,7 @@ struct item_bucket {
 	struct link *enclosures;
 	size_t enclosures_len; // Actual number of enclosures in enclosures buffer.
 	size_t enclosures_lim; // Shows how many enclosures can fit in current enclosures buffer.
-	struct author *authors;
-	size_t authors_len; // Actual number of authors in authors buffer.
-	size_t authors_lim; // Shows how many authors can fit in current authors buffer.
+	struct person_list authors;
 	// Dates in this struct are represented in seconds since the Epoch (1970-01-01 00:00 UTC).
 	// If some date set to 0 then it is considered unset.
 	time_t pubdate;
@@ -124,10 +128,16 @@ int expand_enclosures_of_item_bucket_by_one_element(struct item_bucket *bucket);
 int add_url_to_last_enclosure_of_item_bucket(struct item_bucket *bucket, const char *value, size_t value_len);
 int add_type_to_last_enclosure_of_item_bucket(struct item_bucket *bucket, const char *value, size_t value_len);
 int add_size_to_last_enclosure_of_item_bucket(struct item_bucket *bucket, const char *value);
-int expand_authors_of_item_bucket_by_one_element(struct item_bucket *bucket);
-int add_name_to_last_author_of_item_bucket(struct item_bucket *bucket, const struct string *value);
-int add_email_to_last_author_of_item_bucket(struct item_bucket *bucket, const struct string *value);
-int add_link_to_last_author_of_item_bucket(struct item_bucket *bucket, const struct string *value);
+
+// Functions to manage person_list.
+void initialize_person_list(struct person_list *persons);
+bool expand_person_list_by_one_element(struct person_list *persons);
+int add_name_to_last_person(struct person_list *persons, const struct string *value);
+int add_email_to_last_person(struct person_list *persons, const struct string *value);
+int add_link_to_last_person(struct person_list *persons, const struct string *value);
+void empty_person_list(struct person_list *persons);
+void free_person_list(struct person_list *persons);
+struct string *generate_person_list_string(const struct person_list *persons);
 
 
 // Element handlers

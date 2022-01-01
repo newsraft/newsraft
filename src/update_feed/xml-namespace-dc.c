@@ -45,11 +45,11 @@ creator_end(struct parser_data *data)
 	}
 	data->dc_pos &= ~DC_CREATOR;
 	if (we_are_inside_item(data) == true) {
-		if (expand_authors_of_item_bucket_by_one_element(data->bucket) != 0) {
+		if (expand_person_list_by_one_element(&(data->bucket->authors)) == false) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}
-		if (add_name_to_last_author_of_item_bucket(data->bucket, data->value) != 0) {
+		if (add_name_to_last_person(&(data->bucket->authors), data->value) != 0) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}

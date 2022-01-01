@@ -42,9 +42,7 @@ create_item_bucket(void)
 	if ((bucket->content_type = create_empty_string()) == NULL) {
 		goto undo11;
 	}
-	bucket->enclosures = NULL;
-	bucket->enclosures_len = 0;
-	bucket->enclosures_lim = 0;
+	initialize_link_list(&(bucket->enclosures));
 	initialize_person_list(&(bucket->authors));
 	bucket->pubdate = 0;
 	bucket->upddate = 0;
@@ -86,10 +84,10 @@ empty_item_bucket(struct item_bucket *bucket)
 	empty_string(bucket->summary_type);
 	empty_string(bucket->content);
 	empty_string(bucket->content_type);
+	empty_link_list(&(bucket->enclosures));
+	empty_person_list(&(bucket->authors));
 	bucket->pubdate = 0;
 	bucket->upddate = 0;
-	bucket->enclosures_len = 0;
-	empty_person_list(&(bucket->authors));
 }
 
 void
@@ -105,15 +103,8 @@ free_item_bucket(struct item_bucket *bucket)
 	free_string(bucket->summary_type);
 	free_string(bucket->content);
 	free_string(bucket->content_type);
-
-	for (size_t i = 0; i < bucket->enclosures_lim; ++i) {
-		free_string(bucket->enclosures[i].url);
-		free_string(bucket->enclosures[i].type);
-	}
-	free(bucket->enclosures);
-
+	free_link_list(&(bucket->enclosures));
 	free_person_list(&(bucket->authors));
-
 	free(bucket);
 }
 
@@ -134,61 +125,4 @@ add_category_to_item_bucket(const struct item_bucket *bucket, const char *value,
 		return 1;
 	}
 	return 0;
-}
-
-// On success returns 0.
-// On failure returns non-zero.
-int
-expand_enclosures_of_item_bucket_by_one_element(struct item_bucket *bucket)
-{
-	if (bucket->enclosures_len == bucket->enclosures_lim) {
-		struct link *temp = realloc(bucket->enclosures, sizeof(struct link) * (bucket->enclosures_lim + 1));
-		if (temp == NULL) {
-			FAIL("Not enough memory for item enclosure.");
-			return 1;
-		}
-		bucket->enclosures = temp;
-		++(bucket->enclosures_lim);
-		if ((bucket->enclosures[bucket->enclosures_len].url = create_empty_string()) == NULL) {
-			FAIL("Not enough memory for item enclosure URL string.");
-			bucket->enclosures[bucket->enclosures_len].type = NULL;
-			return 1;
-		}
-		if ((bucket->enclosures[bucket->enclosures_len].type = create_empty_string()) == NULL) {
-			FAIL("Not enough memory for item enclosure data type string.");
-			return 1;
-		}
-	} else {
-		empty_string(bucket->enclosures[bucket->enclosures_len].url);
-		empty_string(bucket->enclosures[bucket->enclosures_len].type);
-	}
-	bucket->enclosures[bucket->enclosures_len].size = 0;
-	bucket->enclosures[bucket->enclosures_len].duration = 0;
-	++(bucket->enclosures_len);
-	return 0;
-}
-
-int
-add_url_to_last_enclosure_of_item_bucket(struct item_bucket *bucket, const char *value, size_t value_len)
-{
-	return cpyas(bucket->enclosures[bucket->enclosures_len - 1].url, value, value_len);
-}
-
-int
-add_type_to_last_enclosure_of_item_bucket(struct item_bucket *bucket, const char *value, size_t value_len)
-{
-	return cpyas(bucket->enclosures[bucket->enclosures_len - 1].type, value, value_len);
-}
-
-// On success returns 0.
-// On failure returns non-zero.
-int
-add_size_to_last_enclosure_of_item_bucket(struct item_bucket *bucket, const char *value)
-{
-	int size;
-	if (sscanf(value, "%d", &size) == 1) {
-		bucket->enclosures[bucket->enclosures_len - 1].size = size;
-		return 0;
-	}
-	return 1;
 }

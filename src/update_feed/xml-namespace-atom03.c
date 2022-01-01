@@ -76,18 +76,18 @@ link_start(struct parser_data *data, const XML_Char **atts)
 		}
 	}
 	if (this_is_enclosure == true) {
-		if (expand_enclosures_of_item_bucket_by_one_element(data->bucket) != 0) {
+		if (expand_link_list_by_one_element(&(data->bucket->enclosures)) == false) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}
 		if (href != NULL) {
-			if (add_url_to_last_enclosure_of_item_bucket(data->bucket, href, strlen(href)) != 0) {
+			if (add_url_to_last_link(&(data->bucket->enclosures), href, strlen(href)) != 0) {
 				data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 				return;
 			}
 		}
 		if (type != NULL) {
-			if (add_type_to_last_enclosure_of_item_bucket(data->bucket, type, strlen(type)) != 0) {
+			if (add_type_to_last_link(&(data->bucket->enclosures), type, strlen(type)) != 0) {
 				data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 				return;
 			}

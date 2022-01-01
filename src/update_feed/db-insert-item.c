@@ -29,52 +29,6 @@ delete_excess_items(const struct string *feed_url) {
 	sqlite3_finalize(s);
 }
 
-static inline struct string *
-create_enclosures_string(const struct link *enclosures, size_t enclosures_len)
-{
-	struct string *enclosures_list = create_empty_string();
-	if (enclosures_list == NULL) {
-		return NULL;
-	}
-	bool added_type, added_size;
-	struct string *readable_size;
-	for (size_t i = 0; i < enclosures_len; ++i) {
-		added_type = false;
-		added_size = false;
-		if (enclosures[i].url->len != 0) {
-			catcs(enclosures_list, '\n');
-			catss(enclosures_list, enclosures[i].url);
-		} else {
-			continue;
-		}
-		if (enclosures[i].type->len != 0) {
-			catas(enclosures_list, " (type: ", 8);
-			catss(enclosures_list, enclosures[i].type);
-			added_type = true;
-		}
-		if (enclosures[i].size != 0) {
-			if (added_type == true) {
-				catas(enclosures_list, ", size: ", 8);
-			} else {
-				catas(enclosures_list, " (size: ", 8);
-			}
-			readable_size = convert_bytes_to_human_readable_size_string(enclosures[i].size);
-			if (readable_size != NULL) {
-				catss(enclosures_list, readable_size);
-				free_string(readable_size);
-			} else {
-				free_string(enclosures_list);
-				return NULL;
-			}
-			added_size = true;
-		}
-		if ((added_type == true) || (added_size == true)) {
-			catcs(enclosures_list, ')');
-		}
-	}
-	return enclosures_list;
-}
-
 static inline void
 db_insert_item(const struct string *feed_url, const struct item_bucket *bucket, int rowid)
 {
@@ -84,7 +38,7 @@ db_insert_item(const struct string *feed_url, const struct item_bucket *bucket, 
 		return;
 	}
 
-	struct string *enclosures_list = create_enclosures_string(bucket->enclosures, bucket->enclosures_len);
+	struct string *enclosures_list = generate_link_list_string(&(bucket->enclosures));
 	if (enclosures_list == NULL) {
 		FAIL("Not enough memory for creating enclosures list of item bucket!");
 		free_string(authors_list);

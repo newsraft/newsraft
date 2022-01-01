@@ -90,6 +90,7 @@ executable(
 		'src/update_feed/update_feed.c',
 		'src/update_feed/bucket-feed.c',
 		'src/update_feed/bucket-item.c',
+		'src/update_feed/bucket-structure-link.c',
 		'src/update_feed/bucket-structure-person.c',
 		'src/update_feed/db-insert-feed.c',
 		'src/update_feed/db-insert-item.c',

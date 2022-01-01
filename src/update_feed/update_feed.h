@@ -21,6 +21,12 @@ struct link {
 	size_t duration; // duration of data (if it is a audio or video)
 };
 
+struct link_list {
+	struct link *list;
+	size_t len;
+	size_t lim;
+};
+
 struct person {
 	struct string *name;
 	struct string *email;
@@ -59,9 +65,7 @@ struct item_bucket {
 	struct string *content_type; // Format of text of content.
 	struct string *comments;
 	struct string *categories;
-	struct link *enclosures;
-	size_t enclosures_len; // Actual number of enclosures in enclosures buffer.
-	size_t enclosures_lim; // Shows how many enclosures can fit in current enclosures buffer.
+	struct link_list enclosures;
 	struct person_list authors;
 	// Dates in this struct are represented in seconds since the Epoch (1970-01-01 00:00 UTC).
 	// If some date set to 0 then it is considered unset.
@@ -124,10 +128,16 @@ struct item_bucket *create_item_bucket(void);
 void empty_item_bucket(struct item_bucket *bucket);
 void free_item_bucket(struct item_bucket *bucket);
 int add_category_to_item_bucket(const struct item_bucket *bucket, const char *value, size_t value_len);
-int expand_enclosures_of_item_bucket_by_one_element(struct item_bucket *bucket);
-int add_url_to_last_enclosure_of_item_bucket(struct item_bucket *bucket, const char *value, size_t value_len);
-int add_type_to_last_enclosure_of_item_bucket(struct item_bucket *bucket, const char *value, size_t value_len);
-int add_size_to_last_enclosure_of_item_bucket(struct item_bucket *bucket, const char *value);
+
+// Functions to manage link_list.
+void initialize_link_list(struct link_list *links);
+bool expand_link_list_by_one_element(struct link_list *links);
+int add_url_to_last_link(struct link_list *links, const char *value, size_t value_len);
+int add_type_to_last_link(struct link_list *links, const char *value, size_t value_len);
+int add_size_to_last_link(struct link_list *links, const char *value);
+void empty_link_list(struct link_list *links);
+void free_link_list(struct link_list *links);
+struct string *generate_link_list_string(const struct link_list *links);
 
 // Functions to manage person_list.
 void initialize_person_list(struct person_list *persons);

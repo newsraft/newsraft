@@ -53,6 +53,6 @@ convert_bytes_to_human_readable_size_string(int bytes)
 	int lol = sprintf(hahahahahahhaaahhahahahah,
 	                  "%.2f %s",
 	                  size,
-	                  prefix == 2 ? "MB" : (prefix == 1 ? "KB" : (prefix == 0 ? "bytes" : "GB")));
+	                  prefix == 2 ? "MiB" : (prefix == 1 ? "KiB" : (prefix == 0 ? "bytes" : "GiB")));
 	return create_string(hahahahahahhaaahhahahahah, lol);
 }

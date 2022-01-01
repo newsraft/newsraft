@@ -21,16 +21,16 @@ fulltext_end(struct parser_data *data)
 	if (we_are_inside_item(data) == false) {
 		return;
 	}
-	if (data->bucket->content->len > data->value->len) {
+	if (data->item->content->len > data->value->len) {
 		// Don't save content if it's shorter than the content we currently have.
 		return;
 	}
-	if (cpyss(data->bucket->content, data->value) != 0) {
+	if (cpyss(data->item->content, data->value) != 0) {
 		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		return;
 	}
 	// In most cases this is HTML...
-	if (cpyas(data->bucket->content_type, "html", 4) != 0) {
+	if (cpyas(data->item->content_type, "html", 4) != 0) {
 		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		return;
 	}
@@ -53,7 +53,7 @@ genre_end(struct parser_data *data)
 		// Yandex genre can only be found in item entries.
 		return;
 	}
-	if (add_category_to_item_bucket(data->bucket, data->value->ptr, data->value->len) != 0) {
+	if (add_category_to_item_bucket(data->item, data->value->ptr, data->value->len) != 0) {
 		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		return;
 	}

@@ -8,120 +8,120 @@
 struct item_bucket *
 create_item_bucket(void)
 {
-	struct item_bucket *bucket = malloc(sizeof(struct item_bucket));
-	if (bucket == NULL) {
+	struct item_bucket *item = malloc(sizeof(struct item_bucket));
+	if (item == NULL) {
 		goto undo1;
 	}
-	if ((bucket->guid = create_empty_string()) == NULL) {
+	if ((item->guid = create_empty_string()) == NULL) {
 		goto undo2;
 	}
-	if ((bucket->title = create_empty_string()) == NULL) {
+	if ((item->title = create_empty_string()) == NULL) {
 		goto undo3;
 	}
-	if ((bucket->title_type = create_empty_string()) == NULL) {
+	if ((item->title_type = create_empty_string()) == NULL) {
 		goto undo4;
 	}
-	if ((bucket->url = create_empty_string()) == NULL) {
+	if ((item->url = create_empty_string()) == NULL) {
 		goto undo5;
 	}
-	if ((bucket->categories = create_empty_string()) == NULL) {
+	if ((item->categories = create_empty_string()) == NULL) {
 		goto undo6;
 	}
-	if ((bucket->comments = create_empty_string()) == NULL) {
+	if ((item->comments = create_empty_string()) == NULL) {
 		goto undo7;
 	}
-	if ((bucket->summary = create_empty_string()) == NULL) {
+	if ((item->summary = create_empty_string()) == NULL) {
 		goto undo8;
 	}
-	if ((bucket->summary_type = create_empty_string()) == NULL) {
+	if ((item->summary_type = create_empty_string()) == NULL) {
 		goto undo9;
 	}
-	if ((bucket->content = create_empty_string()) == NULL) {
+	if ((item->content = create_empty_string()) == NULL) {
 		goto undo10;
 	}
-	if ((bucket->content_type = create_empty_string()) == NULL) {
+	if ((item->content_type = create_empty_string()) == NULL) {
 		goto undo11;
 	}
-	initialize_link_list(&(bucket->enclosures));
-	initialize_person_list(&(bucket->authors));
-	bucket->pubdate = 0;
-	bucket->upddate = 0;
-	return bucket;
+	initialize_link_list(&(item->enclosures));
+	initialize_person_list(&(item->authors));
+	item->pubdate = 0;
+	item->upddate = 0;
+	return item;
 undo11:
-	free_string(bucket->content);
+	free_string(item->content);
 undo10:
-	free_string(bucket->summary_type);
+	free_string(item->summary_type);
 undo9:
-	free_string(bucket->summary);
+	free_string(item->summary);
 undo8:
-	free_string(bucket->comments);
+	free_string(item->comments);
 undo7:
-	free_string(bucket->categories);
+	free_string(item->categories);
 undo6:
-	free_string(bucket->url);
+	free_string(item->url);
 undo5:
-	free_string(bucket->title_type);
+	free_string(item->title_type);
 undo4:
-	free_string(bucket->title);
+	free_string(item->title);
 undo3:
-	free_string(bucket->guid);
+	free_string(item->guid);
 undo2:
-	free(bucket);
+	free(item);
 undo1:
 	return NULL;
 }
 
 void
-empty_item_bucket(struct item_bucket *bucket)
+empty_item_bucket(struct item_bucket *item)
 {
-	empty_string(bucket->guid);
-	empty_string(bucket->title);
-	empty_string(bucket->title_type);
-	empty_string(bucket->url);
-	empty_string(bucket->categories);
-	empty_string(bucket->comments);
-	empty_string(bucket->summary);
-	empty_string(bucket->summary_type);
-	empty_string(bucket->content);
-	empty_string(bucket->content_type);
-	empty_link_list(&(bucket->enclosures));
-	empty_person_list(&(bucket->authors));
-	bucket->pubdate = 0;
-	bucket->upddate = 0;
+	empty_string(item->guid);
+	empty_string(item->title);
+	empty_string(item->title_type);
+	empty_string(item->url);
+	empty_string(item->categories);
+	empty_string(item->comments);
+	empty_string(item->summary);
+	empty_string(item->summary_type);
+	empty_string(item->content);
+	empty_string(item->content_type);
+	empty_link_list(&(item->enclosures));
+	empty_person_list(&(item->authors));
+	item->pubdate = 0;
+	item->upddate = 0;
 }
 
 void
-free_item_bucket(struct item_bucket *bucket)
+free_item_bucket(struct item_bucket *item)
 {
-	free_string(bucket->guid);
-	free_string(bucket->title);
-	free_string(bucket->title_type);
-	free_string(bucket->url);
-	free_string(bucket->categories);
-	free_string(bucket->comments);
-	free_string(bucket->summary);
-	free_string(bucket->summary_type);
-	free_string(bucket->content);
-	free_string(bucket->content_type);
-	free_link_list(&(bucket->enclosures));
-	free_person_list(&(bucket->authors));
-	free(bucket);
+	free_string(item->guid);
+	free_string(item->title);
+	free_string(item->title_type);
+	free_string(item->url);
+	free_string(item->categories);
+	free_string(item->comments);
+	free_string(item->summary);
+	free_string(item->summary_type);
+	free_string(item->content);
+	free_string(item->content_type);
+	free_link_list(&(item->enclosures));
+	free_person_list(&(item->authors));
+	free(item);
 }
 
 // On success returns 0.
 // On failure returns non-zero.
 int
-add_category_to_item_bucket(const struct item_bucket *bucket, const char *value, size_t value_len)
+add_category_to_item_bucket(const struct item_bucket *item, const char *value, size_t value_len)
 {
 	if (value_len == 0) {
 		return 0; // Not an error, category is just empty.
 	}
-	if (bucket->categories->len != 0) {
-		if (catas(bucket->categories, ", ", 2) != 0) {
+	if (item->categories->len != 0) {
+		if (catas(item->categories, ", ", 2) != 0) {
 			return 1;
 		}
 	}
-	if (catas(bucket->categories, value, value_len) != 0) {
+	if (catas(item->categories, value, value_len) != 0) {
 		return 1;
 	}
 	return 0;

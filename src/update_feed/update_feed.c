@@ -98,7 +98,7 @@ update_feed(const struct string *url)
 		data.error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		goto undo1;
 	}
-	if ((data.bucket = create_item_bucket()) == NULL) {
+	if ((data.item = create_item_bucket()) == NULL) {
 		data.error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		goto undo2;
 	}
@@ -208,7 +208,7 @@ undo5:
 undo4:
 	XML_ParserFree(data.parser);
 undo3:
-	free_item_bucket(data.bucket);
+	free_item_bucket(data.item);
 undo2:
 	free_feed_bucket(data.feed);
 undo1:

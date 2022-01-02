@@ -124,6 +124,7 @@ link_start(struct parser_data *data, const XML_Char **atts)
 static inline void
 summary_start(struct parser_data *data, const XML_Char **atts)
 {
+	data->atom10_pos |= ATOM10_SUMMARY;
 	const char *type_str = get_value_of_attribute_key(atts, "type");
 	if ((type_str != NULL) && ((data->atom10_pos & ATOM10_ENTRY) != 0)) {
 		if (cpyas(data->item->summary_type, type_str, strlen(type_str)) == false) {
@@ -131,7 +132,6 @@ summary_start(struct parser_data *data, const XML_Char **atts)
 			return;
 		}
 	}
-	data->atom10_pos |= ATOM10_SUMMARY;
 }
 
 static inline void
@@ -143,11 +143,6 @@ summary_end(struct parser_data *data)
 	data->atom10_pos &= ~ATOM10_SUMMARY;
 	if ((data->atom10_pos & ATOM10_ENTRY) != 0) {
 		if (cpyss(data->item->summary, data->value) == false) {
-			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
-			return;
-		}
-	} else {
-		if (cpyss(data->feed->summary, data->value) == false) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}
@@ -360,6 +355,34 @@ category_start(struct parser_data *data, const XML_Char **atts)
 	}
 }
 
+static inline void
+subtitle_start(struct parser_data *data, const XML_Char **atts)
+{
+	data->atom10_pos |= ATOM10_SUBTITLE;
+	const char *type_str = get_value_of_attribute_key(atts, "type");
+	if ((type_str != NULL) && ((data->atom10_pos & ATOM10_ENTRY) == 0)) {
+		if (cpyas(data->feed->summary_type, type_str, strlen(type_str)) == false) {
+			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+			return;
+		}
+	}
+}
+
+static inline void
+subtitle_end(struct parser_data *data)
+{
+	if ((data->atom10_pos & ATOM10_SUBTITLE) == 0) {
+		return;
+	}
+	data->atom10_pos &= ~ATOM10_SUBTITLE;
+	if ((data->atom10_pos & ATOM10_ENTRY) == 0) {
+		if (cpyss(data->feed->summary, data->value) == false) {
+			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+			return;
+		}
+	}
+}
+
 void
 parse_atom10_element_start(struct parser_data *data, const XML_Char *name, const XML_Char **atts)
 {
@@ -377,6 +400,7 @@ parse_atom10_element_start(struct parser_data *data, const XML_Char *name, const
 	else if (strcmp(name, "uri")         == 0) { uri_start(data);            }
 	else if (strcmp(name, "email")       == 0) { email_start(data);          }
 	else if (strcmp(name, "category")    == 0) { category_start(data, atts); }
+	else if (strcmp(name, "subtitle")    == 0) { subtitle_start(data, atts); }
 }
 
 void
@@ -394,6 +418,7 @@ parse_atom10_element_end(struct parser_data *data, const XML_Char *name)
 	else if (strcmp(name, "name")        == 0) { name_end(data);      }
 	else if (strcmp(name, "uri")         == 0) { uri_end(data);       }
 	else if (strcmp(name, "email")       == 0) { email_end(data);     }
+	else if (strcmp(name, "subtitle")    == 0) { subtitle_end(data);  }
 	// In Atom 1.0 link tag is a self-closing tag.
 	//else if (strcmp(name, "link")     == 0) {                       }
 	// In Atom 1.0 category tag is a self-closing tag.

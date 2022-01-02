@@ -113,6 +113,7 @@ link_start(struct parser_data *data, const XML_Char **atts)
 static inline void
 summary_start(struct parser_data *data, const XML_Char **atts)
 {
+	data->atom03_pos |= ATOM03_SUMMARY;
 	const char *type_str = get_value_of_attribute_key(atts, "type");
 	if ((type_str != NULL) && ((data->atom03_pos & ATOM03_ENTRY) != 0)) {
 		if (cpyas(data->item->summary_type, type_str, strlen(type_str)) == false) {
@@ -120,7 +121,6 @@ summary_start(struct parser_data *data, const XML_Char **atts)
 			return;
 		}
 	}
-	data->atom03_pos |= ATOM03_SUMMARY;
 }
 
 static inline void
@@ -132,11 +132,6 @@ summary_end(struct parser_data *data)
 	data->atom03_pos &= ~ATOM03_SUMMARY;
 	if ((data->atom03_pos & ATOM03_ENTRY) != 0) {
 		if (cpyss(data->item->summary, data->value) == false) {
-			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
-			return;
-		}
-	} else {
-		if (cpyss(data->feed->summary, data->value) == false) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}
@@ -333,6 +328,34 @@ email_end(struct parser_data *data)
 	}
 }
 
+static inline void
+tagline_start(struct parser_data *data, const XML_Char **atts)
+{
+	data->atom03_pos |= ATOM03_TAGLINE;
+	const char *type_str = get_value_of_attribute_key(atts, "type");
+	if ((type_str != NULL) && ((data->atom03_pos & ATOM03_ENTRY) == 0)) {
+		if (cpyas(data->feed->summary_type, type_str, strlen(type_str)) == false) {
+			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+			return;
+		}
+	}
+}
+
+static inline void
+tagline_end(struct parser_data *data)
+{
+	if ((data->atom03_pos & ATOM03_TAGLINE) == 0) {
+		return;
+	}
+	data->atom03_pos &= ~ATOM03_TAGLINE;
+	if ((data->atom03_pos & ATOM03_ENTRY) == 0) {
+		if (cpyss(data->feed->summary, data->value) == false) {
+			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+			return;
+		}
+	}
+}
+
 void
 parse_atom03_element_start(struct parser_data *data, const XML_Char *name, const XML_Char **atts)
 {
@@ -349,6 +372,7 @@ parse_atom03_element_start(struct parser_data *data, const XML_Char *name, const
 	else if (strcmp(name, "name")        == 0) { name_start(data);          }
 	else if (strcmp(name, "url")         == 0) { url_start(data);           }
 	else if (strcmp(name, "email")       == 0) { email_start(data);         }
+	else if (strcmp(name, "tagline")     == 0) { tagline_start(data, atts); }
 }
 
 void
@@ -366,6 +390,7 @@ parse_atom03_element_end(struct parser_data *data, const XML_Char *name)
 	else if (strcmp(name, "name")        == 0) { name_end(data);     }
 	else if (strcmp(name, "url")         == 0) { url_end(data);      }
 	else if (strcmp(name, "email")       == 0) { email_end(data);    }
+	else if (strcmp(name, "tagline")     == 0) { tagline_end(data);  }
 	// In Atom 0.3 link tag is a self-closing tag.
 	//else if (strcmp(name, "link")      == 0) {                     }
 }

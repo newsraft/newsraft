@@ -171,6 +171,7 @@ enum atom10_position {
 	ATOM10_NAME = 256,
 	ATOM10_URI = 512,
 	ATOM10_EMAIL = 1024,
+	ATOM10_SUBTITLE = 2048,
 };
 void parse_atom10_element_start (struct parser_data *data, const XML_Char *name, const XML_Char **atts);
 void parse_atom10_element_end   (struct parser_data *data, const XML_Char *name);
@@ -236,6 +237,7 @@ enum atom03_position {
 	ATOM03_NAME = 256,
 	ATOM03_URL = 512,
 	ATOM03_EMAIL = 1024,
+	ATOM03_TAGLINE = 2048,
 };
 void parse_atom03_element_start (struct parser_data *data, const XML_Char *name, const XML_Char **atts);
 void parse_atom03_element_end   (struct parser_data *data, const XML_Char *name);

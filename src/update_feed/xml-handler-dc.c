@@ -45,11 +45,11 @@ creator_end(struct parser_data *data)
 	}
 	data->dc_pos &= ~DC_CREATOR;
 	if (we_are_inside_item(data) == true) {
-		if (expand_person_list_by_one_element(&(data->item.authors)) == false) {
+		if (expand_person_list_by_one_element(&data->item.authors) == false) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}
-		if (add_name_to_last_person(&(data->item.authors), data->value) == false) {
+		if (add_name_to_last_person(&data->item.authors, data->value) == false) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}
@@ -100,7 +100,7 @@ subject_end(struct parser_data *data)
 	}
 	data->dc_pos &= ~DC_SUBJECT;
 	if (we_are_inside_item(data) == true) {
-		if (add_category_to_item_bucket(&(data->item), data->value->ptr, data->value->len) == false) {
+		if (add_category_to_item_bucket(&data->item, data->value->ptr, data->value->len) == false) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}

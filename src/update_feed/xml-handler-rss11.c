@@ -29,8 +29,8 @@ item_end(struct parser_data *data)
 		return;
 	}
 	data->rss11_pos &= ~RSS11_ITEM;
-	insert_item(data->feed_url, &(data->item));
-	empty_item_bucket(&(data->item));
+	insert_item(data->feed_url, &data->item);
+	empty_item_bucket(&data->item);
 }
 
 static inline void

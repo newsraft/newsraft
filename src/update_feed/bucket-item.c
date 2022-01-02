@@ -36,8 +36,8 @@ initialize_item_bucket(struct item_bucket *item)
 	if ((item->content_type = create_empty_string()) == NULL) {
 		goto undo9;
 	}
-	initialize_link_list(&(item->enclosures));
-	initialize_person_list(&(item->authors));
+	initialize_link_list(&item->enclosures);
+	initialize_person_list(&item->authors);
 	item->pubdate = 0;
 	item->upddate = 0;
 	return true;
@@ -76,8 +76,8 @@ empty_item_bucket(struct item_bucket *item)
 	empty_string(item->summary_type);
 	empty_string(item->content);
 	empty_string(item->content_type);
-	empty_link_list(&(item->enclosures));
-	empty_person_list(&(item->authors));
+	empty_link_list(&item->enclosures);
+	empty_person_list(&item->authors);
 	item->pubdate = 0;
 	item->upddate = 0;
 }
@@ -95,8 +95,8 @@ free_item_bucket(const struct item_bucket *item)
 	free_string(item->summary_type);
 	free_string(item->content);
 	free_string(item->content_type);
-	free_link_list(&(item->enclosures));
-	free_person_list(&(item->authors));
+	free_link_list(&item->enclosures);
+	free_person_list(&item->authors);
 }
 
 // On success returns true.

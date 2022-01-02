@@ -32,13 +32,13 @@ delete_excess_items(const struct string *feed_url) {
 static inline void
 db_insert_item(const struct string *feed_url, const struct item_bucket *item, int rowid)
 {
-	struct string *authors_list = generate_person_list_string(&(item->authors));
+	struct string *authors_list = generate_person_list_string(&item->authors);
 	if (authors_list == NULL) {
 		FAIL("Not enough memory for creating authors list of item bucket!");
 		return;
 	}
 
-	struct string *enclosures_list = generate_link_list_string(&(item->enclosures));
+	struct string *enclosures_list = generate_link_list_string(&item->enclosures);
 	if (enclosures_list == NULL) {
 		FAIL("Not enough memory for creating enclosures list of item bucket!");
 		free_string(authors_list);

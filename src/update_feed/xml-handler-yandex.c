@@ -53,7 +53,7 @@ genre_end(struct parser_data *data)
 		// Yandex genre can only be found in item entries.
 		return;
 	}
-	if (add_category_to_item_bucket(&(data->item), data->value->ptr, data->value->len) == false) {
+	if (add_category_to_item_bucket(&data->item, data->value->ptr, data->value->len) == false) {
 		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		return;
 	}

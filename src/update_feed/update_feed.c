@@ -60,7 +60,7 @@ static void
 character_data_handler(struct parser_data *data, const XML_Char *s, int s_len)
 {
 	if (data->error == PARSE_OKAY) {
-		if (catas(data->value, s, s_len) != 0) {
+		if (catas(data->value, s, s_len) == false) {
 			FAIL("Not enough memory for character data of element!");
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}

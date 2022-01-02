@@ -40,12 +40,12 @@ title_end(struct parser_data *data)
 	}
 	data->atom03_pos &= ~ATOM03_TITLE;
 	if ((data->atom03_pos & ATOM03_ENTRY) != 0) {
-		if (cpyss(data->item->title, data->value) != 0) {
+		if (cpyss(data->item->title, data->value) == false) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}
 	} else {
-		if (cpyss(data->feed->title, data->value) != 0) {
+		if (cpyss(data->feed->title, data->value) == false) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}
@@ -81,13 +81,13 @@ link_start(struct parser_data *data, const XML_Char **atts)
 			return;
 		}
 		if (href != NULL) {
-			if (add_url_to_last_link(&(data->item->enclosures), href, strlen(href)) != 0) {
+			if (add_url_to_last_link(&(data->item->enclosures), href, strlen(href)) == false) {
 				data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 				return;
 			}
 		}
 		if (type != NULL) {
-			if (add_type_to_last_link(&(data->item->enclosures), type, strlen(type)) != 0) {
+			if (add_type_to_last_link(&(data->item->enclosures), type, strlen(type)) == false) {
 				data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 				return;
 			}
@@ -95,12 +95,12 @@ link_start(struct parser_data *data, const XML_Char **atts)
 	} else {
 		if (href != NULL) {
 			if ((data->atom03_pos & ATOM03_ENTRY) != 0) {
-				if (cpyas(data->item->url, href, strlen(href)) != 0) {
+				if (cpyas(data->item->url, href, strlen(href)) == false) {
 					data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 					return;
 				}
 			} else {
-				if (cpyas(data->feed->link, href, strlen(href)) != 0) {
+				if (cpyas(data->feed->link, href, strlen(href)) == false) {
 					data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 					return;
 				}
@@ -115,7 +115,7 @@ summary_start(struct parser_data *data, const XML_Char **atts)
 {
 	const char *type_str = get_value_of_attribute_key(atts, "type");
 	if ((type_str != NULL) && ((data->atom03_pos & ATOM03_ENTRY) != 0)) {
-		if (cpyas(data->item->summary_type, type_str, strlen(type_str)) != 0) {
+		if (cpyas(data->item->summary_type, type_str, strlen(type_str)) == false) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}
@@ -131,12 +131,12 @@ summary_end(struct parser_data *data)
 	}
 	data->atom03_pos &= ~ATOM03_SUMMARY;
 	if ((data->atom03_pos & ATOM03_ENTRY) != 0) {
-		if (cpyss(data->item->summary, data->value) != 0) {
+		if (cpyss(data->item->summary, data->value) == false) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}
 	} else {
-		if (cpyss(data->feed->summary, data->value) != 0) {
+		if (cpyss(data->feed->summary, data->value) == false) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}
@@ -148,7 +148,7 @@ content_start(struct parser_data *data, const XML_Char **atts)
 {
 	const char *type_str = get_value_of_attribute_key(atts, "type");
 	if ((type_str != NULL) && ((data->atom03_pos & ATOM03_ENTRY) != 0)) {
-		if (cpyas(data->item->content_type, type_str, strlen(type_str)) != 0) {
+		if (cpyas(data->item->content_type, type_str, strlen(type_str)) == false) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}
@@ -166,7 +166,7 @@ content_end(struct parser_data *data)
 	if ((data->atom03_pos & ATOM03_ENTRY) == 0) {
 		return;
 	}
-	if (cpyss(data->item->content, data->value) != 0) {
+	if (cpyss(data->item->content, data->value) == false) {
 		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		return;
 	}
@@ -189,7 +189,7 @@ id_end(struct parser_data *data)
 		// In Atom 0.3 feed can have unique id, but who needs it?
 		return;
 	}
-	if (cpyss(data->item->guid, data->value) != 0) {
+	if (cpyss(data->item->guid, data->value) == false) {
 		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		return;
 	}
@@ -276,7 +276,7 @@ name_end(struct parser_data *data)
 		return;
 	}
 	if ((data->atom03_pos & ATOM03_AUTHOR) != 0) {
-		if (add_name_to_last_person(&(data->item->authors), data->value) != 0) {
+		if (add_name_to_last_person(&(data->item->authors), data->value) == false) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}
@@ -301,7 +301,7 @@ url_end(struct parser_data *data)
 		return;
 	}
 	if ((data->atom03_pos & ATOM03_AUTHOR) != 0) {
-		if (add_link_to_last_person(&(data->item->authors), data->value) != 0) {
+		if (add_link_to_last_person(&(data->item->authors), data->value) == false) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}
@@ -326,7 +326,7 @@ email_end(struct parser_data *data)
 		return;
 	}
 	if ((data->atom03_pos & ATOM03_AUTHOR) != 0) {
-		if (add_email_to_last_person(&(data->item->authors), data->value) != 0) {
+		if (add_email_to_last_person(&(data->item->authors), data->value) == false) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}

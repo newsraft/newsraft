@@ -129,14 +129,14 @@ void free_feed_bucket(struct feed_bucket *feed);
 struct item_bucket *create_item_bucket(void);
 void empty_item_bucket(struct item_bucket *item);
 void free_item_bucket(struct item_bucket *item);
-int add_category_to_item_bucket(const struct item_bucket *item, const char *value, size_t value_len);
+bool add_category_to_item_bucket(const struct item_bucket *item, const char *value, size_t value_len);
 
 // Functions to manage link_list.
 void initialize_link_list(struct link_list *links);
 bool expand_link_list_by_one_element(struct link_list *links);
-int add_url_to_last_link(struct link_list *links, const char *value, size_t value_len);
-int add_type_to_last_link(struct link_list *links, const char *value, size_t value_len);
-int add_size_to_last_link(struct link_list *links, const char *value);
+bool add_url_to_last_link(struct link_list *links, const char *value, size_t value_len);
+bool add_type_to_last_link(struct link_list *links, const char *value, size_t value_len);
+bool add_size_to_last_link(struct link_list *links, const char *value);
 void empty_link_list(struct link_list *links);
 void free_link_list(struct link_list *links);
 struct string *generate_link_list_string(const struct link_list *links);
@@ -144,9 +144,9 @@ struct string *generate_link_list_string(const struct link_list *links);
 // Functions to manage person_list.
 void initialize_person_list(struct person_list *persons);
 bool expand_person_list_by_one_element(struct person_list *persons);
-int add_name_to_last_person(struct person_list *persons, const struct string *value);
-int add_email_to_last_person(struct person_list *persons, const struct string *value);
-int add_link_to_last_person(struct person_list *persons, const struct string *value);
+bool add_name_to_last_person(struct person_list *persons, const struct string *value);
+bool add_email_to_last_person(struct person_list *persons, const struct string *value);
+bool add_link_to_last_person(struct person_list *persons, const struct string *value);
 void empty_person_list(struct person_list *persons);
 void free_person_list(struct person_list *persons);
 struct string *generate_person_list_string(const struct person_list *persons);

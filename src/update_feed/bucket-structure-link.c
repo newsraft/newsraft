@@ -43,13 +43,13 @@ expand_link_list_by_one_element(struct link_list *links)
 	return true;
 }
 
-int
+bool
 add_url_to_last_link(struct link_list *links, const char *value, size_t value_len)
 {
 	return cpyas(links->list[links->len - 1].url, value, value_len);
 }
 
-int
+bool
 add_type_to_last_link(struct link_list *links, const char *value, size_t value_len)
 {
 	return cpyas(links->list[links->len - 1].type, value, value_len);
@@ -57,15 +57,15 @@ add_type_to_last_link(struct link_list *links, const char *value, size_t value_l
 
 // On success returns 0.
 // On failure returns non-zero.
-int
+bool
 add_size_to_last_link(struct link_list *links, const char *value)
 {
 	int size;
 	if (sscanf(value, "%d", &size) == 1) {
 		links->list[links->len - 1].size = size;
-		return 0;
+		return true;
 	}
-	return 1;
+	return false;
 }
 
 void

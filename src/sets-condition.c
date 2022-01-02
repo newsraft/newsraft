@@ -60,7 +60,7 @@ append_urls_of_tag_to_set_condition(const struct feed_tag *head_tag, struct set_
 
 	if (tag == NULL) {
 		// There is no tags under that name, so just append FALSE to WHERE condition.
-		if (catcs(sc->db_cmd, '0') != 0) {
+		if (catcs(sc->db_cmd, '0') == false) {
 			return 1;
 		}
 		return 0;
@@ -71,7 +71,7 @@ append_urls_of_tag_to_set_condition(const struct feed_tag *head_tag, struct set_
 	//	// Lu Lu Lu, I've got some apples, Lu Lu Lu, you got some too...
 	//}
 
-	if (catcs(sc->db_cmd, '(') != 0) {
+	if (catcs(sc->db_cmd, '(') == false) {
 		return 1;
 	}
 
@@ -106,18 +106,18 @@ append_urls_of_tag_to_set_condition(const struct feed_tag *head_tag, struct set_
 			word_len = sprintf(word, "feed_url=?%lu", sc->urls_count);
 		}
 
-		if (catas(sc->db_cmd, word, word_len) != 0) {
+		if (catas(sc->db_cmd, word, word_len) == false) {
 			return 1;
 		}
 		if ((i + 1) != tag->urls_count) {
-			if (catas(sc->db_cmd, " OR ", 4) != 0) {
+			if (catas(sc->db_cmd, " OR ", 4) == false) {
 				return 1;
 			}
 		}
 
 	}
 
-	if (catcs(sc->db_cmd, ')') != 0) {
+	if (catcs(sc->db_cmd, ')') == false) {
 		return 1;
 	}
 
@@ -168,17 +168,17 @@ create_set_condition_for_filter(const struct feed_tag *head_tag, const struct st
 				}
 			}
 			if (c == '&') {
-				if (catas(sc->db_cmd, " AND ", 5) != 0) {
+				if (catas(sc->db_cmd, " AND ", 5) == false) {
 					error = 1;
 					break;
 				}
 			} else if (c == '|') {
-				if (catas(sc->db_cmd, " OR ", 4) != 0) {
+				if (catas(sc->db_cmd, " OR ", 4) == false) {
 					error = 1;
 					break;
 				}
 			} else if (c == ')') {
-				if (catcs(sc->db_cmd, ')') != 0) {
+				if (catcs(sc->db_cmd, ')') == false) {
 					error = 1;
 					break;
 				}
@@ -187,7 +187,7 @@ create_set_condition_for_filter(const struct feed_tag *head_tag, const struct st
 			}
 		} else if (c == '(') {
 			if (word_len == 0) {
-				if (catcs(sc->db_cmd, '(') != 0) {
+				if (catcs(sc->db_cmd, '(') == false) {
 					error = 1;
 					break;
 				}
@@ -222,7 +222,7 @@ create_set_condition_for_filter(const struct feed_tag *head_tag, const struct st
 		return NULL;
 	}
 
-	if (catcs(sc->db_cmd, ')') != 0) {
+	if (catcs(sc->db_cmd, ')') == false) {
 		fprintf(stderr, "Not enough memory for filter set condition!\n");
 		free_set_condition(sc);
 		return NULL;

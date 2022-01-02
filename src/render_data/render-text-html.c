@@ -375,7 +375,7 @@ render_text_html(const struct wstring *wstr, struct line *line)
 				in_tag = false;
 				format_text(tag, line, t, &position);
 			} else {
-				if (wcatcs(tag, *i) != 0) {
+				if (wcatcs(tag, *i) == false) {
 					error = true;
 					break;
 				}

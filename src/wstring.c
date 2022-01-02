@@ -36,9 +36,9 @@ create_empty_wstring(void)
 }
 
 // Copy array to wstring.
-// On success returns 0.
-// On failure returns non-zero.
-int
+// On success returns true.
+// On memory shortage returns false.
+bool
 wcpyas(struct wstring *dest, const wchar_t *src_ptr, size_t src_len)
 {
 	if (src_len > dest->lim) {
@@ -46,7 +46,7 @@ wcpyas(struct wstring *dest, const wchar_t *src_ptr, size_t src_len)
 		wchar_t *temp = realloc(dest->ptr, sizeof(wchar_t) * (src_len * 2 + 1));
 		if (temp == NULL) {
 			FAIL("Not enough memory for copying array to wstring!");
-			return 1;
+			return false;
 		}
 		dest->ptr = temp;
 		dest->lim = src_len * 2;
@@ -54,20 +54,20 @@ wcpyas(struct wstring *dest, const wchar_t *src_ptr, size_t src_len)
 	memcpy(dest->ptr, src_ptr, sizeof(wchar_t) * src_len);
 	*(dest->ptr + src_len) = L'\0';
 	dest->len = src_len;
-	return 0;
+	return true;
 }
 
 // Copy wstring to wstring.
-int
+bool
 wcpyss(struct wstring *dest, const struct wstring *src)
 {
 	return wcpyas(dest, src->ptr, src->len);
 }
 
 // Concatenate array to wstring.
-// On success returns 0.
-// On failure returns non-zero.
-int
+// On success returns true.
+// On memory shortage returns false.
+bool
 wcatas(struct wstring *dest, const wchar_t *src_ptr, size_t src_len)
 {
 	size_t new_len = dest->len + src_len;
@@ -76,7 +76,7 @@ wcatas(struct wstring *dest, const wchar_t *src_ptr, size_t src_len)
 		wchar_t *temp = realloc(dest->ptr, sizeof(wchar_t) * (new_len * 2 + 1));
 		if (temp == NULL) {
 			FAIL("Not enough memory for concatenating array to wstring!");
-			return 1;
+			return false;
 		}
 		dest->ptr = temp;
 		dest->lim = new_len * 2;
@@ -84,20 +84,20 @@ wcatas(struct wstring *dest, const wchar_t *src_ptr, size_t src_len)
 	memcpy(dest->ptr + dest->len, src_ptr, sizeof(wchar_t) * src_len);
 	*(dest->ptr + new_len) = L'\0';
 	dest->len = new_len;
-	return 0;
+	return true;
 }
 
 // Concatenate wstring to wstring.
-int
+bool
 wcatss(struct wstring *dest, const struct wstring *src)
 {
 	return wcatas(dest, src->ptr, src->len);
 }
 
 // Concatenate character to wstring.
-// On success returns 0.
-// On failure returns non-zero.
-int
+// On success returns true.
+// On memory shortage returns false.
+bool
 wcatcs(struct wstring *dest, wchar_t c)
 {
 	size_t new_len = dest->len + 1;
@@ -106,7 +106,7 @@ wcatcs(struct wstring *dest, wchar_t c)
 		wchar_t *temp = realloc(dest->ptr, sizeof(wchar_t) * (new_len * 2 + 1));
 		if (temp == NULL) {
 			FAIL("Not enough memory for concatenating character to wstring!");
-			return 1;
+			return false;
 		}
 		dest->ptr = temp;
 		dest->lim = new_len * 2;
@@ -114,7 +114,7 @@ wcatcs(struct wstring *dest, wchar_t c)
 	*(dest->ptr + dest->len) = c;
 	dest->len = new_len;
 	*(dest->ptr + dest->len) = L'\0';
-	return 0;
+	return true;
 }
 
 struct wstring *

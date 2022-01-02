@@ -108,21 +108,21 @@ free_item_bucket(struct item_bucket *item)
 	free(item);
 }
 
-// On success returns 0.
-// On failure returns non-zero.
-int
+// On success returns true.
+// On memory shortage returns false.
+bool
 add_category_to_item_bucket(const struct item_bucket *item, const char *value, size_t value_len)
 {
 	if (value_len == 0) {
-		return 0; // Not an error, category is just empty.
+		return true; // Not an error, category is just empty.
 	}
 	if (item->categories->len != 0) {
-		if (catas(item->categories, ", ", 2) != 0) {
-			return 1;
+		if (catas(item->categories, ", ", 2) == false) {
+			return false;
 		}
 	}
-	if (catas(item->categories, value, value_len) != 0) {
-		return 1;
+	if (catas(item->categories, value, value_len) == false) {
+		return false;
 	}
-	return 0;
+	return true;
 }

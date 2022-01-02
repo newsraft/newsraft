@@ -42,13 +42,13 @@ append_pubdate(struct content_list **list, sqlite3_stmt *res)
 		free_string(pubdate_entry);
 		return false;
 	}
-	if (catss(pubdate_entry, date_str) != 0) {
+	if (catss(pubdate_entry, date_str) == false) {
 		free_string(date_str);
 		free_string(pubdate_entry);
 		return false;
 	}
 	free_string(date_str);
-	if (catcs(pubdate_entry, '\n') != 0) {
+	if (catcs(pubdate_entry, '\n') == false) {
 		free_string(pubdate_entry);
 		return false;
 	}
@@ -78,13 +78,13 @@ append_upddate(struct content_list **list, sqlite3_stmt *res)
 		free_string(date_str);
 		return false;
 	}
-	if (catss(upddate_entry, date_str) != 0) {
+	if (catss(upddate_entry, date_str) == false) {
 		free_string(date_str);
 		free_string(upddate_entry);
 		return false;
 	}
 	free_string(date_str);
-	if (catcs(upddate_entry, '\n') != 0) {
+	if (catcs(upddate_entry, '\n') == false) {
 		free_string(upddate_entry);
 		return false;
 	}

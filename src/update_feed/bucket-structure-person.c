@@ -48,19 +48,19 @@ expand_person_list_by_one_element(struct person_list *persons)
 	return true;
 }
 
-int
+bool
 add_name_to_last_person(struct person_list *persons, const struct string *value)
 {
 	return cpyss(persons->list[persons->len - 1].name, value);
 }
 
-int
+bool
 add_email_to_last_person(struct person_list *persons, const struct string *value)
 {
 	return cpyss(persons->list[persons->len - 1].email, value);
 }
 
-int
+bool
 add_link_to_last_person(struct person_list *persons, const struct string *value)
 {
 	return cpyss(persons->list[persons->len - 1].link, value);
@@ -97,32 +97,51 @@ generate_person_list_string(const struct person_list *persons)
 		added_email = false;
 		added_link = false;
 		if (persons->list[i].name->len != 0) {
-			catss(str, persons->list[i].name);
+			if (catss(str, persons->list[i].name) == false) {
+				goto error;
+			}
 			added_name = true;
 		}
 		if (persons->list[i].email->len != 0) {
 			if (added_name == true) {
-				catas(str, " <", 2);
+				if (catas(str, " <", 2) == false) {
+					goto error;
+				}
 			}
-			catss(str, persons->list[i].email);
+			if (catss(str, persons->list[i].email) == false) {
+				goto error;
+			}
 			if (added_name == true) {
-				catcs(str, '>');
+				if (catcs(str, '>') == false) {
+					goto error;
+				}
 			}
 			added_email = true;
 		}
 		if (persons->list[i].link->len != 0) {
 			if (added_name == true || added_email == true) {
-				catas(str, " (", 2);
+				if (catas(str, " (", 2) == false) {
+					goto error;
+				}
 			}
-			catss(str, persons->list[i].link);
+			if (catss(str, persons->list[i].link) == false) {
+				goto error;
+			}
 			if (added_name == true || added_email == true) {
-				catcs(str, ')');
+				if (catcs(str, ')') == false) {
+					goto error;
+				}
 			}
 			added_link = true;
 		}
 		if ((i + 1 != persons->len) && (added_name == true || added_email == true || added_link == true)) {
-			catas(str, ", ", 2);
+			if (catas(str, ", ", 2) == false) {
+				goto error;
+			}
 		}
 	}
 	return str;
+error:
+	free_string(str);
+	return NULL;
 }

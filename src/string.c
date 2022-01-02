@@ -36,9 +36,9 @@ create_empty_string(void)
 }
 
 // Copy array to string.
-// On success returns 0.
-// On failure returns non-zero.
-int
+// On success returns true.
+// On memory shortage returns false.
+bool
 cpyas(struct string *dest, const char *src_ptr, size_t src_len)
 {
 	if (src_len > dest->lim) {
@@ -46,7 +46,7 @@ cpyas(struct string *dest, const char *src_ptr, size_t src_len)
 		char *temp = realloc(dest->ptr, sizeof(char) * (src_len * 2 + 1));
 		if (temp == NULL) {
 			FAIL("Not enough memory for copying array to string!");
-			return 1;
+			return false;
 		}
 		dest->ptr = temp;
 		dest->lim = src_len * 2;
@@ -54,20 +54,20 @@ cpyas(struct string *dest, const char *src_ptr, size_t src_len)
 	memcpy(dest->ptr, src_ptr, sizeof(char) * src_len);
 	*(dest->ptr + src_len) = '\0';
 	dest->len = src_len;
-	return 0;
+	return true;
 }
 
 // Copy string to string.
-int
+bool
 cpyss(struct string *dest, const struct string *src)
 {
 	return cpyas(dest, src->ptr, src->len);
 }
 
 // Concatenate array to string.
-// On success returns 0.
-// On failure returns non-zero.
-int
+// On success returns true.
+// On memory shortage returns false.
+bool
 catas(struct string *dest, const char *src_ptr, size_t src_len)
 {
 	size_t new_len = dest->len + src_len;
@@ -76,7 +76,7 @@ catas(struct string *dest, const char *src_ptr, size_t src_len)
 		char *temp = realloc(dest->ptr, sizeof(char) * (new_len * 2 + 1));
 		if (temp == NULL) {
 			FAIL("Not enough memory for concatenating array to string!");
-			return 1;
+			return false;
 		}
 		dest->ptr = temp;
 		dest->lim = new_len * 2;
@@ -84,20 +84,20 @@ catas(struct string *dest, const char *src_ptr, size_t src_len)
 	memcpy(dest->ptr + dest->len, src_ptr, sizeof(char) * src_len);
 	*(dest->ptr + new_len) = '\0';
 	dest->len = new_len;
-	return 0;
+	return true;
 }
 
 // Concatenate string to string.
-int
+bool
 catss(struct string *dest, const struct string *src)
 {
 	return catas(dest, src->ptr, src->len);
 }
 
 // Concatenate character to string.
-// On success returns 0.
-// On failure returns non-zero.
-int
+// On success returns true.
+// On memory shortage returns false.
+bool
 catcs(struct string *dest, char c)
 {
 	size_t new_len = dest->len + 1;
@@ -106,7 +106,7 @@ catcs(struct string *dest, char c)
 		char *temp = realloc(dest->ptr, sizeof(char) * (new_len * 2 + 1));
 		if (temp == NULL) {
 			FAIL("Not enough memory for concatenating character to string!");
-			return 1;
+			return false;
 		}
 		dest->ptr = temp;
 		dest->lim = new_len * 2;
@@ -114,7 +114,7 @@ catcs(struct string *dest, char c)
 	*(dest->ptr + dest->len) = c;
 	dest->len = new_len;
 	*(dest->ptr + dest->len) = '\0';
-	return 0;
+	return true;
 }
 
 void

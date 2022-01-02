@@ -1,11 +1,32 @@
 #ifdef FEEDEATER_FORMAT_SUPPORT_ATOM10
-#include <stdio.h>
 #include <string.h>
 #include "feedeater.h"
 #include "update_feed/update_feed.h"
 
 // https://web.archive.org/web/20211118181732/https://validator.w3.org/feed/docs/atom.html
 // https://web.archive.org/web/20211201194224/https://datatracker.ietf.org/doc/html/rfc4287
+
+static inline void
+copy_type_of_text_construct(struct parser_data *data, const XML_Char **atts, struct string *target)
+{
+	// Valid Atom 1.0 text construct types are "text", "html" and "xhtml".
+	// If the "type" attribute is not provided, then we MUST assume
+	// that data is of "text" type (or "text/plain" in terms of MIME standard).
+	const char *type = get_value_of_attribute_key(atts, "type");
+	if (type != NULL) {
+		if (strcmp(type, "html") == 0) {
+			if (cpyas(target, "text/html", 9) == false) {
+				data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+				return;
+			}
+			return;
+		}
+	}
+	if (cpyas(target, "text/plain", 10) == false) {
+		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		return;
+	}
+}
 
 static inline void
 entry_start(struct parser_data *data)
@@ -28,12 +49,11 @@ static inline void
 title_start(struct parser_data *data, const XML_Char **atts)
 {
 	data->atom10_pos |= ATOM10_TITLE;
-	const char *type = get_value_of_attribute_key(atts, "type");
-	if (type != NULL) {
-		if (cpyas(data->item.title_type, type, strlen(type)) == false) {
-			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
-			return;
-		}
+	if ((data->atom10_pos & ATOM10_ENTRY) != 0) {
+		copy_type_of_text_construct(data, atts, data->item.title_type);
+	} else {
+		// todo
+		//copy_type_of_text_construct(data, atts, data->feed.title_type);
 	}
 }
 
@@ -124,14 +144,11 @@ link_start(struct parser_data *data, const XML_Char **atts)
 static inline void
 summary_start(struct parser_data *data, const XML_Char **atts)
 {
-	data->atom10_pos |= ATOM10_SUMMARY;
-	const char *type_str = get_value_of_attribute_key(atts, "type");
-	if ((type_str != NULL) && ((data->atom10_pos & ATOM10_ENTRY) != 0)) {
-		if (cpyas(data->item.summary_type, type_str, strlen(type_str)) == false) {
-			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
-			return;
-		}
+	if ((data->atom10_pos & ATOM10_ENTRY) == 0) {
+		return;
 	}
+	data->atom10_pos |= ATOM10_SUMMARY;
+	copy_type_of_text_construct(data, atts, data->item.summary_type);
 }
 
 static inline void
@@ -141,25 +158,23 @@ summary_end(struct parser_data *data)
 		return;
 	}
 	data->atom10_pos &= ~ATOM10_SUMMARY;
-	if ((data->atom10_pos & ATOM10_ENTRY) != 0) {
-		if (cpyss(data->item.summary, data->value) == false) {
-			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
-			return;
-		}
+	if ((data->atom10_pos & ATOM10_ENTRY) == 0) {
+		return;
+	}
+	if (cpyss(data->item.summary, data->value) == false) {
+		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		return;
 	}
 }
 
 static inline void
 content_start(struct parser_data *data, const XML_Char **atts)
 {
-	const char *type_str = get_value_of_attribute_key(atts, "type");
-	if ((type_str != NULL) && ((data->atom10_pos & ATOM10_ENTRY) != 0)) {
-		if (cpyas(data->item.content_type, type_str, strlen(type_str)) == false) {
-			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
-			return;
-		}
+	if ((data->atom10_pos & ATOM10_ENTRY) == 0) {
+		return;
 	}
 	data->atom10_pos |= ATOM10_CONTENT;
+	copy_type_of_text_construct(data, atts, data->item.content_type);
 }
 
 static inline void
@@ -192,8 +207,7 @@ id_end(struct parser_data *data)
 	}
 	data->atom10_pos &= ~ATOM10_ID;
 	if ((data->atom10_pos & ATOM10_ENTRY) == 0) {
-		// In Atom 1.0 feed can have unique id, but who needs it?
-		return;
+		return; // Ignore feed id.
 	}
 	if (cpyss(data->item.guid, data->value) == false) {
 		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
@@ -241,13 +255,13 @@ static inline void
 author_start(struct parser_data *data)
 {
 	data->atom10_pos |= ATOM10_AUTHOR;
-	if ((data->atom10_pos & ATOM10_ENTRY) == 0) {
-		// Atom 1.0 says that feed can have global author, but who needs it?
-		return;
-	}
-	if (expand_person_list_by_one_element(&data->item.authors) == false) {
-		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
-		return;
+	if ((data->atom10_pos & ATOM10_ENTRY) != 0) {
+		if (expand_person_list_by_one_element(&data->item.authors) == false) {
+			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+			return;
+		}
+	} else {
+		// TODO: Global author element
 	}
 }
 
@@ -273,14 +287,14 @@ name_end(struct parser_data *data)
 		return;
 	}
 	data->atom10_pos &= ~ATOM10_NAME;
-	if ((data->atom10_pos & ATOM10_ENTRY) == 0) {
-		// Atom 1.0 says that feed can have global author, but who needs it?
-		return;
-	}
 	if ((data->atom10_pos & ATOM10_AUTHOR) != 0) {
-		if (add_name_to_last_person(&data->item.authors, data->value) == false) {
-			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
-			return;
+		if ((data->atom10_pos & ATOM10_ENTRY) != 0) {
+			if (add_name_to_last_person(&data->item.authors, data->value) == false) {
+				data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+				return;
+			}
+		} else {
+			// TODO: Global author element
 		}
 	}
 }
@@ -298,14 +312,14 @@ uri_end(struct parser_data *data)
 		return;
 	}
 	data->atom10_pos &= ~ATOM10_URI;
-	if ((data->atom10_pos & ATOM10_ENTRY) == 0) {
-		// Atom 1.0 says that feed can have global author, but who needs it?
-		return;
-	}
 	if ((data->atom10_pos & ATOM10_AUTHOR) != 0) {
-		if (add_link_to_last_person(&data->item.authors, data->value) == false) {
-			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
-			return;
+		if ((data->atom10_pos & ATOM10_ENTRY) != 0) {
+			if (add_link_to_last_person(&data->item.authors, data->value) == false) {
+				data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+				return;
+			}
+		} else {
+			// TODO: Global author element
 		}
 	}
 }
@@ -323,14 +337,14 @@ email_end(struct parser_data *data)
 		return;
 	}
 	data->atom10_pos &= ~ATOM10_EMAIL;
-	if ((data->atom10_pos & ATOM10_ENTRY) == 0) {
-		// Atom 1.0 says that feed can have global author, but who needs it?
-		return;
-	}
 	if ((data->atom10_pos & ATOM10_AUTHOR) != 0) {
-		if (add_email_to_last_person(&data->item.authors, data->value) == false) {
-			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
-			return;
+		if ((data->atom10_pos & ATOM10_ENTRY) != 0) {
+			if (add_email_to_last_person(&data->item.authors, data->value) == false) {
+				data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+				return;
+			}
+		} else {
+			// TODO: Global author element
 		}
 	}
 }
@@ -338,34 +352,25 @@ email_end(struct parser_data *data)
 static inline void
 category_start(struct parser_data *data, const XML_Char **atts)
 {
-	if ((data->atom10_pos & ATOM10_ENTRY) == 0) {
-		// Atom 1.0 says that feed can have global categories, but who needs it?
-		return;
-	}
-	for (size_t i = 0; atts[i] != NULL; i = i + 2) {
-		if (strcmp(atts[i], "term") == 0) {
-			if (atts[i + 1] != NULL) {
-				if (add_category_to_item_bucket(&data->item, atts[i + 1], strlen(atts[i + 1])) == false) {
-					data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
-					return;
-				}
-			}
-			break;
+	const char *category = get_value_of_attribute_key(atts, "term");
+	if ((data->atom10_pos & ATOM10_ENTRY) != 0) {
+		if (add_category_to_item_bucket(&data->item, category, strlen(category)) == false) {
+			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+			return;
 		}
+	} else {
+		// TODO: Global categories
 	}
 }
 
 static inline void
 subtitle_start(struct parser_data *data, const XML_Char **atts)
 {
-	data->atom10_pos |= ATOM10_SUBTITLE;
-	const char *type_str = get_value_of_attribute_key(atts, "type");
-	if ((type_str != NULL) && ((data->atom10_pos & ATOM10_ENTRY) == 0)) {
-		if (cpyas(data->feed.summary_type, type_str, strlen(type_str)) == false) {
-			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
-			return;
-		}
+	if ((data->atom10_pos & ATOM10_ENTRY) != 0) {
+		return;
 	}
+	data->atom10_pos |= ATOM10_SUBTITLE;
+	copy_type_of_text_construct(data, atts, data->feed.summary_type);
 }
 
 static inline void
@@ -375,11 +380,12 @@ subtitle_end(struct parser_data *data)
 		return;
 	}
 	data->atom10_pos &= ~ATOM10_SUBTITLE;
-	if ((data->atom10_pos & ATOM10_ENTRY) == 0) {
-		if (cpyss(data->feed.summary, data->value) == false) {
-			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
-			return;
-		}
+	if ((data->atom10_pos & ATOM10_ENTRY) != 0) {
+		return;
+	}
+	if (cpyss(data->feed.summary, data->value) == false) {
+		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		return;
 	}
 }
 

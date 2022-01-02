@@ -79,8 +79,8 @@ struct parser_data {
 	struct string *value;
 	int depth;
 	const struct string *feed_url;
-	struct feed_bucket *feed;
-	struct item_bucket *item;
+	struct feed_bucket feed;
+	struct item_bucket item;
 #ifdef FEEDEATER_FORMAT_SUPPORT_RSS20
 	int16_t rss20_pos;
 #endif
@@ -111,7 +111,6 @@ struct parser_data {
 void delete_excess_items(const struct string *feed_url);
 
 const char *get_value_of_attribute_key(const XML_Char **atts, const char *key);
-void insert_item(const struct string *feed_url, const struct item_bucket *item);
 bool we_are_inside_item(const struct parser_data *data);
 
 // date
@@ -121,34 +120,35 @@ time_t parse_date_rfc3339(const struct string *value);
 struct string *convert_bytes_to_human_readable_size_string(int bytes);
 
 // feed bucket functions
-struct feed_bucket *create_feed_bucket(void);
-bool insert_feed(const struct string *feed_url, struct feed_bucket *feed);
-void free_feed_bucket(struct feed_bucket *feed);
+bool initialize_feed_bucket(struct feed_bucket *feed);
+bool insert_feed(const struct string *feed_url, const struct feed_bucket *feed);
+void free_feed_bucket(const struct feed_bucket *feed);
 
 // item bucket functions
-struct item_bucket *create_item_bucket(void);
+bool initialize_item_bucket(struct item_bucket *item);
+void insert_item(const struct string *feed_url, const struct item_bucket *item);
 void empty_item_bucket(struct item_bucket *item);
-void free_item_bucket(struct item_bucket *item);
+void free_item_bucket(const struct item_bucket *item);
 bool add_category_to_item_bucket(const struct item_bucket *item, const char *value, size_t value_len);
 
 // Functions to manage link_list.
 void initialize_link_list(struct link_list *links);
 bool expand_link_list_by_one_element(struct link_list *links);
-bool add_url_to_last_link(struct link_list *links, const char *value, size_t value_len);
-bool add_type_to_last_link(struct link_list *links, const char *value, size_t value_len);
-bool add_size_to_last_link(struct link_list *links, const char *value);
+bool add_url_to_last_link(const struct link_list *links, const char *value, size_t value_len);
+bool add_type_to_last_link(const struct link_list *links, const char *value, size_t value_len);
+bool add_size_to_last_link(const struct link_list *links, const char *value);
 void empty_link_list(struct link_list *links);
-void free_link_list(struct link_list *links);
+void free_link_list(const struct link_list *links);
 struct string *generate_link_list_string(const struct link_list *links);
 
 // Functions to manage person_list.
 void initialize_person_list(struct person_list *persons);
 bool expand_person_list_by_one_element(struct person_list *persons);
-bool add_name_to_last_person(struct person_list *persons, const struct string *value);
-bool add_email_to_last_person(struct person_list *persons, const struct string *value);
-bool add_link_to_last_person(struct person_list *persons, const struct string *value);
+bool add_name_to_last_person(const struct person_list *persons, const struct string *value);
+bool add_email_to_last_person(const struct person_list *persons, const struct string *value);
+bool add_link_to_last_person(const struct person_list *persons, const struct string *value);
 void empty_person_list(struct person_list *persons);
-void free_person_list(struct person_list *persons);
+void free_person_list(const struct person_list *persons);
 struct string *generate_person_list_string(const struct person_list *persons);
 
 

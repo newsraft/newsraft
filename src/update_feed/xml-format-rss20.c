@@ -18,8 +18,8 @@ item_end(struct parser_data *data)
 		return;
 	}
 	data->rss20_pos &= ~RSS20_ITEM;
-	insert_item(data->feed_url, data->item);
-	empty_item_bucket(data->item);
+	insert_item(data->feed_url, &(data->item));
+	empty_item_bucket(&(data->item));
 }
 
 static inline void
@@ -36,12 +36,12 @@ title_end(struct parser_data *data)
 	}
 	data->rss20_pos &= ~RSS20_TITLE;
 	if ((data->rss20_pos & RSS20_ITEM) != 0) {
-		if (cpyss(data->item->title, data->value) == false) {
+		if (cpyss(data->item.title, data->value) == false) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}
 	} else {
-		if (cpyss(data->feed->title, data->value) == false) {
+		if (cpyss(data->feed.title, data->value) == false) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}
@@ -62,12 +62,12 @@ link_end(struct parser_data *data)
 	}
 	data->rss20_pos &= ~RSS20_LINK;
 	if ((data->rss20_pos & RSS20_ITEM) != 0) {
-		if (cpyss(data->item->url, data->value) == false) {
+		if (cpyss(data->item.url, data->value) == false) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}
 	} else {
-		if (cpyss(data->feed->link, data->value) == false) {
+		if (cpyss(data->feed.link, data->value) == false) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}
@@ -88,12 +88,12 @@ description_end(struct parser_data *data)
 	}
 	data->rss20_pos &= ~RSS20_DESCRIPTION;
 	if ((data->rss20_pos & RSS20_ITEM) != 0) {
-		if (cpyss(data->item->content, data->value) == false) {
+		if (cpyss(data->item.content, data->value) == false) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}
 	} else {
-		if (cpyss(data->feed->summary, data->value) == false) {
+		if (cpyss(data->feed.summary, data->value) == false) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}
@@ -117,7 +117,7 @@ pubDate_end(struct parser_data *data)
 		// RSS 2.0 says that channel can have pubDate element, but who needs it?
 		return;
 	}
-	data->item->pubdate = parse_date_rfc822(data->value);
+	data->item.pubdate = parse_date_rfc822(data->value);
 }
 
 static inline void
@@ -136,7 +136,7 @@ guid_end(struct parser_data *data)
 	if ((data->rss20_pos & RSS20_ITEM) == 0) {
 		return;
 	}
-	if (cpyss(data->item->guid, data->value) == false) {
+	if (cpyss(data->item.guid, data->value) == false) {
 		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		return;
 	}
@@ -158,11 +158,11 @@ author_end(struct parser_data *data)
 	if ((data->rss20_pos & RSS20_ITEM) == 0) {
 		return;
 	}
-	if (expand_person_list_by_one_element(&(data->item->authors)) == false) {
+	if (expand_person_list_by_one_element(&(data->item.authors)) == false) {
 		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		return;
 	}
-	if (add_email_to_last_person(&(data->item->authors), data->value) == false) {
+	if (add_email_to_last_person(&(data->item.authors), data->value) == false) {
 		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		return;
 	}
@@ -174,25 +174,25 @@ enclosure_start(struct parser_data *data, const XML_Char **atts)
 	if ((data->rss20_pos & RSS20_ITEM) == 0) {
 		return;
 	}
-	if (expand_link_list_by_one_element(&(data->item->enclosures)) == false) {
+	if (expand_link_list_by_one_element(&(data->item.enclosures)) == false) {
 		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		return;
 	}
 	for (size_t i = 0; atts[i] != NULL; i = i + 2) {
 		if (strcmp(atts[i], "url") == 0) {
-			if (add_url_to_last_link(&(data->item->enclosures), atts[i + 1], strlen(atts[i + 1])) == false) {
+			if (add_url_to_last_link(&(data->item.enclosures), atts[i + 1], strlen(atts[i + 1])) == false) {
 				data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 				return;
 			}
 		} else if (strcmp(atts[i], "type") == 0) {
-			if (add_type_to_last_link(&(data->item->enclosures), atts[i + 1], strlen(atts[i + 1])) == false) {
+			if (add_type_to_last_link(&(data->item.enclosures), atts[i + 1], strlen(atts[i + 1])) == false) {
 				data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 				return;
 			}
 		} else if (strcmp(atts[i], "length") == 0) {
 			// Do not check this call for errors, because its fail is not fatal. Everything that
 			// can go wrong is failure on sscanf owing to invalid (non-integer) value of length.
-			add_size_to_last_link(&(data->item->enclosures), atts[i + 1]);
+			add_size_to_last_link(&(data->item.enclosures), atts[i + 1]);
 		}
 	}
 }
@@ -214,7 +214,7 @@ category_end(struct parser_data *data)
 		// RSS 2.0 says that channel can have category elements, but who needs them?
 		return;
 	}
-	if (add_category_to_item_bucket(data->item, data->value->ptr, data->value->len) == false) {
+	if (add_category_to_item_bucket(&(data->item), data->value->ptr, data->value->len) == false) {
 		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		return;
 	}
@@ -236,7 +236,7 @@ comments_end(struct parser_data *data)
 	if ((data->rss20_pos & RSS20_ITEM) == 0) {
 		return;
 	}
-	if (cpyss(data->item->comments, data->value) == false) {
+	if (cpyss(data->item.comments, data->value) == false) {
 		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		return;
 	}
@@ -255,7 +255,7 @@ language_end(struct parser_data *data)
 		return;
 	}
 	data->rss20_pos &= ~RSS20_LANGUAGE;
-	if (cpyss(data->feed->language, data->value) == false) {
+	if (cpyss(data->feed.language, data->value) == false) {
 		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		return;
 	}

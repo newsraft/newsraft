@@ -1,74 +1,66 @@
-#include <stdlib.h>
-#include <string.h>
 #include "feedeater.h"
 #include "update_feed/update_feed.h"
 
-// On success returns a pointer to struct item_bucket.
-// On failure returns NULL.
-struct item_bucket *
-create_item_bucket(void)
+// On success returns true.
+// On memory shortage returns false.
+bool
+initialize_item_bucket(struct item_bucket *item)
 {
-	struct item_bucket *item = malloc(sizeof(struct item_bucket));
-	if (item == NULL) {
-		goto undo1;
-	}
 	if ((item->guid = create_empty_string()) == NULL) {
-		goto undo2;
+		goto undo0;
 	}
 	if ((item->title = create_empty_string()) == NULL) {
-		goto undo3;
+		goto undo1;
 	}
 	if ((item->title_type = create_empty_string()) == NULL) {
-		goto undo4;
+		goto undo2;
 	}
 	if ((item->url = create_empty_string()) == NULL) {
-		goto undo5;
+		goto undo3;
 	}
 	if ((item->categories = create_empty_string()) == NULL) {
-		goto undo6;
+		goto undo4;
 	}
 	if ((item->comments = create_empty_string()) == NULL) {
-		goto undo7;
+		goto undo5;
 	}
 	if ((item->summary = create_empty_string()) == NULL) {
-		goto undo8;
+		goto undo6;
 	}
 	if ((item->summary_type = create_empty_string()) == NULL) {
-		goto undo9;
+		goto undo7;
 	}
 	if ((item->content = create_empty_string()) == NULL) {
-		goto undo10;
+		goto undo8;
 	}
 	if ((item->content_type = create_empty_string()) == NULL) {
-		goto undo11;
+		goto undo9;
 	}
 	initialize_link_list(&(item->enclosures));
 	initialize_person_list(&(item->authors));
 	item->pubdate = 0;
 	item->upddate = 0;
-	return item;
-undo11:
-	free_string(item->content);
-undo10:
-	free_string(item->summary_type);
+	return true;
 undo9:
-	free_string(item->summary);
+	free_string(item->content);
 undo8:
-	free_string(item->comments);
+	free_string(item->summary_type);
 undo7:
-	free_string(item->categories);
+	free_string(item->summary);
 undo6:
-	free_string(item->url);
+	free_string(item->comments);
 undo5:
-	free_string(item->title_type);
+	free_string(item->categories);
 undo4:
-	free_string(item->title);
+	free_string(item->url);
 undo3:
-	free_string(item->guid);
+	free_string(item->title_type);
 undo2:
-	free(item);
+	free_string(item->title);
 undo1:
-	return NULL;
+	free_string(item->guid);
+undo0:
+	return false;
 }
 
 void
@@ -91,7 +83,7 @@ empty_item_bucket(struct item_bucket *item)
 }
 
 void
-free_item_bucket(struct item_bucket *item)
+free_item_bucket(const struct item_bucket *item)
 {
 	free_string(item->guid);
 	free_string(item->title);
@@ -105,7 +97,6 @@ free_item_bucket(struct item_bucket *item)
 	free_string(item->content_type);
 	free_link_list(&(item->enclosures));
 	free_person_list(&(item->authors));
-	free(item);
 }
 
 // On success returns true.

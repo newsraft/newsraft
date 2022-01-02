@@ -49,19 +49,19 @@ expand_person_list_by_one_element(struct person_list *persons)
 }
 
 bool
-add_name_to_last_person(struct person_list *persons, const struct string *value)
+add_name_to_last_person(const struct person_list *persons, const struct string *value)
 {
 	return cpyss(persons->list[persons->len - 1].name, value);
 }
 
 bool
-add_email_to_last_person(struct person_list *persons, const struct string *value)
+add_email_to_last_person(const struct person_list *persons, const struct string *value)
 {
 	return cpyss(persons->list[persons->len - 1].email, value);
 }
 
 bool
-add_link_to_last_person(struct person_list *persons, const struct string *value)
+add_link_to_last_person(const struct person_list *persons, const struct string *value)
 {
 	return cpyss(persons->list[persons->len - 1].link, value);
 }
@@ -73,7 +73,7 @@ empty_person_list(struct person_list *persons)
 }
 
 void
-free_person_list(struct person_list *persons)
+free_person_list(const struct person_list *persons)
 {
 	for (size_t i = 0; i < persons->lim; ++i) {
 		free_string(persons->list[i].name);
@@ -81,7 +81,6 @@ free_person_list(struct person_list *persons)
 		free_string(persons->list[i].link);
 	}
 	free(persons->list);
-	// WARNING: Do not free memory under persons pointer because we store person list structures in stack memory.
 }
 
 struct string *

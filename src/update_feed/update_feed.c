@@ -94,11 +94,11 @@ update_feed(const struct string *url)
 		data.error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		goto undo0;
 	}
-	if ((data.feed = create_feed_bucket()) == NULL) {
+	if (initialize_feed_bucket(&(data.feed)) == false) {
 		data.error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		goto undo1;
 	}
-	if ((data.item = create_item_bucket()) == NULL) {
+	if (initialize_item_bucket(&(data.item)) == false) {
 		data.error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		goto undo2;
 	}
@@ -194,7 +194,7 @@ update_feed(const struct string *url)
 	}
 
 	if (data.error == PARSE_OKAY) {
-		insert_feed(url, data.feed);
+		insert_feed(url, &(data.feed));
 		if (cfg.max_items != 0) {
 			delete_excess_items(url);
 		}
@@ -208,9 +208,9 @@ undo5:
 undo4:
 	XML_ParserFree(data.parser);
 undo3:
-	free_item_bucket(data.item);
+	free_item_bucket(&(data.item));
 undo2:
-	free_feed_bucket(data.feed);
+	free_feed_bucket(&(data.feed));
 undo1:
 	free_string(data.value);
 undo0:

@@ -44,13 +44,13 @@ expand_link_list_by_one_element(struct link_list *links)
 }
 
 bool
-add_url_to_last_link(struct link_list *links, const char *value, size_t value_len)
+add_url_to_last_link(const struct link_list *links, const char *value, size_t value_len)
 {
 	return cpyas(links->list[links->len - 1].url, value, value_len);
 }
 
 bool
-add_type_to_last_link(struct link_list *links, const char *value, size_t value_len)
+add_type_to_last_link(const struct link_list *links, const char *value, size_t value_len)
 {
 	return cpyas(links->list[links->len - 1].type, value, value_len);
 }
@@ -58,7 +58,7 @@ add_type_to_last_link(struct link_list *links, const char *value, size_t value_l
 // On success returns 0.
 // On failure returns non-zero.
 bool
-add_size_to_last_link(struct link_list *links, const char *value)
+add_size_to_last_link(const struct link_list *links, const char *value)
 {
 	int size;
 	if (sscanf(value, "%d", &size) == 1) {
@@ -75,14 +75,13 @@ empty_link_list(struct link_list *links)
 }
 
 void
-free_link_list(struct link_list *links)
+free_link_list(const struct link_list *links)
 {
 	for (size_t i = 0; i < links->lim; ++i) {
 		free_string(links->list[i].url);
 		free_string(links->list[i].type);
 	}
 	free(links->list);
-	// WARNING: Do not free memory under links pointer because we store link list structures in stack memory.
 }
 
 struct string *

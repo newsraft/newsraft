@@ -2,7 +2,7 @@
 #include "update_feed.h"
 
 bool
-insert_feed(const struct string *feed_url, struct feed_bucket *feed)
+insert_feed(const struct string *feed_url, const struct feed_bucket *feed)
 {
 	sqlite3_stmt *s;
 	if (db_prepare("INSERT OR REPLACE INTO feeds VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", 73, &s, NULL) != SQLITE_OK) {

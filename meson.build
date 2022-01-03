@@ -110,6 +110,7 @@ executable(
 		'src/render_data/line.c',
 		'src/render_data/render-text-plain.c',
 		'src/render_data/render-text-html.c',
+		'src/render_data/render-text-html-tag.c',
 		'src/render_data/render-text-html-entities.c',
 	],
 	dependencies: [

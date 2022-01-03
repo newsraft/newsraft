@@ -161,7 +161,7 @@ style_end_handler(enum html_position *pos)
 }
 
 static inline bool
-start_handler(wchar_t *t, struct line *l, struct wstring *w, enum html_position *p)
+start_handler(wchar_t *t, struct line *l, struct wstring *w, enum html_position *p, struct html_attribute *a)
 {
 	     if (wcscmp(t, L"span")       == 0) { /* just nothing */          return true; }
 	else if (wcscmp(t, L"p")          == 0) { add_newlines(l, w, 2);      return true; }
@@ -203,7 +203,7 @@ start_handler(wchar_t *t, struct line *l, struct wstring *w, enum html_position 
 }
 
 static inline bool
-end_handler(wchar_t *t, struct line *l, struct wstring *w, enum html_position *p)
+end_handler(wchar_t *t, struct line *l, struct wstring *w, enum html_position *p, struct html_attribute *a)
 {
 	     if (wcscmp(t, L"span")       == 0) { /* just nothing */        return true; }
 	else if (wcscmp(t, L"p")          == 0) { add_newlines(l, w, 2);    return true; }
@@ -242,51 +242,6 @@ end_handler(wchar_t *t, struct line *l, struct wstring *w, enum html_position *p
 	return false;
 }
 
-// Append some characters according to the current position in the HTML document.
-static inline int
-format_text(struct wstring *tag, struct line *line, struct wstring *text, enum html_position *pos)
-{
-	wchar_t *tag_name;
-	bool is_end_tag;
-
-	if (tag->ptr[0] == L'/') {
-		tag_name = tag->ptr + 1;
-		is_end_tag = true;
-	} else {
-		tag_name = tag->ptr;
-		is_end_tag = false;
-	}
-
-	size_t tag_name_len = 0;
-	for (size_t i = 0; i < tag->len; ++i) {
-		if ((tag->ptr[i] == L' ') || (tag->ptr[i] == L'\n') || (tag->ptr[i] == L'\t')) {
-			break;
-		}
-		++tag_name_len;
-	}
-
-	wchar_t temp = tag_name[tag_name_len];
-	tag_name[tag_name_len] = L'\0';
-
-	if (is_end_tag == true) {
-		if (end_handler(tag_name, line, text, pos) == true) {
-			return 0;
-		}
-	} else {
-		if (start_handler(tag_name, line, text, pos) == true) {
-			return 0;
-		}
-	}
-
-	tag_name[tag_name_len] = temp;
-
-	line_char(line, L'<', text);
-	line_string(line, text, tag->ptr);
-	line_char(line, L'>', text);
-
-	return 0;
-}
-
 struct wstring *
 render_text_html(const struct wstring *wstr, struct line *line)
 {
@@ -306,10 +261,12 @@ render_text_html(const struct wstring *wstr, struct line *line)
 	bool in_tag = false;
 	bool in_entity = false;
 	bool error = false;
+	bool found_tag;
 
 	wchar_t entity_name[MAX_ENTITY_NAME_LENGTH + 1];
 	size_t entity_len;
 	const wchar_t *entity_value;
+	struct html_attribute *atts;
 
 	list_depth = 0;
 	enum html_position position = HTML_NONE;
@@ -372,8 +329,22 @@ render_text_html(const struct wstring *wstr, struct line *line)
 			}
 		} else { // All tag characters go here.
 			if (*i == L'>') {
+				found_tag = false;
 				in_tag = false;
-				format_text(tag, line, t, &position);
+				atts = get_attribute_list_of_html_tag(tag);
+				if (atts != NULL) {
+					if (atts[0].name->ptr[0] == L'/') {
+						found_tag = end_handler(atts[0].name->ptr + 1, line, t, &position, atts);
+					} else {
+						found_tag = start_handler(atts[0].name->ptr, line, t, &position, atts);
+					}
+					free_attribute_list_of_html_tag(atts);
+				}
+				if (found_tag == false) {
+					line_char(line, L'<', t);
+					line_string(line, t, tag->ptr);
+					line_char(line, L'>', t);
+				}
 			} else {
 				if (wcatcs(tag, *i) == false) {
 					error = true;

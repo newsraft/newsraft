@@ -3,25 +3,29 @@
 bool
 obtain_terminal_size(void)
 {
-	list_menu_height = getmaxy(stdscr) - 1;
-	if ((list_menu_height + 1) == ERR) {
+	int terminal_width = getmaxx(stdscr);
+	if (terminal_width == ERR) {
+		FAIL("Failed to get width of the terminal!");
+		return false;
+	}
+	if (terminal_width < 5) {
+		FAIL("Terminal is too narrow!");
+		return false;
+	}
+	int terminal_height = getmaxy(stdscr);
+	if (terminal_height == ERR) {
 		FAIL("Failed to get height of the terminal!");
 		return false;
 	}
-	if (list_menu_height < 4) {
+	if (terminal_height < 5) {
 		FAIL("Terminal is too short!");
 		return false;
 	}
 
-	list_menu_width = getmaxx(stdscr);
-	if (list_menu_width == ERR) {
-		FAIL("Failed to get width of the terminal!");
-		return false;
-	}
-	if (list_menu_width < 4) {
-		FAIL("Terminal is too narrow!");
-		return false;
-	}
+	INFO("Obtained terminal size: %d width, %d height.", terminal_width, terminal_height);
+
+	list_menu_width = terminal_width;
+	list_menu_height = terminal_height - 1; // Subtract 1 because we have status window.
 
 	return true;
 }

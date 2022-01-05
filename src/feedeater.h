@@ -248,16 +248,17 @@ bool catcs(struct string *dest, char c);
 void empty_string(struct string *str);
 void free_string(struct string *str);
 void strip_whitespace_from_string(struct string *str);
+struct wstring *convert_string_to_wstring(const struct string *src);
 // wstring
 struct wstring *create_wstring(const wchar_t *src, size_t len);
 struct wstring *create_empty_wstring(void);
 bool wcatas(struct wstring *dest, const wchar_t *src_ptr, size_t src_len);
 bool wcatcs(struct wstring *dest, wchar_t c);
 bool wcatss(struct wstring *dest, const struct wstring *src);
-struct wstring *convert_string_to_wstring(const struct string *src);
 void empty_wstring(struct wstring *wstr);
 void free_wstring(struct wstring *wstr);
 void strip_whitespace_from_wstring(struct wstring *wstr);
+struct string *convert_wstring_to_string(const struct wstring *src);
 
 int log_init(const char *path);
 void log_stop(void);

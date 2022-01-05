@@ -176,3 +176,31 @@ strip_whitespace_from_string(struct string *str)
 	str->len = stripped_string_len;
 	*(str->ptr + stripped_string_len) = '\0';
 }
+
+// On failure retruns NULL.
+struct wstring *
+convert_string_to_wstring(const struct string *src)
+{
+	struct wstring *wstr = malloc(sizeof(struct wstring));
+	if (wstr == NULL) {
+		return NULL;
+	}
+	wstr->len = mbstowcs(NULL, src->ptr, 0);
+	if (wstr->len == (size_t)-1) {
+		free(wstr);
+		return NULL;
+	}
+	wstr->ptr = malloc(sizeof(wchar_t) * (wstr->len + 1));
+	if (wstr->ptr == NULL) {
+		free(wstr);
+		return NULL;
+	}
+	if (mbstowcs(wstr->ptr, src->ptr, wstr->len + 1) == (size_t)-1) {
+		free(wstr->ptr);
+		free(wstr);
+		return NULL;
+	}
+	wstr->ptr[wstr->len] = L'\0';
+	wstr->lim = wstr->len;
+	return wstr;
+}

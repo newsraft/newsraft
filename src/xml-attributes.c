@@ -35,7 +35,6 @@ free_atts(struct xml_attribute *atts, size_t length)
 //   - its name is set to NULL.
 // On failure returns NULL.
 // TODO THIS IS JUST AWFUL, REWRITE, REWRITE, REWRITE TODO
-// WARNING! HAS BUG WHEN MEETS EMPTY VALUES like alt=""
 struct xml_attribute *
 get_attribute_list_of_xml_tag(const struct wstring *tag)
 {
@@ -65,23 +64,37 @@ get_attribute_list_of_xml_tag(const struct wstring *tag)
 	for (size_t i = 0; i < tag->len; ++i) {
 		if (in_attribute_value == true) {
 			if (tag->ptr[i] == L'"') {
-				if ((word_len == 0) && (single_quoted_value == false)) {
+				if ((word_len == 0) &&
+				    (quoted_value == false) &&
+				    (single_quoted_value == false))
+				{
 					quoted_value = true;
 				} else if (quoted_value == true) {
 					in_attribute_value = false;
 					quoted_value = false;
 					atts[atts_index].value = create_wstring(word, word_len);
+					if (atts[atts_index].value == NULL) {
+						free_atts(atts, atts_len);
+						return NULL;
+					}
 					word_len = 0;
 				} else {
 					word[word_len++] = L'"';
 				}
 			} else if (tag->ptr[i] == L'\'') {
-				if ((word_len == 0) && (quoted_value == false)) {
+				if ((word_len == 0) &&
+				    (single_quoted_value == false) &&
+				    (quoted_value == false))
+				{
 					single_quoted_value = true;
 				} else if (single_quoted_value == true) {
 					in_attribute_value = false;
 					single_quoted_value = false;
 					atts[atts_index].value = create_wstring(word, word_len);
+					if (atts[atts_index].value == NULL) {
+						free_atts(atts, atts_len);
+						return NULL;
+					}
 					word_len = 0;
 				} else {
 					word[word_len++] = L'\'';
@@ -92,6 +105,10 @@ get_attribute_list_of_xml_tag(const struct wstring *tag)
 				} else {
 					in_attribute_value = false;
 					atts[atts_index].value = create_wstring(word, word_len);
+					if (atts[atts_index].value == NULL) {
+						free_atts(atts, atts_len);
+						return NULL;
+					}
 					word_len = 0;
 				}
 			} else {
@@ -108,6 +125,10 @@ get_attribute_list_of_xml_tag(const struct wstring *tag)
 					return NULL;
 				}
 				atts[atts_index].name = create_wstring(word, word_len);
+				if (atts[atts_index].name == NULL) {
+					free_atts(atts, atts_len);
+					return NULL;
+				}
 				if (tag->ptr[i] == L'=') {
 					word_len = 0;
 					in_attribute_value = true;
@@ -134,6 +155,10 @@ get_attribute_list_of_xml_tag(const struct wstring *tag)
 	if (word_len != 0) {
 		if (in_attribute_value == true) {
 			atts[atts_index].value = create_wstring(word, word_len);
+			if (atts[atts_index].value == NULL) {
+				free_atts(atts, atts_len);
+				return NULL;
+			}
 		} else if (in_attribute_name == true) {
 			atts_index = atts_len++;
 			if (expand_atts(&atts, atts_len) == false) {
@@ -141,13 +166,17 @@ get_attribute_list_of_xml_tag(const struct wstring *tag)
 				return NULL;
 			}
 			atts[atts_index].name = create_wstring(word, word_len);
+			if (atts[atts_index].name == NULL) {
+				free_atts(atts, atts_len);
+				return NULL;
+			}
 		}
 	}
 
 	tag_name[tag_name_len] = L'\0';
 	atts[0].name = create_wstring(tag_name, tag_name_len);
 	if (atts[0].name == NULL) {
-		free_atts(atts, atts_len - 1);
+		free_atts(atts, atts_len);
 		return NULL;
 	}
 

@@ -86,6 +86,11 @@ struct trim_link_list {
 	size_t len;             // Shows how many items is in list.
 };
 
+struct xml_attribute {
+	struct wstring *name;
+	struct wstring *value;
+};
+
 struct config_data {
 	size_t max_items;
 	size_t init_parser_buf_size;
@@ -266,6 +271,11 @@ void log_stop(void);
 void free_content_list(struct content_list *list);
 
 bool is_wchar_a_breaker(wchar_t wc);
+
+// Common functions for processing XML.
+struct xml_attribute *get_attribute_list_of_xml_tag(const struct wstring *tag);
+const struct wstring *get_value_of_xml_attribute(const struct xml_attribute *atts, const wchar_t *attr);
+void free_attribute_list_of_xml_tag(struct xml_attribute *atts);
 
 // Download, process and store a new items of feed.
 // See "update_feed" directory for implementation.

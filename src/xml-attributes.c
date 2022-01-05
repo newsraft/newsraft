@@ -1,11 +1,14 @@
-#include "render_data.h"
+#include <stdlib.h>
+#include <string.h>
+#include "feedeater.h"
 
 #define WCHAR_IS_WHITESPACE(A) (((A) == L' ') || ((A) == L'\n') || ((A) == L'\t'))
+#define MAX_TAG_NAME_SIZE 1000
 
 static bool
-expand_atts(struct html_attribute **atts, size_t length)
+expand_atts(struct xml_attribute **atts, size_t length)
 {
-	struct html_attribute *temp = realloc(*atts, sizeof(struct html_attribute) * length);
+	struct xml_attribute *temp = realloc(*atts, sizeof(struct xml_attribute) * length);
 	if (temp == NULL) {
 		return false;
 	}
@@ -16,7 +19,7 @@ expand_atts(struct html_attribute **atts, size_t length)
 }
 
 static void
-free_atts(struct html_attribute *atts, size_t length)
+free_atts(struct xml_attribute *atts, size_t length)
 {
 	for (size_t i = 0; i < length; ++i) {
 		free_wstring(atts[i].name);
@@ -25,19 +28,20 @@ free_atts(struct html_attribute *atts, size_t length)
 	free(atts);
 }
 
-// On success returns array of html_attribute structures:
+// On success returns array of xml_attribute structures:
 // * first structure has special meaning:
 //   - its name is set to tag name;
 // * last structure is special too:
 //   - its name is set to NULL.
 // On failure returns NULL.
 // TODO THIS IS JUST AWFUL, REWRITE, REWRITE, REWRITE TODO
-struct html_attribute *
-get_attribute_list_of_html_tag(const struct wstring *tag)
+// WARNING! HAS BUG WHEN MEETS EMPTY VALUES like alt=""
+struct xml_attribute *
+get_attribute_list_of_xml_tag(const struct wstring *tag)
 {
 	INFO("Trying to break down <%ls>", tag->ptr);
 
-	struct html_attribute *atts = NULL;
+	struct xml_attribute *atts = NULL;
 	size_t atts_len = 1;
 	size_t atts_index;
 
@@ -46,7 +50,7 @@ get_attribute_list_of_html_tag(const struct wstring *tag)
 		return NULL;
 	}
 
-	wchar_t tag_name[MAX_HTML_TAG_NAME_LENGTH + 1];
+	wchar_t tag_name[MAX_TAG_NAME_SIZE];
 	size_t tag_name_len = 0;
 
 	wchar_t word[1000];
@@ -117,7 +121,7 @@ get_attribute_list_of_html_tag(const struct wstring *tag)
 				in_tag_name = false;
 				in_attribute_name = true;
 			} else {
-				if (tag_name_len == MAX_HTML_TAG_NAME_LENGTH) {
+				if (tag_name_len == MAX_TAG_NAME_SIZE) {
 					free(atts);
 					return NULL;
 				} else {
@@ -165,7 +169,7 @@ get_attribute_list_of_html_tag(const struct wstring *tag)
 }
 
 const struct wstring *
-get_value_of_html_attribute(const struct html_attribute *atts, const wchar_t *attr)
+get_value_of_xml_attribute(const struct xml_attribute *atts, const wchar_t *attr)
 {
 	size_t i = 1;
 	while (atts[i].name != NULL) {
@@ -177,7 +181,7 @@ get_value_of_html_attribute(const struct html_attribute *atts, const wchar_t *at
 }
 
 void
-free_attribute_list_of_html_tag(struct html_attribute *atts)
+free_attribute_list_of_xml_tag(struct xml_attribute *atts)
 {
 	size_t i = 0;
 	while (atts[i].name != NULL) {

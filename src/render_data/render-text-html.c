@@ -161,7 +161,7 @@ style_end_handler(enum html_position *pos)
 }
 
 static inline bool
-start_handler(wchar_t *t, struct line *l, struct wstring *w, enum html_position *p, struct html_attribute *a)
+start_handler(wchar_t *t, struct line *l, struct wstring *w, enum html_position *p, struct xml_attribute *a)
 {
 	     if (wcscmp(t, L"span")       == 0) { /* just nothing */          return true; }
 	else if (wcscmp(t, L"p")          == 0) { add_newlines(l, w, 2);      return true; }
@@ -203,7 +203,7 @@ start_handler(wchar_t *t, struct line *l, struct wstring *w, enum html_position 
 }
 
 static inline bool
-end_handler(wchar_t *t, struct line *l, struct wstring *w, enum html_position *p, struct html_attribute *a)
+end_handler(wchar_t *t, struct line *l, struct wstring *w, enum html_position *p, struct xml_attribute *a)
 {
 	     if (wcscmp(t, L"span")       == 0) { /* just nothing */        return true; }
 	else if (wcscmp(t, L"p")          == 0) { add_newlines(l, w, 2);    return true; }
@@ -266,7 +266,7 @@ render_text_html(const struct wstring *wstr, struct line *line)
 	wchar_t entity_name[MAX_ENTITY_NAME_LENGTH + 1];
 	size_t entity_len;
 	const wchar_t *entity_value;
-	struct html_attribute *atts;
+	struct xml_attribute *atts;
 
 	list_depth = 0;
 	enum html_position position = HTML_NONE;
@@ -331,14 +331,14 @@ render_text_html(const struct wstring *wstr, struct line *line)
 			if (*i == L'>') {
 				found_tag = false;
 				in_tag = false;
-				atts = get_attribute_list_of_html_tag(tag);
+				atts = get_attribute_list_of_xml_tag(tag);
 				if (atts != NULL) {
 					if (atts[0].name->ptr[0] == L'/') {
 						found_tag = end_handler(atts[0].name->ptr + 1, line, t, &position, atts);
 					} else {
 						found_tag = start_handler(atts[0].name->ptr, line, t, &position, atts);
 					}
-					free_attribute_list_of_html_tag(atts);
+					free_attribute_list_of_xml_tag(atts);
 				}
 				if (found_tag == false) {
 					line_char(line, L'<', t);

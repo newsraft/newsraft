@@ -4,8 +4,6 @@
 
 // This has to be the length of the longest HTML entity name in entities array.
 #define MAX_ENTITY_NAME_LENGTH 13
-// This has to be the length of the longest HTML tag name (including leading '/').
-#define MAX_HTML_TAG_NAME_LENGTH 11
 
 struct line {
 	wchar_t *ptr;  // Actual text string that represents line.
@@ -15,14 +13,6 @@ struct line {
 	size_t indent; // Shows how many spaces must be printed in the beginning of line.
 };
 
-struct html_attribute {
-	struct wstring *name;
-	struct wstring *value;
-};
-
-struct html_attribute *get_attribute_list_of_html_tag(const struct wstring *tag);
-const struct wstring *get_value_of_html_attribute(const struct html_attribute *atts, const wchar_t *attr);
-void free_attribute_list_of_html_tag(struct html_attribute *atts);
 struct wstring *render_text_plain(const struct wstring *wstr, struct line *line);
 struct wstring *render_text_html(const struct wstring *wstr, struct line *line);
 const wchar_t *translate_html_entity(wchar_t *entity);

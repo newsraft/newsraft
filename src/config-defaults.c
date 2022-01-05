@@ -41,9 +41,10 @@ assign_default_values_to_empty_config_strings(void)
                          	}                             \
                          	memcpy(A, B, C);              \
                          }
+	// WARNING! Third argument to ADVTECS is number of bytes, not length.
 	ADVTECS(cfg.menu_set_entry_format,  "%4.0u │ %t",               13)
 	ADVTECS(cfg.menu_item_entry_format, " %u │ %t",                 11)
-	ADVTECS(cfg.contents_meta_data,     "feed,title,authors,categories,pubdate,upddate,link,comments,enclosures,summary,content", 87)
+	ADVTECS(cfg.contents_meta_data,     "title,authors,categories,pubdate,upddate,summary,content", 57)
 	ADVTECS(cfg.contents_date_format,   "%a, %d %b %Y %H:%M:%S %z", 25)
 	ADVTECS(cfg.break_at,               " \t!@*-+;:,./?",           14) // '\t' is a separate character
 #undef ADVTECS

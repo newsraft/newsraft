@@ -51,7 +51,7 @@ convert_bytes_to_human_readable_size_string(int bytes)
 	}
 	char hahahahahahhaaahhahahahah[30];
 	int lol = sprintf(hahahahahahhaaahhahahahah,
-	                  "%.2f %s",
+	                  "%.2f_%s",
 	                  size,
 	                  prefix == 2 ? "MiB" : (prefix == 1 ? "KiB" : (prefix == 0 ? "bytes" : "GiB")));
 	return create_string(hahahahahahhaaahhahahahah, lol);

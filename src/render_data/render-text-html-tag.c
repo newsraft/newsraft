@@ -35,6 +35,8 @@ free_atts(struct html_attribute *atts, size_t length)
 struct html_attribute *
 get_attribute_list_of_html_tag(const struct wstring *tag)
 {
+	INFO("Trying to break down <%ls>", tag->ptr);
+
 	struct html_attribute *atts = NULL;
 	size_t atts_len = 1;
 	size_t atts_index;
@@ -63,6 +65,7 @@ get_attribute_list_of_html_tag(const struct wstring *tag)
 					quoted_value = true;
 				} else if (quoted_value == true) {
 					in_attribute_value = false;
+					quoted_value = false;
 					atts[atts_index].value = create_wstring(word, word_len);
 					word_len = 0;
 				} else {
@@ -73,6 +76,7 @@ get_attribute_list_of_html_tag(const struct wstring *tag)
 					single_quoted_value = true;
 				} else if (single_quoted_value == true) {
 					in_attribute_value = false;
+					single_quoted_value = false;
 					atts[atts_index].value = create_wstring(word, word_len);
 					word_len = 0;
 				} else {
@@ -124,13 +128,19 @@ get_attribute_list_of_html_tag(const struct wstring *tag)
 	}
 
 	if (word_len != 0) {
-		if (in_attribute_value) {
+		if (in_attribute_value == true) {
 			atts[atts_index].value = create_wstring(word, word_len);
-		} else if (in_attribute_name) {
+		} else if (in_attribute_name == true) {
+			atts_index = atts_len++;
+			if (expand_atts(&atts, atts_len) == false) {
+				free_atts(atts, atts_len - 1);
+				return NULL;
+			}
 			atts[atts_index].name = create_wstring(word, word_len);
 		}
 	}
 
+	tag_name[tag_name_len] = L'\0';
 	atts[0].name = create_wstring(tag_name, tag_name_len);
 	if (atts[0].name == NULL) {
 		free_atts(atts, atts_len - 1);
@@ -144,12 +154,12 @@ get_attribute_list_of_html_tag(const struct wstring *tag)
 	}
 	atts[atts_index].name = NULL;
 
-	// for debugging
-	//for (size_t i = 0; i < atts_len - 1; ++i) {
-	//	fprintf(stderr, "%ls:%ls\n",
-	//	        atts[i].name ? atts[i].name->ptr : L"",
-	//	        atts[i].value ? atts[i].value->ptr : L"");
-	//}
+	INFO("- name of tag is \"%ls\"", tag_name);
+	for (size_t i = 1; i < atts_len - 1; ++i) {
+		INFO("-- value of \"%ls\" attribute is \"%ls\"",
+		     atts[i].name ? atts[i].name->ptr : L"(null)",
+		     atts[i].value ? atts[i].value->ptr : L"(null)");
+	}
 
 	return atts;
 }

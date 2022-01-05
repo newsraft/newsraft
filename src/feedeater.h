@@ -74,9 +74,22 @@ struct content_list {
 	struct content_list *next;
 };
 
+struct trim_link {
+	struct string *url;      // URL of data.
+	struct string *type;     // Standard MIME type of data.
+	struct string *size;     // Size of data in bytes.
+	struct string *duration; // Duration of data in seconds (if it is an audio or video).
+};
+
+struct trim_link_list {
+	struct trim_link *list; // Dynamic array of links.
+	size_t len;             // Shows how many items is in list.
+};
+
 struct config_data {
-	size_t max_items; // 0 == inf
+	size_t max_items;
 	size_t init_parser_buf_size;
+	bool append_links;
 	char *menu_set_entry_format;
 	char *menu_item_entry_format;
 	char *contents_meta_data;
@@ -161,6 +174,10 @@ int enter_items_menu_loop(const struct set_condition *st);
 int pager_view(const struct content_list *data_list);
 int append_content(struct content_list **list, const char *content, size_t content_len, const char *content_type, size_t content_type_len);
 int populate_content_list_with_data_of_item(struct content_list **data_list, sqlite3_stmt *res);
+bool expand_trim_link_list_by_one_element(struct trim_link_list *links);
+bool populate_link_list_with_links_of_item(struct trim_link_list *links, sqlite3_stmt *res);
+void free_trim_link_list(const struct trim_link_list *links);
+bool append_links_of_item_to_its_contents(struct content_list **contents, struct trim_link_list *links);
 int enter_item_contents_menu_loop(int rowid);
 
 // path
@@ -198,6 +215,7 @@ int db_begin_transaction(void);
 int db_commit_transaction(void);
 int db_rollback_transaction(void);
 const char *db_error_string(void);
+sqlite3_stmt *db_find_item_by_rowid(int rowid);
 int db_mark_item_read(int rowid);
 int db_mark_item_unread(int rowid);
 int get_unread_items_count(const struct set_condition *sc);
@@ -244,7 +262,6 @@ void strip_whitespace_from_wstring(struct wstring *wstr);
 int log_init(const char *path);
 void log_stop(void);
 
-struct content_list *create_content_list_for_item(int rowid);
 void free_content_list(struct content_list *list);
 
 bool is_wchar_a_breaker(wchar_t wc);

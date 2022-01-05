@@ -2,6 +2,26 @@
 #include <string.h>
 #include "feedeater.h"
 
+// On success returns pointer to sqlite3_stmt.
+// On failure returns NULL.
+sqlite3_stmt *
+db_find_item_by_rowid(int rowid)
+{
+	INFO("Looking for item with rowid %d...", rowid);
+	sqlite3_stmt *res;
+	if (db_prepare("SELECT * FROM items WHERE rowid = ? LIMIT 1", 44, &res, NULL) != SQLITE_OK) {
+		return NULL;
+	}
+	sqlite3_bind_int(res, 1, rowid);
+	if (sqlite3_step(res) != SQLITE_ROW) {
+		WARN("Item with rowid %d not found!", rowid);
+		sqlite3_finalize(res);
+		return NULL;
+	}
+	INFO("Item with rowid %d is found.", rowid);
+	return res;
+}
+
 static int
 db_update_item_int(int rowid, const char *column, int value)
 {

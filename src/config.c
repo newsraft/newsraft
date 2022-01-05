@@ -61,6 +61,7 @@ load_config(void)
 	int error = 0;
 
 	cfg.max_items = 0; // 0 == inf
+	cfg.append_links = true;
 	cfg.init_parser_buf_size = 1048576; // 1 MiB
 	cfg.menu_set_entry_format = NULL;
 	cfg.menu_item_entry_format = NULL;

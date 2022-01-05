@@ -85,6 +85,7 @@ executable(
 		'src/interface-input.c',
 		'src/interface-pager-menu.c',
 		'src/items.c',
+		'src/items-links.c',
 		'src/items-content.c',
 		'src/items-metadata.c',
 		'src/update_feed/update_feed.c',

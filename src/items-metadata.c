@@ -19,7 +19,6 @@ static const struct data_entry entries[] = {
 	{"categories", "Categories: ", 12, "\n", 1, ITEM_COLUMN_CATEGORIES, ITEM_COLUMN_NONE},
 	{"link",       "Link: ",       6,  "\n", 1, ITEM_COLUMN_LINK,       ITEM_COLUMN_NONE},
 	{"comments",   "Comments: ",   10, "\n", 1, ITEM_COLUMN_COMMENTS,   ITEM_COLUMN_NONE},
-	{"enclosures", "Enclosures:",  11, "\n", 1, ITEM_COLUMN_ENCLOSURES, ITEM_COLUMN_NONE},
 	{"summary",    "\n",           1,  "\n", 1, ITEM_COLUMN_SUMMARY,    ITEM_COLUMN_SUMMARY_TYPE},
 	{"content",    "\n",           1,  "\n", 1, ITEM_COLUMN_CONTENT,    ITEM_COLUMN_CONTENT_TYPE},
 };

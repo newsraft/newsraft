@@ -91,41 +91,35 @@ generate_link_list_string(const struct link_list *links)
 	if (str == NULL) {
 		return NULL;
 	}
-	bool added_type, added_size;
 	struct string *readable_size;
+	bool added_url = false;
 	for (size_t i = 0; i < links->len; ++i) {
-		added_type = false;
-		added_size = false;
 		if (links->list[i].url->len != 0) {
-			catcs(str, '\n');
+			if (added_url == true) {
+				catcs(str, '\n');
+			}
 			catss(str, links->list[i].url);
+			added_url = true;
 		} else {
 			continue;
 		}
+		catcs(str, ' ');
 		if (links->list[i].type->len != 0) {
-			catas(str, " (type: ", 8);
 			catss(str, links->list[i].type);
-			added_type = true;
 		}
+		catcs(str, ' ');
 		if (links->list[i].size != 0) {
-			if (added_type == true) {
-				catas(str, ", size: ", 8);
-			} else {
-				catas(str, " (size: ", 8);
-			}
 			readable_size = convert_bytes_to_human_readable_size_string(links->list[i].size);
 			if (readable_size != NULL) {
 				catss(str, readable_size);
 				free_string(readable_size);
 			} else {
-				free_string(str);
-				return NULL;
+				goto error;
 			}
-			added_size = true;
-		}
-		if ((added_type == true) || (added_size == true)) {
-			catcs(str, ')');
 		}
 	}
 	return str;
+error:
+	free_string(str);
+	return NULL;
 }

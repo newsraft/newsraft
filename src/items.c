@@ -261,14 +261,36 @@ set_items_input_handlers(void)
 static inline int
 enter_item_pager_loop(int rowid)
 {
-	INFO("Trying to view an item with the rowid %d.", rowid);
-	struct content_list *list = create_content_list_for_item(rowid);
-	if (list == NULL) {
-		FAIL("Can not create content list for item!");
+	INFO("Trying to view an item with rowid %d...", rowid);
+	sqlite3_stmt *res = db_find_item_by_rowid(rowid);
+	if (res == NULL) {
 		return INPUTS_COUNT;
 	}
-	int destination = pager_view(list);
-	free_content_list(list);
+	struct trim_link_list links = {NULL, 0};
+	if (populate_link_list_with_links_of_item(&links, res) == false) {
+		free_trim_link_list(&links);
+		sqlite3_finalize(res);
+		return INPUTS_COUNT;
+	}
+	struct content_list *contents = NULL;
+	if (populate_content_list_with_data_of_item(&contents, res) != 0) {
+		free_content_list(contents);
+		free_trim_link_list(&links);
+		sqlite3_finalize(res);
+		return INPUTS_COUNT;
+	}
+	if (cfg.append_links == true) {
+		if (append_links_of_item_to_its_contents(&contents, &links) == false) {
+			free_content_list(contents);
+			free_trim_link_list(&links);
+			sqlite3_finalize(res);
+			return INPUTS_COUNT;
+		}
+	}
+	int destination = pager_view(contents);
+	free_content_list(contents);
+	free_trim_link_list(&links);
+	sqlite3_finalize(res);
 	return destination;
 }
 

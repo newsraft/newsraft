@@ -266,7 +266,7 @@ enter_item_pager_loop(int rowid)
 	if (res == NULL) {
 		return INPUTS_COUNT;
 	}
-	struct trim_link_list links = {NULL, 0};
+	struct link_list links = {NULL, 0, 0};
 	if (populate_link_list_with_links_of_item(&links, res) == false) {
 		free_trim_link_list(&links);
 		sqlite3_finalize(res);
@@ -280,7 +280,7 @@ enter_item_pager_loop(int rowid)
 		return INPUTS_COUNT;
 	}
 	if (cfg.append_links == true) {
-		if (append_links_of_item_to_its_contents(&contents, &links) == false) {
+		if (append_links_to_contents(&contents, &links) == false) {
 			free_content_list(contents);
 			free_trim_link_list(&links);
 			sqlite3_finalize(res);
@@ -302,7 +302,7 @@ enter_items_menu_loop(const struct set_condition *sc)
 
 	INFO("Loading items...");
 	if (load_items(sc) == false) {
-		FAIL("Failed to load items!");
+		WARN("Failed to load items!");
 		free_items();
 		return INPUTS_COUNT;
 	}

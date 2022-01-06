@@ -39,20 +39,3 @@ get_value_of_attribute_key(const XML_Char **atts, const char *key)
 	}
 	return NULL; // failure, didn't find an attribute with key name
 }
-
-struct string *
-convert_bytes_to_human_readable_size_string(int bytes)
-{
-	float size = bytes;
-	int prefix = 0;
-	while ((size > 1024) && (prefix < 3)) {
-		size = size / 1024;
-		++prefix;
-	}
-	char hahahahahahhaaahhahahahah[30];
-	int lol = sprintf(hahahahahahhaaahhahahahah,
-	                  "%.2f_%s",
-	                  size,
-	                  prefix == 2 ? "MiB" : (prefix == 1 ? "KiB" : (prefix == 0 ? "bytes" : "GiB")));
-	return create_string(hahahahahahhaaahhahahahah, lol);
-}

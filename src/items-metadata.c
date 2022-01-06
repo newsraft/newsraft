@@ -13,14 +13,14 @@ struct data_entry {
 };
 
 static const struct data_entry entries[] = {
-	{"feed",       "Feed: ",       6,  "\n", 1, ITEM_COLUMN_FEED_URL,   ITEM_COLUMN_NONE},
-	{"title",      "Title: ",      7,  "\n", 1, ITEM_COLUMN_TITLE,      ITEM_COLUMN_NONE},
-	{"authors",    "Authors: ",    9,  "\n", 1, ITEM_COLUMN_AUTHORS,    ITEM_COLUMN_NONE},
-	{"categories", "Categories: ", 12, "\n", 1, ITEM_COLUMN_CATEGORIES, ITEM_COLUMN_NONE},
-	{"link",       "Link: ",       6,  "\n", 1, ITEM_COLUMN_LINK,       ITEM_COLUMN_NONE},
-	{"comments",   "Comments: ",   10, "\n", 1, ITEM_COLUMN_COMMENTS,   ITEM_COLUMN_NONE},
-	{"summary",    "\n",           1,  "\n", 1, ITEM_COLUMN_SUMMARY,    ITEM_COLUMN_SUMMARY_TYPE},
-	{"content",    "\n",           1,  "\n", 1, ITEM_COLUMN_CONTENT,    ITEM_COLUMN_CONTENT_TYPE},
+	{"feed",       "Feed: ",       6,  "\n", 1, ITEM_COLUMN_FEED_URL,     ITEM_COLUMN_NONE},
+	{"title",      "Title: ",      7,  "\n", 1, ITEM_COLUMN_TITLE,        ITEM_COLUMN_NONE},
+	{"authors",    "Authors: ",    9,  "\n", 1, ITEM_COLUMN_AUTHORS,      ITEM_COLUMN_NONE},
+	{"categories", "Categories: ", 12, "\n", 1, ITEM_COLUMN_CATEGORIES,   ITEM_COLUMN_NONE},
+	{"link",       "Link: ",       6,  "\n", 1, ITEM_COLUMN_LINK,         ITEM_COLUMN_NONE},
+	{"comments",   "Comments: ",   10, "\n", 1, ITEM_COLUMN_COMMENTS_URL, ITEM_COLUMN_NONE},
+	{"summary",    "\n",           1,  "\n", 1, ITEM_COLUMN_SUMMARY,      ITEM_COLUMN_SUMMARY_TYPE},
+	{"content",    "\n",           1,  "\n", 1, ITEM_COLUMN_CONTENT,      ITEM_COLUMN_CONTENT_TYPE},
 };
 
 // On success returns true.
@@ -51,7 +51,7 @@ append_pubdate(struct content_list **list, sqlite3_stmt *res)
 		free_string(pubdate_entry);
 		return false;
 	}
-	if (append_content(list, pubdate_entry->ptr, pubdate_entry->len, "plain", 5) != 0) {
+	if (append_content(list, pubdate_entry->ptr, pubdate_entry->len, "plain", 5) == false) {
 		free_string(pubdate_entry);
 		return false;
 	}
@@ -87,7 +87,7 @@ append_upddate(struct content_list **list, sqlite3_stmt *res)
 		free_string(upddate_entry);
 		return false;
 	}
-	if (append_content(list, upddate_entry->ptr, upddate_entry->len, "plain", 5) != 0) {
+	if (append_content(list, upddate_entry->ptr, upddate_entry->len, "plain", 5) == false) {
 		free_string(upddate_entry);
 		return false;
 	}
@@ -110,7 +110,7 @@ append_meta_data_entry(struct content_list **list, sqlite3_stmt *res, int index)
 	if (entry == NULL) {
 		return false;
 	}
-	if (append_content(list, entries[index].prefix, entries[index].prefix_len, "plain", 5) != 0) {
+	if (append_content(list, entries[index].prefix, entries[index].prefix_len, "plain", 5) == false) {
 		free_string(entry);
 		return false;
 	}
@@ -123,11 +123,11 @@ append_meta_data_entry(struct content_list **list, sqlite3_stmt *res, int index)
 		text_type = "plain";
 		text_type_len = 5;
 	}
-	if (append_content(list, entry->ptr, entry->len, text_type, text_type_len) != 0) {
+	if (append_content(list, entry->ptr, entry->len, text_type, text_type_len) == false) {
 		free_string(entry);
 		return false;
 	}
-	if (append_content(list, entries[index].suffix, entries[index].suffix_len, "plain", 5) != 0) {
+	if (append_content(list, entries[index].suffix, entries[index].suffix_len, "plain", 5) == false) {
 		free_string(entry);
 		return false;
 	}

@@ -43,7 +43,7 @@ db_init(void)
 			"categories TEXT NOT NULL,"
 			"pubdate INTEGER(8)," // publication date in seconds since 1970
 			"upddate INTEGER(8)," // update date in seconds since 1970
-			"comments TEXT NOT NULL,"
+			"comments_url TEXT NOT NULL,"
 			"summary TEXT NOT NULL,"
 			"summary_type TEXT NOT NULL,"
 			"content TEXT NOT NULL,"

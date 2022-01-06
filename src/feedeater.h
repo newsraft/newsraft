@@ -74,16 +74,17 @@ struct content_list {
 	struct content_list *next;
 };
 
-struct trim_link {
-	struct string *url;      // URL of data.
+struct link {
+	struct string *url;      // URL link to data.
 	struct string *type;     // Standard MIME type of data.
 	struct string *size;     // Size of data in bytes.
-	struct string *duration; // Duration of data in seconds (if it is an audio or video).
+	struct string *duration; // Duration of data in seconds.
 };
 
-struct trim_link_list {
-	struct trim_link *list; // Dynamic array of links.
-	size_t len;             // Shows how many items is in list.
+struct link_list {
+	struct link *list; // Dynamic array of links.
+	size_t len;        // Shows how many items is in list.
+	size_t lim;        // Shows how many items list can fit.
 };
 
 struct xml_attribute {
@@ -149,7 +150,7 @@ enum item_column {
 	ITEM_COLUMN_CATEGORIES,
 	ITEM_COLUMN_PUBDATE,
 	ITEM_COLUMN_UPDDATE,
-	ITEM_COLUMN_COMMENTS,
+	ITEM_COLUMN_COMMENTS_URL,
 	ITEM_COLUMN_SUMMARY,
 	ITEM_COLUMN_SUMMARY_TYPE,
 	ITEM_COLUMN_CONTENT,
@@ -177,12 +178,13 @@ int enter_items_menu_loop(const struct set_condition *st);
 
 // contents
 int pager_view(const struct content_list *data_list);
-int append_content(struct content_list **list, const char *content, size_t content_len, const char *content_type, size_t content_type_len);
+bool append_content(struct content_list **list, const char *content, size_t content_len, const char *content_type, size_t content_type_len);
 int populate_content_list_with_data_of_item(struct content_list **data_list, sqlite3_stmt *res);
-bool expand_trim_link_list_by_one_element(struct trim_link_list *links);
-bool populate_link_list_with_links_of_item(struct trim_link_list *links, sqlite3_stmt *res);
-void free_trim_link_list(const struct trim_link_list *links);
-bool append_links_of_item_to_its_contents(struct content_list **contents, struct trim_link_list *links);
+void free_content_list(struct content_list *list);
+bool populate_link_list_with_links_of_item(struct link_list *links, sqlite3_stmt *res);
+struct string *generate_link_list_string_for_pager(const struct link_list *links);
+void free_trim_link_list(const struct link_list *links);
+bool append_links_to_contents(struct content_list **contents, struct link_list *links);
 int enter_item_contents_menu_loop(int rowid);
 
 // path
@@ -268,16 +270,16 @@ struct string *convert_wstring_to_string(const struct wstring *src);
 int log_init(const char *path);
 void log_stop(void);
 
-void free_content_list(struct content_list *list);
-
 bool is_wchar_a_breaker(wchar_t wc);
+
+struct string *convert_bytes_to_human_readable_size_string(const char *value);
 
 // Common functions for processing XML.
 struct xml_attribute *get_attribute_list_of_xml_tag(const struct wstring *tag);
 const struct wstring *get_value_of_xml_attribute(const struct xml_attribute *atts, const wchar_t *attr);
 void free_attribute_list_of_xml_tag(struct xml_attribute *atts);
 
-// Download, process and store a new items of feed.
+// Download, process and store new items of feed.
 // See "update_feed" directory for implementation.
 bool update_feed(const struct string *url);
 

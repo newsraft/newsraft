@@ -46,7 +46,7 @@ assign_default_values_to_empty_config_strings(void)
 	ADVTECS(cfg.menu_item_entry_format, " %u │ %t",                 11)
 	ADVTECS(cfg.contents_meta_data,     "title,authors,categories,pubdate,upddate,summary,content", 57)
 	ADVTECS(cfg.contents_date_format,   "%a, %d %b %Y %H:%M:%S %z", 25)
-	ADVTECS(cfg.break_at,               " \t!@*-+;:,./?",           14) // '\t' is a separate character
+	ADVTECS(cfg.break_at,               " ",                        2)
 #undef ADVTECS
 	return 0;
 }

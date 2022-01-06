@@ -21,7 +21,7 @@ initialize_item_bucket(struct item_bucket *item)
 	if ((item->categories = create_empty_string()) == NULL) {
 		goto undo4;
 	}
-	if ((item->comments = create_empty_string()) == NULL) {
+	if ((item->comments_url = create_empty_string()) == NULL) {
 		goto undo5;
 	}
 	if ((item->summary = create_empty_string()) == NULL) {
@@ -48,7 +48,7 @@ undo8:
 undo7:
 	free_string(item->summary);
 undo6:
-	free_string(item->comments);
+	free_string(item->comments_url);
 undo5:
 	free_string(item->categories);
 undo4:
@@ -71,7 +71,7 @@ empty_item_bucket(struct item_bucket *item)
 	empty_string(item->title_type);
 	empty_string(item->url);
 	empty_string(item->categories);
-	empty_string(item->comments);
+	empty_string(item->comments_url);
 	empty_string(item->summary);
 	empty_string(item->summary_type);
 	empty_string(item->content);
@@ -90,7 +90,7 @@ free_item_bucket(const struct item_bucket *item)
 	free_string(item->title_type);
 	free_string(item->url);
 	free_string(item->categories);
-	free_string(item->comments);
+	free_string(item->comments_url);
 	free_string(item->summary);
 	free_string(item->summary_type);
 	free_string(item->content);

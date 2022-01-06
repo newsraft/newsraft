@@ -121,7 +121,7 @@ link_start(struct parser_data *data, const XML_Char **atts)
 		if (length != NULL) {
 			// Do not check this call for errors, because its fail is not fatal. Everything that
 			// can go wrong is failure on sscanf owing to invalid (non-integer) value of length.
-			add_size_to_last_link(&data->item.enclosures, length);
+			add_size_to_last_link(&data->item.enclosures, length, strlen(length));
 		}
 	} else {
 		if (href != NULL) {

@@ -14,19 +14,6 @@ enum update_error {
 	PARSE_FAIL_DB_TRANSACTION_ERROR,
 };
 
-struct link {
-	struct string *url;  // Link to data.
-	struct string *type; // Standard MIME type of data.
-	size_t size;         // Size of data in bytes.
-	size_t duration;     // Duration of data in seconds (if it is an audio or video).
-};
-
-struct link_list {
-	struct link *list; // Dynamic array of links.
-	size_t len;        // Shows how many items is in list.
-	size_t lim;        // Shows how many items list can fit.
-};
-
 struct person {
 	struct string *name;
 	struct string *email;
@@ -64,7 +51,7 @@ struct item_bucket {
 	struct string *summary_type; // Format of text of summary (for example plain or html).
 	struct string *content;
 	struct string *content_type; // Format of text of content.
-	struct string *comments;
+	struct string *comments_url;
 	struct string *categories;
 	struct link_list enclosures;
 	struct person_list authors;
@@ -117,8 +104,6 @@ bool we_are_inside_item(const struct parser_data *data);
 time_t parse_date_rfc822(const struct string *value);
 time_t parse_date_rfc3339(const struct string *value);
 
-struct string *convert_bytes_to_human_readable_size_string(int bytes);
-
 // feed bucket functions
 bool initialize_feed_bucket(struct feed_bucket *feed);
 bool insert_feed(const struct string *feed_url, const struct feed_bucket *feed);
@@ -136,10 +121,11 @@ void initialize_link_list(struct link_list *links);
 bool expand_link_list_by_one_element(struct link_list *links);
 bool add_url_to_last_link(const struct link_list *links, const char *value, size_t value_len);
 bool add_type_to_last_link(const struct link_list *links, const char *value, size_t value_len);
-bool add_size_to_last_link(const struct link_list *links, const char *value);
+bool add_size_to_last_link(const struct link_list *links, const char *value, size_t value_len);
+bool add_duration_to_last_link(const struct link_list *links, const char *value, size_t value_len);
 void empty_link_list(struct link_list *links);
 void free_link_list(const struct link_list *links);
-struct string *generate_link_list_string(const struct link_list *links);
+struct string *generate_link_list_string_for_database(const struct link_list *links);
 
 // Functions to manage person_list.
 void initialize_person_list(struct person_list *persons);

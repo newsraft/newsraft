@@ -192,7 +192,7 @@ enclosure_start(struct parser_data *data, const XML_Char **atts)
 		} else if (strcmp(atts[i], "length") == 0) {
 			// Do not check this call for errors, because its fail is not fatal. Everything that
 			// can go wrong is failure on sscanf owing to invalid (non-integer) value of length.
-			add_size_to_last_link(&data->item.enclosures, atts[i + 1]);
+			add_size_to_last_link(&data->item.enclosures, atts[i + 1], strlen(atts[i + 1]));
 		}
 	}
 }
@@ -236,7 +236,7 @@ comments_end(struct parser_data *data)
 	if ((data->rss20_pos & RSS20_ITEM) == 0) {
 		return;
 	}
-	if (cpyss(data->item.comments, data->value) == false) {
+	if (cpyss(data->item.comments_url, data->value) == false) {
 		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		return;
 	}

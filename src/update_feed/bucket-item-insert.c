@@ -38,7 +38,7 @@ db_insert_item(const struct string *feed_url, const struct item_bucket *item, in
 		return;
 	}
 
-	struct string *enclosures_list = generate_link_list_string(&item->enclosures);
+	struct string *enclosures_list = generate_link_list_string_for_database(&item->enclosures);
 	if (enclosures_list == NULL) {
 		FAIL("Not enough memory for creating enclosures list of item bucket!");
 		free_string(authors_list);
@@ -51,7 +51,7 @@ db_insert_item(const struct string *feed_url, const struct item_bucket *item, in
 	if (rowid == -1) {
 		prepare_status = db_prepare("INSERT INTO items VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", 72, &s, NULL);
 	} else {
-		prepare_status = db_prepare("UPDATE items SET feed_url = ?, title = ?, guid = ?, link = ?, unread = ?, enclosures = ?, authors = ?, categories = ?, pubdate = ?, upddate = ?, comments = ?, summary = ?, summary_type = ?, content = ?, content_type = ? WHERE rowid = ?;", 237, &s, NULL);
+		prepare_status = db_prepare("UPDATE items SET feed_url = ?, title = ?, guid = ?, link = ?, unread = ?, enclosures = ?, authors = ?, categories = ?, pubdate = ?, upddate = ?, comments_url = ?, summary = ?, summary_type = ?, content = ?, content_type = ? WHERE rowid = ?;", 237, &s, NULL);
 	}
 
 	if (prepare_status != SQLITE_OK) {
@@ -70,7 +70,7 @@ db_insert_item(const struct string *feed_url, const struct item_bucket *item, in
 	sqlite3_bind_text(s,  ITEM_COLUMN_CATEGORIES   + 1, item->categories->ptr, item->categories->len, NULL);
 	sqlite3_bind_int64(s, ITEM_COLUMN_PUBDATE      + 1, (sqlite3_int64)(item->pubdate));
 	sqlite3_bind_int64(s, ITEM_COLUMN_UPDDATE      + 1, (sqlite3_int64)(item->upddate));
-	sqlite3_bind_text(s,  ITEM_COLUMN_COMMENTS     + 1, item->comments->ptr, item->comments->len, NULL);
+	sqlite3_bind_text(s,  ITEM_COLUMN_COMMENTS_URL + 1, item->comments_url->ptr, item->comments_url->len, NULL);
 	sqlite3_bind_text(s,  ITEM_COLUMN_SUMMARY      + 1, item->summary->ptr, item->summary->len, NULL);
 	sqlite3_bind_text(s,  ITEM_COLUMN_SUMMARY_TYPE + 1, item->summary_type->ptr, item->summary_type->len, NULL);
 	sqlite3_bind_text(s,  ITEM_COLUMN_CONTENT      + 1, item->content->ptr, item->content->len, NULL);

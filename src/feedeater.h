@@ -183,6 +183,7 @@ int populate_content_list_with_data_of_item(struct content_list **data_list, sql
 void free_content_list(struct content_list *list);
 bool populate_link_list_with_links_of_item(struct link_list *links, sqlite3_stmt *res);
 struct string *generate_link_list_string_for_pager(const struct link_list *links);
+bool add_another_url_to_trim_link_list(struct link_list *links, char *url, size_t url_len);
 void free_trim_link_list(const struct link_list *links);
 bool append_links_to_contents(struct content_list **contents, struct link_list *links);
 int enter_item_contents_menu_loop(int rowid);
@@ -282,6 +283,9 @@ void free_attribute_list_of_xml_tag(struct xml_attribute *atts);
 // Download, process and store new items of feed.
 // See "update_feed" directory for implementation.
 bool update_feed(const struct string *url);
+
+// See "extract_links" directory for implementation.
+bool extract_links(const struct content_list *data_list, struct link_list *target);
 
 // Convert series of texts of different formats to one big
 // content string that can be written to pad window without

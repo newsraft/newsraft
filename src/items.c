@@ -274,17 +274,14 @@ enter_item_pager_loop(int rowid)
 	}
 	struct content_list *contents = NULL;
 	if (populate_content_list_with_data_of_item(&contents, res) != 0) {
-		free_content_list(contents);
-		free_trim_link_list(&links);
-		sqlite3_finalize(res);
-		return INPUTS_COUNT;
+		goto error;
+	}
+	if (extract_links(contents, &links) == false) {
+		goto error;
 	}
 	if (cfg.append_links == true) {
 		if (append_links_to_contents(&contents, &links) == false) {
-			free_content_list(contents);
-			free_trim_link_list(&links);
-			sqlite3_finalize(res);
-			return INPUTS_COUNT;
+			goto error;
 		}
 	}
 	int destination = pager_view(contents);
@@ -292,6 +289,11 @@ enter_item_pager_loop(int rowid)
 	free_trim_link_list(&links);
 	sqlite3_finalize(res);
 	return destination;
+error:
+	free_content_list(contents);
+	free_trim_link_list(&links);
+	sqlite3_finalize(res);
+	return INPUTS_COUNT;
 }
 
 int

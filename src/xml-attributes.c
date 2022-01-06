@@ -61,9 +61,12 @@ get_attribute_list_of_xml_tag(const struct wstring *tag)
 	bool quoted_value = false;
 	bool single_quoted_value = false;
 
-	for (size_t i = 0; i < tag->len; ++i) {
+	const wchar_t *iter = tag->ptr;
+	while (*iter != L'\0') {
+
 		if (in_attribute_value == true) {
-			if (tag->ptr[i] == L'"') {
+
+			if (*iter == L'"') {
 				if ((word_len == 0) &&
 				    (quoted_value == false) &&
 				    (single_quoted_value == false))
@@ -81,7 +84,7 @@ get_attribute_list_of_xml_tag(const struct wstring *tag)
 				} else {
 					word[word_len++] = L'"';
 				}
-			} else if (tag->ptr[i] == L'\'') {
+			} else if (*iter == L'\'') {
 				if ((word_len == 0) &&
 				    (single_quoted_value == false) &&
 				    (quoted_value == false))
@@ -99,9 +102,9 @@ get_attribute_list_of_xml_tag(const struct wstring *tag)
 				} else {
 					word[word_len++] = L'\'';
 				}
-			} else if (WCHAR_IS_WHITESPACE(tag->ptr[i])) {
+			} else if (WCHAR_IS_WHITESPACE(*iter)) {
 				if (quoted_value || single_quoted_value) {
-					word[word_len++] = tag->ptr[i];
+					word[word_len++] = *iter;
 				} else {
 					in_attribute_value = false;
 					atts[atts_index].value = create_wstring(word, word_len);
@@ -112,11 +115,14 @@ get_attribute_list_of_xml_tag(const struct wstring *tag)
 					word_len = 0;
 				}
 			} else {
-				word[word_len++] = tag->ptr[i];
+				word[word_len++] = *iter;
 			}
+
 		} else if (in_attribute_name == true) {
-			if ((WCHAR_IS_WHITESPACE(tag->ptr[i])) || (tag->ptr[i] == L'=')) {
+
+			if ((WCHAR_IS_WHITESPACE(*iter)) || (*iter == L'=')) {
 				if (word_len == 0) {
+					++iter;
 					continue;
 				}
 				atts_index = atts_len++;
@@ -129,15 +135,17 @@ get_attribute_list_of_xml_tag(const struct wstring *tag)
 					free_atts(atts, atts_len);
 					return NULL;
 				}
-				if (tag->ptr[i] == L'=') {
+				if (*iter == L'=') {
 					word_len = 0;
 					in_attribute_value = true;
 				}
 			} else {
-				word[word_len++] = tag->ptr[i];
+				word[word_len++] = *iter;
 			}
+
 		} else if (in_tag_name == true) {
-			if (WCHAR_IS_WHITESPACE(tag->ptr[i])) {
+
+			if (WCHAR_IS_WHITESPACE(*iter)) {
 				word_len = 0;
 				in_tag_name = false;
 				in_attribute_name = true;
@@ -146,10 +154,13 @@ get_attribute_list_of_xml_tag(const struct wstring *tag)
 					free(atts);
 					return NULL;
 				} else {
-					tag_name[tag_name_len++] = tag->ptr[i];
+					tag_name[tag_name_len++] = *iter;
 				}
 			}
+
 		}
+
+		++iter;
 	}
 
 	if (word_len != 0) {
@@ -205,6 +216,7 @@ get_value_of_xml_attribute(const struct xml_attribute *atts, const wchar_t *attr
 		if (wcscmp(atts[i].name->ptr, attr) == 0) {
 			return atts[i].value;
 		}
+		++i;
 	}
 	return NULL;
 }

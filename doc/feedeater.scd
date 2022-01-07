@@ -2,7 +2,7 @@ FEEDEATER(1)
 
 # NAME
 
-feedeater - a feed reader for terminal
+feedeater - feed reader for terminal
 
 # SYNOPSIS
 
@@ -16,9 +16,8 @@ feedeater - a feed reader for terminal
 
 Feedeater is a piece of software that aggregates syndicated web content such
 as blogs, newspapers and podcasts in one location for easy access from your
-terminal via comfy curses interface.
-
-Feedeater is greatly inspired by *newsboat*(1).
+terminal via comfy curses interface. It is greatly inspired by *newsboat*(1)
+and yet has some significant differences.
 
 # OPTIONS
 
@@ -83,7 +82,7 @@ _item-entry-format_ (default: *" %u │ %t"*)
 _date-format_ (default: *"%a, %d %b %Y %H:%M:%S %z"*)
 	Format of date.
 
-_break-at_ (default: *" \\t!@\*-+;:,./?"*)
+_break-at_ (default: *" "*)
 	Characters that break the lines.
 
 _feed-items-limit_ (default: *0*)

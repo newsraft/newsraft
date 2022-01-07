@@ -1,6 +1,7 @@
 #ifndef UPDATE_FEED_H
 #define UPDATE_FEED_H
 #include <expat.h>
+#include "feedeater.h"
 
 #define NAMESPACE_SEPARATOR ' '
 
@@ -12,6 +13,11 @@ enum update_error {
 	PARSE_FAIL_CURL_UNABLE_TO_CREATE_HANDLE,
 	PARSE_FAIL_CURL_EASY_PERFORM_ERROR,
 	PARSE_FAIL_DB_TRANSACTION_ERROR,
+};
+
+struct text {
+	struct string *value;
+	struct string *type;
 };
 
 struct person {
@@ -30,29 +36,25 @@ struct person_list {
 // so we can insert or replace one big chunk of data in one
 // statement instead of frequent check-inserts of individual values.
 struct feed_bucket {
-	struct string *title;
+	struct text title;
 	struct string *link;
-	struct string *summary;
-	struct string *summary_type;
+	struct text summary;
 	struct string *categories;
 	struct string *language;
-	struct string *generator;
-	struct string *rights;
+	struct text generator;
+	struct text rights;
 };
 
 // Used to bufferize an item before writing it to the database,
 // so we can ignore it in case if identical item is already cached.
 struct item_bucket {
 	struct string *guid;
-	struct string *title;
-	struct string *title_type;
+	struct text title;
 	struct string *url; // TODO: make this of struct link * type
-	struct string *summary;
-	struct string *summary_type; // Format of text of summary (for example plain or html).
-	struct string *content;
-	struct string *content_type; // Format of text of content.
-	struct string *comments_url;
+	struct text summary;
+	struct text content;
 	struct string *categories;
+	struct string *comments_url;
 	struct link_list enclosures;
 	struct person_list authors;
 	// Dates in this struct are represented in seconds
@@ -103,6 +105,9 @@ bool we_are_inside_item(const struct parser_data *data);
 // date
 time_t parse_date_rfc822(const struct string *value);
 time_t parse_date_rfc3339(const struct string *value);
+
+// Common bucket functions.
+bool db_bind_text_struct(sqlite3_stmt *s, intmax_t placeholder, const struct text *text_struct);
 
 // feed bucket functions
 bool initialize_feed_bucket(struct feed_bucket *feed);

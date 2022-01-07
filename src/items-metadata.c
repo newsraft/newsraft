@@ -9,18 +9,18 @@ struct data_entry {
 	const char *const suffix;           // String to write after entry data.
 	const size_t suffix_len;
 	const enum item_column data_column; // Column index from which to take data.
-	const enum item_column type_column; // Column index from which to take data type.
+	const bool does_it_have_type_header_at_the_beginning;
 };
 
 static const struct data_entry entries[] = {
-	{"feed",       "Feed: ",       6,  "\n", 1, ITEM_COLUMN_FEED_URL,     ITEM_COLUMN_NONE},
-	{"title",      "Title: ",      7,  "\n", 1, ITEM_COLUMN_TITLE,        ITEM_COLUMN_NONE},
-	{"authors",    "Authors: ",    9,  "\n", 1, ITEM_COLUMN_AUTHORS,      ITEM_COLUMN_NONE},
-	{"categories", "Categories: ", 12, "\n", 1, ITEM_COLUMN_CATEGORIES,   ITEM_COLUMN_NONE},
-	{"link",       "Link: ",       6,  "\n", 1, ITEM_COLUMN_LINK,         ITEM_COLUMN_NONE},
-	{"comments",   "Comments: ",   10, "\n", 1, ITEM_COLUMN_COMMENTS_URL, ITEM_COLUMN_NONE},
-	{"summary",    "\n",           1,  "\n", 1, ITEM_COLUMN_SUMMARY,      ITEM_COLUMN_SUMMARY_TYPE},
-	{"content",    "\n",           1,  "\n", 1, ITEM_COLUMN_CONTENT,      ITEM_COLUMN_CONTENT_TYPE},
+	{"feed",       "Feed: ",       6,  "\n", 1, ITEM_COLUMN_FEED_URL,     false},
+	{"title",      "Title: ",      7,  "\n", 1, ITEM_COLUMN_TITLE,        true},
+	{"authors",    "Authors: ",    9,  "\n", 1, ITEM_COLUMN_AUTHORS,      false},
+	{"categories", "Categories: ", 12, "\n", 1, ITEM_COLUMN_CATEGORIES,   false},
+	{"link",       "Link: ",       6,  "\n", 1, ITEM_COLUMN_LINK,         false},
+	{"comments",   "Comments: ",   10, "\n", 1, ITEM_COLUMN_COMMENTS_URL, false},
+	{"summary",    "\n",           1,  "\n", 1, ITEM_COLUMN_SUMMARY,      true},
+	{"content",    "\n",           1,  "\n", 1, ITEM_COLUMN_CONTENT,      true},
 };
 
 // On success returns true.
@@ -106,32 +106,40 @@ append_meta_data_entry(struct content_list **list, sqlite3_stmt *res, int index)
 	if (text_len == 0) {
 		return true; // It is not an error because this item simply does not have value set.
 	}
-	struct string *entry = create_string(text, text_len);
-	if (entry == NULL) {
+
+	if (append_content(list, entries[index].prefix, entries[index].prefix_len, "text/plain", 10) == false) {
 		return false;
 	}
-	if (append_content(list, entries[index].prefix, entries[index].prefix_len, "plain", 5) == false) {
-		free_string(entry);
-		return false;
-	}
-	char *text_type;
-	size_t text_type_len;
-	if (entries[index].type_column != ITEM_COLUMN_NONE) {
-		text_type = (char *)sqlite3_column_text(res, entries[index].type_column);
-		text_type_len = strlen(text_type);
+
+	if (entries[index].does_it_have_type_header_at_the_beginning == true) {
+		char *type_separator = strchr(text, ';');
+		if (type_separator == NULL) {
+			return false;
+		}
+#define MAX_TYPE_LEN 100
+		size_t type_len = type_separator - text;
+		if (type_len > MAX_TYPE_LEN) {
+			return false;
+		}
+		const char *real_text = text + (type_len + 1);
+		size_t real_text_len = text_len - (type_len + 1);
+		char type[MAX_TYPE_LEN + 1];
+#undef MAX_TYPE_LEN
+		memcpy(type, text, type_len);
+		type[type_len] = '\0';
+		if (append_content(list, real_text, real_text_len, type, type_len) == false) {
+			return false;
+		}
 	} else {
-		text_type = "plain";
-		text_type_len = 5;
+		if (append_content(list, text, text_len, "text/plain", 10) == false) {
+			return false;
+		}
 	}
-	if (append_content(list, entry->ptr, entry->len, text_type, text_type_len) == false) {
-		free_string(entry);
+
+	if (append_content(list, entries[index].suffix, entries[index].suffix_len, "text/plain", 10) == false) {
 		return false;
 	}
-	if (append_content(list, entries[index].suffix, entries[index].suffix_len, "plain", 5) == false) {
-		free_string(entry);
-		return false;
-	}
-	free_string(entry);
+
 	return true;
 }
 

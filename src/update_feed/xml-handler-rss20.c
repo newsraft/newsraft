@@ -36,12 +36,12 @@ title_end(struct parser_data *data)
 	}
 	data->rss20_pos &= ~RSS20_TITLE;
 	if ((data->rss20_pos & RSS20_ITEM) != 0) {
-		if (cpyss(data->item.title, data->value) == false) {
+		if (cpyss(data->item.title.value, data->value) == false) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}
 	} else {
-		if (cpyss(data->feed.title, data->value) == false) {
+		if (cpyss(data->feed.title.value, data->value) == false) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}
@@ -88,12 +88,12 @@ description_end(struct parser_data *data)
 	}
 	data->rss20_pos &= ~RSS20_DESCRIPTION;
 	if ((data->rss20_pos & RSS20_ITEM) != 0) {
-		if (cpyss(data->item.content, data->value) == false) {
+		if (cpyss(data->item.content.value, data->value) == false) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}
 	} else {
-		if (cpyss(data->feed.summary, data->value) == false) {
+		if (cpyss(data->feed.summary.value, data->value) == false) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}

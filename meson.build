@@ -91,6 +91,7 @@ executable(
 		'src/xml-attributes.c',
 		'src/xml-size.c',
 		'src/update_feed/update_feed.c',
+		'src/update_feed/bucket.c',
 		'src/update_feed/bucket-feed.c',
 		'src/update_feed/bucket-feed-insert.c',
 		'src/update_feed/bucket-item.c',

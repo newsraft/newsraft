@@ -22,13 +22,12 @@ db_init(void)
 			"feed_url TEXT NOT NULL UNIQUE," // url of feed itself
 			"title TEXT NOT NULL," // name of feed
 			"link TEXT NOT NULL," // url to related resource
+			"summary TEXT NOT NULL,"
 			"authors TEXT NOT NULL,"
 			"editors TEXT NOT NULL,"
 			"webmasters TEXT NOT NULL,"
 			"categories TEXT NOT NULL,"
 			"language TEXT NOT NULL,"
-			"summary TEXT NOT NULL,"
-			"summary_type TEXT NOT NULL,"
 			"generator TEXT NOT NULL,"
 			"rights TEXT NOT NULL"
 		");"
@@ -45,11 +44,10 @@ db_init(void)
 			"upddate INTEGER(8)," // update date in seconds since 1970
 			"comments_url TEXT NOT NULL,"
 			"summary TEXT NOT NULL,"
-			"summary_type TEXT NOT NULL,"
-			"content TEXT NOT NULL,"
-			"content_type TEXT NOT NULL"
+			"content TEXT NOT NULL"
 		");"
-		"VACUUM;",
+		"VACUUM;"
+		"ANALYZE;",
 		0,
 		0,
 		NULL

@@ -40,12 +40,12 @@ title_end(struct parser_data *data)
 	}
 	data->atom03_pos &= ~ATOM03_TITLE;
 	if ((data->atom03_pos & ATOM03_ENTRY) != 0) {
-		if (cpyss(data->item.title, data->value) == false) {
+		if (cpyss(data->item.title.value, data->value) == false) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}
 	} else {
-		if (cpyss(data->feed.title, data->value) == false) {
+		if (cpyss(data->feed.title.value, data->value) == false) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}
@@ -116,7 +116,7 @@ summary_start(struct parser_data *data, const XML_Char **atts)
 	data->atom03_pos |= ATOM03_SUMMARY;
 	const char *type_str = get_value_of_attribute_key(atts, "type");
 	if ((type_str != NULL) && ((data->atom03_pos & ATOM03_ENTRY) != 0)) {
-		if (cpyas(data->item.summary_type, type_str, strlen(type_str)) == false) {
+		if (cpyas(data->item.summary.type, type_str, strlen(type_str)) == false) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}
@@ -131,7 +131,7 @@ summary_end(struct parser_data *data)
 	}
 	data->atom03_pos &= ~ATOM03_SUMMARY;
 	if ((data->atom03_pos & ATOM03_ENTRY) != 0) {
-		if (cpyss(data->item.summary, data->value) == false) {
+		if (cpyss(data->item.summary.value, data->value) == false) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}
@@ -143,7 +143,7 @@ content_start(struct parser_data *data, const XML_Char **atts)
 {
 	const char *type_str = get_value_of_attribute_key(atts, "type");
 	if ((type_str != NULL) && ((data->atom03_pos & ATOM03_ENTRY) != 0)) {
-		if (cpyas(data->item.content_type, type_str, strlen(type_str)) == false) {
+		if (cpyas(data->item.content.type, type_str, strlen(type_str)) == false) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}
@@ -161,7 +161,7 @@ content_end(struct parser_data *data)
 	if ((data->atom03_pos & ATOM03_ENTRY) == 0) {
 		return;
 	}
-	if (cpyss(data->item.content, data->value) == false) {
+	if (cpyss(data->item.content.value, data->value) == false) {
 		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		return;
 	}
@@ -334,7 +334,7 @@ tagline_start(struct parser_data *data, const XML_Char **atts)
 	data->atom03_pos |= ATOM03_TAGLINE;
 	const char *type_str = get_value_of_attribute_key(atts, "type");
 	if ((type_str != NULL) && ((data->atom03_pos & ATOM03_ENTRY) == 0)) {
-		if (cpyas(data->feed.summary_type, type_str, strlen(type_str)) == false) {
+		if (cpyas(data->feed.summary.type, type_str, strlen(type_str)) == false) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}
@@ -349,7 +349,7 @@ tagline_end(struct parser_data *data)
 	}
 	data->atom03_pos &= ~ATOM03_TAGLINE;
 	if ((data->atom03_pos & ATOM03_ENTRY) == 0) {
-		if (cpyss(data->feed.summary, data->value) == false) {
+		if (cpyss(data->feed.summary.value, data->value) == false) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}

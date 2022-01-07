@@ -21,14 +21,14 @@ encoded_end(struct parser_data *data)
 	if (we_are_inside_item(data) == false) {
 		return;
 	}
-	if (data->item.content->len > data->value->len) {
+	if (data->item.content.value->len > data->value->len) {
 		return;
 	}
-	if (cpyss(data->item.content, data->value) == false) {
+	if (cpyss(data->item.content.value, data->value) == false) {
 		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		return;
 	}
-	if (cpyas(data->item.content_type, "text/html", 9) == false) {
+	if (cpyas(data->item.content.type, "text/html", 9) == false) {
 		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		return;
 	}

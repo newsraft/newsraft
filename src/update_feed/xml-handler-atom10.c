@@ -50,10 +50,9 @@ title_start(struct parser_data *data, const XML_Char **atts)
 {
 	data->atom10_pos |= ATOM10_TITLE;
 	if ((data->atom10_pos & ATOM10_ENTRY) != 0) {
-		copy_type_of_text_construct(data, atts, data->item.title_type);
+		copy_type_of_text_construct(data, atts, data->item.title.type);
 	} else {
-		// todo
-		//copy_type_of_text_construct(data, atts, data->feed.title_type);
+		copy_type_of_text_construct(data, atts, data->feed.title.type);
 	}
 }
 
@@ -65,12 +64,12 @@ title_end(struct parser_data *data)
 	}
 	data->atom10_pos &= ~ATOM10_TITLE;
 	if ((data->atom10_pos & ATOM10_ENTRY) != 0) {
-		if (cpyss(data->item.title, data->value) == false) {
+		if (cpyss(data->item.title.value, data->value) == false) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}
 	} else {
-		if (cpyss(data->feed.title, data->value) == false) {
+		if (cpyss(data->feed.title.value, data->value) == false) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}
@@ -148,7 +147,7 @@ summary_start(struct parser_data *data, const XML_Char **atts)
 		return;
 	}
 	data->atom10_pos |= ATOM10_SUMMARY;
-	copy_type_of_text_construct(data, atts, data->item.summary_type);
+	copy_type_of_text_construct(data, atts, data->item.summary.type);
 }
 
 static inline void
@@ -161,7 +160,7 @@ summary_end(struct parser_data *data)
 	if ((data->atom10_pos & ATOM10_ENTRY) == 0) {
 		return;
 	}
-	if (cpyss(data->item.summary, data->value) == false) {
+	if (cpyss(data->item.summary.value, data->value) == false) {
 		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		return;
 	}
@@ -174,7 +173,7 @@ content_start(struct parser_data *data, const XML_Char **atts)
 		return;
 	}
 	data->atom10_pos |= ATOM10_CONTENT;
-	copy_type_of_text_construct(data, atts, data->item.content_type);
+	copy_type_of_text_construct(data, atts, data->item.content.type);
 }
 
 static inline void
@@ -187,7 +186,7 @@ content_end(struct parser_data *data)
 	if ((data->atom10_pos & ATOM10_ENTRY) == 0) {
 		return;
 	}
-	if (cpyss(data->item.content, data->value) == false) {
+	if (cpyss(data->item.content.value, data->value) == false) {
 		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		return;
 	}
@@ -370,7 +369,7 @@ subtitle_start(struct parser_data *data, const XML_Char **atts)
 		return;
 	}
 	data->atom10_pos |= ATOM10_SUBTITLE;
-	copy_type_of_text_construct(data, atts, data->feed.summary_type);
+	copy_type_of_text_construct(data, atts, data->feed.summary.type);
 }
 
 static inline void
@@ -383,7 +382,7 @@ subtitle_end(struct parser_data *data)
 	if ((data->atom10_pos & ATOM10_ENTRY) != 0) {
 		return;
 	}
-	if (cpyss(data->feed.summary, data->value) == false) {
+	if (cpyss(data->feed.summary.value, data->value) == false) {
 		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		return;
 	}

@@ -21,16 +21,16 @@ fulltext_end(struct parser_data *data)
 	if (we_are_inside_item(data) == false) {
 		return;
 	}
-	if (data->item.content->len > data->value->len) {
+	if (data->item.content.value->len > data->value->len) {
 		// Don't save content if it's shorter than the content we currently have.
 		return;
 	}
-	if (cpyss(data->item.content, data->value) == false) {
+	if (cpyss(data->item.content.value, data->value) == false) {
 		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		return;
 	}
-	// In most cases this is HTML...
-	if (cpyas(data->item.content_type, "html", 4) == false) {
+	// In most cases this is HTML.
+	if (cpyas(data->item.content.type, "text/html", 9) == false) {
 		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		return;
 	}

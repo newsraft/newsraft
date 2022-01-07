@@ -1,6 +1,4 @@
-#include <stdlib.h>
 #include <string.h>
-#include "feedeater.h"
 #include "update_feed/update_feed.h"
 
 struct namespace_handler {
@@ -36,38 +34,38 @@ static const struct namespace_handler namespace_handlers[] = {
 #endif
 };
 
-int
+bool
 parse_namespace_element_start(struct parser_data *data, const XML_Char *name, const XML_Char **atts) {
-	char *separator_pos = strchr(name, NAMESPACE_SEPARATOR);
+	const char *separator_pos = strchr(name, NAMESPACE_SEPARATOR);
 	if (separator_pos == NULL) {
-		return 1; // tag has no namespace
+		return false; // Tag has no namespace.
 	}
-	size_t namespace_len = separator_pos - name;
-	for (size_t i = 0; i < LENGTH(namespace_handlers); ++i) {
+	const size_t namespace_len = separator_pos - name;
+	for (size_t i = 0; i < COUNTOF(namespace_handlers); ++i) {
 		if ((namespace_len == namespace_handlers[i].name_len) &&
 		    (memcmp(name, namespace_handlers[i].name, namespace_len) == 0))
 		{
 			namespace_handlers[i].parse_element_start(data, separator_pos + 1, atts);
-			return 0; // success
+			return true; // Success.
 		}
 	}
-	return 1; // namespace is unknown
+	return false; // Namespace is unknown.
 }
 
-int
+bool
 parse_namespace_element_end(struct parser_data *data, const XML_Char *name) {
-	char *separator_pos = strchr(name, NAMESPACE_SEPARATOR);
+	const char *separator_pos = strchr(name, NAMESPACE_SEPARATOR);
 	if (separator_pos == NULL) {
-		return 1; // tag has no namespace
+		return false; // Tag has no namespace.
 	}
-	size_t namespace_len = separator_pos - name;
-	for (size_t i = 0; i < LENGTH(namespace_handlers); ++i) {
+	const size_t namespace_len = separator_pos - name;
+	for (size_t i = 0; i < COUNTOF(namespace_handlers); ++i) {
 		if ((namespace_len == namespace_handlers[i].name_len) &&
 		    (memcmp(name, namespace_handlers[i].name, namespace_len) == 0))
 		{
 			namespace_handlers[i].parse_element_end(data, separator_pos + 1);
-			return 0; // success
+			return true; // Success.
 		}
 	}
-	return 1; // namespace is unknown
+	return false; // Namespace is unknown.
 }

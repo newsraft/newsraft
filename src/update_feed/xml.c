@@ -1,7 +1,4 @@
-#include <stdio.h>
 #include <string.h>
-#include <stdbool.h>
-#include "feedeater.h"
 #include "update_feed/update_feed.h"
 
 bool

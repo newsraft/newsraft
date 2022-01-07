@@ -21,7 +21,7 @@ extract_links(const struct content_list *data_list, struct link_list *target)
 	const struct content_list *temp_list = data_list;
 	struct wstring *wstr;
 	while (temp_list != NULL) {
-		for (size_t i = 0; i < LENGTH(handlers); ++i) {
+		for (size_t i = 0; i < COUNTOF(handlers); ++i) {
 			if (strcmp(temp_list->content_type, handlers[i].type) == 0) {
 				wstr = convert_string_to_wstring(temp_list->content);
 				if (wstr == NULL) {

@@ -1,13 +1,14 @@
 #ifndef FEEDEATER_H
 #define FEEDEATER_H
-#include <ncurses.h>
 #include <stdbool.h>
 #include <inttypes.h>
-#include <sqlite3.h>
 #include <time.h>
 #include <wchar.h>
+#include <ncurses.h>
+#include <sqlite3.h>
 #define FEEDEATER_VERSION "0.0.0"
-#define LENGTH(A) (sizeof(A)/sizeof(*A))
+#define COUNTOF(A) (sizeof(A) / sizeof(*A))
+#define MAX_MIME_TYPE_LEN 255
 
 #define INFO(A, ...) do { if (log_stream != NULL) { fprintf(log_stream, "[INFO] " A "\n", ##__VA_ARGS__); } } while (0)
 #define WARN(A, ...) do { if (log_stream != NULL) { fprintf(log_stream, "[WARN] " A "\n", ##__VA_ARGS__); } } while (0)
@@ -71,6 +72,7 @@ struct format_arg {
 struct content_list {
 	struct string *content;
 	char *content_type;
+	bool trim_whitespace;
 	struct content_list *next;
 };
 
@@ -175,8 +177,8 @@ int enter_items_menu_loop(const struct set_condition *st);
 
 // contents
 int pager_view(const struct content_list *data_list);
-bool append_content(struct content_list **list, const char *content, size_t content_len, const char *content_type, size_t content_type_len);
-int populate_content_list_with_data_of_item(struct content_list **data_list, sqlite3_stmt *res);
+bool append_content(struct content_list **list, const char *content, size_t content_len, const char *content_type, size_t content_type_len, bool trim_whitespace);
+bool populate_content_list_with_data_of_item(struct content_list **data_list, sqlite3_stmt *res);
 void free_content_list(struct content_list *list);
 bool populate_link_list_with_links_of_item(struct link_list *links, sqlite3_stmt *res);
 struct string *generate_link_list_string_for_pager(const struct link_list *links);

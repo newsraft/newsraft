@@ -145,8 +145,8 @@ struct string *generate_person_list_string(const struct person_list *persons);
 
 // Element handlers
 
-int parse_namespace_element_start (struct parser_data *data, const XML_Char *name, const XML_Char **atts);
-int parse_namespace_element_end   (struct parser_data *data, const XML_Char *name);
+bool parse_namespace_element_start (struct parser_data *data, const XML_Char *name, const XML_Char **atts);
+bool parse_namespace_element_end   (struct parser_data *data, const XML_Char *name);
 
 #ifdef FEEDEATER_FORMAT_SUPPORT_ATOM10
 enum atom10_position {

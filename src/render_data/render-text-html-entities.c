@@ -149,7 +149,7 @@ translate_html_entity(wchar_t *entity)
 				num_entity[i] = towupper(num_entity[i]);
 			}
 
-			for (i = 0; i < LENGTH(entities); ++i) {
+			for (i = 0; i < COUNTOF(entities); ++i) {
 				if (wcscmp(num_entity, entities[i].hex_number) == 0) {
 					return entities[i].value;
 				}
@@ -160,7 +160,7 @@ translate_html_entity(wchar_t *entity)
 			// Shift insignificant zeros of number.
 			num_entity += count_insignificant_zeros(num_entity);
 
-			for (i = 0; i < LENGTH(entities); ++i) {
+			for (i = 0; i < COUNTOF(entities); ++i) {
 				if (wcscmp(num_entity, entities[i].number) == 0) {
 					return entities[i].value;
 				}
@@ -170,7 +170,7 @@ translate_html_entity(wchar_t *entity)
 
 	} else {
 
-		for (i = 0; i < LENGTH(entities); ++i) {
+		for (i = 0; i < COUNTOF(entities); ++i) {
 			if ((entities[i].name != NULL) && (wcscmp(entity, entities[i].name) == 0)) {
 				return entities[i].value;
 			}

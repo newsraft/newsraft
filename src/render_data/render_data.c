@@ -55,7 +55,7 @@ render_data(const struct content_list *data_list)
 			return NULL;
 		}
 		found_handler = false;
-		for (size_t i = 0; i < LENGTH(handlers); ++i) {
+		for (size_t i = 0; i < COUNTOF(handlers); ++i) {
 			if (strcmp(temp_list->content_type, handlers[i].type) == 0) {
 				found_handler = true;
 				temp_str = handlers[i].handle(converted_str, &line);
@@ -66,6 +66,9 @@ render_data(const struct content_list *data_list)
 			temp_str = render_text_plain(converted_str, &line);
 		}
 		if (temp_str != NULL) {
+			if (temp_list->trim_whitespace == true) {
+				strip_whitespace_from_wstring(temp_str);
+			}
 			wcatss(text, temp_str);
 			free_wstring(temp_str);
 		}

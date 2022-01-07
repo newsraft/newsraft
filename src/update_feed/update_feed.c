@@ -12,7 +12,7 @@ start_element_handler(struct parser_data *data, const XML_Char *name, const XML_
 	}
 	++(data->depth);
 	empty_string(data->value);
-	if (parse_namespace_element_start(data, name, atts) == 0) {
+	if (parse_namespace_element_start(data, name, atts) == true) {
 		// Successfully processed an element by its namespace.
 		return;
 	}
@@ -45,7 +45,7 @@ end_element_handler(struct parser_data *data, const XML_Char *name)
 	}
 	--(data->depth);
 	strip_whitespace_from_string(data->value);
-	if (parse_namespace_element_end(data, name) == 0) {
+	if (parse_namespace_element_end(data, name) == true) {
 		// Successfully processed an element by its namespace.
 		return;
 	}

@@ -19,83 +19,47 @@ static const struct data_entry entries[] = {
 	{"categories", "Categories: ", 12, "\n", 1, ITEM_COLUMN_CATEGORIES,   false},
 	{"link",       "Link: ",       6,  "\n", 1, ITEM_COLUMN_LINK,         false},
 	{"comments",   "Comments: ",   10, "\n", 1, ITEM_COLUMN_COMMENTS_URL, false},
-	{"summary",    "\n",           1,  "\n", 1, ITEM_COLUMN_SUMMARY,      true},
-	{"content",    "\n",           1,  "\n", 1, ITEM_COLUMN_CONTENT,      true},
+	{"summary",    "\n\n",         2,  "\n", 1, ITEM_COLUMN_SUMMARY,      true},
+	{"content",    "\n\n",         2,  "\n", 1, ITEM_COLUMN_CONTENT,      true},
 };
 
 // On success returns true.
 // On failure returns false.
 static inline bool
-append_pubdate(struct content_list **list, sqlite3_stmt *res)
+append_date(struct content_list **list, sqlite3_stmt *res, intmax_t column, const char *prefix, size_t prefix_len)
 {
-	time_t item_pubdate = (time_t)sqlite3_column_int64(res, ITEM_COLUMN_PUBDATE);
-	if (item_pubdate == 0) {
+	time_t date = (time_t)sqlite3_column_int64(res, column);
+	if (date == 0) {
 		return true; // It is not an error because this item simply does not have pubdate set.
 	}
-	struct string *pubdate_entry = create_string("Published: ", 11);
-	if (pubdate_entry == NULL) {
+	struct string *date_entry = create_string(prefix, prefix_len);
+	if (date_entry == NULL) {
 		return false;
 	}
-	struct string *date_str = get_config_date_str(item_pubdate);
+	struct string *date_str = get_config_date_str(date);
 	if (date_str == NULL) {
-		free_string(pubdate_entry);
+		free_string(date_entry);
 		return false;
 	}
-	if (catss(pubdate_entry, date_str) == false) {
+	if (catss(date_entry, date_str) == false) {
 		free_string(date_str);
-		free_string(pubdate_entry);
+		free_string(date_entry);
 		return false;
 	}
 	free_string(date_str);
-	if (catcs(pubdate_entry, '\n') == false) {
-		free_string(pubdate_entry);
+	if (catcs(date_entry, '\n') == false) {
+		free_string(date_entry);
 		return false;
 	}
-	if (append_content(list, pubdate_entry->ptr, pubdate_entry->len, "plain", 5) == false) {
-		free_string(pubdate_entry);
+	if (append_content(list, date_entry->ptr, date_entry->len, "text/plain", 10, false) == false) {
+		free_string(date_entry);
 		return false;
 	}
-	free_string(pubdate_entry);
+	free_string(date_entry);
 	return true;
 }
 
-// On success returns true.
-// On failure returns false.
 static inline bool
-append_upddate(struct content_list **list, sqlite3_stmt *res)
-{
-	time_t item_upddate = (time_t)sqlite3_column_int64(res, ITEM_COLUMN_UPDDATE);
-	if (item_upddate == 0) {
-		return true; // It is not an error because this item simply does not have upddate set.
-	}
-	struct string *date_str = get_config_date_str(item_upddate);
-	if (date_str == NULL) {
-		return false;
-	}
-	struct string *upddate_entry = create_string("Updated: ", 9);
-	if (upddate_entry == NULL) {
-		free_string(date_str);
-		return false;
-	}
-	if (catss(upddate_entry, date_str) == false) {
-		free_string(date_str);
-		free_string(upddate_entry);
-		return false;
-	}
-	free_string(date_str);
-	if (catcs(upddate_entry, '\n') == false) {
-		free_string(upddate_entry);
-		return false;
-	}
-	if (append_content(list, upddate_entry->ptr, upddate_entry->len, "plain", 5) == false) {
-		free_string(upddate_entry);
-		return false;
-	}
-	free_string(upddate_entry);
-	return true;
-}
-
-static bool
 append_meta_data_entry(struct content_list **list, sqlite3_stmt *res, int index)
 {
 	char *text = (char *)sqlite3_column_text(res, entries[index].data_column);
@@ -107,7 +71,7 @@ append_meta_data_entry(struct content_list **list, sqlite3_stmt *res, int index)
 		return true; // It is not an error because this item simply does not have value set.
 	}
 
-	if (append_content(list, entries[index].prefix, entries[index].prefix_len, "text/plain", 10) == false) {
+	if (append_content(list, entries[index].prefix, entries[index].prefix_len, "text/plain", 10, false) == false) {
 		return false;
 	}
 
@@ -116,79 +80,125 @@ append_meta_data_entry(struct content_list **list, sqlite3_stmt *res, int index)
 		if (type_separator == NULL) {
 			return false;
 		}
-#define MAX_TYPE_LEN 100
 		size_t type_len = type_separator - text;
-		if (type_len > MAX_TYPE_LEN) {
+		if (type_len > MAX_MIME_TYPE_LEN) {
 			return false;
 		}
 		const char *real_text = text + (type_len + 1);
 		size_t real_text_len = text_len - (type_len + 1);
-		char type[MAX_TYPE_LEN + 1];
-#undef MAX_TYPE_LEN
+		char type[MAX_MIME_TYPE_LEN + 1];
 		memcpy(type, text, type_len);
 		type[type_len] = '\0';
-		if (append_content(list, real_text, real_text_len, type, type_len) == false) {
+		if (append_content(list, real_text, real_text_len, type, type_len, true) == false) {
 			return false;
 		}
 	} else {
-		if (append_content(list, text, text_len, "text/plain", 10) == false) {
+		if (append_content(list, text, text_len, "text/plain", 10, true) == false) {
 			return false;
 		}
 	}
 
-	if (append_content(list, entries[index].suffix, entries[index].suffix_len, "text/plain", 10) == false) {
+	if (append_content(list, entries[index].suffix, entries[index].suffix_len, "text/plain", 10, false) == false) {
 		return false;
 	}
 
 	return true;
 }
 
-int
+static inline bool
+append_max_summary_content(struct content_list **list, sqlite3_stmt *res)
+{
+	const char *summary = (char *)sqlite3_column_text(res, ITEM_COLUMN_SUMMARY);
+	const char *content = (char *)sqlite3_column_text(res, ITEM_COLUMN_CONTENT);
+	const size_t summary_len = strlen(summary);
+	size_t content_len = strlen(content);
+	if (summary_len > content_len) {
+		content = summary;
+		content_len = summary_len;
+	}
+	if (content == NULL) {
+		return true;
+	}
+	if (content_len == 0) {
+		return true;
+	}
+	const char *type_separator = strchr(content, ';');
+	if (type_separator == NULL) {
+		return false;
+	}
+	const size_t type_len = type_separator - content;
+	if (type_len > MAX_MIME_TYPE_LEN) {
+		return false;
+	}
+	const char *real_content = content + (type_len + 1);
+	const size_t real_content_len = content_len - (type_len + 1);
+	char type[MAX_MIME_TYPE_LEN + 1];
+	memcpy(type, content, type_len);
+	type[type_len] = '\0';
+	if (append_content(list, "\n\n", 2, "text/plain", 10, false) == false) {
+		return false;
+	}
+	if (append_content(list, real_content, real_content_len, type, type_len, true) == false) {
+		return false;
+	}
+	return true;
+}
+
+static inline bool
+process_specifier(const struct string *value, struct content_list **list, sqlite3_stmt *res)
+{
+	if (strcmp(value->ptr, "published") == 0) {
+		if (append_date(list, res, ITEM_COLUMN_PUBDATE, "Published: ", 11) == false) {
+			return false;
+		}
+	} else if (strcmp(value->ptr, "updated") == 0) {
+		if (append_date(list, res, ITEM_COLUMN_UPDDATE, "Updated: ", 9) == false) {
+			return false;
+		}
+	} else if (strcmp(value->ptr, "max-summary-content") == 0) {
+		if (append_max_summary_content(list, res) == false) {
+			return false;
+		}
+	} else {
+		for (size_t i = 0; i < COUNTOF(entries); ++i) {
+			if (strcmp(value->ptr, entries[i].field) == 0) {
+				if (append_meta_data_entry(list, res, i) == false) {
+					return false;
+				}
+				break;
+			}
+		}
+	}
+	return true;
+}
+
+bool
 populate_content_list_with_data_of_item(struct content_list **list, sqlite3_stmt *res)
 {
-	char *restrict draft_meta_data_order = malloc(sizeof(char) * (strlen(cfg.contents_meta_data) + 1));
-	if (draft_meta_data_order == NULL) {
-		FAIL("Not enough memory for tokenizing the order of metadata entries!");
-		return 1;
+	struct string *value = create_empty_string();
+	if (value == NULL) {
+		return false;
 	}
-
-	strcpy(draft_meta_data_order, cfg.contents_meta_data);
-
-	bool error = false;
-
-	char *saveptr = NULL;
-	char *meta_data_entry = strtok_r(draft_meta_data_order, ",", &saveptr);
-	while (meta_data_entry != NULL) {
-		if (strcmp(meta_data_entry, "pubdate") == 0) {
-			if (append_pubdate(list, res) == false) {
-				error = true;
+	const char *i = cfg.contents_meta_data;
+	while (true) {
+		if ((*i == ',') || (*i == '\0')) {
+			if (process_specifier(value, list, res) == false) {
+				goto error;
 			}
-		} else if (strcmp(meta_data_entry, "upddate") == 0) {
-			if (append_upddate(list, res) == false) {
-				error = true;
-			}
+			empty_string(value);
 		} else {
-			for (size_t i = 0; i < LENGTH(entries); ++i) {
-				if (strcmp(meta_data_entry, entries[i].field) == 0) {
-					if (append_meta_data_entry(list, res, i) == false) {
-						error = true;
-					}
-					break;
-				}
+			if (catcs(value, *i) == false) {
+				goto error;
 			}
 		}
-		if (error == true) {
+		if (*i == '\0') {
 			break;
-		} else {
-			meta_data_entry = strtok_r(NULL, ",", &saveptr);
 		}
+		++i;
 	}
-
-	free(draft_meta_data_order);
-
-	if (error == true) {
-		return 1;
-	}
-
-	return 0;
+	free_string(value);
+	return true;
+error:
+	free_string(value);
+	return false;
 }

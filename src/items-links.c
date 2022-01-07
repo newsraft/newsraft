@@ -126,7 +126,7 @@ populate_link_list_with_links_of_item(struct link_list *links, sqlite3_stmt *res
 struct string *
 generate_link_list_string_for_pager(const struct link_list *links)
 {
-	struct string *str = create_string("\nLinks:\n", 8);
+	struct string *str = create_string("\n\nLinks:\n", 9);
 	if (str == NULL) {
 		return false;
 	}

@@ -23,25 +23,12 @@ get_config_date_str(time_t time)
 		FAIL("Failed to create date string!");
 		return NULL;
 	}
-	struct string *date_str = create_string(date_ptr, date_len);
+	struct string *date_str = crtas(date_ptr, date_len);
 	if (date_str == NULL) {
 		FAIL("Not enough memory for date string!");
 		return NULL;
 	}
 	return date_str;
-}
-
-bool
-is_wchar_a_breaker(wchar_t wc)
-{
-	const char *iter = cfg.break_at;
-	while (*iter != '\0') {
-		if (*iter == wctob(wc)) {
-			return true;
-		}
-		++iter;
-	}
-	return false;
 }
 
 void
@@ -52,7 +39,6 @@ free_config_data(void)
 	free(cfg.menu_item_entry_format);
 	free(cfg.contents_meta_data);
 	free(cfg.contents_date_format);
-	free(cfg.break_at);
 }
 
 int
@@ -62,17 +48,15 @@ load_config(void)
 
 	cfg.max_items = 0; // 0 == inf
 	cfg.append_links = true;
-	cfg.init_parser_buf_size = 1048576; // 1 MiB
 	cfg.menu_set_entry_format = NULL;
 	cfg.menu_item_entry_format = NULL;
 	cfg.contents_meta_data = NULL;
 	cfg.contents_date_format = NULL;
-	cfg.break_at = NULL;
 
 	/* if (parse_config_file() != 0) { */
 	/* 	error = 1; */
 	/* } */
-	if (assign_default_values_to_empty_config_strings() != 0) {
+	if (assign_default_values_to_empty_config_strings() == false) {
 		fprintf(stderr, "Not enough memory for assigning default values to empty config strings!\n");
 		error = 1;
 	}

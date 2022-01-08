@@ -18,7 +18,7 @@ line_char(struct line *line, wchar_t c, struct wstring *target)
 		line->len = line->indent;
 	}
 	line->ptr[line->len] = c;
-	if (is_wchar_a_breaker(c) == true) {
+	if (c == L' ') {
 		line->pin = line->len;
 	}
 	++(line->len);
@@ -29,7 +29,7 @@ line_char(struct line *line, wchar_t c, struct wstring *target)
 		wcatas(target, line->ptr, line->len);
 		line->len = 0;
 	} else {
-		wcatas(target, line->ptr, line->pin + 1);
+		wcatas(target, line->ptr, line->pin);
 		for (size_t i = 0; i < line->indent; ++i) {
 			line->ptr[i] = L' ';
 		}

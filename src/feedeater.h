@@ -6,10 +6,11 @@
 #include <wchar.h>
 #include <ncurses.h>
 #include <sqlite3.h>
+
 #define FEEDEATER_VERSION "0.0.0"
-#define COUNTOF(A) (sizeof(A) / sizeof(*A))
 #define MAX_MIME_TYPE_LEN 255
 
+#define COUNTOF(A) (sizeof(A) / sizeof(*A))
 #define INFO(A, ...) do { if (log_stream != NULL) { fprintf(log_stream, "[INFO] " A "\n", ##__VA_ARGS__); } } while (0)
 #define WARN(A, ...) do { if (log_stream != NULL) { fprintf(log_stream, "[WARN] " A "\n", ##__VA_ARGS__); } } while (0)
 #define FAIL(A, ...) do { if (log_stream != NULL) { fprintf(log_stream, "[FAIL] " A "\n", ##__VA_ARGS__); } } while (0)
@@ -53,19 +54,18 @@ struct item_line {
 	struct string *title;
 	bool is_unread;
 	WINDOW *window;
-	int rowid;               // id of row related to this item
-};
-
-union format_value {
-	int i;
-	char c;
-	char *s;
+	int rowid;            // id of row related to this item
 };
 
 struct format_arg {
-	const char specifier;
-	const char type_specifier;
-	union format_value value;
+	const wchar_t specifier;
+	const wchar_t *const type_specifier;
+	union {
+		int i;
+		char c;
+		char *s;
+		wchar_t *ls;
+	} value;
 };
 
 // Linked list
@@ -96,13 +96,11 @@ struct xml_attribute {
 
 struct config_data {
 	size_t max_items;
-	size_t init_parser_buf_size;
 	bool append_links;
-	char *menu_set_entry_format;
-	char *menu_item_entry_format;
+	wchar_t *menu_set_entry_format;
+	wchar_t *menu_item_entry_format;
 	char *contents_meta_data;
 	char *contents_date_format;
-	char *break_at;
 };
 
 enum input_cmd {
@@ -161,11 +159,11 @@ enum item_column {
 int adjust_list_menu(void);
 WINDOW *get_list_entry_by_index(size_t i);
 void free_list_menu(void);
+bool adjust_list_menu_format_buffer(void);
+void free_list_menu_format_buffer(void);
 
 // format
-int reallocate_format_buffer(void);
-const char *do_format(char *fmt, struct format_arg *args, size_t args_count);
-void free_format_buffer(void);
+const wchar_t *do_format(const wchar_t *fmt, const struct format_arg *args, size_t args_count);
 
 // sets
 void enter_sets_menu_loop(void);
@@ -200,7 +198,7 @@ void free_db_path(void);
 
 // config processing
 void free_config_data(void);
-int assign_default_values_to_empty_config_strings(void);
+bool assign_default_values_to_empty_config_strings(void);
 int load_config(void);
 
 // date parsing
@@ -218,9 +216,9 @@ void free_set_condition(const struct set_condition *cond);
 int db_init(void);
 void db_stop(void);
 int db_prepare(const char *zSql, int nByte, sqlite3_stmt **ppStmt, const char **pzTail);
-int db_begin_transaction(void);
-int db_commit_transaction(void);
-int db_rollback_transaction(void);
+bool db_begin_transaction(void);
+bool db_commit_transaction(void);
+bool db_rollback_transaction(void);
 const char *db_error_string(void);
 sqlite3_stmt *db_find_item_by_rowid(int rowid);
 int db_mark_item_read(int rowid);
@@ -245,32 +243,30 @@ int load_default_binds(void);
 void free_binds(void);
 
 // string
-struct string *create_string(const char *src, size_t len);
-struct string *create_empty_string(void);
+struct string *crtas(const char *src_ptr, size_t src_len);
+struct string *crtes(void);
 bool cpyas(struct string *dest, const char *src_ptr, size_t src_len);
 bool cpyss(struct string *dest, const struct string *src);
-bool catas(struct string *dest, const char *src, size_t src_len);
+bool catas(struct string *dest, const char *src_ptr, size_t src_len);
 bool catss(struct string *dest, const struct string *src);
 bool catcs(struct string *dest, char c);
 void empty_string(struct string *str);
 void free_string(struct string *str);
-void strip_whitespace_from_string(struct string *str);
+void trim_whitespace_from_string(struct string *str);
 struct wstring *convert_string_to_wstring(const struct string *src);
 // wstring
-struct wstring *create_wstring(const wchar_t *src, size_t len);
-struct wstring *create_empty_wstring(void);
+struct wstring *wcrtas(const wchar_t *src_ptr, size_t src_len);
+struct wstring *wcrtes(void);
 bool wcatas(struct wstring *dest, const wchar_t *src_ptr, size_t src_len);
 bool wcatcs(struct wstring *dest, wchar_t c);
 bool wcatss(struct wstring *dest, const struct wstring *src);
 void empty_wstring(struct wstring *wstr);
 void free_wstring(struct wstring *wstr);
-void strip_whitespace_from_wstring(struct wstring *wstr);
+void trim_whitespace_from_wstring(struct wstring *wstr);
 struct string *convert_wstring_to_string(const struct wstring *src);
 
 int log_init(const char *path);
 void log_stop(void);
-
-bool is_wchar_a_breaker(wchar_t wc);
 
 struct string *convert_bytes_to_human_readable_size_string(const char *value);
 

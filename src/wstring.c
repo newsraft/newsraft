@@ -2,37 +2,36 @@
 #include <string.h>
 #include "feedeater.h"
 
+// Create wstring out of array.
+// On success returns pointer to wstring.
+// On memory shortage returns NULL.
 struct wstring *
-create_wstring(const wchar_t *src, size_t len)
+wcrtas(const wchar_t *src_ptr, size_t src_len)
 {
 	struct wstring *wstr = malloc(sizeof(struct wstring));
 	if (wstr == NULL) {
 		FAIL("Not enough memory for wstring structure!");
 		return NULL;
 	}
-	wstr->ptr = malloc(sizeof(wchar_t) * (len + 1));
+	size_t new_lim = src_len * 2; // Multiply by 2 to decrease number of further realloc calls.
+	wstr->ptr = malloc(sizeof(wchar_t) * (new_lim + 1));
 	if (wstr->ptr == NULL) {
 		FAIL("Not enough memory for wstring pointer!");
 		free(wstr);
 		return NULL;
 	}
-	if (src != NULL) {
-		if (len != 0) {
-			memcpy(wstr->ptr, src, sizeof(wchar_t) * len);
-		}
-		wstr->len = len;
-	} else {
-		wstr->len = 0;
-	}
-	wstr->lim = len;
-	*(wstr->ptr + wstr->len) = L'\0';
+	memcpy(wstr->ptr, src_ptr, sizeof(wchar_t) * src_len);
+	*(wstr->ptr + src_len) = L'\0';
+	wstr->len = src_len;
+	wstr->lim = new_lim;
 	return wstr;
 }
 
+// Create empty wstring.
 struct wstring *
-create_empty_wstring(void)
+wcrtes(void)
 {
-	return create_wstring(NULL, 0);
+	return wcrtas(L"", 0);
 }
 
 // Copy array to wstring.
@@ -135,7 +134,7 @@ free_wstring(struct wstring *wstr)
 }
 
 void
-strip_whitespace_from_wstring(struct wstring *wstr)
+trim_whitespace_from_wstring(struct wstring *wstr)
 {
 	if (wstr->len == 0) {
 		return;
@@ -143,17 +142,21 @@ strip_whitespace_from_wstring(struct wstring *wstr)
 
 	size_t left_edge = 0, right_edge = wstr->len - 1;
 	while ((*(wstr->ptr + left_edge) == L' '   ||
+	        *(wstr->ptr + left_edge) == L'\n'  ||
 	        *(wstr->ptr + left_edge) == L'\t'  ||
-	        *(wstr->ptr + left_edge) == L'\r'  ||
-	        *(wstr->ptr + left_edge) == L'\n') &&
+	        *(wstr->ptr + left_edge) == L'\v'  ||
+	        *(wstr->ptr + left_edge) == L'\f'  ||
+	        *(wstr->ptr + left_edge) == L'\r') &&
 	       left_edge <= right_edge)
 	{
 		++left_edge;
 	}
 	while ((*(wstr->ptr + right_edge) == L' '   ||
+	        *(wstr->ptr + right_edge) == L'\n'  ||
 	        *(wstr->ptr + right_edge) == L'\t'  ||
-	        *(wstr->ptr + right_edge) == L'\r'  ||
-	        *(wstr->ptr + right_edge) == L'\n') &&
+	        *(wstr->ptr + right_edge) == L'\v'  ||
+	        *(wstr->ptr + right_edge) == L'\f'  ||
+	        *(wstr->ptr + right_edge) == L'\r') &&
 	       right_edge >= left_edge)
 	{
 		--right_edge;
@@ -169,12 +172,12 @@ strip_whitespace_from_wstring(struct wstring *wstr)
 		return;
 	}
 
-	size_t stripped_wstring_len = right_edge - left_edge + 1;
-	for (size_t i = 0; i < stripped_wstring_len; ++i) {
+	size_t trimmed_wstring_len = right_edge - left_edge + 1;
+	for (size_t i = 0; i < trimmed_wstring_len; ++i) {
 		*(wstr->ptr + i) = *(wstr->ptr + i + left_edge);
 	}
-	wstr->len = stripped_wstring_len;
-	*(wstr->ptr + stripped_wstring_len) = L'\0';
+	wstr->len = trimmed_wstring_len;
+	*(wstr->ptr + trimmed_wstring_len) = L'\0';
 }
 
 // On failure retruns NULL.

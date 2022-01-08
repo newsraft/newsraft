@@ -75,7 +75,7 @@ get_attribute_list_of_xml_tag(const struct wstring *tag)
 				} else if (quoted_value == true) {
 					in_attribute_value = false;
 					quoted_value = false;
-					atts[atts_index].value = create_wstring(word, word_len);
+					atts[atts_index].value = wcrtas(word, word_len);
 					if (atts[atts_index].value == NULL) {
 						free_atts(atts, atts_len);
 						return NULL;
@@ -93,7 +93,7 @@ get_attribute_list_of_xml_tag(const struct wstring *tag)
 				} else if (single_quoted_value == true) {
 					in_attribute_value = false;
 					single_quoted_value = false;
-					atts[atts_index].value = create_wstring(word, word_len);
+					atts[atts_index].value = wcrtas(word, word_len);
 					if (atts[atts_index].value == NULL) {
 						free_atts(atts, atts_len);
 						return NULL;
@@ -107,7 +107,7 @@ get_attribute_list_of_xml_tag(const struct wstring *tag)
 					word[word_len++] = *iter;
 				} else {
 					in_attribute_value = false;
-					atts[atts_index].value = create_wstring(word, word_len);
+					atts[atts_index].value = wcrtas(word, word_len);
 					if (atts[atts_index].value == NULL) {
 						free_atts(atts, atts_len);
 						return NULL;
@@ -130,7 +130,7 @@ get_attribute_list_of_xml_tag(const struct wstring *tag)
 					free_atts(atts, atts_len - 1);
 					return NULL;
 				}
-				atts[atts_index].name = create_wstring(word, word_len);
+				atts[atts_index].name = wcrtas(word, word_len);
 				if (atts[atts_index].name == NULL) {
 					free_atts(atts, atts_len);
 					return NULL;
@@ -165,7 +165,7 @@ get_attribute_list_of_xml_tag(const struct wstring *tag)
 
 	if (word_len != 0) {
 		if (in_attribute_value == true) {
-			atts[atts_index].value = create_wstring(word, word_len);
+			atts[atts_index].value = wcrtas(word, word_len);
 			if (atts[atts_index].value == NULL) {
 				free_atts(atts, atts_len);
 				return NULL;
@@ -176,7 +176,7 @@ get_attribute_list_of_xml_tag(const struct wstring *tag)
 				free_atts(atts, atts_len - 1);
 				return NULL;
 			}
-			atts[atts_index].name = create_wstring(word, word_len);
+			atts[atts_index].name = wcrtas(word, word_len);
 			if (atts[atts_index].name == NULL) {
 				free_atts(atts, atts_len);
 				return NULL;
@@ -185,7 +185,7 @@ get_attribute_list_of_xml_tag(const struct wstring *tag)
 	}
 
 	tag_name[tag_name_len] = L'\0';
-	atts[0].name = create_wstring(tag_name, tag_name_len);
+	atts[0].name = wcrtas(tag_name, tag_name_len);
 	if (atts[0].name == NULL) {
 		free_atts(atts, atts_len);
 		return NULL;

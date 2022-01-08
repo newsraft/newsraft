@@ -1,4 +1,3 @@
-#include <stdlib.h>
 #include "feedeater.h"
 
 static sqlite3 *db;
@@ -55,7 +54,7 @@ db_init(void)
 	return 0; // success
 }
 
-int
+bool
 db_begin_transaction(void)
 {
 	char *errmsg;
@@ -63,12 +62,12 @@ db_begin_transaction(void)
 	if (errmsg != NULL) {
 		FAIL("Can not begin transaction: %s", errmsg);
 		sqlite3_free(errmsg);
-		return 1;
+		return false;
 	}
-	return 0;
+	return true;
 }
 
-int
+bool
 db_commit_transaction(void)
 {
 	char *errmsg;
@@ -76,12 +75,12 @@ db_commit_transaction(void)
 	if (errmsg != NULL) {
 		FAIL("Can not commit transaction: %s", errmsg);
 		sqlite3_free(errmsg);
-		return 1;
+		return false;
 	}
-	return 0;
+	return true;
 }
 
-int
+bool
 db_rollback_transaction(void)
 {
 	char *errmsg;
@@ -89,9 +88,9 @@ db_rollback_transaction(void)
 	if (errmsg != NULL) {
 		FAIL("Can not rollback transaction: %s", errmsg);
 		sqlite3_free(errmsg);
-		return 1;
+		return false;
 	}
-	return 0;
+	return true;
 }
 
 void

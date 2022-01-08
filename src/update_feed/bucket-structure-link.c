@@ -24,25 +24,25 @@ expand_link_list_by_one_element(struct link_list *links)
 		}
 		links->list = new_list;
 		++(links->lim);
-		if ((links->list[links->len].url = create_empty_string()) == NULL) {
+		if ((links->list[links->len].url = crtes()) == NULL) {
 			FAIL("Not enough memory for link url string.");
 			links->list[links->len].type = NULL;
 			links->list[links->len].size = NULL;
 			links->list[links->len].duration = NULL;
 			return false;
 		}
-		if ((links->list[links->len].type = create_empty_string()) == NULL) {
+		if ((links->list[links->len].type = crtes()) == NULL) {
 			FAIL("Not enough memory for link type string.");
 			links->list[links->len].size = NULL;
 			links->list[links->len].duration = NULL;
 			return false;
 		}
-		if ((links->list[links->len].size = create_empty_string()) == NULL) {
+		if ((links->list[links->len].size = crtes()) == NULL) {
 			FAIL("Not enough memory for link size string.");
 			links->list[links->len].duration = NULL;
 			return false;
 		}
-		if ((links->list[links->len].duration = create_empty_string()) == NULL) {
+		if ((links->list[links->len].duration = crtes()) == NULL) {
 			FAIL("Not enough memory for link duration string.");
 			return false;
 		}
@@ -101,7 +101,7 @@ free_link_list(const struct link_list *links)
 struct string *
 generate_link_list_string_for_database(const struct link_list *links)
 {
-	struct string *str = create_empty_string();
+	struct string *str = crtes();
 	if (str == NULL) {
 		return NULL;
 	}
@@ -111,7 +111,7 @@ generate_link_list_string_for_database(const struct link_list *links)
 			if (is_this_first_link == false) {
 				if (catcs(str, '\n') == false) { goto error; }
 			}
-			strip_whitespace_from_string(links->list[i].url);
+			trim_whitespace_from_string(links->list[i].url);
 			if (catss(str, links->list[i].url) == false) { goto error; }
 			is_this_first_link = false;
 		} else {
@@ -119,17 +119,17 @@ generate_link_list_string_for_database(const struct link_list *links)
 		}
 		if (catcs(str, ' ') == false) { goto error; }
 		if (links->list[i].type->len != 0) {
-			strip_whitespace_from_string(links->list[i].type);
+			trim_whitespace_from_string(links->list[i].type);
 			if (catss(str, links->list[i].type) == false) { goto error; }
 		}
 		if (catcs(str, ' ') == false) { goto error; }
 		if (links->list[i].size->len != 0) {
-			strip_whitespace_from_string(links->list[i].size);
+			trim_whitespace_from_string(links->list[i].size);
 			if (catss(str, links->list[i].size) == false) { goto error; }
 		}
 		if (catcs(str, ' ') == false) { goto error; }
 		if (links->list[i].duration->len != 0) {
-			strip_whitespace_from_string(links->list[i].duration);
+			trim_whitespace_from_string(links->list[i].duration);
 			if (catss(str, links->list[i].duration) == false) { goto error; }
 		}
 	}

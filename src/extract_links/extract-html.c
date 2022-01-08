@@ -30,7 +30,7 @@ extract_links_from_attributes(const struct xml_attribute *atts, struct link_list
 bool
 extract_from_html(const struct wstring *wstr, struct link_list *links)
 {
-	struct wstring *tag = create_wstring(NULL, 100);
+	struct wstring *tag = wcrtes();
 	if (tag == NULL) {
 		FAIL("Not enough memory for tag buffer to extract links from HTML!");
 		return false;

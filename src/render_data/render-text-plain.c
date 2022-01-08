@@ -3,7 +3,7 @@
 struct wstring *
 render_text_plain(const struct wstring *wstr, struct line *line)
 {
-	struct wstring *result = create_empty_wstring();
+	struct wstring *result = wcrtes();
 	if (result == NULL) {
 		return NULL;
 	}

@@ -245,13 +245,13 @@ end_handler(wchar_t *t, struct line *l, struct wstring *w, enum html_position *p
 struct wstring *
 render_text_html(const struct wstring *wstr, struct line *line)
 {
-	struct wstring *t = create_wstring(NULL, wstr->len);
+	struct wstring *t = wcrtes();
 	if (t == NULL) {
 		FAIL("Not enough memory for text buffer to render HTML!");
 		return NULL;
 	}
 
-	struct wstring *tag = create_wstring(NULL, 100);
+	struct wstring *tag = wcrtes();
 	if (tag == NULL) {
 		FAIL("Not enough memory for tag buffer to render HTML!");
 		free_wstring(t);

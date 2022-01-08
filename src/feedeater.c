@@ -65,14 +65,14 @@ main(int argc, char **argv)
 	if (curl_global_init(CURL_GLOBAL_DEFAULT) != 0) { error = 10; goto undo5; }
 	if (curses_init() != 0)                         { error = 11; goto undo6; }
 	if (adjust_list_menu() != 0)                    { error = 12; goto undo7; }
-	if (status_create() != 0)                       { error = 13; goto undo8; }
-	if (reallocate_format_buffer() != 0)            { error = 14; goto undo9; }
+	if (adjust_list_menu_format_buffer() == false)  { error = 13; goto undo8; }
+	if (status_create() != 0)                       { error = 14; goto undo9; }
 
 	enter_sets_menu_loop();
 
-	free_format_buffer();
-undo9:
 	status_delete();
+undo9:
+	free_list_menu_format_buffer();
 undo8:
 	free_list_menu();
 undo7:

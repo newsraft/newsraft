@@ -2,37 +2,36 @@
 #include <string.h>
 #include "feedeater.h"
 
+// Create string out of array.
+// On success returns pointer to string.
+// On memory shortage returns NULL.
 struct string *
-create_string(const char *src, size_t len)
+crtas(const char *src_ptr, size_t src_len)
 {
 	struct string *str = malloc(sizeof(struct string));
 	if (str == NULL) {
 		FAIL("Not enough memory for string structure!");
 		return NULL;
 	}
-	str->ptr = malloc(sizeof(char) * (len + 1));
+	size_t new_lim = src_len * 2; // Multiply by 2 to decrease number of further realloc calls.
+	str->ptr = malloc(sizeof(char) * (new_lim + 1));
 	if (str->ptr == NULL) {
 		FAIL("Not enough memory for string pointer!");
 		free(str);
 		return NULL;
 	}
-	if (src != NULL) {
-		if (len != 0) {
-			memcpy(str->ptr, src, sizeof(char) * len);
-		}
-		str->len = len;
-	} else {
-		str->len = 0;
-	}
-	str->lim = len;
-	*(str->ptr + str->len) = '\0';
+	memcpy(str->ptr, src_ptr, sizeof(char) * src_len);
+	*(str->ptr + src_len) = '\0';
+	str->len = src_len;
+	str->lim = new_lim;
 	return str;
 }
 
+// Create empty string.
 struct string *
-create_empty_string(void)
+crtes(void)
 {
-	return create_string(NULL, 0);
+	return crtas("", 0);
 }
 
 // Copy array to string.
@@ -42,14 +41,14 @@ bool
 cpyas(struct string *dest, const char *src_ptr, size_t src_len)
 {
 	if (src_len > dest->lim) {
-		// Multiply by 2 to decrease number of further realloc calls.
-		char *temp = realloc(dest->ptr, sizeof(char) * (src_len * 2 + 1));
+		size_t new_lim = src_len * 2; // Multiply by 2 to decrease number of further realloc calls.
+		char *temp = realloc(dest->ptr, sizeof(char) * (new_lim + 1));
 		if (temp == NULL) {
 			FAIL("Not enough memory for copying array to string!");
 			return false;
 		}
 		dest->ptr = temp;
-		dest->lim = src_len * 2;
+		dest->lim = new_lim;
 	}
 	memcpy(dest->ptr, src_ptr, sizeof(char) * src_len);
 	*(dest->ptr + src_len) = '\0';
@@ -72,14 +71,14 @@ catas(struct string *dest, const char *src_ptr, size_t src_len)
 {
 	size_t new_len = dest->len + src_len;
 	if (new_len > dest->lim) {
-		// Multiply by 2 to decrease number of further realloc calls.
-		char *temp = realloc(dest->ptr, sizeof(char) * (new_len * 2 + 1));
+		size_t new_lim = new_len * 2; // Multiply by 2 to decrease number of further realloc calls.
+		char *temp = realloc(dest->ptr, sizeof(char) * (new_lim + 1));
 		if (temp == NULL) {
 			FAIL("Not enough memory for concatenating array to string!");
 			return false;
 		}
 		dest->ptr = temp;
-		dest->lim = new_len * 2;
+		dest->lim = new_lim;
 	}
 	memcpy(dest->ptr + dest->len, src_ptr, sizeof(char) * src_len);
 	*(dest->ptr + new_len) = '\0';
@@ -102,14 +101,14 @@ catcs(struct string *dest, char c)
 {
 	size_t new_len = dest->len + 1;
 	if (new_len > dest->lim) {
-		// Multiply by 2 to decrease number of further realloc calls.
-		char *temp = realloc(dest->ptr, sizeof(char) * (new_len * 2 + 1));
+		size_t new_lim = new_len * 2; // Multiply by 2 to decrease number of further realloc calls.
+		char *temp = realloc(dest->ptr, sizeof(char) * (new_lim + 1));
 		if (temp == NULL) {
 			FAIL("Not enough memory for concatenating character to string!");
 			return false;
 		}
 		dest->ptr = temp;
-		dest->lim = new_len * 2;
+		dest->lim = new_lim;
 	}
 	*(dest->ptr + dest->len) = c;
 	dest->len = new_len;
@@ -135,7 +134,7 @@ free_string(struct string *str)
 }
 
 void
-strip_whitespace_from_string(struct string *str)
+trim_whitespace_from_string(struct string *str)
 {
 	if (str->len == 0) {
 		return;
@@ -143,17 +142,21 @@ strip_whitespace_from_string(struct string *str)
 
 	size_t left_edge = 0, right_edge = str->len - 1;
 	while ((*(str->ptr + left_edge) == ' '   ||
+	        *(str->ptr + left_edge) == '\n'  ||
 	        *(str->ptr + left_edge) == '\t'  ||
-	        *(str->ptr + left_edge) == '\r'  ||
-	        *(str->ptr + left_edge) == '\n') &&
+	        *(str->ptr + left_edge) == '\v'  ||
+	        *(str->ptr + left_edge) == '\f'  ||
+	        *(str->ptr + left_edge) == '\r') &&
 	       left_edge <= right_edge)
 	{
 		++left_edge;
 	}
 	while ((*(str->ptr + right_edge) == ' '   ||
+	        *(str->ptr + right_edge) == '\n'  ||
 	        *(str->ptr + right_edge) == '\t'  ||
-	        *(str->ptr + right_edge) == '\r'  ||
-	        *(str->ptr + right_edge) == '\n') &&
+	        *(str->ptr + right_edge) == '\v'  ||
+	        *(str->ptr + right_edge) == '\f'  ||
+	        *(str->ptr + right_edge) == '\r') &&
 	       right_edge >= left_edge)
 	{
 		--right_edge;
@@ -169,12 +172,12 @@ strip_whitespace_from_string(struct string *str)
 		return;
 	}
 
-	size_t stripped_string_len = right_edge - left_edge + 1;
-	for (size_t i = 0; i < stripped_string_len; ++i) {
+	size_t trimmed_string_len = right_edge - left_edge + 1;
+	for (size_t i = 0; i < trimmed_string_len; ++i) {
 		*(str->ptr + i) = *(str->ptr + i + left_edge);
 	}
-	str->len = stripped_string_len;
-	*(str->ptr + stripped_string_len) = '\0';
+	str->len = trimmed_string_len;
+	*(str->ptr + trimmed_string_len) = '\0';
 }
 
 // On failure retruns NULL.

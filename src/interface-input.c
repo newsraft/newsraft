@@ -48,7 +48,9 @@ get_input_command(void)
 
 		adjust_list_menu();
 
-		reallocate_format_buffer();
+		if (adjust_list_menu_format_buffer() == false) {
+			return INPUT_QUIT_HARD;
+		}
 
 		// Recreate a status window.
 		status_delete();

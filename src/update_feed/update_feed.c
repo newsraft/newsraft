@@ -44,7 +44,7 @@ end_element_handler(struct parser_data *data, const XML_Char *name)
 		return;
 	}
 	--(data->depth);
-	strip_whitespace_from_string(data->value);
+	trim_whitespace_from_string(data->value);
 	if (parse_namespace_element_end(data, name) == true) {
 		// Successfully processed an element by its namespace.
 		return;
@@ -90,7 +90,7 @@ update_feed(const struct string *url)
 {
 	struct parser_data data;
 	data.error = PARSE_OKAY;
-	if ((data.value = create_string(NULL, cfg.init_parser_buf_size)) == NULL) {
+	if ((data.value = crtes()) == NULL) {
 		data.error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		goto undo0;
 	}
@@ -162,7 +162,7 @@ update_feed(const struct string *url)
 	char curl_errbuf[CURL_ERROR_SIZE] = "";
 	curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, curl_errbuf);
 
-	if (db_begin_transaction() != 0) {
+	if (db_begin_transaction() == false) {
 		data.error = PARSE_FAIL_DB_TRANSACTION_ERROR;
 		goto undo5;
 	}

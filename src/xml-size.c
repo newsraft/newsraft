@@ -26,5 +26,5 @@ convert_bytes_to_human_readable_size_string(const char *value)
 	} else {
 		length = sprintf(human_readable, "%.2f GB", size);
 	}
-	return create_string(human_readable, length);
+	return crtas(human_readable, length);
 }

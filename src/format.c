@@ -3,122 +3,100 @@
 #include <ctype.h>
 #include "feedeater.h"
 
-static char *fmt_buf = NULL;
-static size_t fmt_buf_len;
-static size_t fmt_buf_lim = 0;
+static wchar_t *fmt_buf;
 
-static char *iter;
-static char *next_percent;
-static char *specifier;
-static char specifier_tmp;
-
-// On success returns 0.
-// On failure returns non-zero.
-int
-reallocate_format_buffer(void)
+// On success returns true.
+// On memory shortage returns false.
+bool
+adjust_list_menu_format_buffer(void)
 {
-	INFO("Reallocating format buffer with size of %d characters.", list_menu_width + 1);
-	char *temp = realloc(fmt_buf, sizeof(char) * (list_menu_width + 1));
-	if (temp != NULL) {
-		fmt_buf = temp;
-		fmt_buf_lim = list_menu_width;
-	} else {
-		FAIL("Not enough memory for reallocating format buffer!");
-		free(fmt_buf);
-		fmt_buf = NULL;
-		return 1;
+	wchar_t *temp = realloc(fmt_buf, sizeof(wchar_t) * (list_menu_width + 1));
+	if (temp == NULL) {
+		FAIL("Adjustment of list menu format buffer failed!");
+		return false;
 	}
-	return 0;
+	fmt_buf = temp;
+	return true;
+}
+
+void
+free_list_menu_format_buffer(void)
+{
+	free(fmt_buf);
 }
 
 // On success returns formatted string.
 // On failure returns empty string.
-const char *
-do_format(char *fmt, struct format_arg *args, size_t args_count)
+const wchar_t *
+do_format(const wchar_t *fmt, const struct format_arg *args, size_t args_count)
 {
-	if (fmt_buf == NULL) {
-		FAIL("Format buffer is unset, returning empty string instead of formatted string!");
-		return "";
-	}
-	fmt_buf_len = 0;
-	iter = fmt;
-	while (1) {
-		if (iter[0] != '%') {
-			fmt_buf[fmt_buf_len] = iter[0];
-			if (iter[0] != '\0') {
-				++fmt_buf_len;
-				++iter;
-				continue;
-			} else {
-				break;
-			}
-		}
-		if (iter[1] == '%') {
+	const wchar_t *iter = fmt;
+	const wchar_t *next_percent;
+	const wchar_t *specifier;
+	wchar_t word[3333];
+	int64_t fmt_buf_len = 0;
+	while ((iter[0] != L'\0') && (fmt_buf_len < list_menu_width)) {
+		if (iter[0] != L'%') {
+			fmt_buf[fmt_buf_len++] = iter[0];
+			++iter;
+			continue;
+		} else if (iter[1] == L'%') {
 			// iter[0] and iter[1] are percent signs.
-			fmt_buf[fmt_buf_len++] = '%';
+			fmt_buf[fmt_buf_len++] = L'%';
 			iter += 2;
 			continue;
-		} else if (iter[1] == '\0') {
+		} else if (iter[1] == L'\0') {
 			break;
 		}
 		next_percent = iter + 1;
 		specifier = NULL;
 		while (1) {
-			if (next_percent[0] == '%') {
-				if (next_percent[1] == '%') {
-					++next_percent;
+			if (next_percent[0] == L'%') {
+				if (next_percent[1] == L'%') {
+					fmt_buf[fmt_buf_len++] = L'%';
+					next_percent += 2;
+					continue;
 				} else {
 					break;
 				}
-			} else if (next_percent[0] == '\0') {
-				next_percent = NULL;
+			} else if (next_percent[0] == L'\0') {
 				break;
 			} else if ((specifier == NULL) && (isalpha(next_percent[0]) != 0)) {
 				specifier = next_percent;
 			}
 			++next_percent;
 		}
-		if (next_percent != NULL) {
-			next_percent[0] = '\0';
+		if (fmt_buf_len >= list_menu_width) {
+			break;
 		}
 		if (specifier != NULL) {
 			for (size_t j = 0; j < args_count; ++j) {
-				if (specifier[0] == args[j].specifier) {
-					/* save original specifier */
-					specifier_tmp = specifier[0];
-					specifier[0] = args[j].type_specifier;
-					if (specifier[0] == 'd') {
-						fmt_buf_len += snprintf(fmt_buf + fmt_buf_len, fmt_buf_lim + 1 - fmt_buf_len, iter, args[j].value.i);
-					} else if (specifier[0] == 's') {
-						fmt_buf_len += snprintf(fmt_buf + fmt_buf_len, fmt_buf_lim + 1 - fmt_buf_len, iter, args[j].value.s);
-					} else if (specifier[0] == 'c') {
-						fmt_buf_len += snprintf(fmt_buf + fmt_buf_len, fmt_buf_lim + 1 - fmt_buf_len, iter, args[j].value.c);
-					}
-					/* restore original specifier */
-					specifier[0] = specifier_tmp;
-					break;
+				if (specifier[0] != args[j].specifier) {
+					continue;
 				}
+				wcsncpy(word, iter, specifier - iter);
+				wcscpy(word + (specifier - iter), args[j].type_specifier);
+				wcsncat(word, specifier + 1, next_percent - (specifier + 1));
+				if (wcscmp(args[j].type_specifier, L"d") == 0) {
+					fmt_buf_len += swprintf(fmt_buf + fmt_buf_len, list_menu_width + 1 - fmt_buf_len, word, args[j].value.i);
+				} else if (wcscmp(args[j].type_specifier, L"s") == 0) {
+					fmt_buf_len += swprintf(fmt_buf + fmt_buf_len, list_menu_width + 1 - fmt_buf_len, word, args[j].value.s);
+				} else if (wcscmp(args[j].type_specifier, L"c") == 0) {
+					fmt_buf_len += swprintf(fmt_buf + fmt_buf_len, list_menu_width + 1 - fmt_buf_len, word, args[j].value.c);
+				} else if (wcscmp(args[j].type_specifier, L"ls") == 0) {
+					fmt_buf_len += swprintf(fmt_buf + fmt_buf_len, list_menu_width + 1 - fmt_buf_len, word, args[j].value.ls);
+				}
+				break;
 			}
 		}
-		if (next_percent != NULL) {
-			next_percent[0] = '%';
-			iter = next_percent;
-		}
-		if (fmt_buf_len < fmt_buf_lim) {
-			fmt_buf[fmt_buf_len] = '\0';
-		} else {
-			fmt_buf[fmt_buf_lim] = '\0';
-			break;
-		}
-		if (next_percent == NULL) {
-			break;
-		}
+		iter = next_percent;
 	}
-	return (const char *)fmt_buf;
-}
 
-void
-free_format_buffer(void)
-{
-	free(fmt_buf);
+	if (fmt_buf_len > list_menu_width) {
+		fmt_buf[list_menu_width] = L'\0';
+	} else {
+		fmt_buf[fmt_buf_len] = L'\0';
+	}
+
+	return (const wchar_t *)fmt_buf;
 }

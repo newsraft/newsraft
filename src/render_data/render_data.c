@@ -27,13 +27,13 @@ static const struct data_handler handlers[] = {
 struct wstring *
 render_data(const struct content_list *data_list)
 {
-	struct wstring *text = create_empty_wstring();
+	struct wstring *text = wcrtes();
 	if (text == NULL) {
 		FAIL("Not enough memory to render data!");
 		return NULL;
 	}
 	struct line line;
-	line.ptr = malloc(sizeof(wchar_t) * (list_menu_width + 1));
+	line.ptr = malloc(sizeof(wchar_t) * list_menu_width);
 	if (line.ptr == NULL) {
 		FAIL("Not enough memory for line buffer to render data!");
 		free_wstring(text);
@@ -67,7 +67,7 @@ render_data(const struct content_list *data_list)
 		}
 		if (temp_str != NULL) {
 			if (temp_list->trim_whitespace == true) {
-				strip_whitespace_from_wstring(temp_str);
+				trim_whitespace_from_wstring(temp_str);
 			}
 			wcatss(text, temp_str);
 			free_wstring(temp_str);
@@ -80,7 +80,7 @@ render_data(const struct content_list *data_list)
 		line_char(&line, L'\n', text);
 	}
 	free(line.ptr);
-	strip_whitespace_from_wstring(text);
+	trim_whitespace_from_wstring(text);
 	// We still need last newline to count in last line of text.
 	wcatcs(text, L'\n');
 	return text;

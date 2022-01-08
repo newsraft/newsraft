@@ -5,17 +5,17 @@
 bool
 initialize_feed_bucket(struct feed_bucket *feed)
 {
-	if ((feed->title.value     = create_empty_string()) == NULL) { goto undo0; }
-	if ((feed->title.type      = create_empty_string()) == NULL) { goto undo1; }
-	if ((feed->link            = create_empty_string()) == NULL) { goto undo2; }
-	if ((feed->summary.value   = create_empty_string()) == NULL) { goto undo3; }
-	if ((feed->summary.type    = create_empty_string()) == NULL) { goto undo4; }
-	if ((feed->categories      = create_empty_string()) == NULL) { goto undo5; }
-	if ((feed->language        = create_empty_string()) == NULL) { goto undo6; }
-	if ((feed->generator.value = create_empty_string()) == NULL) { goto undo7; }
-	if ((feed->generator.type  = create_empty_string()) == NULL) { goto undo8; }
-	if ((feed->rights.value    = create_empty_string()) == NULL) { goto undo9; }
-	if ((feed->rights.type     = create_empty_string()) == NULL) { goto undoA; }
+	if ((feed->title.value     = crtes()) == NULL) { goto undo0; }
+	if ((feed->title.type      = crtes()) == NULL) { goto undo1; }
+	if ((feed->link            = crtes()) == NULL) { goto undo2; }
+	if ((feed->summary.value   = crtes()) == NULL) { goto undo3; }
+	if ((feed->summary.type    = crtes()) == NULL) { goto undo4; }
+	if ((feed->categories      = crtes()) == NULL) { goto undo5; }
+	if ((feed->language        = crtes()) == NULL) { goto undo6; }
+	if ((feed->generator.value = crtes()) == NULL) { goto undo7; }
+	if ((feed->generator.type  = crtes()) == NULL) { goto undo8; }
+	if ((feed->rights.value    = crtes()) == NULL) { goto undo9; }
+	if ((feed->rights.type     = crtes()) == NULL) { goto undoA; }
 	return true;
 undoA:
 	free_string(feed->rights.value);

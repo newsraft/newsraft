@@ -5,16 +5,16 @@
 bool
 initialize_item_bucket(struct item_bucket *item)
 {
-	if ((item->guid          = create_empty_string()) == NULL) { goto undo0; }
-	if ((item->title.value   = create_empty_string()) == NULL) { goto undo1; }
-	if ((item->title.type    = create_empty_string()) == NULL) { goto undo2; }
-	if ((item->url           = create_empty_string()) == NULL) { goto undo3; }
-	if ((item->summary.value = create_empty_string()) == NULL) { goto undo4; }
-	if ((item->summary.type  = create_empty_string()) == NULL) { goto undo5; }
-	if ((item->content.value = create_empty_string()) == NULL) { goto undo6; }
-	if ((item->content.type  = create_empty_string()) == NULL) { goto undo7; }
-	if ((item->categories    = create_empty_string()) == NULL) { goto undo8; }
-	if ((item->comments_url  = create_empty_string()) == NULL) { goto undo9; }
+	if ((item->guid          = crtes()) == NULL) { goto undo0; }
+	if ((item->title.value   = crtes()) == NULL) { goto undo1; }
+	if ((item->title.type    = crtes()) == NULL) { goto undo2; }
+	if ((item->url           = crtes()) == NULL) { goto undo3; }
+	if ((item->summary.value = crtes()) == NULL) { goto undo4; }
+	if ((item->summary.type  = crtes()) == NULL) { goto undo5; }
+	if ((item->content.value = crtes()) == NULL) { goto undo6; }
+	if ((item->content.type  = crtes()) == NULL) { goto undo7; }
+	if ((item->categories    = crtes()) == NULL) { goto undo8; }
+	if ((item->comments_url  = crtes()) == NULL) { goto undo9; }
 	initialize_link_list(&item->enclosures);
 	initialize_person_list(&item->authors);
 	item->pubdate = 0;

@@ -14,9 +14,9 @@ static size_t view_min; // index of first visible item
 static size_t view_max; // index of last visible item
 
 static struct format_arg fmt_args[] = {
-	{'n', 'd', {.i = 0}},
-	{'u', 'd', {.i = 0}},
-	{'t', 's', {.s = NULL}},
+	{L'n', L"d", {.i = 0}},
+	{L'u', L"d", {.i = 0}},
+	{L't', L"s", {.s = NULL}},
 };
 
 void
@@ -93,7 +93,7 @@ parse_sets_file(struct feed_tag **head_tag_ptr) {
 				if (c == '\n' || c == EOF) { break; }
 				word[word_len++] = c;
 			}
-			sets[set_index].name = create_string(word, word_len);
+			sets[set_index].name = crtas(word, word_len);
 			if (sets[set_index].name == NULL) {
 				error = 1;
 				break;
@@ -107,7 +107,7 @@ parse_sets_file(struct feed_tag **head_tag_ptr) {
 				if (c == '"' || c == '\n' || c == EOF) { break; }
 				word[word_len++] = c;
 			}
-			sets[set_index].tags = create_string(word, word_len);
+			sets[set_index].tags = crtas(word, word_len);
 			if (sets[set_index].tags == NULL) {
 				error = 1;
 				break;
@@ -120,7 +120,7 @@ parse_sets_file(struct feed_tag **head_tag_ptr) {
 					if (c == '"' || c == '\n' || c == EOF) { break; }
 					word[word_len++] = c;
 				}
-				sets[set_index].name = create_string(word, word_len);
+				sets[set_index].name = crtas(word, word_len);
 				if (sets[set_index].name == NULL) {
 					error = 1;
 					break;
@@ -134,7 +134,7 @@ parse_sets_file(struct feed_tag **head_tag_ptr) {
 				c = fgetc(f);
 				if (c == ' ' || c == '\t' || c == '\n' || c == EOF) { break; }
 			}
-			sets[set_index].link = create_string(word, word_len);
+			sets[set_index].link = crtas(word, word_len);
 			if (sets[set_index].link == NULL) {
 				error = 1;
 				break;
@@ -148,7 +148,7 @@ parse_sets_file(struct feed_tag **head_tag_ptr) {
 					if (c == '"' || c == '\n' || c == EOF) { break; }
 					word[word_len++] = c;
 				}
-				sets[set_index].name = create_string(word, word_len);
+				sets[set_index].name = crtas(word, word_len);
 				if (sets[set_index].name == NULL) {
 					error = 1;
 					break;
@@ -284,7 +284,7 @@ set_expose(size_t index)
 	fmt_args[0].value.i = index + 1;
 	fmt_args[1].value.i = sets[index].unread_count;
 	fmt_args[2].value.s = set_image(&(sets[index]));
-	wprintw(sets[index].window, "%s", do_format(cfg.menu_set_entry_format, fmt_args, COUNTOF(fmt_args)));
+	wprintw(sets[index].window, "%ls", do_format(cfg.menu_set_entry_format, fmt_args, COUNTOF(fmt_args)));
 	mvwchgat(sets[index].window, 0, 0, -1, (index == view_sel) ? A_REVERSE : A_NORMAL, 0, NULL);
 	wrefresh(sets[index].window);
 }

@@ -10,15 +10,17 @@ static size_t view_min; // index of first visible item
 static size_t view_max; // index of last visible item
 
 static struct format_arg fmt_args[] = {
-	{'n', 'd', {.i = 0}},
-	{'u', 'c', {.c = '\0'}},
-	{'t', 's', {.s = NULL}},
+	{L'n', L"d", {.i = 0}},
+	{L'u', L"c", {.c = '\0'}},
+	{L't', L"s", {.s = NULL}},
 };
 
 static void
 free_items(void)
 {
-	if (items == NULL) return;
+	if (items == NULL) {
+		return;
+	}
 	for (size_t i = 0; i < items_count; ++i) {
 		free_string(items[i].title);
 	}
@@ -52,7 +54,7 @@ load_items(const struct set_condition *sc)
 	view_sel = SIZE_MAX;
 	size_t item_index;
 	char *text;
-	struct item_line *temp; // need to check if realloc failed
+	void *temp; // need to check if realloc failed
 	for (size_t i = 0; i < sc->urls_count; ++i) {
 		sqlite3_bind_text(res, i + 1, sc->urls[i]->ptr, sc->urls[i]->len, NULL);
 	}
@@ -73,7 +75,10 @@ load_items(const struct set_condition *sc)
 		}
 		items[item_index].rowid = sqlite3_column_int(res, 0);
 		if ((text = (char *)sqlite3_column_text(res, 1)) != NULL) {
-			items[item_index].title = create_string(text, strlen(text));
+			if ((items[item_index].title = crtas(text, strlen(text))) == NULL) {
+				error = true;
+				break;
+			}
 		}
 		items[item_index].is_unread = sqlite3_column_int(res, 2);
 	}
@@ -100,7 +105,7 @@ item_expose(size_t index)
 	fmt_args[0].value.i = index + 1;
 	fmt_args[1].value.c = items[index].is_unread == true ? 'N' : ' ';
 	fmt_args[2].value.s = items[index].title->ptr;
-	wprintw(items[index].window, "%s", do_format(cfg.menu_item_entry_format, fmt_args, COUNTOF(fmt_args)));
+	wprintw(items[index].window, "%ls", do_format(cfg.menu_item_entry_format, fmt_args, COUNTOF(fmt_args)));
 	mvwchgat(items[index].window, 0, 0, -1, (index == view_sel) ? A_REVERSE : A_NORMAL, 0, NULL);
 	wrefresh(items[index].window);
 }

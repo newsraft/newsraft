@@ -8,7 +8,7 @@ add_another_url_to_trim_link_list(struct link_list *links, char *url, size_t url
 		return false;
 	}
 	links->list = temp;
-	links->list[links->len].url = create_string(url, url_len);
+	links->list[links->len].url = crtas(url, url_len);
 	if (links->list[links->len].url == NULL) {
 		return false;
 	}
@@ -86,7 +86,7 @@ append_enclosures(struct link_list *links, sqlite3_stmt *res)
 					target = &links->list[links->len - 1].duration;
 				}
 				if ((target != NULL) && (*target == NULL)) {
-					*target = create_string(word, word_len);
+					*target = crtas(word, word_len);
 					if (*target == NULL) {
 						return false;
 					}
@@ -126,7 +126,7 @@ populate_link_list_with_links_of_item(struct link_list *links, sqlite3_stmt *res
 struct string *
 generate_link_list_string_for_pager(const struct link_list *links)
 {
-	struct string *str = create_string("\n\nLinks:\n", 9);
+	struct string *str = crtas("\n\nLinks:\n", 9);
 	if (str == NULL) {
 		return false;
 	}

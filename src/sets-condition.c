@@ -34,7 +34,7 @@ create_set_condition_for_feed(const struct string *feed_url)
 		fprintf(stderr, "Not enough memory for feed set condition!\n");
 		return NULL;
 	}
-	if ((sc->db_cmd = create_string("(feed_url=?1)", 13)) == NULL) {
+	if ((sc->db_cmd = crtas("(feed_url=?1)", 13)) == NULL) {
 		fprintf(stderr, "Not enough memory for WHERE condition of feed set condition!\n");
 		free(sc);
 		return NULL;
@@ -134,7 +134,7 @@ create_set_condition_for_filter(const struct feed_tag *head_tag, const struct st
 		fprintf(stderr, "Not enough memory for filter set condition!\n");
 		return NULL;
 	}
-	if ((sc->db_cmd = create_string("(", 1)) == NULL) {
+	if ((sc->db_cmd = crtas("(", 1)) == NULL) {
 		fprintf(stderr, "Not enough memory for WHERE condition of filter set condition!\n");
 		free(sc);
 		return NULL;

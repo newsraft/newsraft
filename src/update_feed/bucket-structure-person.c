@@ -24,18 +24,18 @@ expand_person_list_by_one_element(struct person_list *persons)
 		}
 		persons->list = new_list;
 		++(persons->lim);
-		if ((persons->list[persons->len].name = create_empty_string()) == NULL) {
+		if ((persons->list[persons->len].name = crtes()) == NULL) {
 			FAIL("Not enough memory for person name string.");
 			persons->list[persons->len].email = NULL;
 			persons->list[persons->len].link = NULL;
 			return false;
 		}
-		if ((persons->list[persons->len].email = create_empty_string()) == NULL) {
+		if ((persons->list[persons->len].email = crtes()) == NULL) {
 			FAIL("Not enough memory for person email string.");
 			persons->list[persons->len].link = NULL;
 			return false;
 		}
-		if ((persons->list[persons->len].link = create_empty_string()) == NULL) {
+		if ((persons->list[persons->len].link = crtes()) == NULL) {
 			FAIL("Not enough memory for person link string.");
 			return false;
 		}
@@ -86,7 +86,7 @@ free_person_list(const struct person_list *persons)
 struct string *
 generate_person_list_string(const struct person_list *persons)
 {
-	struct string *str = create_empty_string();
+	struct string *str = crtes();
 	if (str == NULL) {
 		return NULL;
 	}

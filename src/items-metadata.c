@@ -32,7 +32,7 @@ append_date(struct content_list **list, sqlite3_stmt *res, intmax_t column, cons
 	if (date == 0) {
 		return true; // It is not an error because this item simply does not have pubdate set.
 	}
-	struct string *date_entry = create_string(prefix, prefix_len);
+	struct string *date_entry = crtas(prefix, prefix_len);
 	if (date_entry == NULL) {
 		return false;
 	}
@@ -135,7 +135,7 @@ append_max_summary_content(struct content_list **list, sqlite3_stmt *res)
 	char type[MAX_MIME_TYPE_LEN + 1];
 	memcpy(type, content, type_len);
 	type[type_len] = '\0';
-	if (append_content(list, "\n\n", 2, "text/plain", 10, false) == false) {
+	if (append_content(list, "\n", 1, "text/plain", 10, false) == false) {
 		return false;
 	}
 	if (append_content(list, real_content, real_content_len, type, type_len, true) == false) {
@@ -175,7 +175,7 @@ process_specifier(const struct string *value, struct content_list **list, sqlite
 bool
 populate_content_list_with_data_of_item(struct content_list **list, sqlite3_stmt *res)
 {
-	struct string *value = create_empty_string();
+	struct string *value = crtes();
 	if (value == NULL) {
 		return false;
 	}

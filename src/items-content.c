@@ -7,7 +7,7 @@ append_content(struct content_list **list, const char *content, size_t content_l
 	if (new_entry == NULL) {
 		return false;
 	}
-	new_entry->content = create_string(content, content_len);
+	new_entry->content = crtas(content, content_len);
 	if (new_entry->content == NULL) {
 		free(new_entry);
 		return false;

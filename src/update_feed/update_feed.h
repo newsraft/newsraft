@@ -43,6 +43,7 @@ struct feed_bucket {
 	struct string *language;
 	struct text generator;
 	struct text rights;
+	time_t download_time;
 };
 
 // Used to bufferize an item before writing it to the database,

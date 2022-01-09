@@ -29,7 +29,8 @@ db_init(void)
 			"categories TEXT NOT NULL,"
 			"language TEXT NOT NULL,"
 			"generator TEXT NOT NULL,"
-			"rights TEXT NOT NULL"
+			"rights TEXT NOT NULL,"
+			"download_time INTEGER(8)"
 		");"
 		"CREATE TABLE IF NOT EXISTS items("
 			"feed_url TEXT NOT NULL," // url of feed this item belongs to

@@ -5,6 +5,7 @@
 bool
 initialize_feed_bucket(struct feed_bucket *feed)
 {
+	if (time(&feed->download_time) == (time_t) -1) { goto undo0; }
 	if ((feed->title.value     = crtes()) == NULL) { goto undo0; }
 	if ((feed->title.type      = crtes()) == NULL) { goto undo1; }
 	if ((feed->link            = crtes()) == NULL) { goto undo2; }

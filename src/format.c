@@ -34,7 +34,7 @@ do_format(const wchar_t *fmt, const struct format_arg *args, size_t args_count)
 	const wchar_t *next_percent;
 	const wchar_t *specifier;
 	wchar_t word[3333];
-	int64_t fmt_buf_len = 0;
+	size_t fmt_buf_len = 0;
 	while ((iter[0] != L'\0') && (fmt_buf_len < list_menu_width)) {
 		if (iter[0] != L'%') {
 			fmt_buf[fmt_buf_len++] = iter[0];

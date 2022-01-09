@@ -289,8 +289,8 @@ bool extract_links(const struct content_list *data_list, struct link_list *targe
 struct wstring *render_data(const struct content_list *data_list);
 
 extern FILE *log_stream;
-extern int list_menu_height;
-extern int list_menu_width;
+extern size_t list_menu_height;
+extern size_t list_menu_width;
 extern struct config_data cfg;
 
 #endif // FEEDEATER_H

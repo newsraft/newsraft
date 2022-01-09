@@ -6,13 +6,14 @@
 
 const struct content_list *data_list;
 static WINDOW *window;
-static int view_min; // index of first visible line (row)
-static int pad_height;
+static size_t view_min; // index of first visible line (row)
+static size_t view_lim; // maximum reachable value of view_min
+static size_t pad_height;
 
 static inline void
 write_splitted_wstring_to_pad(WINDOW *pad, const struct wstring *wbuf)
 {
-	int newlines = 0;
+	size_t newlines = 0;
 	const wchar_t *iter = wbuf->ptr;
 	const wchar_t *newline_char = wcschr(iter, L'\n');
 	while (newline_char != NULL) {
@@ -21,7 +22,7 @@ write_splitted_wstring_to_pad(WINDOW *pad, const struct wstring *wbuf)
 		iter = newline_char + 1;
 		newline_char = wcschr(iter, L'\n');
 	}
-	INFO("Wrote %d lines to pad window.", newlines);
+	INFO("Wrote %zu lines to pad window.", newlines);
 }
 
 static WINDOW *
@@ -45,10 +46,12 @@ create_window_with_contents(void)
 	// pad window by counting newline characters in the rendered text wstring.
 	pad_height = 0;
 	for (size_t i = 0; i < text->len; ++i) {
-		if (text->ptr[i] == L'\n') ++pad_height;
+		if (text->ptr[i] == L'\n') {
+			++pad_height;
+		}
 	}
 
-	INFO("Creating pad window with %d height and %d width.", pad_height, list_menu_width);
+	INFO("Creating pad window with %zu width and %zu height.", list_menu_width, pad_height);
 	WINDOW *pad = newpad(pad_height, list_menu_width);
 	if (pad == NULL) {
 		FAIL("Failed to create pad window for item contents (newpad returned NULL)!");
@@ -59,6 +62,7 @@ create_window_with_contents(void)
 	write_splitted_wstring_to_pad(pad, text);
 
 	view_min = 0;
+	view_lim = pad_height > list_menu_height ? pad_height - list_menu_height : 0;
 
 	clear();
 	refresh();
@@ -70,58 +74,49 @@ create_window_with_contents(void)
 }
 
 static void
-scroll_view(int offset)
+scroll_view(size_t pminrow)
 {
-	int new_view_min = view_min + offset;
-	if (new_view_min < 0) {
-		new_view_min = 0;
-	} else if (new_view_min + list_menu_height >= pad_height) {
-		new_view_min = pad_height - list_menu_height;
+	if (pminrow == view_min) {
+		return;
 	}
-	if (new_view_min != view_min) {
-		view_min = new_view_min;
-		prefresh(window, view_min, 0, 0, 0, list_menu_height - 1, list_menu_width - 1);
-	}
+	view_min = pminrow;
+	prefresh(window, pminrow, 0, 0, 0, list_menu_height - 1, list_menu_width - 1);
+}
+
+static void
+scroll_up_a_line(void)
+{
+	scroll_view(view_min == 0 ? 0 : view_min - 1);
+}
+
+static void
+scroll_down_a_line(void)
+{
+	scroll_view(view_min < view_lim ? view_min + 1 : view_lim);
+}
+
+static void
+scroll_up_a_page(void)
+{
+	scroll_view(view_min > list_menu_height ? view_min - list_menu_height : 0);
+}
+
+static void
+scroll_down_a_page(void)
+{
+	scroll_view(view_min + list_menu_height < view_lim ? view_min + list_menu_height : view_lim);
 }
 
 static void
 scroll_view_top(void)
 {
-	int new_view_min = 0;
-	if (new_view_min != view_min) {
-		view_min = new_view_min;
-		prefresh(window, view_min, 0, 0, 0, list_menu_height - 1, list_menu_width - 1);
-	}
+	scroll_view(0);
 }
 
 static void
 scroll_view_bot(void)
 {
-	int new_view_min = pad_height - list_menu_height;
-	if (new_view_min != view_min) {
-		view_min = new_view_min;
-		prefresh(window, view_min, 0, 0, 0, list_menu_height - 1 , list_menu_width - 1);
-	}
-}
-
-static void
-scroll_down_a_line(void){
-	scroll_view(1);
-}
-
-static void
-scroll_down_a_page(void){
-	scroll_view(list_menu_height);
-}
-
-static void
-scroll_up_a_line(void){
-	scroll_view(-1);
-}
-
-static void
-scroll_up_a_page(void){
-	scroll_view(-list_menu_height);
+	scroll_view(view_lim);
 }
 
 static void

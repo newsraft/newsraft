@@ -2,14 +2,14 @@
 #include "feedeater.h"
 
 static WINDOW **windows = NULL;
-static int windows_count = 0;
-int list_menu_height;
-int list_menu_width;
+static size_t windows_count = 0;
+size_t list_menu_height;
+size_t list_menu_width;
 
 void
 free_list_menu(void)
 {
-	for (int i = 0; i < windows_count; ++i) {
+	for (size_t i = 0; i < windows_count; ++i) {
 		delwin(windows[i]);
 	}
 	free(windows);
@@ -25,7 +25,7 @@ adjust_list_menu(void)
 			return false;
 		}
 		windows = temp;
-		for (int i = windows_count; i < list_menu_height; ++i) {
+		for (size_t i = windows_count; i < list_menu_height; ++i) {
 			windows[i] = newwin(1, list_menu_width, i, 0);
 			if (windows[i] == NULL) {
 				FAIL("Not enough memory for window to adjust list menu!");
@@ -57,8 +57,8 @@ adjust_list_menu(void)
 WINDOW *
 get_list_entry_by_index(size_t index)
 {
-	if (index < (size_t)windows_count) {
-		return windows[index]; // success
+	if (index < windows_count) {
+		return windows[index];
 	}
-	return NULL; // failure
+	return NULL;
 }

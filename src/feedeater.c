@@ -47,7 +47,7 @@ main(int argc, char **argv)
 			fprintf(stderr, FEEDEATER_VERSION "\n");
 			goto undo1;
 		} else if (opt == 'l') {
-			if (log_init(optarg) != 0) {
+			if (log_init(optarg) == false) {
 				error = 5;
 				goto undo0;
 			}
@@ -58,15 +58,15 @@ main(int argc, char **argv)
 		}
 	}
 
-	if (load_default_binds() != 0)                  { error = 6;  goto undo1; }
-	if (load_config() != 0)                         { error = 7;  goto undo2; }
-	if (db_init() != 0)                             { error = 8;  goto undo3; }
-	if (load_sets() != 0)                           { error = 9;  goto undo4; }
+	if (load_default_binds()             == false)  { error = 6;  goto undo1; }
+	if (load_config()                    == false)  { error = 7;  goto undo2; }
+	if (db_init()                        == false)  { error = 8;  goto undo3; }
+	if (load_sets()                      == false)  { error = 9;  goto undo4; }
 	if (curl_global_init(CURL_GLOBAL_DEFAULT) != 0) { error = 10; goto undo5; }
-	if (curses_init() != 0)                         { error = 11; goto undo6; }
-	if (adjust_list_menu() != 0)                    { error = 12; goto undo7; }
+	if (curses_init()                    == false)  { error = 11; goto undo6; }
+	if (adjust_list_menu()               == false)  { error = 12; goto undo7; }
 	if (adjust_list_menu_format_buffer() == false)  { error = 13; goto undo8; }
-	if (status_create() != 0)                       { error = 14; goto undo9; }
+	if (status_create()                  == false)  { error = 14; goto undo9; }
 
 	enter_sets_menu_loop();
 

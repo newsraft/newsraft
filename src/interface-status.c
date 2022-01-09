@@ -3,15 +3,15 @@
 
 static WINDOW *status_win = NULL; 
 
-int
+bool
 status_create(void)
 {
-	status_win = newwin(1, list_menu_width, list_menu_height, 0); // create status window
+	status_win = newwin(1, list_menu_width, list_menu_height, 0);
 	if (status_win == NULL) {
-		fprintf(stderr, "could not create status line\n");
-		return 1; // failure
+		fprintf(stderr, "Failed to create status line!\n");
+		return false;
 	}
-	return 0; // success
+	return true;
 }
 
 void

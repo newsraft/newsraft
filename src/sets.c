@@ -166,7 +166,7 @@ parse_sets_file(struct feed_tag **head_tag_ptr) {
 					if (c == ' ' || c == '\t' || c == '\n' || c == EOF) { break; }
 				}
 				word[word_len] = '\0';
-				if (tag_feed(head_tag_ptr, word, word_len, sets[set_index].link) != 0) {
+				if (tag_feed(head_tag_ptr, word, word_len, sets[set_index].link) == false) {
 					error = 1;
 					break;
 				}
@@ -198,7 +198,7 @@ parse_sets_file(struct feed_tag **head_tag_ptr) {
 
 // On success returns 0.
 // On failure returns non-zero.
-int
+bool
 load_sets(void)
 {
 	struct feed_tag *head_tag = NULL;
@@ -207,7 +207,7 @@ load_sets(void)
 		fprintf(stderr, "Failed to load sets from file!\n");
 		free_sets();
 		free_tags(head_tag);
-		return 1;
+		return false;
 	}
 
 	bool error = false;
@@ -237,7 +237,7 @@ load_sets(void)
 	if (error == true) {
 		fprintf(stderr, "Was not able to create conditions for entries!\n");
 		free_sets();
-		return 1;
+		return false;
 	}
 
 	view_sel = SIZE_MAX;
@@ -252,10 +252,10 @@ load_sets(void)
 	if (view_sel == SIZE_MAX) {
 		fprintf(stderr, "None of feeds loaded!\n");
 		free_sets();
-		return 1;
+		return false;
 	}
 
-	return 0;
+	return true;
 }
 
 // Returns most sensible string for set line name.

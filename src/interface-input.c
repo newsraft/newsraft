@@ -87,23 +87,23 @@ set_input_handler(enum input_cmd cmd, void (*func)(void))
 	input_handlers[cmd] = func;
 }
 
-int
-assign_command_to_key(int bind_key, enum input_cmd bind_cmd)
+bool
+assign_action_to_key(int bind_key, enum input_cmd bind_cmd)
 {
 	INFO("Trying to bind a key with the code %d.", bind_key);
 
 	if (bind_key == KEY_RESIZE) {
 		WARN("Key with the code KEY_RESIZE must not be bound!");
-		return 1; // failure
+		return false;
 	}
 
-	/* Check if bind_key key is bound already */
+	// Check if bind_key key is bound already
 	struct input_binding *bind = head_bind;
 	while (bind != NULL) {
 		if (bind_key == bind->key) {
 			INFO("Key with the code %d is already bound. Reassigning a command.", bind_key);
 			bind->cmd = bind_cmd;
-			return 0; // success
+			return true;
 		}
 		bind = bind->next_bind;
 	}
@@ -111,7 +111,7 @@ assign_command_to_key(int bind_key, enum input_cmd bind_cmd)
 	bind = malloc(sizeof(struct input_binding));
 	if (bind == NULL) {
 		fprintf(stderr, "Not enough memory for assigning a command to a new key!\n");
-		return 1;
+		return false;
 	}
 
 	bind->key = bind_key;
@@ -121,7 +121,7 @@ assign_command_to_key(int bind_key, enum input_cmd bind_cmd)
 
 	INFO("Key with the code %d is successfully bound!", bind_key);
 
-	return 0; // success
+	return true;
 }
 
 void

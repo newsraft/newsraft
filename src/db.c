@@ -2,19 +2,20 @@
 
 static sqlite3 *db;
 
-int
+bool
 db_init(void)
 {
 	const char *path = get_db_path();
 	if (path == NULL) {
 		// Error message is written by get_db_path().
-		return 1;
+		return false;
 	}
 	if (sqlite3_open(path, &db) != SQLITE_OK) {
-		fprintf(stderr, "failed to open database!\n");
+		fprintf(stderr, "Failed to open database!\n");
 		sqlite3_close(db);
-		return 1; // failure
+		return false;
 	}
+	char *errmsg;
 	sqlite3_exec(
 		db,
 		"CREATE TABLE IF NOT EXISTS feeds("
@@ -49,9 +50,14 @@ db_init(void)
 		"ANALYZE;",
 		0,
 		0,
-		NULL
+		&errmsg
 	);
-	return 0; // success
+	if (errmsg != NULL) {
+		fprintf(stderr, "Failed to start database: %s!\n", errmsg);
+		sqlite3_free(errmsg);
+		return false;
+	}
+	return true;
 }
 
 bool

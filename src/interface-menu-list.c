@@ -15,14 +15,14 @@ free_list_menu(void)
 	free(windows);
 }
 
-int
+bool
 adjust_list_menu(void)
 {
 	if (list_menu_height > windows_count) {
 		WINDOW **temp = realloc(windows, sizeof(WINDOW *) * list_menu_height);
 		if (temp == NULL) {
 			FAIL("Not enough memory for reallocating list menu windows!");
-			return 1;
+			return false;
 		}
 		windows = temp;
 		for (int i = windows_count; i < list_menu_height; ++i) {
@@ -40,7 +40,7 @@ adjust_list_menu(void)
 				windows_count = 0;
 				windows = NULL;
 
-				return 1;
+				return false;
 			}
 		}
 	}
@@ -51,7 +51,7 @@ adjust_list_menu(void)
 	// }
 	windows_count = list_menu_height;
 	refresh();
-	return 0;
+	return true;
 }
 
 WINDOW *

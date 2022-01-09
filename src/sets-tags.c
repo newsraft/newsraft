@@ -43,7 +43,7 @@ append_another_url_to_tag(struct feed_tag *tag, const struct string *feed_url)
 	return 0;
 }
 
-int
+bool
 tag_feed(struct feed_tag **head_tag_ptr, const char *tag_name, size_t tag_name_len, const struct string *url)
 {
 	int error = -1;
@@ -69,10 +69,11 @@ tag_feed(struct feed_tag **head_tag_ptr, const char *tag_name, size_t tag_name_l
 	}
 	if (error == 0) {
 		INFO("Feed \"%s\" is tagged as \"%s\".", url->ptr, tag_name);
+		return true;
 	} else {
-		FAIL("Not enough memory for tagging the feed \"%s\" as \"%s\"!", url->ptr, tag_name);
+		fprintf(stderr, "Not enough memory for tagging a feed!\n");
+		return false;
 	}
-	return error;
 }
 
 const struct feed_tag *

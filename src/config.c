@@ -41,10 +41,10 @@ free_config_data(void)
 	free(cfg.contents_date_format);
 }
 
-int
+bool
 load_config(void)
 {
-	int error = 0;
+	bool success = true;
 
 	cfg.max_items = 0; // 0 == inf
 	cfg.append_links = true;
@@ -54,14 +54,17 @@ load_config(void)
 	cfg.contents_date_format = NULL;
 
 	/* if (parse_config_file() != 0) { */
-	/* 	error = 1; */
+	/* 	success = false; */
 	/* } */
+
 	if (assign_default_values_to_empty_config_strings() == false) {
 		fprintf(stderr, "Not enough memory for assigning default values to empty config strings!\n");
-		error = 1;
+		success = false;
 	}
-	if (error != 0) {
+
+	if (success == false) {
 		free_config_data();
 	}
-	return error;
+
+	return success;
 }

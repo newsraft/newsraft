@@ -156,7 +156,7 @@ enum item_column {
 };
 
 // list interface
-int adjust_list_menu(void);
+bool adjust_list_menu(void);
 WINDOW *get_list_entry_by_index(size_t i);
 void free_list_menu(void);
 bool adjust_list_menu_format_buffer(void);
@@ -167,7 +167,7 @@ const wchar_t *do_format(const wchar_t *fmt, const struct format_arg *args, size
 
 // sets
 void enter_sets_menu_loop(void);
-int load_sets(void);
+bool load_sets(void);
 void free_sets(void);
 
 // items
@@ -199,13 +199,13 @@ void free_db_path(void);
 // config processing
 void free_config_data(void);
 bool assign_default_values_to_empty_config_strings(void);
-int load_config(void);
+bool load_config(void);
 
 // date parsing
 struct string *get_config_date_str(time_t time_ptr);
 
 // tags
-int tag_feed(struct feed_tag **head_tag_ptr, const char *tag_name, size_t tag_name_len, const struct string *url);
+bool tag_feed(struct feed_tag **head_tag_ptr, const char *tag_name, size_t tag_name_len, const struct string *url);
 const struct feed_tag *get_tag_by_name(const struct feed_tag *head_tag, const char *name);
 void free_tags(struct feed_tag *head_tag);
 const struct set_condition *create_set_condition_for_feed(const struct string *feed_url);
@@ -213,7 +213,7 @@ const struct set_condition *create_set_condition_for_filter(const struct feed_ta
 void free_set_condition(const struct set_condition *cond);
 
 // db
-int db_init(void);
+bool db_init(void);
 void db_stop(void);
 int db_prepare(const char *zSql, int nByte, sqlite3_stmt **ppStmt, const char **pzTail);
 bool db_begin_transaction(void);
@@ -225,11 +225,11 @@ int db_mark_item_read(int rowid);
 int db_mark_item_unread(int rowid);
 int get_unread_items_count(const struct set_condition *sc);
 
-int curses_init(void);
+bool curses_init(void);
 bool obtain_terminal_size(void);
 
 // functions related to window which displays informational messages (see status.c file)
-int status_create(void);
+bool status_create(void);
 void status_write(const char *format, ...);
 void status_clean(void);
 void status_delete(void);
@@ -238,8 +238,8 @@ void status_delete(void);
 void reset_input_handlers(void);
 void set_input_handler(enum input_cmd, void (*func)(void));
 int handle_input(void);
-int assign_command_to_key(int bind_key, enum input_cmd bind_cmd);
-int load_default_binds(void);
+bool assign_action_to_key(int bind_key, enum input_cmd bind_cmd);
+bool load_default_binds(void);
 void free_binds(void);
 
 // string
@@ -265,7 +265,7 @@ void free_wstring(struct wstring *wstr);
 void trim_whitespace_from_wstring(struct wstring *wstr);
 struct string *convert_wstring_to_string(const struct wstring *src);
 
-int log_init(const char *path);
+bool log_init(const char *path);
 void log_stop(void);
 
 struct string *convert_bytes_to_human_readable_size_string(const char *value);

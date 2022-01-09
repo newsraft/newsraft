@@ -30,20 +30,20 @@ obtain_terminal_size(void)
 	return true;
 }
 
-int
+bool
 curses_init(void)
 {
 	if (initscr() == NULL) {
 		fprintf(stderr, "Initialization of curses data structures failed!\n");
-		return 1;
+		return false;
 	}
 	if (cbreak() == ERR) {
 		fprintf(stderr, "Can not disable line buffering and erase/kill character-processing!\n");
-		return 1;
+		return false;
 	}
 	if (obtain_terminal_size() == false) {
 		fprintf(stderr, "Invalid terminal size obtained!\n");
-		return 1;
+		return false;
 	}
 	if (curs_set(0) == ERR) {
 		FAIL("Can not hide cursor!");
@@ -54,5 +54,5 @@ curses_init(void)
 	if (keypad(stdscr, TRUE) == ERR) { // used to enable arrow keys, function keys...
 		FAIL("Can not enable extended keys!");
 	}
-	return 0;
+	return true;
 }

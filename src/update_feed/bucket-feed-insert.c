@@ -5,7 +5,7 @@ bool
 insert_feed(const struct string *feed_url, const struct feed_bucket *feed)
 {
 	sqlite3_stmt *s;
-	if (db_prepare("INSERT OR REPLACE INTO feeds VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", 76, &s, NULL) != SQLITE_OK) {
+	if (db_prepare("INSERT OR REPLACE INTO feeds VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", 76, &s, NULL) == false) {
 		return false;
 	}
 	sqlite3_bind_text(s,   FEED_COLUMN_FEED_URL      + 1, feed_url->ptr,       feed_url->len,           NULL);

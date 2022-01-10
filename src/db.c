@@ -107,15 +107,15 @@ db_stop(void)
 	sqlite3_close(db);
 }
 
-int
+bool
 db_prepare(const char *zSql, int nByte, sqlite3_stmt **ppStmt, const char **pzTail)
 {
 	INFO("Preparing \"%s\" statement...", zSql);
-	int result = sqlite3_prepare_v2(db, zSql, nByte, ppStmt, pzTail);
-	if (result != SQLITE_OK) {
+	if (sqlite3_prepare_v2(db, zSql, nByte, ppStmt, pzTail) != SQLITE_OK) {
 		FAIL("Failed to prepare \"%s\" statement: %s", zSql, sqlite3_errmsg(db));
+		return false;
 	}
-	return result;
+	return true;
 }
 
 const char *

@@ -46,7 +46,7 @@ load_items(const struct set_condition *sc)
 	strcat(cmd, sc->db_cmd->ptr);
 	strcat(cmd, SELECT_CMD_PART_3);
 	sqlite3_stmt *res;
-	if (db_prepare(cmd, cmd_size, &res, NULL) != SQLITE_OK) {
+	if (db_prepare(cmd, cmd_size, &res, NULL) == false) {
 		status_write("There is some error with the tag expression!");
 		free(cmd);
 		return false;
@@ -159,7 +159,7 @@ mark_item_read(size_t index)
 	if (items[index].is_unread == 0) {
 		return; // success, item is already read
 	}
-	if (db_mark_item_read(items[index].rowid) != 0) {
+	if (db_mark_item_read(items[index].rowid) == false) {
 		return; // failure
 	}
 	items[index].is_unread = 0;
@@ -174,7 +174,7 @@ mark_item_unread(size_t index)
 	if (items[index].is_unread == 1) {
 		return; // success, item is already unread
 	}
-	if (db_mark_item_unread(items[index].rowid) != 0) {
+	if (db_mark_item_unread(items[index].rowid) == false) {
 		return; // failure
 	}
 	items[index].is_unread = 1;

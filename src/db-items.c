@@ -9,7 +9,7 @@ db_find_item_by_rowid(int rowid)
 {
 	INFO("Looking for item with rowid %d...", rowid);
 	sqlite3_stmt *res;
-	if (db_prepare("SELECT * FROM items WHERE rowid = ? LIMIT 1", 44, &res, NULL) != SQLITE_OK) {
+	if (db_prepare("SELECT * FROM items WHERE rowid = ? LIMIT 1", 44, &res, NULL) == false) {
 		return NULL;
 	}
 	sqlite3_bind_int(res, 1, rowid);
@@ -22,7 +22,7 @@ db_find_item_by_rowid(int rowid)
 	return res;
 }
 
-static int
+static bool
 db_update_item_int(int rowid, const char *column, int value)
 {
 	INFO("Updating column \"%s\" with integer value \"%d\" of item with rowid \"%d\".", column, value, rowid);
@@ -32,38 +32,37 @@ db_update_item_int(int rowid, const char *column, int value)
 	char *cmd = malloc(cmd_size);
 	if (cmd == NULL) {
 		FAIL("Not enough memory for updating that column!");
-		return 1; // failure
+		return false;
 	}
 	strcpy(cmd, "UPDATE items SET ");
 	strcat(cmd, column);
 	strcat(cmd, " = ? WHERE rowid = ?");
 
-	int error = 1;
+	bool success = true;
 
 	sqlite3_stmt *res;
-	if (db_prepare(cmd, cmd_size, &res, NULL) == SQLITE_OK) {
+	if (db_prepare(cmd, cmd_size, &res, NULL) == true) {
 		sqlite3_bind_int(res, 1, value);
 		sqlite3_bind_int(res, 2, rowid);
-		if (sqlite3_step(res) == SQLITE_DONE) {
-			error = 0;
-		} else {
-			WARN("For some reason column was not updated with new value!");
+		if (sqlite3_step(res) != SQLITE_DONE) {
+			WARN("Column wasn't updated for some reason!");
+			success = false;
 		}
 		sqlite3_finalize(res);
 	}
 
 	free(cmd);
 
-	return error;
+	return success;
 }
 
-int
+bool
 db_mark_item_read(int rowid)
 {
 	return db_update_item_int(rowid, "unread", 0);
 }
 
-int
+bool
 db_mark_item_unread(int rowid)
 {
 	return db_update_item_int(rowid, "unread", 1);
@@ -89,7 +88,7 @@ get_unread_items_count(const struct set_condition *sc)
 
 	int unread_count = 0;
 	sqlite3_stmt *res;
-	if (db_prepare(cmd, cmd_size, &res, NULL) == SQLITE_OK) {
+	if (db_prepare(cmd, cmd_size, &res, NULL) == true) {
 		for (size_t i = 0; i < sc->urls_count; ++i) {
 			sqlite3_bind_text(res, i + 1, sc->urls[i]->ptr, sc->urls[i]->len, NULL);
 		}

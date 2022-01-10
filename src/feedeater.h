@@ -217,14 +217,14 @@ void free_set_condition(const struct set_condition *cond);
 // db
 bool db_init(void);
 void db_stop(void);
-int db_prepare(const char *zSql, int nByte, sqlite3_stmt **ppStmt, const char **pzTail);
+bool db_prepare(const char *zSql, int nByte, sqlite3_stmt **ppStmt, const char **pzTail);
 bool db_begin_transaction(void);
 bool db_commit_transaction(void);
 bool db_rollback_transaction(void);
 const char *db_error_string(void);
 sqlite3_stmt *db_find_item_by_rowid(int rowid);
-int db_mark_item_read(int rowid);
-int db_mark_item_unread(int rowid);
+bool db_mark_item_read(int rowid);
+bool db_mark_item_unread(int rowid);
 int get_unread_items_count(const struct set_condition *sc);
 
 bool curses_init(void);

@@ -72,7 +72,6 @@ struct format_arg {
 struct content_list {
 	struct string *content;
 	char *content_type;
-	bool trim_whitespace;
 	struct content_list *next;
 };
 
@@ -176,7 +175,8 @@ int enter_items_menu_loop(const struct set_condition *st);
 
 // contents
 int pager_view(const struct content_list *data_list);
-bool append_content(struct content_list **list, const char *content, size_t content_len, const char *content_type, size_t content_type_len, bool trim_whitespace);
+bool append_content(struct content_list **list, const char *content, size_t content_len, const char *content_type, size_t content_type_len);
+bool append_content_separator(struct content_list **list);
 bool populate_content_list_with_data_of_item(struct content_list **data_list, sqlite3_stmt *res);
 void free_content_list(struct content_list *list);
 bool populate_link_list_with_links_of_item(struct link_list *links, sqlite3_stmt *res);

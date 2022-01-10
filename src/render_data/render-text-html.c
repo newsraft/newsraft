@@ -65,14 +65,14 @@ li_start_handler(struct line *line, struct wstring *text)
 	add_newlines(line, text, 1);
 	line->indent = list_depth * SPACES_PER_INDENTATION_LEVEL;
 	if (list_levels[list_depth - 1].type == UNORDERED_LIST) {
-		line_string(line, text, L"*  ");;
+		line_string(line, L"*  ", text);;
 		line->indent += 3;
 	} else {
 		++(list_levels[list_depth - 1].length);
 		// 9 = 5 (for longest uint16_t) + 2 (for dot and space) + 1 (for terminator) + 1 (for luck lol)
 		wchar_t number_str[9];
 		size_t number_str_len = swprintf(number_str, 9, L"%d. ", list_levels[list_depth - 1].length);
-		line_string(line, text, number_str);
+		line_string(line, number_str, text);
 		line->indent += number_str_len;
 	}
 }
@@ -242,20 +242,13 @@ end_handler(wchar_t *t, struct line *l, struct wstring *w, enum html_position *p
 	return false;
 }
 
-struct wstring *
-render_text_html(const struct wstring *wstr, struct line *line)
+bool
+render_text_html(const struct wstring *wstr, struct line *line, struct wstring *t)
 {
-	struct wstring *t = wcrtes();
-	if (t == NULL) {
-		FAIL("Not enough memory for text buffer to render HTML!");
-		return NULL;
-	}
-
 	struct wstring *tag = wcrtes();
 	if (tag == NULL) {
 		FAIL("Not enough memory for tag buffer to render HTML!");
-		free_wstring(t);
-		return NULL;
+		return false;
 	}
 
 	bool in_tag = false;
@@ -293,13 +286,13 @@ render_text_html(const struct wstring *wstr, struct line *line)
 						(line->ptr[line->len - 1] != L'\n') &&
 						(line->ptr[line->len - 1] != L'\t'))
 					{
-						if (line_char(line, L' ', t) != 0) {
+						if (line_char(line, L' ', t) == false) {
 							error = true;
 							break;
 						}
 					}
 				} else {
-					if (line_char(line, *i, t) != 0) {
+					if (line_char(line, *i, t) == false) {
 						error = true;
 						break;
 					}
@@ -310,10 +303,10 @@ render_text_html(const struct wstring *wstr, struct line *line)
 					entity_name[entity_len] = L'\0';
 					entity_value = translate_html_entity(entity_name);
 					if (entity_value != NULL) {
-						line_string(line, t, entity_value);
+						line_string(line, entity_value, t);
 					} else {
 						line_char(line, L'&', t);
-						line_string(line, t, entity_name);
+						line_string(line, entity_name, t);
 						line_char(line, L';', t);
 					}
 				} else {
@@ -321,7 +314,7 @@ render_text_html(const struct wstring *wstr, struct line *line)
 						in_entity = false;
 						entity_name[entity_len] = L'\0';
 						line_char(line, L'&', t);
-						line_string(line, t, entity_name);
+						line_string(line, entity_name, t);
 					} else {
 						entity_name[entity_len++] = *i;
 					}
@@ -342,7 +335,7 @@ render_text_html(const struct wstring *wstr, struct line *line)
 				}
 				if (found_tag == false) {
 					line_char(line, L'<', t);
-					line_string(line, t, tag->ptr);
+					line_string(line, tag->ptr, t);
 					line_char(line, L'>', t);
 				}
 			} else {
@@ -359,9 +352,8 @@ render_text_html(const struct wstring *wstr, struct line *line)
 
 	if (error == true) {
 		FAIL("Not enough memory for rendering HTML!");
-		free_wstring(t);
-		return NULL;
+		return false;
 	}
 
-	return t;
+	return true;
 }

@@ -159,10 +159,7 @@ pager_view(const struct content_list *data_list_arg)
 		destination = handle_input();
 	} while ((destination != INPUT_QUIT_SOFT) && (destination != INPUT_QUIT_HARD));
 
-	if (window != NULL) {
-		// It may become a NULL if some crazy resize happened.
-		delwin(window);
-	}
+	delwin(window);
 
 	return destination;
 }

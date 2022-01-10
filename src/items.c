@@ -90,7 +90,7 @@ load_items(const struct set_condition *sc)
 		return false;
 	}
 
-	if (view_sel == SIZE_MAX) {
+	if ((view_sel == SIZE_MAX) || (items_count == 0)) {
 		status_write("Items not found!");
 		return false;
 	}
@@ -204,7 +204,9 @@ view_select_first(void)
 static void
 view_select_last(void)
 {
-	view_select(items_count == 0 ? (0) : (items_count - 1));
+	// Don't check if items_count is equal to zero,
+	// because we won't even get here if none items loaded.
+	view_select(items_count - 1);
 }
 
 static void

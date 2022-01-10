@@ -1,7 +1,7 @@
 #include "feedeater.h"
 
 bool
-append_content(struct content_list **list, const char *content, size_t content_len, const char *content_type, size_t content_type_len, bool trim_whitespace)
+append_content(struct content_list **list, const char *content, size_t content_len, const char *content_type, size_t content_type_len)
 {
 	struct content_list *new_entry = malloc(sizeof(struct content_list));
 	if (new_entry == NULL) {
@@ -20,7 +20,6 @@ append_content(struct content_list **list, const char *content, size_t content_l
 	}
 	strncpy(new_entry->content_type, content_type, content_type_len);
 	new_entry->content_type[content_type_len] = '\0';
-	new_entry->trim_whitespace = trim_whitespace;
 	new_entry->next = NULL;
 
 	if (*list != NULL) {
@@ -36,6 +35,12 @@ append_content(struct content_list **list, const char *content, size_t content_l
 		*list = new_entry;
 	}
 	return true;
+}
+
+bool
+append_content_separator(struct content_list **list)
+{
+	return append_content(list, "\n", 1, "SEPARATOR", 9);
 }
 
 void
@@ -59,7 +64,10 @@ append_links_to_contents(struct content_list **contents, struct link_list *links
 	if (str == NULL) {
 		return false;
 	}
-	bool status = append_content(contents, str->ptr, str->len, "text/plain", 10, false);
+	append_content_separator(contents);
+	append_content_separator(contents);
+	append_content(contents, str->ptr, str->len, "text/plain", 10);
+	append_content_separator(contents);
 	free_string(str);
-	return status;
+	return true;
 }

@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include "render_data.h"
 
-int
+bool
 line_char(struct line *line, wchar_t c, struct wstring *target)
 {
 	if (c == L'\n') {
@@ -9,7 +9,7 @@ line_char(struct line *line, wchar_t c, struct wstring *target)
 		wcatcs(target, L'\n');
 		line->len = 0;
 		line->pin = SIZE_MAX;
-		return 0;
+		return true;
 	}
 	if (line->len == 0) {
 		for (size_t i = 0; i < line->indent; ++i) {
@@ -23,9 +23,9 @@ line_char(struct line *line, wchar_t c, struct wstring *target)
 	}
 	++(line->len);
 	if (line->len != line->lim) {
-		return 0;
+		return true;
 	}
-	if ((line->pin == SIZE_MAX) || ((line->pin + 1) == line->len)) {
+	if (line->pin == SIZE_MAX) {
 		wcatas(target, line->ptr, line->len);
 		line->len = 0;
 	} else {
@@ -38,19 +38,19 @@ line_char(struct line *line, wchar_t c, struct wstring *target)
 			line->ptr[new_len++] = line->ptr[i];
 		}
 		line->len = new_len;
+		line->pin = SIZE_MAX;
 	}
-	line->pin = SIZE_MAX;
 	wcatcs(target, L'\n');
-	return 0;
+	return true;
 }
 
-int
-line_string(struct line *line, struct wstring *target, const wchar_t *str)
+bool
+line_string(struct line *line, const wchar_t *str, struct wstring *target)
 {
 	const wchar_t *iter = str;
 	while (*iter != L'\0') {
 		line_char(line, *iter, target);
 		++iter;
 	}
-	return 0;
+	return true;
 }

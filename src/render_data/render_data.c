@@ -3,7 +3,7 @@
 
 struct data_handler {
 	const char *const type;
-	struct wstring *(*handle)(const struct wstring *, struct line *);
+	bool (*handle)(const struct wstring *, struct line *, struct wstring *);
 };
 
 // Besides formatting according to the content type, these handlers must
@@ -44,7 +44,6 @@ render_data(const struct content_list *data_list)
 	line.pin = SIZE_MAX;
 	line.indent = 0;
 	struct wstring *converted_str;
-	struct wstring *temp_str;
 	const struct content_list *temp_list = data_list;
 	bool found_handler;
 	while (temp_list != NULL) {
@@ -58,26 +57,18 @@ render_data(const struct content_list *data_list)
 		for (size_t i = 0; i < COUNTOF(handlers); ++i) {
 			if (strcmp(temp_list->content_type, handlers[i].type) == 0) {
 				found_handler = true;
-				temp_str = handlers[i].handle(converted_str, &line);
+				handlers[i].handle(converted_str, &line, text);
 				break;
 			}
 		}
 		if (found_handler == false) {
-			temp_str = render_text_plain(converted_str, &line);
-		}
-		if (temp_str != NULL) {
-			if (temp_list->trim_whitespace == true) {
-				trim_whitespace_from_wstring(temp_str);
-			}
-			wcatss(text, temp_str);
-			free_wstring(temp_str);
+			line_string(&line, converted_str->ptr, text);
 		}
 		free_wstring(converted_str);
 		temp_list = temp_list->next;
 	}
-	if (line.len != 0) {
-		// Squeeze out line remainings to text by sending newline character.
-		line_char(&line, L'\n', text);
+	for (size_t i = 0; i < line.len; ++i) {
+		wcatcs(text, line.ptr[i]);
 	}
 	free(line.ptr);
 	trim_whitespace_from_wstring(text);

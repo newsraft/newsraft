@@ -17,6 +17,7 @@ initialize_feed_bucket(struct feed_bucket *feed)
 	if ((feed->generator.type  = crtes()) == NULL) { goto undo8; }
 	if ((feed->rights.value    = crtes()) == NULL) { goto undo9; }
 	if ((feed->rights.type     = crtes()) == NULL) { goto undoA; }
+	feed->update_time = 0;
 	return true;
 undoA:
 	free_string(feed->rights.value);

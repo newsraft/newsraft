@@ -113,11 +113,18 @@ pubDate_end(struct parser_data *data)
 		return;
 	}
 	data->rss20_pos &= ~RSS20_PUBDATE;
-	if ((data->rss20_pos & RSS20_ITEM) == 0) {
-		// RSS 2.0 says that channel can have pubDate element, but who needs it?
-		return;
+	if ((data->rss20_pos & RSS20_ITEM) != 0) {
+		data->item.pubdate = parse_date_rfc822(data->value);
+	} else {
+		// Some RSS 2.0 feeds use lastBuildDate and some
+		// use pubDate for showing last update time of channel.
+		// But lastBuildDate is more commonly used, so don't
+		// bother with pubDate value if lastBuildDate was already
+		// set.
+		if (data->feed.update_time == 0) {
+			data->feed.update_time = parse_date_rfc822(data->value);
+		}
 	}
-	data->item.pubdate = parse_date_rfc822(data->value);
 }
 
 static inline void
@@ -221,6 +228,26 @@ category_end(struct parser_data *data)
 }
 
 static inline void
+lastBuildDate_start(struct parser_data *data)
+{
+	data->rss20_pos |= RSS20_LASTBUILDDATE;
+}
+
+static inline void
+lastBuildDate_end(struct parser_data *data)
+{
+	if ((data->rss20_pos & RSS20_LASTBUILDDATE) == 0) {
+		return;
+	}
+	data->rss20_pos &= ~RSS20_LASTBUILDDATE;
+	if ((data->rss20_pos & RSS20_ITEM) == 0) {
+		// In RSS 2.0 lastBuildDate element is only for channel,
+		// for items they use pubDate.
+		data->feed.update_time = parse_date_rfc822(data->value);
+	}
+}
+
+static inline void
 comments_start(struct parser_data *data)
 {
 	data->rss20_pos |= RSS20_COMMENTS;
@@ -280,18 +307,19 @@ void
 parse_rss20_element_start(struct parser_data *data, const XML_Char *name, const XML_Char **atts)
 {
 	(void)atts;
-	     if (strcmp(name, "item")        == 0) { item_start(data);            }
-	else if (strcmp(name, "title")       == 0) { title_start(data);           }
-	else if (strcmp(name, "link")        == 0) { link_start(data);            }
-	else if (strcmp(name, "description") == 0) { description_start(data);     }
-	else if (strcmp(name, "pubDate")     == 0) { pubDate_start(data);         }
-	else if (strcmp(name, "guid")        == 0) { guid_start(data);            }
-	else if (strcmp(name, "author")      == 0) { author_start(data);          }
-	else if (strcmp(name, "enclosure")   == 0) { enclosure_start(data, atts); }
-	else if (strcmp(name, "category")    == 0) { category_start(data);        }
-	else if (strcmp(name, "comments")    == 0) { comments_start(data);        }
-	else if (strcmp(name, "language")    == 0) { language_start(data);        }
-	else if (strcmp(name, "channel")     == 0) { channel_start(data);         }
+	     if (strcmp(name, "item")          == 0) { item_start(data);            }
+	else if (strcmp(name, "title")         == 0) { title_start(data);           }
+	else if (strcmp(name, "link")          == 0) { link_start(data);            }
+	else if (strcmp(name, "description")   == 0) { description_start(data);     }
+	else if (strcmp(name, "pubDate")       == 0) { pubDate_start(data);         }
+	else if (strcmp(name, "guid")          == 0) { guid_start(data);            }
+	else if (strcmp(name, "author")        == 0) { author_start(data);          }
+	else if (strcmp(name, "enclosure")     == 0) { enclosure_start(data, atts); }
+	else if (strcmp(name, "category")      == 0) { category_start(data);        }
+	else if (strcmp(name, "lastBuildDate") == 0) { lastBuildDate_start(data);   }
+	else if (strcmp(name, "comments")      == 0) { comments_start(data);        }
+	else if (strcmp(name, "language")      == 0) { language_start(data);        }
+	else if (strcmp(name, "channel")       == 0) { channel_start(data);         }
 }
 
 void
@@ -300,18 +328,19 @@ parse_rss20_element_end(struct parser_data *data, const XML_Char *name)
 	if ((data->rss20_pos & RSS20_CHANNEL) == 0) {
 		return;
 	}
-	     if (strcmp(name, "item")        == 0) { item_end(data);        }
-	else if (strcmp(name, "title")       == 0) { title_end(data);       }
-	else if (strcmp(name, "link")        == 0) { link_end(data);        }
-	else if (strcmp(name, "description") == 0) { description_end(data); }
-	else if (strcmp(name, "pubDate")     == 0) { pubDate_end(data);     }
-	else if (strcmp(name, "guid")        == 0) { guid_end(data);        }
-	else if (strcmp(name, "author")      == 0) { author_end(data);      }
-	else if (strcmp(name, "category")    == 0) { category_end(data);    }
-	else if (strcmp(name, "comments")    == 0) { comments_end(data);    }
-	else if (strcmp(name, "language")    == 0) { language_end(data);    }
-	else if (strcmp(name, "channel")     == 0) { channel_end(data);     }
+	     if (strcmp(name, "item")          == 0) { item_end(data);          }
+	else if (strcmp(name, "title")         == 0) { title_end(data);         }
+	else if (strcmp(name, "link")          == 0) { link_end(data);          }
+	else if (strcmp(name, "description")   == 0) { description_end(data);   }
+	else if (strcmp(name, "pubDate")       == 0) { pubDate_end(data);       }
+	else if (strcmp(name, "guid")          == 0) { guid_end(data);          }
+	else if (strcmp(name, "author")        == 0) { author_end(data);        }
+	else if (strcmp(name, "category")      == 0) { category_end(data);      }
+	else if (strcmp(name, "lastBuildDate") == 0) { lastBuildDate_end(data); }
+	else if (strcmp(name, "comments")      == 0) { comments_end(data);      }
+	else if (strcmp(name, "language")      == 0) { language_end(data);      }
+	else if (strcmp(name, "channel")       == 0) { channel_end(data);       }
 	// In RSS 2.0 enclosure tag is a self-closing tag.
-	//else if (strcmp(name, "enclosure") == 0) {                        }
+	//else if (strcmp(name, "enclosure") == 0) {                            }
 }
 #endif // FEEDEATER_FORMAT_SUPPORT_RSS20

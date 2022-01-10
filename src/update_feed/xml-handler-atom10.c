@@ -247,6 +247,8 @@ updated_end(struct parser_data *data)
 	data->atom10_pos &= ~ATOM10_UPDATED;
 	if ((data->atom10_pos & ATOM10_ENTRY) != 0) {
 		data->item.upddate = parse_date_rfc3339(data->value);
+	} else {
+		data->feed.update_time = parse_date_rfc3339(data->value);
 	}
 }
 

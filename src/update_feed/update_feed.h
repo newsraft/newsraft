@@ -43,6 +43,7 @@ struct feed_bucket {
 	struct string *language;
 	struct text generator;
 	struct text rights;
+	time_t update_time;
 	time_t download_time;
 };
 
@@ -180,9 +181,10 @@ enum rss20_position {
 	RSS20_AUTHOR = 64,
 	RSS20_SOURCE = 128,
 	RSS20_CATEGORY = 256,
-	RSS20_COMMENTS = 512,
-	RSS20_LANGUAGE = 1024,
-	RSS20_CHANNEL = 2048,
+	RSS20_LASTBUILDDATE = 512,
+	RSS20_COMMENTS = 1024,
+	RSS20_LANGUAGE = 2048,
+	RSS20_CHANNEL = 4096,
 };
 void parse_rss20_element_start (struct parser_data *data, const XML_Char *name, const XML_Char **atts);
 void parse_rss20_element_end   (struct parser_data *data, const XML_Char *name);

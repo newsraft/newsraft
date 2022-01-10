@@ -30,6 +30,7 @@ db_init(void)
 			"language TEXT NOT NULL,"
 			"generator TEXT NOT NULL,"
 			"rights TEXT NOT NULL,"
+			"update_time INTEGER(8),"
 			"download_time INTEGER(8)"
 		");"
 		"CREATE TABLE IF NOT EXISTS items("

@@ -223,11 +223,11 @@ modified_end(struct parser_data *data)
 		return;
 	}
 	data->atom03_pos &= ~ATOM03_MODIFIED;
-	if ((data->atom03_pos & ATOM03_ENTRY) == 0) {
-		// Atom 0.3 feed can have modified date but who needs it?
-		return;
+	if ((data->atom03_pos & ATOM03_ENTRY) != 0) {
+		data->item.upddate = parse_date_rfc3339(data->value);
+	} else {
+		data->feed.update_time = parse_date_rfc3339(data->value);
 	}
-	data->item.upddate = parse_date_rfc3339(data->value);
 }
 
 static inline void

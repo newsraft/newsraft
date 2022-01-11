@@ -15,6 +15,12 @@ enum update_error {
 	PARSE_FAIL_DB_TRANSACTION_ERROR,
 };
 
+struct generator {
+	struct string *name;
+	struct string *version;
+	struct string *url;
+};
+
 struct text {
 	struct string *value;
 	struct string *type;
@@ -41,7 +47,7 @@ struct feed_bucket {
 	struct text summary;
 	struct string *categories;
 	struct string *language;
-	struct text generator;
+	struct generator generator;
 	struct text rights;
 	time_t update_time;
 	time_t download_time;
@@ -144,6 +150,7 @@ void empty_person_list(struct person_list *persons);
 void free_person_list(const struct person_list *persons);
 struct string *generate_person_list_string(const struct person_list *persons);
 
+struct string *generate_generator_string_for_database(const struct generator *generator);
 
 // Element handlers
 
@@ -165,6 +172,7 @@ enum atom10_position {
 	ATOM10_URI = 512,
 	ATOM10_EMAIL = 1024,
 	ATOM10_SUBTITLE = 2048,
+	ATOM10_GENERATOR = 4096,
 };
 void parse_atom10_element_start (struct parser_data *data, const XML_Char *name, const XML_Char **atts);
 void parse_atom10_element_end   (struct parser_data *data, const XML_Char *name);
@@ -184,7 +192,8 @@ enum rss20_position {
 	RSS20_LASTBUILDDATE = 512,
 	RSS20_COMMENTS = 1024,
 	RSS20_LANGUAGE = 2048,
-	RSS20_CHANNEL = 4096,
+	RSS20_GENERATOR = 4096,
+	RSS20_CHANNEL = 8192,
 };
 void parse_rss20_element_start (struct parser_data *data, const XML_Char *name, const XML_Char **atts);
 void parse_rss20_element_end   (struct parser_data *data, const XML_Char *name);
@@ -232,6 +241,7 @@ enum atom03_position {
 	ATOM03_URL = 512,
 	ATOM03_EMAIL = 1024,
 	ATOM03_TAGLINE = 2048,
+	ATOM03_GENERATOR = 4096,
 };
 void parse_atom03_element_start (struct parser_data *data, const XML_Char *name, const XML_Char **atts);
 void parse_atom03_element_end   (struct parser_data *data, const XML_Char *name);

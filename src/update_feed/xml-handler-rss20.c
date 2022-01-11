@@ -1,6 +1,5 @@
 #ifdef FEEDEATER_FORMAT_SUPPORT_RSS20
 #include <string.h>
-#include "feedeater.h"
 #include "update_feed/update_feed.h"
 
 // https://web.archive.org/web/20211208135333/https://validator.w3.org/feed/docs/rss2.html
@@ -282,7 +281,32 @@ language_end(struct parser_data *data)
 		return;
 	}
 	data->rss20_pos &= ~RSS20_LANGUAGE;
+	if ((data->rss20_pos & RSS20_ITEM) != 0) {
+		return;
+	}
 	if (cpyss(data->feed.language, data->value) == false) {
+		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		return;
+	}
+}
+
+static inline void
+generator_start(struct parser_data *data)
+{
+	data->rss20_pos |= RSS20_GENERATOR;
+}
+
+static inline void
+generator_end(struct parser_data *data)
+{
+	if ((data->rss20_pos & RSS20_GENERATOR) == 0) {
+		return;
+	}
+	data->rss20_pos &= ~RSS20_GENERATOR;
+	if ((data->rss20_pos & RSS20_ITEM) != 0) {
+		return;
+	}
+	if (cpyss(data->feed.generator.name, data->value) == false) {
 		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		return;
 	}
@@ -319,6 +343,7 @@ parse_rss20_element_start(struct parser_data *data, const XML_Char *name, const 
 	else if (strcmp(name, "lastBuildDate") == 0) { lastBuildDate_start(data);   }
 	else if (strcmp(name, "comments")      == 0) { comments_start(data);        }
 	else if (strcmp(name, "language")      == 0) { language_start(data);        }
+	else if (strcmp(name, "generator")     == 0) { generator_start(data);       }
 	else if (strcmp(name, "channel")       == 0) { channel_start(data);         }
 }
 
@@ -339,6 +364,7 @@ parse_rss20_element_end(struct parser_data *data, const XML_Char *name)
 	else if (strcmp(name, "lastBuildDate") == 0) { lastBuildDate_end(data); }
 	else if (strcmp(name, "comments")      == 0) { comments_end(data);      }
 	else if (strcmp(name, "language")      == 0) { language_end(data);      }
+	else if (strcmp(name, "generator")     == 0) { generator_end(data);     }
 	else if (strcmp(name, "channel")       == 0) { channel_end(data);       }
 	// In RSS 2.0 enclosure tag is a self-closing tag.
 	//else if (strcmp(name, "enclosure") == 0) {                            }

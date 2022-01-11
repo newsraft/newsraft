@@ -1,6 +1,5 @@
 #ifdef FEEDEATER_FORMAT_SUPPORT_ATOM03
 #include <string.h>
-#include "feedeater.h"
 #include "update_feed/update_feed.h"
 
 // https://web.archive.org/web/20210303084351/https://pythonhosted.org/feedparser/annotated-atom03.html
@@ -356,41 +355,85 @@ tagline_end(struct parser_data *data)
 	}
 }
 
+static inline void
+generator_start(struct parser_data *data, const XML_Char **atts)
+{
+	if ((data->atom03_pos & ATOM03_GENERATOR) != 0) {
+		return;
+	}
+	if ((data->atom03_pos & ATOM03_ENTRY) != 0) {
+		return;
+	}
+	data->atom03_pos |= ATOM03_GENERATOR;
+	const char *version = get_value_of_attribute_key(atts, "version");
+	if (version != NULL) {
+		if (cpyas(data->feed.generator.version, version, strlen(version)) == false) {
+			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+			return;
+		}
+	}
+	const char *url = get_value_of_attribute_key(atts, "url");
+	if (url != NULL) {
+		if (cpyas(data->feed.generator.url, url, strlen(url)) == false) {
+			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+			return;
+		}
+	}
+}
+
+static inline void
+generator_end(struct parser_data *data)
+{
+	if ((data->atom03_pos & ATOM03_GENERATOR) == 0) {
+		return;
+	}
+	data->atom03_pos &= ~ATOM03_GENERATOR;
+	if ((data->atom03_pos & ATOM03_ENTRY) != 0) {
+		return;
+	}
+	if (cpyss(data->feed.generator.name, data->value) == false) {
+		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		return;
+	}
+}
+
 void
 parse_atom03_element_start(struct parser_data *data, const XML_Char *name, const XML_Char **atts)
 {
-	     if (strcmp(name, "entry")       == 0) { entry_start(data);         }
-	else if (strcmp(name, "id")          == 0) { id_start(data);            }
-	else if (strcmp(name, "title")       == 0) { title_start(data);         }
-	else if (strcmp(name, "link")        == 0) { link_start(data, atts);    }
-	else if (strcmp(name, "summary")     == 0) { summary_start(data, atts); }
-	else if (strcmp(name, "content")     == 0) { content_start(data, atts); }
-	else if (strcmp(name, "issued")      == 0) { issued_start(data);        }
-	else if (strcmp(name, "modified")    == 0) { modified_start(data);      }
-	else if (strcmp(name, "author")      == 0) { author_start(data);        }
-	else if (strcmp(name, "contributor") == 0) { author_start(data);        }
-	else if (strcmp(name, "name")        == 0) { name_start(data);          }
-	else if (strcmp(name, "url")         == 0) { url_start(data);           }
-	else if (strcmp(name, "email")       == 0) { email_start(data);         }
-	else if (strcmp(name, "tagline")     == 0) { tagline_start(data, atts); }
+	     if (strcmp(name, "entry")       == 0) { entry_start(data);           }
+	else if (strcmp(name, "id")          == 0) { id_start(data);              }
+	else if (strcmp(name, "title")       == 0) { title_start(data);           }
+	else if (strcmp(name, "link")        == 0) { link_start(data, atts);      }
+	else if (strcmp(name, "summary")     == 0) { summary_start(data, atts);   }
+	else if (strcmp(name, "content")     == 0) { content_start(data, atts);   }
+	else if (strcmp(name, "issued")      == 0) { issued_start(data);          }
+	else if (strcmp(name, "modified")    == 0) { modified_start(data);        }
+	else if (strcmp(name, "author")      == 0) { author_start(data);          }
+	else if (strcmp(name, "contributor") == 0) { author_start(data);          }
+	else if (strcmp(name, "name")        == 0) { name_start(data);            }
+	else if (strcmp(name, "url")         == 0) { url_start(data);             }
+	else if (strcmp(name, "email")       == 0) { email_start(data);           }
+	else if (strcmp(name, "tagline")     == 0) { tagline_start(data, atts);   }
+	else if (strcmp(name, "generator")   == 0) { generator_start(data, atts); }
 }
 
 void
 parse_atom03_element_end(struct parser_data *data, const XML_Char *name)
 {
-	     if (strcmp(name, "entry")       == 0) { entry_end(data);    }
-	else if (strcmp(name, "id")          == 0) { id_end(data);       }
-	else if (strcmp(name, "title")       == 0) { title_end(data);    }
-	else if (strcmp(name, "summary")     == 0) { summary_end(data);  }
-	else if (strcmp(name, "content")     == 0) { content_end(data);  }
-	else if (strcmp(name, "issued")      == 0) { issued_end(data);   }
-	else if (strcmp(name, "modified")    == 0) { modified_end(data); }
-	else if (strcmp(name, "author")      == 0) { author_end(data);   }
-	else if (strcmp(name, "contributor") == 0) { author_end(data);   }
-	else if (strcmp(name, "name")        == 0) { name_end(data);     }
-	else if (strcmp(name, "url")         == 0) { url_end(data);      }
-	else if (strcmp(name, "email")       == 0) { email_end(data);    }
-	else if (strcmp(name, "tagline")     == 0) { tagline_end(data);  }
+	     if (strcmp(name, "entry")       == 0) { entry_end(data);     }
+	else if (strcmp(name, "id")          == 0) { id_end(data);        }
+	else if (strcmp(name, "title")       == 0) { title_end(data);     }
+	else if (strcmp(name, "summary")     == 0) { summary_end(data);   }
+	else if (strcmp(name, "content")     == 0) { content_end(data);   }
+	else if (strcmp(name, "issued")      == 0) { issued_end(data);    }
+	else if (strcmp(name, "modified")    == 0) { modified_end(data);  }
+	else if (strcmp(name, "author")      == 0) { author_end(data);    }
+	else if (strcmp(name, "contributor") == 0) { author_end(data);    }
+	else if (strcmp(name, "name")        == 0) { name_end(data);      }
+	else if (strcmp(name, "url")         == 0) { url_end(data);       }
+	else if (strcmp(name, "email")       == 0) { email_end(data);     }
+	else if (strcmp(name, "tagline")     == 0) { tagline_end(data);   }
+	else if (strcmp(name, "generator")   == 0) { generator_end(data); }
 	// In Atom 0.3 link tag is a self-closing tag.
 	//else if (strcmp(name, "link")      == 0) {                     }
 }

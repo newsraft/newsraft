@@ -27,6 +27,13 @@ crtas(const char *src_ptr, size_t src_len)
 	return str;
 }
 
+// Create string out of string.
+struct string *
+crtss(const struct string *src)
+{
+	return crtas(src->ptr, src->len);
+}
+
 // Create empty string.
 struct string *
 crtes(void)

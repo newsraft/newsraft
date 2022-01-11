@@ -99,6 +99,7 @@ executable(
 		'src/update_feed/bucket-item-insert.c',
 		'src/update_feed/bucket-structure-link.c',
 		'src/update_feed/bucket-structure-person.c',
+		'src/update_feed/bucket-structure-generator.c',
 		'src/update_feed/date-utils.c',
 		'src/update_feed/xml.c',
 		'src/update_feed/xml-handler.c',

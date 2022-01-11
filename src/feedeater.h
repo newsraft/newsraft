@@ -248,6 +248,7 @@ void free_binds(void);
 
 // string
 struct string *crtas(const char *src_ptr, size_t src_len);
+struct string *crtss(const struct string *src);
 struct string *crtes(void);
 bool cpyas(struct string *dest, const char *src_ptr, size_t src_len);
 bool cpyss(struct string *dest, const struct string *src);

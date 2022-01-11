@@ -35,7 +35,8 @@ static const struct namespace_handler namespace_handlers[] = {
 };
 
 bool
-parse_namespace_element_start(struct parser_data *data, const XML_Char *name, const XML_Char **atts) {
+parse_namespace_element_start(struct parser_data *data, const XML_Char *name, const XML_Char **atts)
+{
 	const char *separator_pos = strchr(name, NAMESPACE_SEPARATOR);
 	if (separator_pos == NULL) {
 		return false; // Tag has no namespace.
@@ -53,7 +54,8 @@ parse_namespace_element_start(struct parser_data *data, const XML_Char *name, co
 }
 
 bool
-parse_namespace_element_end(struct parser_data *data, const XML_Char *name) {
+parse_namespace_element_end(struct parser_data *data, const XML_Char *name)
+{
 	const char *separator_pos = strchr(name, NAMESPACE_SEPARATOR);
 	if (separator_pos == NULL) {
 		return false; // Tag has no namespace.

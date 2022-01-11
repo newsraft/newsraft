@@ -40,34 +40,72 @@ get_attribute_list_of_xml_tag(const struct wstring *tag)
 {
 	INFO("Trying to break down <%ls>", tag->ptr);
 
+	struct wstring *word = wcrtes();
+	if (word == NULL) {
+		return NULL;
+	}
+
 	struct xml_attribute *atts = NULL;
 	size_t atts_len = 1;
 	size_t atts_index;
 
 	if (expand_atts(&atts, atts_len) == false) {
 		free_atts(atts, atts_len - 1);
+		free_wstring(word);
 		return NULL;
 	}
 
 	wchar_t tag_name[MAX_TAG_NAME_SIZE];
 	size_t tag_name_len = 0;
 
-	wchar_t word[1000];
-	size_t word_len = 0;
-
 	bool in_tag_name = true;
 	bool in_attribute_name = false;
 	bool in_attribute_value = false;
 	bool quoted_value = false;
 	bool single_quoted_value = false;
+	bool in_entity = false;
+	wchar_t entity_name[MAX_ENTITY_NAME_LENGTH + 1];
+	const wchar_t *entity_value;
+	size_t entity_len;
 
 	const wchar_t *iter = tag->ptr;
 	while (*iter != L'\0') {
 
+		if (*iter == L'&') {
+			in_entity = true;
+			entity_len = 0;
+			++iter;
+			continue;
+		} else if (in_entity == true) {
+			if (*iter == L';') {
+				in_entity = false;
+				entity_name[entity_len] = L'\0';
+				entity_value = translate_html_entity(entity_name);
+				if (entity_value != NULL) {
+					wcatas(word, entity_value, wcslen(entity_value));
+				} else {
+					wcatcs(word, L'&');
+					wcatas(word, entity_name, entity_len);
+					wcatcs(word, L';');
+				}
+			} else {
+				if (entity_len == MAX_ENTITY_NAME_LENGTH) {
+					in_entity = false;
+					entity_name[entity_len] = L'\0';
+					wcatcs(word, L'&');
+					wcatas(word, entity_name, entity_len);
+				} else {
+					entity_name[entity_len++] = *iter;
+				}
+			}
+			++iter;
+			continue;
+		}
+
 		if (in_attribute_value == true) {
 
 			if (*iter == L'"') {
-				if ((word_len == 0) &&
+				if ((word->len == 0) &&
 				    (quoted_value == false) &&
 				    (single_quoted_value == false))
 				{
@@ -75,17 +113,18 @@ get_attribute_list_of_xml_tag(const struct wstring *tag)
 				} else if (quoted_value == true) {
 					in_attribute_value = false;
 					quoted_value = false;
-					atts[atts_index].value = wcrtas(word, word_len);
+					atts[atts_index].value = wcrtss(word);
 					if (atts[atts_index].value == NULL) {
 						free_atts(atts, atts_len);
+						free_wstring(word);
 						return NULL;
 					}
-					word_len = 0;
+					empty_wstring(word);
 				} else {
-					word[word_len++] = L'"';
+					wcatcs(word, L'"');
 				}
 			} else if (*iter == L'\'') {
-				if ((word_len == 0) &&
+				if ((word->len == 0) &&
 				    (single_quoted_value == false) &&
 				    (quoted_value == false))
 				{
@@ -93,65 +132,70 @@ get_attribute_list_of_xml_tag(const struct wstring *tag)
 				} else if (single_quoted_value == true) {
 					in_attribute_value = false;
 					single_quoted_value = false;
-					atts[atts_index].value = wcrtas(word, word_len);
+					atts[atts_index].value = wcrtss(word);
 					if (atts[atts_index].value == NULL) {
 						free_atts(atts, atts_len);
+						free_wstring(word);
 						return NULL;
 					}
-					word_len = 0;
+					empty_wstring(word);
 				} else {
-					word[word_len++] = L'\'';
+					wcatcs(word, L'\'');
 				}
 			} else if (WCHAR_IS_WHITESPACE(*iter)) {
 				if (quoted_value || single_quoted_value) {
-					word[word_len++] = *iter;
+					wcatcs(word, *iter);
 				} else {
 					in_attribute_value = false;
-					atts[atts_index].value = wcrtas(word, word_len);
+					atts[atts_index].value = wcrtss(word);
 					if (atts[atts_index].value == NULL) {
 						free_atts(atts, atts_len);
+						free_wstring(word);
 						return NULL;
 					}
-					word_len = 0;
+					empty_wstring(word);
 				}
 			} else {
-				word[word_len++] = *iter;
+				wcatcs(word, *iter);
 			}
 
 		} else if (in_attribute_name == true) {
 
 			if ((WCHAR_IS_WHITESPACE(*iter)) || (*iter == L'=')) {
-				if (word_len == 0) {
+				if (word->len == 0) {
 					++iter;
 					continue;
 				}
 				atts_index = atts_len++;
 				if (expand_atts(&atts, atts_len) == false) {
 					free_atts(atts, atts_len - 1);
+					free_wstring(word);
 					return NULL;
 				}
-				atts[atts_index].name = wcrtas(word, word_len);
+				atts[atts_index].name = wcrtss(word);
 				if (atts[atts_index].name == NULL) {
 					free_atts(atts, atts_len);
+					free_wstring(word);
 					return NULL;
 				}
 				if (*iter == L'=') {
-					word_len = 0;
+					empty_wstring(word);
 					in_attribute_value = true;
 				}
 			} else {
-				word[word_len++] = *iter;
+				wcatcs(word, *iter);
 			}
 
 		} else if (in_tag_name == true) {
 
 			if (WCHAR_IS_WHITESPACE(*iter)) {
-				word_len = 0;
+				empty_wstring(word);
 				in_tag_name = false;
 				in_attribute_name = true;
 			} else {
 				if (tag_name_len == MAX_TAG_NAME_SIZE) {
 					free(atts);
+					free_wstring(word);
 					return NULL;
 				} else {
 					tag_name[tag_name_len++] = *iter;
@@ -163,26 +207,31 @@ get_attribute_list_of_xml_tag(const struct wstring *tag)
 		++iter;
 	}
 
-	if (word_len != 0) {
+	if (word->len != 0) {
 		if (in_attribute_value == true) {
-			atts[atts_index].value = wcrtas(word, word_len);
+			atts[atts_index].value = wcrtss(word);
 			if (atts[atts_index].value == NULL) {
 				free_atts(atts, atts_len);
+				free_wstring(word);
 				return NULL;
 			}
 		} else if (in_attribute_name == true) {
 			atts_index = atts_len++;
 			if (expand_atts(&atts, atts_len) == false) {
 				free_atts(atts, atts_len - 1);
+				free_wstring(word);
 				return NULL;
 			}
-			atts[atts_index].name = wcrtas(word, word_len);
+			atts[atts_index].name = wcrtss(word);
 			if (atts[atts_index].name == NULL) {
 				free_atts(atts, atts_len);
+				free_wstring(word);
 				return NULL;
 			}
 		}
 	}
+
+	free_wstring(word);
 
 	tag_name[tag_name_len] = L'\0';
 	atts[0].name = wcrtas(tag_name, tag_name_len);

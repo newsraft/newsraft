@@ -27,6 +27,13 @@ wcrtas(const wchar_t *src_ptr, size_t src_len)
 	return wstr;
 }
 
+// Create wstring out of wstring.
+struct wstring *
+wcrtss(const struct wstring *src)
+{
+	return wcrtas(src->ptr, src->len);
+}
+
 // Create empty wstring.
 struct wstring *
 wcrtes(void)

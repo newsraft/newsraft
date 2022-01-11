@@ -88,6 +88,7 @@ executable(
 		'src/items-links.c',
 		'src/items-content.c',
 		'src/items-metadata.c',
+		'src/xml-entities.c',
 		'src/xml-attributes.c',
 		'src/xml-size.c',
 		'src/update_feed/update_feed.c',
@@ -115,7 +116,6 @@ executable(
 		'src/render_data/render_data.c',
 		'src/render_data/line.c',
 		'src/render_data/render-text-html.c',
-		'src/render_data/render-text-html-entities.c',
 	],
 	dependencies: [
 		dependency('ncursesw'),

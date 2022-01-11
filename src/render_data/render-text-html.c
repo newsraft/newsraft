@@ -253,7 +253,6 @@ render_text_html(const struct wstring *wstr, struct line *line, struct wstring *
 
 	bool in_tag = false;
 	bool in_entity = false;
-	bool error = false;
 	bool found_tag;
 
 	wchar_t entity_name[MAX_ENTITY_NAME_LENGTH + 1];
@@ -266,61 +265,29 @@ render_text_html(const struct wstring *wstr, struct line *line, struct wstring *
 
 	const wchar_t *i = wstr->ptr;
 	while (*i != L'\0') {
-		if (in_tag == false) {
-			if (in_entity == false) {
-				if (*i == L'<') {
-					in_tag = true;
-					empty_wstring(tag);
-				} else if (*i == L'&') {
-					in_entity = true;
-					entity_len = 0;
-				} else if ((position & (HTML_STYLE|HTML_SCRIPT)) != 0) {
-					// Ignore contents of style and script elements.
-					++i;
-					continue;
-				} else if (((position & HTML_PRE) == 0) &&
-						((*i == L' ') || (*i == L'\n') || (*i == L'\t')))
-				{
-					if ((line->len != 0) &&
-						(line->ptr[line->len - 1] != L' ') &&
-						(line->ptr[line->len - 1] != L'\n') &&
-						(line->ptr[line->len - 1] != L'\t'))
-					{
-						if (line_char(line, L' ', t) == false) {
-							error = true;
-							break;
-						}
-					}
+		if (in_entity == true) { // All entity characters go here.
+			if (*i == L';') {
+				in_entity = false;
+				entity_name[entity_len] = L'\0';
+				entity_value = translate_html_entity(entity_name);
+				if (entity_value != NULL) {
+					line_string(line, entity_value, t);
 				} else {
-					if (line_char(line, *i, t) == false) {
-						error = true;
-						break;
-					}
+					line_char(line, L'&', t);
+					line_string(line, entity_name, t);
+					line_char(line, L';', t);
 				}
-			} else { // All entity characters go here.
-				if (*i == L';') {
+			} else {
+				if (entity_len == MAX_ENTITY_NAME_LENGTH) {
 					in_entity = false;
 					entity_name[entity_len] = L'\0';
-					entity_value = translate_html_entity(entity_name);
-					if (entity_value != NULL) {
-						line_string(line, entity_value, t);
-					} else {
-						line_char(line, L'&', t);
-						line_string(line, entity_name, t);
-						line_char(line, L';', t);
-					}
+					line_char(line, L'&', t);
+					line_string(line, entity_name, t);
 				} else {
-					if (entity_len == MAX_ENTITY_NAME_LENGTH) {
-						in_entity = false;
-						entity_name[entity_len] = L'\0';
-						line_char(line, L'&', t);
-						line_string(line, entity_name, t);
-					} else {
-						entity_name[entity_len++] = *i;
-					}
+					entity_name[entity_len++] = *i;
 				}
 			}
-		} else { // All tag characters go here.
+		} else if (in_tag == true) { // All tag characters go here.
 			if (*i == L'>') {
 				found_tag = false;
 				in_tag = false;
@@ -335,13 +302,40 @@ render_text_html(const struct wstring *wstr, struct line *line, struct wstring *
 				}
 				if (found_tag == false) {
 					line_char(line, L'<', t);
-					line_string(line, tag->ptr, t);
+					render_text_html(tag, line, t);
 					line_char(line, L'>', t);
 				}
 			} else {
 				if (wcatcs(tag, *i) == false) {
-					error = true;
-					break;
+					goto error;
+				}
+			}
+		} else {
+			if (*i == L'<') {
+				in_tag = true;
+				empty_wstring(tag);
+			} else if (*i == L'&') {
+				in_entity = true;
+				entity_len = 0;
+			} else if ((position & (HTML_STYLE|HTML_SCRIPT)) != 0) {
+				// Ignore contents of style and script elements.
+				++i;
+				continue;
+			} else if (((position & HTML_PRE) == 0) &&
+			           ((*i == L' ') || (*i == L'\n') || (*i == L'\t')))
+			{
+				if ((line->len != 0) &&
+					(line->ptr[line->len - 1] != L' ') &&
+					(line->ptr[line->len - 1] != L'\n') &&
+					(line->ptr[line->len - 1] != L'\t'))
+				{
+					if (line_char(line, L' ', t) == false) {
+						goto error;
+					}
+				}
+			} else {
+				if (line_char(line, *i, t) == false) {
+					goto error;
 				}
 			}
 		}
@@ -349,11 +343,10 @@ render_text_html(const struct wstring *wstr, struct line *line, struct wstring *
 	}
 
 	free_wstring(tag);
-
-	if (error == true) {
-		FAIL("Not enough memory for rendering HTML!");
-		return false;
-	}
-
 	return true;
+
+error:
+	FAIL("Not enough memory for rendering HTML!");
+	free_wstring(tag);
+	return false;
 }

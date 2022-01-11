@@ -9,6 +9,8 @@
 
 #define FEEDEATER_VERSION "0.0.0"
 #define MAX_MIME_TYPE_LEN 255
+// This has to be the length of the longest HTML entity name in entities array.
+#define MAX_ENTITY_NAME_LENGTH 13
 
 #define COUNTOF(A) (sizeof(A) / sizeof(*A))
 #define INFO(A, ...) do { if (log_stream != NULL) { fprintf(log_stream, "[INFO] " A "\n", ##__VA_ARGS__); } } while (0)
@@ -258,6 +260,7 @@ void trim_whitespace_from_string(struct string *str);
 struct wstring *convert_string_to_wstring(const struct string *src);
 // wstring
 struct wstring *wcrtas(const wchar_t *src_ptr, size_t src_len);
+struct wstring *wcrtss(const struct wstring *src);
 struct wstring *wcrtes(void);
 bool wcatas(struct wstring *dest, const wchar_t *src_ptr, size_t src_len);
 bool wcatcs(struct wstring *dest, wchar_t c);
@@ -275,6 +278,7 @@ struct string *convert_bytes_to_human_readable_size_string(const char *value);
 // Common functions for processing XML.
 struct xml_attribute *get_attribute_list_of_xml_tag(const struct wstring *tag);
 const struct wstring *get_value_of_xml_attribute(const struct xml_attribute *atts, const wchar_t *attr);
+const wchar_t *translate_html_entity(wchar_t *entity);
 void free_attribute_list_of_xml_tag(struct xml_attribute *atts);
 
 // Download, process and store new items of feed.

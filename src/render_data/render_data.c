@@ -18,6 +18,7 @@ struct data_handler {
 static const struct data_handler handlers[] = {
 	{"", &render_text_html}, // In many cases empty type means that
 	                         // text is HTML formatted.
+	{"text/plain", &render_text_plain},
 	{"text/html", &render_text_html},
 	{"html", &render_text_html},
 	//{"text/markdown"} TODO
@@ -58,10 +59,14 @@ render_data(const struct content_list *data_list)
 			if (strcmp(temp_list->content_type, handlers[i].type) == 0) {
 				found_handler = true;
 				handlers[i].handle(converted_str, &line, text);
+				if (line.len == 0) {
+					trim_whitespace_from_wstring(text);
+				}
 				break;
 			}
 		}
 		if (found_handler == false) {
+			// This is prolly a separator, so don't trim whitespace!
 			line_string(&line, converted_str->ptr, text);
 		}
 		free_wstring(converted_str);

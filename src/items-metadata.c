@@ -24,7 +24,7 @@ static const struct data_entry entries[] = {
 // On success returns true.
 // On failure returns false.
 static inline bool
-append_date(struct content_list **list, sqlite3_stmt *res, intmax_t column, const char *prefix, size_t prefix_len)
+append_date(struct render_block **list, sqlite3_stmt *res, intmax_t column, const char *prefix, size_t prefix_len)
 {
 	time_t date = (time_t)sqlite3_column_int64(res, column);
 	if (date == 0) {
@@ -45,19 +45,19 @@ append_date(struct content_list **list, sqlite3_stmt *res, intmax_t column, cons
 		return false;
 	}
 	free_string(date_str);
-	if (append_content(list, date_entry->ptr, date_entry->len, "text/plain", 10) == false) {
+	if (join_render_block(list, date_entry->ptr, date_entry->len, "text/plain", 10) == false) {
 		free_string(date_entry);
 		return false;
 	}
 	free_string(date_entry);
-	if (append_content_separator(list) == false) {
+	if (join_render_separator(list) == false) {
 		return false;
 	}
 	return true;
 }
 
 static inline bool
-append_meta_data_entry(struct content_list **list, sqlite3_stmt *res, int index)
+append_meta_data_entry(struct render_block **list, sqlite3_stmt *res, int index)
 {
 	char *text = (char *)sqlite3_column_text(res, entries[index].data_column);
 	if (text == NULL) {
@@ -68,7 +68,7 @@ append_meta_data_entry(struct content_list **list, sqlite3_stmt *res, int index)
 		return true; // It is not an error because this item simply does not have value set.
 	}
 
-	if (append_content(list, entries[index].prefix, entries[index].prefix_len, "text/plain", 10) == false){
+	if (join_render_block(list, entries[index].prefix, entries[index].prefix_len, "text/plain", 10) == false){
 		return false;
 	}
 
@@ -86,16 +86,16 @@ append_meta_data_entry(struct content_list **list, sqlite3_stmt *res, int index)
 		char type[MAX_MIME_TYPE_LEN + 1];
 		memcpy(type, text, type_len);
 		type[type_len] = '\0';
-		if (append_content(list, real_text, real_text_len, type, type_len) == false) {
+		if (join_render_block(list, real_text, real_text_len, type, type_len) == false) {
 			return false;
 		}
 	} else {
-		if (append_content(list, text, text_len, "text/plain", 10) == false) {
+		if (join_render_block(list, text, text_len, "text/plain", 10) == false) {
 			return false;
 		}
 	}
 
-	if (append_content_separator(list) == false) {
+	if (join_render_separator(list) == false) {
 		return false;
 	}
 
@@ -103,7 +103,7 @@ append_meta_data_entry(struct content_list **list, sqlite3_stmt *res, int index)
 }
 
 static inline bool
-append_max_summary_content(struct content_list **list, sqlite3_stmt *res)
+append_max_summary_content(struct render_block **list, sqlite3_stmt *res)
 {
 	const char *summary = (char *)sqlite3_column_text(res, ITEM_COLUMN_SUMMARY);
 	const char *content = (char *)sqlite3_column_text(res, ITEM_COLUMN_CONTENT);
@@ -132,17 +132,17 @@ append_max_summary_content(struct content_list **list, sqlite3_stmt *res)
 	char type[MAX_MIME_TYPE_LEN + 1];
 	memcpy(type, content, type_len);
 	type[type_len] = '\0';
-	if (append_content_separator(list) == false) {
+	if (join_render_separator(list) == false) {
 		return false;
 	}
-	if (append_content(list, real_content, real_content_len, type, type_len) == false) {
+	if (join_render_block(list, real_content, real_content_len, type, type_len) == false) {
 		return false;
 	}
 	return true;
 }
 
 static inline bool
-process_specifier(const struct string *value, struct content_list **list, sqlite3_stmt *res)
+process_specifier(const struct string *value, struct render_block **list, sqlite3_stmt *res)
 {
 	if (strcmp(value->ptr, "published") == 0) {
 		if (append_date(list, res, ITEM_COLUMN_PUBDATE, "Published: ", 11) == false) {
@@ -170,7 +170,7 @@ process_specifier(const struct string *value, struct content_list **list, sqlite
 }
 
 bool
-populate_content_list_with_data_of_item(struct content_list **list, sqlite3_stmt *res)
+join_render_blocks_of_item_data(struct render_block **list, sqlite3_stmt *res)
 {
 	struct string *value = crtes();
 	if (value == NULL) {

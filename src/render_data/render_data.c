@@ -26,7 +26,7 @@ static const struct data_handler handlers[] = {
 };
 
 struct wstring *
-render_data(const struct content_list *data_list)
+render_data(const struct render_block *first_block)
 {
 	struct wstring *text = wcrtes();
 	if (text == NULL) {
@@ -45,10 +45,10 @@ render_data(const struct content_list *data_list)
 	line.pin = SIZE_MAX;
 	line.indent = 0;
 	struct wstring *converted_str;
-	const struct content_list *temp_list = data_list;
+	const struct render_block *block = first_block;
 	bool found_handler;
-	while (temp_list != NULL) {
-		converted_str = convert_string_to_wstring(temp_list->content);
+	while (block != NULL) {
+		converted_str = convert_string_to_wstring(block->content);
 		if (converted_str == NULL) {
 			free(line.ptr);
 			free_wstring(text);
@@ -56,7 +56,7 @@ render_data(const struct content_list *data_list)
 		}
 		found_handler = false;
 		for (size_t i = 0; i < COUNTOF(handlers); ++i) {
-			if (strcmp(temp_list->content_type, handlers[i].type) == 0) {
+			if (strcmp(block->content_type, handlers[i].type) == 0) {
 				found_handler = true;
 				handlers[i].handle(converted_str, &line, text);
 				if (line.len == 0) {
@@ -70,7 +70,7 @@ render_data(const struct content_list *data_list)
 			line_string(&line, converted_str->ptr, text);
 		}
 		free_wstring(converted_str);
-		temp_list = temp_list->next;
+		block = block->next;
 	}
 	for (size_t i = 0; i < line.len; ++i) {
 		wcatcs(text, line.ptr[i]);

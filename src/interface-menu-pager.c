@@ -4,7 +4,7 @@
 
 // Here, a pager is such a thing that serves as a text viewer.
 
-const struct content_list *data_list;
+const struct render_block *data_list;
 static WINDOW *window;
 static size_t view_min; // index of first visible line (row)
 static size_t view_lim; // maximum reachable value of view_min
@@ -142,9 +142,9 @@ set_pager_view_input_handlers(void)
 // On success - exit by user - returns INPUT_QUIT_SOFT or INPUT_QUIT_HARD.
 // On failure returns INPUTS_COUNT.
 int
-pager_view(const struct content_list *data_list_arg)
+pager_view(const struct render_block *first_block)
 {
-	data_list = data_list_arg;
+	data_list = first_block;
 
 	window = create_window_with_contents();
 	if (window == NULL) {

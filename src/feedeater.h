@@ -71,10 +71,10 @@ struct format_arg {
 };
 
 // Linked list
-struct content_list {
+struct render_block {
 	struct string *content;
 	char *content_type;
-	struct content_list *next;
+	struct render_block *next;
 };
 
 struct link {
@@ -177,16 +177,16 @@ void free_sets(void);
 int enter_items_menu_loop(const struct set_condition *st);
 
 // contents
-int pager_view(const struct content_list *data_list);
-bool append_content(struct content_list **list, const char *content, size_t content_len, const char *content_type, size_t content_type_len);
-bool append_content_separator(struct content_list **list);
-bool populate_content_list_with_data_of_item(struct content_list **data_list, sqlite3_stmt *res);
-void free_content_list(struct content_list *list);
+int pager_view(const struct render_block *first_block);
+bool join_render_block(struct render_block **list, const char *content, size_t content_len, const char *content_type, size_t content_type_len);
+bool join_render_separator(struct render_block **list);
+bool join_render_blocks_of_item_data(struct render_block **data_list, sqlite3_stmt *res);
+void free_render_blocks(struct render_block *first_block);
 bool populate_link_list_with_links_of_item(struct link_list *links, sqlite3_stmt *res);
 struct string *generate_link_list_string_for_pager(const struct link_list *links);
 bool add_another_url_to_trim_link_list(struct link_list *links, char *url, size_t url_len);
 void free_trim_link_list(const struct link_list *links);
-bool append_links_to_contents(struct content_list **contents, struct link_list *links);
+bool join_links_render_block(struct render_block **contents, struct link_list *links);
 int enter_item_contents_menu_loop(int rowid);
 
 // path
@@ -287,13 +287,13 @@ void free_attribute_list_of_xml_tag(struct xml_attribute *atts);
 bool update_feed(const struct string *url);
 
 // See "extract_links" directory for implementation.
-bool extract_links(const struct content_list *data_list, struct link_list *target);
+bool extract_links(const struct render_block *first_block, struct link_list *target);
 
 // Convert series of texts of different formats to one big
 // content string that can be written to pad window without
 // additional splitting into lines or any other processing.
 // See "render_data" directory for implementation.
-struct wstring *render_data(const struct content_list *data_list);
+struct wstring *render_data(const struct render_block *first_block);
 
 extern FILE *log_stream;
 extern size_t list_menu_height;

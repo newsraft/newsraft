@@ -1,9 +1,9 @@
 #include "feedeater.h"
 
 bool
-append_content(struct content_list **list, const char *content, size_t content_len, const char *content_type, size_t content_type_len)
+join_render_block(struct render_block **list, const char *content, size_t content_len, const char *content_type, size_t content_type_len)
 {
-	struct content_list *new_entry = malloc(sizeof(struct content_list));
+	struct render_block *new_entry = malloc(sizeof(struct render_block));
 	if (new_entry == NULL) {
 		return false;
 	}
@@ -23,7 +23,7 @@ append_content(struct content_list **list, const char *content, size_t content_l
 	new_entry->next = NULL;
 
 	if (*list != NULL) {
-		struct content_list *temp = *list;
+		struct render_block *temp = *list;
 		while (temp != NULL) {
 			if (temp->next == NULL) {
 				temp->next = new_entry;
@@ -38,36 +38,36 @@ append_content(struct content_list **list, const char *content, size_t content_l
 }
 
 bool
-append_content_separator(struct content_list **list)
+join_render_separator(struct render_block **list)
 {
-	return append_content(list, "\n", 1, "SEPARATOR", 9);
+	return join_render_block(list, "\n", 1, "SEPARATOR", 9);
 }
 
 void
-free_content_list(struct content_list *list)
+free_render_blocks(struct render_block *first_block)
 {
-	struct content_list *head_content = list;
-	struct content_list *temp;
-	while (head_content != NULL) {
-		free_string(head_content->content);
-		free(head_content->content_type);
-		temp = head_content;
-		head_content = head_content->next;
+	struct render_block *head_block = first_block;
+	struct render_block *temp;
+	while (head_block != NULL) {
+		free_string(head_block->content);
+		free(head_block->content_type);
+		temp = head_block;
+		head_block = head_block->next;
 		free(temp);
 	}
 }
 
 bool
-append_links_to_contents(struct content_list **contents, struct link_list *links)
+join_links_render_block(struct render_block **contents, struct link_list *links)
 {
 	struct string *str = generate_link_list_string_for_pager(links);
 	if (str == NULL) {
 		return false;
 	}
-	append_content_separator(contents);
-	append_content_separator(contents);
-	append_content(contents, str->ptr, str->len, "text/plain", 10);
-	append_content_separator(contents);
+	join_render_separator(contents);
+	join_render_separator(contents);
+	join_render_block(contents, str->ptr, str->len, "text/plain", 10);
+	join_render_separator(contents);
 	free_string(str);
 	return true;
 }

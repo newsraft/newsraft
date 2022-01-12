@@ -15,15 +15,15 @@ static const struct data_handler handlers[] = {
 };
 
 bool
-extract_links(const struct content_list *data_list, struct link_list *target)
+extract_links(const struct render_block *first_block, struct link_list *target)
 {
 	INFO("Extracting links from content list.");
-	const struct content_list *temp_list = data_list;
+	const struct render_block *block = first_block;
 	struct wstring *wstr;
-	while (temp_list != NULL) {
+	while (block != NULL) {
 		for (size_t i = 0; i < COUNTOF(handlers); ++i) {
-			if (strcmp(temp_list->content_type, handlers[i].type) == 0) {
-				wstr = convert_string_to_wstring(temp_list->content);
+			if (strcmp(block->content_type, handlers[i].type) == 0) {
+				wstr = convert_string_to_wstring(block->content);
 				if (wstr == NULL) {
 					return false;
 				}
@@ -35,7 +35,7 @@ extract_links(const struct content_list *data_list, struct link_list *target)
 				break;
 			}
 		}
-		temp_list = temp_list->next;
+		block = block->next;
 	}
 	INFO("Links extraction finished.");
 	return true;

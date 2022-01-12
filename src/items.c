@@ -279,25 +279,25 @@ enter_item_pager_loop(int rowid)
 		sqlite3_finalize(res);
 		return INPUTS_COUNT;
 	}
-	struct content_list *contents = NULL;
-	if (populate_content_list_with_data_of_item(&contents, res) == false) {
+	struct render_block *first_block = NULL;
+	if (join_render_blocks_of_item_data(&first_block, res) == false) {
 		goto error;
 	}
-	if (extract_links(contents, &links) == false) {
+	if (extract_links(first_block, &links) == false) {
 		goto error;
 	}
 	if (cfg.append_links == true) {
-		if (append_links_to_contents(&contents, &links) == false) {
+		if (join_links_render_block(&first_block, &links) == false) {
 			goto error;
 		}
 	}
-	int destination = pager_view(contents);
-	free_content_list(contents);
+	int destination = pager_view(first_block);
+	free_render_blocks(first_block);
 	free_trim_link_list(&links);
 	sqlite3_finalize(res);
 	return destination;
 error:
-	free_content_list(contents);
+	free_render_blocks(first_block);
 	free_trim_link_list(&links);
 	sqlite3_finalize(res);
 	return INPUTS_COUNT;

@@ -220,8 +220,10 @@ void parse_rss10content_element_end   (struct parser_data *data, const XML_Char 
 #ifdef FEEDEATER_FORMAT_SUPPORT_YANDEX
 enum yandex_position {
 	YANDEX_NONE = 0,
-	YANDEX_FULLTEXT = 1,
+	YANDEX_FULL_TEXT = 1,
 	YANDEX_GENRE = 2,
+	YANDEX_COMMENT_TEXT = 4,
+	YANDEX_BIND_TO = 8,
 };
 void parse_yandex_element_start (struct parser_data *data, const XML_Char *name, const XML_Char **atts);
 void parse_yandex_element_end   (struct parser_data *data, const XML_Char *name);

@@ -32,7 +32,7 @@ free_items(void)
 static bool
 load_items(const struct set_condition *sc)
 {
-#define SELECT_CMD_PART_1 "SELECT rowid, title, unread FROM items WHERE "
+#define SELECT_CMD_PART_1 "SELECT rowid, unread, title FROM items WHERE "
 #define SELECT_CMD_PART_1_LEN 45
 #define SELECT_CMD_PART_3 " ORDER BY upddate DESC, pubdate DESC, rowid DESC"
 #define SELECT_CMD_PART_3_LEN 48
@@ -53,7 +53,6 @@ load_items(const struct set_condition *sc)
 	}
 	view_sel = SIZE_MAX;
 	size_t item_index;
-	char *text;
 	void *temp; // need to check if realloc failed
 	for (size_t i = 0; i < sc->urls_count; ++i) {
 		sqlite3_bind_text(res, i + 1, sc->urls[i]->ptr, sc->urls[i]->len, NULL);
@@ -63,24 +62,22 @@ load_items(const struct set_condition *sc)
 		item_index = items_count++;
 		temp = realloc(items, sizeof(struct item_line) * items_count);
 		if (temp == NULL) {
-			FAIL("Not enough memory for loading items (realloc returned NULL)!");
+			FAIL("Not enough memory for loading items!");
 			--items_count;
 			error = true;
 			break;
 		}
 		items = temp;
-		items[item_index].title = NULL;
+		items[item_index].rowid = sqlite3_column_int(res, 0);
+		items[item_index].is_unread = sqlite3_column_int(res, 1);
+		items[item_index].title = db_get_plain_text_from_column(res, 2);
+		if (items[item_index].title == NULL) {
+			error = true;
+			break;
+		}
 		if (view_sel == SIZE_MAX) {
 			view_sel = item_index;
 		}
-		items[item_index].rowid = sqlite3_column_int(res, 0);
-		if ((text = (char *)sqlite3_column_text(res, 1)) != NULL) {
-			if ((items[item_index].title = crtas(text, strlen(text))) == NULL) {
-				error = true;
-				break;
-			}
-		}
-		items[item_index].is_unread = sqlite3_column_int(res, 2);
 	}
 
 	sqlite3_finalize(res);

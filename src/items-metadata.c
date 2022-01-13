@@ -59,11 +59,11 @@ append_date(struct render_block **list, sqlite3_stmt *res, intmax_t column, cons
 static inline bool
 append_meta_data_entry(struct render_block **list, sqlite3_stmt *res, int index)
 {
-	char *text = (char *)sqlite3_column_text(res, entries[index].data_column);
+	const char *text = (const char *)sqlite3_column_text(res, entries[index].data_column);
 	if (text == NULL) {
 		return true; // It is not an error because this item simply does not have value set.
 	}
-	size_t text_len = strlen(text);
+	const size_t text_len = strlen(text);
 	if (text_len == 0) {
 		return true; // It is not an error because this item simply does not have value set.
 	}
@@ -73,16 +73,16 @@ append_meta_data_entry(struct render_block **list, sqlite3_stmt *res, int index)
 	}
 
 	if (entries[index].does_it_have_type_header_at_the_beginning == true) {
-		char *type_separator = strchr(text, ';');
+		const char *type_separator = strchr(text, ';');
 		if (type_separator == NULL) {
 			return false;
 		}
-		size_t type_len = type_separator - text;
+		const size_t type_len = type_separator - text;
 		if (type_len > MAX_MIME_TYPE_LEN) {
 			return false;
 		}
-		const char *real_text = text + (type_len + 1);
-		size_t real_text_len = text_len - (type_len + 1);
+		const char *real_text = type_separator + 1;
+		const size_t real_text_len = text_len - (type_len + 1);
 		char type[MAX_MIME_TYPE_LEN + 1];
 		memcpy(type, text, type_len);
 		type[type_len] = '\0';

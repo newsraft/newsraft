@@ -227,6 +227,7 @@ const char *db_error_string(void);
 sqlite3_stmt *db_find_item_by_rowid(int rowid);
 bool db_mark_item_read(int rowid);
 bool db_mark_item_unread(int rowid);
+struct string *db_get_plain_text_from_column(sqlite3_stmt *res, int column);
 int get_unread_items_count(const struct set_condition *sc);
 
 bool curses_init(void);

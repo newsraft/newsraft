@@ -1,34 +1,37 @@
+# This is an example of valid feeds file for feedeater.
+
+# Lines with number sign (#) at the beginning are comments,
+# they are completely ignored by the parser as well as empty lines.
+
+# To subscribe to feed you have to add a line with its URL:
 http://example.org/feed1.xml
-# lines with # at start are comments
-#I CaN TyPe hErE WhAtEvEr i wAnT
-http://example.org/feed2.xml
-http://example.org/feed3.xml
-# text inside double quotes after the feed url is a custom feed name
-# when specified, custom feed names are displayed instead of feed url
-http://example.org/feed4.xml "My GNU/Linux distribution news"
-# lines with @ at start are decorations
-# you can see them in menu, but can't select
-@-----+[favorite podcasts]+-----
-http://example.org/feed5.xml "Weekly Tech Digest"
-http://example.org/feed6.xml
-# you can tag your feeds so they can be accessed with filters
-# tag is a word of latin alphabet characters, digits and underscores
-# using other symbols may lead to errors
-http://example.org/feed7.xml cooking podcast spanish
-# keep in mind that custom feed name has to be specified before any tags
-http://example.org/feed8.xml "News Broadcasts" local_news podcast
-http://example.org/feed9.xml "Weather" podcast
-# fun fact 1: decorations can be empty, leaving empty line in menu
-# fun fact 2: decorations can be specified in sequence
-@
-@  <<- My FiLTeRS ->>
-# to define a filter use ! at start of the line
-# note that filters can be specified in every position of file
-# it is placed here for educational goals, but you can
-# place all your filters to the top of file and use it perfectly fine
-!cooking
-# you can use logical operators ("&" is AND, "|" is OR) in filters
-# also round brackets "(" and ")" are available. whitespace doesn't matter
-!podcast & ( local_news | cooking )
-# to give filter a name, put double quoted string after tag expression
-!spanish & podcast "Learning Spanish"
+
+# If you want to assign feed a name, put a double quoted string after its URL:
+http://example.org/feed2.xml "News of my GNU/Linux distribution"
+
+# Lines with percent sign (%) at the beginning are decorations.
+# You can see them in menu, but can never select:
+%--------------------<{ Favorite Podcasts }>--------------------
+# To be able to use feed in a multi-feed, you have to tag it.
+# Tag is a word of latin alphabet letters, arabic digits and hyphens.
+# Using any other symbols is discouraged. All tags of feed have to
+# be put after feed's name (or after URL if name is omitted).
+http://example.org/feed3.xml "Local news report" news real-world
+http://example.org/feed4.xml "Technology news digest" news tech
+%---------------------------------------------------------------
+
+# Lines with at sign (@) at the beginning are multi-feeds,
+# they are used to access items of multiple feeds that satisfy the
+# tag expression. You also can update multi-feed as if you were updating
+# feeds with these tags individually. To determine the feeds that will be
+# included in the multi-feed, you have to write a tag expression.
+# In tag expression you can use tag names, logical operators and round
+# brackets. Whitespace does not matter. Multi-feeds can be named just like
+# a regular feeds, with a double quoted string:
+@ tech & (news | release-notes) "Technology news & project releases"
+
+# Fun fact: decorations can be empty!
+%
+%---------------------<{ Project Releases }>--------------------
+http://example.org/feed5.xml "My window manager release notes" tech release-notes
+http://example.org/feed6.xml "My email client release notes" tech release-notes

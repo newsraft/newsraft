@@ -3,7 +3,7 @@
 
 // Note to the future.
 // When disastrous failure (like shortage of memory) occurrs in
-// "create_set_condition_for_feed" or "create_set_condition_for_filter",
+// "create_set_condition_for_feed" or "create_set_condition_for_multi_feed",
 // print failure messages to stderr, because at the moment of creation of
 // set conditions there is no curses interface, and on errors of such kind
 // application is supposed to exit as soon as possible. Hence it is better
@@ -127,15 +127,15 @@ append_urls_of_tag_to_set_condition(const struct feed_tag *head_tag, struct set_
 // On success returns pointer to set_condition struct.
 // On failure returns NULL.
 const struct set_condition *
-create_set_condition_for_filter(const struct feed_tag *head_tag, const struct string *tags_expr)
+create_set_condition_for_multi_feed(const struct feed_tag *head_tag, const struct string *tags_expr)
 {
 	struct set_condition *sc = malloc(sizeof(struct set_condition));
 	if (sc == NULL) {
-		fprintf(stderr, "Not enough memory for filter set condition!\n");
+		fprintf(stderr, "Not enough memory for multi-feed set condition!\n");
 		return NULL;
 	}
 	if ((sc->db_cmd = crtas("(", 1)) == NULL) {
-		fprintf(stderr, "Not enough memory for WHERE condition of filter set condition!\n");
+		fprintf(stderr, "Not enough memory for WHERE condition of multi-feed set condition!\n");
 		free(sc);
 		return NULL;
 	}
@@ -158,7 +158,9 @@ create_set_condition_for_filter(const struct feed_tag *head_tag, const struct st
 
 	while (1) {
 		c = tags_expr->ptr[i++];
-		if (c == '&' || c == '|' || c == ')' || c == '\0') {
+		if (ISWHITESPACE(c)) {
+			continue;
+		} else if (c == '&' || c == '|' || c == ')' || c == '\0') {
 			if (word_len != 0) {
 				word[word_len] = '\0';
 				word_len = 0;
@@ -214,7 +216,7 @@ create_set_condition_for_filter(const struct feed_tag *head_tag, const struct st
 
 	if (error != 0) {
 		if (error == 1) {
-			fprintf(stderr, "Not enough memory for filter set condition!\n");
+			fprintf(stderr, "Not enough memory for multi-feed set condition!\n");
 		} else if (error == 2) {
 			fprintf(stderr, "Bad place for \"(\" in \"%s\"!\n", tags_expr->ptr);
 		}
@@ -223,7 +225,7 @@ create_set_condition_for_filter(const struct feed_tag *head_tag, const struct st
 	}
 
 	if (catcs(sc->db_cmd, ')') == false) {
-		fprintf(stderr, "Not enough memory for filter set condition!\n");
+		fprintf(stderr, "Not enough memory for multi-feed set condition!\n");
 		free_set_condition(sc);
 		return NULL;
 	}

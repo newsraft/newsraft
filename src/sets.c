@@ -34,20 +34,19 @@ free_sets(void)
 
 // On success returns 0.
 // On failure returns non-zero.
-static inline int
+static inline bool
 parse_sets_file(struct feed_tag **head_tag_ptr) {
 	const char *path = get_feeds_path();
 	if (path == NULL) {
 		// Error message is written by get_feeds_path().
-		return 1;
+		return false;
 	}
 	FILE *f = fopen(path, "r");
 	if (f == NULL) {
 		fprintf(stderr, "Could not open feeds file!\n");
-		return 1;
+		return false;
 	}
 	size_t set_index, word_len;
-	int error = 0;
 	char c, word[1000];
 	struct set_line *temp;
 
@@ -56,7 +55,7 @@ parse_sets_file(struct feed_tag **head_tag_ptr) {
 	while (1) {
 
 		// Get first non-whitespace character.
-		do { c = fgetc(f); } while (c == ' ' || c == '\t' || c == '\n');
+		do { c = fgetc(f); } while (ISWHITESPACE(c));
 
 		if (c == '#') {
 			// Skip a comment line.
@@ -64,20 +63,15 @@ parse_sets_file(struct feed_tag **head_tag_ptr) {
 			if (c == '\n') {
 				continue;
 			} else {
-				// Quit on end of file.
-				break;
+				break; // Quit on end of file.
 			}
 		} else if (c == EOF) {
-			// Quit on end of file.
-			break;
+			break; // Quit on end of file.
 		}
 
 		set_index = sets_count++;
 		temp = realloc(sets, sizeof(struct set_line) * sets_count);
-		if (temp == NULL) {
-			error = 1;
-			break;
-		}
+		if (temp == NULL) { goto error; }
 		sets = temp;
 		sets[set_index].name = NULL;
 		sets[set_index].link = NULL;
@@ -86,7 +80,7 @@ parse_sets_file(struct feed_tag **head_tag_ptr) {
 		sets[set_index].unread_count = 0;
 
 		word_len = 0;
-		if (c == '@') { // line is decoration
+		if (c == '%') { // line is decoration
 
 			while (1) {
 				c = fgetc(f);
@@ -94,26 +88,19 @@ parse_sets_file(struct feed_tag **head_tag_ptr) {
 				word[word_len++] = c;
 			}
 			sets[set_index].name = crtas(word, word_len);
-			if (sets[set_index].name == NULL) {
-				error = 1;
-				break;
-			}
+			if (sets[set_index].name == NULL) { goto error; }
 
-		} else if (c == '!') { // line is filter
+		} else if (c == '@') { // line is multi-feed
 
 			while (1) {
 				c = fgetc(f);
-				if (c == ' ' || c == '\t') { continue; } // skip whitespace
 				if (c == '"' || c == '\n' || c == EOF) { break; }
 				word[word_len++] = c;
 			}
 			sets[set_index].tags = crtas(word, word_len);
-			if (sets[set_index].tags == NULL) {
-				error = 1;
-				break;
-			}
+			if (sets[set_index].tags == NULL) { goto error; }
 			if (c == '"') {
-				/* double quote shows beginning of the filter name */
+				/* double quote shows beginning of the multi-feed name */
 				word_len = 0;
 				while (1) {
 					c = fgetc(f);
@@ -121,10 +108,7 @@ parse_sets_file(struct feed_tag **head_tag_ptr) {
 					word[word_len++] = c;
 				}
 				sets[set_index].name = crtas(word, word_len);
-				if (sets[set_index].name == NULL) {
-					error = 1;
-					break;
-				}
+				if (sets[set_index].name == NULL) { goto error; }
 			}
 
 		} else { // line is feed
@@ -132,14 +116,11 @@ parse_sets_file(struct feed_tag **head_tag_ptr) {
 			while (1) {
 				word[word_len++] = c;
 				c = fgetc(f);
-				if (c == ' ' || c == '\t' || c == '\n' || c == EOF) { break; }
+				if (ISWHITESPACE(c) || c == EOF) { break; }
 			}
 			sets[set_index].link = crtas(word, word_len);
-			if (sets[set_index].link == NULL) {
-				error = 1;
-				break;
-			}
-			while (c == ' ' || c == '\t') { c = fgetc(f); } // skip whitespace
+			if (sets[set_index].link == NULL) { goto error; }
+			while (ISWHITESPACE(c)) { c = fgetc(f); } // skip whitespace
 			// process name
 			if (c == '"') {
 				word_len = 0;
@@ -149,13 +130,7 @@ parse_sets_file(struct feed_tag **head_tag_ptr) {
 					word[word_len++] = c;
 				}
 				sets[set_index].name = crtas(word, word_len);
-				if (sets[set_index].name == NULL) {
-					error = 1;
-					break;
-				}
-				if (c == '"') {
-					do { c = fgetc(f); } while (c == ' ' || c == '\t');
-				}
+				if (sets[set_index].name == NULL) { goto error; }
 			}
 			// process tags
 			while (c != '\n' && c != EOF) {
@@ -163,13 +138,10 @@ parse_sets_file(struct feed_tag **head_tag_ptr) {
 				while (1) {
 					word[word_len++] = c;
 					c = fgetc(f);
-					if (c == ' ' || c == '\t' || c == '\n' || c == EOF) { break; }
+					if (ISWHITESPACE(c) || c == EOF) { break; }
 				}
 				word[word_len] = '\0';
-				if (tag_feed(head_tag_ptr, word, word_len, sets[set_index].link) == false) {
-					error = 1;
-					break;
-				}
+				if (tag_feed(head_tag_ptr, word, word_len, sets[set_index].link) == false) { goto error; }
 				while (c == ' ' || c == '\t') { c = fgetc(f); }
 			}
 
@@ -187,13 +159,12 @@ parse_sets_file(struct feed_tag **head_tag_ptr) {
 		}
 
 	}
+
 	fclose(f);
-	if (error != 0) {
-		if (error == 1) {
-			fprintf(stderr, "Not enough memory for parsing sets file!\n");
-		}
-	}
-	return error;
+	return true;
+error:
+	fclose(f);
+	return false;
 }
 
 // On success returns 0.
@@ -203,7 +174,7 @@ load_sets(void)
 {
 	struct feed_tag *head_tag = NULL;
 
-	if (parse_sets_file(&head_tag) != 0) {
+	if (parse_sets_file(&head_tag) == false) {
 		fprintf(stderr, "Failed to load sets from file!\n");
 		free_sets();
 		free_tags(head_tag);
@@ -220,11 +191,11 @@ load_sets(void)
 			sets[i].cond = create_set_condition_for_feed(sets[i].link);
 			++feeds_count;
 		} else if (sets[i].tags != NULL) {
-			sets[i].cond = create_set_condition_for_filter(head_tag, sets[i].tags);
+			sets[i].cond = create_set_condition_for_multi_feed(head_tag, sets[i].tags);
 		}
 		if (sets[i].cond == NULL) {
 			// Error message is written by "create_set_condition_for_feed"
-			// or "create_set_condition_for_filter". No worries!
+			// or "create_set_condition_for_multi_feed". No worries!
 			error = true;
 			break;
 		}
@@ -370,25 +341,25 @@ update_unread_items_count(struct set_line *set, size_t index, bool redraw)
 static void
 update_unread_items_count_recursively(struct set_line *set, size_t index, bool redraw)
 {
-	if (set->tags != NULL) { // set is filter
+	if (set->tags != NULL) { // set is multi-feed
 		// Here we are trying to update unread items count of
-		// all sets (feeds and filters) related to this filter.
-		// Feed is considered related to some filter if its link
-		// is equal to one of the filter's URLs.
-		// Filter is considered related to some filter if it has
-		// URL that is equal to one of the another filter's URLs.
+		// all sets (feeds and multi-feeds) related to this multi-feed.
+		// Feed is considered related to some multi-feed if its link
+		// is equal to one of the multi-feed's URLs.
+		// Multi-feed is considered related to some multi-feed if it has
+		// URL that is equal to one of the another multi-feed's URLs.
 		for (size_t i = 0; i < set->cond->urls_count; ++i) {
 			for (size_t j = 0; j < sets_count; ++j) {
 				if (sets[j].link != NULL) { // sets[j] is feed
 					if (sets[j].link == set->cond->urls[i]) {
-						// Feed link matched one of the filters URLs, update sets[j]
-						update_unread_items_count(&(sets[j]), j, redraw);
+						// Feed link matched one of the multi-feed's URLs, update sets[j]
+						update_unread_items_count(&sets[j], j, redraw);
 					}
-				} else if (sets[j].tags != NULL) { // sets[j] is filter
+				} else if (sets[j].tags != NULL) { // sets[j] is multi-feed
 					for (size_t k = 0; k < sets[j].cond->urls_count; ++k) {
 						if (sets[j].cond->urls[k] == set->cond->urls[i]) {
-							// Filters set and sets[j] have common URL, update sets[j]
-							update_unread_items_count(&(sets[j]), j, redraw);
+							// Multi-feed set and sets[j] have common URL, update sets[j]
+							update_unread_items_count(&sets[j], j, redraw);
 							break;
 						}
 					}
@@ -399,14 +370,14 @@ update_unread_items_count_recursively(struct set_line *set, size_t index, bool r
 		// Update unread items count of that set.
 		update_unread_items_count(set, index, redraw);
 		// Here we are trying to update unread items count of
-		// all filters related to this feed.
-		// Filter is considered related to some feed if it has
+		// all multi-feeds related to this feed.
+		// Multi-feed is considered related to some feed if it has
 		// URL that is equal to the feed's link.
 		for (size_t j = 0; j < sets_count; ++j) {
-			if (sets[j].tags != NULL) { // sets[j] is filter
+			if (sets[j].tags != NULL) { // sets[j] is multi-feed
 				for (size_t k = 0; k < sets[j].cond->urls_count; ++k) {
 					if (sets[j].cond->urls[k] == set->link) {
-						update_unread_items_count(&(sets[j]), j, redraw);
+						update_unread_items_count(&sets[j], j, redraw);
 						break;
 					}
 				}
@@ -432,7 +403,7 @@ reload_current_set(void)
 	}
 
 	if (errors != sets[view_sel].cond->urls_count) {
-		update_unread_items_count_recursively(&(sets[view_sel]), view_sel, true);
+		update_unread_items_count_recursively(&sets[view_sel], view_sel, true);
 	}
 
 	if (errors == 0) {
@@ -456,7 +427,7 @@ reload_all_feeds(void)
 		}
 		status_write("(%d/%d) Loading %s", i + 1, feeds_count, sets[i].link->ptr);
 		if (update_feed(sets[i].link) == true) {
-			update_unread_items_count_recursively(&(sets[i]), i, true);
+			update_unread_items_count_recursively(&sets[i], i, true);
 		} else {
 			failed_feed = sets[i].link;
 			++errors;
@@ -543,7 +514,7 @@ enter_sets_menu_loop(void)
 
 		if (destination == INPUT_QUIT_SOFT) {
 			set_sets_input_handlers();
-			update_unread_items_count_recursively(&(sets[view_sel]), view_sel, false);
+			update_unread_items_count_recursively(&sets[view_sel], view_sel, false);
 			redraw_sets_windows();
 		} else if (destination == INPUT_QUIT_HARD) {
 			break;

@@ -148,24 +148,10 @@ trim_whitespace_from_string(struct string *str)
 	}
 
 	size_t left_edge = 0, right_edge = str->len - 1;
-	while ((*(str->ptr + left_edge) == ' '   ||
-	        *(str->ptr + left_edge) == '\n'  ||
-	        *(str->ptr + left_edge) == '\t'  ||
-	        *(str->ptr + left_edge) == '\v'  ||
-	        *(str->ptr + left_edge) == '\f'  ||
-	        *(str->ptr + left_edge) == '\r') &&
-	       left_edge <= right_edge)
-	{
+	while (ISWHITESPACE(*(str->ptr + left_edge)) && left_edge <= right_edge) {
 		++left_edge;
 	}
-	while ((*(str->ptr + right_edge) == ' '   ||
-	        *(str->ptr + right_edge) == '\n'  ||
-	        *(str->ptr + right_edge) == '\t'  ||
-	        *(str->ptr + right_edge) == '\v'  ||
-	        *(str->ptr + right_edge) == '\f'  ||
-	        *(str->ptr + right_edge) == '\r') &&
-	       right_edge >= left_edge)
-	{
+	while (ISWHITESPACE(*(str->ptr + right_edge)) && right_edge >= left_edge) {
 		--right_edge;
 	}
 

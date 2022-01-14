@@ -13,6 +13,7 @@
 #define MAX_ENTITY_NAME_LENGTH 13
 
 #define COUNTOF(A) (sizeof(A) / sizeof(*A))
+#define ISWHITESPACE(A) (((A)==' ')||((A)=='\n')||((A)=='\t')||((A)=='\v')||((A)=='\f')||((A)=='\r'))
 #define INFO(A, ...) do { if (log_stream != NULL) { fprintf(log_stream, "[INFO] " A "\n", ##__VA_ARGS__); } } while (0)
 #define WARN(A, ...) do { if (log_stream != NULL) { fprintf(log_stream, "[WARN] " A "\n", ##__VA_ARGS__); } } while (0)
 #define FAIL(A, ...) do { if (log_stream != NULL) { fprintf(log_stream, "[FAIL] " A "\n", ##__VA_ARGS__); } } while (0)
@@ -46,7 +47,7 @@ struct set_condition {
 struct set_line {
 	const struct string *name; // what is displayed in menu
 	const struct string *link; // this is feed url if set is feed NULL otherwise
-	const struct string *tags; // this is tags expression if set is filter NULL otherwise
+	const struct string *tags; // this is tags expression if set is multi-feed NULL otherwise
 	const struct set_condition *cond;
 	int unread_count;
 	WINDOW *window;
@@ -213,7 +214,7 @@ bool tag_feed(struct feed_tag **head_tag_ptr, const char *tag_name, size_t tag_n
 const struct feed_tag *get_tag_by_name(const struct feed_tag *head_tag, const char *name);
 void free_tags(struct feed_tag *head_tag);
 const struct set_condition *create_set_condition_for_feed(const struct string *feed_url);
-const struct set_condition *create_set_condition_for_filter(const struct feed_tag *head_tag, const struct string *tags_expr);
+const struct set_condition *create_set_condition_for_multi_feed(const struct feed_tag *head_tag, const struct string *tags_expr);
 void free_set_condition(const struct set_condition *cond);
 
 // db

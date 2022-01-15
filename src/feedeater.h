@@ -184,6 +184,7 @@ bool join_render_separator(struct render_block **list);
 bool join_render_blocks_of_item_data(struct render_block **data_list, sqlite3_stmt *res);
 void free_render_blocks(struct render_block *first_block);
 bool populate_link_list_with_links_of_item(struct link_list *links, sqlite3_stmt *res);
+bool complete_urls_of_links(struct link_list *links, sqlite3_stmt *res);
 struct string *generate_link_list_string_for_pager(const struct link_list *links);
 bool add_another_url_to_trim_link_list(struct link_list *links, char *url, size_t url_len);
 void free_trim_link_list(const struct link_list *links);

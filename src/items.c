@@ -283,6 +283,9 @@ enter_item_pager_loop(int rowid)
 	if (extract_links(first_block, &links) == false) {
 		goto error;
 	}
+	if (complete_urls_of_links(&links, res) == false) {
+		goto error;
+	}
 	if (cfg.append_links == true) {
 		if (join_links_render_block(&first_block, &links) == false) {
 			goto error;

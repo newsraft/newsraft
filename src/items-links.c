@@ -1,3 +1,4 @@
+#include <string.h>
 #include "feedeater.h"
 
 bool
@@ -197,4 +198,115 @@ generate_link_list_string_for_pager(const struct link_list *links)
 error:
 	free_string(str);
 	return NULL;
+}
+
+// Creates new URL without pathes, for example:
+//     http://example.org/feeds/atom.xml
+// becomes:
+//     http://example.org
+static inline struct string *
+trim_pathes_from_url(const char *url, size_t url_len)
+{
+	struct string *url_without_pathes = NULL;
+	const char *slash_pos = strchr(url, '/');
+	if ((slash_pos == NULL) || (slash_pos == url)) {
+		url_without_pathes = crtas(url, url_len);
+		return url_without_pathes;
+	} else if ((*(slash_pos - 1) == ':') && (*(slash_pos + 1) == '/')) {
+		slash_pos = strchr(slash_pos + 2, '/');
+	}
+	if (slash_pos == NULL) {
+		url_without_pathes = crtas(url, url_len);
+	} else {
+		size_t url_without_pathes_len = slash_pos - url - 1;
+		url_without_pathes = crtas(url, url_without_pathes_len);
+	}
+	return url_without_pathes;
+}
+
+// Some URLs of item links are presented in relative form.
+// For example:
+//     (1)  /upload/podcast83.mp3
+// or:
+//     (2)  ../../images/image-194.jpg
+// or:
+//     (3)  #fnref:5
+// Better to beautify these URLs by prepending feed url root
+// in case (1) or by prepending item url with trailing slash
+// in case (2) or by prepending item url without trailing slash
+// in case (3). So it transforms to:
+//     (1)  http://example.org/upload/podcast83.mp3
+// or:
+//     (2)  http://example.org/posts/83-new-podcast/../../images/image-194.jpg
+// or:
+//     (3)  http://example.org/posts/83-new-podcast#fnref:5
+bool
+complete_urls_of_links(struct link_list *links, sqlite3_stmt *res)
+{
+	INFO("Completing URLs of link list.");
+	const char *feed_url = (const char *)sqlite3_column_text(res, ITEM_COLUMN_FEED_URL);
+	if (feed_url == NULL) {
+		FAIL("Feed URL of the item is unset!");
+		return false;
+	}
+	size_t feed_url_len = strlen(feed_url);
+	if (feed_url_len == 0) {
+		FAIL("Feed URL of the item is empty!");
+		return false;
+	}
+	struct string *url_without_pathes = trim_pathes_from_url(feed_url, feed_url_len);
+	if (url_without_pathes == NULL) {
+		FAIL("Not enough memory for URL without pathes!");
+		return false;
+	}
+	const char *item_link;
+	size_t item_link_len;
+	struct string *temp;
+	const char *protocol_sep_pos;
+	size_t protocol_name_len;
+	for (size_t i = 0; i < links->len; ++i) {
+		if (links->list[i].url->ptr[0] == '/') {
+			temp = crtss(url_without_pathes);
+			if (temp == NULL) {
+				free_string(url_without_pathes);
+				return false;
+			}
+			catss(temp, links->list[i].url);
+			free_string(links->list[i].url);
+			links->list[i].url = temp;
+		} else {
+			protocol_sep_pos = strstr(links->list[i].url->ptr, "://");
+			if (protocol_sep_pos != NULL) {
+				protocol_name_len = protocol_sep_pos - links->list[i].url->ptr - 1;
+			}
+#define MAX_PROTOCOL_NAME_LEN 10
+			if ((protocol_sep_pos == NULL) || (protocol_name_len > MAX_PROTOCOL_NAME_LEN)) {
+#undef MAX_PROTOCOL_NAME_LEN
+				item_link = (const char *)sqlite3_column_text(res, ITEM_COLUMN_LINK);
+				if (item_link == NULL) { continue; }
+				item_link_len = strlen(item_link);
+				if (item_link_len == 0) { continue; }
+				temp = crtas(item_link, item_link_len);
+				if (temp == NULL) {
+					free_string(url_without_pathes);
+					return false;
+				}
+				if (links->list[i].url->ptr[0] == '#') {
+					if (temp->ptr[temp->len - 1] == '/') {
+						temp->ptr[temp->len - 1] = '\0';
+						--(temp->len);
+					}
+				} else {
+					if (temp->ptr[temp->len - 1] != '/') {
+						catcs(temp, '/');
+					}
+				}
+				catss(temp, links->list[i].url);
+				free_string(links->list[i].url);
+				links->list[i].url = temp;
+			}
+		}
+	}
+	free_string(url_without_pathes);
+	return true;
 }

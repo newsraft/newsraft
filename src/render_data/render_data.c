@@ -3,7 +3,7 @@
 
 struct data_handler {
 	const char *const type;
-	bool (*handle)(const struct wstring *, struct line *, struct wstring *);
+	bool (*handle)(const struct wstring *, struct line *, struct wstring *, bool);
 };
 
 // Besides formatting according to the content type, these handlers must
@@ -58,7 +58,7 @@ render_data(const struct render_block *first_block)
 		for (size_t i = 0; i < COUNTOF(handlers); ++i) {
 			if (strcmp(block->content_type, handlers[i].type) == 0) {
 				found_handler = true;
-				handlers[i].handle(converted_str, &line, text);
+				handlers[i].handle(converted_str, &line, text, true);
 				if (line.len == 0) {
 					trim_whitespace_from_wstring(text);
 				}

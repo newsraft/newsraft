@@ -22,6 +22,7 @@ struct list_level {
 	uint16_t length;
 };
 
+enum html_position html_pos;
 static uint8_t list_depth;
 static struct list_level list_levels[MAX_NESTED_LISTS_DEPTH];
 
@@ -243,7 +244,7 @@ end_handler(wchar_t *t, struct line *l, struct wstring *w, enum html_position *p
 }
 
 bool
-render_text_html(const struct wstring *wstr, struct line *line, struct wstring *t)
+render_text_html(const struct wstring *wstr, struct line *line, struct wstring *t, bool is_first_call)
 {
 	struct wstring *tag = wcrtes();
 	if (tag == NULL) {
@@ -260,8 +261,10 @@ render_text_html(const struct wstring *wstr, struct line *line, struct wstring *
 	const wchar_t *entity_value;
 	struct xml_attribute *atts;
 
-	list_depth = 0;
-	enum html_position position = HTML_NONE;
+	if (is_first_call == true) {
+		list_depth = 0;
+		html_pos = HTML_NONE;
+	}
 
 	const wchar_t *i = wstr->ptr;
 	while (*i != L'\0') {
@@ -294,15 +297,15 @@ render_text_html(const struct wstring *wstr, struct line *line, struct wstring *
 				atts = get_attribute_list_of_xml_tag(tag);
 				if (atts != NULL) {
 					if (atts[0].name->ptr[0] == L'/') {
-						found_tag = end_handler(atts[0].name->ptr + 1, line, t, &position, atts);
+						found_tag = end_handler(atts[0].name->ptr + 1, line, t, &html_pos, atts);
 					} else {
-						found_tag = start_handler(atts[0].name->ptr, line, t, &position, atts);
+						found_tag = start_handler(atts[0].name->ptr, line, t, &html_pos, atts);
 					}
 					free_attribute_list_of_xml_tag(atts);
 				}
 				if (found_tag == false) {
 					line_char(line, L'<', t);
-					render_text_html(tag, line, t);
+					render_text_html(tag, line, t, false);
 					line_char(line, L'>', t);
 				}
 			} else {
@@ -317,11 +320,11 @@ render_text_html(const struct wstring *wstr, struct line *line, struct wstring *
 			} else if (*i == L'&') {
 				in_entity = true;
 				entity_len = 0;
-			} else if ((position & (HTML_STYLE|HTML_SCRIPT)) != 0) {
+			} else if ((html_pos & (HTML_STYLE|HTML_SCRIPT)) != 0) {
 				// Ignore contents of style and script elements.
 				++i;
 				continue;
-			} else if (((position & HTML_PRE) == 0) &&
+			} else if (((html_pos & HTML_PRE) == 0) &&
 			           ((*i == L' ') || (*i == L'\n') || (*i == L'\t')))
 			{
 				if ((line->len != 0) &&

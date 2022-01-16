@@ -15,7 +15,15 @@ convert_bytes_to_human_readable_size_string(const char *value)
 		size = size / 1000;
 		++prefix;
 	}
-	char human_readable[30];
+	// longest float integral part (39) +
+	// dot (1) +
+	// two digits after point (2) +
+	// space (1) +
+	// longest name of data measure (5) +
+	// null terminator (1) +
+	// luck (1) =
+	// 50
+	char human_readable[50];
 	int length;
 	if (prefix == 1) {
 		length = sprintf(human_readable, "%.2f KB", size);

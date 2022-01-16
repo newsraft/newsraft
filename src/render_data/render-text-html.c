@@ -5,6 +5,7 @@
 #define MAX_NESTED_LISTS_DEPTH 10
 #define SPACES_PER_INDENTATION_LEVEL 4
 #define SPACES_PER_BLOCKQUOTE_LEVEL 4
+#define SPACES_PER_FIGURE_LEVEL 4
 
 enum html_position {
 	HTML_NONE = 0,
@@ -129,6 +130,22 @@ blockquote_end_handler(struct line *line, struct wstring *text)
 }
 
 static inline void
+figure_start_handler(struct line *line, struct wstring *text)
+{
+	add_newlines(line, text, 2);
+	line->indent += SPACES_PER_FIGURE_LEVEL;
+}
+
+static inline void
+figure_end_handler(struct line *line, struct wstring *text)
+{
+	add_newlines(line, text, 2);
+	if (line->indent >= SPACES_PER_FIGURE_LEVEL) {
+		line->indent -= SPACES_PER_FIGURE_LEVEL;
+	}
+}
+
+static inline void
 sup_start_handler(struct line *line, struct wstring *text)
 {
 	line_char(line, L'^', text);
@@ -201,7 +218,7 @@ start_handler(wchar_t *t, struct line *l, struct wstring *w, enum html_position 
 	else if (wcscmp(t, L"sup")        == 0) { sup_start_handler(l, w);        return true; }
 	else if (wcscmp(t, L"hr")         == 0) { hr_handler(l, w);               return true; }
 	else if (wcscmp(t, L"figcaption") == 0) { add_newlines(l, w, 1);          return true; }
-	else if (wcscmp(t, L"figure")     == 0) { add_newlines(l, w, 2);          return true; }
+	else if (wcscmp(t, L"figure")     == 0) { figure_start_handler(l, w);     return true; }
 	else if (wcscmp(t, L"blockquote") == 0) { blockquote_start_handler(l, w); return true; }
 	else if (wcscmp(t, L"q")          == 0) { q_start_handler(l, w);          return true; }
 	else if (wcscmp(t, L"code")       == 0) { /* TODO */                      return true; }
@@ -241,7 +258,7 @@ end_handler(wchar_t *t, struct line *l, struct wstring *w, enum html_position *p
 	else if (wcscmp(t, L"summary")    == 0) { add_newlines(l, w, 1);        return true; }
 	else if (wcscmp(t, L"sup")        == 0) { /* just nothing */            return true; }
 	else if (wcscmp(t, L"figcaption") == 0) { add_newlines(l, w, 1);        return true; }
-	else if (wcscmp(t, L"figure")     == 0) { add_newlines(l, w, 2);        return true; }
+	else if (wcscmp(t, L"figure")     == 0) { figure_end_handler(l, w);     return true; }
 	else if (wcscmp(t, L"blockquote") == 0) { blockquote_end_handler(l, w); return true; }
 	else if (wcscmp(t, L"q")          == 0) { q_start_handler(l, w);        return true; }
 	else if (wcscmp(t, L"code")       == 0) { /* TODO */                    return true; }

@@ -280,7 +280,7 @@ enter_item_pager_loop(int rowid)
 	if (join_render_blocks_of_item_data(&first_block, res) == false) {
 		goto error;
 	}
-	if (extract_links(first_block, &links) == false) {
+	if (prepare_to_render_data(first_block, &links) == false) {
 		goto error;
 	}
 	if (complete_urls_of_links(&links, res) == false) {

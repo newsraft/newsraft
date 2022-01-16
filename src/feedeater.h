@@ -267,6 +267,7 @@ struct wstring *wcrtas(const wchar_t *src_ptr, size_t src_len);
 struct wstring *wcrtss(const struct wstring *src);
 struct wstring *wcrtes(void);
 bool wcatas(struct wstring *dest, const wchar_t *src_ptr, size_t src_len);
+bool wcpyss(struct wstring *dest, const struct wstring *src);
 bool wcatcs(struct wstring *dest, wchar_t c);
 bool wcatss(struct wstring *dest, const struct wstring *src);
 void empty_wstring(struct wstring *wstr);
@@ -289,8 +290,7 @@ void free_attribute_list_of_xml_tag(struct xml_attribute *atts);
 // See "update_feed" directory for implementation.
 bool update_feed(const struct string *url);
 
-// See "extract_links" directory for implementation.
-bool extract_links(const struct render_block *first_block, struct link_list *target);
+bool prepare_to_render_data(struct render_block *first_block, struct link_list *links);
 
 // Convert series of texts of different formats to one big
 // content string that can be written to pad window without

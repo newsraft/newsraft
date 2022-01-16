@@ -7,18 +7,24 @@ join_render_block(struct render_block **list, const char *content, size_t conten
 	if (new_entry == NULL) {
 		return false;
 	}
-	new_entry->content = crtas(content, content_len);
+	struct string *str = crtas(content, content_len);
+	if (str == NULL) {
+		free(new_entry);
+		return false;
+	}
+	new_entry->content = convert_string_to_wstring(str);
+	free_string(str);
 	if (new_entry->content == NULL) {
 		free(new_entry);
 		return false;
 	}
 	new_entry->content_type = malloc(sizeof(char) * (content_type_len + 1));
 	if (new_entry->content_type == NULL) {
-		free_string(new_entry->content);
+		free_wstring(new_entry->content);
 		free(new_entry);
 		return false;
 	}
-	strncpy(new_entry->content_type, content_type, content_type_len);
+	memcpy(new_entry->content_type, content_type, sizeof(char) * content_type_len);
 	new_entry->content_type[content_type_len] = '\0';
 	new_entry->next = NULL;
 
@@ -49,7 +55,7 @@ free_render_blocks(struct render_block *first_block)
 	struct render_block *head_block = first_block;
 	struct render_block *temp;
 	while (head_block != NULL) {
-		free_string(head_block->content);
+		free_wstring(head_block->content);
 		free(head_block->content_type);
 		temp = head_block;
 		head_block = head_block->next;

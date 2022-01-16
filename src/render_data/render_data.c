@@ -44,21 +44,14 @@ render_data(const struct render_block *first_block)
 	line.lim = list_menu_width;
 	line.pin = SIZE_MAX;
 	line.indent = 0;
-	struct wstring *converted_str;
-	const struct render_block *block = first_block;
 	bool found_handler;
+	const struct render_block *block = first_block;
 	while (block != NULL) {
-		converted_str = convert_string_to_wstring(block->content);
-		if (converted_str == NULL) {
-			free(line.ptr);
-			free_wstring(text);
-			return NULL;
-		}
 		found_handler = false;
 		for (size_t i = 0; i < COUNTOF(handlers); ++i) {
 			if (strcmp(block->content_type, handlers[i].type) == 0) {
 				found_handler = true;
-				handlers[i].handle(converted_str, &line, text, true);
+				handlers[i].handle(block->content, &line, text, true);
 				if (line.len == 0) {
 					trim_whitespace_from_wstring(text);
 				}
@@ -67,9 +60,8 @@ render_data(const struct render_block *first_block)
 		}
 		if (found_handler == false) {
 			// This is prolly a separator, so don't trim whitespace!
-			line_string(&line, converted_str->ptr, text);
+			line_string(&line, block->content->ptr, text);
 		}
-		free_wstring(converted_str);
 		block = block->next;
 	}
 	for (size_t i = 0; i < line.len; ++i) {

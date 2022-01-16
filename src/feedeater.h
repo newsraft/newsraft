@@ -73,7 +73,7 @@ struct format_arg {
 
 // Linked list
 struct render_block {
-	struct string *content;
+	struct wstring *content;
 	char *content_type;
 	struct render_block *next;
 };
@@ -290,11 +290,14 @@ void free_attribute_list_of_xml_tag(struct xml_attribute *atts);
 // See "update_feed" directory for implementation.
 bool update_feed(const struct string *url);
 
+// Here we append links of HTML elements like <img> or <a> to link_list.
+// Also, do some screen-independent processing of data that render blocks have
+// (for example expand inline HTML elements like <sup>, <span> or <q>).
+// See "prepare_to_render_data" directory for implementation.
 bool prepare_to_render_data(struct render_block *first_block, struct link_list *links);
 
-// Convert series of texts of different formats to one big
-// content string that can be written to pad window without
-// additional splitting into lines or any other processing.
+// Convert render blocks to one big string that can be written to pad window
+// without additional splitting into lines or any other processing.
 // See "render_data" directory for implementation.
 struct wstring *render_data(const struct render_block *first_block);
 

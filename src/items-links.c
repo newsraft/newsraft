@@ -278,6 +278,10 @@ complete_urls_of_links(struct link_list *links, sqlite3_stmt *res)
 			protocol_sep_pos = strstr(links->list[i].url->ptr, "://");
 			if (protocol_sep_pos != NULL) {
 				protocol_name_len = protocol_sep_pos - links->list[i].url->ptr - 1;
+			} else if (strncmp(links->list[i].url->ptr, "mailto:", 7) == 0) {
+				continue;
+			} else if (strncmp(links->list[i].url->ptr, "tel:", 4) == 0) {
+				continue;
 			}
 #define MAX_PROTOCOL_NAME_LEN 10
 			if ((protocol_sep_pos == NULL) || (protocol_name_len > MAX_PROTOCOL_NAME_LEN)) {

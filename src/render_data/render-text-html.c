@@ -4,6 +4,7 @@
 
 #define MAX_NESTED_LISTS_DEPTH 10
 #define SPACES_PER_INDENTATION_LEVEL 4
+#define SPACES_PER_BLOCKQUOTE_LEVEL 4
 
 enum html_position {
 	HTML_NONE = 0,
@@ -112,6 +113,22 @@ ol_start_handler(struct line *line, struct wstring *text)
 }
 
 static inline void
+blockquote_start_handler(struct line *line, struct wstring *text)
+{
+	add_newlines(line, text, 2);
+	line->indent += SPACES_PER_BLOCKQUOTE_LEVEL;
+}
+
+static inline void
+blockquote_end_handler(struct line *line, struct wstring *text)
+{
+	add_newlines(line, text, 2);
+	if (line->indent >= SPACES_PER_BLOCKQUOTE_LEVEL) {
+		line->indent -= SPACES_PER_BLOCKQUOTE_LEVEL;
+	}
+}
+
+static inline void
 sup_start_handler(struct line *line, struct wstring *text)
 {
 	line_char(line, L'^', text);
@@ -164,41 +181,41 @@ style_end_handler(enum html_position *pos)
 static inline bool
 start_handler(wchar_t *t, struct line *l, struct wstring *w, enum html_position *p, struct xml_attribute *a)
 {
-	     if (wcscmp(t, L"span")       == 0) { /* just nothing */          return true; }
-	else if (wcscmp(t, L"p")          == 0) { add_newlines(l, w, 2);      return true; }
-	else if (wcscmp(t, L"details")    == 0) { add_newlines(l, w, 2);      return true; }
-	else if (wcscmp(t, L"br")         == 0) { br_handler(l, w);           return true; }
-	else if (wcscmp(t, L"li")         == 0) { li_start_handler(l, w);     return true; }
-	else if (wcscmp(t, L"ul")         == 0) { ul_start_handler(l, w);     return true; }
-	else if (wcscmp(t, L"ol")         == 0) { ol_start_handler(l, w);     return true; }
-	else if (wcscmp(t, L"h1")         == 0) { add_newlines(l, w, 3);      return true; }
-	else if (wcscmp(t, L"h2")         == 0) { add_newlines(l, w, 3);      return true; }
-	else if (wcscmp(t, L"h3")         == 0) { add_newlines(l, w, 3);      return true; }
-	else if (wcscmp(t, L"h4")         == 0) { add_newlines(l, w, 3);      return true; }
-	else if (wcscmp(t, L"h5")         == 0) { add_newlines(l, w, 3);      return true; }
-	else if (wcscmp(t, L"h6")         == 0) { add_newlines(l, w, 3);      return true; }
-	else if (wcscmp(t, L"div")        == 0) { add_newlines(l, w, 1);      return true; }
-	else if (wcscmp(t, L"section")    == 0) { add_newlines(l, w, 1);      return true; }
-	else if (wcscmp(t, L"footer")     == 0) { add_newlines(l, w, 1);      return true; }
-	else if (wcscmp(t, L"summary")    == 0) { add_newlines(l, w, 1);      return true; }
-	else if (wcscmp(t, L"sup")        == 0) { sup_start_handler(l, w);    return true; }
-	else if (wcscmp(t, L"hr")         == 0) { hr_handler(l, w);           return true; }
-	else if (wcscmp(t, L"figcaption") == 0) { add_newlines(l, w, 1);      return true; }
-	else if (wcscmp(t, L"figure")     == 0) { add_newlines(l, w, 2);      return true; }
-	else if (wcscmp(t, L"blockquote") == 0) { add_newlines(l, w, 2);      return true; }
-	else if (wcscmp(t, L"q")          == 0) { q_start_handler(l, w);      return true; }
-	else if (wcscmp(t, L"code")       == 0) { /* TODO */                  return true; }
-	else if (wcscmp(t, L"a")          == 0) { /* TODO */                  return true; }
-	else if (wcscmp(t, L"b")          == 0) { /* TODO */                  return true; }
-	else if (wcscmp(t, L"i")          == 0) { /* TODO */                  return true; }
-	else if (wcscmp(t, L"em")         == 0) { /* TODO */                  return true; }
-	else if (wcscmp(t, L"mark")       == 0) { /* TODO */                  return true; }
-	else if (wcscmp(t, L"small")      == 0) { /* TODO */                  return true; }
-	else if (wcscmp(t, L"time")       == 0) { /* TODO */                  return true; }
-	else if (wcscmp(t, L"strong")     == 0) { /* TODO */                  return true; }
-	else if (wcscmp(t, L"pre")        == 0) { pre_start_handler(l, w, p); return true; }
-	else if (wcscmp(t, L"script")     == 0) { script_start_handler(p);    return true; }
-	else if (wcscmp(t, L"style")      == 0) { style_start_handler(p);     return true; }
+	     if (wcscmp(t, L"span")       == 0) { /* just nothing */              return true; }
+	else if (wcscmp(t, L"p")          == 0) { add_newlines(l, w, 2);          return true; }
+	else if (wcscmp(t, L"details")    == 0) { add_newlines(l, w, 2);          return true; }
+	else if (wcscmp(t, L"br")         == 0) { br_handler(l, w);               return true; }
+	else if (wcscmp(t, L"li")         == 0) { li_start_handler(l, w);         return true; }
+	else if (wcscmp(t, L"ul")         == 0) { ul_start_handler(l, w);         return true; }
+	else if (wcscmp(t, L"ol")         == 0) { ol_start_handler(l, w);         return true; }
+	else if (wcscmp(t, L"h1")         == 0) { add_newlines(l, w, 3);          return true; }
+	else if (wcscmp(t, L"h2")         == 0) { add_newlines(l, w, 3);          return true; }
+	else if (wcscmp(t, L"h3")         == 0) { add_newlines(l, w, 3);          return true; }
+	else if (wcscmp(t, L"h4")         == 0) { add_newlines(l, w, 3);          return true; }
+	else if (wcscmp(t, L"h5")         == 0) { add_newlines(l, w, 3);          return true; }
+	else if (wcscmp(t, L"h6")         == 0) { add_newlines(l, w, 3);          return true; }
+	else if (wcscmp(t, L"div")        == 0) { add_newlines(l, w, 1);          return true; }
+	else if (wcscmp(t, L"section")    == 0) { add_newlines(l, w, 1);          return true; }
+	else if (wcscmp(t, L"footer")     == 0) { add_newlines(l, w, 1);          return true; }
+	else if (wcscmp(t, L"summary")    == 0) { add_newlines(l, w, 1);          return true; }
+	else if (wcscmp(t, L"sup")        == 0) { sup_start_handler(l, w);        return true; }
+	else if (wcscmp(t, L"hr")         == 0) { hr_handler(l, w);               return true; }
+	else if (wcscmp(t, L"figcaption") == 0) { add_newlines(l, w, 1);          return true; }
+	else if (wcscmp(t, L"figure")     == 0) { add_newlines(l, w, 2);          return true; }
+	else if (wcscmp(t, L"blockquote") == 0) { blockquote_start_handler(l, w); return true; }
+	else if (wcscmp(t, L"q")          == 0) { q_start_handler(l, w);          return true; }
+	else if (wcscmp(t, L"code")       == 0) { /* TODO */                      return true; }
+	else if (wcscmp(t, L"a")          == 0) { /* TODO */                      return true; }
+	else if (wcscmp(t, L"b")          == 0) { /* TODO */                      return true; }
+	else if (wcscmp(t, L"i")          == 0) { /* TODO */                      return true; }
+	else if (wcscmp(t, L"em")         == 0) { /* TODO */                      return true; }
+	else if (wcscmp(t, L"mark")       == 0) { /* TODO */                      return true; }
+	else if (wcscmp(t, L"small")      == 0) { /* TODO */                      return true; }
+	else if (wcscmp(t, L"time")       == 0) { /* TODO */                      return true; }
+	else if (wcscmp(t, L"strong")     == 0) { /* TODO */                      return true; }
+	else if (wcscmp(t, L"pre")        == 0) { pre_start_handler(l, w, p);     return true; }
+	else if (wcscmp(t, L"script")     == 0) { script_start_handler(p);        return true; }
+	else if (wcscmp(t, L"style")      == 0) { style_start_handler(p);         return true; }
 
 	return false;
 }
@@ -206,39 +223,39 @@ start_handler(wchar_t *t, struct line *l, struct wstring *w, enum html_position 
 static inline bool
 end_handler(wchar_t *t, struct line *l, struct wstring *w, enum html_position *p, struct xml_attribute *a)
 {
-	     if (wcscmp(t, L"span")       == 0) { /* just nothing */        return true; }
-	else if (wcscmp(t, L"p")          == 0) { add_newlines(l, w, 2);    return true; }
-	else if (wcscmp(t, L"details")    == 0) { add_newlines(l, w, 2);    return true; }
-	else if (wcscmp(t, L"li")         == 0) { add_newlines(l, w, 1);    return true; }
-	else if (wcscmp(t, L"ul")         == 0) { ul_end_handler(l, w);     return true; }
-	else if (wcscmp(t, L"ol")         == 0) { ul_end_handler(l, w);     return true; }
-	else if (wcscmp(t, L"h1")         == 0) { add_newlines(l, w, 2);    return true; }
-	else if (wcscmp(t, L"h2")         == 0) { add_newlines(l, w, 2);    return true; }
-	else if (wcscmp(t, L"h3")         == 0) { add_newlines(l, w, 2);    return true; }
-	else if (wcscmp(t, L"h4")         == 0) { add_newlines(l, w, 2);    return true; }
-	else if (wcscmp(t, L"h5")         == 0) { add_newlines(l, w, 2);    return true; }
-	else if (wcscmp(t, L"h6")         == 0) { add_newlines(l, w, 2);    return true; }
-	else if (wcscmp(t, L"div")        == 0) { add_newlines(l, w, 1);    return true; }
-	else if (wcscmp(t, L"section")    == 0) { add_newlines(l, w, 1);    return true; }
-	else if (wcscmp(t, L"footer")     == 0) { add_newlines(l, w, 1);    return true; }
-	else if (wcscmp(t, L"summary")    == 0) { add_newlines(l, w, 1);    return true; }
-	else if (wcscmp(t, L"sup")        == 0) { /* just nothing */        return true; }
-	else if (wcscmp(t, L"figcaption") == 0) { add_newlines(l, w, 1);    return true; }
-	else if (wcscmp(t, L"figure")     == 0) { add_newlines(l, w, 2);    return true; }
-	else if (wcscmp(t, L"blockquote") == 0) { add_newlines(l, w, 2);    return true; }
-	else if (wcscmp(t, L"q")          == 0) { q_start_handler(l, w);    return true; }
-	else if (wcscmp(t, L"code")       == 0) { /* TODO */                return true; }
-	else if (wcscmp(t, L"a")          == 0) { /* TODO */                return true; }
-	else if (wcscmp(t, L"b")          == 0) { /* TODO */                return true; }
-	else if (wcscmp(t, L"i")          == 0) { /* TODO */                return true; }
-	else if (wcscmp(t, L"em")         == 0) { /* TODO */                return true; }
-	else if (wcscmp(t, L"mark")       == 0) { /* TODO */                return true; }
-	else if (wcscmp(t, L"small")      == 0) { /* TODO */                return true; }
-	else if (wcscmp(t, L"time")       == 0) { /* TODO */                return true; }
-	else if (wcscmp(t, L"strong")     == 0) { /* TODO */                return true; }
-	else if (wcscmp(t, L"pre")        == 0) { pre_end_handler(l, w, p); return true; }
-	else if (wcscmp(t, L"script")     == 0) { script_end_handler(p);    return true; }
-	else if (wcscmp(t, L"style")      == 0) { style_end_handler(p);     return true; }
+	     if (wcscmp(t, L"span")       == 0) { /* just nothing */            return true; }
+	else if (wcscmp(t, L"p")          == 0) { add_newlines(l, w, 2);        return true; }
+	else if (wcscmp(t, L"details")    == 0) { add_newlines(l, w, 2);        return true; }
+	else if (wcscmp(t, L"li")         == 0) { add_newlines(l, w, 1);        return true; }
+	else if (wcscmp(t, L"ul")         == 0) { ul_end_handler(l, w);         return true; }
+	else if (wcscmp(t, L"ol")         == 0) { ul_end_handler(l, w);         return true; }
+	else if (wcscmp(t, L"h1")         == 0) { add_newlines(l, w, 2);        return true; }
+	else if (wcscmp(t, L"h2")         == 0) { add_newlines(l, w, 2);        return true; }
+	else if (wcscmp(t, L"h3")         == 0) { add_newlines(l, w, 2);        return true; }
+	else if (wcscmp(t, L"h4")         == 0) { add_newlines(l, w, 2);        return true; }
+	else if (wcscmp(t, L"h5")         == 0) { add_newlines(l, w, 2);        return true; }
+	else if (wcscmp(t, L"h6")         == 0) { add_newlines(l, w, 2);        return true; }
+	else if (wcscmp(t, L"div")        == 0) { add_newlines(l, w, 1);        return true; }
+	else if (wcscmp(t, L"section")    == 0) { add_newlines(l, w, 1);        return true; }
+	else if (wcscmp(t, L"footer")     == 0) { add_newlines(l, w, 1);        return true; }
+	else if (wcscmp(t, L"summary")    == 0) { add_newlines(l, w, 1);        return true; }
+	else if (wcscmp(t, L"sup")        == 0) { /* just nothing */            return true; }
+	else if (wcscmp(t, L"figcaption") == 0) { add_newlines(l, w, 1);        return true; }
+	else if (wcscmp(t, L"figure")     == 0) { add_newlines(l, w, 2);        return true; }
+	else if (wcscmp(t, L"blockquote") == 0) { blockquote_end_handler(l, w); return true; }
+	else if (wcscmp(t, L"q")          == 0) { q_start_handler(l, w);        return true; }
+	else if (wcscmp(t, L"code")       == 0) { /* TODO */                    return true; }
+	else if (wcscmp(t, L"a")          == 0) { /* TODO */                    return true; }
+	else if (wcscmp(t, L"b")          == 0) { /* TODO */                    return true; }
+	else if (wcscmp(t, L"i")          == 0) { /* TODO */                    return true; }
+	else if (wcscmp(t, L"em")         == 0) { /* TODO */                    return true; }
+	else if (wcscmp(t, L"mark")       == 0) { /* TODO */                    return true; }
+	else if (wcscmp(t, L"small")      == 0) { /* TODO */                    return true; }
+	else if (wcscmp(t, L"time")       == 0) { /* TODO */                    return true; }
+	else if (wcscmp(t, L"strong")     == 0) { /* TODO */                    return true; }
+	else if (wcscmp(t, L"pre")        == 0) { pre_end_handler(l, w, p);     return true; }
+	else if (wcscmp(t, L"script")     == 0) { script_end_handler(p);        return true; }
+	else if (wcscmp(t, L"style")      == 0) { style_end_handler(p);         return true; }
 
 	return false;
 }

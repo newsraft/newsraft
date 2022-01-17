@@ -98,14 +98,16 @@ struct xml_attribute {
 };
 
 enum xml_tag_pos {
-	XML_TAG_ATTRIBUTE_NAME,
-	XML_TAG_ATTRIBUTE_VALUE_START,
-	XML_TAG_ATTRIBUTE_VALUE_QUOTED,
-	XML_TAG_ATTRIBUTE_VALUE_DOUBLE_QUOTED,
+	XML_TAG_ATTRIBUTE_NAME = 1,
+	XML_TAG_ATTRIBUTE_VALUE_START = 2,
+	XML_TAG_ATTRIBUTE_VALUE_QUOTED = 4,
+	XML_TAG_ATTRIBUTE_VALUE_DOUBLE_QUOTED = 8,
+	XML_TAG_ENTITY = 16,
 };
 
 struct xml_tag {
 	struct wstring *buf;
+	struct wstring *entity;
 	struct xml_attribute *atts;
 	size_t atts_len;
 	enum xml_tag_pos pos;

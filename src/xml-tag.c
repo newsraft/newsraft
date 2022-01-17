@@ -30,10 +30,18 @@ create_tag(void)
 		free(tag);
 		return NULL;
 	}
+	tag->entity = wcrtes();
+	if (tag->entity == NULL) {
+		FAIL("Not enough memory for XML tag entity buffer!");
+		free_wstring(tag->buf);
+		free(tag);
+		return NULL;
+	}
 	tag->atts = NULL;
 	tag->atts_len = 0;
 	if (expand_atts_of_tag(tag) == false) {
 		FAIL("Not enough memory for XML tag attributes!");
+		free_wstring(tag->entity);
 		free_wstring(tag->buf);
 		free(tag);
 		return NULL;
@@ -45,7 +53,43 @@ create_tag(void)
 enum xml_tag_status
 append_wchar_to_tag(struct xml_tag *tag, wchar_t wc)
 {
-	if (wc == L'>') {
+	if (wc == L'&') {
+		tag->pos |= XML_TAG_ENTITY;
+		empty_wstring(tag->entity);
+	} else if ((tag->pos & XML_TAG_ENTITY) != 0) {
+		if (wc == L';') {
+			tag->pos &= ~XML_TAG_ENTITY;
+			const wchar_t *entity_value = translate_html_entity(tag->entity->ptr);
+			if (entity_value == NULL) {
+				if ((tag->pos == XML_TAG_ATTRIBUTE_VALUE_QUOTED) ||
+				    (tag->pos == XML_TAG_ATTRIBUTE_VALUE_DOUBLE_QUOTED) ||
+				    (tag->pos == XML_TAG_ATTRIBUTE_VALUE_START))
+				{
+					wcatcs(tag->atts[tag->atts_len - 1].value, L'&');
+					wcatss(tag->atts[tag->atts_len - 1].value, tag->entity);
+					wcatcs(tag->atts[tag->atts_len - 1].value, L';');
+				}
+			} else {
+				if ((tag->pos == XML_TAG_ATTRIBUTE_VALUE_QUOTED) ||
+				    (tag->pos == XML_TAG_ATTRIBUTE_VALUE_DOUBLE_QUOTED) ||
+				    (tag->pos == XML_TAG_ATTRIBUTE_VALUE_START))
+				{
+					wcatas(tag->atts[tag->atts_len - 1].value, entity_value, wcslen(entity_value));
+				}
+			}
+		} else if (tag->entity->len == MAX_ENTITY_NAME_LENGTH) {
+			tag->pos &= ~XML_TAG_ENTITY;
+			if ((tag->pos == XML_TAG_ATTRIBUTE_VALUE_QUOTED) ||
+			    (tag->pos == XML_TAG_ATTRIBUTE_VALUE_DOUBLE_QUOTED) ||
+			    (tag->pos == XML_TAG_ATTRIBUTE_VALUE_START))
+			{
+				wcatcs(tag->atts[tag->atts_len - 1].value, L'&');
+				wcatss(tag->atts[tag->atts_len - 1].value, tag->entity);
+			}
+		} else {
+			wcatcs(tag->entity, wc);
+		}
+	} else if (wc == L'>') {
 		if ((tag->pos == XML_TAG_ATTRIBUTE_VALUE_QUOTED) ||
 		    (tag->pos == XML_TAG_ATTRIBUTE_VALUE_DOUBLE_QUOTED))
 		{
@@ -156,6 +200,7 @@ free_tag(struct xml_tag *tag)
 		return;
 	}
 	free_wstring(tag->buf);
+	free_wstring(tag->entity);
 	for (size_t i = 0; i < tag->atts_len; ++i) {
 		free_wstring(tag->atts[i].name);
 		free_wstring(tag->atts[i].value);

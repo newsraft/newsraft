@@ -214,7 +214,7 @@ end_handler(wchar_t *t, struct line *l, struct wstring *w, enum html_position *p
 bool
 render_text_html(const struct wstring *wstr, struct line *line, struct wstring *t, bool is_first_call)
 {
-	struct wstring *tag = wcrtes();
+	struct xml_tag *tag = create_tag();
 	if (tag == NULL) {
 		FAIL("Not enough memory for tag buffer to render HTML!");
 		return false;
@@ -227,7 +227,6 @@ render_text_html(const struct wstring *wstr, struct line *line, struct wstring *
 	wchar_t entity_name[MAX_ENTITY_NAME_LENGTH + 1];
 	size_t entity_len;
 	const wchar_t *entity_value;
-	struct xml_attribute *atts;
 
 	if (is_first_call == true) {
 		list_depth = 0;
@@ -259,32 +258,24 @@ render_text_html(const struct wstring *wstr, struct line *line, struct wstring *
 				}
 			}
 		} else if (in_tag == true) { // All tag characters go here.
-			if (*i == L'>') {
+			if (append_wchar_to_tag(tag, *i) == XML_TAG_DONE) {
 				found_tag = false;
 				in_tag = false;
-				atts = get_attribute_list_of_xml_tag(tag);
-				if (atts != NULL) {
-					if (atts[0].name->ptr[0] == L'/') {
-						found_tag = end_handler(atts[0].name->ptr + 1, line, t, &html_pos);
-					} else {
-						found_tag = start_handler(atts[0].name->ptr, line, t, &html_pos);
-					}
-					free_attribute_list_of_xml_tag(atts);
+				if (tag->atts[0].name->ptr[0] == L'/') {
+					found_tag = end_handler(tag->atts[0].name->ptr + 1, line, t, &html_pos);
+				} else {
+					found_tag = start_handler(tag->atts[0].name->ptr, line, t, &html_pos);
 				}
 				if (found_tag == false) {
 					line_char(line, L'<', t);
-					render_text_html(tag, line, t, false);
+					render_text_html(tag->buf, line, t, false);
 					line_char(line, L'>', t);
-				}
-			} else {
-				if (wcatcs(tag, *i) == false) {
-					goto error;
 				}
 			}
 		} else {
 			if (*i == L'<') {
 				in_tag = true;
-				empty_wstring(tag);
+				empty_tag(tag);
 			} else if (*i == L'&') {
 				in_entity = true;
 				entity_len = 0;
@@ -309,11 +300,11 @@ render_text_html(const struct wstring *wstr, struct line *line, struct wstring *
 		++i;
 	}
 
-	free_wstring(tag);
+	free_tag(tag);
 	return true;
 
 error:
 	FAIL("Not enough memory for rendering HTML!");
-	free_wstring(tag);
+	free_tag(tag);
 	return false;
 }

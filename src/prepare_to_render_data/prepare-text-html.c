@@ -79,9 +79,9 @@ add_url_mark(struct wstring *text, const struct wstring *url, const struct wstri
 }
 
 static inline void
-a_start_handler(struct xml_attribute *atts)
+a_start_handler(struct xml_tag *tag)
 {
-	const struct wstring *url = get_value_of_xml_attribute(atts, L"href");
+	const struct wstring *url = get_value_of_xml_attribute(tag, L"href");
 	if (url != NULL) {
 		wcpyss(anchor_url, url);
 	}
@@ -94,48 +94,48 @@ a_end_handler(struct wstring *text, struct link_list *links)
 }
 
 static inline void
-img_start_handler(struct wstring *text, struct xml_attribute *atts, struct link_list *links)
+img_start_handler(struct wstring *text, struct xml_tag *tag, struct link_list *links)
 {
-	const struct wstring *url = get_value_of_xml_attribute(atts, L"src");
-	const struct wstring *title = get_value_of_xml_attribute(atts, L"title");
+	const struct wstring *url = get_value_of_xml_attribute(tag, L"src");
+	const struct wstring *title = get_value_of_xml_attribute(tag, L"title");
 	if ((title == NULL) || (title->len == 0)) {
-		title = get_value_of_xml_attribute(atts, L"alt");
+		title = get_value_of_xml_attribute(tag, L"alt");
 	}
 	add_url_mark(text, url, title, links, L"image");
 }
 
 static inline void
-iframe_start_handler(struct wstring *text, struct xml_attribute *atts, struct link_list *links)
+iframe_start_handler(struct wstring *text, struct xml_tag *tag, struct link_list *links)
 {
-	const struct wstring *url = get_value_of_xml_attribute(atts, L"src");
-	const struct wstring *title = get_value_of_xml_attribute(atts, L"title");
+	const struct wstring *url = get_value_of_xml_attribute(tag, L"src");
+	const struct wstring *title = get_value_of_xml_attribute(tag, L"title");
 	if ((title == NULL) || (title->len == 0)) {
-		title = get_value_of_xml_attribute(atts, L"name");
+		title = get_value_of_xml_attribute(tag, L"name");
 	}
 	add_url_mark(text, url, title, links, L"frame");
 }
 
 static inline bool
-start_handler(wchar_t *t, struct wstring *w, enum html_position *p, struct xml_attribute *a, struct link_list *l)
+start_handler(wchar_t *t, struct wstring *w, enum html_position *p, struct xml_tag *tag, struct link_list *l)
 {
-	     if (wcscmp(t, L"span")   == 0) { /* just nothing */             return true; }
-	else if (wcscmp(t, L"sup")    == 0) { sup_start_handler(w);          return true; }
-	else if (wcscmp(t, L"a")      == 0) { a_start_handler(a);            return true; }
-	else if (wcscmp(t, L"img")    == 0) { img_start_handler(w, a, l);    return true; }
-	else if (wcscmp(t, L"iframe") == 0) { iframe_start_handler(w, a, l); return true; }
-	else if (wcscmp(t, L"video")  == 0) { /* TODO */                     return true; }
-	else if (wcscmp(t, L"source") == 0) { /* TODO */                     return true; }
-	else if (wcscmp(t, L"q")      == 0) { q_start_handler(w);            return true; }
-	else if (wcscmp(t, L"code")   == 0) { /* TODO */                     return true; }
-	else if (wcscmp(t, L"b")      == 0) { /* TODO */                     return true; }
-	else if (wcscmp(t, L"i")      == 0) { /* TODO */                     return true; }
-	else if (wcscmp(t, L"em")     == 0) { /* TODO */                     return true; }
-	else if (wcscmp(t, L"mark")   == 0) { /* TODO */                     return true; }
-	else if (wcscmp(t, L"small")  == 0) { /* TODO */                     return true; }
-	else if (wcscmp(t, L"time")   == 0) { /* TODO */                     return true; }
-	else if (wcscmp(t, L"strong") == 0) { /* TODO */                     return true; }
-	else if (wcscmp(t, L"script") == 0) { script_start_handler(p);       return true; }
-	else if (wcscmp(t, L"style")  == 0) { style_start_handler(p);        return true; }
+	     if (wcscmp(t, L"span")   == 0) { /* just nothing */               return true; }
+	else if (wcscmp(t, L"sup")    == 0) { sup_start_handler(w);            return true; }
+	else if (wcscmp(t, L"a")      == 0) { a_start_handler(tag);            return true; }
+	else if (wcscmp(t, L"img")    == 0) { img_start_handler(w, tag, l);    return true; }
+	else if (wcscmp(t, L"iframe") == 0) { iframe_start_handler(w, tag, l); return true; }
+	else if (wcscmp(t, L"video")  == 0) { /* TODO */                       return true; }
+	else if (wcscmp(t, L"source") == 0) { /* TODO */                       return true; }
+	else if (wcscmp(t, L"q")      == 0) { q_start_handler(w);              return true; }
+	else if (wcscmp(t, L"code")   == 0) { /* TODO */                       return true; }
+	else if (wcscmp(t, L"b")      == 0) { /* TODO */                       return true; }
+	else if (wcscmp(t, L"i")      == 0) { /* TODO */                       return true; }
+	else if (wcscmp(t, L"em")     == 0) { /* TODO */                       return true; }
+	else if (wcscmp(t, L"mark")   == 0) { /* TODO */                       return true; }
+	else if (wcscmp(t, L"small")  == 0) { /* TODO */                       return true; }
+	else if (wcscmp(t, L"time")   == 0) { /* TODO */                       return true; }
+	else if (wcscmp(t, L"strong") == 0) { /* TODO */                       return true; }
+	else if (wcscmp(t, L"script") == 0) { script_start_handler(p);         return true; }
+	else if (wcscmp(t, L"style")  == 0) { style_start_handler(p);          return true; }
 
 	return false;
 }
@@ -160,7 +160,7 @@ end_handler(wchar_t *t, struct wstring *w, enum html_position *p, struct link_li
 	else if (wcscmp(t, L"style")  == 0) { style_end_handler(p);  return true; }
 	// These elements are self-closing, but some generators tend to append
 	// redundant closing tag. Don't return any errors here.
-	else if (wcscmp(t, L"img")  == 0)   { return true; }
+	else if (wcscmp(t, L"img")    == 0) { return true; }
 	else if (wcscmp(t, L"iframe") == 0) { return true; }
 	else if (wcscmp(t, L"source") == 0) { return true; }
 
@@ -175,29 +175,28 @@ prepare_to_render_text_html(const struct wstring *wstr, struct link_list *links)
 		FAIL("Not enough memory for text buffer to prepare HTML render block!");
 		return NULL;
 	}
-	struct wstring *tag = wcrtes();
+	struct xml_tag *tag = create_tag();
 	if (tag == NULL) {
-		FAIL("Not enough memory for tag buffer to prepare HTML render block!");
+		FAIL("Not enough memory for tag structure to prepare HTML render block!");
 		free_wstring(t);
 		return NULL;
 	}
 	anchor_url = wcrtes();
 	if (anchor_url == NULL) {
 		FAIL("Not enough memory for anchor buffer to prepare HTML render block!");
-		free_wstring(tag);
+		free_tag(tag);
 		free_wstring(t);
 		return NULL;
 	}
 	bool in_tag = false;
 	bool found_tag;
-	struct xml_attribute *atts;
 	const wchar_t *i = wstr->ptr;
 	enum html_position html_pos = HTML_NONE;
 	while (*i != L'\0') {
 		if (in_tag == false) {
 			if (*i == L'<') {
 				in_tag = true;
-				empty_wstring(tag);
+				empty_tag(tag);
 			} else {
 				// Avoid characters of certain elements.
 				if ((html_pos & (HTML_STYLE|HTML_SCRIPT|HTML_VIDEO)) == 0) {
@@ -205,35 +204,29 @@ prepare_to_render_text_html(const struct wstring *wstr, struct link_list *links)
 				}
 			}
 		} else {
-			if (*i == L'>') {
+			if (append_wchar_to_tag(tag, *i) == XML_TAG_DONE) {
 				in_tag = false;
 				found_tag = false;
-				atts = get_attribute_list_of_xml_tag(tag);
-				if (atts != NULL) {
-					if (atts[0].name->ptr[0] == L'/') {
-						found_tag = end_handler(atts[0].name->ptr + 1, t, &html_pos, links);
-					} else {
-						found_tag = start_handler(atts[0].name->ptr, t, &html_pos, atts, links);
-					}
-					free_attribute_list_of_xml_tag(atts);
+				if (tag->atts[0].name->ptr[0] == L'/') {
+					found_tag = end_handler(tag->atts[0].name->ptr + 1, t, &html_pos, links);
+				} else {
+					found_tag = start_handler(tag->atts[0].name->ptr, t, &html_pos, tag, links);
 				}
 				if (found_tag == false) {
-					if (wcatcs(t, L'<') == false) { goto error; }
-					if (wcatss(t, tag)  == false) { goto error; }
-					if (wcatcs(t, L'>') == false) { goto error; }
+					if (wcatcs(t, L'<')     == false) { goto error; }
+					if (wcatss(t, tag->buf) == false) { goto error; }
+					if (wcatcs(t, L'>')     == false) { goto error; }
 				}
-			} else {
-				if (wcatcs(tag, *i) == false) { goto error; }
 			}
 		}
 		++i;
 	}
 	free_wstring(anchor_url);
-	free_wstring(tag);
+	free_tag(tag);
 	return t;
 error:
 	free_wstring(t);
-	free_wstring(tag);
+	free_tag(tag);
 	free_wstring(anchor_url);
 	return NULL;
 }

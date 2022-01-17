@@ -14,6 +14,7 @@
 
 #define COUNTOF(A) (sizeof(A) / sizeof(*A))
 #define ISWHITESPACE(A) (((A)==' ')||((A)=='\n')||((A)=='\t')||((A)=='\v')||((A)=='\f')||((A)=='\r'))
+#define ISWIDEWHITESPACE(A) (((A)==L' ')||((A)==L'\n')||((A)==L'\t')||((A)==L'\v')||((A)==L'\f')||((A)==L'\r'))
 #define INFO(A, ...) do { if (log_stream != NULL) { fprintf(log_stream, "[INFO] " A "\n", ##__VA_ARGS__); } } while (0)
 #define WARN(A, ...) do { if (log_stream != NULL) { fprintf(log_stream, "[WARN] " A "\n", ##__VA_ARGS__); } } while (0)
 #define FAIL(A, ...) do { if (log_stream != NULL) { fprintf(log_stream, "[FAIL] " A "\n", ##__VA_ARGS__); } } while (0)
@@ -96,6 +97,20 @@ struct xml_attribute {
 	struct wstring *value;
 };
 
+enum xml_tag_pos {
+	XML_TAG_ATTRIBUTE_NAME,
+	XML_TAG_ATTRIBUTE_VALUE_START,
+	XML_TAG_ATTRIBUTE_VALUE_QUOTED,
+	XML_TAG_ATTRIBUTE_VALUE_DOUBLE_QUOTED,
+};
+
+struct xml_tag {
+	struct wstring *buf;
+	struct xml_attribute *atts;
+	size_t atts_len;
+	enum xml_tag_pos pos;
+};
+
 struct config_data {
 	size_t max_items;
 	bool append_links;
@@ -103,6 +118,12 @@ struct config_data {
 	wchar_t *menu_item_entry_format;
 	char *contents_meta_data;
 	char *contents_date_format;
+};
+
+enum xml_tag_status {
+	XML_TAG_FAIL,
+	XML_TAG_CONTINUE,
+	XML_TAG_DONE,
 };
 
 enum input_cmd {
@@ -280,11 +301,16 @@ void log_stop(void);
 
 struct string *convert_bytes_to_human_readable_size_string(const char *value);
 
+// Functions for processing XML tags.
+struct xml_tag *create_tag(void);
+enum xml_tag_status append_wchar_to_tag(struct xml_tag *tag, wchar_t wc);
+bool append_array_to_tag(struct xml_tag *tag, const wchar_t *src, size_t src_len);
+const struct wstring *get_value_of_xml_attribute(const struct xml_tag *tag, const wchar_t *attr);
+void empty_tag(struct xml_tag *tag);
+void free_tag(struct xml_tag *tag);
+
 // Common functions for processing XML.
-struct xml_attribute *get_attribute_list_of_xml_tag(const struct wstring *tag);
-const struct wstring *get_value_of_xml_attribute(const struct xml_attribute *atts, const wchar_t *attr);
 const wchar_t *translate_html_entity(wchar_t *entity);
-void free_attribute_list_of_xml_tag(struct xml_attribute *atts);
 
 // Download, process and store new items of feed.
 // See "update_feed" directory for implementation.

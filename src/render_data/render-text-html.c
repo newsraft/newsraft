@@ -176,6 +176,7 @@ start_handler(wchar_t *t, struct line *l, struct wstring *w, enum html_position 
 	else if (wcscmp(t, L"section")    == 0) { add_newlines(l, w, 1);          return true; }
 	else if (wcscmp(t, L"footer")     == 0) { add_newlines(l, w, 1);          return true; }
 	else if (wcscmp(t, L"summary")    == 0) { add_newlines(l, w, 1);          return true; }
+	else if (wcscmp(t, L"form")       == 0) { add_newlines(l, w, 1);          return true; }
 	else if (wcscmp(t, L"hr")         == 0) { hr_handler(l, w);               return true; }
 	else if (wcscmp(t, L"figcaption") == 0) { add_newlines(l, w, 1);          return true; }
 	else if (wcscmp(t, L"figure")     == 0) { figure_start_handler(l, w);     return true; }
@@ -203,6 +204,7 @@ end_handler(wchar_t *t, struct line *l, struct wstring *w, enum html_position *p
 	else if (wcscmp(t, L"section")    == 0) { add_newlines(l, w, 1);        return true; }
 	else if (wcscmp(t, L"footer")     == 0) { add_newlines(l, w, 1);        return true; }
 	else if (wcscmp(t, L"summary")    == 0) { add_newlines(l, w, 1);        return true; }
+	else if (wcscmp(t, L"form")       == 0) { add_newlines(l, w, 1);        return true; }
 	else if (wcscmp(t, L"figcaption") == 0) { add_newlines(l, w, 1);        return true; }
 	else if (wcscmp(t, L"figure")     == 0) { figure_end_handler(l, w);     return true; }
 	else if (wcscmp(t, L"blockquote") == 0) { blockquote_end_handler(l, w); return true; }

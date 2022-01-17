@@ -22,6 +22,18 @@ q_start_handler(struct wstring *text)
 }
 
 static inline void
+button_start_handler(struct wstring *text)
+{
+	wcatcs(text, L'{');
+}
+
+static inline void
+button_end_handler(struct wstring *text)
+{
+	wcatcs(text, L'}');
+}
+
+static inline void
 script_start_handler(enum html_position *pos)
 {
 	*pos |= HTML_SCRIPT;
@@ -118,24 +130,27 @@ iframe_start_handler(struct wstring *text, struct xml_tag *tag, struct link_list
 static inline bool
 start_handler(wchar_t *t, struct wstring *w, enum html_position *p, struct xml_tag *tag, struct link_list *l)
 {
-	     if (wcscmp(t, L"span")   == 0) { /* just nothing */               return true; }
-	else if (wcscmp(t, L"sup")    == 0) { sup_start_handler(w);            return true; }
-	else if (wcscmp(t, L"a")      == 0) { a_start_handler(tag);            return true; }
-	else if (wcscmp(t, L"img")    == 0) { img_start_handler(w, tag, l);    return true; }
-	else if (wcscmp(t, L"iframe") == 0) { iframe_start_handler(w, tag, l); return true; }
-	else if (wcscmp(t, L"video")  == 0) { /* TODO */                       return true; }
-	else if (wcscmp(t, L"source") == 0) { /* TODO */                       return true; }
-	else if (wcscmp(t, L"q")      == 0) { q_start_handler(w);              return true; }
-	else if (wcscmp(t, L"code")   == 0) { /* TODO */                       return true; }
-	else if (wcscmp(t, L"b")      == 0) { /* TODO */                       return true; }
-	else if (wcscmp(t, L"i")      == 0) { /* TODO */                       return true; }
-	else if (wcscmp(t, L"em")     == 0) { /* TODO */                       return true; }
-	else if (wcscmp(t, L"mark")   == 0) { /* TODO */                       return true; }
-	else if (wcscmp(t, L"small")  == 0) { /* TODO */                       return true; }
-	else if (wcscmp(t, L"time")   == 0) { /* TODO */                       return true; }
-	else if (wcscmp(t, L"strong") == 0) { /* TODO */                       return true; }
-	else if (wcscmp(t, L"script") == 0) { script_start_handler(p);         return true; }
-	else if (wcscmp(t, L"style")  == 0) { style_start_handler(p);          return true; }
+	     if (wcscmp(t, L"span")     == 0) { /* just nothing */               return true; }
+	else if (wcscmp(t, L"sup")      == 0) { sup_start_handler(w);            return true; }
+	else if (wcscmp(t, L"a")        == 0) { a_start_handler(tag);            return true; }
+	else if (wcscmp(t, L"img")      == 0) { img_start_handler(w, tag, l);    return true; }
+	else if (wcscmp(t, L"iframe")   == 0) { iframe_start_handler(w, tag, l); return true; }
+	else if (wcscmp(t, L"video")    == 0) { /* TODO */                       return true; }
+	else if (wcscmp(t, L"source")   == 0) { /* TODO */                       return true; }
+	else if (wcscmp(t, L"q")        == 0) { q_start_handler(w);              return true; }
+	else if (wcscmp(t, L"code")     == 0) { /* TODO */                       return true; }
+	else if (wcscmp(t, L"b")        == 0) { /* TODO */                       return true; }
+	else if (wcscmp(t, L"i")        == 0) { /* TODO */                       return true; }
+	else if (wcscmp(t, L"em")       == 0) { /* TODO */                       return true; }
+	else if (wcscmp(t, L"mark")     == 0) { /* TODO */                       return true; }
+	else if (wcscmp(t, L"small")    == 0) { /* TODO */                       return true; }
+	else if (wcscmp(t, L"time")     == 0) { /* TODO */                       return true; }
+	else if (wcscmp(t, L"strong")   == 0) { /* TODO */                       return true; }
+	else if (wcscmp(t, L"label")    == 0) { /* just nothing */               return true; }
+	else if (wcscmp(t, L"textarea") == 0) { /* just nothing */               return true; }
+	else if (wcscmp(t, L"button")   == 0) { button_start_handler(w);         return true; }
+	else if (wcscmp(t, L"script")   == 0) { script_start_handler(p);         return true; }
+	else if (wcscmp(t, L"style")    == 0) { style_start_handler(p);          return true; }
 
 	return false;
 }
@@ -143,26 +158,29 @@ start_handler(wchar_t *t, struct wstring *w, enum html_position *p, struct xml_t
 static inline bool
 end_handler(wchar_t *t, struct wstring *w, enum html_position *p, struct link_list *l)
 {
-	     if (wcscmp(t, L"span")   == 0) { /* just nothing */     return true; }
-	else if (wcscmp(t, L"sup")    == 0) { /* just nothing */     return true; }
-	else if (wcscmp(t, L"a")      == 0) { a_end_handler(w, l);   return true; }
-	else if (wcscmp(t, L"video")  == 0) { /* TODO */             return true; }
-	else if (wcscmp(t, L"q")      == 0) { q_start_handler(w);    return true; }
-	else if (wcscmp(t, L"code")   == 0) { /* TODO */             return true; }
-	else if (wcscmp(t, L"b")      == 0) { /* TODO */             return true; }
-	else if (wcscmp(t, L"i")      == 0) { /* TODO */             return true; }
-	else if (wcscmp(t, L"em")     == 0) { /* TODO */             return true; }
-	else if (wcscmp(t, L"mark")   == 0) { /* TODO */             return true; }
-	else if (wcscmp(t, L"small")  == 0) { /* TODO */             return true; }
-	else if (wcscmp(t, L"time")   == 0) { /* TODO */             return true; }
-	else if (wcscmp(t, L"strong") == 0) { /* TODO */             return true; }
-	else if (wcscmp(t, L"script") == 0) { script_end_handler(p); return true; }
-	else if (wcscmp(t, L"style")  == 0) { style_end_handler(p);  return true; }
+	     if (wcscmp(t, L"span")     == 0) { /* just nothing */     return true; }
+	else if (wcscmp(t, L"sup")      == 0) { /* just nothing */     return true; }
+	else if (wcscmp(t, L"a")        == 0) { a_end_handler(w, l);   return true; }
+	else if (wcscmp(t, L"video")    == 0) { /* TODO */             return true; }
+	else if (wcscmp(t, L"q")        == 0) { q_start_handler(w);    return true; }
+	else if (wcscmp(t, L"code")     == 0) { /* TODO */             return true; }
+	else if (wcscmp(t, L"b")        == 0) { /* TODO */             return true; }
+	else if (wcscmp(t, L"i")        == 0) { /* TODO */             return true; }
+	else if (wcscmp(t, L"em")       == 0) { /* TODO */             return true; }
+	else if (wcscmp(t, L"mark")     == 0) { /* TODO */             return true; }
+	else if (wcscmp(t, L"small")    == 0) { /* TODO */             return true; }
+	else if (wcscmp(t, L"time")     == 0) { /* TODO */             return true; }
+	else if (wcscmp(t, L"strong")   == 0) { /* TODO */             return true; }
+	else if (wcscmp(t, L"label")    == 0) { /* just nothing */     return true; }
+	else if (wcscmp(t, L"textarea") == 0) { /* just nothing */     return true; }
+	else if (wcscmp(t, L"button")   == 0) { button_end_handler(w); return true; }
+	else if (wcscmp(t, L"script")   == 0) { script_end_handler(p); return true; }
+	else if (wcscmp(t, L"style")    == 0) { style_end_handler(p);  return true; }
 	// These elements are self-closing, but some generators tend to append
 	// redundant closing tag. Don't return any errors here.
-	else if (wcscmp(t, L"img")    == 0) { return true; }
-	else if (wcscmp(t, L"iframe") == 0) { return true; }
-	else if (wcscmp(t, L"source") == 0) { return true; }
+	else if (wcscmp(t, L"img")      == 0) { return true; }
+	else if (wcscmp(t, L"iframe")   == 0) { return true; }
+	else if (wcscmp(t, L"source")   == 0) { return true; }
 
 	return false;
 }

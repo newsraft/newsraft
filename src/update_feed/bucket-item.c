@@ -15,7 +15,7 @@ initialize_item_bucket(struct item_bucket *item)
 	if ((item->content.type  = crtes()) == NULL) { goto undo7; }
 	if ((item->categories    = crtes()) == NULL) { goto undo8; }
 	if ((item->comments_url  = crtes()) == NULL) { goto undo9; }
-	initialize_link_list(&item->enclosures);
+	initialize_link_list(&item->attachments);
 	initialize_person_list(&item->authors);
 	item->pubdate = 0;
 	item->upddate = 0;
@@ -55,7 +55,7 @@ empty_item_bucket(struct item_bucket *item)
 	empty_string(item->content.type);
 	empty_string(item->categories);
 	empty_string(item->comments_url);
-	empty_link_list(&item->enclosures);
+	empty_link_list(&item->attachments);
 	empty_person_list(&item->authors);
 	item->pubdate = 0;
 	item->upddate = 0;
@@ -74,7 +74,7 @@ free_item_bucket(const struct item_bucket *item)
 	free_string(item->content.type);
 	free_string(item->categories);
 	free_string(item->comments_url);
-	free_link_list(&item->enclosures);
+	free_link_list(&item->attachments);
 	free_person_list(&item->authors);
 }
 

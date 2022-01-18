@@ -63,7 +63,7 @@ struct item_bucket {
 	struct text content;
 	struct string *categories;
 	struct string *comments_url;
-	struct link_list enclosures;
+	struct link_list attachments;
 	struct person_list authors;
 	// Dates in this struct are represented in seconds
 	// since the Epoch (1970-01-01 00:00 UTC). If some

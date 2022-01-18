@@ -38,9 +38,9 @@ db_insert_item(const struct string *feed_url, const struct item_bucket *item, in
 		return;
 	}
 
-	struct string *enclosures_list = generate_link_list_string_for_database(&item->enclosures);
-	if (enclosures_list == NULL) {
-		FAIL("Not enough memory for creating enclosures list of item bucket!");
+	struct string *attachments_list = generate_link_list_string_for_database(&item->attachments);
+	if (attachments_list == NULL) {
+		FAIL("Not enough memory for creating attachments list of item bucket!");
 		free_string(authors_list);
 		return;
 	}
@@ -51,11 +51,11 @@ db_insert_item(const struct string *feed_url, const struct item_bucket *item, in
 	if (rowid == -1) {
 		prepare_status = db_prepare("INSERT INTO items VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", 66, &s, NULL);
 	} else {
-		prepare_status = db_prepare("UPDATE items SET feed_url = ?, title = ?, guid = ?, link = ?, unread = ?, enclosures = ?, authors = ?, categories = ?, pubdate = ?, upddate = ?, comments_url = ?, summary = ?, content = ? WHERE rowid = ?;", 205, &s, NULL);
+		prepare_status = db_prepare("UPDATE items SET feed_url = ?, title = ?, guid = ?, link = ?, unread = ?, attachments = ?, authors = ?, categories = ?, pubdate = ?, upddate = ?, comments_url = ?, summary = ?, content = ? WHERE rowid = ?;", 206, &s, NULL);
 	}
 
 	if (prepare_status == false) {
-		free_string(enclosures_list);
+		free_string(attachments_list);
 		free_string(authors_list);
 		return;
 	}
@@ -65,7 +65,7 @@ db_insert_item(const struct string *feed_url, const struct item_bucket *item, in
 	sqlite3_bind_text(s,   ITEM_COLUMN_GUID         + 1, item->guid->ptr, item->guid->len, NULL);
 	sqlite3_bind_text(s,   ITEM_COLUMN_LINK         + 1, item->url->ptr, item->url->len, NULL);
 	sqlite3_bind_int(s,    ITEM_COLUMN_UNREAD       + 1, 1);
-	sqlite3_bind_text(s,   ITEM_COLUMN_ENCLOSURES   + 1, enclosures_list->ptr, enclosures_list->len, NULL);
+	sqlite3_bind_text(s,   ITEM_COLUMN_ATTACHMENTS  + 1, attachments_list->ptr, attachments_list->len, NULL);
 	sqlite3_bind_text(s,   ITEM_COLUMN_AUTHORS      + 1, authors_list->ptr, authors_list->len, NULL);
 	sqlite3_bind_text(s,   ITEM_COLUMN_CATEGORIES   + 1, item->categories->ptr, item->categories->len, NULL);
 	sqlite3_bind_int64(s,  ITEM_COLUMN_PUBDATE      + 1, (sqlite3_int64)(item->pubdate));
@@ -86,7 +86,7 @@ db_insert_item(const struct string *feed_url, const struct item_bucket *item, in
 	}
 
 	sqlite3_finalize(s);
-	free_string(enclosures_list);
+	free_string(attachments_list);
 	free_string(authors_list);
 }
 

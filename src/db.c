@@ -39,7 +39,7 @@ db_init(void)
 			"guid TEXT NOT NULL,"
 			"link TEXT NOT NULL," // url to related resource
 			"unread INTEGER(1) NOT NULL," // 0 if item read and 1 if item unread
-			"enclosures TEXT NOT NULL,"
+			"attachments TEXT NOT NULL,"
 			"authors TEXT NOT NULL,"
 			"categories TEXT NOT NULL,"
 			"pubdate INTEGER(8) NOT NULL," // publication date in seconds since 1970

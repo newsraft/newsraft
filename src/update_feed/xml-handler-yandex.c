@@ -105,11 +105,11 @@ bind_to_end(struct parser_data *data)
 	if (we_are_inside_item(data) == false) {
 		return;
 	}
-	if (expand_link_list_by_one_element(&data->item.enclosures) == false) {
+	if (expand_link_list_by_one_element(&data->item.attachments) == false) {
 		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		return;
 	}
-	if (add_url_to_last_link(&data->item.enclosures, data->value->ptr, data->value->len) == false) {
+	if (add_url_to_last_link(&data->item.attachments, data->value->ptr, data->value->len) == false) {
 		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		return;
 	}

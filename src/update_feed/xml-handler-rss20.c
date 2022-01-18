@@ -180,25 +180,25 @@ enclosure_start(struct parser_data *data, const XML_Char **atts)
 	if ((data->rss20_pos & RSS20_ITEM) == 0) {
 		return;
 	}
-	if (expand_link_list_by_one_element(&data->item.enclosures) == false) {
+	if (expand_link_list_by_one_element(&data->item.attachments) == false) {
 		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		return;
 	}
 	for (size_t i = 0; atts[i] != NULL; i = i + 2) {
 		if (strcmp(atts[i], "url") == 0) {
-			if (add_url_to_last_link(&data->item.enclosures, atts[i + 1], strlen(atts[i + 1])) == false) {
+			if (add_url_to_last_link(&data->item.attachments, atts[i + 1], strlen(atts[i + 1])) == false) {
 				data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 				return;
 			}
 		} else if (strcmp(atts[i], "type") == 0) {
-			if (add_type_to_last_link(&data->item.enclosures, atts[i + 1], strlen(atts[i + 1])) == false) {
+			if (add_type_to_last_link(&data->item.attachments, atts[i + 1], strlen(atts[i + 1])) == false) {
 				data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 				return;
 			}
 		} else if (strcmp(atts[i], "length") == 0) {
 			// Do not check this call for errors, because its fail is not fatal. Everything that
 			// can go wrong is failure on sscanf owing to invalid (non-integer) value of length.
-			add_size_to_last_link(&data->item.enclosures, atts[i + 1], strlen(atts[i + 1]));
+			add_size_to_last_link(&data->item.attachments, atts[i + 1], strlen(atts[i + 1]));
 		}
 	}
 }

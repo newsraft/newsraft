@@ -79,7 +79,7 @@ static inline void
 link_start(struct parser_data *data, const XML_Char **atts)
 {
 	const char *href = NULL, *type = NULL, *length = NULL;
-	bool this_is_enclosure = false;
+	bool this_is_attachment = false;
 	for (size_t i = 0; atts[i] != NULL; i = i + 2) {
 		if (strcmp(atts[i], "href") == 0) {
 			href = atts[i + 1];
@@ -89,29 +89,29 @@ link_start(struct parser_data *data, const XML_Char **atts)
 			length = atts[i + 1];
 		} else if (strcmp(atts[i], "rel") == 0) {
 			if (strcmp(atts[i + 1], "alternate") == 0) {
-				this_is_enclosure = false;
+				this_is_attachment = false;
 			} else if (strcmp(atts[i + 1], "self") == 0) {
 				// If link has "rel" attribute with "self" value then this
 				// link points to the feed itself, we don't need it.
 				return;
 			} else {
-				this_is_enclosure = true;
+				this_is_attachment = true;
 			}
 		}
 	}
-	if (this_is_enclosure == true) {
-		if (expand_link_list_by_one_element(&data->item.enclosures) == false) {
+	if (this_is_attachment == true) {
+		if (expand_link_list_by_one_element(&data->item.attachments) == false) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}
 		if (href != NULL) {
-			if (add_url_to_last_link(&data->item.enclosures, href, strlen(href)) == false) {
+			if (add_url_to_last_link(&data->item.attachments, href, strlen(href)) == false) {
 				data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 				return;
 			}
 		}
 		if (type != NULL) {
-			if (add_type_to_last_link(&data->item.enclosures, type, strlen(type)) == false) {
+			if (add_type_to_last_link(&data->item.attachments, type, strlen(type)) == false) {
 				data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 				return;
 			}
@@ -119,7 +119,7 @@ link_start(struct parser_data *data, const XML_Char **atts)
 		if (length != NULL) {
 			// Do not check this call for errors, because its fail is not fatal. Everything that
 			// can go wrong is failure on sscanf owing to invalid (non-integer) value of length.
-			add_size_to_last_link(&data->item.enclosures, length, strlen(length));
+			add_size_to_last_link(&data->item.attachments, length, strlen(length));
 		}
 	} else {
 		if (href != NULL) {

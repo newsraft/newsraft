@@ -8,7 +8,7 @@
 //
 // Some useful notes:
 //
-// All of these formats do support image enclosures with the tag <image>
+// All of these formats do support image attachments with the tag <image>
 // but the flaw is that you can't include image elements in items.
 // They are only for channel overall...
 //

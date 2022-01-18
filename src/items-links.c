@@ -52,59 +52,67 @@ append_raw_link(struct link_list *links, sqlite3_stmt *res, enum item_column col
 	return true;
 }
 
-enum enclosure_field_number {
-	ENCLOSURE_URL,
-	ENCLOSURE_TYPE,
-	ENCLOSURE_SIZE,
-	ENCLOSURE_DURATION,
+enum attachment_field_index {
+	ATTACHMENT_URL = 0,
+	ATTACHMENT_TYPE,
+	ATTACHMENT_SIZE,
+	ATTACHMENT_DURATION,
 };
 
 static inline bool
-append_enclosures(struct link_list *links, sqlite3_stmt *res)
+append_attachments(struct link_list *links, sqlite3_stmt *res)
 {
-	char *text = (char *)sqlite3_column_text(res, ITEM_COLUMN_ENCLOSURES);
+	const char *text = (const char *)sqlite3_column_text(res, ITEM_COLUMN_ATTACHMENTS);
 	if (text == NULL) {
 		return true; // It is not an error because this item simply does not have link set.
 	}
-	char word[3333];
-	size_t word_len = 0;
-	int8_t field_num = ENCLOSURE_URL;
-	char *iter = text;
+	struct string *word = crtes();
+	if (word == NULL) {
+		return false;
+	}
+	int8_t field_num = ATTACHMENT_URL;
 	struct string **target;
+	const char *iter = text;
 	while (*iter != '\0') {
 		if ((*iter == ' ') || (*iter == '\n')) {
-			if (word_len != 0) {
+			if (word->len != 0) {
 				target = NULL;
-				if (field_num == ENCLOSURE_URL) {
-					if (add_another_url_to_trim_link_list(links, word, word_len) == false) {
-						return false;
+				if (field_num == ATTACHMENT_URL) {
+					if (add_another_url_to_trim_link_list(links, word->ptr, word->len) == false) {
+						goto error;
 					}
-				} else if (field_num == ENCLOSURE_TYPE) {
+				} else if (field_num == ATTACHMENT_TYPE) {
 					target = &links->list[links->len - 1].type;
-				} else if (field_num == ENCLOSURE_SIZE) {
+				} else if (field_num == ATTACHMENT_SIZE) {
 					target = &links->list[links->len - 1].size;
-				} else if (field_num == ENCLOSURE_DURATION) {
+				} else if (field_num == ATTACHMENT_DURATION) {
 					target = &links->list[links->len - 1].duration;
 				}
 				if ((target != NULL) && (*target == NULL)) {
-					*target = crtas(word, word_len);
+					*target = crtss(word);
 					if (*target == NULL) {
-						return false;
+						goto error;
 					}
 				}
 			}
 			if (*iter == '\n') {
-				field_num = ENCLOSURE_TYPE;
+				field_num = ATTACHMENT_TYPE;
 			} else {
 				++field_num;
 			}
-			word_len = 0;
+			empty_string(word);
 		} else {
-			word[word_len++] = *iter;
+			if (catcs(word, *iter) == false) {
+				goto error;
+			}
 		}
 		++iter;
 	}
+	free_string(word);
 	return true;
+error:
+	free_string(word);
+	return false;
 }
 
 bool
@@ -116,10 +124,9 @@ populate_link_list_with_links_of_item(struct link_list *links, sqlite3_stmt *res
 	if (append_raw_link(links, res, ITEM_COLUMN_COMMENTS_URL) == false) {
 		return false;
 	}
-	if (append_enclosures(links, res) == false) {
+	if (append_attachments(links, res) == false) {
 		return false;
 	}
-	// TODO: APPEND LINKS OF HTML SUMMARY/CONTENT SOMEHOW
 	return true;
 
 }

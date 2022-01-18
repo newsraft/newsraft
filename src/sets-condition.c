@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include "feedeater.h"
 
@@ -10,8 +11,6 @@
 // to display error message just in front of disappointed user, rather than
 // silently writing them to log file leaving the user confused (moreover,
 // in most cases the log file is not even written).
-
-#define INIT_WORD_BUFF_SIZE 50 // do not set it to 0
 
 void
 free_set_condition(const struct set_condition *sc)
@@ -75,10 +74,15 @@ append_urls_of_tag_to_set_condition(const struct feed_tag *head_tag, struct set_
 		return 1;
 	}
 
+	// string "feed_url=?" (10) +
+	// longest size_t integer (20) +
+	// null terminator (1) +
+	// for luck lol (1) =
+	// 32
+	char word[32];
+	size_t word_len;
 	bool found_this_url_in_sc;
 	size_t index_of_url_in_sc;
-	char word[100];
-	size_t word_len;
 	const struct string **temp;
 
 	for (size_t i = 0; i < tag->urls_count; ++i) {
@@ -93,7 +97,7 @@ append_urls_of_tag_to_set_condition(const struct feed_tag *head_tag, struct set_
 		}
 
 		if (found_this_url_in_sc == true) {
-			word_len = sprintf(word, "feed_url=?%lu", index_of_url_in_sc + 1);
+			word_len = sprintf(word, "feed_url=?%zu", index_of_url_in_sc + 1);
 		} else {
 			temp = realloc(sc->urls, sizeof(struct string *) * (sc->urls_count + 1));
 			if (temp != NULL) {
@@ -103,7 +107,7 @@ append_urls_of_tag_to_set_condition(const struct feed_tag *head_tag, struct set_
 			}
 			++(sc->urls_count);
 			sc->urls[sc->urls_count - 1] = tag->urls[i];
-			word_len = sprintf(word, "feed_url=?%lu", sc->urls_count);
+			word_len = sprintf(word, "feed_url=?%zu", sc->urls_count);
 		}
 
 		if (catas(sc->db_cmd, word, word_len) == false) {
@@ -141,54 +145,48 @@ create_set_condition_for_multi_feed(const struct feed_tag *head_tag, const struc
 	}
 	sc->urls = NULL;
 	sc->urls_count = 0;
-
-	char c;
-	int error = 0;
-	size_t word_len = 0;
-	size_t i = 0;
-	size_t word_lim = INIT_WORD_BUFF_SIZE;
-	char *temp;
-
-	char *word = malloc(sizeof(char) * word_lim); // buffer for tags' names
+	struct string *word = crtes();
 	if (word == NULL) {
-		fprintf(stderr, "Not enough memory for word thing to create set condition!");
-		free_set_condition(sc);
+		fprintf(stderr, "Not enough memory for word buffer to create multi-feed condition!");
+		free_string(sc->db_cmd);
+		free(sc);
 		return NULL;
 	}
 
-	while (1) {
-		c = tags_expr->ptr[i++];
-		if (ISWHITESPACE(c)) {
+	uint8_t error = 0;
+	const char *i = tags_expr->ptr - 1;
+	while (true) {
+		++i;
+		if (ISWHITESPACE(*i)) {
 			continue;
-		} else if (c == '&' || c == '|' || c == ')' || c == '\0') {
-			if (word_len != 0) {
-				word[word_len] = '\0';
-				word_len = 0;
-				if (append_urls_of_tag_to_set_condition(head_tag, sc, word) != 0) {
+		} else if (*i == '&' || *i == '|' || *i == ')' || *i == '\0') {
+			if (word->len != 0) {
+				if (append_urls_of_tag_to_set_condition(head_tag, sc, word->ptr) != 0) {
 					error = 1;
 					break;
 				}
+				empty_string(word);
 			}
-			if (c == '&') {
+			if (*i == '&') {
 				if (catas(sc->db_cmd, " AND ", 5) == false) {
 					error = 1;
 					break;
 				}
-			} else if (c == '|') {
+			} else if (*i == '|') {
 				if (catas(sc->db_cmd, " OR ", 4) == false) {
 					error = 1;
 					break;
 				}
-			} else if (c == ')') {
+			} else if (*i == ')') {
 				if (catcs(sc->db_cmd, ')') == false) {
 					error = 1;
 					break;
 				}
-			} else if (c == '\0') {
+			} else if (*i == '\0') {
 				break;
 			}
-		} else if (c == '(') {
-			if (word_len == 0) {
+		} else if (*i == '(') {
+			if (word->len == 0) {
 				if (catcs(sc->db_cmd, '(') == false) {
 					error = 1;
 					break;
@@ -198,21 +196,14 @@ create_set_condition_for_multi_feed(const struct feed_tag *head_tag, const struc
 				break;
 			}
 		} else {
-			if (word_len == (word_lim - 1)) {
-				word_lim = word_lim * 2;
-				temp = realloc(word, sizeof(char) * word_lim);
-				if (temp != NULL) {
-					word = temp;
-				} else {
-					error = 1;
-					break;
-				}
+			if (catcs(word, *i) == false) {
+				error = 1;
+				break;
 			}
-			word[word_len++] = c;
 		}
 	}
 
-	free(word);
+	free_string(word);
 
 	if (error != 0) {
 		if (error == 1) {

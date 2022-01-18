@@ -30,20 +30,20 @@ db_init(void)
 			"language TEXT NOT NULL,"
 			"generator TEXT NOT NULL,"
 			"rights TEXT NOT NULL,"
-			"update_time INTEGER(8),"
-			"download_time INTEGER(8)"
+			"update_time INTEGER(8) NOT NULL," // update date in seconds since 1970
+			"download_time INTEGER(8) NOT NULL" // download date in seconds since 1970
 		");"
 		"CREATE TABLE IF NOT EXISTS items("
 			"feed_url TEXT NOT NULL," // url of feed this item belongs to
 			"title TEXT NOT NULL," // name of item
 			"guid TEXT NOT NULL,"
 			"link TEXT NOT NULL," // url to related resource
-			"unread INTEGER(1)," // 0 if item read and 1 if item unread
+			"unread INTEGER(1) NOT NULL," // 0 if item read and 1 if item unread
 			"enclosures TEXT NOT NULL,"
 			"authors TEXT NOT NULL,"
 			"categories TEXT NOT NULL,"
-			"pubdate INTEGER(8)," // publication date in seconds since 1970
-			"upddate INTEGER(8)," // update date in seconds since 1970
+			"pubdate INTEGER(8) NOT NULL," // publication date in seconds since 1970
+			"upddate INTEGER(8) NOT NULL," // update date in seconds since 1970
 			"comments_url TEXT NOT NULL,"
 			"summary TEXT NOT NULL,"
 			"content TEXT NOT NULL"

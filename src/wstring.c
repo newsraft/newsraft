@@ -148,24 +148,10 @@ trim_whitespace_from_wstring(struct wstring *wstr)
 	}
 
 	size_t left_edge = 0, right_edge = wstr->len - 1;
-	while ((*(wstr->ptr + left_edge) == L' '   ||
-	        *(wstr->ptr + left_edge) == L'\n'  ||
-	        *(wstr->ptr + left_edge) == L'\t'  ||
-	        *(wstr->ptr + left_edge) == L'\v'  ||
-	        *(wstr->ptr + left_edge) == L'\f'  ||
-	        *(wstr->ptr + left_edge) == L'\r') &&
-	       left_edge <= right_edge)
-	{
+	while (ISWIDEWHITESPACE(*(wstr->ptr + left_edge)) && left_edge <= right_edge) {
 		++left_edge;
 	}
-	while ((*(wstr->ptr + right_edge) == L' '   ||
-	        *(wstr->ptr + right_edge) == L'\n'  ||
-	        *(wstr->ptr + right_edge) == L'\t'  ||
-	        *(wstr->ptr + right_edge) == L'\v'  ||
-	        *(wstr->ptr + right_edge) == L'\f'  ||
-	        *(wstr->ptr + right_edge) == L'\r') &&
-	       right_edge >= left_edge)
-	{
+	while (ISWIDEWHITESPACE(*(wstr->ptr + right_edge)) && right_edge >= left_edge) {
 		--right_edge;
 	}
 

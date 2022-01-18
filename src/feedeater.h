@@ -285,6 +285,7 @@ void empty_string(struct string *str);
 void free_string(struct string *str);
 void trim_whitespace_from_string(struct string *str);
 struct wstring *convert_string_to_wstring(const struct string *src);
+struct string *convert_bytes_to_human_readable_size_string(const char *value);
 // wstring
 struct wstring *wcrtas(const wchar_t *src_ptr, size_t src_len);
 struct wstring *wcrtss(const struct wstring *src);
@@ -300,8 +301,6 @@ struct string *convert_wstring_to_string(const struct wstring *src);
 
 bool log_init(const char *path);
 void log_stop(void);
-
-struct string *convert_bytes_to_human_readable_size_string(const char *value);
 
 // Functions for processing XML tags.
 struct xml_tag *create_tag(void);

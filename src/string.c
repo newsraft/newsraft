@@ -200,3 +200,39 @@ convert_string_to_wstring(const struct string *src)
 	wstr->lim = wstr->len;
 	return wstr;
 }
+
+struct string *
+convert_bytes_to_human_readable_size_string(const char *value)
+{
+	int bytes;
+	if (sscanf(value, "%d", &bytes) != 1) {
+		FAIL("Can not convert \"%s\" string from bytes to human readable format!", value);
+		return NULL;
+	}
+	float size = bytes;
+	int prefix = 0;
+	while ((size > 100000) && (prefix < 3)) {
+		size = size / 1000;
+		++prefix;
+	}
+	// longest float integral part (40) +
+	// dot (1) +
+	// two digits after point (2) +
+	// space (1) +
+	// longest name of data measure (5) +
+	// null terminator (1) +
+	// for luck lol (1) =
+	// 51
+	char human_readable[51];
+	int length;
+	if (prefix == 1) {
+		length = sprintf(human_readable, "%.2f KB", size);
+	} else if (prefix == 2) {
+		length = sprintf(human_readable, "%.2f MB", size);
+	} else if (prefix == 0) {
+		length = sprintf(human_readable, "%.2f bytes", size);
+	} else {
+		length = sprintf(human_readable, "%.2f GB", size);
+	}
+	return crtas(human_readable, length);
+}

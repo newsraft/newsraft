@@ -43,3 +43,7 @@ Check out man page.
 # Contributing
 
 See [doc/contributing.md](https://gitlab.com/got2teas/feedeater/-/blob/main/doc/contributing.md).
+
+# Copying
+
+See [doc/license.txt](https://gitlab.com/got2teas/feedeater/-/blob/main/doc/license.txt).

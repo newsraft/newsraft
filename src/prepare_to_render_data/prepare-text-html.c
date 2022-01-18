@@ -148,6 +148,9 @@ start_handler(wchar_t *t, struct wstring *w, enum html_position *p, struct xml_t
 	else if (wcscmp(t, L"strong")   == 0) { /* TODO */                       return true; }
 	else if (wcscmp(t, L"label")    == 0) { /* just nothing */               return true; }
 	else if (wcscmp(t, L"textarea") == 0) { /* just nothing */               return true; }
+	else if (wcscmp(t, L"thead")    == 0) { /* just nothing */               return true; }
+	else if (wcscmp(t, L"tbody")    == 0) { /* just nothing */               return true; }
+	else if (wcscmp(t, L"tfoot")    == 0) { /* just nothing */               return true; }
 	else if (wcscmp(t, L"button")   == 0) { button_start_handler(w);         return true; }
 	else if (wcscmp(t, L"script")   == 0) { script_start_handler(p);         return true; }
 	else if (wcscmp(t, L"style")    == 0) { style_start_handler(p);          return true; }
@@ -173,6 +176,9 @@ end_handler(wchar_t *t, struct wstring *w, enum html_position *p, struct link_li
 	else if (wcscmp(t, L"strong")   == 0) { /* TODO */             return true; }
 	else if (wcscmp(t, L"label")    == 0) { /* just nothing */     return true; }
 	else if (wcscmp(t, L"textarea") == 0) { /* just nothing */     return true; }
+	else if (wcscmp(t, L"thead")    == 0) { /* just nothing */     return true; }
+	else if (wcscmp(t, L"tbody")    == 0) { /* just nothing */     return true; }
+	else if (wcscmp(t, L"tfoot")    == 0) { /* just nothing */     return true; }
 	else if (wcscmp(t, L"button")   == 0) { button_end_handler(w); return true; }
 	else if (wcscmp(t, L"script")   == 0) { script_end_handler(p); return true; }
 	else if (wcscmp(t, L"style")    == 0) { style_end_handler(p);  return true; }

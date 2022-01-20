@@ -75,6 +75,7 @@ executable(
 		'src/db-items.c',
 		'src/config.c',
 		'src/config-defaults.c',
+		'src/config-verifier.c',
 		'src/sets.c',
 		'src/sets-tags.c',
 		'src/sets-condition.c',

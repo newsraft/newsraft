@@ -2,6 +2,9 @@
 #include <string.h>
 #include "feedeater.h"
 
+#define MAX_METADATA_ENTRY_NAME_LENGTH 19
+// Currently it is "max-summary-content".
+
 struct data_entry {
 	const char *const field;            // Name of field to match in config_contents_meta_data.
 	const char *const prefix;           // String to write before entry data.
@@ -10,6 +13,7 @@ struct data_entry {
 	const bool does_it_have_type_header_at_the_beginning;
 };
 
+// ATTENTION! Maximal length of meta data entry name has to be reflected in MAX_METADATA_ENTRY_NAME_LENGTH.
 static const struct data_entry entries[] = {
 	{"feed",       "Feed: ",       6,  ITEM_COLUMN_FEED_URL,     false},
 	{"title",      "Title: ",      7,  ITEM_COLUMN_TITLE,        true},
@@ -142,23 +146,23 @@ append_max_summary_content(struct render_block **list, sqlite3_stmt *res)
 }
 
 static inline bool
-process_specifier(const struct string *value, struct render_block **list, sqlite3_stmt *res)
+process_specifier(const char *entry, struct render_block **list, sqlite3_stmt *res)
 {
-	if (strcmp(value->ptr, "published") == 0) {
+	if (strcmp(entry, "published") == 0) {
 		if (append_date(list, res, ITEM_COLUMN_PUBDATE, "Published: ", 11) == false) {
 			return false;
 		}
-	} else if (strcmp(value->ptr, "updated") == 0) {
+	} else if (strcmp(entry, "updated") == 0) {
 		if (append_date(list, res, ITEM_COLUMN_UPDDATE, "Updated: ", 9) == false) {
 			return false;
 		}
-	} else if (strcmp(value->ptr, "max-summary-content") == 0) {
+	} else if (strcmp(entry, "max-summary-content") == 0) {
 		if (append_max_summary_content(list, res) == false) {
 			return false;
 		}
 	} else {
 		for (size_t i = 0; i < COUNTOF(entries); ++i) {
-			if (strcmp(value->ptr, entries[i].field) == 0) {
+			if (strcmp(entry, entries[i].field) == 0) {
 				if (append_meta_data_entry(list, res, i) == false) {
 					return false;
 				}
@@ -172,30 +176,25 @@ process_specifier(const struct string *value, struct render_block **list, sqlite
 bool
 join_render_blocks_of_item_data(struct render_block **list, sqlite3_stmt *res)
 {
-	struct string *value = crtes();
-	if (value == NULL) {
-		return false;
-	}
+	char entry[MAX_METADATA_ENTRY_NAME_LENGTH + 1];
+	size_t entry_len = 0;
 	const char *i = cfg.contents_meta_data;
 	while (true) {
 		if ((*i == ',') || (*i == '\0')) {
-			if (process_specifier(value, list, res) == false) {
-				goto error;
+			entry[entry_len] = '\0';
+			entry_len = 0;
+			if (process_specifier(entry, list, res) == false) {
+				return false;
 			}
-			empty_string(value);
+			if (*i == '\0') {
+				break;
+			}
+		} else if (entry_len == MAX_METADATA_ENTRY_NAME_LENGTH) {
+			entry[entry_len] = '\0';
 		} else {
-			if (catcs(value, *i) == false) {
-				goto error;
-			}
-		}
-		if (*i == '\0') {
-			break;
+			entry[entry_len++] = *i;
 		}
 		++i;
 	}
-	free_string(value);
 	return true;
-error:
-	free_string(value);
-	return false;
 }

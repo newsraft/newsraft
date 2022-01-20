@@ -62,6 +62,11 @@ load_config(void)
 		success = false;
 	}
 
+	if ((success == true) && (verify_config_values() == false)) {
+		fprintf(stderr, "Verification of the configurational values failed!\n");
+		success = false;
+	}
+
 	if (success == false) {
 		free_config_data();
 	}

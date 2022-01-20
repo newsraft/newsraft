@@ -228,6 +228,7 @@ void free_db_path(void);
 // config processing
 void free_config_data(void);
 bool assign_default_values_to_empty_config_strings(void);
+bool verify_config_values(void);
 bool load_config(void);
 
 // date parsing

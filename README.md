@@ -25,11 +25,7 @@ Feedeater is a piece of software that aggregates syndicated web content such as 
 To build an executable:
 
 ```
-meson setup builddir
-```
-
-```
-meson compile -C builddir
+meson setup builddir && meson compile -C builddir
 ```
 
 To generate a man page:

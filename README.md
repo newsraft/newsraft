@@ -10,6 +10,8 @@ Feedeater is a piece of software that aggregates syndicated web content such as 
 
 * [expat](https://github.com/libexpat/libexpat) >= 2.2.10
 
+* [tidy](http://www.html-tidy.org) >= 5.8.0
+
 * [sqlite](https://www.sqlite.org) >= 3.35.4
 
 * [gcc](https://gcc.gnu.org) >= 8.1.0 (build-time)

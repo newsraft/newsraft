@@ -1,5 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
+#include <tidy.h>
+#include <tidybuffio.h>
 #include "render_data.h"
 
 #define MAX_NESTED_LISTS_DEPTH 10
@@ -9,7 +11,9 @@
 
 enum html_position {
 	HTML_NONE = 0,
-	HTML_PRE = 1,
+	HTML_TABLE = 1,
+	HTML_TABLE_ROW = 2,
+	HTML_TABLE_CELL = 4,
 };
 
 enum list_type {
@@ -22,9 +26,9 @@ struct list_level {
 	uint16_t length;
 };
 
-enum html_position html_pos;
 static uint8_t list_depth;
 static struct list_level list_levels[MAX_NESTED_LISTS_DEPTH];
+static struct html_table *table = NULL;
 
 static void
 add_newlines(struct line *line, struct wstring *text, uint8_t count)
@@ -45,19 +49,16 @@ add_newlines(struct line *line, struct wstring *text, uint8_t count)
 }
 
 static inline void
-br_handler(struct line *line, struct wstring *text)
-{
-	line_char(line, L'\n', text);
-}
-
-static inline void
 hr_handler(struct line *line, struct wstring *text)
 {
+	size_t temp_indent = line->indent;
+	line->indent = 0;
 	add_newlines(line, text, 1);
-	for (size_t i = 0; i < line->lim; ++i) {
+	for (size_t i = 1; i < line->lim; ++i) {
 		line_char(line, L'─', text);
 	}
 	line_char(line, L'\n', text);
+	line->indent = temp_indent;
 }
 
 static inline void
@@ -144,169 +145,215 @@ figure_end_handler(struct line *line, struct wstring *text)
 }
 
 static inline void
-pre_start_handler(struct line *line, struct wstring *text, enum html_position *pos)
+cell_start_handler(enum html_position *pos)
 {
-	*pos |= HTML_PRE;
-	add_newlines(line, text, 2);
+	if ((*pos & HTML_TABLE_ROW) == 0) {
+		return;
+	}
+	*pos |= HTML_TABLE_CELL;
+	expand_last_row_in_html_table_by_one_cell(table);
 }
 
 static inline void
-pre_end_handler(struct line *line, struct wstring *text, enum html_position *pos)
+cell_end_handler(enum html_position *pos)
 {
-	*pos &= ~HTML_PRE;
-	add_newlines(line, text, 2);
+	*pos &= ~HTML_TABLE_CELL;
+}
+
+static inline void
+row_start_handler(enum html_position *pos)
+{
+	if ((*pos & HTML_TABLE) == 0) {
+		return;
+	}
+	*pos |= HTML_TABLE_ROW;
+	expand_html_table_by_one_row(table);
+}
+
+static inline void
+row_end_handler(enum html_position *pos)
+{
+	*pos &= ~HTML_TABLE_ROW;
+}
+
+static inline void
+table_start_handler(enum html_position *pos)
+{
+	if (table != NULL) {
+		// TODO NESTED TABLES
+		return;
+	}
+	*pos |= HTML_TABLE;
+	if ((table = create_html_table()) == NULL) {
+		*pos &= ~HTML_TABLE;
+	}
+}
+
+static inline void
+table_end_handler(enum html_position *pos)
+{
+	*pos &= ~HTML_TABLE;
+	/* print_html_table(table); */
+	free_html_table(table);
+	table = NULL;
 }
 
 static inline bool
-start_handler(wchar_t *t, struct line *l, struct wstring *w, enum html_position *p)
+start_handler(TidyTagId t, struct line *l, struct wstring *w, enum html_position *p)
 {
-	     if (wcscmp(t, L"p")          == 0) { add_newlines(l, w, 2);          return true; }
-	else if (wcscmp(t, L"details")    == 0) { add_newlines(l, w, 2);          return true; }
-	else if (wcscmp(t, L"br")         == 0) { br_handler(l, w);               return true; }
-	else if (wcscmp(t, L"li")         == 0) { li_start_handler(l, w);         return true; }
-	else if (wcscmp(t, L"ul")         == 0) { ul_start_handler(l, w);         return true; }
-	else if (wcscmp(t, L"ol")         == 0) { ol_start_handler(l, w);         return true; }
-	else if (wcscmp(t, L"h1")         == 0) { add_newlines(l, w, 3);          return true; }
-	else if (wcscmp(t, L"h2")         == 0) { add_newlines(l, w, 3);          return true; }
-	else if (wcscmp(t, L"h3")         == 0) { add_newlines(l, w, 3);          return true; }
-	else if (wcscmp(t, L"h4")         == 0) { add_newlines(l, w, 3);          return true; }
-	else if (wcscmp(t, L"h5")         == 0) { add_newlines(l, w, 3);          return true; }
-	else if (wcscmp(t, L"h6")         == 0) { add_newlines(l, w, 3);          return true; }
-	else if (wcscmp(t, L"div")        == 0) { add_newlines(l, w, 1);          return true; }
-	else if (wcscmp(t, L"section")    == 0) { add_newlines(l, w, 1);          return true; }
-	else if (wcscmp(t, L"footer")     == 0) { add_newlines(l, w, 1);          return true; }
-	else if (wcscmp(t, L"summary")    == 0) { add_newlines(l, w, 1);          return true; }
-	else if (wcscmp(t, L"form")       == 0) { add_newlines(l, w, 1);          return true; }
-	else if (wcscmp(t, L"hr")         == 0) { hr_handler(l, w);               return true; }
-	else if (wcscmp(t, L"figcaption") == 0) { add_newlines(l, w, 1);          return true; }
-	else if (wcscmp(t, L"figure")     == 0) { figure_start_handler(l, w);     return true; }
-	else if (wcscmp(t, L"blockquote") == 0) { blockquote_start_handler(l, w); return true; }
-	else if (wcscmp(t, L"pre")        == 0) { pre_start_handler(l, w, p);     return true; }
+	     if (t == TidyTag_P)          { add_newlines(l, w, 2);          return true; }
+	else if (t == TidyTag_DETAILS)    { add_newlines(l, w, 2);          return true; }
+	else if (t == TidyTag_BR)         { line_char(l, L'\n', w);         return true; }
+	else if (t == TidyTag_LI)         { li_start_handler(l, w);         return true; }
+	else if (t == TidyTag_UL)         { ul_start_handler(l, w);         return true; }
+	else if (t == TidyTag_OL)         { ol_start_handler(l, w);         return true; }
+	else if (t == TidyTag_H1)         { add_newlines(l, w, 3);          return true; }
+	else if (t == TidyTag_H2)         { add_newlines(l, w, 3);          return true; }
+	else if (t == TidyTag_H3)         { add_newlines(l, w, 3);          return true; }
+	else if (t == TidyTag_H4)         { add_newlines(l, w, 3);          return true; }
+	else if (t == TidyTag_H5)         { add_newlines(l, w, 3);          return true; }
+	else if (t == TidyTag_H6)         { add_newlines(l, w, 3);          return true; }
+	else if (t == TidyTag_DIV)        { add_newlines(l, w, 1);          return true; }
+	else if (t == TidyTag_SECTION)    { add_newlines(l, w, 1);          return true; }
+	else if (t == TidyTag_FOOTER)     { add_newlines(l, w, 1);          return true; }
+	else if (t == TidyTag_SUMMARY)    { add_newlines(l, w, 1);          return true; }
+	else if (t == TidyTag_FORM)       { add_newlines(l, w, 1);          return true; }
+	else if (t == TidyTag_HR)         { hr_handler(l, w);               return true; }
+	else if (t == TidyTag_FIGCAPTION) { add_newlines(l, w, 1);          return true; }
+	else if (t == TidyTag_FIGURE)     { figure_start_handler(l, w);     return true; }
+	else if (t == TidyTag_BLOCKQUOTE) { blockquote_start_handler(l, w); return true; }
+	else if (t == TidyTag_TD)         { cell_start_handler(p);          return true; }
+	else if (t == TidyTag_TH)         { cell_start_handler(p);          return true; }
+	else if (t == TidyTag_TR)         { row_start_handler(p);           return true; }
+	else if (t == TidyTag_TABLE)      { table_start_handler(p);         return true; }
+	else if (t == TidyTag_PRE)        { add_newlines(l, w, 2);          return true; }
+	else if (t == TidyTag_OPTION)     { add_newlines(l, w, 1);          return true; }
 
 	return false;
 }
 
 static inline bool
-end_handler(wchar_t *t, struct line *l, struct wstring *w, enum html_position *p)
+end_handler(TidyTagId t, struct line *l, struct wstring *w, enum html_position *p)
 {
-	     if (wcscmp(t, L"p")          == 0) { add_newlines(l, w, 2);        return true; }
-	else if (wcscmp(t, L"details")    == 0) { add_newlines(l, w, 2);        return true; }
-	else if (wcscmp(t, L"li")         == 0) { add_newlines(l, w, 1);        return true; }
-	else if (wcscmp(t, L"ul")         == 0) { ul_end_handler(l, w);         return true; }
-	else if (wcscmp(t, L"ol")         == 0) { ul_end_handler(l, w);         return true; }
-	else if (wcscmp(t, L"h1")         == 0) { add_newlines(l, w, 2);        return true; }
-	else if (wcscmp(t, L"h2")         == 0) { add_newlines(l, w, 2);        return true; }
-	else if (wcscmp(t, L"h3")         == 0) { add_newlines(l, w, 2);        return true; }
-	else if (wcscmp(t, L"h4")         == 0) { add_newlines(l, w, 2);        return true; }
-	else if (wcscmp(t, L"h5")         == 0) { add_newlines(l, w, 2);        return true; }
-	else if (wcscmp(t, L"h6")         == 0) { add_newlines(l, w, 2);        return true; }
-	else if (wcscmp(t, L"div")        == 0) { add_newlines(l, w, 1);        return true; }
-	else if (wcscmp(t, L"section")    == 0) { add_newlines(l, w, 1);        return true; }
-	else if (wcscmp(t, L"footer")     == 0) { add_newlines(l, w, 1);        return true; }
-	else if (wcscmp(t, L"summary")    == 0) { add_newlines(l, w, 1);        return true; }
-	else if (wcscmp(t, L"form")       == 0) { add_newlines(l, w, 1);        return true; }
-	else if (wcscmp(t, L"figcaption") == 0) { add_newlines(l, w, 1);        return true; }
-	else if (wcscmp(t, L"figure")     == 0) { figure_end_handler(l, w);     return true; }
-	else if (wcscmp(t, L"blockquote") == 0) { blockquote_end_handler(l, w); return true; }
-	else if (wcscmp(t, L"pre")        == 0) { pre_end_handler(l, w, p);     return true; }
+	     if (t == TidyTag_P)          { add_newlines(l, w, 2);        return true; }
+	else if (t == TidyTag_DETAILS)    { add_newlines(l, w, 2);        return true; }
+	else if (t == TidyTag_LI)         { add_newlines(l, w, 1);        return true; }
+	else if (t == TidyTag_UL)         { ul_end_handler(l, w);         return true; }
+	else if (t == TidyTag_OL)         { ul_end_handler(l, w);         return true; }
+	else if (t == TidyTag_H1)         { add_newlines(l, w, 2);        return true; }
+	else if (t == TidyTag_H2)         { add_newlines(l, w, 2);        return true; }
+	else if (t == TidyTag_H3)         { add_newlines(l, w, 2);        return true; }
+	else if (t == TidyTag_H4)         { add_newlines(l, w, 2);        return true; }
+	else if (t == TidyTag_H5)         { add_newlines(l, w, 2);        return true; }
+	else if (t == TidyTag_H6)         { add_newlines(l, w, 2);        return true; }
+	else if (t == TidyTag_DIV)        { add_newlines(l, w, 1);        return true; }
+	else if (t == TidyTag_SECTION)    { add_newlines(l, w, 1);        return true; }
+	else if (t == TidyTag_FOOTER)     { add_newlines(l, w, 1);        return true; }
+	else if (t == TidyTag_SUMMARY)    { add_newlines(l, w, 1);        return true; }
+	else if (t == TidyTag_FORM)       { add_newlines(l, w, 1);        return true; }
+	else if (t == TidyTag_FIGCAPTION) { add_newlines(l, w, 1);        return true; }
+	else if (t == TidyTag_FIGURE)     { figure_end_handler(l, w);     return true; }
+	else if (t == TidyTag_BLOCKQUOTE) { blockquote_end_handler(l, w); return true; }
+	else if (t == TidyTag_TD)         { cell_end_handler(p);          return true; }
+	else if (t == TidyTag_TH)         { cell_end_handler(p);          return true; }
+	else if (t == TidyTag_TR)         { row_end_handler(p);           return true; }
+	else if (t == TidyTag_TABLE)      { table_end_handler(p);         return true; }
+	else if (t == TidyTag_PRE)        { add_newlines(l, w, 2);        return true; }
+	else if (t == TidyTag_OPTION)     { add_newlines(l, w, 1);        return true; }
 
 	return false;
 }
 
-bool
-render_text_html(const struct wstring *wstr, struct line *line, struct wstring *t, bool is_first_call)
+static void
+cat_tag_to_line(struct line *line, const char *tag_name, TidyAttr *atts, bool is_start)
 {
-	struct xml_tag *tag = create_tag();
-	if (tag == NULL) {
-		FAIL("Not enough memory for tag buffer to render HTML!");
-		return false;
-	}
+	(void)line;
+	(void)tag_name;
+	(void)atts;
+	(void)is_start;
+	return;
+}
 
-	bool in_tag = false;
-	bool in_entity = false;
-	bool found_tag;
-
-	wchar_t entity_name[MAX_ENTITY_NAME_LENGTH + 1];
-	size_t entity_len;
-	const wchar_t *entity_value;
-
-	if (is_first_call == true) {
-		list_depth = 0;
-		html_pos = HTML_NONE;
-	}
-
-	const wchar_t *i = wstr->ptr;
-	while (*i != L'\0') {
-		if (in_entity == true) { // All entity characters go here.
-			if (*i == L';') {
-				in_entity = false;
-				entity_name[entity_len] = L'\0';
-				entity_value = translate_html_entity(entity_name);
-				if (entity_value != NULL) {
-					line_string(line, entity_value, t);
-				} else {
-					line_char(line, L'&', t);
-					line_string(line, entity_name, t);
-					line_char(line, L';', t);
-				}
-			} else {
-				if (entity_len == MAX_ENTITY_NAME_LENGTH) {
-					in_entity = false;
-					entity_name[entity_len] = L'\0';
-					line_char(line, L'&', t);
-					line_string(line, entity_name, t);
-				} else {
-					entity_name[entity_len++] = *i;
-				}
-			}
-		} else if (in_tag == true) { // All tag characters go here.
-			if (append_wchar_to_tag(tag, *i) == XML_TAG_DONE) {
-				found_tag = false;
-				in_tag = false;
-				if (tag->atts[0].name->ptr[0] == L'/') {
-					found_tag = end_handler(tag->atts[0].name->ptr + 1, line, t, &html_pos);
-				} else {
-					found_tag = start_handler(tag->atts[0].name->ptr, line, t, &html_pos);
-				}
-				if (found_tag == false) {
-					line_char(line, L'<', t);
-					render_text_html(tag->buf, line, t, false);
-					line_char(line, L'>', t);
-				}
-			}
-		} else {
-			if (*i == L'<') {
-				in_tag = true;
-				empty_tag(tag);
-			} else if (*i == L'&') {
-				in_entity = true;
-				entity_len = 0;
-			} else if (((html_pos & HTML_PRE) == 0) &&
-			           ((*i == L' ') || (*i == L'\n') || (*i == L'\t')))
-			{
-				if ((line->len != 0) &&
-					(line->ptr[line->len - 1] != L' ') &&
-					(line->ptr[line->len - 1] != L'\n') &&
-					(line->ptr[line->len - 1] != L'\t'))
-				{
-					if (line_char(line, L' ', t) == false) {
-						goto error;
+static void
+dumpNode(TidyDoc *tdoc, TidyNode tnod, TidyBuffer *buf, struct line *line, struct wstring *text, enum html_position *pos)
+{
+	const char *child_name;
+	TidyTagId child_id;
+	TidyAttr child_atts;
+	for (TidyNode child = tidyGetChild(tnod); child; child = tidyGetNext(child)) {
+		child_name = tidyNodeGetName(child);
+		child_id = tidyNodeGetId(child);
+		child_atts = tidyAttrFirst(child);
+		if (start_handler(child_id, line, text, pos) == false) {
+			cat_tag_to_line(line, child_name, &child_atts, true);
+		}
+		if (tidyNodeGetType(child) == TidyNode_Text) {
+			if (tidyNodeHasText(*tdoc, child) == true) {
+				tidyBufClear(buf);
+				tidyNodeGetValue(*tdoc, child, buf);
+				if (buf->bp != NULL) {
+					struct string *str = crtas((char *)buf->bp, strlen((char*)buf->bp));
+					if (str != NULL) {
+						struct wstring *wstr = convert_string_to_wstring(str);
+						free_string(str);
+						if (wstr != NULL) {
+							line_string(line, wstr->ptr, text);
+							free_wstring(wstr);
+						}
 					}
-				}
-			} else {
-				if (line_char(line, *i, t) == false) {
-					goto error;
 				}
 			}
 		}
-		++i;
+		dumpNode(tdoc, child, buf, line, text, pos);
+		if (end_handler(child_id, line, text, pos) == false) {
+			cat_tag_to_line(line, child_name, &child_atts, false);
+		}
+	}
+}
+
+bool
+render_text_html(const struct wstring *wstr, struct line *text_line, struct wstring *text, bool is_first_call)
+{
+	enum html_position html_pos = HTML_NONE;
+	if (is_first_call == true) {
+		list_depth = 0;
 	}
 
-	free_tag(tag);
-	return true;
+	TidyDoc tdoc = tidyCreate();
+	TidyBuffer tempbuf = {0};
+	TidyBuffer tidy_errbuf = {0};
 
-error:
-	FAIL("Not enough memory for rendering HTML!");
-	free_tag(tag);
-	return false;
+	tidyBufInit(&tempbuf);
+
+	tidySetErrorBuffer(tdoc, &tidy_errbuf);
+	tidyOptSetInt(tdoc, TidyWrapLen, 0); // disable wrapping
+	tidyOptSetBool(tdoc, TidyMakeBare, true); // use plain quotes instead fancy ones
+	tidyOptSetBool(tdoc, TidyOmitOptionalTags, false);
+	tidyOptSetBool(tdoc, TidyCoerceEndTags, true);
+
+	// Convert entities to characters.
+	tidyOptSetBool(tdoc, TidyAsciiChars, true);
+	tidyOptSetBool(tdoc, TidyQuoteNbsp, false);
+	tidyOptSetBool(tdoc, TidyQuoteMarks, false);
+	tidyOptSetBool(tdoc, TidyQuoteAmpersand, false);
+	tidyOptSetBool(tdoc, TidyPreserveEntities, false);
+
+	struct string *str = convert_wstring_to_string(wstr);
+	tidyParseString(tdoc, str->ptr);
+	tidyCleanAndRepair(tdoc);
+	tidyRunDiagnostics(tdoc);
+
+	dumpNode(&tdoc, tidyGetBody(tdoc), &tempbuf, text_line, text, &html_pos);
+
+	if (tidy_errbuf.bp != NULL) {
+		INFO("Tidy report:\n%s", tidy_errbuf.bp);
+	} else {
+		INFO("Tidy run silently.");
+	}
+
+	tidyBufFree(&tempbuf);
+	tidyBufFree(&tidy_errbuf);
+	tidyRelease(tdoc);
+	free_string(str);
+	return true;
 }

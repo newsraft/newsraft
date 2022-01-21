@@ -209,7 +209,7 @@ void free_render_blocks(struct render_block *first_block);
 bool populate_link_list_with_links_of_item(struct link_list *links, sqlite3_stmt *res);
 bool complete_urls_of_links(struct link_list *links, sqlite3_stmt *res);
 struct string *generate_link_list_string_for_pager(const struct link_list *links);
-bool add_another_url_to_trim_link_list(struct link_list *links, char *url, size_t url_len);
+bool add_another_url_to_trim_link_list(struct link_list *links, const char *url, size_t url_len);
 void free_trim_link_list(const struct link_list *links);
 bool join_links_render_block(struct render_block **contents, struct link_list *links);
 int enter_item_contents_menu_loop(int rowid);
@@ -302,17 +302,6 @@ struct string *convert_wstring_to_string(const struct wstring *src);
 
 bool log_init(const char *path);
 void log_stop(void);
-
-// Functions for processing XML tags.
-struct xml_tag *create_tag(void);
-enum xml_tag_status append_wchar_to_tag(struct xml_tag *tag, wchar_t wc);
-bool append_array_to_tag(struct xml_tag *tag, const wchar_t *src, size_t src_len);
-const struct wstring *get_value_of_xml_attribute(const struct xml_tag *tag, const wchar_t *attr);
-void empty_tag(struct xml_tag *tag);
-void free_tag(struct xml_tag *tag);
-
-// Common functions for processing XML.
-const wchar_t *translate_html_entity(wchar_t *entity);
 
 // Download, process and store new items of feed.
 // See "update_feed" directory for implementation.

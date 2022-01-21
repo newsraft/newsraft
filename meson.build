@@ -89,8 +89,6 @@ executable(
 		'src/items-links.c',
 		'src/items-content.c',
 		'src/items-metadata.c',
-		'src/html-entity.c',
-		'src/html-tag.c',
 		'src/update_feed/update_feed.c',
 		'src/update_feed/bucket.c',
 		'src/update_feed/bucket-feed.c',
@@ -118,12 +116,14 @@ executable(
 		'src/render_data/line.c',
 		'src/render_data/render-text-plain.c',
 		'src/render_data/render-text-html.c',
+		'src/render_data/render-text-html-table.c',
 	],
 	dependencies: [
 		dependency('ncursesw'),
 		dependency('libcurl'),
 		dependency('expat'),
 		dependency('sqlite3'),
+		dependency('tidy'),
 	],
 	#link_args: ['-static'],
 )

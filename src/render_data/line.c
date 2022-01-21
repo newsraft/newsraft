@@ -25,6 +25,10 @@ line_char(struct line *line, wchar_t c, struct wstring *target)
 	if (line->len != line->lim) {
 		return true;
 	}
+	if (line->ptr[line->len - 1] == L' ') {
+		line->pin = SIZE_MAX;
+		--(line->len);
+	}
 	if (line->pin == SIZE_MAX) {
 		wcatas(target, line->ptr, line->len);
 		line->len = 0;

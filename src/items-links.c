@@ -2,7 +2,7 @@
 #include "feedeater.h"
 
 bool
-add_another_url_to_trim_link_list(struct link_list *links, char *url, size_t url_len)
+add_another_url_to_trim_link_list(struct link_list *links, const char *url, size_t url_len)
 {
 	struct link *temp = realloc(links->list, sizeof(struct link) * (links->len + 1));
 	if (temp == NULL) {

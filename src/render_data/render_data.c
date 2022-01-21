@@ -34,14 +34,14 @@ render_data(const struct render_block *first_block)
 		return NULL;
 	}
 	struct line line;
-	line.ptr = malloc(sizeof(wchar_t) * list_menu_width);
+	line.ptr = malloc(sizeof(wchar_t) * (list_menu_width + 1));
 	if (line.ptr == NULL) {
 		FAIL("Not enough memory for line buffer to render data!");
 		free_wstring(text);
 		return NULL;
 	}
 	line.len = 0;
-	line.lim = list_menu_width;
+	line.lim = list_menu_width + 1;
 	line.pin = SIZE_MAX;
 	line.indent = 0;
 	bool found_handler;

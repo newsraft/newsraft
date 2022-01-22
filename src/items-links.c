@@ -153,7 +153,8 @@ generate_link_list_string_for_pager(const struct link_list *links)
 			if (catcs(str, '\n') == false) { goto error; }
 		}
 		is_first_link = false;
-		prefix_len = snprintf(prefix, LINK_PREFIX_SIZE, "[%zu]: ", i + 1);
+		// non-breaking space below the parentheses --------> ( )
+		prefix_len = snprintf(prefix, LINK_PREFIX_SIZE, "[%zu]: ", i + 1);
 #undef LINK_PREFIX_SIZE
 		if (catas(str, prefix, prefix_len) == false) { goto error; }
 		if (catss(str, links->list[i].url) == false) { goto error; }

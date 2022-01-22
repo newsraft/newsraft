@@ -69,7 +69,7 @@ style_end_handler(enum html_position *pos)
 }
 
 static void
-add_url_mark(struct string *text, const char *url, const char *title, size_t title_len, struct link_list *links, const char *url_type)
+add_url_mark(struct string *text, const char *url, const char *title, size_t title_len, struct link_list *links, const char *data_type)
 {
 	if (url == NULL) {
 		return;
@@ -82,7 +82,7 @@ add_url_mark(struct string *text, const char *url, const char *title, size_t tit
 	// Add link mark to HTML content.
 	char *url_mark;
 	size_t url_mark_len = 0;
-	if (url_type == NULL) {
+	if (data_type == NULL) {
 		if ((title != NULL) && (title_len != 0)) {
 			url_mark_len = snprintf(NULL, 0, " [%zu, \"%s\"]", links->len + 1, title);
 			if ((url_mark = malloc(sizeof(char) * (url_mark_len + 1))) == NULL) {
@@ -98,17 +98,17 @@ add_url_mark(struct string *text, const char *url, const char *title, size_t tit
 		}
 	} else {
 		if ((title != NULL) && (title_len != 0)) {
-			url_mark_len = snprintf(NULL, 0, " [%zu, %s \"%s\"]", links->len + 1, url_type, title);
+			url_mark_len = snprintf(NULL, 0, " [%zu, %s \"%s\"]", links->len + 1, data_type, title);
 			if ((url_mark = malloc(sizeof(char) * (url_mark_len + 1))) == NULL) {
 				return;
 			}
-			snprintf(url_mark, url_mark_len + 1, " [%zu, %s \"%s\"]", links->len + 1, url_type, title);
+			snprintf(url_mark, url_mark_len + 1, " [%zu, %s \"%s\"]", links->len + 1, data_type, title);
 		} else {
-			url_mark_len = snprintf(NULL, 0, " [%zu, %s]", links->len + 1, url_type);
+			url_mark_len = snprintf(NULL, 0, " [%zu, %s]", links->len + 1, data_type);
 			if ((url_mark = malloc(sizeof(char) * (url_mark_len + 1))) == NULL) {
 				return;
 			}
-			snprintf(url_mark, url_mark_len + 1, " [%zu, %s]", links->len + 1, url_type);
+			snprintf(url_mark, url_mark_len + 1, " [%zu, %s]", links->len + 1, data_type);
 		}
 	}
 	catas(text, url_mark, url_mark_len);
@@ -119,23 +119,28 @@ add_url_mark(struct string *text, const char *url, const char *title, size_t tit
 }
 
 static inline void
-a_end_handler(struct string *text, struct link_list *links, const TidyAttr *attrs)
+a_end_handler(struct string *text, struct link_list *links, const TidyAttr *atts)
 {
-	const char *url = get_value_of_xml_attribute(attrs, "href");
-	add_url_mark(text, url, NULL, 0, links, NULL);
+	const char *url = get_value_of_xml_attribute(atts, "href");
+	const char *title = get_value_of_xml_attribute(atts, "title");
+	size_t title_len;
+	if (title != NULL) {
+		title_len = strlen(title);
+	}
+	add_url_mark(text, url, title, title_len, links, NULL);
 }
 
 static inline void
-img_start_handler(struct string *text, const TidyAttr *attrs, struct link_list *links)
+img_start_handler(struct string *text, const TidyAttr *atts, struct link_list *links)
 {
-	const char *url = get_value_of_xml_attribute(attrs, "src");
-	const char *title = get_value_of_xml_attribute(attrs, "title");
+	const char *url = get_value_of_xml_attribute(atts, "src");
+	const char *title = get_value_of_xml_attribute(atts, "title");
 	size_t title_len;
 	if (title != NULL) {
 		title_len = strlen(title);
 	}
 	if ((title == NULL) || (title_len == 0)) {
-		title = get_value_of_xml_attribute(attrs, "alt");
+		title = get_value_of_xml_attribute(atts, "alt");
 		if (title != NULL) {
 			title_len = strlen(title);
 		}
@@ -161,6 +166,17 @@ iframe_start_handler(struct string *text, const TidyAttr *attrs, struct link_lis
 	add_url_mark(text, url, title, title_len, links, "frame");
 }
 
+static inline void
+embed_start_handler(struct string *text, const TidyAttr *attrs, struct link_list *links)
+{
+	const char *url = get_value_of_xml_attribute(attrs, "src");
+	const char *type = get_value_of_xml_attribute(attrs, "type");
+	if (type == NULL) {
+		type = "embed";
+	}
+	add_url_mark(text, url, NULL, 0, links, type);
+}
+
 static inline bool
 start_handler(TidyTagId t, struct string *w, enum html_position *p, struct link_list *l, const TidyAttr *a)
 {
@@ -169,6 +185,7 @@ start_handler(TidyTagId t, struct string *w, enum html_position *p, struct link_
 	else if (t == TidyTag_A)        { /* just nothing */             return true; }
 	else if (t == TidyTag_IMG)      { img_start_handler(w, a, l);    return true; }
 	else if (t == TidyTag_IFRAME)   { iframe_start_handler(w, a, l); return true; }
+	else if (t == TidyTag_EMBED)    { embed_start_handler(w, a, l);  return true; }
 	else if (t == TidyTag_VIDEO)    { /* TODO */                     return true; }
 	else if (t == TidyTag_SOURCE)   { /* TODO */                     return true; }
 	else if (t == TidyTag_Q)        { q_handler(w);                  return true; }
@@ -185,6 +202,7 @@ start_handler(TidyTagId t, struct string *w, enum html_position *p, struct link_
 	else if (t == TidyTag_THEAD)    { /* just nothing */             return true; }
 	else if (t == TidyTag_TBODY)    { /* just nothing */             return true; }
 	else if (t == TidyTag_TFOOT)    { /* just nothing */             return true; }
+	else if (t == TidyTag_NOSCRIPT) { /* just nothing */             return true; }
 	else if (t == TidyTag_BUTTON)   { button_start_handler(w);       return true; }
 	else if (t == TidyTag_SCRIPT)   { script_start_handler(p);       return true; }
 	else if (t == TidyTag_STYLE)    { style_start_handler(p);        return true; }
@@ -213,6 +231,7 @@ end_handler(TidyTagId t, struct string *w, enum html_position *p, struct link_li
 	else if (t == TidyTag_THEAD)    { /* just nothing */      return true; }
 	else if (t == TidyTag_TBODY)    { /* just nothing */      return true; }
 	else if (t == TidyTag_TFOOT)    { /* just nothing */      return true; }
+	else if (t == TidyTag_NOSCRIPT) { /* just nothing */      return true; }
 	else if (t == TidyTag_BUTTON)   { button_end_handler(w);  return true; }
 	else if (t == TidyTag_SCRIPT)   { script_end_handler(p);  return true; }
 	else if (t == TidyTag_STYLE)    { style_end_handler(p);   return true; }
@@ -221,6 +240,7 @@ end_handler(TidyTagId t, struct string *w, enum html_position *p, struct link_li
 	else if (t == TidyTag_IMG)      { return true; }
 	else if (t == TidyTag_IFRAME)   { return true; }
 	else if (t == TidyTag_SOURCE)   { return true; }
+	else if (t == TidyTag_EMBED)    { return true; }
 
 	return false;
 }
@@ -290,25 +310,24 @@ dumpNode(TidyDoc *tdoc, TidyNode tnod, TidyBuffer *buf, struct string *text, enu
 	TidyNodeType child_type;
 	TidyAttr child_atts;
 	for (TidyNode child = tidyGetChild(tnod); child; child = tidyGetNext(child)) {
-		child_name = tidyNodeGetName(child);
-		child_id = tidyNodeGetId(child);
 		child_type = tidyNodeGetType(child);
-		child_atts = tidyAttrFirst(child);
-		if (start_handler(child_id, text, pos, links, &child_atts) == false) {
-			cat_tag_to_string(text, child_name, &child_atts, true);
-		}
-		if (child_type == TidyNode_Text) {
-			if (tidyNodeHasText(*tdoc, child) == true) {
-				tidyBufClear(buf);
-				tidyNodeGetValue(*tdoc, child, buf);
-				if (buf->bp != NULL) {
-					catas(text, (char *)buf->bp, strlen((char *)buf->bp));
-				}
+		if ((child_type == TidyNode_Text) || (child_type == TidyNode_CDATA)) {
+			tidyBufClear(buf);
+			tidyNodeGetValue(*tdoc, child, buf);
+			if (buf->bp != NULL) {
+				catas(text, (char *)buf->bp, strlen((char *)buf->bp));
 			}
-		}
-		dumpNode(tdoc, child, buf, text, pos, links);
-		if (end_handler(child_id, text, pos, links, &child_atts) == false) {
-			cat_tag_to_string(text, child_name, &child_atts, false);
+		} else if ((child_type == TidyNode_Start) || (child_type == TidyNode_StartEnd)) {
+			child_name = tidyNodeGetName(child);
+			child_id = tidyNodeGetId(child);
+			child_atts = tidyAttrFirst(child);
+			if (start_handler(child_id, text, pos, links, &child_atts) == false) {
+				cat_tag_to_string(text, child_name, &child_atts, true);
+			}
+			dumpNode(tdoc, child, buf, text, pos, links);
+			if (end_handler(child_id, text, pos, links, &child_atts) == false) {
+				cat_tag_to_string(text, child_name, &child_atts, false);
+			}
 		}
 	}
 }

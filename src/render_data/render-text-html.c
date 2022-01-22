@@ -279,34 +279,35 @@ dumpNode(TidyDoc *tdoc, TidyNode tnod, TidyBuffer *buf, struct line *line, struc
 {
 	const char *child_name;
 	TidyTagId child_id;
+	TidyNodeType child_type;
 	TidyAttr child_atts;
 	for (TidyNode child = tidyGetChild(tnod); child; child = tidyGetNext(child)) {
-		child_name = tidyNodeGetName(child);
-		child_id = tidyNodeGetId(child);
-		child_atts = tidyAttrFirst(child);
-		if (start_handler(child_id, line, text, pos) == false) {
-			cat_tag_to_line(line, child_name, &child_atts, true);
-		}
-		if (tidyNodeGetType(child) == TidyNode_Text) {
-			if (tidyNodeHasText(*tdoc, child) == true) {
-				tidyBufClear(buf);
-				tidyNodeGetValue(*tdoc, child, buf);
-				if (buf->bp != NULL) {
-					struct string *str = crtas((char *)buf->bp, strlen((char*)buf->bp));
-					if (str != NULL) {
-						struct wstring *wstr = convert_string_to_wstring(str);
-						free_string(str);
-						if (wstr != NULL) {
-							line_string(line, wstr->ptr, text);
-							free_wstring(wstr);
-						}
+		child_type = tidyNodeGetType(child);
+		if ((child_type == TidyNode_Text) || (child_type == TidyNode_CDATA)) {
+			tidyBufClear(buf);
+			tidyNodeGetValue(*tdoc, child, buf);
+			if (buf->bp != NULL) {
+				struct string *str = crtas((char *)buf->bp, strlen((char*)buf->bp));
+				if (str != NULL) {
+					struct wstring *wstr = convert_string_to_wstring(str);
+					free_string(str);
+					if (wstr != NULL) {
+						line_string(line, wstr->ptr, text);
+						free_wstring(wstr);
 					}
 				}
 			}
-		}
-		dumpNode(tdoc, child, buf, line, text, pos);
-		if (end_handler(child_id, line, text, pos) == false) {
-			cat_tag_to_line(line, child_name, &child_atts, false);
+		} else if ((child_type == TidyNode_Start) || (child_type == TidyNode_StartEnd)) {
+			child_name = tidyNodeGetName(child);
+			child_id = tidyNodeGetId(child);
+			child_atts = tidyAttrFirst(child);
+			if (start_handler(child_id, line, text, pos) == false) {
+				cat_tag_to_line(line, child_name, &child_atts, true);
+			}
+			dumpNode(tdoc, child, buf, line, text, pos);
+			if (end_handler(child_id, line, text, pos) == false) {
+				cat_tag_to_line(line, child_name, &child_atts, false);
+			}
 		}
 	}
 }

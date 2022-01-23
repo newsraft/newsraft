@@ -1,9 +1,9 @@
 #include "update_feed/update_feed.h"
 
 struct string *
-generate_generator_string_for_database(const struct generator *generator)
+generate_generator_string(const struct getfeed_generator *generator)
 {
-	struct string *str = crtss(generator->name);
+	struct string *str = crtss((struct string *)generator->name);
 	if (str == NULL) {
 		return NULL;
 	}
@@ -14,7 +14,7 @@ generate_generator_string_for_database(const struct generator *generator)
 				goto error;
 			}
 		}
-		if (catss(str, generator->version) == false) {
+		if (catss(str, (struct string *)generator->version) == false) {
 			goto error;
 		}
 	}
@@ -25,7 +25,7 @@ generate_generator_string_for_database(const struct generator *generator)
 				goto error;
 			}
 		}
-		if (catss(str, generator->url) == false) {
+		if (catss(str, (struct string *)generator->url) == false) {
 			goto error;
 		}
 	}

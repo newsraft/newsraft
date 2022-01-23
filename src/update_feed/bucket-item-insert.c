@@ -30,15 +30,15 @@ delete_excess_items(const struct string *feed_url) {
 }
 
 static inline void
-db_insert_item(const struct string *feed_url, const struct item_bucket *item, int rowid)
+db_insert_item(const struct string *feed_url, const struct getfeed_item *item, int rowid)
 {
-	struct string *authors_list = generate_person_list_string(&item->authors);
+	struct string *authors_list = generate_person_list_string(item->author);
 	if (authors_list == NULL) {
 		FAIL("Not enough memory for creating authors list of item bucket!");
 		return;
 	}
 
-	struct string *attachments_list = generate_link_list_string_for_database(&item->attachments);
+	struct string *attachments_list = generate_link_list_string(item->attachment);
 	if (attachments_list == NULL) {
 		FAIL("Not enough memory for creating attachments list of item bucket!");
 		free_string(authors_list);
@@ -91,7 +91,7 @@ db_insert_item(const struct string *feed_url, const struct item_bucket *item, in
 }
 
 void
-insert_item(const struct string *feed_url, const struct item_bucket *item)
+insert_item(const struct string *feed_url, const struct getfeed_item *item)
 {
 	sqlite3_stmt *s;
 	int step_status;

@@ -1,9 +1,9 @@
 #include "update_feed/update_feed.h"
 
 bool
-insert_feed(const struct string *feed_url, const struct feed_bucket *feed)
+insert_feed(const struct string *feed_url, const struct getfeed_feed *feed)
 {
-	struct string *generator_str = generate_generator_string_for_database(&feed->generator);
+	struct string *generator_str = generate_generator_string(&feed->generator);
 	if (generator_str == NULL) {
 		return false;
 	}
@@ -33,8 +33,5 @@ insert_feed(const struct string *feed_url, const struct feed_bucket *feed)
 	}
 	sqlite3_finalize(s);
 	free_string(generator_str);
-	if (cfg.max_items != 0) {
-		delete_excess_items(feed_url);
-	}
 	return true;
 }

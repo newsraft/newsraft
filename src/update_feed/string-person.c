@@ -1,32 +1,35 @@
-#include <stdlib.h>
-#include <string.h>
 #include "update_feed/update_feed.h"
 
 struct string *
-generate_person_list_string(const struct person_list *persons)
+generate_person_list_string(const struct getfeed_person *person)
 {
 	struct string *str = crtes();
 	if (str == NULL) {
 		return NULL;
 	}
-	bool added_name, added_email, added_link;
-	for (size_t i = 0; i < persons->len; ++i) {
+	bool added_name, added_email;
+	const struct getfeed_person *p = person;
+	while (p != NULL) {
 		added_name = false;
 		added_email = false;
-		added_link = false;
-		if (persons->list[i].name->len != 0) {
-			if (catss(str, persons->list[i].name) == false) {
+		if (p->name->len != 0) {
+			if (str->len != 0) {
+				if (catas(str, ", ", 2) == false) {
+					goto error;
+				}
+			}
+			if (catss(str, (struct string *)p->name) == false) {
 				goto error;
 			}
 			added_name = true;
 		}
-		if (persons->list[i].email->len != 0) {
+		if (p->email->len != 0) {
 			if (added_name == true) {
 				if (catas(str, " <", 2) == false) {
 					goto error;
 				}
 			}
-			if (catss(str, persons->list[i].email) == false) {
+			if (catss(str, (struct string *)p->email) == false) {
 				goto error;
 			}
 			if (added_name == true) {
@@ -36,13 +39,13 @@ generate_person_list_string(const struct person_list *persons)
 			}
 			added_email = true;
 		}
-		if (persons->list[i].link->len != 0) {
+		if (p->link->len != 0) {
 			if (added_name == true || added_email == true) {
 				if (catas(str, " (", 2) == false) {
 					goto error;
 				}
 			}
-			if (catss(str, persons->list[i].link) == false) {
+			if (catss(str, (struct string *)p->link) == false) {
 				goto error;
 			}
 			if (added_name == true || added_email == true) {
@@ -50,13 +53,8 @@ generate_person_list_string(const struct person_list *persons)
 					goto error;
 				}
 			}
-			added_link = true;
 		}
-		if ((i + 1 != persons->len) && (added_name == true || added_email == true || added_link == true)) {
-			if (catas(str, ", ", 2) == false) {
-				goto error;
-			}
-		}
+		p = p->next;
 	}
 	return str;
 error:

@@ -6,15 +6,11 @@ Feedeater is a piece of software that aggregates syndicated web content such as 
 
 * [ncursesw](https://invisible-island.net/ncurses) >= 6.2
 
-* [libcurl](https://github.com/curl/curl) >= 7.75.0
-
-* [expat](https://github.com/libexpat/libexpat) >= 2.2.10
+* [libgetfeed](https://gitlab.com/got2teas/libgetfeed) >= TESTING
 
 * [tidy](http://www.html-tidy.org) >= 5.8.0
 
 * [sqlite](https://www.sqlite.org) >= 3.35.4
-
-* [libgetfeed](https://gitlab.com/got2teas/libgetfeed) >= TESTING
 
 * [gcc](https://gcc.gnu.org) >= 8.1.0 (build-time)
 

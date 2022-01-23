@@ -33,5 +33,8 @@ insert_feed(const struct string *feed_url, const struct feed_bucket *feed)
 	}
 	sqlite3_finalize(s);
 	free_string(generator_str);
+	if (cfg.max_items != 0) {
+		delete_excess_items(feed_url);
+	}
 	return true;
 }

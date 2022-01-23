@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <locale.h>
 #include <unistd.h>
-#include <curl/curl.h>
 #include "feedeater.h"
 
 static inline void
@@ -62,7 +61,6 @@ main(int argc, char **argv)
 	if (load_config()                    == false)  { error = 7;  goto undo2; }
 	if (db_init()                        == false)  { error = 8;  goto undo3; }
 	if (load_sets()                      == false)  { error = 9;  goto undo4; }
-	if (curl_global_init(CURL_GLOBAL_DEFAULT) != 0) { error = 10; goto undo5; }
 	if (curses_init()                    == false)  { error = 11; goto undo6; }
 	if (adjust_list_menu()               == false)  { error = 12; goto undo7; }
 	if (adjust_list_menu_format_buffer() == false)  { error = 13; goto undo8; }
@@ -78,8 +76,6 @@ undo8:
 undo7:
 	endwin();
 undo6:
-	curl_global_cleanup();
-undo5:
 	free_sets();
 undo4:
 	db_stop();

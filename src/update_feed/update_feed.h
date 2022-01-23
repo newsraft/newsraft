@@ -1,19 +1,8 @@
 #ifndef UPDATE_FEED_H
 #define UPDATE_FEED_H
-#include <expat.h>
 #include "feedeater.h"
 
 #define NAMESPACE_SEPARATOR ' '
-
-enum update_error {
-	PARSE_OKAY = 0,
-	PARSE_FAIL_NOT_ENOUGH_MEMORY,
-	PARSE_FAIL_XML_PARSE_ERROR,
-	PARSE_FAIL_XML_UNABLE_TO_CREATE_PARSER,
-	PARSE_FAIL_CURL_UNABLE_TO_CREATE_HANDLE,
-	PARSE_FAIL_CURL_EASY_PERFORM_ERROR,
-	PARSE_FAIL_DB_TRANSACTION_ERROR,
-};
 
 struct generator {
 	struct string *name;
@@ -72,193 +61,12 @@ struct item_bucket {
 	time_t upddate;
 };
 
-struct parser_data {
-	struct string *value;
-	int depth;
-	const struct string *feed_url;
-	struct feed_bucket feed;
-	struct item_bucket item;
-#ifdef FEEDEATER_FORMAT_SUPPORT_RSS20
-	int16_t rss20_pos;
-#endif
-#ifdef FEEDEATER_FORMAT_SUPPORT_ATOM10
-	int16_t atom10_pos;
-#endif
-#ifdef FEEDEATER_FORMAT_SUPPORT_DUBLINCORE
-	int8_t dc_pos;
-#endif
-#ifdef FEEDEATER_FORMAT_SUPPORT_RSS10CONTENT
-	int8_t rss10content_pos;
-#endif
-#ifdef FEEDEATER_FORMAT_SUPPORT_YANDEX
-	int8_t yandex_pos;
-#endif
-#ifdef FEEDEATER_FORMAT_SUPPORT_ATOM03
-	int16_t atom03_pos;
-#endif
-#ifdef FEEDEATER_FORMAT_SUPPORT_RSS11
-	int8_t rss11_pos;
-#endif
-	XML_Parser parser;
-	void (*start_handler)(struct parser_data *data, const XML_Char *name, const XML_Char **atts);
-	void (*end_handler)(struct parser_data *data, const XML_Char *name);
-	enum update_error error;
-};
-
 void delete_excess_items(const struct string *feed_url);
 
-const char *get_value_of_attribute_key(const XML_Char **atts, const char *key);
-bool we_are_inside_item(const struct parser_data *data);
-
-// date
-time_t parse_date_rfc822(const struct string *value);
-time_t parse_date_rfc3339(const struct string *value);
-
-// Common bucket functions.
 bool db_bind_text_struct(sqlite3_stmt *s, intmax_t placeholder, const struct text *text_struct);
 
-// feed bucket functions
-bool initialize_feed_bucket(struct feed_bucket *feed);
-bool insert_feed(const struct string *feed_url, const struct feed_bucket *feed);
-void free_feed_bucket(const struct feed_bucket *feed);
-
-// item bucket functions
-bool initialize_item_bucket(struct item_bucket *item);
-void insert_item(const struct string *feed_url, const struct item_bucket *item);
-void empty_item_bucket(struct item_bucket *item);
-void free_item_bucket(const struct item_bucket *item);
-bool add_category_to_item_bucket(const struct item_bucket *item, const char *value, size_t value_len);
-
-// Functions to manage link_list.
-void initialize_link_list(struct link_list *links);
-bool expand_link_list_by_one_element(struct link_list *links);
-bool add_url_to_last_link(const struct link_list *links, const char *value, size_t value_len);
-bool add_type_to_last_link(const struct link_list *links, const char *value, size_t value_len);
-bool add_size_to_last_link(const struct link_list *links, const char *value, size_t value_len);
-bool add_duration_to_last_link(const struct link_list *links, const char *value, size_t value_len);
-void empty_link_list(struct link_list *links);
-void free_link_list(const struct link_list *links);
 struct string *generate_link_list_string_for_database(const struct link_list *links);
-
-// Functions to manage person_list.
-void initialize_person_list(struct person_list *persons);
-bool expand_person_list_by_one_element(struct person_list *persons);
-bool add_name_to_last_person(const struct person_list *persons, const struct string *value);
-bool add_email_to_last_person(const struct person_list *persons, const struct string *value);
-bool add_link_to_last_person(const struct person_list *persons, const struct string *value);
-void empty_person_list(struct person_list *persons);
-void free_person_list(const struct person_list *persons);
 struct string *generate_person_list_string(const struct person_list *persons);
-
 struct string *generate_generator_string_for_database(const struct generator *generator);
 
-// Element handlers
-
-bool parse_namespace_element_start (struct parser_data *data, const XML_Char *name, const XML_Char **atts);
-bool parse_namespace_element_end   (struct parser_data *data, const XML_Char *name);
-
-#ifdef FEEDEATER_FORMAT_SUPPORT_ATOM10
-enum atom10_position {
-	ATOM10_NONE = 0,
-	ATOM10_ENTRY = 1,
-	ATOM10_ID = 2,
-	ATOM10_TITLE = 4,
-	ATOM10_SUMMARY = 8,
-	ATOM10_CONTENT = 16,
-	ATOM10_PUBLISHED = 32,
-	ATOM10_UPDATED = 64,
-	ATOM10_AUTHOR = 128,
-	ATOM10_NAME = 256,
-	ATOM10_URI = 512,
-	ATOM10_EMAIL = 1024,
-	ATOM10_SUBTITLE = 2048,
-	ATOM10_GENERATOR = 4096,
-};
-void parse_atom10_element_start (struct parser_data *data, const XML_Char *name, const XML_Char **atts);
-void parse_atom10_element_end   (struct parser_data *data, const XML_Char *name);
-#endif
-#ifdef FEEDEATER_FORMAT_SUPPORT_RSS20
-enum rss20_position {
-	RSS20_NONE = 0,
-	RSS20_ITEM = 1,
-	RSS20_TITLE = 2,
-	RSS20_DESCRIPTION = 4,
-	RSS20_LINK = 8,
-	RSS20_PUBDATE = 16,
-	RSS20_GUID = 32,
-	RSS20_AUTHOR = 64,
-	RSS20_SOURCE = 128,
-	RSS20_CATEGORY = 256,
-	RSS20_LASTBUILDDATE = 512,
-	RSS20_COMMENTS = 1024,
-	RSS20_LANGUAGE = 2048,
-	RSS20_GENERATOR = 4096,
-	RSS20_CHANNEL = 8192,
-};
-void parse_rss20_element_start (struct parser_data *data, const XML_Char *name, const XML_Char **atts);
-void parse_rss20_element_end   (struct parser_data *data, const XML_Char *name);
-#endif
-#ifdef FEEDEATER_FORMAT_SUPPORT_DUBLINCORE
-enum dc_position {
-	DC_NONE = 0,
-	DC_TITLE = 1,
-	DC_DESCRIPTION = 2,
-	DC_CREATOR = 4,
-	DC_SUBJECT = 8,
-};
-void parse_dc_element_start (struct parser_data *data, const XML_Char *name, const XML_Char **atts);
-void parse_dc_element_end   (struct parser_data *data, const XML_Char *name);
-#endif
-#ifdef FEEDEATER_FORMAT_SUPPORT_RSS10CONTENT
-enum rss10content_position {
-	RSS10CONTENT_NONE = 0,
-	RSS10CONTENT_ENCODED = 1,
-};
-void parse_rss10content_element_start (struct parser_data *data, const XML_Char *name, const XML_Char **atts);
-void parse_rss10content_element_end   (struct parser_data *data, const XML_Char *name);
-#endif
-#ifdef FEEDEATER_FORMAT_SUPPORT_YANDEX
-enum yandex_position {
-	YANDEX_NONE = 0,
-	YANDEX_FULL_TEXT = 1,
-	YANDEX_GENRE = 2,
-	YANDEX_COMMENT_TEXT = 4,
-	YANDEX_BIND_TO = 8,
-};
-void parse_yandex_element_start (struct parser_data *data, const XML_Char *name, const XML_Char **atts);
-void parse_yandex_element_end   (struct parser_data *data, const XML_Char *name);
-#endif
-#ifdef FEEDEATER_FORMAT_SUPPORT_ATOM03
-enum atom03_position {
-	ATOM03_NONE = 0,
-	ATOM03_ENTRY = 1,
-	ATOM03_ID = 2,
-	ATOM03_TITLE = 4,
-	ATOM03_SUMMARY = 8,
-	ATOM03_CONTENT = 16,
-	ATOM03_ISSUED = 32,
-	ATOM03_MODIFIED = 64,
-	ATOM03_AUTHOR = 128,
-	ATOM03_NAME = 256,
-	ATOM03_URL = 512,
-	ATOM03_EMAIL = 1024,
-	ATOM03_TAGLINE = 2048,
-	ATOM03_GENERATOR = 4096,
-};
-void parse_atom03_element_start (struct parser_data *data, const XML_Char *name, const XML_Char **atts);
-void parse_atom03_element_end   (struct parser_data *data, const XML_Char *name);
-#endif
-#ifdef FEEDEATER_FORMAT_SUPPORT_RSS11
-enum rss11_position {
-	RSS11_NONE = 0,
-	RSS11_ITEM = 1,
-	RSS11_TITLE = 2,
-	RSS11_LINK = 4,
-	RSS11_DESCRIPTION = 8,
-	RSS11_IMAGE = 16,
-	RSS11_URL = 32,
-};
-void parse_rss11_element_start (struct parser_data *data, const XML_Char *name, const XML_Char **atts);
-void parse_rss11_element_end   (struct parser_data *data, const XML_Char *name);
-#endif
 #endif // UPDATE_FEED_H

@@ -14,6 +14,8 @@ Feedeater is a piece of software that aggregates syndicated web content such as 
 
 * [sqlite](https://www.sqlite.org) >= 3.35.4
 
+* [libgetfeed](https://gitlab.com/got2teas/libgetfeed) >= TESTING
+
 * [gcc](https://gcc.gnu.org) >= 8.1.0 (build-time)
 
 * [meson](https://github.com/mesonbuild/meson) >= 0.58.1 (build-time)

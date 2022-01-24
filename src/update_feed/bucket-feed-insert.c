@@ -31,7 +31,7 @@ insert_feed(const struct string *feed_url, const struct getfeed_feed *feed)
 	}
 	sqlite3_bind_text(s,   FEED_COLUMN_FEED_URL      + 1, feed_url->ptr,       feed_url->len,       NULL);
 	db_bind_text_struct(s, FEED_COLUMN_TITLE         + 1, &feed->title);
-	sqlite3_bind_text(s,   FEED_COLUMN_LINK          + 1, feed->link->ptr,     feed->link->len,     NULL);
+	sqlite3_bind_text(s,   FEED_COLUMN_LINK          + 1, feed->url->ptr,      feed->url->len,      NULL);
 	db_bind_text_struct(s, FEED_COLUMN_SUMMARY       + 1, &feed->summary);
 	sqlite3_bind_text(s,   FEED_COLUMN_AUTHORS       + 1, authors_str->ptr,    authors_str->len,    NULL);
 	sqlite3_bind_text(s,   FEED_COLUMN_EDITORS       + 1, editors_str->ptr,    editors_str->len,    NULL);

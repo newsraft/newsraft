@@ -1,8 +1,10 @@
-# Description
+# UNDER CONSTRUCTION!
+
+## Description
 
 Feedeater is a piece of software that aggregates syndicated web content such as blogs, newspapers and podcasts in one location for easy access from your terminal via comfy curses interface. It is greatly inspired by [Newsboat](https://www.newsboat.org) and yet has some significant differences (see [doc/project-goals.md](https://gitlab.com/got2teas/feedeater/-/blob/main/doc/project-goals.md)).
 
-# Dependencies
+## Dependencies
 
 * [ncursesw](https://invisible-island.net/ncurses) >= 6.2
 
@@ -18,7 +20,7 @@ Feedeater is a piece of software that aggregates syndicated web content such as 
 
 * [scdoc](https://git.sr.ht/~sircmpwn/scdoc) >= 1.11.2 (build-time, for man page)
 
-# Building
+## Building
 
 To build an executable:
 
@@ -32,14 +34,14 @@ To generate a man page:
 scdoc < doc/feedeater.scd > feedeater.1
 ```
 
-# Configuration
+## Configuration
 
 Check out man page.
 
-# Contributing
+## Contributing
 
 See [doc/contributing.md](https://gitlab.com/got2teas/feedeater/-/blob/main/doc/contributing.md).
 
-# Copying
+## Copying
 
 See [doc/license.txt](https://gitlab.com/got2teas/feedeater/-/blob/main/doc/license.txt).

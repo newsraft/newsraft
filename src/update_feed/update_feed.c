@@ -3,29 +3,29 @@
 bool
 update_feed(const struct string *url)
 {
-	struct getfeed_data *data = getfeed_url(url->ptr);
-	if (data == NULL) {
+	struct getfeed_feed *feed = getfeed_url(url->ptr);
+	if (feed == NULL) {
 		return false;
 	}
 
 	if (db_begin_transaction() == false) {
-		getfeed_free(data);
+		getfeed_free(feed);
 		return false;
 	}
 
-	if (insert_feed(url, data->feed) == false) {
+	if (insert_feed(url, feed) == false) {
 		db_rollback_transaction();
-		getfeed_free(data);
+		getfeed_free(feed);
 		return false;
 	}
 
-	struct getfeed_item *item = data->item;
+	struct getfeed_item *item = feed->item;
 	while (item != NULL) {
 		insert_item(url, item);
 		item = item->next;
 	}
 
-	getfeed_free(data);
+	getfeed_free(feed);
 	if (cfg.max_items != 0) {
 		delete_excess_items(url);
 	}

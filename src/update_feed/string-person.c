@@ -39,13 +39,13 @@ generate_person_list_string(const struct getfeed_person *person)
 			}
 			added_email = true;
 		}
-		if (p->link->len != 0) {
+		if (p->url->len != 0) {
 			if (added_name == true || added_email == true) {
 				if (catas(str, " (", 2) == false) {
 					goto error;
 				}
 			}
-			if (catss(str, (struct string *)p->link) == false) {
+			if (catss(str, (struct string *)p->url) == false) {
 				goto error;
 			}
 			if (added_name == true || added_email == true) {

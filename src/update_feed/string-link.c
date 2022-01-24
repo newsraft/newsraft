@@ -1,8 +1,10 @@
+#include <string.h>
 #include "update_feed/update_feed.h"
 
 struct string *
 generate_link_list_string(const struct getfeed_link *link)
 {
+	char temp[123];
 	struct string *str = crtes();
 	if (str == NULL) {
 		return NULL;
@@ -21,14 +23,11 @@ generate_link_list_string(const struct getfeed_link *link)
 		if (l->type->len != 0) {
 			if (catss(str, (struct string *)l->type) == false) { goto error; }
 		}
-		if (catcs(str, ' ') == false) { goto error; }
-		if (l->size->len != 0) {
-			if (catss(str, (struct string *)l->size) == false) { goto error; }
-		}
-		if (catcs(str, ' ') == false) { goto error; }
-		if (l->duration->len != 0) {
-			if (catss(str, (struct string *)l->duration) == false) { goto error; }
-		}
+		// Mind the heading space character! It is needed for separation.
+		snprintf(temp, 123, " %zu", l->size);
+		if (catas(str, temp, strlen(temp)) == false) { goto error; }
+		snprintf(temp, 123, " %zu", l->duration);
+		if (catas(str, temp, strlen(temp)) == false) { goto error; }
 		l = l->next;
 	}
 	return str;

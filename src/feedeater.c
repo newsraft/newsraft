@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <locale.h>
 #include <unistd.h>
+#include <curl/curl.h>
 #include "feedeater.h"
 
 static inline void
@@ -57,14 +58,15 @@ main(int argc, char **argv)
 		}
 	}
 
-	if (load_default_binds()             == false)  { error = 6;  goto undo1; }
-	if (load_config()                    == false)  { error = 7;  goto undo2; }
-	if (db_init()                        == false)  { error = 8;  goto undo3; }
-	if (load_sets()                      == false)  { error = 9;  goto undo4; }
-	if (curses_init()                    == false)  { error = 11; goto undo6; }
-	if (adjust_list_menu()               == false)  { error = 12; goto undo7; }
-	if (adjust_list_menu_format_buffer() == false)  { error = 13; goto undo8; }
-	if (status_create()                  == false)  { error = 14; goto undo9; }
+	if (curl_global_init(CURL_GLOBAL_DEFAULT) != 0) { error = 6;  goto undo1; }
+	if (load_default_binds()              == false) { error = 7;  goto undo2; }
+	if (load_config()                     == false) { error = 8;  goto undo3; }
+	if (db_init()                         == false) { error = 9;  goto undo4; }
+	if (load_sets()                       == false) { error = 10; goto undo5; }
+	if (curses_init()                     == false) { error = 11; goto undo6; }
+	if (adjust_list_menu()                == false) { error = 12; goto undo7; }
+	if (adjust_list_menu_format_buffer()  == false) { error = 13; goto undo8; }
+	if (status_create()                   == false) { error = 14; goto undo9; }
 
 	enter_sets_menu_loop();
 
@@ -77,12 +79,14 @@ undo7:
 	endwin();
 undo6:
 	free_sets();
-undo4:
+undo5:
 	db_stop();
-undo3:
+undo4:
 	free_config_data();
-undo2:
+undo3:
 	free_binds();
+undo2:
+	curl_global_cleanup();
 undo1:
 	log_stop();
 undo0:

@@ -3,10 +3,19 @@
 bool
 update_feed(const struct string *url)
 {
-	struct getfeed_feed *feed = getfeed_url(url->ptr);
-	if (feed == NULL) {
+	struct string *feedbuf = download_feed(url->ptr);
+	if (feedbuf == NULL) {
+		FAIL("Failed to download a feed!");
 		return false;
 	}
+
+	struct getfeed_feed *feed = getfeed_buf(feedbuf->ptr, feedbuf->len);
+	if (feed == NULL) {
+		free_string(feedbuf);
+		return false;
+	}
+
+	free_string(feedbuf);
 
 	if (db_begin_transaction() == false) {
 		getfeed_free(feed);

@@ -3,6 +3,8 @@
 #include <getfeed.h>
 #include "feedeater.h"
 
+struct string *download_feed(const char *url);
+
 void delete_excess_items(const struct string *feed_url);
 
 bool db_bind_text_struct(sqlite3_stmt *s, intmax_t placeholder, const struct getfeed_text *text_struct);

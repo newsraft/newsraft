@@ -45,6 +45,13 @@ db_insert_item(const struct string *feed_url, const struct getfeed_item *item, i
 		return;
 	}
 
+	struct string *categories_list = generate_category_list_string(item->category);
+	if (categories_list == NULL) {
+		free_string(attachments_list);
+		free_string(authors_list);
+		return;
+	}
+
 	sqlite3_stmt *s;
 	int prepare_status;
 
@@ -55,6 +62,7 @@ db_insert_item(const struct string *feed_url, const struct getfeed_item *item, i
 	}
 
 	if (prepare_status == false) {
+		free_string(categories_list);
 		free_string(attachments_list);
 		free_string(authors_list);
 		return;
@@ -67,7 +75,7 @@ db_insert_item(const struct string *feed_url, const struct getfeed_item *item, i
 	sqlite3_bind_int(s,    ITEM_COLUMN_UNREAD       + 1, 1);
 	sqlite3_bind_text(s,   ITEM_COLUMN_ATTACHMENTS  + 1, attachments_list->ptr, attachments_list->len, NULL);
 	sqlite3_bind_text(s,   ITEM_COLUMN_AUTHORS      + 1, authors_list->ptr, authors_list->len, NULL);
-	sqlite3_bind_text(s,   ITEM_COLUMN_CATEGORIES   + 1, item->categories->ptr, item->categories->len, NULL);
+	sqlite3_bind_text(s,   ITEM_COLUMN_CATEGORIES   + 1, categories_list->ptr, categories_list->len, NULL);
 	sqlite3_bind_int64(s,  ITEM_COLUMN_PUBDATE      + 1, (sqlite3_int64)(item->pubdate));
 	sqlite3_bind_int64(s,  ITEM_COLUMN_UPDDATE      + 1, (sqlite3_int64)(item->upddate));
 	sqlite3_bind_text(s,   ITEM_COLUMN_COMMENTS_URL + 1, item->comments_url->ptr, item->comments_url->len, NULL);
@@ -86,6 +94,7 @@ db_insert_item(const struct string *feed_url, const struct getfeed_item *item, i
 	}
 
 	sqlite3_finalize(s);
+	free_string(categories_list);
 	free_string(attachments_list);
 	free_string(authors_list);
 }

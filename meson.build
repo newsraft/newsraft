@@ -72,6 +72,7 @@ executable(
 		'src/update_feed/string-link.c',
 		'src/update_feed/string-person.c',
 		'src/update_feed/string-generator.c',
+		'src/update_feed/string-category.c',
 		'src/prepare_to_render_data/prepare_to_render_data.c',
 		'src/prepare_to_render_data/prepare-text-html.c',
 		'src/render_data/render_data.c',
@@ -88,4 +89,5 @@ executable(
 		dependency('tidy'),
 	],
 	#link_args: ['-static'],
+	install: true,
 )

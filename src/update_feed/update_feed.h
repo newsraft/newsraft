@@ -12,6 +12,7 @@ bool db_bind_text_struct(sqlite3_stmt *s, intmax_t placeholder, const struct get
 struct string *generate_link_list_string(const struct getfeed_link *link);
 struct string *generate_person_list_string(const struct getfeed_person *person);
 struct string *generate_generator_string(const struct getfeed_generator *generator);
+struct string *generate_category_list_string(const struct getfeed_category *category);
 
 void insert_item(const struct string *feed_url, const struct getfeed_item *item);
 bool insert_feed(const struct string *feed_url, const struct getfeed_feed *feed);

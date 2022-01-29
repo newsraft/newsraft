@@ -24,10 +24,15 @@ insert_feed(const struct string *feed_url, const struct getfeed_feed *feed)
 		success = false;
 		goto undo3;
 	}
+	struct string *categories_str = generate_category_list_string(feed->category);
+	if (categories_str == NULL) {
+		success = false;
+		goto undo4;
+	}
 	sqlite3_stmt *s;
 	if (db_prepare("INSERT OR REPLACE INTO feeds VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", 76, &s, NULL) == false) {
 		success = false;
-		goto undo4;
+		goto undo5;
 	}
 	sqlite3_bind_text(s,   FEED_COLUMN_FEED_URL      + 1, feed_url->ptr,       feed_url->len,       NULL);
 	db_bind_text_struct(s, FEED_COLUMN_TITLE         + 1, &feed->title);
@@ -36,7 +41,7 @@ insert_feed(const struct string *feed_url, const struct getfeed_feed *feed)
 	sqlite3_bind_text(s,   FEED_COLUMN_AUTHORS       + 1, authors_str->ptr,    authors_str->len,    NULL);
 	sqlite3_bind_text(s,   FEED_COLUMN_EDITORS       + 1, editors_str->ptr,    editors_str->len,    NULL);
 	sqlite3_bind_text(s,   FEED_COLUMN_WEBMASTERS    + 1, webmasters_str->ptr, webmasters_str->len, NULL);
-	sqlite3_bind_text(s,   FEED_COLUMN_CATEGORIES    + 1, "",                  0,                   NULL);
+	sqlite3_bind_text(s,   FEED_COLUMN_CATEGORIES    + 1, categories_str->ptr, categories_str->len, NULL);
 	sqlite3_bind_text(s,   FEED_COLUMN_LANGUAGE      + 1, feed->language->ptr, feed->language->len, NULL);
 	sqlite3_bind_text(s,   FEED_COLUMN_GENERATOR     + 1, generator_str->ptr,  generator_str->len,  NULL);
 	db_bind_text_struct(s, FEED_COLUMN_RIGHTS        + 1, &feed->rights);
@@ -47,6 +52,8 @@ insert_feed(const struct string *feed_url, const struct getfeed_feed *feed)
 		success = false;
 	}
 	sqlite3_finalize(s);
+undo5:
+	free_string(categories_str);
 undo4:
 	free_string(generator_str);
 undo3:

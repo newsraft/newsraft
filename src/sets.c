@@ -120,7 +120,7 @@ parse_sets_file(struct feed_tag **head_tag_ptr) {
 			}
 			sets[set_index].link = crtas(word, word_len);
 			if (sets[set_index].link == NULL) { goto error; }
-			while (ISWHITESPACE(c)) { c = fgetc(f); } // skip whitespace
+			while (ISWHITESPACEEXCEPTNEWLINE(c)) { c = fgetc(f); }
 			// process name
 			if (c == '"') {
 				word_len = 0;
@@ -131,6 +131,10 @@ parse_sets_file(struct feed_tag **head_tag_ptr) {
 				}
 				sets[set_index].name = crtas(word, word_len);
 				if (sets[set_index].name == NULL) { goto error; }
+				if (c == '"') {
+					c = fgetc(f);
+				}
+				while (ISWHITESPACEEXCEPTNEWLINE(c)) { c = fgetc(f); }
 			}
 			// process tags
 			while (c != '\n' && c != EOF) {
@@ -142,7 +146,7 @@ parse_sets_file(struct feed_tag **head_tag_ptr) {
 				}
 				word[word_len] = '\0';
 				if (tag_feed(head_tag_ptr, word, word_len, sets[set_index].link) == false) { goto error; }
-				while (c == ' ' || c == '\t') { c = fgetc(f); }
+				while (ISWHITESPACEEXCEPTNEWLINE(c)) { c = fgetc(f); }
 			}
 
 		}

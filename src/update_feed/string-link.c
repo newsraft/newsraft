@@ -15,13 +15,13 @@ generate_link_list_string(const struct getfeed_link *link)
 			if (str->len != 0) {
 				if (catcs(str, '\n') == false) { goto error; }
 			}
-			if (catss(str, (struct string *)l->url) == false) { goto error; }
+			if (catas(str, l->url->ptr, l->url->len) == false) { goto error; }
 		} else {
 			continue;
 		}
 		if (catcs(str, ' ') == false) { goto error; }
 		if (l->type->len != 0) {
-			if (catss(str, (struct string *)l->type) == false) { goto error; }
+			if (catas(str, l->type->ptr, l->type->len) == false) { goto error; }
 		}
 		// Mind the heading space character! It is needed for separation.
 		snprintf(temp, 123, " %zu", l->size);

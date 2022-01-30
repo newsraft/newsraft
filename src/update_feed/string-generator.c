@@ -3,7 +3,7 @@
 struct string *
 generate_generator_string(const struct getfeed_generator *generator)
 {
-	struct string *str = crtss((struct string *)generator->name);
+	struct string *str = crtas(generator->name->ptr, generator->name->len);
 	if (str == NULL) {
 		return NULL;
 	}
@@ -14,7 +14,7 @@ generate_generator_string(const struct getfeed_generator *generator)
 				goto error;
 			}
 		}
-		if (catss(str, (struct string *)generator->version) == false) {
+		if (catas(str, generator->version->ptr, generator->version->len) == false) {
 			goto error;
 		}
 	}
@@ -25,7 +25,7 @@ generate_generator_string(const struct getfeed_generator *generator)
 				goto error;
 			}
 		}
-		if (catss(str, (struct string *)generator->url) == false) {
+		if (catas(str, generator->url->ptr, generator->url->len) == false) {
 			goto error;
 		}
 	}

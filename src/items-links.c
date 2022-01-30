@@ -167,7 +167,10 @@ generate_link_list_string_for_pager(const struct link_list *links)
 		}
 
 		appended_size = false;
-		if ((links->list[i].size != NULL) && (links->list[i].size->len != 0)) {
+		if ((links->list[i].size != NULL) &&
+		    (links->list[i].size->len != 0) &&
+		    (strcmp(links->list[i].size->ptr, "0") != 0))
+		{
 			if (appended_type == true) {
 				if (catas(str, ", size: ", 8) == false) { goto error; }
 			} else {
@@ -181,7 +184,10 @@ generate_link_list_string_for_pager(const struct link_list *links)
 		}
 
 		appended_duration = false;
-		if ((links->list[i].duration != NULL) && (links->list[i].duration->len != 0)) {
+		if ((links->list[i].duration != NULL) &&
+		    (links->list[i].duration->len != 0) &&
+		    (strcmp(links->list[i].duration->ptr, "0") != 0))
+		{
 			if ((appended_type == true) || (appended_size == true)) {
 				if (catas(str, ", duration: ", 12) == false) { goto error; }
 			} else {

@@ -300,6 +300,7 @@ void empty_wstring(struct wstring *wstr);
 void free_wstring(struct wstring *wstr);
 void trim_whitespace_from_wstring(struct wstring *wstr);
 struct string *convert_wstring_to_string(const struct wstring *src);
+size_t convert_string_to_size_t_or_zero(const char *src);
 
 bool log_init(const char *path);
 void log_stop(void);

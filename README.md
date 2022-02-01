@@ -8,7 +8,9 @@ Feedeater is a piece of software that aggregates syndicated web content such as 
 
 * [ncursesw](https://invisible-island.net/ncurses) >= 6.2
 
-* [libgetfeed](https://gitlab.com/got2teas/libgetfeed) >= TESTING
+* [expat](https://github.com/libexpat/libexpat) >= 2.2.10
+
+* [cjson](https://github.com/DaveGamble/cJSON) >= 1.7.15
 
 * [tidy](http://www.html-tidy.org) >= 5.8.0
 
@@ -28,6 +30,12 @@ To build an executable:
 
 ```
 meson setup builddir && meson compile -C builddir
+```
+
+To install it, enter the build directory and run as root:
+
+```
+meson install
 ```
 
 To generate a man page:

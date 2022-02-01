@@ -9,7 +9,7 @@ update_feed(const struct string *url)
 		return false;
 	}
 
-	struct getfeed_feed *feed = getfeed_buf(feedbuf->ptr, feedbuf->len);
+	struct getfeed_feed *feed = parse_feed(feedbuf);
 	if (feed == NULL) {
 		free_string(feedbuf);
 		return false;
@@ -18,13 +18,13 @@ update_feed(const struct string *url)
 	free_string(feedbuf);
 
 	if (db_begin_transaction() == false) {
-		getfeed_free(feed);
+		free_feed(feed);
 		return false;
 	}
 
 	if (insert_feed(url, feed) == false) {
 		db_rollback_transaction();
-		getfeed_free(feed);
+		free_feed(feed);
 		return false;
 	}
 
@@ -34,7 +34,7 @@ update_feed(const struct string *url)
 		item = item->next;
 	}
 
-	getfeed_free(feed);
+	free_feed(feed);
 	if (cfg.max_items != 0) {
 		delete_excess_items(url);
 	}

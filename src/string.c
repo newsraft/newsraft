@@ -201,6 +201,16 @@ convert_string_to_wstring(const struct string *src)
 	return wstr;
 }
 
+size_t
+convert_string_to_size_t_or_zero(const char *src)
+{
+	size_t bytes;
+	if (sscanf(src, "%zu", &bytes) == 1) {
+		return bytes;
+	}
+	return 0;
+}
+
 struct string *
 convert_bytes_to_human_readable_size_string(const char *value)
 {

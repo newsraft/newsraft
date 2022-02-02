@@ -51,9 +51,6 @@ struct xml_data {
 
 struct json_data {
 	struct getfeed_feed *feed;
-#ifdef FEEDEATER_FORMAT_SUPPORT_JSONFEED
-	int8_t jsonfeed_pos;
-#endif
 };
 
 struct getfeed_feed *parse_xml_feed(const struct string *feed_buf);
@@ -195,13 +192,6 @@ void parse_rss11_element_start (struct xml_data *data, const XML_Char *name, con
 void parse_rss11_element_end   (struct xml_data *data, const XML_Char *name);
 #endif
 #ifdef FEEDEATER_FORMAT_SUPPORT_JSONFEED
-enum jsonfeed_position {
-	JSONFEED_NONE = 0,
-	JSONFEED_ITEMS = 1,
-	JSONFEED_AUTHORS = 2,
-	JSONFEED_TAGS = 4,
-	JSONFEED_ATTACHMENTS = 8,
-};
 void json_dump_jsonfeed(cJSON *json, struct json_data *data);
 #endif
 #endif // GETFEED_H

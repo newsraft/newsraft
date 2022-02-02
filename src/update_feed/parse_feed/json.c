@@ -8,9 +8,6 @@ parse_json_feed(const struct string *feed_buf)
 	if (data.feed == NULL) {
 		return NULL;
 	}
-#ifdef FEEDEATER_FORMAT_SUPPORT_JSONFEED
-	data.jsonfeed_pos = JSONFEED_NONE;
-#endif
 
 	cJSON *json = cJSON_ParseWithLength(feed_buf->ptr, feed_buf->len);
 	if (json == NULL) {

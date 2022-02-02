@@ -8,8 +8,10 @@ parse_feed(const struct string *feed_buf)
 		++first_char;
 	}
 	if (*first_char == '{') {
+		INFO("First character of the feed buffer is '{', parsing in JSON mode.");
 		return parse_json_feed(feed_buf);
 	} else {
+		INFO("First character of the feed buffer is not '{', parsing in XML mode.");
 		return parse_xml_feed(feed_buf);
 	}
 }

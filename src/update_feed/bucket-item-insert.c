@@ -102,7 +102,7 @@ db_insert_item(const struct string *feed_url, const struct getfeed_item *item, i
 void
 insert_item(const struct string *feed_url, const struct getfeed_item *item)
 {
-	sqlite3_stmt *s;
+	sqlite3_stmt *s = NULL;
 	int step_status;
 
 	// Before trying to write some item to the database we have to
@@ -151,7 +151,9 @@ insert_item(const struct string *feed_url, const struct getfeed_item *item)
 		}
 	}
 
-	sqlite3_finalize(s);
+	if (s != NULL) {
+		sqlite3_finalize(s);
+	}
 
 	db_insert_item(feed_url, item, item_rowid);
 }

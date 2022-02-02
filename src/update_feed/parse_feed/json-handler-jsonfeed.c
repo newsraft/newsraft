@@ -2,76 +2,112 @@
 #include <string.h>
 #include "update_feed/parse_feed/parse_feed.h"
 
-static inline void
-jsonfeed_process_string(const char *name, const char *value, size_t value_len, struct json_data *data)
+static void
+populate_person(cJSON *json, struct getfeed_person *person)
 {
-	if (name == NULL) {
-		return;
-	}
-	if ((data->jsonfeed_pos & JSONFEED_ITEMS) != 0) {
-		if ((data->jsonfeed_pos & JSONFEED_AUTHORS) != 0) {
-			if (strcmp(name, "name") == 0) {
-				cpyas(data->feed->item->author->name, value, value_len);
-			} else if (strcmp(name, "url") == 0) {
-				cpyas(data->feed->item->author->url, value, value_len);
-			} else if (strcmp(name, "avatar") == 0) {
-				// picture that represents a person...
-				// todo
-			}
-		} else if ((data->jsonfeed_pos & JSONFEED_ATTACHMENTS) != 0) {
-			if (strcmp(name, "url") == 0) {
-				cpyas(data->feed->item->attachment->url, value, value_len);
-			} else if (strcmp(name, "mime_type") == 0) {
-				cpyas(data->feed->item->attachment->type, value, value_len);
-			} else if (strcmp(name, "size_in_bytes") == 0) {
-				data->feed->item->attachment->size = convert_string_to_size_t_or_zero(value);
-			} else if (strcmp(name, "duration_in_seconds") == 0) {
-				data->feed->item->attachment->duration = convert_string_to_size_t_or_zero(value);
-			}
-		} else if ((data->jsonfeed_pos & JSONFEED_TAGS) != 0) {
-			prepend_category(&data->feed->item->category);
-			cpyas(data->feed->item->category->term, value, value_len);
-		} else if (strcmp(name, "id") == 0) {
-			cpyas(data->feed->item->guid, value, value_len);
-		} else if (strcmp(name, "url") == 0) {
-			cpyas(data->feed->item->url, value, value_len);
-		} else if (strcmp(name, "title") == 0) {
-			cpyas(data->feed->item->title.value, value, value_len);
-			cpyas(data->feed->item->title.type, "text/plain", 10);
-		} else if (strcmp(name, "content_html") == 0) {
-			cpyas(data->feed->item->content.value, value, value_len);
-			cpyas(data->feed->item->content.type, "text/html", 9);
-		} else if (strcmp(name, "content_text") == 0) {
-			cpyas(data->feed->item->content.value, value, value_len);
-			cpyas(data->feed->item->content.type, "text/plain", 10);
-		} else if (strcmp(name, "summary") == 0) {
-			cpyas(data->feed->item->summary.value, value, value_len);
-			cpyas(data->feed->item->summary.type, "text/plain", 10);
-		} else if (strcmp(name, "date_published") == 0) {
-			data->feed->item->pubdate = parse_date_rfc3339(value, value_len);
-		} else if (strcmp(name, "date_modified") == 0) {
-			data->feed->item->upddate = parse_date_rfc3339(value, value_len);
+	for (cJSON *credit = json->child; credit != NULL; credit = credit->next) {
+		if ((cJSON_IsString(credit) == false) || (credit->valuestring == NULL)) {
+			// All members of the author object are strings, skip everything else.
+			// Also skip NULL strings.
+			continue;
 		}
-	} else {
-		if ((data->jsonfeed_pos & JSONFEED_AUTHORS) != 0) {
-			if (strcmp(name, "name") == 0) {
-				cpyas(data->feed->author->name, value, value_len);
-			} else if (strcmp(name, "url") == 0) {
-				cpyas(data->feed->author->url, value, value_len);
-			} else if (strcmp(name, "avatar") == 0) {
-				// picture that represents a person...
-				// todo
+		if (credit->string == NULL) {
+			// wtf?
+		} else if (strcmp(credit->string, "name") == 0) {
+			cpyas(person->name, credit->valuestring, strlen(credit->valuestring));
+		} else if (strcmp(credit->string, "url") == 0) {
+			cpyas(person->url, credit->valuestring, strlen(credit->valuestring));
+		} else if (strcmp(credit->string, "avatar") == 0) {
+			// TODO
+		}
+	}
+}
+
+static void
+populate_link(cJSON *json, struct getfeed_link *link)
+{
+	for (cJSON *entry = json->child; entry != NULL; entry = entry->next) {
+		if (entry->string == NULL) {
+			continue; // wtf?
+		}
+		if (cJSON_IsString(entry) == true) {
+			if (entry->valuestring == NULL) {
+				continue;
 			}
-		} else if (strcmp(name, "title") == 0) {
-			cpyas(data->feed->title.value, value, value_len);
-			cpyas(data->feed->title.type, "text/plain", 10);
-		} else if (strcmp(name, "home_page_url") == 0) {
-			cpyas(data->feed->url, value, value_len);
-		} else if (strcmp(name, "description") == 0) {
-			cpyas(data->feed->summary.value, value, value_len);
-			cpyas(data->feed->summary.type, "text/plain", 10);
-		} else if (strcmp(name, "language") == 0) {
-			cpyas(data->feed->language, value, value_len);
+			if (strcmp(entry->string, "url") == 0) {
+				cpyas(link->url, entry->valuestring, strlen(entry->valuestring));
+			} else if (strcmp(entry->string, "mime_type") == 0) {
+				cpyas(link->type, entry->valuestring, strlen(entry->valuestring));
+			} else if (strcmp(entry->string, "title") == 0) {
+				// TODO
+			}
+		} else if (cJSON_IsNumber(entry) == true) {
+			if (strcmp(entry->string, "size_in_bytes") == 0) {
+				link->size = entry->valueint;
+			} else if (strcmp(entry->string, "duration_in_seconds") == 0) {
+				link->duration = entry->valueint;
+			}
+		}
+	}
+}
+
+static inline void
+process_item_entry(cJSON *json, struct json_data *data)
+{
+	for (cJSON *node = json->child; node != NULL; node = node->next) {
+		if (node->string == NULL) {
+			continue; // wtf?
+		}
+		if (cJSON_IsString(node) == true) {
+			if (node->valuestring == NULL) {
+				continue;
+			}
+			if (strcmp(node->string, "id") == 0) {
+				cpyas(data->feed->item->guid, node->valuestring, strlen(node->valuestring));
+			} else if (strcmp(node->string, "url") == 0) {
+				cpyas(data->feed->item->url, node->valuestring, strlen(node->valuestring));
+			} else if (strcmp(node->string, "title") == 0) {
+				cpyas(data->feed->item->title.value, node->valuestring, strlen(node->valuestring));
+				cpyas(data->feed->item->title.type, "text/plain", 10);
+			} else if (strcmp(node->string, "content_html") == 0) {
+				cpyas(data->feed->item->content.value, node->valuestring, strlen(node->valuestring));
+				cpyas(data->feed->item->content.type, "text/html", 9);
+			} else if (strcmp(node->string, "content_text") == 0) {
+				cpyas(data->feed->item->content.value, node->valuestring, strlen(node->valuestring));
+				cpyas(data->feed->item->content.type, "text/plain", 10);
+			} else if (strcmp(node->string, "summary") == 0) {
+				cpyas(data->feed->item->summary.value, node->valuestring, strlen(node->valuestring));
+				cpyas(data->feed->item->summary.type, "text/plain", 10);
+			} else if (strcmp(node->string, "date_published") == 0) {
+				data->feed->item->pubdate = parse_date_rfc3339(node->valuestring, strlen(node->valuestring));
+			} else if (strcmp(node->string, "date_modified") == 0) {
+				data->feed->item->upddate = parse_date_rfc3339(node->valuestring, strlen(node->valuestring));
+			} else if (strcmp(node->string, "external_url") == 0) {
+				prepend_link(&data->feed->item->attachment);
+				cpyas(data->feed->item->attachment->url, node->valuestring, strlen(node->valuestring));
+			}
+		} else if (cJSON_IsArray(node) == true) {
+			if (strcmp(node->string, "authors") == 0) {
+				for (cJSON *author = node->child; author != NULL; author = author->next) {
+					prepend_person(&data->feed->item->author);
+					populate_person(author, data->feed->item->author);
+				}
+			} else if (strcmp(node->string, "attachments") == 0) {
+				for (cJSON *attachment = node->child; attachment != NULL; attachment = attachment->next) {
+					prepend_link(&data->feed->item->attachment);
+					populate_link(attachment, data->feed->item->attachment);
+				}
+			} else if (strcmp(node->string, "tags") == 0) {
+				for (cJSON *tag = node->child; tag != NULL; tag = tag->next) {
+					if ((cJSON_IsString(tag) == false) || (tag->valuestring == NULL)) {
+						// All elements of the tags array are strings, skip everything else.
+						// Also skip NULL strings.
+						continue;
+					}
+					prepend_category(&data->feed->item->category);
+					cpyas(data->feed->item->category->term, tag->valuestring, strlen(tag->valuestring));
+				}
+			}
 		}
 	}
 }
@@ -82,46 +118,39 @@ json_dump_jsonfeed(cJSON *json, struct json_data *data)
 	if (json == NULL) {
 		return;
 	}
-	for (cJSON *node = json; node != NULL; node = node->next) {
+	for (cJSON *node = json->child; node != NULL; node = node->next) {
+		if (node->string == NULL) {
+			continue; // wtf?
+		}
 		if (cJSON_IsString(node) == true) {
 			if (node->valuestring == NULL) {
-				jsonfeed_process_string(node->string, "", 0, data);
-			} else {
-				jsonfeed_process_string(node->string, node->valuestring, strlen(node->valuestring), data);
+				continue;
 			}
-		} else if (cJSON_IsObject(node) == true) {
-			if (data->jsonfeed_pos == JSONFEED_ITEMS) {
-				prepend_item(&data->feed->item);
-			} else if ((data->jsonfeed_pos & JSONFEED_AUTHORS) != 0) {
-				if ((data->jsonfeed_pos & JSONFEED_ITEMS) != 0) {
-					prepend_person(&data->feed->item->author);
-				} else {
-					prepend_person(&data->feed->author);
-				}
-			} else if ((data->jsonfeed_pos & JSONFEED_ATTACHMENTS) != 0) {
-				if ((data->jsonfeed_pos & JSONFEED_ITEMS) != 0) {
-					prepend_link(&data->feed->item->attachment);
-				} else {
-					// Spec says feed can't have attachments.
-				}
+			if (strcmp(node->string, "title") == 0) {
+				cpyas(data->feed->title.value, node->valuestring, strlen(node->valuestring));
+				cpyas(data->feed->title.type, "text/plain", 10);
+			} else if (strcmp(node->string, "home_page_url") == 0) {
+				cpyas(data->feed->url, node->valuestring, strlen(node->valuestring));
+			} else if (strcmp(node->string, "description") == 0) {
+				cpyas(data->feed->summary.value, node->valuestring, strlen(node->valuestring));
+				cpyas(data->feed->summary.type, "text/plain", 10);
+			} else if (strcmp(node->string, "language") == 0) {
+				cpyas(data->feed->language, node->valuestring, strlen(node->valuestring));
 			}
-			json_dump_jsonfeed(node->child, data);
 		} else if (cJSON_IsArray(node) == true) {
-			int8_t new_pos = JSONFEED_NONE;
 			if (strcmp(node->string, "authors") == 0) {
-				new_pos = JSONFEED_AUTHORS;
-			} else if (strcmp(node->string, "tags") == 0) {
-				new_pos = JSONFEED_TAGS;
-			} else if (strcmp(node->string, "attachments") == 0) {
-				new_pos = JSONFEED_ATTACHMENTS;
+				for (cJSON *author = node->child; author != NULL; author = author->next) {
+					prepend_person(&data->feed->author);
+					populate_person(author, data->feed->author);
+				}
 			} else if (strcmp(node->string, "items") == 0) {
-				new_pos = JSONFEED_ITEMS;
+				for (cJSON *item = node->child; item != NULL; item = item->next) {
+					prepend_item(&data->feed->item);
+					process_item_entry(item, data);
+				}
 			}
-			data->jsonfeed_pos |= new_pos;
-			json_dump_jsonfeed(node->child, data);
-			data->jsonfeed_pos &= ~new_pos;
 		} else if (cJSON_IsBool(node) == true) {
-			// expired boolean
+			// TODO expired
 		}
 	}
 }

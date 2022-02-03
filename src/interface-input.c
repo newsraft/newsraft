@@ -52,10 +52,7 @@ get_input_command(void)
 			return INPUT_QUIT_HARD;
 		}
 
-		// Recreate a status window.
-		status_delete();
-		status_create();
-		status_clean();
+		status_resize();
 
 		return INPUT_RESIZE;
 	}

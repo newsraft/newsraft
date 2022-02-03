@@ -1,4 +1,3 @@
-#include <time.h>
 #include <string.h>
 #include <ctype.h>
 #include "update_feed/parse_feed/parse_feed.h"

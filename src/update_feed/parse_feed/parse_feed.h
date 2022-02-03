@@ -1,9 +1,5 @@
 #ifndef GETFEED_H
 #define GETFEED_H
-#include <stdint.h>
-#include <stdio.h>
-#include <time.h>
-#include <stdbool.h>
 #include <expat.h>
 #include <cjson/cJSON.h>
 #include "update_feed/update_feed.h"

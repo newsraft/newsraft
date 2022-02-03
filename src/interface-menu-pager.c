@@ -66,6 +66,7 @@ create_window_with_contents(void)
 
 	clear();
 	refresh();
+	status_update();
 	prefresh(pad, view_min, 0, 0, 0, list_menu_height - 1, list_menu_width - 1);
 
 	free_wstring(text);
@@ -152,6 +153,7 @@ pager_view(const struct render_block *first_block)
 		return INPUTS_COUNT;
 	}
 
+	status_clean();
 	set_pager_view_input_handlers();
 
 	int destination;

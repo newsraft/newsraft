@@ -259,7 +259,7 @@ set_expose(size_t index)
 	fmt_args[0].value.i = index + 1;
 	fmt_args[1].value.i = sets[index].unread_count;
 	fmt_args[2].value.s = set_image(&(sets[index]));
-	wprintw(sets[index].window, "%ls", do_format(cfg.menu_set_entry_format, fmt_args, COUNTOF(fmt_args)));
+	mvwaddnwstr(sets[index].window, 0, 0, do_format(cfg.menu_set_entry_format, fmt_args, COUNTOF(fmt_args)), list_menu_width);
 	mvwchgat(sets[index].window, 0, 0, -1, (index == view_sel) ? A_REVERSE : A_NORMAL, 0, NULL);
 	wrefresh(sets[index].window);
 }
@@ -476,6 +476,7 @@ redraw_sets_windows(void)
 {
 	clear();
 	refresh();
+	status_update();
 	view_max = view_min + (list_menu_height - 1);
 	if (view_max < view_sel) {
 		view_max = view_sel;
@@ -517,6 +518,7 @@ enter_sets_menu_loop(void)
 		destination = enter_items_menu_loop(sets[view_sel].cond);
 
 		if (destination == INPUT_QUIT_SOFT) {
+			status_clean();
 			set_sets_input_handlers();
 			update_unread_items_count_recursively(&sets[view_sel], view_sel, false);
 			redraw_sets_windows();

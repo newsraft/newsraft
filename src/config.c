@@ -1,6 +1,5 @@
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
 #include <ctype.h>
 #include "feedeater.h"
 
@@ -63,7 +62,7 @@ load_config(void)
 	}
 
 	if ((success == true) && (verify_config_values() == false)) {
-		fprintf(stderr, "Verification of the configurational values failed!\n");
+		fprintf(stderr, "Verification of the configuration failed!\n");
 		success = false;
 	}
 

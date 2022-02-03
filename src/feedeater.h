@@ -1,6 +1,7 @@
 #ifndef FEEDEATER_H
 #define FEEDEATER_H
 #include <stdbool.h>
+#include <stdarg.h>
 #include <inttypes.h>
 #include <time.h>
 #include <wchar.h>
@@ -260,19 +261,23 @@ int get_unread_items_count(const struct set_condition *sc);
 bool curses_init(void);
 bool obtain_terminal_size(void);
 
-// functions related to window which displays informational messages (see status.c file)
-bool status_create(void);
-void status_write(const char *format, ...);
-void status_clean(void);
-void status_delete(void);
-
-// functions related to window which handles user input (see interface-input.c file)
+// Functions responsible for handling input.
+// See "interface-input.c" file for implementation.
 void reset_input_handlers(void);
 void set_input_handler(enum input_cmd, void (*func)(void));
 int handle_input(void);
 bool assign_action_to_key(int bind_key, enum input_cmd bind_cmd);
 bool load_default_binds(void);
 void free_binds(void);
+
+// Functions related to window which displays status messages.
+// See "interface-status.c" file for implementation.
+bool status_create(void);
+void status_update(void);
+void status_write(const char *format, ...);
+void status_clean(void);
+void status_resize(void);
+void status_delete(void);
 
 // string
 struct string *crtas(const char *src_ptr, size_t src_len);
@@ -283,6 +288,8 @@ bool cpyss(struct string *dest, const struct string *src);
 bool catas(struct string *dest, const char *src_ptr, size_t src_len);
 bool catss(struct string *dest, const struct string *src);
 bool catcs(struct string *dest, char c);
+bool string_vprintf(struct string *dest, const char *format, va_list args);
+bool string_printf(struct string *dest, const char *format, ...);
 void empty_string(struct string *str);
 void free_string(struct string *str);
 void trim_whitespace_from_string(struct string *str);

@@ -102,7 +102,7 @@ item_expose(size_t index)
 	fmt_args[0].value.i = index + 1;
 	fmt_args[1].value.c = items[index].is_unread == true ? 'N' : ' ';
 	fmt_args[2].value.s = items[index].title->ptr;
-	wprintw(items[index].window, "%ls", do_format(cfg.menu_item_entry_format, fmt_args, COUNTOF(fmt_args)));
+	mvwaddnwstr(items[index].window, 0, 0, do_format(cfg.menu_item_entry_format, fmt_args, COUNTOF(fmt_args)), list_menu_width);
 	mvwchgat(items[index].window, 0, 0, -1, (index == view_sel) ? A_REVERSE : A_NORMAL, 0, NULL);
 	wrefresh(items[index].window);
 }
@@ -239,6 +239,7 @@ redraw_items_windows(void)
 {
 	clear();
 	refresh();
+	status_update();
 	view_max = view_min + (list_menu_height - 1);
 	if (view_max < view_sel) {
 		view_max = view_sel;
@@ -319,6 +320,7 @@ enter_items_menu_loop(const struct set_condition *sc)
 	view_min = 0;
 	view_max = list_menu_height - 1;
 
+	status_clean();
 	redraw_items_windows();
 
 	set_items_input_handlers();

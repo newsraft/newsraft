@@ -34,18 +34,18 @@ error:
 bool
 assign_default_values_to_empty_config_strings(void)
 {
-#define ADVTECS(A, B, C, D) if (A == NULL) {                 \
-                            	A = malloc(sizeof(B) * D);   \
-                            	if (A == NULL) {             \
-                            		return false;            \
-                            	}                            \
-                            	memcpy(A, C, sizeof(B) * D); \
+#define ADVTECS(A, B, C, D) if (A == NULL) {         \
+                            	A = malloc(B * D);   \
+                            	if (A == NULL) {     \
+                            		return false;    \
+                            	}                    \
+                            	memcpy(A, C, B * D); \
                             }
 	// ATTENTION! Fourth argument to ADVTECS is number of characters (including terminator), not string length.
-	ADVTECS(cfg.menu_set_entry_format,  wchar_t, L"%4.0u │ %t",              11)
-	ADVTECS(cfg.menu_item_entry_format, wchar_t, L" %u │ %t",                9)
-	ADVTECS(cfg.contents_meta_data,     char,    "feed,title,authors,published,updated,max-summary-content", 57)
-	ADVTECS(cfg.contents_date_format,   char,    "%a, %d %b %Y %H:%M:%S %z", 25)
+	ADVTECS(cfg.menu_set_entry_format,  sizeof(wchar_t), L"%4.0u │ %t",              11)
+	ADVTECS(cfg.menu_item_entry_format, sizeof(wchar_t), L" %u │ %t",                9)
+	ADVTECS(cfg.contents_meta_data,     sizeof(char),    "feed,title,authors,published,updated,max-summary-content", 57)
+	ADVTECS(cfg.contents_date_format,   sizeof(char),    "%a, %d %b %Y %H:%M:%S %z", 25)
 #undef ADVTECS
 	return true;
 }

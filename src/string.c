@@ -123,6 +123,44 @@ catcs(struct string *dest, char c)
 	return true;
 }
 
+bool
+string_vprintf(struct string *dest, const char *format, va_list args)
+{
+	int required_length = vsnprintf(dest->ptr, 0, format, args);
+	if (required_length < 0) {
+		return false;
+	}
+	// We already know that integer is positive, so it is safe to cast it to unsigned integer.
+	if ((size_t)required_length > dest->lim) {
+		size_t new_lim = (size_t)required_length * 2; // Multiply by 2 to decrease number of further realloc calls.
+		char *temp = realloc(dest->ptr, sizeof(char) * (new_lim + 1));
+		if (temp == NULL) {
+			FAIL("Not enough memory for printing to string!");
+			return false;
+		}
+		dest->ptr = temp;
+		dest->lim = new_lim;
+	}
+	required_length = vsnprintf(dest->ptr, required_length + 1, format, args);
+	if (required_length < 0) {
+		empty_string(dest);
+		return false;
+	}
+	dest->len = (size_t)required_length;
+	*(dest->ptr + dest->len) = '\0';
+	return true;
+}
+
+bool
+string_printf(struct string *dest, const char *format, ...)
+{
+	va_list args;
+	va_start(args, format);
+	bool result = string_vprintf(dest, format, args);
+	va_end(args);
+	return result;
+}
+
 void
 empty_string(struct string *str)
 {

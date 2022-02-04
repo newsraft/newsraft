@@ -2,13 +2,6 @@
 #include <tidybuffio.h>
 #include "prepare_to_render_data/prepare_to_render_data.h"
 
-enum html_position {
-	HTML_NONE = 0,
-	HTML_STYLE = 1,
-	HTML_SCRIPT = 2,
-	HTML_VIDEO = 4,
-};
-
 static const char *
 get_value_of_xml_attribute(const TidyAttr *attrs, const char *attr_name)
 {
@@ -21,7 +14,7 @@ get_value_of_xml_attribute(const TidyAttr *attrs, const char *attr_name)
 }
 
 static inline void
-sup_start_handler(struct string *text)
+sup_handler(struct string *text)
 {
 	catcs(text, '^');
 }
@@ -44,30 +37,6 @@ button_end_handler(struct string *text)
 	catcs(text, ']');
 }
 
-static inline void
-script_start_handler(enum html_position *pos)
-{
-	*pos |= HTML_SCRIPT;
-}
-
-static inline void
-script_end_handler(enum html_position *pos)
-{
-	*pos &= ~HTML_SCRIPT;
-}
-
-static inline void
-style_start_handler(enum html_position *pos)
-{
-	*pos |= HTML_STYLE;
-}
-
-static inline void
-style_end_handler(enum html_position *pos)
-{
-	*pos &= ~HTML_STYLE;
-}
-
 static void
 add_url_mark(struct string *text, const char *url, const char *title, size_t title_len, struct link_list *links, const char *data_type)
 {
@@ -80,49 +49,35 @@ add_url_mark(struct string *text, const char *url, const char *title, size_t tit
 	}
 
 	// Add link mark to HTML content.
-	char *url_mark;
-	size_t url_mark_len = 0;
+	struct string *url_mark = crtes();
+	if (url_mark == NULL) {
+		return;
+	}
 	if (data_type == NULL) {
 		if ((title != NULL) && (title_len != 0)) {
-			url_mark_len = snprintf(NULL, 0, " [%zu, \"%s\"]", links->len + 1, title);
-			if ((url_mark = malloc(sizeof(char) * (url_mark_len + 1))) == NULL) {
-				return;
-			}
-			snprintf(url_mark, url_mark_len + 1, " [%zu, \"%s\"]", links->len + 1, title);
+			string_printf(url_mark, " [%zu, \"%s\"]", links->len + 1, title);
 		} else {
-			url_mark_len = snprintf(NULL, 0, " [%zu]", links->len + 1);
-			if ((url_mark = malloc(sizeof(char) * (url_mark_len + 1))) == NULL) {
-				return;
-			}
-			snprintf(url_mark, url_mark_len + 1, " [%zu]", links->len + 1);
+			string_printf(url_mark, " [%zu]", links->len + 1);
 		}
 	} else {
 		if ((title != NULL) && (title_len != 0)) {
-			url_mark_len = snprintf(NULL, 0, " [%zu, %s \"%s\"]", links->len + 1, data_type, title);
-			if ((url_mark = malloc(sizeof(char) * (url_mark_len + 1))) == NULL) {
-				return;
-			}
-			snprintf(url_mark, url_mark_len + 1, " [%zu, %s \"%s\"]", links->len + 1, data_type, title);
+			string_printf(url_mark, " [%zu, %s \"%s\"]", links->len + 1, data_type, title);
 		} else {
-			url_mark_len = snprintf(NULL, 0, " [%zu, %s]", links->len + 1, data_type);
-			if ((url_mark = malloc(sizeof(char) * (url_mark_len + 1))) == NULL) {
-				return;
-			}
-			snprintf(url_mark, url_mark_len + 1, " [%zu, %s]", links->len + 1, data_type);
+			string_printf(url_mark, " [%zu, %s]", links->len + 1, data_type);
 		}
 	}
-	catas(text, url_mark, url_mark_len);
-	free(url_mark);
+	catss(text, url_mark);
+	free_string(url_mark);
 
 	// Add URL to link list.
 	add_another_url_to_trim_link_list(links, url, url_len);
 }
 
 static inline void
-a_end_handler(struct string *text, struct link_list *links, const TidyAttr *atts)
+a_handler(struct string *text, struct link_list *links, const TidyAttr *attrs)
 {
-	const char *url = get_value_of_xml_attribute(atts, "href");
-	const char *title = get_value_of_xml_attribute(atts, "title");
+	const char *url = get_value_of_xml_attribute(attrs, "href");
+	const char *title = get_value_of_xml_attribute(attrs, "title");
 	size_t title_len;
 	if (title != NULL) {
 		title_len = strlen(title);
@@ -131,16 +86,16 @@ a_end_handler(struct string *text, struct link_list *links, const TidyAttr *atts
 }
 
 static inline void
-img_start_handler(struct string *text, const TidyAttr *atts, struct link_list *links)
+img_handler(struct string *text, const TidyAttr *attrs, struct link_list *links)
 {
-	const char *url = get_value_of_xml_attribute(atts, "src");
-	const char *title = get_value_of_xml_attribute(atts, "title");
+	const char *url = get_value_of_xml_attribute(attrs, "src");
+	const char *title = get_value_of_xml_attribute(attrs, "title");
 	size_t title_len;
 	if (title != NULL) {
 		title_len = strlen(title);
 	}
 	if ((title == NULL) || (title_len == 0)) {
-		title = get_value_of_xml_attribute(atts, "alt");
+		title = get_value_of_xml_attribute(attrs, "alt");
 		if (title != NULL) {
 			title_len = strlen(title);
 		}
@@ -149,7 +104,7 @@ img_start_handler(struct string *text, const TidyAttr *atts, struct link_list *l
 }
 
 static inline void
-iframe_start_handler(struct string *text, const TidyAttr *attrs, struct link_list *links)
+iframe_handler(struct string *text, const TidyAttr *attrs, struct link_list *links)
 {
 	const char *url = get_value_of_xml_attribute(attrs, "src");
 	const char *title = get_value_of_xml_attribute(attrs, "title");
@@ -167,7 +122,7 @@ iframe_start_handler(struct string *text, const TidyAttr *attrs, struct link_lis
 }
 
 static inline void
-embed_start_handler(struct string *text, const TidyAttr *attrs, struct link_list *links)
+embed_handler(struct string *text, const TidyAttr *attrs, struct link_list *links)
 {
 	const char *url = get_value_of_xml_attribute(attrs, "src");
 	const char *type = get_value_of_xml_attribute(attrs, "type");
@@ -177,66 +132,81 @@ embed_start_handler(struct string *text, const TidyAttr *attrs, struct link_list
 	add_url_mark(text, url, NULL, 0, links, type);
 }
 
-static inline bool
-start_handler(TidyTagId t, struct string *w, enum html_position *p, struct link_list *l, const TidyAttr *a)
+static inline void
+video_handler(struct string *text, const TidyAttr *attrs, struct link_list *links)
 {
-	     if (t == TidyTag_SPAN)     { /* just nothing */             return true; }
-	else if (t == TidyTag_SUP)      { sup_start_handler(w);          return true; }
-	else if (t == TidyTag_A)        { /* just nothing */             return true; }
-	else if (t == TidyTag_IMG)      { img_start_handler(w, a, l);    return true; }
-	else if (t == TidyTag_IFRAME)   { iframe_start_handler(w, a, l); return true; }
-	else if (t == TidyTag_EMBED)    { embed_start_handler(w, a, l);  return true; }
-	else if (t == TidyTag_VIDEO)    { /* TODO */                     return true; }
-	else if (t == TidyTag_SOURCE)   { /* TODO */                     return true; }
-	else if (t == TidyTag_Q)        { q_handler(w);                  return true; }
-	else if (t == TidyTag_CODE)     { /* TODO */                     return true; }
-	else if (t == TidyTag_B)        { /* TODO */                     return true; }
-	else if (t == TidyTag_I)        { /* TODO */                     return true; }
-	else if (t == TidyTag_EM)       { /* TODO */                     return true; }
-	else if (t == TidyTag_MARK)     { /* TODO */                     return true; }
-	else if (t == TidyTag_SMALL)    { /* TODO */                     return true; }
-	else if (t == TidyTag_TIME)     { /* TODO */                     return true; }
-	else if (t == TidyTag_STRONG)   { /* TODO */                     return true; }
-	else if (t == TidyTag_LABEL)    { /* just nothing */             return true; }
-	else if (t == TidyTag_TEXTAREA) { /* just nothing */             return true; }
-	else if (t == TidyTag_THEAD)    { /* just nothing */             return true; }
-	else if (t == TidyTag_TBODY)    { /* just nothing */             return true; }
-	else if (t == TidyTag_TFOOT)    { /* just nothing */             return true; }
-	else if (t == TidyTag_NOSCRIPT) { /* just nothing */             return true; }
-	else if (t == TidyTag_BUTTON)   { button_start_handler(w);       return true; }
-	else if (t == TidyTag_SCRIPT)   { script_start_handler(p);       return true; }
-	else if (t == TidyTag_STYLE)    { style_start_handler(p);        return true; }
+	const char *url = get_value_of_xml_attribute(attrs, "src");
+	add_url_mark(text, url, NULL, 0, links, "video");
+}
+
+static inline void
+source_handler(struct string *text, const TidyAttr *attrs, struct link_list *links)
+{
+	const char *url = get_value_of_xml_attribute(attrs, "src");
+	const char *type = get_value_of_xml_attribute(attrs, "type");
+	add_url_mark(text, url, NULL, 0, links, type);
+}
+
+static inline bool
+start_handler(TidyTagId t, struct string *w, struct link_list *l, const TidyAttr *a)
+{
+	     if (t == TidyTag_SPAN)     { /* just nothing */       return true; }
+	else if (t == TidyTag_A)        { /* just nothing */       return true; }
+	else if (t == TidyTag_SUP)      { sup_handler(w);          return true; }
+	else if (t == TidyTag_IMG)      { img_handler(w, a, l);    return true; }
+	else if (t == TidyTag_IFRAME)   { iframe_handler(w, a, l); return true; }
+	else if (t == TidyTag_EMBED)    { embed_handler(w, a, l);  return true; }
+	else if (t == TidyTag_SOURCE)   { source_handler(w, a, l); return true; }
+	else if (t == TidyTag_Q)        { q_handler(w);            return true; }
+	else if (t == TidyTag_CODE)     { /* TODO */               return true; }
+	else if (t == TidyTag_B)        { /* TODO */               return true; }
+	else if (t == TidyTag_I)        { /* TODO */               return true; }
+	else if (t == TidyTag_EM)       { /* TODO */               return true; }
+	else if (t == TidyTag_MARK)     { /* TODO */               return true; }
+	else if (t == TidyTag_SMALL)    { /* TODO */               return true; }
+	else if (t == TidyTag_TIME)     { /* TODO */               return true; }
+	else if (t == TidyTag_STRONG)   { /* TODO */               return true; }
+	else if (t == TidyTag_VIDEO)    { video_handler(w, a, l);  return true; }
+	else if (t == TidyTag_LABEL)    { /* just nothing */       return true; }
+	else if (t == TidyTag_TEXTAREA) { /* just nothing */       return true; }
+	else if (t == TidyTag_THEAD)    { /* just nothing */       return true; }
+	else if (t == TidyTag_TBODY)    { /* just nothing */       return true; }
+	else if (t == TidyTag_TFOOT)    { /* just nothing */       return true; }
+	else if (t == TidyTag_NOSCRIPT) { /* just nothing */       return true; }
+	else if (t == TidyTag_BUTTON)   { button_start_handler(w); return true; }
+	else if (t == TidyTag_SCRIPT)   { /* just nothing */       return true; }
+	else if (t == TidyTag_STYLE)    { /* just nothing */       return true; }
 
 	return false;
 }
 
 static inline bool
-end_handler(TidyTagId t, struct string *w, enum html_position *p, struct link_list *l, const TidyAttr *a)
+end_handler(TidyTagId t, struct string *w, struct link_list *l, const TidyAttr *a)
 {
-	     if (t == TidyTag_SPAN)     { /* just nothing */      return true; }
-	else if (t == TidyTag_SUP)      { /* just nothing */      return true; }
-	else if (t == TidyTag_A)        { a_end_handler(w, l, a); return true; }
-	else if (t == TidyTag_VIDEO)    { /* TODO */              return true; }
-	else if (t == TidyTag_Q)        { q_handler(w);           return true; }
-	else if (t == TidyTag_CODE)     { /* TODO */              return true; }
-	else if (t == TidyTag_B)        { /* TODO */              return true; }
-	else if (t == TidyTag_I)        { /* TODO */              return true; }
-	else if (t == TidyTag_EM)       { /* TODO */              return true; }
-	else if (t == TidyTag_MARK)     { /* TODO */              return true; }
-	else if (t == TidyTag_SMALL)    { /* TODO */              return true; }
-	else if (t == TidyTag_TIME)     { /* TODO */              return true; }
-	else if (t == TidyTag_STRONG)   { /* TODO */              return true; }
-	else if (t == TidyTag_LABEL)    { /* just nothing */      return true; }
-	else if (t == TidyTag_TEXTAREA) { /* just nothing */      return true; }
-	else if (t == TidyTag_THEAD)    { /* just nothing */      return true; }
-	else if (t == TidyTag_TBODY)    { /* just nothing */      return true; }
-	else if (t == TidyTag_TFOOT)    { /* just nothing */      return true; }
-	else if (t == TidyTag_NOSCRIPT) { /* just nothing */      return true; }
-	else if (t == TidyTag_BUTTON)   { button_end_handler(w);  return true; }
-	else if (t == TidyTag_SCRIPT)   { script_end_handler(p);  return true; }
-	else if (t == TidyTag_STYLE)    { style_end_handler(p);   return true; }
+	     if (t == TidyTag_SPAN)     { /* just nothing */     return true; }
+	else if (t == TidyTag_A)        { a_handler(w, l, a);    return true; }
+	else if (t == TidyTag_SUP)      { /* just nothing */     return true; }
+	else if (t == TidyTag_Q)        { q_handler(w);          return true; }
+	else if (t == TidyTag_CODE)     { /* TODO */             return true; }
+	else if (t == TidyTag_B)        { /* TODO */             return true; }
+	else if (t == TidyTag_I)        { /* TODO */             return true; }
+	else if (t == TidyTag_EM)       { /* TODO */             return true; }
+	else if (t == TidyTag_MARK)     { /* TODO */             return true; }
+	else if (t == TidyTag_SMALL)    { /* TODO */             return true; }
+	else if (t == TidyTag_TIME)     { /* TODO */             return true; }
+	else if (t == TidyTag_STRONG)   { /* TODO */             return true; }
+	else if (t == TidyTag_VIDEO)    { /* just nothing */     return true; }
+	else if (t == TidyTag_LABEL)    { /* just nothing */     return true; }
+	else if (t == TidyTag_TEXTAREA) { /* just nothing */     return true; }
+	else if (t == TidyTag_THEAD)    { /* just nothing */     return true; }
+	else if (t == TidyTag_TBODY)    { /* just nothing */     return true; }
+	else if (t == TidyTag_TFOOT)    { /* just nothing */     return true; }
+	else if (t == TidyTag_NOSCRIPT) { /* just nothing */     return true; }
+	else if (t == TidyTag_BUTTON)   { button_end_handler(w); return true; }
+	else if (t == TidyTag_SCRIPT)   { /* just nothing */     return true; }
+	else if (t == TidyTag_STYLE)    { /* just nothing */     return true; }
 	// These elements are self-closing, but some generators tend to append
-	// redundant closing tag. Don't return any errors here.
+	// redundant closing tag. Don't return error here.
 	else if (t == TidyTag_IMG)      { return true; }
 	else if (t == TidyTag_IFRAME)   { return true; }
 	else if (t == TidyTag_SOURCE)   { return true; }
@@ -246,7 +216,7 @@ end_handler(TidyTagId t, struct string *w, enum html_position *p, struct link_li
 }
 
 static void
-cat_tag_to_string(struct string *target, const char *tag_name, const TidyAttr *atts, bool is_start)
+cat_tag_to_string(struct string *target, const char *tag_name, const TidyAttr *attrs, bool is_start)
 {
 	if (tag_name == NULL) {
 		return;
@@ -267,7 +237,7 @@ cat_tag_to_string(struct string *target, const char *tag_name, const TidyAttr *a
 	size_t attr_name_len;
 	const char *attr_value;
 	size_t attr_value_len;
-	for (TidyAttr attr = *atts; attr; attr = tidyAttrNext(attr)) {
+	for (TidyAttr attr = *attrs; attr != NULL; attr = tidyAttrNext(attr)) {
 		attr_name = tidyAttrName(attr);
 		if (attr_name == NULL) {
 			continue;
@@ -303,13 +273,13 @@ cat_tag_to_string(struct string *target, const char *tag_name, const TidyAttr *a
 }
 
 static void
-dumpNode(TidyDoc *tdoc, TidyNode tnod, TidyBuffer *buf, struct string *text, enum html_position *pos, struct link_list *links)
+dumpNode(TidyDoc *tdoc, TidyNode tnod, TidyBuffer *buf, struct string *text, struct link_list *links)
 {
 	const char *child_name;
 	TidyTagId child_id;
 	TidyNodeType child_type;
-	TidyAttr child_atts;
-	for (TidyNode child = tidyGetChild(tnod); child; child = tidyGetNext(child)) {
+	TidyAttr child_attrs;
+	for (TidyNode child = tidyGetChild(tnod); child != NULL; child = tidyGetNext(child)) {
 		child_type = tidyNodeGetType(child);
 		if ((child_type == TidyNode_Text) || (child_type == TidyNode_CDATA)) {
 			tidyBufClear(buf);
@@ -320,13 +290,16 @@ dumpNode(TidyDoc *tdoc, TidyNode tnod, TidyBuffer *buf, struct string *text, enu
 		} else if ((child_type == TidyNode_Start) || (child_type == TidyNode_StartEnd)) {
 			child_name = tidyNodeGetName(child);
 			child_id = tidyNodeGetId(child);
-			child_atts = tidyAttrFirst(child);
-			if (start_handler(child_id, text, pos, links, &child_atts) == false) {
-				cat_tag_to_string(text, child_name, &child_atts, true);
+			child_attrs = tidyAttrFirst(child);
+			if (start_handler(child_id, text, links, &child_attrs) == false) {
+				cat_tag_to_string(text, child_name, &child_attrs, true);
 			}
-			dumpNode(tdoc, child, buf, text, pos, links);
-			if (end_handler(child_id, text, pos, links, &child_atts) == false) {
-				cat_tag_to_string(text, child_name, &child_atts, false);
+			// Don't descent into the <style> and <script> elements.
+			if ((child_id != TidyTag_STYLE) && (child_id != TidyTag_SCRIPT)) {
+				dumpNode(tdoc, child, buf, text, links);
+			}
+			if (end_handler(child_id, text, links, &child_attrs) == false) {
+				cat_tag_to_string(text, child_name, &child_attrs, false);
 			}
 		}
 	}
@@ -346,7 +319,6 @@ prepare_to_render_text_html(const struct wstring *wide_src, struct link_list *li
 		free_string(text);
 		return NULL;
 	}
-	enum html_position html_pos = HTML_NONE;
 
 	TidyDoc tdoc = tidyCreate();
 	TidyBuffer tempbuf = {0};
@@ -371,7 +343,7 @@ prepare_to_render_text_html(const struct wstring *wide_src, struct link_list *li
 	tidyCleanAndRepair(tdoc);
 	tidyRunDiagnostics(tdoc);
 
-	dumpNode(&tdoc, tidyGetBody(tdoc), &tempbuf, text, &html_pos, links);
+	dumpNode(&tdoc, tidyGetBody(tdoc), &tempbuf, text, links);
 
 	if (tidy_errbuf.bp != NULL) {
 		INFO("Tidy report:\n%s", tidy_errbuf.bp);

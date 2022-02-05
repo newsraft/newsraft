@@ -51,7 +51,7 @@ load_config(void)
 	cfg.menu_item_entry_format = NULL;
 	cfg.contents_meta_data = NULL;
 	cfg.contents_date_format = NULL;
-	cfg.size_conversion_threshold = 2048;
+	cfg.size_conversion_threshold = 1200;
 
 	/* if (parse_config_file() != 0) { */
 	/* 	success = false; */

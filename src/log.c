@@ -1,7 +1,54 @@
 #include <stdio.h>
+#include <curl/curl.h>
+#include <expat.h>
+#include <cjson/cJSON.h>
+#include <tidy.h>
 #include "feedeater.h"
 
 FILE *log_stream = NULL;
+
+static inline void
+log_feedeater_version(void)
+{
+	INFO("feedeater version: " FEEDEATER_VERSION);
+}
+
+static inline void
+log_ncurses_version(void)
+{
+	INFO("ncurses version: %s", curses_version());
+}
+
+static inline void
+log_sqlite_version(void)
+{
+	INFO("SQLite version: %s", sqlite3_libversion());
+}
+
+static inline void
+log_curl_version(void)
+{
+	INFO("curl version: %s", curl_version());
+}
+
+static inline void
+log_expat_version(void)
+{
+	XML_Expat_Version ver = XML_ExpatVersionInfo();
+	INFO("Expat version: %d.%d.%d", ver.major, ver.minor, ver.micro);
+}
+
+static inline void
+log_cjson_version(void)
+{
+	INFO("cJSON version: %s", cJSON_Version());
+}
+
+static inline void
+log_tidy_version(void)
+{
+	INFO("LibTidy version: %s (%s) for %s", tidyLibraryVersion(), tidyReleaseDate(), tidyPlatform());
+}
 
 bool
 log_init(const char *path)
@@ -16,7 +63,13 @@ log_init(const char *path)
 		return false;
 	}
 	INFO("Opened log file.");
-	INFO("feedeater version: " FEEDEATER_VERSION);
+	log_feedeater_version();
+	log_ncurses_version();
+	log_sqlite_version();
+	log_curl_version();
+	log_expat_version();
+	log_cjson_version();
+	log_tidy_version();
 	return true;
 }
 

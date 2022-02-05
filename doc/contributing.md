@@ -1,6 +1,6 @@
 # Dependency description
 
-Feedeater uses [ncurses](https://invisible-island.net/ncurses) to draw interface, [curl](https://curl.se) to download feeds, [Expat](https://libexpat.github.io) to process XML, [SQLite](https://www.sqlite.org) to store data and [Tidy](http://www.html-tidy.org) to process HTML.
+Feedeater uses [ncurses](https://invisible-island.net/ncurses) to draw interface, [SQLite](https://www.sqlite.org) to store data, [curl](https://curl.se) to download feeds, [Expat](https://libexpat.github.io) to parse XML, [cJSON](https://github.com/DaveGamble/cJSON) to parse JSON and [Tidy](http://www.html-tidy.org) to parse HTML.
 
 # Code guidelines
 

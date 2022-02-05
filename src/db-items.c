@@ -68,38 +68,21 @@ db_mark_item_unread(int rowid)
 	return db_update_item_int(rowid, "unread", 1);
 }
 
-#define SELECT_CMD_START "SELECT COUNT(*) FROM items WHERE unread=1 AND "
-#define SELECT_CMD_START_LEN 46
-
 int
-get_unread_items_count(const struct set_condition *sc)
+get_unread_items_count(const struct string *url)
 {
-	INFO("Trying to count unread items by their condition.");
-
-	size_t cmd_size = sizeof(char) * (SELECT_CMD_START_LEN + sc->db_cmd->len + 1);
-	char *cmd = malloc(cmd_size);
-	if (cmd == NULL) {
-		FAIL("Not enough memory for a SQL statement to count unread items!");
-		return 0; // failure
-	}
-
-	strcpy(cmd, SELECT_CMD_START);
-	strcat(cmd, sc->db_cmd->ptr);
+	INFO("Trying to count unread items of the \"%s\" feed.", url->ptr);
 
 	int unread_count = 0;
 	sqlite3_stmt *res;
-	if (db_prepare(cmd, cmd_size, &res, NULL) == true) {
-		for (size_t i = 0; i < sc->urls_count; ++i) {
-			sqlite3_bind_text(res, i + 1, sc->urls[i]->ptr, sc->urls[i]->len, NULL);
-		}
+	if (db_prepare("SELECT COUNT(*) FROM items WHERE feed_url=? AND unread=1;", 58, &res, NULL) == true) {
+		sqlite3_bind_text(res, 1, url->ptr, url->len, NULL);
 		if (sqlite3_step(res) == SQLITE_ROW) {
 			unread_count = sqlite3_column_int(res, 0);
 			INFO("Successfully counted the number of unread items: %d", unread_count);
 		}
 		sqlite3_finalize(res);
 	}
-
-	free(cmd);
 
 	return unread_count;
 }

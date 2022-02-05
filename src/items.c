@@ -30,33 +30,17 @@ free_items(void)
 // On success returns true.
 // On failure returns false.
 static bool
-load_items(const struct set_condition *sc)
+load_items(const struct string *url)
 {
-#define SELECT_CMD_PART_1 "SELECT rowid, unread, title FROM items WHERE "
-#define SELECT_CMD_PART_1_LEN 45
-#define SELECT_CMD_PART_3 " ORDER BY upddate DESC, pubdate DESC, rowid DESC"
-#define SELECT_CMD_PART_3_LEN 48
-	size_t cmd_size = sizeof(char) * (SELECT_CMD_PART_1_LEN + sc->db_cmd->len + SELECT_CMD_PART_3_LEN + 1);
-	char *cmd = malloc(cmd_size);
-	if (cmd == NULL) {
-		status_write("Not enough memory for select statement!");
-		return false;
-	}
-	strcpy(cmd, SELECT_CMD_PART_1);
-	strcat(cmd, sc->db_cmd->ptr);
-	strcat(cmd, SELECT_CMD_PART_3);
 	sqlite3_stmt *res;
-	if (db_prepare(cmd, cmd_size, &res, NULL) == false) {
+	if (db_prepare("SELECT rowid, unread, title FROM items WHERE feed_url=? ORDER BY upddate DESC, pubdate DESC, rowid DESC;", 105, &res, NULL) == false) {
 		status_write("There is some error with the tag expression!");
-		free(cmd);
 		return false;
 	}
+	sqlite3_bind_text(res, 1, url->ptr, url->len, NULL);
 	view_sel = SIZE_MAX;
 	size_t item_index;
 	void *temp; // need to check if realloc failed
-	for (size_t i = 0; i < sc->urls_count; ++i) {
-		sqlite3_bind_text(res, i + 1, sc->urls[i]->ptr, sc->urls[i]->len, NULL);
-	}
 	bool error = false;
 	while (sqlite3_step(res) == SQLITE_ROW) {
 		item_index = items_count++;
@@ -81,7 +65,6 @@ load_items(const struct set_condition *sc)
 	}
 
 	sqlite3_finalize(res);
-	free(cmd);
 
 	if (error == true) {
 		return false;
@@ -305,13 +288,13 @@ error:
 }
 
 int
-enter_items_menu_loop(const struct set_condition *sc)
+enter_items_menu_loop(const struct string *url)
 {
 	items = NULL;
 	items_count = 0;
 
 	INFO("Loading items...");
-	if (load_items(sc) == false) {
+	if (load_items(url) == false) {
 		WARN("Failed to load items!");
 		free_items();
 		return INPUTS_COUNT;

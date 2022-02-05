@@ -8,30 +8,7 @@ http://example.org/feed1.xml
 
 # If you want to assign feed a name, put a double quoted string after its URL:
 http://example.org/feed2.xml "News of my GNU/Linux distribution"
-
-# Lines with percent sign (%) at the beginning are decorations.
-# You can see them in menu, but can never select:
-%--------------------<{ Favorite Podcasts }>--------------------
-# To be able to use feed in a multi-feed, you have to tag it.
-# Tag is a word of latin alphabet letters, arabic digits and hyphens.
-# Using any other symbols is discouraged. All tags of feed have to
-# be put after feed's name (or after URL if name is omitted).
-http://example.org/feed3.xml "Local news report" news real-world
-http://example.org/feed4.xml "Technology news digest" news tech
-%---------------------------------------------------------------
-
-# Lines with at sign (@) at the beginning are multi-feeds,
-# they are used to access items of multiple feeds that satisfy the
-# tag expression. You also can update multi-feed as if you were updating
-# feeds with these tags individually. To determine the feeds that will be
-# included in the multi-feed, you have to write a tag expression.
-# In tag expression you can use tag names, logical operators and round
-# brackets. Whitespace does not matter. Multi-feeds can be named just like
-# a regular feeds, with a double quoted string:
-@ tech & (news | release-notes) "Technology news & project releases"
-
-# Fun fact: decorations can be empty!
-%
-%---------------------<{ Project Releases }>--------------------
-http://example.org/feed5.xml "My window manager release notes" tech release-notes
-http://example.org/feed6.xml "My email client release notes" tech release-notes
+http://example.org/feed3.xml "Local news report"
+http://example.org/feed4.xml "Technology news digest"
+http://example.org/feed5.xml "My window manager release notes"
+http://example.org/feed6.xml "My email client release notes"

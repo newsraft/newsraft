@@ -77,8 +77,6 @@ executable(
 		'src/config-defaults.c',
 		'src/config-verifier.c',
 		'src/sets.c',
-		'src/sets-tags.c',
-		'src/sets-condition.c',
 		'src/interface.c',
 		'src/interface-input.c',
 		'src/interface-status.c',

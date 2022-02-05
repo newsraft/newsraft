@@ -5,7 +5,8 @@ update_feed(const struct string *url)
 {
 	struct string *feedbuf = download_feed(url->ptr);
 	if (feedbuf == NULL) {
-		FAIL("Failed to download a feed!");
+		// Just a warning because download can fail when there's no internet.
+		WARN("Failed to download a feed!");
 		return false;
 	}
 

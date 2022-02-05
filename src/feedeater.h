@@ -33,25 +33,9 @@ struct wstring {
 	size_t lim;
 };
 
-// Linked list
-struct feed_tag {
-	char *name;
-	const struct string **urls;
-	size_t urls_count;
-	struct feed_tag *next_tag;
-};
-
-struct set_condition {
-	struct string *db_cmd;       // WHERE condition string
-	const struct string **urls;  // array of urls to replace the placeholders in db_cmd
-	size_t urls_count;           // number of elements in urls array
-};
-
 struct set_line {
-	const struct string *name; // what is displayed in menu
-	const struct string *link; // this is feed url if set is feed NULL otherwise
-	const struct string *tags; // this is tags expression if set is multi-feed NULL otherwise
-	const struct set_condition *cond;
+	struct string *name; // what is displayed in menu
+	struct string *link; // this is feed url if set is feed NULL otherwise
 	int unread_count;
 	WINDOW *window;
 };
@@ -174,7 +158,7 @@ bool load_sets(void);
 void free_sets(void);
 
 // items
-int enter_items_menu_loop(const struct set_condition *st);
+int enter_items_menu_loop(const struct string *url);
 
 // contents
 int pager_view(const struct render_block *first_block);
@@ -210,14 +194,6 @@ bool load_config(void);
 // date parsing
 struct string *get_config_date_str(time_t time_ptr);
 
-// tags
-bool tag_feed(struct feed_tag **head_tag_ptr, const char *tag_name, size_t tag_name_len, const struct string *url);
-const struct feed_tag *get_tag_by_name(const struct feed_tag *head_tag, const char *name);
-void free_tags(struct feed_tag *head_tag);
-const struct set_condition *create_set_condition_for_feed(const struct string *feed_url);
-const struct set_condition *create_set_condition_for_multi_feed(const struct feed_tag *head_tag, const struct string *tags_expr);
-void free_set_condition(const struct set_condition *cond);
-
 // db
 bool db_init(void);
 void db_stop(void);
@@ -230,7 +206,7 @@ sqlite3_stmt *db_find_item_by_rowid(int rowid);
 bool db_mark_item_read(int rowid);
 bool db_mark_item_unread(int rowid);
 struct string *db_get_plain_text_from_column(sqlite3_stmt *res, int column);
-int get_unread_items_count(const struct set_condition *sc);
+int get_unread_items_count(const struct string *url);
 
 bool curses_init(void);
 bool obtain_terminal_size(void);

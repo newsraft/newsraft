@@ -7,7 +7,6 @@
 
 static struct set_line *sets = NULL;
 static size_t sets_count = 0;
-static size_t feeds_count = 0;
 
 static size_t view_sel; // index of selected item
 static size_t view_min; // index of first visible item
@@ -24,10 +23,8 @@ free_sets(void)
 {
 	if (sets == NULL) return;
 	for (size_t i = 0; i < sets_count; ++i) {
-		free_string((struct string *)sets[i].name);
-		free_string((struct string *)sets[i].link);
-		free_string((struct string *)sets[i].tags);
-		free_set_condition(sets[i].cond);
+		free_string(sets[i].name);
+		free_string(sets[i].link);
 	}
 	free(sets);
 }
@@ -35,7 +32,8 @@ free_sets(void)
 // On success returns 0.
 // On failure returns non-zero.
 static inline bool
-parse_sets_file(struct feed_tag **head_tag_ptr) {
+parse_sets_file(void)
+{
 	const char *path = get_feeds_path();
 	if (path == NULL) {
 		// Error message is written by get_feeds_path().
@@ -75,80 +73,32 @@ parse_sets_file(struct feed_tag **head_tag_ptr) {
 		sets = temp;
 		sets[set_index].name = NULL;
 		sets[set_index].link = NULL;
-		sets[set_index].tags = NULL;
-		sets[set_index].cond = NULL;
 		sets[set_index].unread_count = 0;
 
 		word_len = 0;
-		if (c == '%') { // line is decoration
-
-			while (1) {
-				c = fgetc(f);
-				if (c == '\n' || c == EOF) { break; }
-				word[word_len++] = c;
-			}
-			sets[set_index].name = crtas(word, word_len);
-			if (sets[set_index].name == NULL) { goto error; }
-
-		} else if (c == '@') { // line is multi-feed
-
+		while (1) {
+			word[word_len++] = c;
+			c = fgetc(f);
+			if (ISWHITESPACE(c) || c == EOF) { break; }
+		}
+		sets[set_index].link = crtas(word, word_len);
+		if (sets[set_index].link == NULL) { goto error; }
+		sets[set_index].unread_count = get_unread_items_count(sets[set_index].link);
+		while (ISWHITESPACEEXCEPTNEWLINE(c)) { c = fgetc(f); }
+		// process name
+		if (c == '"') {
+			word_len = 0;
 			while (1) {
 				c = fgetc(f);
 				if (c == '"' || c == '\n' || c == EOF) { break; }
 				word[word_len++] = c;
 			}
-			sets[set_index].tags = crtas(word, word_len);
-			if (sets[set_index].tags == NULL) { goto error; }
+			sets[set_index].name = crtas(word, word_len);
+			if (sets[set_index].name == NULL) { goto error; }
 			if (c == '"') {
-				/* double quote shows beginning of the multi-feed name */
-				word_len = 0;
-				while (1) {
-					c = fgetc(f);
-					if (c == '"' || c == '\n' || c == EOF) { break; }
-					word[word_len++] = c;
-				}
-				sets[set_index].name = crtas(word, word_len);
-				if (sets[set_index].name == NULL) { goto error; }
-			}
-
-		} else { // line is feed
-
-			while (1) {
-				word[word_len++] = c;
 				c = fgetc(f);
-				if (ISWHITESPACE(c) || c == EOF) { break; }
 			}
-			sets[set_index].link = crtas(word, word_len);
-			if (sets[set_index].link == NULL) { goto error; }
 			while (ISWHITESPACEEXCEPTNEWLINE(c)) { c = fgetc(f); }
-			// process name
-			if (c == '"') {
-				word_len = 0;
-				while (1) {
-					c = fgetc(f);
-					if (c == '"' || c == '\n' || c == EOF) { break; }
-					word[word_len++] = c;
-				}
-				sets[set_index].name = crtas(word, word_len);
-				if (sets[set_index].name == NULL) { goto error; }
-				if (c == '"') {
-					c = fgetc(f);
-				}
-				while (ISWHITESPACEEXCEPTNEWLINE(c)) { c = fgetc(f); }
-			}
-			// process tags
-			while (c != '\n' && c != EOF) {
-				word_len = 0;
-				while (1) {
-					word[word_len++] = c;
-					c = fgetc(f);
-					if (ISWHITESPACE(c) || c == EOF) { break; }
-				}
-				word[word_len] = '\0';
-				if (tag_feed(head_tag_ptr, word, word_len, sets[set_index].link) == false) { goto error; }
-				while (ISWHITESPACEEXCEPTNEWLINE(c)) { c = fgetc(f); }
-			}
-
 		}
 
 		// Skip everything to the next newline character.
@@ -176,55 +126,13 @@ error:
 bool
 load_sets(void)
 {
-	struct feed_tag *head_tag = NULL;
-
-	if (parse_sets_file(&head_tag) == false) {
+	if (parse_sets_file() == false) {
 		fprintf(stderr, "Failed to load sets from file!\n");
 		free_sets();
-		free_tags(head_tag);
 		return false;
 	}
 
-	bool error = false;
-
-	for (size_t i = 0; i < sets_count; ++i) {
-		if ((sets[i].link == NULL) && (sets[i].tags == NULL)) {
-			continue;
-		}
-		if (sets[i].link != NULL) {
-			sets[i].cond = create_set_condition_for_feed(sets[i].link);
-			++feeds_count;
-		} else if (sets[i].tags != NULL) {
-			sets[i].cond = create_set_condition_for_multi_feed(head_tag, sets[i].tags);
-		}
-		if (sets[i].cond == NULL) {
-			// Error message is written by "create_set_condition_for_feed"
-			// or "create_set_condition_for_multi_feed". No worries!
-			error = true;
-			break;
-		}
-		sets[i].unread_count = get_unread_items_count(sets[i].cond);
-	}
-
-	// We don't need tags anymore because all conditions are already created.
-	free_tags(head_tag);
-
-	if (error == true) {
-		fprintf(stderr, "Was not able to create conditions for entries!\n");
-		free_sets();
-		return false;
-	}
-
-	view_sel = SIZE_MAX;
-	// put first non-decorative set in selection
-	for (size_t i = 0; i < sets_count; ++i) {
-		if (sets[i].cond != NULL) {
-			view_sel = i;
-			break;
-		}
-	}
-
-	if (view_sel == SIZE_MAX) {
+	if (sets_count == 0) {
 		fprintf(stderr, "None of feeds loaded!\n");
 		free_sets();
 		return false;
@@ -243,11 +151,7 @@ set_image(const struct set_line *set)
 		if (set->link != NULL) {
 			return set->link->ptr;
 		} else {
-			if (set->tags != NULL) {
-				return set->tags->ptr;
-			} else {
-				return "";
-			}
+			return "";
 		}
 	}
 }
@@ -284,30 +188,7 @@ view_select(size_t i)
 		new_sel = sets_count - 1;
 	}
 
-	// If set's condition is NULL, then this set is a decoration.
-	if (sets[new_sel].cond == NULL) {
-		// Here we make sure that user never selects decorations.
-		size_t temp_new_sel = new_sel;
-		if (new_sel > view_sel) {
-			for (size_t j = view_sel; j < sets_count; ++j) {
-				if (sets[j].cond != NULL) {
-					temp_new_sel = j;
-					if (temp_new_sel >= new_sel) break;
-				}
-			}
-		} else if (new_sel < view_sel) {
-			for (size_t j = view_sel; ; --j) {
-				if (sets[j].cond != NULL) {
-					temp_new_sel = j;
-					if (j <= new_sel) break;
-				}
-				if (j == 0) break;
-			}
-		}
-		new_sel = temp_new_sel;
-	}
-
-	if ((sets[new_sel].cond == NULL) || (new_sel == view_sel)) {
+	if (new_sel == view_sel) {
 		return;
 	}
 
@@ -333,7 +214,7 @@ view_select(size_t i)
 static void
 update_unread_items_count(struct set_line *set, size_t index, bool redraw)
 {
-	int new_unread_count = get_unread_items_count(set->cond);
+	int new_unread_count = get_unread_items_count(set->link);
 	if (set->unread_count != new_unread_count) {
 		set->unread_count = new_unread_count;
 		if ((redraw == true) && (index >= view_min) && (index <= view_max)) {
@@ -343,80 +224,17 @@ update_unread_items_count(struct set_line *set, size_t index, bool redraw)
 }
 
 static void
-update_unread_items_count_recursively(struct set_line *set, size_t index, bool redraw)
-{
-	if (set->tags != NULL) { // set is multi-feed
-		// Here we are trying to update unread items count of
-		// all sets (feeds and multi-feeds) related to this multi-feed.
-		// Feed is considered related to some multi-feed if its link
-		// is equal to one of the multi-feed's URLs.
-		// Multi-feed is considered related to some multi-feed if it has
-		// URL that is equal to one of the another multi-feed's URLs.
-		for (size_t i = 0; i < set->cond->urls_count; ++i) {
-			for (size_t j = 0; j < sets_count; ++j) {
-				if (sets[j].link != NULL) { // sets[j] is feed
-					if (sets[j].link == set->cond->urls[i]) {
-						// Feed link matched one of the multi-feed's URLs, update sets[j]
-						update_unread_items_count(&sets[j], j, redraw);
-					}
-				} else if (sets[j].tags != NULL) { // sets[j] is multi-feed
-					for (size_t k = 0; k < sets[j].cond->urls_count; ++k) {
-						if (sets[j].cond->urls[k] == set->cond->urls[i]) {
-							// Multi-feed set and sets[j] have common URL, update sets[j]
-							update_unread_items_count(&sets[j], j, redraw);
-							break;
-						}
-					}
-				}
-			}
-		}
-	} else if (set->link != NULL) { // set is feed
-		// Update unread items count of that set.
-		update_unread_items_count(set, index, redraw);
-		// Here we are trying to update unread items count of
-		// all multi-feeds related to this feed.
-		// Multi-feed is considered related to some feed if it has
-		// URL that is equal to the feed's link.
-		for (size_t j = 0; j < sets_count; ++j) {
-			if (sets[j].tags != NULL) { // sets[j] is multi-feed
-				for (size_t k = 0; k < sets[j].cond->urls_count; ++k) {
-					if (sets[j].cond->urls[k] == set->link) {
-						update_unread_items_count(&sets[j], j, redraw);
-						break;
-					}
-				}
-			}
-		}
-	}
-}
-
-static void
 reload_current_set(void)
 {
-	size_t errors = 0;
-	const struct string *failed_feed;
+	status_write("Loading %s", sets[view_sel].link->ptr);
 
-	for (size_t i = 0; i < sets[view_sel].cond->urls_count; ++i) {
-
-		status_write("(%d/%d) Loading %s", i + 1, sets[view_sel].cond->urls_count, sets[view_sel].cond->urls[i]->ptr);
-		if (update_feed(sets[view_sel].cond->urls[i]) == false) {
-			failed_feed = sets[view_sel].cond->urls[i];
-			++errors;
-		}
-
+	if (update_feed(sets[view_sel].link) == false) {
+		status_write("Failed to load %s", sets[view_sel].link->ptr);
+		return;
 	}
 
-	if (errors != sets[view_sel].cond->urls_count) {
-		update_unread_items_count_recursively(&sets[view_sel], view_sel, true);
-	}
-
-	if (errors == 0) {
-		status_clean();
-	} else if (errors == 1) {
-		status_write("Failed to update %s", failed_feed->ptr);
-	} else {
-		status_write("Failed to update %u feeds.", errors);
-	}
+	update_unread_items_count(&sets[view_sel], view_sel, true);
+	status_clean();
 }
 
 static void
@@ -429,9 +247,9 @@ reload_all_feeds(void)
 		if (sets[i].link == NULL) {
 			continue;
 		}
-		status_write("(%d/%d) Loading %s", i + 1, feeds_count, sets[i].link->ptr);
+		status_write("(%d/%d) Loading %s", i + 1, sets_count, sets[i].link->ptr);
 		if (update_feed(sets[i].link) == true) {
-			update_unread_items_count_recursively(&sets[i], i, true);
+			update_unread_items_count(&sets[i], i, true);
 		} else {
 			failed_feed = sets[i].link;
 			++errors;
@@ -501,6 +319,7 @@ set_sets_input_handlers(void)
 void
 enter_sets_menu_loop(void)
 {
+	view_sel = 0;
 	view_min = 0;
 	view_max = list_menu_height - 1;
 
@@ -515,12 +334,12 @@ enter_sets_menu_loop(void)
 			break;
 		}
 
-		destination = enter_items_menu_loop(sets[view_sel].cond);
+		destination = enter_items_menu_loop(sets[view_sel].link);
 
 		if (destination == INPUT_QUIT_SOFT) {
 			status_clean();
 			set_sets_input_handlers();
-			update_unread_items_count_recursively(&sets[view_sel], view_sel, false);
+			update_unread_items_count(&sets[view_sel], view_sel, false);
 			redraw_sets_windows();
 		} else if (destination == INPUT_QUIT_HARD) {
 			break;

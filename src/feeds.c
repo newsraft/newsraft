@@ -221,11 +221,11 @@ view_select(size_t i)
 }
 
 static void
-update_unread_items_count(struct feed_line *feed, size_t index, bool redraw)
+update_unread_items_count(size_t index, bool redraw)
 {
-	int new_unread_count = get_unread_items_count(feed->link);
-	if (feed->unread_count != new_unread_count) {
-		feed->unread_count = new_unread_count;
+	int new_unread_count = get_unread_items_count(feeds[index]->link);
+	if (feeds[index]->unread_count != new_unread_count) {
+		feeds[index]->unread_count = new_unread_count;
 		if ((redraw == true) && (index >= view_min) && (index <= view_max)) {
 			feed_expose(index);
 		}
@@ -242,7 +242,7 @@ reload_current_feed(void)
 		return;
 	}
 
-	update_unread_items_count(feeds[view_sel], view_sel, true);
+	update_unread_items_count(view_sel, true);
 	status_clean();
 }
 
@@ -258,7 +258,7 @@ reload_all_feeds(void)
 		}
 		status_write("(%d/%d) Loading %s", i + 1, feeds_count, feeds[i]->link->ptr);
 		if (update_feed(feeds[i]->link) == true) {
-			update_unread_items_count(feeds[i], i, true);
+			update_unread_items_count(i, true);
 		} else {
 			failed_feed = feeds[i]->link;
 			++errors;
@@ -352,7 +352,7 @@ enter_feeds_menu_loop(void)
 		if (destination == INPUT_QUIT_SOFT) {
 			status_clean();
 			set_feeds_input_handlers();
-			update_unread_items_count(feeds[view_sel], view_sel, false);
+			update_unread_items_count(view_sel, false);
 			redraw_feeds_windows();
 		} else if (destination == INPUT_QUIT_HARD) {
 			break;

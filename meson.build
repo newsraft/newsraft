@@ -76,7 +76,7 @@ executable(
 		'src/config.c',
 		'src/config-defaults.c',
 		'src/config-verifier.c',
-		'src/sets.c',
+		'src/feeds.c',
 		'src/feeds-sections.c',
 		'src/interface.c',
 		'src/interface-input.c',

@@ -62,13 +62,13 @@ main(int argc, char **argv)
 	if (load_default_binds()              == false) { error = 7;  goto undo2; }
 	if (load_config()                     == false) { error = 8;  goto undo3; }
 	if (db_init()                         == false) { error = 9;  goto undo4; }
-	if (load_sets()                       == false) { error = 10; goto undo5; }
+	if (load_feeds()                      == false) { error = 10; goto undo5; }
 	if (curses_init()                     == false) { error = 11; goto undo6; }
 	if (adjust_list_menu()                == false) { error = 12; goto undo7; }
 	if (adjust_list_menu_format_buffer()  == false) { error = 13; goto undo8; }
 	if (status_create()                   == false) { error = 14; goto undo9; }
 
-	enter_sets_menu_loop();
+	enter_feeds_menu_loop();
 
 	status_delete();
 undo9:
@@ -78,7 +78,7 @@ undo8:
 undo7:
 	endwin();
 undo6:
-	free_sets();
+	free_sections();
 undo5:
 	db_stop();
 undo4:

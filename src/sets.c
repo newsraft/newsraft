@@ -1,12 +1,9 @@
-#include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/types.h>
-#include <sys/stat.h>
 #include "feedeater.h"
 
-static struct set_line *sets = NULL;
-static size_t sets_count = 0;
+static struct feed_line **feeds = NULL;
+static size_t feeds_count = 0;
 
 static size_t view_sel; // index of selected item
 static size_t view_min; // index of first visible item
@@ -18,39 +15,38 @@ static struct format_arg fmt_args[] = {
 	{L't', L"s", {.s = NULL}},
 };
 
-void
-free_sets(void)
-{
-	if (sets == NULL) return;
-	for (size_t i = 0; i < sets_count; ++i) {
-		free_string(sets[i].name);
-		free_string(sets[i].link);
-	}
-	free(sets);
-}
-
 // On success returns 0.
 // On failure returns non-zero.
 static inline bool
-parse_sets_file(void)
+parse_feeds_file(void)
 {
 	const char *path = get_feeds_path();
 	if (path == NULL) {
 		// Error message is written by get_feeds_path().
 		return false;
 	}
+	struct string *word = crtes();
+	if (word == NULL) {
+		return false;
+	}
+	struct string *section_name = crtas(cfg.global_section_name, strlen(cfg.global_section_name));
+	if (section_name == NULL) {
+		free_string(word);
+		return false;
+	}
 	FILE *f = fopen(path, "r");
 	if (f == NULL) {
 		fprintf(stderr, "Could not open feeds file!\n");
+		free_string(word);
+		free_string(section_name);
 		return false;
 	}
-	size_t set_index, word_len;
-	char c, word[1000];
-	struct set_line *temp;
+	struct feed_line feed;
+	char c;
 
 	// This is line-by-line file processing loop:
 	// one iteration of loop results in one processed line.
-	while (1) {
+	while (true) {
 
 		// Get first non-whitespace character.
 		do { c = fgetc(f); } while (ISWHITESPACE(c));
@@ -61,44 +57,55 @@ parse_sets_file(void)
 			if (c == '\n') {
 				continue;
 			} else {
-				break; // Quit on end of file.
+				break;
 			}
 		} else if (c == EOF) {
-			break; // Quit on end of file.
+			break;
+		} else if (c == '[') {
+			empty_string(section_name);
+			while (true) {
+				c = fgetc(f);
+				if (c == ']' || c == '\n' || c == EOF) { break; }
+				if (catcs(section_name, c) == false) { goto error; }
+			}
+			if (c == EOF) {
+				break;
+			} else {
+				continue;
+			}
 		}
 
-		set_index = sets_count++;
-		temp = realloc(sets, sizeof(struct set_line) * sets_count);
-		if (temp == NULL) { goto error; }
-		sets = temp;
-		sets[set_index].name = NULL;
-		sets[set_index].link = NULL;
-		sets[set_index].unread_count = 0;
+		feed.name = NULL;
+		feed.link = NULL;
+		feed.unread_count = 0;
 
-		word_len = 0;
-		while (1) {
-			word[word_len++] = c;
+		empty_string(word);
+		while (true) {
+			if (catcs(word, c) == false) { goto error; }
 			c = fgetc(f);
 			if (ISWHITESPACE(c) || c == EOF) { break; }
 		}
-		sets[set_index].link = crtas(word, word_len);
-		if (sets[set_index].link == NULL) { goto error; }
-		sets[set_index].unread_count = get_unread_items_count(sets[set_index].link);
+		feed.link = crtss(word);
+		if (feed.link == NULL) { goto error; }
+		feed.unread_count = get_unread_items_count(feed.link);
 		while (ISWHITESPACEEXCEPTNEWLINE(c)) { c = fgetc(f); }
 		// process name
 		if (c == '"') {
-			word_len = 0;
-			while (1) {
+			empty_string(word);
+			while (true) {
 				c = fgetc(f);
 				if (c == '"' || c == '\n' || c == EOF) { break; }
-				word[word_len++] = c;
+				if (catcs(word, c) == false) { goto error; }
 			}
-			sets[set_index].name = crtas(word, word_len);
-			if (sets[set_index].name == NULL) { goto error; }
+			feed.name = crtss(word);
+			if (feed.name == NULL) { goto error; }
 			if (c == '"') {
 				c = fgetc(f);
 			}
 			while (ISWHITESPACEEXCEPTNEWLINE(c)) { c = fgetc(f); }
+		}
+		if (add_feed_to_section(&feed, section_name) == false) {
+			goto error;
 		}
 
 		// Skip everything to the next newline character.
@@ -114,42 +121,43 @@ parse_sets_file(void)
 
 	}
 
+	free_string(word);
+	free_string(section_name);
 	fclose(f);
 	return true;
 error:
+	free_string(word);
+	free_string(section_name);
 	fclose(f);
+	free_sections();
 	return false;
 }
 
-// On success returns 0.
-// On failure returns non-zero.
 bool
-load_sets(void)
+load_feeds(void)
 {
-	if (parse_sets_file() == false) {
-		fprintf(stderr, "Failed to load sets from file!\n");
-		free_sets();
+	if (create_global_section() == false) {
+		fprintf(stderr, "Not enough memory for global section structure!\n");
 		return false;
 	}
 
-	if (sets_count == 0) {
-		fprintf(stderr, "None of feeds loaded!\n");
-		free_sets();
+	if (parse_feeds_file() == false) {
+		fprintf(stderr, "Failed to load feeds from file!\n");
 		return false;
 	}
 
 	return true;
 }
 
-// Returns most sensible string for set line name.
+// Returns most sensible string for feed entry.
 static inline char *
-set_image(const struct set_line *set)
+feed_image(const struct feed_line *feed)
 {
-	if (set->name != NULL) {
-		return set->name->ptr;
+	if (feed->name != NULL) {
+		return feed->name->ptr;
 	} else {
-		if (set->link != NULL) {
-			return set->link->ptr;
+		if (feed->link != NULL) {
+			return feed->link->ptr;
 		} else {
 			return "";
 		}
@@ -157,23 +165,23 @@ set_image(const struct set_line *set)
 }
 
 static void
-set_expose(size_t index)
+feed_expose(size_t index)
 {
-	werase(sets[index].window);
+	werase(feeds[index]->window);
 	fmt_args[0].value.i = index + 1;
-	fmt_args[1].value.i = sets[index].unread_count;
-	fmt_args[2].value.s = set_image(&(sets[index]));
-	mvwaddnwstr(sets[index].window, 0, 0, do_format(cfg.menu_set_entry_format, fmt_args, COUNTOF(fmt_args)), list_menu_width);
-	mvwchgat(sets[index].window, 0, 0, -1, (index == view_sel) ? A_REVERSE : A_NORMAL, 0, NULL);
-	wrefresh(sets[index].window);
+	fmt_args[1].value.i = feeds[index]->unread_count;
+	fmt_args[2].value.s = feed_image(feeds[index]);
+	mvwaddnwstr(feeds[index]->window, 0, 0, do_format(cfg.menu_feed_entry_format, fmt_args, COUNTOF(fmt_args)), list_menu_width);
+	mvwchgat(feeds[index]->window, 0, 0, -1, (index == view_sel) ? A_REVERSE : A_NORMAL, 0, NULL);
+	wrefresh(feeds[index]->window);
 }
 
 static void
-show_sets(void)
+show_feeds(void)
 {
-	for (size_t i = view_min, j = 0; i < sets_count && i <= view_max; ++i, ++j) {
-		sets[i].window = get_list_entry_by_index(j);
-		set_expose(i);
+	for (size_t i = view_min, j = 0; i < feeds_count && i <= view_max; ++i, ++j) {
+		feeds[i]->window = get_list_entry_by_index(j);
+		feed_expose(i);
 	}
 }
 
@@ -182,10 +190,11 @@ view_select(size_t i)
 {
 	size_t new_sel = i;
 
-	if (new_sel >= sets_count) {
-		// Don't check if sets_count is zero because program
-		// won't even get here when not a single set loaded.
-		new_sel = sets_count - 1;
+	if (new_sel >= feeds_count) {
+		if (feeds_count == 0) {
+			return;
+		}
+		new_sel = feeds_count - 1;
 	}
 
 	if (new_sel == view_sel) {
@@ -196,44 +205,44 @@ view_select(size_t i)
 		view_min = new_sel - (list_menu_height - 1);
 		view_max = new_sel;
 		view_sel = new_sel;
-		show_sets();
+		show_feeds();
 	} else if (new_sel < view_min) {
 		view_min = new_sel;
 		view_max = new_sel + (list_menu_height - 1);
 		view_sel = new_sel;
-		show_sets();
+		show_feeds();
 	} else {
-		mvwchgat(sets[view_sel].window, 0, 0, -1, A_NORMAL, 0, NULL);
-		wrefresh(sets[view_sel].window);
+		mvwchgat(feeds[view_sel]->window, 0, 0, -1, A_NORMAL, 0, NULL);
+		wrefresh(feeds[view_sel]->window);
 		view_sel = new_sel;
-		mvwchgat(sets[view_sel].window, 0, 0, -1, A_REVERSE, 0, NULL);
-		wrefresh(sets[view_sel].window);
+		mvwchgat(feeds[view_sel]->window, 0, 0, -1, A_REVERSE, 0, NULL);
+		wrefresh(feeds[view_sel]->window);
 	}
 }
 
 static void
-update_unread_items_count(struct set_line *set, size_t index, bool redraw)
+update_unread_items_count(struct feed_line *feed, size_t index, bool redraw)
 {
-	int new_unread_count = get_unread_items_count(set->link);
-	if (set->unread_count != new_unread_count) {
-		set->unread_count = new_unread_count;
+	int new_unread_count = get_unread_items_count(feed->link);
+	if (feed->unread_count != new_unread_count) {
+		feed->unread_count = new_unread_count;
 		if ((redraw == true) && (index >= view_min) && (index <= view_max)) {
-			set_expose(index);
+			feed_expose(index);
 		}
 	}
 }
 
 static void
-reload_current_set(void)
+reload_current_feed(void)
 {
-	status_write("Loading %s", sets[view_sel].link->ptr);
+	status_write("Loading %s", feeds[view_sel]->link->ptr);
 
-	if (update_feed(sets[view_sel].link) == false) {
-		status_write("Failed to load %s", sets[view_sel].link->ptr);
+	if (update_feed(feeds[view_sel]->link) == false) {
+		status_write("Failed to load %s", feeds[view_sel]->link->ptr);
 		return;
 	}
 
-	update_unread_items_count(&sets[view_sel], view_sel, true);
+	update_unread_items_count(feeds[view_sel], view_sel, true);
 	status_clean();
 }
 
@@ -243,15 +252,15 @@ reload_all_feeds(void)
 	size_t errors = 0;
 	const struct string *failed_feed;
 
-	for (size_t i = 0; i < sets_count; ++i) {
-		if (sets[i].link == NULL) {
+	for (size_t i = 0; i < feeds_count; ++i) {
+		if (feeds[i]->link == NULL) {
 			continue;
 		}
-		status_write("(%d/%d) Loading %s", i + 1, sets_count, sets[i].link->ptr);
-		if (update_feed(sets[i].link) == true) {
-			update_unread_items_count(&sets[i], i, true);
+		status_write("(%d/%d) Loading %s", i + 1, feeds_count, feeds[i]->link->ptr);
+		if (update_feed(feeds[i]->link) == true) {
+			update_unread_items_count(feeds[i], i, true);
 		} else {
-			failed_feed = sets[i].link;
+			failed_feed = feeds[i]->link;
 			++errors;
 		}
 	}
@@ -286,11 +295,11 @@ view_select_first(void)
 static void
 view_select_last(void)
 {
-	view_select((sets_count == 0) ? (0) : (sets_count - 1));
+	view_select((feeds_count == 0) ? (0) : (feeds_count - 1));
 }
 
 static void
-redraw_sets_windows(void)
+redraw_feeds_windows(void)
 {
 	clear();
 	refresh();
@@ -300,47 +309,51 @@ redraw_sets_windows(void)
 		view_max = view_sel;
 		view_min = view_max - (list_menu_height - 1);
 	}
-	show_sets();
+	show_feeds();
 }
 
 static void
-set_sets_input_handlers(void)
+set_feeds_input_handlers(void)
 {
 	reset_input_handlers();
 	set_input_handler(INPUT_SELECT_NEXT, &view_select_next);
 	set_input_handler(INPUT_SELECT_PREV, &view_select_prev);
 	set_input_handler(INPUT_SELECT_FIRST, &view_select_first);
 	set_input_handler(INPUT_SELECT_LAST, &view_select_last);
-	set_input_handler(INPUT_RELOAD, &reload_current_set);
+	set_input_handler(INPUT_RELOAD, &reload_current_feed);
 	set_input_handler(INPUT_RELOAD_ALL, &reload_all_feeds);
-	set_input_handler(INPUT_RESIZE, &redraw_sets_windows);
+	set_input_handler(INPUT_RESIZE, &redraw_feeds_windows);
 }
 
 void
-enter_sets_menu_loop(void)
+enter_feeds_menu_loop(void)
 {
+	if (obtain_feeds_of_section(cfg.global_section_name, &feeds, &feeds_count) == false) {
+		return;
+	}
+
 	view_sel = 0;
 	view_min = 0;
 	view_max = list_menu_height - 1;
 
-	redraw_sets_windows();
+	redraw_feeds_windows();
 
-	set_sets_input_handlers();
+	set_feeds_input_handlers();
 
 	int destination;
-	while (1) {
+	while (true) {
 		destination = handle_input();
 		if (destination == INPUT_QUIT_SOFT || destination == INPUT_QUIT_HARD) {
 			break;
 		}
 
-		destination = enter_items_menu_loop(sets[view_sel].link);
+		destination = enter_items_menu_loop(feeds[view_sel]->link);
 
 		if (destination == INPUT_QUIT_SOFT) {
 			status_clean();
-			set_sets_input_handlers();
-			update_unread_items_count(&sets[view_sel], view_sel, false);
-			redraw_sets_windows();
+			set_feeds_input_handlers();
+			update_unread_items_count(feeds[view_sel], view_sel, false);
+			redraw_feeds_windows();
 		} else if (destination == INPUT_QUIT_HARD) {
 			break;
 		}

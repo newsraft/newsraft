@@ -1,14 +1,20 @@
 # This is an example of valid feeds file for feedeater.
 
-# Lines with number sign (#) at the beginning are comments,
-# they are completely ignored by the parser as well as empty lines.
+# Lines with a pound sign at the beginning are comments,
+# they are completely ignored by the parser.
 
 # To subscribe to feed you have to add a line with its URL:
 http://example.org/feed1.xml
 
 # If you want to assign feed a name, put a double quoted string after its URL:
 http://example.org/feed2.xml "News of my GNU/Linux distribution"
+
+# Lines with a string inside square brackets are section declarations.
+# They are used to organize your feed entries.
+[News reports]
 http://example.org/feed3.xml "Local news report"
 http://example.org/feed4.xml "Technology news digest"
+
+[Release notes]
 http://example.org/feed5.xml "My window manager release notes"
 http://example.org/feed6.xml "My email client release notes"

@@ -33,7 +33,7 @@ struct wstring {
 	size_t lim;
 };
 
-struct set_line {
+struct feed_line {
 	struct string *name; // what is displayed in menu
 	struct string *link; // this is feed url if set is feed NULL otherwise
 	int unread_count;
@@ -81,8 +81,9 @@ struct link_list {
 struct config_data {
 	size_t max_items;
 	bool append_links;
-	wchar_t *menu_set_entry_format;
+	wchar_t *menu_feed_entry_format;
 	wchar_t *menu_item_entry_format;
+	char *global_section_name;
 	char *contents_meta_data;
 	char *contents_date_format;
 	size_t size_conversion_threshold;
@@ -142,6 +143,11 @@ enum item_column {
 	ITEM_COLUMN_NONE,
 };
 
+bool create_global_section(void);
+bool add_feed_to_section(const struct feed_line *feed, const struct string *section_name);
+bool obtain_feeds_of_section(const char *section_name, struct feed_line ***feeds_ptr, size_t *feeds_count_ptr);
+void free_sections(void);
+
 // list interface
 bool adjust_list_menu(void);
 WINDOW *get_list_entry_by_index(size_t i);
@@ -152,10 +158,9 @@ void free_list_menu_format_buffer(void);
 // format
 const wchar_t *do_format(const wchar_t *fmt, const struct format_arg *args, size_t args_count);
 
-// sets
-void enter_sets_menu_loop(void);
-bool load_sets(void);
-void free_sets(void);
+// feeds
+void enter_feeds_menu_loop(void);
+bool load_feeds(void);
 
 // items
 int enter_items_menu_loop(const struct string *url);

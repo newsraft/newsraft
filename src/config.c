@@ -34,8 +34,9 @@ void
 free_config_data(void)
 {
 	INFO("Freeing configuration strings.");
-	free(cfg.menu_set_entry_format);
+	free(cfg.menu_feed_entry_format);
 	free(cfg.menu_item_entry_format);
+	free(cfg.global_section_name);
 	free(cfg.contents_meta_data);
 	free(cfg.contents_date_format);
 }
@@ -47,8 +48,9 @@ load_config(void)
 
 	cfg.max_items = 0; // 0 == inf
 	cfg.append_links = true;
-	cfg.menu_set_entry_format = NULL;
+	cfg.menu_feed_entry_format = NULL;
 	cfg.menu_item_entry_format = NULL;
+	cfg.global_section_name = NULL;
 	cfg.contents_meta_data = NULL;
 	cfg.contents_date_format = NULL;
 	cfg.size_conversion_threshold = 1200;

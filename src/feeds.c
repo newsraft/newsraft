@@ -59,8 +59,6 @@ parse_feeds_file(void)
 			} else {
 				break;
 			}
-		} else if (c == EOF) {
-			break;
 		} else if (c == '[') {
 			empty_string(section_name);
 			while (true) {
@@ -68,11 +66,15 @@ parse_feeds_file(void)
 				if (c == ']' || c == '\n' || c == EOF) { break; }
 				if (catcs(section_name, c) == false) { goto error; }
 			}
+			if (c == ']') {
+				do { c = fgetc(f); } while ((c != '\n') && (c != EOF));
+			}
 			if (c == EOF) {
 				break;
-			} else {
-				continue;
 			}
+			continue;
+		} else if (c == EOF) {
+			break;
 		}
 
 		feed = malloc(sizeof(struct feed_line));

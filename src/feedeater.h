@@ -144,7 +144,7 @@ enum item_column {
 };
 
 bool create_global_section(void);
-bool add_feed_to_section(const struct feed_line *feed, const struct string *section_name);
+bool add_feed_to_section(struct feed_line *feed, const struct string *section_name);
 bool obtain_feeds_of_section(const char *section_name, struct feed_line ***feeds_ptr, size_t *feeds_count_ptr);
 void free_sections(void);
 

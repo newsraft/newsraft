@@ -37,13 +37,13 @@ create_new_section(const struct string *section_name)
 	size_t section_index = sections_count++;
 	struct feed_section *temp = realloc(sections, sizeof(struct feed_section) * sections_count);
 	if (temp == NULL) {
-		FAIL("Not enough memory for another section structure!");
+		fprintf(stderr, "Not enough memory for another section structure!\n");
 		return false;
 	}
 	sections = temp;
 	sections[section_index].name = crtss(section_name);
 	if (sections[section_index].name == NULL) {
-		FAIL("Not enough memory for name string of the section!");
+		fprintf(stderr, "Not enough memory for name string of the section!\n");
 		return false;
 	}
 	sections[section_index].feeds = NULL;
@@ -54,44 +54,52 @@ create_new_section(const struct string *section_name)
 }
 
 static bool
-add_feed_to_certain_section(const struct feed_line *feed, struct feed_section *section)
+attach_feed_to_section(struct feed_line *feed, struct feed_section *section)
 {
-	INFO("Adding feed \"%s\" to global section.", feed->link->ptr);
-	size_t feed_index = (sections[0].feeds_count)++;
-	struct feed_line **temp = realloc(sections[0].feeds, sizeof(struct feed_line *) * sections[0].feeds_count);
+	INFO("Adding feed \"%s\" to section \"%s\".", feed->link->ptr, section->name->ptr);
+	size_t feed_index = (section->feeds_count)++;
+	struct feed_line **temp = realloc(section->feeds, sizeof(struct feed_line *) * section->feeds_count);
 	if (temp == NULL) {
+		fprintf(stderr, "Not enough memory for new feed in section!\n");
 		return false;
 	}
-	sections[0].feeds = temp;
-	sections[0].feeds[feed_index] = malloc(sizeof(struct feed_line));
-	if (sections[0].feeds[feed_index] == NULL) {
-		return false;
-	}
-	sections[0].feeds[feed_index]->name = feed->name;
-	sections[0].feeds[feed_index]->link = feed->link;
-	sections[0].feeds[feed_index]->unread_count = feed->unread_count;
-
-	if ((section->name->len != 0) && (strcmp(section->name->ptr, cfg.global_section_name) != 0)) {
-		INFO("Adding feed \"%s\" to section named \"%s\".", feed->link->ptr, section->name->ptr);
-		size_t old_feed_index = feed_index;
-		feed_index = (section->feeds_count)++;
-		temp = realloc(section->feeds, sizeof(struct feed_line *) * section->feeds_count);
-		if (temp == NULL) {
-			return false;
-		}
-		section->feeds = temp;
-		section->feeds[feed_index] = sections[0].feeds[old_feed_index];
-	}
-
+	section->feeds = temp;
+	section->feeds[feed_index] = feed;
 	return true;
 }
 
-bool
-add_feed_to_section(const struct feed_line *feed, const struct string *section_name)
+static inline bool
+add_feed_to_global_section(struct feed_line *feed)
 {
-	for (size_t i = 0; i < sections_count; ++i) {
+	return attach_feed_to_section(feed, &sections[0]);
+}
+
+static inline bool
+add_feed_to_regular_section(struct feed_line *feed, struct feed_section *section)
+{
+	return attach_feed_to_section(feed, section);
+}
+
+bool
+add_feed_to_section(struct feed_line *feed, const struct string *section_name)
+{
+	if (feed->link == NULL) {
+		fprintf(stderr, "Encountered a NULL feed link while adding a new feed to the section!\n");
+		return false;
+	}
+	if (add_feed_to_global_section(feed) == false) {
+		return false;
+	}
+	if (strcmp(section_name->ptr, cfg.global_section_name) == 0) {
+		// The section we add a feed to is global and we already added
+		// a feed to the global section above. So exit innocently here.
+		return true; // Not an error.
+	}
+	// Skip (i == 0) because first section is always the global one and
+	// we already know that the section we add a feed to is not global.
+	for (size_t i = 1; i < sections_count; ++i) {
 		if (strcmp(section_name->ptr, sections[i].name->ptr) == 0) {
-			if (add_feed_to_certain_section(feed, &sections[i]) == false) {
+			if (add_feed_to_regular_section(feed, &sections[i]) == false) {
 				return false;
 			}
 			return true;
@@ -100,7 +108,7 @@ add_feed_to_section(const struct feed_line *feed, const struct string *section_n
 	if (create_new_section(section_name) == false) {
 		return false;
 	}
-	if (add_feed_to_certain_section(feed, &sections[sections_count - 1]) == false) {
+	if (add_feed_to_regular_section(feed, &sections[sections_count - 1]) == false) {
 		return false;
 	}
 	return true;

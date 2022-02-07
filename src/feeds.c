@@ -41,7 +41,7 @@ parse_feeds_file(void)
 		free_string(section_name);
 		return false;
 	}
-	struct feed_line feed;
+	struct feed_line *feed;
 	char c;
 
 	// This is line-by-line file processing loop:
@@ -75,9 +75,11 @@ parse_feeds_file(void)
 			}
 		}
 
-		feed.name = NULL;
-		feed.link = NULL;
-		feed.unread_count = 0;
+		feed = malloc(sizeof(struct feed_line));
+		if (feed == NULL) { goto error; }
+		feed->name = NULL;
+		feed->link = NULL;
+		feed->unread_count = 0;
 
 		empty_string(word);
 		while (true) {
@@ -85,9 +87,9 @@ parse_feeds_file(void)
 			c = fgetc(f);
 			if (ISWHITESPACE(c) || c == EOF) { break; }
 		}
-		feed.link = crtss(word);
-		if (feed.link == NULL) { goto error; }
-		feed.unread_count = get_unread_items_count(feed.link);
+		feed->link = crtss(word);
+		if (feed->link == NULL) { goto error; }
+		feed->unread_count = get_unread_items_count(feed->link);
 		while (ISWHITESPACEEXCEPTNEWLINE(c)) { c = fgetc(f); }
 		// process name
 		if (c == '"') {
@@ -97,14 +99,15 @@ parse_feeds_file(void)
 				if (c == '"' || c == '\n' || c == EOF) { break; }
 				if (catcs(word, c) == false) { goto error; }
 			}
-			feed.name = crtss(word);
-			if (feed.name == NULL) { goto error; }
+			feed->name = crtss(word);
+			if (feed->name == NULL) { goto error; }
 			if (c == '"') {
 				c = fgetc(f);
 			}
 			while (ISWHITESPACEEXCEPTNEWLINE(c)) { c = fgetc(f); }
 		}
-		if (add_feed_to_section(&feed, section_name) == false) {
+		if (add_feed_to_section(feed, section_name) == false) {
+			fprintf(stderr, "Failed to add feed \"%s\" to section \"%s\"!\n", feed->link->ptr, section_name->ptr);
 			goto error;
 		}
 
@@ -126,6 +129,11 @@ parse_feeds_file(void)
 	fclose(f);
 	return true;
 error:
+	if (feed != NULL) {
+		free_string(feed->name);
+		free_string(feed->link);
+		free(feed);
+	}
 	free_string(word);
 	free_string(section_name);
 	fclose(f);

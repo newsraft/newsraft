@@ -89,6 +89,11 @@ parse_feeds_file(void)
 			c = fgetc(f);
 			if (ISWHITESPACE(c) || c == EOF) { break; }
 		}
+		if (check_url_for_validity(word) == false) {
+			fprintf(stderr, "Stumbled across an invalid URL: \"%s\"!\n", word->ptr);
+			goto error;
+		}
+		remove_trailing_slash_from_string(word);
 		feed->link = crtss(word);
 		if (feed->link == NULL) { goto error; }
 		feed->unread_count = get_unread_items_count(feed->link);
@@ -103,10 +108,6 @@ parse_feeds_file(void)
 			}
 			feed->name = crtss(word);
 			if (feed->name == NULL) { goto error; }
-			if (c == '"') {
-				c = fgetc(f);
-			}
-			while (ISWHITESPACEEXCEPTNEWLINE(c)) { c = fgetc(f); }
 		}
 		if (add_feed_to_section(feed, section_name) == false) {
 			fprintf(stderr, "Failed to add feed \"%s\" to section \"%s\"!\n", feed->link->ptr, section_name->ptr);

@@ -161,6 +161,7 @@ const wchar_t *do_format(const wchar_t *fmt, const struct format_arg *args, size
 // feeds
 void enter_feeds_menu_loop(void);
 bool load_feeds(void);
+bool check_url_for_validity(const struct string *str);
 
 // items
 int enter_items_menu_loop(const struct string *url);
@@ -247,6 +248,8 @@ bool string_vprintf(struct string *dest, const char *format, va_list args);
 bool string_printf(struct string *dest, const char *format, ...);
 void empty_string(struct string *str);
 void free_string(struct string *str);
+size_t convert_string_to_size_t_or_zero(const char *src);
+void remove_trailing_slash_from_string(struct string *str);
 void trim_whitespace_from_string(struct string *str);
 struct wstring *convert_string_to_wstring(const struct string *src);
 struct string *convert_bytes_to_human_readable_size_string(const char *value);
@@ -262,7 +265,6 @@ void empty_wstring(struct wstring *wstr);
 void free_wstring(struct wstring *wstr);
 void trim_whitespace_from_wstring(struct wstring *wstr);
 struct string *convert_wstring_to_string(const struct wstring *src);
-size_t convert_string_to_size_t_or_zero(const char *src);
 
 bool log_init(const char *path);
 void log_stop(void);

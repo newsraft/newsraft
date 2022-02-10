@@ -249,6 +249,20 @@ convert_string_to_size_t_or_zero(const char *src)
 	return 0;
 }
 
+void
+remove_trailing_slash_from_string(struct string *str)
+{
+	if (str->len == 0) {
+		return;
+	}
+	if (str->ptr[str->len - 1] != '/') {
+		return;
+	}
+	INFO("Removing trailing slash from \"%s\".", str->ptr);
+	--(str->len);
+	str->ptr[str->len] = '\0';
+}
+
 struct string *
 convert_bytes_to_human_readable_size_string(const char *value)
 {

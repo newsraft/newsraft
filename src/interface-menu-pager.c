@@ -102,7 +102,7 @@ pager_view(const struct render_block *first_block)
 	input_cmd_id cmd;
 	while (true) {
 		cmd = get_input_command();
-		if (cmd == INPUT_SELECT_NEXT) {
+		if ((cmd == INPUT_SELECT_NEXT) || (cmd == INPUT_ENTER)) {
 			scroll_view(view_min < view_lim ? view_min + 1 : view_lim);
 		} else if (cmd == INPUT_SELECT_PREV) {
 			scroll_view(view_min == 0 ? 0 : view_min - 1);

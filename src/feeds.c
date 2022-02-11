@@ -286,30 +286,6 @@ reload_all_feeds(void)
 }
 
 static void
-view_select_next(void)
-{
-	view_select(view_sel + 1);
-}
-
-static void
-view_select_prev(void)
-{
-	view_select((view_sel == 0) ? (0) : (view_sel - 1));
-}
-
-static void
-view_select_first(void)
-{
-	view_select(0);
-}
-
-static void
-view_select_last(void)
-{
-	view_select((feeds_count == 0) ? (0) : (feeds_count - 1));
-}
-
-static void
 redraw_feeds_windows(void)
 {
 	clear();
@@ -321,19 +297,6 @@ redraw_feeds_windows(void)
 		view_min = view_max - (list_menu_height - 1);
 	}
 	show_feeds();
-}
-
-static void
-set_feeds_input_handlers(void)
-{
-	reset_input_handlers();
-	set_input_handler(INPUT_SELECT_NEXT, &view_select_next);
-	set_input_handler(INPUT_SELECT_PREV, &view_select_prev);
-	set_input_handler(INPUT_SELECT_FIRST, &view_select_first);
-	set_input_handler(INPUT_SELECT_LAST, &view_select_last);
-	set_input_handler(INPUT_RELOAD, &reload_current_feed);
-	set_input_handler(INPUT_RELOAD_ALL, &reload_all_feeds);
-	set_input_handler(INPUT_RESIZE, &redraw_feeds_windows);
 }
 
 void
@@ -349,23 +312,33 @@ enter_feeds_menu_loop(void)
 
 	redraw_feeds_windows();
 
-	set_feeds_input_handlers();
-
-	int destination;
+	input_cmd_id cmd;
 	while (true) {
-		destination = handle_input();
-		if (destination == INPUT_QUIT_SOFT || destination == INPUT_QUIT_HARD) {
-			break;
-		}
-
-		destination = enter_items_menu_loop(feeds[view_sel]->link);
-
-		if (destination == INPUT_QUIT_SOFT) {
-			status_clean();
-			set_feeds_input_handlers();
-			update_unread_items_count(view_sel, false);
+		cmd = get_input_command();
+		if (cmd == INPUT_SELECT_NEXT) {
+			view_select(view_sel + 1);
+		} else if (cmd == INPUT_SELECT_PREV) {
+			view_select((view_sel == 0) ? (0) : (view_sel - 1));
+		} else if (cmd == INPUT_SELECT_FIRST) {
+			view_select(0);
+		} else if (cmd == INPUT_SELECT_LAST) {
+			view_select((feeds_count == 0) ? (0) : (feeds_count - 1));
+		} else if (cmd == INPUT_RELOAD) {
+			reload_current_feed();
+		} else if (cmd == INPUT_RELOAD_ALL) {
+			reload_all_feeds();
+		} else if (cmd == INPUT_ENTER) {
+			cmd = enter_items_menu_loop(feeds[view_sel]->link);
+			if (cmd == INPUT_QUIT_SOFT) {
+				status_clean();
+				update_unread_items_count(view_sel, false);
+				redraw_feeds_windows();
+			} else if (cmd == INPUT_QUIT_HARD) {
+				break;
+			}
+		} else if (cmd == INPUT_RESIZE) {
 			redraw_feeds_windows();
-		} else if (destination == INPUT_QUIT_HARD) {
+		} else if ((cmd == INPUT_QUIT_SOFT) || (cmd == INPUT_QUIT_HARD)) {
 			break;
 		}
 	}

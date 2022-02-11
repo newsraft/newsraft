@@ -11,18 +11,7 @@ struct input_binding {
 
 static struct input_binding *head_bind = NULL;
 
-// Array of function pointers to input handlers.
-static void (*input_handlers[INPUTS_COUNT])(void);
-
-void
-reset_input_handlers(void)
-{
-	for (int i = 0; i < INPUTS_COUNT; ++i) {
-		input_handlers[i] = NULL;
-	}
-}
-
-static inline int
+int
 get_input_command(void)
 {
 	int c = getch();
@@ -58,30 +47,6 @@ get_input_command(void)
 	}
 
 	return INPUTS_COUNT; // no command matched with this key
-}
-
-int
-handle_input(void)
-{
-	int cmd;
-	while (1) {
-		cmd = get_input_command();
-		if (cmd == INPUT_ENTER || cmd == INPUT_QUIT_SOFT || cmd == INPUT_QUIT_HARD) {
-			return cmd;
-		} else if (cmd == INPUTS_COUNT || input_handlers[cmd] == NULL) {
-			continue;
-		}
-		input_handlers[cmd]();
-	}
-}
-
-void
-set_input_handler(enum input_cmd cmd, void (*func)(void))
-{
-	if (cmd < 0 || cmd >= INPUTS_COUNT) {
-		return;
-	}
-	input_handlers[cmd] = func;
 }
 
 bool

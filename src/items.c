@@ -164,44 +164,6 @@ mark_item_unread(size_t index)
 }
 
 static void
-view_select_next(void)
-{
-	view_select(view_sel + 1);
-}
-
-static void
-view_select_prev(void)
-{
-	view_select(view_sel == 0 ? (0) : (view_sel - 1));
-}
-
-static void
-view_select_first(void)
-{
-	view_select(0);
-}
-
-static void
-view_select_last(void)
-{
-	// Don't check if items_count is equal to zero,
-	// because we won't even get here if none items loaded.
-	view_select(items_count - 1);
-}
-
-static void
-mark_selected_item_read(void)
-{
-	mark_item_read(view_sel);
-}
-
-static void
-mark_selected_item_unread(void)
-{
-	mark_item_unread(view_sel);
-}
-
-static void
 mark_all_items_read(void)
 {
 	for (size_t i = 0; i < items_count; ++i) {
@@ -229,21 +191,6 @@ redraw_items_windows(void)
 		view_min = view_max - (list_menu_height - 1);
 	}
 	show_items();
-}
-
-static void
-set_items_input_handlers(void)
-{
-	reset_input_handlers();
-	set_input_handler(INPUT_SELECT_NEXT, &view_select_next);
-	set_input_handler(INPUT_SELECT_PREV, &view_select_prev);
-	set_input_handler(INPUT_SELECT_FIRST, &view_select_first);
-	set_input_handler(INPUT_SELECT_LAST, &view_select_last);
-	set_input_handler(INPUT_MARK_READ, &mark_selected_item_read);
-	set_input_handler(INPUT_MARK_READ_ALL, &mark_all_items_read);
-	set_input_handler(INPUT_MARK_UNREAD, &mark_selected_item_unread);
-	set_input_handler(INPUT_MARK_UNREAD_ALL, &mark_all_items_unread);
-	set_input_handler(INPUT_RESIZE, &redraw_items_windows);
 }
 
 static inline int
@@ -306,29 +253,44 @@ enter_items_menu_loop(const struct string *url)
 	status_clean();
 	redraw_items_windows();
 
-	set_items_input_handlers();
-
-	int destination;
-	while (1) {
-		destination = handle_input();
-		if (destination == INPUT_ENTER) {
-
-			destination = enter_item_pager_loop(items[view_sel].rowid);
-			if (destination == INPUT_QUIT_SOFT) {
+	input_cmd_id cmd;
+	while (true) {
+		cmd = get_input_command();
+		if (cmd == INPUT_SELECT_NEXT) {
+			view_select(view_sel + 1);
+		} else if (cmd == INPUT_SELECT_PREV) {
+			view_select(view_sel == 0 ? (0) : (view_sel - 1));
+		} else if (cmd == INPUT_SELECT_FIRST) {
+			view_select(0);
+		} else if (cmd == INPUT_SELECT_LAST) {
+			// Don't check if items_count is equal to zero,
+			// because we won't even get here if none items loaded.
+			view_select(items_count - 1);
+		} else if (cmd == INPUT_MARK_READ) {
+			mark_item_read(view_sel);
+		} else if (cmd == INPUT_MARK_UNREAD) {
+			mark_item_unread(view_sel);
+		} else if (cmd == INPUT_MARK_READ_ALL) {
+			mark_all_items_read();
+		} else if (cmd == INPUT_MARK_UNREAD_ALL) {
+			mark_all_items_unread();
+		} else if (cmd == INPUT_ENTER) {
+			cmd = enter_item_pager_loop(items[view_sel].rowid);
+			if (cmd == INPUT_QUIT_SOFT) {
 				items[view_sel].is_unread = 0;
 				db_mark_item_read(items[view_sel].rowid);
-				set_items_input_handlers();
 				redraw_items_windows();
-			} else if (destination == INPUT_QUIT_HARD) {
+			} else if (cmd == INPUT_QUIT_HARD) {
 				break;
 			}
-
-		} else if ((destination == INPUT_QUIT_SOFT) || (destination == INPUT_QUIT_HARD)) {
+		} else if (cmd == INPUT_RESIZE) {
+			redraw_items_windows();
+		} else if ((cmd == INPUT_QUIT_SOFT) || (cmd == INPUT_QUIT_HARD)) {
 			break;
 		}
 	}
 
 	free_items();
 
-	return destination;
+	return cmd;
 }

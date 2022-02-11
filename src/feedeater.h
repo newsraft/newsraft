@@ -89,6 +89,7 @@ struct config_data {
 	size_t size_conversion_threshold;
 };
 
+typedef uint8_t input_cmd_id;
 enum input_cmd {
 	INPUT_SELECT_NEXT = 0,
 	INPUT_SELECT_NEXT_PAGE,
@@ -219,9 +220,7 @@ bool obtain_terminal_size(void);
 
 // Functions responsible for handling input.
 // See "interface-input.c" file for implementation.
-void reset_input_handlers(void);
-void set_input_handler(enum input_cmd, void (*func)(void));
-int handle_input(void);
+int get_input_command(void);
 bool assign_action_to_key(int bind_key, enum input_cmd bind_cmd);
 bool load_default_binds(void);
 void free_binds(void);

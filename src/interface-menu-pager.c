@@ -84,62 +84,6 @@ scroll_view(size_t pminrow)
 	prefresh(window, pminrow, 0, 0, 0, list_menu_height - 1, list_menu_width - 1);
 }
 
-static void
-scroll_up_a_line(void)
-{
-	scroll_view(view_min == 0 ? 0 : view_min - 1);
-}
-
-static void
-scroll_down_a_line(void)
-{
-	scroll_view(view_min < view_lim ? view_min + 1 : view_lim);
-}
-
-static void
-scroll_up_a_page(void)
-{
-	scroll_view(view_min > list_menu_height ? view_min - list_menu_height : 0);
-}
-
-static void
-scroll_down_a_page(void)
-{
-	scroll_view(view_min + list_menu_height < view_lim ? view_min + list_menu_height : view_lim);
-}
-
-static void
-scroll_view_top(void)
-{
-	scroll_view(0);
-}
-
-static void
-scroll_view_bot(void)
-{
-	scroll_view(view_lim);
-}
-
-static void
-redraw_content_by_resize(void)
-{
-	delwin(window);
-	window = create_window_with_contents();
-}
-
-static void
-set_pager_view_input_handlers(void)
-{
-	reset_input_handlers();
-	set_input_handler(INPUT_SELECT_NEXT, &scroll_down_a_line);
-	set_input_handler(INPUT_SELECT_NEXT_PAGE, &scroll_down_a_page);
-	set_input_handler(INPUT_SELECT_PREV, &scroll_up_a_line);
-	set_input_handler(INPUT_SELECT_PREV_PAGE, &scroll_up_a_page);
-	set_input_handler(INPUT_SELECT_FIRST, &scroll_view_top);
-	set_input_handler(INPUT_SELECT_LAST, &scroll_view_bot);
-	set_input_handler(INPUT_RESIZE, &redraw_content_by_resize);
-}
-
 // On success - exit by user - returns INPUT_QUIT_SOFT or INPUT_QUIT_HARD.
 // On failure returns INPUTS_COUNT.
 int
@@ -154,14 +98,31 @@ pager_view(const struct render_block *first_block)
 	}
 
 	status_clean();
-	set_pager_view_input_handlers();
 
-	int destination;
-	do {
-		destination = handle_input();
-	} while ((destination != INPUT_QUIT_SOFT) && (destination != INPUT_QUIT_HARD));
+	input_cmd_id cmd;
+	while (true) {
+		cmd = get_input_command();
+		if (cmd == INPUT_SELECT_NEXT) {
+			scroll_view(view_min < view_lim ? view_min + 1 : view_lim);
+		} else if (cmd == INPUT_SELECT_PREV) {
+			scroll_view(view_min == 0 ? 0 : view_min - 1);
+		} else if (cmd == INPUT_SELECT_NEXT_PAGE) {
+			scroll_view(view_min + list_menu_height < view_lim ? view_min + list_menu_height : view_lim);
+		} else if (cmd == INPUT_SELECT_PREV_PAGE) {
+			scroll_view(view_min > list_menu_height ? view_min - list_menu_height : 0);
+		} else if (cmd == INPUT_SELECT_FIRST) {
+			scroll_view(0);
+		} else if (cmd == INPUT_SELECT_LAST) {
+			scroll_view(view_lim);
+		} else if (cmd == INPUT_RESIZE) {
+			delwin(window);
+			window = create_window_with_contents();
+		} else if ((cmd == INPUT_QUIT_SOFT) || (cmd == INPUT_QUIT_HARD)) {
+			break;
+		}
+	}
 
 	delwin(window);
 
-	return destination;
+	return cmd;
 }

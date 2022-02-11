@@ -2,26 +2,23 @@
 #include <stdio.h>
 #include "feedeater.h"
 
-// Linked list
 struct input_binding {
 	int key;
 	enum input_cmd cmd;
-	struct input_binding *next_bind;
 };
 
-static struct input_binding *head_bind = NULL;
+static struct input_binding *binds = NULL;
+static size_t binds_count = 0;
 
 int
 get_input_command(void)
 {
 	int c = getch();
 
-	struct input_binding *bind = head_bind;
-	while (bind != NULL) {
-		if (c == bind->key) {
-			return bind->cmd;
+	for (size_t i = 0; i < binds_count; ++i) {
+		if (c == binds[i].key) {
+			return binds[i].cmd;
 		}
-		bind = bind->next_bind;
 	}
 
 	if (c == KEY_RESIZE) {
@@ -52,36 +49,32 @@ get_input_command(void)
 bool
 assign_action_to_key(int bind_key, enum input_cmd bind_cmd)
 {
-	INFO("Trying to bind a key with the code %d.", bind_key);
+	INFO("Binding %u action to %d key.", bind_cmd, bind_key);
 
 	if (bind_key == KEY_RESIZE) {
 		WARN("Key with the code KEY_RESIZE must not be bound!");
 		return false;
 	}
 
-	// Check if bind_key key is bound already
-	struct input_binding *bind = head_bind;
-	while (bind != NULL) {
-		if (bind_key == bind->key) {
+	// Check if bind_key is bound already.
+	for (size_t i = 0; i < binds_count; ++i) {
+		if (bind_key == binds[i].key) {
 			INFO("Key with the code %d is already bound. Reassigning a command.", bind_key);
-			bind->cmd = bind_cmd;
+			binds[i].cmd = bind_cmd;
 			return true;
 		}
-		bind = bind->next_bind;
 	}
 
-	bind = malloc(sizeof(struct input_binding));
-	if (bind == NULL) {
+	size_t bind_index = binds_count++;
+	struct input_binding *temp = realloc(binds, sizeof(struct input_binding) * binds_count);
+	if (temp == NULL) {
 		fprintf(stderr, "Not enough memory for assigning a command to a new key!\n");
 		return false;
 	}
+	binds = temp;
 
-	bind->key = bind_key;
-	bind->cmd = bind_cmd;
-	bind->next_bind = head_bind;
-	head_bind = bind;
-
-	INFO("Key with the code %d is successfully bound!", bind_key);
+	binds[bind_index].key = bind_key;
+	binds[bind_index].cmd = bind_cmd;
 
 	return true;
 }
@@ -90,11 +83,5 @@ void
 free_binds(void)
 {
 	INFO("Freeing key binds.");
-	struct input_binding *bind = head_bind;
-	struct input_binding *tmp;
-	while (bind != NULL) {
-		tmp = bind;
-		bind = bind->next_bind;
-		free(tmp);
-	}
+	free(binds);
 }

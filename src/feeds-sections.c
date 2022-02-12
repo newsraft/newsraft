@@ -57,6 +57,13 @@ static bool
 attach_feed_to_section(struct feed_line *feed, struct feed_section *section)
 {
 	INFO("Adding feed \"%s\" to section \"%s\".", feed->link->ptr, section->name->ptr);
+	// We have to make sure that this feed is unique.
+	for (size_t i = 0; i < section->feeds_count; ++i) {
+		if (strcmp(section->feeds[i]->link->ptr, feed->link->ptr) == 0) {
+			INFO("This feed is already in this section.");
+			return true;
+		}
+	}
 	size_t feed_index = (section->feeds_count)++;
 	struct feed_line **temp = realloc(section->feeds, sizeof(struct feed_line *) * section->feeds_count);
 	if (temp == NULL) {

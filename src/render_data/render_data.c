@@ -55,6 +55,7 @@ render_data(const struct render_block *first_block)
 				if (line.len == 0) {
 					trim_whitespace_from_wstring(text);
 				}
+				line.indent = 0;
 				break;
 			}
 		}

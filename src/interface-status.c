@@ -34,6 +34,7 @@ status_write(const char *format, ...)
 	va_list args;
 	va_start(args, format);
 	if (string_vprintf(status_buf, format, args) == false) {
+		va_end(args);
 		return;
 	}
 	INFO("Wrote to status: %s", status_buf->ptr);

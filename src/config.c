@@ -17,7 +17,7 @@ get_config_date_str(time_t time)
 {
 	char date_ptr[200];
 	time_t local_time = time + get_local_offset_relative_to_utc();
-	size_t date_len = strftime(date_ptr, sizeof(date_ptr), cfg.contents_date_format, localtime(&local_time));
+	size_t date_len = strftime(date_ptr, sizeof(date_ptr), cfg.contents_date_format->ptr, localtime(&local_time));
 	if (date_len == 0) {
 		FAIL("Failed to create date string!");
 		return NULL;
@@ -34,11 +34,11 @@ void
 free_config_data(void)
 {
 	INFO("Freeing configuration strings.");
-	free(cfg.menu_feed_entry_format);
-	free(cfg.menu_item_entry_format);
-	free(cfg.global_section_name);
-	free(cfg.contents_meta_data);
-	free(cfg.contents_date_format);
+	free_wstring(cfg.menu_feed_entry_format);
+	free_wstring(cfg.menu_item_entry_format);
+	free_string(cfg.global_section_name);
+	free_string(cfg.contents_meta_data);
+	free_string(cfg.contents_date_format);
 }
 
 bool

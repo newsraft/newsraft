@@ -29,7 +29,7 @@ parse_feeds_file(void)
 	if (word == NULL) {
 		return false;
 	}
-	struct string *section_name = crtas(cfg.global_section_name, strlen(cfg.global_section_name));
+	struct string *section_name = crtss(cfg.global_section_name);
 	if (section_name == NULL) {
 		free_string(word);
 		return false;

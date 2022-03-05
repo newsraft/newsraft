@@ -81,11 +81,11 @@ struct link_list {
 struct config_data {
 	size_t max_items;
 	bool append_links;
-	wchar_t *menu_feed_entry_format;
-	wchar_t *menu_item_entry_format;
-	char *global_section_name;
-	char *contents_meta_data;
-	char *contents_date_format;
+	struct wstring *menu_feed_entry_format;
+	struct wstring *menu_item_entry_format;
+	struct string *global_section_name;
+	struct string *contents_meta_data;
+	struct string *contents_date_format;
 	size_t size_conversion_threshold;
 };
 
@@ -146,7 +146,7 @@ enum item_column {
 
 bool create_global_section(void);
 bool add_feed_to_section(struct feed_line *feed, const struct string *section_name);
-bool obtain_feeds_of_section(const char *section_name, struct feed_line ***feeds_ptr, size_t *feeds_count_ptr);
+bool obtain_feeds_of_section(const struct string *section_name, struct feed_line ***feeds_ptr, size_t *feeds_count_ptr);
 void free_sections(void);
 
 // list interface
@@ -157,7 +157,7 @@ bool adjust_list_menu_format_buffer(void);
 void free_list_menu_format_buffer(void);
 
 // format
-const wchar_t *do_format(const wchar_t *fmt, const struct format_arg *args, size_t args_count);
+const wchar_t *do_format(const struct wstring *fmt, const struct format_arg *args, size_t args_count);
 
 // feeds
 void enter_feeds_menu_loop(void);

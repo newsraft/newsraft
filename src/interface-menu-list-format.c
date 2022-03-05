@@ -28,9 +28,9 @@ free_list_menu_format_buffer(void)
 // On success returns formatted string.
 // On failure returns empty string.
 const wchar_t *
-do_format(const wchar_t *fmt, const struct format_arg *args, size_t args_count)
+do_format(const struct wstring *fmt, const struct format_arg *args, size_t args_count)
 {
-	const wchar_t *iter = fmt;
+	const wchar_t *iter = fmt->ptr;
 	const wchar_t *next_percent;
 	const wchar_t *specifier;
 	wchar_t word[3333];

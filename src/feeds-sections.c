@@ -23,25 +23,6 @@ free_feed(struct feed_line *feed)
 	free(feed);
 }
 
-bool
-create_global_section(void)
-{
-	sections = malloc(sizeof(struct feed_section));
-	if (sections == NULL) {
-		return false;
-	}
-	sections_count = 1;
-	sections[0].name = crtas(cfg.global_section_name, strlen(cfg.global_section_name));
-	if (sections[0].name == NULL) {
-		free(sections);
-		return false;
-	}
-	sections[0].feeds = NULL;
-	sections[0].feeds_count = 0;
-	sections[0].unread_count = 0;
-	return true;
-}
-
 static bool
 create_new_section(const struct string *section_name)
 {
@@ -62,6 +43,12 @@ create_new_section(const struct string *section_name)
 	sections[section_index].unread_count = 0;
 	INFO("Created \"%s\" section.", section_name->ptr);
 	return true;
+}
+
+bool
+create_global_section(void)
+{
+	return create_new_section(cfg.global_section_name);
 }
 
 // On success returns a pointer to the attached feed.
@@ -114,7 +101,7 @@ add_feed_to_section(struct feed_line *feed, const struct string *section_name)
 	if (attached_feed == NULL) {
 		return false;
 	}
-	if (strcmp(section_name->ptr, cfg.global_section_name) == 0) {
+	if (strcmp(section_name->ptr, cfg.global_section_name->ptr) == 0) {
 		// The section we add a feed to is global and we already added
 		// a feed to the global section above. So exit innocently here.
 		return true; // Not an error.
@@ -139,10 +126,10 @@ add_feed_to_section(struct feed_line *feed, const struct string *section_name)
 }
 
 bool
-obtain_feeds_of_section(const char *section_name, struct feed_line ***feeds_ptr, size_t *feeds_count_ptr)
+obtain_feeds_of_section(const struct string *section_name, struct feed_line ***feeds_ptr, size_t *feeds_count_ptr)
 {
 	for (size_t i = 0; i < sections_count; ++i) {
-		if (strcmp(section_name, sections[i].name->ptr) == 0) {
+		if (strcmp(section_name->ptr, sections[i].name->ptr) == 0) {
 			*feeds_ptr = sections[i].feeds;
 			*feeds_count_ptr = sections[i].feeds_count;
 			return true;

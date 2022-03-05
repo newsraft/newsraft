@@ -34,19 +34,12 @@ error:
 bool
 assign_default_values_to_empty_config_strings(void)
 {
-#define ADVTECS(A, B, C, D) if (A == NULL) {         \
-                            	A = malloc(B * D);   \
-                            	if (A == NULL) {     \
-                            		return false;    \
-                            	}                    \
-                            	memcpy(A, C, B * D); \
-                            }
-	// ATTENTION! Fourth argument to ADVTECS is number of characters (including terminator), not string length.
-	ADVTECS(cfg.menu_feed_entry_format, sizeof(wchar_t), L"%4.0u │ %t",              11)
-	ADVTECS(cfg.menu_item_entry_format, sizeof(wchar_t), L" %u │ %t",                9)
-	ADVTECS(cfg.global_section_name,    sizeof(char),    "global",                   7)
-	ADVTECS(cfg.contents_meta_data,     sizeof(char),    "feed,title,authors,published,updated,max-summary-content", 57)
-	ADVTECS(cfg.contents_date_format,   sizeof(char),    "%a, %d %b %Y %H:%M:%S %z", 25)
+#define ADVTECS(A, B, C, D) if (A == NULL) { if ((A = B(C, D)) == NULL) { return false; } }
+	ADVTECS(cfg.menu_feed_entry_format, wcrtas, L"%4.0u │ %t",              10)
+	ADVTECS(cfg.menu_item_entry_format, wcrtas, L" %u │ %t",                8)
+	ADVTECS(cfg.global_section_name,    crtas,  "global",                   6)
+	ADVTECS(cfg.contents_meta_data,     crtas,  "feed,title,authors,published,updated,max-summary-content", 56)
+	ADVTECS(cfg.contents_date_format,   crtas,  "%a, %d %b %Y %H:%M:%S %z", 24)
 #undef ADVTECS
 	return true;
 }

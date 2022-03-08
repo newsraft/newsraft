@@ -30,7 +30,7 @@ insert_feed(const struct string *feed_url, const struct getfeed_feed *feed)
 		goto undo4;
 	}
 	sqlite3_stmt *s;
-	if (db_prepare("INSERT OR REPLACE INTO feeds VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", 76, &s, NULL) == false) {
+	if (db_prepare("INSERT OR REPLACE INTO feeds VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", 79, &s, NULL) == false) {
 		success = false;
 		goto undo5;
 	}
@@ -47,6 +47,7 @@ insert_feed(const struct string *feed_url, const struct getfeed_feed *feed)
 	db_bind_text_struct(s, FEED_COLUMN_RIGHTS        + 1, &feed->rights);
 	sqlite3_bind_int64(s,  FEED_COLUMN_UPDATE_TIME   + 1, (sqlite3_int64)(feed->update_time));
 	sqlite3_bind_int64(s,  FEED_COLUMN_DOWNLOAD_TIME + 1, (sqlite3_int64)(feed->download_time));
+	sqlite3_bind_text(s,   FEED_COLUMN_ETAG          + 1, "",                  0,                   NULL);
 	if (sqlite3_step(s) != SQLITE_DONE) {
 		FAIL("Insertion of feed data failed: %s", db_error_string());
 		success = false;

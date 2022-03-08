@@ -31,7 +31,8 @@ db_init(void)
 			"generator TEXT NOT NULL,"
 			"rights TEXT NOT NULL,"
 			"update_time INTEGER(8) NOT NULL," // update date in seconds since 1970
-			"download_time INTEGER(8) NOT NULL" // download date in seconds since 1970
+			"download_time INTEGER(8) NOT NULL," // download date in seconds since 1970
+			"etag TEXT NOT NULL"
 		");"
 		"CREATE TABLE IF NOT EXISTS items("
 			"feed_url TEXT NOT NULL," // url of feed this item belongs to

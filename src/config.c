@@ -39,6 +39,8 @@ free_config_data(void)
 	free_string(cfg.global_section_name);
 	free_string(cfg.contents_meta_data);
 	free_string(cfg.contents_date_format);
+	free_string(cfg.proxy);
+	free_string(cfg.proxy_auth);
 }
 
 bool
@@ -53,6 +55,8 @@ load_config(void)
 	cfg.global_section_name = NULL;
 	cfg.contents_meta_data = NULL;
 	cfg.contents_date_format = NULL;
+	cfg.proxy = NULL;
+	cfg.proxy_auth = NULL;
 	cfg.size_conversion_threshold = 1200;
 
 	/* if (parse_config_file() != 0) { */

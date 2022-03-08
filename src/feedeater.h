@@ -86,6 +86,8 @@ struct config_data {
 	struct string *global_section_name;
 	struct string *contents_meta_data;
 	struct string *contents_date_format;
+	struct string *proxy;
+	struct string *proxy_auth;
 	size_t size_conversion_threshold;
 };
 

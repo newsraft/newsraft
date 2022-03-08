@@ -11,6 +11,30 @@ parse_stream_callback(char *contents, size_t length, size_t nmemb, struct string
 	return real_size;
 }
 
+static inline void
+prepare_curl_for_performance(CURL *curl, const char *url, void *writedata, char *errbuf)
+{
+	curl_easy_setopt(curl, CURLOPT_URL, url);
+	curl_easy_setopt(curl, CURLOPT_WRITEDATA, writedata);
+	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &parse_stream_callback);
+	curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, errbuf);
+	curl_easy_setopt(curl, CURLOPT_FAILONERROR, 1);
+	curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1);
+	curl_easy_setopt(curl, CURLOPT_MAXREDIRS, 10);
+	// Empty string enables all supported built-in encodings
+	curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "");
+	curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1L);
+	curl_easy_setopt(curl, CURLOPT_VERBOSE, 0L);
+	curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1L);
+
+	if (cfg.proxy->len != 0) {
+		curl_easy_setopt(curl, CURLOPT_PROXY, cfg.proxy->ptr);
+		if (cfg.proxy_auth->len != 0) {
+			curl_easy_setopt(curl, CURLOPT_PROXYUSERPWD, cfg.proxy_auth->ptr);
+		}
+	}
+}
+
 struct string *
 download_feed(const char *url)
 {
@@ -27,20 +51,10 @@ download_feed(const char *url)
 		return NULL;
 	}
 
-	curl_easy_setopt(curl, CURLOPT_URL, url);
-	curl_easy_setopt(curl, CURLOPT_FAILONERROR, 1);
-	curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1);
-	curl_easy_setopt(curl, CURLOPT_MAXREDIRS, 10);
-	// Empty string enables all supported built-in encodings
-	curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "");
-	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &parse_stream_callback);
-	curl_easy_setopt(curl, CURLOPT_WRITEDATA, feedbuf);
-	curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1L);
-	curl_easy_setopt(curl, CURLOPT_VERBOSE, 0L);
-	curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1L);
 	char curl_errbuf[CURL_ERROR_SIZE];
-	curl_errbuf[0] = '\0'; // Empty string.
-	curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, curl_errbuf);
+	curl_errbuf[0] = '\0';
+
+	prepare_curl_for_performance(curl, url, feedbuf, curl_errbuf);
 
 	CURLcode res = curl_easy_perform(curl);
 	if (res != CURLE_OK) {

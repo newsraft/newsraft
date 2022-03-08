@@ -40,6 +40,8 @@ assign_default_values_to_empty_config_strings(void)
 	ADVTECS(cfg.global_section_name,    crtas,  "global",                   6)
 	ADVTECS(cfg.contents_meta_data,     crtas,  "feed,title,authors,published,updated,max-summary-content", 56)
 	ADVTECS(cfg.contents_date_format,   crtas,  "%a, %d %b %Y %H:%M:%S %z", 24)
+	ADVTECS(cfg.proxy,                  crtas,  "",                         0)
+	ADVTECS(cfg.proxy_auth,             crtas,  "",                         0)
 #undef ADVTECS
 	return true;
 }

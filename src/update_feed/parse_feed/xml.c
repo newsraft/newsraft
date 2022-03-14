@@ -1,4 +1,5 @@
 #include <string.h>
+#include <tidybuffio.h>
 #include "update_feed/parse_feed/parse_feed.h"
 
 bool
@@ -28,25 +29,53 @@ we_are_inside_item(const struct xml_data *data)
 }
 
 const char *
-get_value_of_attribute_key(const XML_Char **atts, const char *key)
+get_value_of_attribute_key(const TidyAttr attrs, const char *key)
 {
-	/* expat says that atts is name/value array (that is {name1, value1, name2, value2, ...})
-	 * hence do iterate with the step of 2 */
-	for (size_t i = 0; atts[i] != NULL; i = i + 2) {
-		if (strcmp(atts[i], key) == 0) {
-			return atts[i + 1]; // success
+	const char *attr_name;
+	for (TidyAttr attr = attrs; attr != NULL; attr = tidyAttrNext(attr)) {
+		attr_name = tidyAttrName(attr);
+		if (attr_name == NULL) {
+			continue;
+		}
+		if (strcmp(attr_name, key) == 0) {
+			return tidyAttrValue(attr); // success
 		}
 	}
 	return NULL; // failure, didn't find an attribute with key name
 }
 
-static void
-start_element_handler(struct xml_data *data, const XML_Char *name, const XML_Char **atts)
+static inline uint16_t
+add_namespaces_to_stack(struct xml_namespace_stack *stack, const TidyAttr attrs)
 {
-	if (data->error != PARSE_OKAY) {
-		XML_StopParser(data->parser, XML_FALSE);
-		return;
+	uint16_t added_count = 0;
+	const char *attr_name;
+	const char *namespace_name;
+	const char *namespace_uri;
+	for (TidyAttr attr = attrs; attr != NULL; attr = tidyAttrNext(attr)) {
+		attr_name = tidyAttrName(attr);
+		if (attr_name == NULL) {
+			continue;
+		}
+		if (strstr(attr_name, "xmlns:") == attr_name) {
+			namespace_name = attr_name + 6;
+			namespace_uri = tidyAttrValue(attr);
+			if (add_namespace_to_stack(stack, namespace_name, namespace_uri) == false) {
+				return added_count;
+			}
+			added_count++;
+		} else if (strstr(attr_name, "xmlns") == attr_name) {
+			namespace_uri = tidyAttrValue(attr);
+			if (namespace_uri != NULL && stack->defaultns == NULL) {
+				stack->defaultns = crtas(namespace_uri, strlen(namespace_uri));
+			}
+		}
 	}
+	return added_count;
+}
+
+static void
+start_element_handler(struct xml_data *data, const char *name, const TidyAttr atts)
+{
 	++(data->depth);
 	empty_string(data->value);
 	if (parse_namespace_element_start(data, name, atts) == true) {
@@ -75,12 +104,8 @@ start_element_handler(struct xml_data *data, const XML_Char *name, const XML_Cha
 }
 
 static void
-end_element_handler(struct xml_data *data, const XML_Char *name)
+end_element_handler(struct xml_data *data, const char *name)
 {
-	if (data->error != PARSE_OKAY) {
-		XML_StopParser(data->parser, XML_FALSE);
-		return;
-	}
 	--(data->depth);
 	trim_whitespace_from_string(data->value);
 	if (parse_namespace_element_end(data, name) == true) {
@@ -93,18 +118,74 @@ end_element_handler(struct xml_data *data, const XML_Char *name)
 	}
 }
 
-// Important note: a single block of contiguous text free of markup may still result in a sequence of calls to CharacterDataHandler.
 static void
-character_data_handler(struct xml_data *data, const XML_Char *s, int s_len)
+dumpNode(TidyDoc *tdoc, TidyNode tnod, TidyBuffer *buf, struct xml_data *data)
 {
-	if (data->error != PARSE_OKAY) {
-		XML_StopParser(data->parser, XML_FALSE);
-		return;
+	uint16_t added_namespaces_count;
+	const char *child_name;
+	TidyNodeType child_type;
+	TidyAttr child_attrs;
+	for (TidyNode child = tidyGetChild(tnod); child != NULL; child = tidyGetNext(child)) {
+		child_type = tidyNodeGetType(child);
+		if ((child_type == TidyNode_Text) || (child_type == TidyNode_CDATA)) {
+			tidyBufClear(buf);
+			tidyNodeGetValue(*tdoc, child, buf);
+			if (buf->bp != NULL) {
+				catas(data->value, (char *)buf->bp, strlen((char *)buf->bp));
+			}
+		} else if ((child_type == TidyNode_Start) || (child_type == TidyNode_StartEnd)) {
+			child_name = tidyNodeGetName(child);
+			child_attrs = tidyAttrFirst(child);
+			added_namespaces_count = add_namespaces_to_stack(&data->namespaces, child_attrs);
+			start_element_handler(data, child_name, child_attrs);
+			dumpNode(tdoc, child, buf, data);
+			end_element_handler(data, child_name);
+			for (uint16_t i = 0; i < added_namespaces_count; ++i) {
+				pop_namespace_from_stack(&data->namespaces);
+			}
+		}
 	}
-	if (catas(data->value, s, s_len) == false) {
-		FAIL("Not enough memory for character data of the XML element!");
-		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+}
+
+static bool
+enter_xml_parsing_loop(const struct string *feed_buf, struct xml_data *data)
+{
+	TidyDoc tdoc = tidyCreate();
+	TidyBuffer tempbuf = {0};
+	TidyBuffer tidy_errbuf = {0};
+
+	tidyBufInit(&tempbuf);
+
+	tidySetErrorBuffer(tdoc, &tidy_errbuf);
+	tidyOptSetBool(tdoc, TidyXmlTags, true); // Enable XML mode.
+	/* tidyOptSetBool(tdoc, TidyMakeBare, true); // use plain quotes instead fancy ones */
+	/* tidyOptSetBool(tdoc, TidyOmitOptionalTags, false); */
+	/* tidyOptSetBool(tdoc, TidyCoerceEndTags, true); */
+
+	// Don't convert entities to characters.
+	/* tidyOptSetBool(tdoc, TidyAsciiChars, false); */
+	/* tidyOptSetBool(tdoc, TidyQuoteNbsp, true); */
+	/* tidyOptSetBool(tdoc, TidyQuoteMarks, true); */
+	/* tidyOptSetBool(tdoc, TidyQuoteAmpersand, true); */
+	/* tidyOptSetBool(tdoc, TidyPreserveEntities, true); */
+
+	tidyParseString(tdoc, feed_buf->ptr);
+	tidyCleanAndRepair(tdoc);
+	tidyRunDiagnostics(tdoc);
+
+	dumpNode(&tdoc, tidyGetRoot(tdoc), &tempbuf, data);
+
+	if (tidy_errbuf.bp != NULL) {
+		INFO("Tidy report:\n%s", tidy_errbuf.bp);
+	} else {
+		INFO("Tidy's error buffer is NULL.");
 	}
+
+	tidyBufFree(&tempbuf);
+	tidyBufFree(&tidy_errbuf);
+	tidyRelease(tdoc);
+
+	return true;
 }
 
 struct getfeed_feed *
@@ -120,6 +201,10 @@ parse_xml_feed(const struct string *feed_buf)
 		free_string(data.value);
 		return NULL;
 	}
+	data.namespaces.top = 0;
+	data.namespaces.lim = 0;
+	data.namespaces.buf = NULL;
+	data.namespaces.defaultns = NULL;
 	data.depth = 0;
 #ifdef FEEDEATER_FORMAT_SUPPORT_RSS20
 	data.rss20_pos = RSS20_NONE;
@@ -146,45 +231,15 @@ parse_xml_feed(const struct string *feed_buf)
 	data.end_handler = NULL;
 	data.error = PARSE_OKAY;
 
-	if ((data.parser = XML_ParserCreateNS(NULL, XML_NAMESPACE_SEPARATOR)) == NULL) {
-		FAIL("Something went wrong during parser struct creation, can not start updating a feed!");
-		free_string(data.value);
-		free_feed(data.feed);
-		return NULL;
-	}
-	XML_SetElementHandler(
-		data.parser,
-		(void (*)(void *, const XML_Char *, const XML_Char **))&start_element_handler,
-		(void (*)(void *, const XML_Char *))&end_element_handler
-	);
-	XML_SetCharacterDataHandler(
-		data.parser,
-		(void (*)(void *, const XML_Char *, int))&character_data_handler
-	);
-	XML_SetUserData(data.parser, &data);
-
-	if (XML_Parse(data.parser, feed_buf->ptr, feed_buf->len, XML_TRUE) != XML_STATUS_OK) {
+	if (enter_xml_parsing_loop(feed_buf, &data) == false) {
 		FAIL("Feed update stopped due to parse error!");
-		FAIL("Parser reports \"%" XML_FMT_STR "\" at line %" XML_FMT_INT_MOD "u.",
-		     XML_ErrorString(XML_GetErrorCode(data.parser)),
-		     XML_GetCurrentLineNumber(data.parser));
 		free_string(data.value);
 		free_feed(data.feed);
-		XML_ParserFree(data.parser);
 		return NULL;
 	}
 
-	XML_ParsingStatus status;
-	XML_GetParsingStatus(data.parser, &status);
-	if (status.parsing == XML_SUSPENDED) {
-		free_string(data.value);
-		free_feed(data.feed);
-		XML_ParserFree(data.parser);
-		return NULL;
-	}
-
+	free_namespace_stack(&data.namespaces);
 	free_string(data.value);
-	XML_ParserFree(data.parser);
 
 	return data.feed;
 }

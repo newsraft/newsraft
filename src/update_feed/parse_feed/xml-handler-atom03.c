@@ -9,7 +9,7 @@
 // Atom 0.3 does not have category element.
 
 static inline void
-copy_type_of_text_construct(struct xml_data *data, const XML_Char **atts, struct string *dest)
+copy_type_of_text_construct(struct xml_data *data, const TidyAttr atts, struct string *dest)
 {
 	// Atom 0.3 text construct types are fully compliant with MIME standard.
 	const char *type = get_value_of_attribute_key(atts, "type");
@@ -65,23 +65,15 @@ title_end(struct xml_data *data)
 }
 
 static inline void
-link_start(struct xml_data *data, const XML_Char **atts)
+link_start(struct xml_data *data, const TidyAttr atts)
 {
 	// Atom 0.3 link element does not have length and hreflang attributes.
-	const char *href = NULL, *type = NULL, *rel = NULL;
-	for (size_t i = 0; atts[i] != NULL; i = i + 2) {
-		if (strcmp(atts[i], "href") == 0) {
-			href = atts[i + 1];
-		} else if (strcmp(atts[i], "type") == 0) {
-			type = atts[i + 1];
-		} else if (strcmp(atts[i], "rel") == 0) {
-			rel = atts[i + 1];
-		}
-	}
+	const char *href = get_value_of_attribute_key(atts, "href");
 	if (href == NULL) {
 		// In Atom 1.0 links href attribute MUST be set.
 		return;
 	}
+	const char *rel = get_value_of_attribute_key(atts, "rel");
 	if ((rel != NULL) && (strcmp(rel, "self") == 0)) {
 		// Ignore links to feed itself.
 		return;
@@ -108,6 +100,7 @@ link_start(struct xml_data *data, const XML_Char **atts)
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}
+		const char *type = get_value_of_attribute_key(atts, "type");
 		if (type != NULL) {
 			if (cpyas(data->feed->item->attachment->type, type, strlen(type)) == false) {
 				data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
@@ -118,7 +111,7 @@ link_start(struct xml_data *data, const XML_Char **atts)
 }
 
 static inline void
-summary_start(struct xml_data *data, const XML_Char **atts)
+summary_start(struct xml_data *data, const TidyAttr atts)
 {
 	if ((data->atom03_pos & ATOM03_ENTRY) == 0) {
 		return;
@@ -144,7 +137,7 @@ summary_end(struct xml_data *data)
 }
 
 static inline void
-content_start(struct xml_data *data, const XML_Char **atts)
+content_start(struct xml_data *data, const TidyAttr atts)
 {
 	if ((data->atom03_pos & ATOM03_ENTRY) == 0) {
 		return;
@@ -334,7 +327,7 @@ email_end(struct xml_data *data)
 }
 
 static inline void
-tagline_start(struct xml_data *data, const XML_Char **atts)
+tagline_start(struct xml_data *data, const TidyAttr atts)
 {
 	if ((data->atom03_pos & ATOM03_ENTRY) != 0) {
 		return;
@@ -360,7 +353,7 @@ tagline_end(struct xml_data *data)
 }
 
 static inline void
-generator_start(struct xml_data *data, const XML_Char **atts)
+generator_start(struct xml_data *data, const TidyAttr atts)
 {
 	if ((data->atom03_pos & ATOM03_GENERATOR) != 0) {
 		return;
@@ -402,7 +395,7 @@ generator_end(struct xml_data *data)
 }
 
 void
-parse_atom03_element_start(struct xml_data *data, const XML_Char *name, const XML_Char **atts)
+parse_atom03_element_start(struct xml_data *data, const char *name, const TidyAttr atts)
 {
 	     if (strcmp(name, "entry")       == 0) { entry_start(data);           }
 	else if (strcmp(name, "id")          == 0) { id_start(data);              }
@@ -422,7 +415,7 @@ parse_atom03_element_start(struct xml_data *data, const XML_Char *name, const XM
 }
 
 void
-parse_atom03_element_end(struct xml_data *data, const XML_Char *name)
+parse_atom03_element_end(struct xml_data *data, const char *name)
 {
 	     if (strcmp(name, "entry")       == 0) { entry_end(data);     }
 	else if (strcmp(name, "id")          == 0) { id_end(data);        }

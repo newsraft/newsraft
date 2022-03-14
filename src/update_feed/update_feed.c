@@ -24,6 +24,7 @@ update_feed(const struct string *url)
 	}
 
 	if (insert_feed(url, feed) == false) {
+		FAIL("Failed to insert %s feed!", url->ptr);
 		db_rollback_transaction();
 		free_feed(feed);
 		return false;

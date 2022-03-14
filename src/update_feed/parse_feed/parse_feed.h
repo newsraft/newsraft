@@ -1,10 +1,10 @@
 #ifndef GETFEED_H
 #define GETFEED_H
-#include <expat.h>
+#include <tidy.h>
 #include <cjson/cJSON.h>
 #include "update_feed/update_feed.h"
 
-#define XML_NAMESPACE_SEPARATOR ' '
+#define XML_NAMESPACE_SEPARATOR ':'
 #define COUNTOF(A) (sizeof(A) / sizeof(*A))
 #define ISWHITESPACE(A) (((A)==' ')||((A)=='\n')||((A)=='\t')||((A)=='\v')||((A)=='\f')||((A)=='\r'))
 
@@ -13,9 +13,22 @@ enum update_error {
 	PARSE_FAIL_NOT_ENOUGH_MEMORY,
 };
 
+struct xml_namespace {
+	struct string *name;
+	struct string *uri;
+};
+
+struct xml_namespace_stack {
+	uint16_t top;
+	size_t lim;
+	struct xml_namespace *buf;
+	struct string *defaultns;
+};
+
 struct xml_data {
 	struct string *value;
 	int depth;
+	struct xml_namespace_stack namespaces;
 	const struct string *feed_url;
 	struct getfeed_feed *feed;
 #ifdef FEEDEATER_FORMAT_SUPPORT_RSS20
@@ -39,9 +52,8 @@ struct xml_data {
 #ifdef FEEDEATER_FORMAT_SUPPORT_RSS11
 	int8_t rss11_pos;
 #endif
-	XML_Parser parser;
-	void (*start_handler)(struct xml_data *data, const XML_Char *name, const XML_Char **atts);
-	void (*end_handler)(struct xml_data *data, const XML_Char *name);
+	void (*start_handler)(struct xml_data *data, const char *name, const TidyAttr atts);
+	void (*end_handler)(struct xml_data *data, const char *name);
 	enum update_error error;
 };
 
@@ -49,10 +61,14 @@ struct json_data {
 	struct getfeed_feed *feed;
 };
 
+bool add_namespace_to_stack(struct xml_namespace_stack *stack, const char *name, const char *uri);
+void pop_namespace_from_stack(struct xml_namespace_stack *stack);
+void free_namespace_stack(struct xml_namespace_stack *stack);
+
 struct getfeed_feed *parse_xml_feed(const struct string *feed_buf);
 struct getfeed_feed *parse_json_feed(const struct string *feed_buf);
 
-const char *get_value_of_attribute_key(const XML_Char **atts, const char *key);
+const char *get_value_of_attribute_key(const TidyAttr attrs, const char *key);
 bool we_are_inside_item(const struct xml_data *data);
 
 // feed bucket functions
@@ -78,8 +94,8 @@ time_t parse_date_rfc3339(const char *src, size_t src_len);
 
 // Element handlers
 
-bool parse_namespace_element_start (struct xml_data *data, const XML_Char *name, const XML_Char **atts);
-bool parse_namespace_element_end   (struct xml_data *data, const XML_Char *name);
+bool parse_namespace_element_start (struct xml_data *data, const char *name, const TidyAttr atts);
+bool parse_namespace_element_end   (struct xml_data *data, const char *name);
 
 #ifdef FEEDEATER_FORMAT_SUPPORT_ATOM10
 enum atom10_position {
@@ -98,8 +114,8 @@ enum atom10_position {
 	ATOM10_SUBTITLE = 2048,
 	ATOM10_GENERATOR = 4096,
 };
-void parse_atom10_element_start (struct xml_data *data, const XML_Char *name, const XML_Char **atts);
-void parse_atom10_element_end   (struct xml_data *data, const XML_Char *name);
+void parse_atom10_element_start (struct xml_data *data, const char *name, const TidyAttr atts);
+void parse_atom10_element_end   (struct xml_data *data, const char *name);
 #endif
 #ifdef FEEDEATER_FORMAT_SUPPORT_RSS20
 enum rss20_position {
@@ -121,8 +137,8 @@ enum rss20_position {
 	RSS20_MANAGINGEDITOR = 16384,
 	RSS20_CHANNEL = 32768,
 };
-void parse_rss20_element_start (struct xml_data *data, const XML_Char *name, const XML_Char **atts);
-void parse_rss20_element_end   (struct xml_data *data, const XML_Char *name);
+void parse_rss20_element_start (struct xml_data *data, const char *name, const TidyAttr atts);
+void parse_rss20_element_end   (struct xml_data *data, const char *name);
 #endif
 #ifdef FEEDEATER_FORMAT_SUPPORT_DUBLINCORE
 enum dc_position {
@@ -132,16 +148,16 @@ enum dc_position {
 	DC_CREATOR = 4,
 	DC_SUBJECT = 8,
 };
-void parse_dc_element_start (struct xml_data *data, const XML_Char *name, const XML_Char **atts);
-void parse_dc_element_end   (struct xml_data *data, const XML_Char *name);
+void parse_dc_element_start (struct xml_data *data, const char *name, const TidyAttr atts);
+void parse_dc_element_end   (struct xml_data *data, const char *name);
 #endif
 #ifdef FEEDEATER_FORMAT_SUPPORT_RSS10CONTENT
 enum rss10content_position {
 	RSS10CONTENT_NONE = 0,
 	RSS10CONTENT_ENCODED = 1,
 };
-void parse_rss10content_element_start (struct xml_data *data, const XML_Char *name, const XML_Char **atts);
-void parse_rss10content_element_end   (struct xml_data *data, const XML_Char *name);
+void parse_rss10content_element_start (struct xml_data *data, const char *name, const TidyAttr atts);
+void parse_rss10content_element_end   (struct xml_data *data, const char *name);
 #endif
 #ifdef FEEDEATER_FORMAT_SUPPORT_YANDEX
 enum yandex_position {
@@ -151,8 +167,8 @@ enum yandex_position {
 	YANDEX_COMMENT_TEXT = 4,
 	YANDEX_BIND_TO = 8,
 };
-void parse_yandex_element_start (struct xml_data *data, const XML_Char *name, const XML_Char **atts);
-void parse_yandex_element_end   (struct xml_data *data, const XML_Char *name);
+void parse_yandex_element_start (struct xml_data *data, const char *name, const TidyAttr atts);
+void parse_yandex_element_end   (struct xml_data *data, const char *name);
 #endif
 #ifdef FEEDEATER_FORMAT_SUPPORT_ATOM03
 enum atom03_position {
@@ -171,8 +187,8 @@ enum atom03_position {
 	ATOM03_TAGLINE = 2048,
 	ATOM03_GENERATOR = 4096,
 };
-void parse_atom03_element_start (struct xml_data *data, const XML_Char *name, const XML_Char **atts);
-void parse_atom03_element_end   (struct xml_data *data, const XML_Char *name);
+void parse_atom03_element_start (struct xml_data *data, const char *name, const TidyAttr atts);
+void parse_atom03_element_end   (struct xml_data *data, const char *name);
 #endif
 #ifdef FEEDEATER_FORMAT_SUPPORT_RSS11
 enum rss11_position {
@@ -184,8 +200,8 @@ enum rss11_position {
 	RSS11_IMAGE = 16,
 	RSS11_URL = 32,
 };
-void parse_rss11_element_start (struct xml_data *data, const XML_Char *name, const XML_Char **atts);
-void parse_rss11_element_end   (struct xml_data *data, const XML_Char *name);
+void parse_rss11_element_start (struct xml_data *data, const char *name, const TidyAttr atts);
+void parse_rss11_element_end   (struct xml_data *data, const char *name);
 #endif
 #ifdef FEEDEATER_FORMAT_SUPPORT_JSONFEED
 void json_dump_jsonfeed(cJSON *json, struct json_data *data);

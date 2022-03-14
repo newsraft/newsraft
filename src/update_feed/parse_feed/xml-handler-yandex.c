@@ -62,7 +62,7 @@ genre_end(struct xml_data *data)
 }
 
 static inline void
-comment_text_start(struct xml_data *data, const XML_Char **atts)
+comment_text_start(struct xml_data *data, const TidyAttr atts)
 {
 	(void)atts; // TODO read origin attribute
 	data->yandex_pos |= YANDEX_COMMENT_TEXT;
@@ -120,7 +120,7 @@ bind_to_end(struct xml_data *data)
 }
 
 void
-parse_yandex_element_start(struct xml_data *data, const XML_Char *name, const XML_Char **atts)
+parse_yandex_element_start(struct xml_data *data, const char *name, const TidyAttr atts)
 {
 	(void)atts;
 	     if (strcmp(name, "full-text")    == 0) { full_text_start(data);          }
@@ -132,7 +132,7 @@ parse_yandex_element_start(struct xml_data *data, const XML_Char *name, const XM
 }
 
 void
-parse_yandex_element_end(struct xml_data *data, const XML_Char *name)
+parse_yandex_element_end(struct xml_data *data, const char *name)
 {
 	     if (strcmp(name, "full-text")    == 0) { full_text_end(data);    }
 	else if (strcmp(name, "genre")        == 0) { genre_end(data);        }

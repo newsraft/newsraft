@@ -47,6 +47,7 @@ db_insert_item(const struct string *feed_url, const struct getfeed_item *item, i
 
 	struct string *categories_list = generate_category_list_string(item->category);
 	if (categories_list == NULL) {
+		FAIL("Not enough memory for creating categories list of item bucket!");
 		free_string(attachments_list);
 		free_string(authors_list);
 		return;
@@ -62,6 +63,7 @@ db_insert_item(const struct string *feed_url, const struct getfeed_item *item, i
 	}
 
 	if (prepare_status == false) {
+		FAIL("Failed to prepare item insertion statement!");
 		free_string(categories_list);
 		free_string(attachments_list);
 		free_string(authors_list);

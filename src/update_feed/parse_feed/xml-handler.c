@@ -3,50 +3,69 @@
 
 struct namespace_handler {
 	const char *name;
-	const size_t name_len;
-	void (*parse_element_start)(struct xml_data *data, const XML_Char *name, const XML_Char **atts);
-	void (*parse_element_end)(struct xml_data *data, const XML_Char *name);
+	void (*parse_element_start)(struct xml_data *data, const char *name, const TidyAttr atts);
+	void (*parse_element_end)(struct xml_data *data, const char *name);
 };
 
 static const struct namespace_handler namespace_handlers[] = {
 #ifdef FEEDEATER_FORMAT_SUPPORT_ATOM10
-	{"http://www.w3.org/2005/Atom", 27, &parse_atom10_element_start, &parse_atom10_element_end},
+	{"http://www.w3.org/2005/Atom", &parse_atom10_element_start, &parse_atom10_element_end},
 #endif
 #ifdef FEEDEATER_FORMAT_SUPPORT_DUBLINCORE
-	{"http://purl.org/dc/elements/1.1/", 32, &parse_dc_element_start, &parse_dc_element_end},
+	{"http://purl.org/dc/elements/1.1/", &parse_dc_element_start, &parse_dc_element_end},
 #endif
 #ifdef FEEDEATER_FORMAT_SUPPORT_RSS10CONTENT
-	{"http://purl.org/rss/1.0/modules/content/", 40, &parse_rss10content_element_start, &parse_rss10content_element_end},
+	{"http://purl.org/rss/1.0/modules/content/", &parse_rss10content_element_start, &parse_rss10content_element_end},
 #endif
 #ifdef FEEDEATER_FORMAT_SUPPORT_YANDEX
-	{"http://news.yandex.ru", 21, &parse_yandex_element_start, &parse_yandex_element_end},
+	{"http://news.yandex.ru", &parse_yandex_element_start, &parse_yandex_element_end},
 #endif
 #ifdef FEEDEATER_FORMAT_SUPPORT_ATOM03
-	{"http://purl.org/atom/ns#", 24, &parse_atom03_element_start, &parse_atom03_element_end},
+	{"http://purl.org/atom/ns#", &parse_atom03_element_start, &parse_atom03_element_end},
 #endif
 #ifdef FEEDEATER_FORMAT_SUPPORT_RSS11
-	{"http://purl.org/rss/1.0/", 24, &parse_rss11_element_start, &parse_rss11_element_end},
-	{"http://channel.netscape.com/rdf/simple/0.9/", 43, &parse_rss11_element_start,  &parse_rss11_element_end},
-	{"http://purl.org/net/rss1.1#", 27, &parse_rss11_element_start, &parse_rss11_element_end},
+	{"http://purl.org/rss/1.0/", &parse_rss11_element_start, &parse_rss11_element_end},
+	{"http://channel.netscape.com/rdf/simple/0.9/", &parse_rss11_element_start,  &parse_rss11_element_end},
+	{"http://purl.org/net/rss1.1#", &parse_rss11_element_start, &parse_rss11_element_end},
 #endif
 #ifdef FEEDEATER_FORMAT_SUPPORT_RSS20
-	{"http://backend.userland.com/rss2", 32, &parse_rss20_element_start, &parse_rss20_element_end},
+	{"http://backend.userland.com/rss2", &parse_rss20_element_start, &parse_rss20_element_end},
 #endif
 };
 
-bool
-parse_namespace_element_start(struct xml_data *data, const XML_Char *name, const XML_Char **atts)
+static inline const char *
+get_namespace_uri_of_the_tag(struct xml_data *data, const char *tag)
 {
-	const char *separator_pos = strchr(name, XML_NAMESPACE_SEPARATOR);
-	if (separator_pos == NULL) {
-		return false; // Tag has no namespace.
+	if (data->namespaces.defaultns != NULL) {
+		return data->namespaces.defaultns->ptr; // Tag is inside namespaced parent.
 	}
-	const size_t namespace_len = separator_pos - name;
-	for (size_t i = 0; i < COUNTOF(namespace_handlers); ++i) {
-		if ((namespace_len == namespace_handlers[i].name_len) &&
-		    (memcmp(name, namespace_handlers[i].name, namespace_len) == 0))
+	const char *separator_pos = strchr(tag, XML_NAMESPACE_SEPARATOR);
+	if (separator_pos == NULL) {
+		return NULL; // Tag has no namespace.
+	}
+	const size_t namespace_name_len = separator_pos - tag;
+	for (size_t i = 0; i < data->namespaces.top; ++i) {
+		if ((namespace_name_len == data->namespaces.buf[i].name->len) &&
+		    (memcmp(tag, data->namespaces.buf[i].name->ptr, namespace_name_len) == 0))
 		{
-			namespace_handlers[i].parse_element_start(data, separator_pos + 1, atts);
+			INFO("Found URI of the \"%s\" namespace: \"%s\".", data->namespaces.buf[i].name->ptr, data->namespaces.buf[i].uri->ptr);
+			return data->namespaces.buf[i].uri->ptr;
+		}
+	}
+	return NULL;
+}
+
+bool
+parse_namespace_element_start(struct xml_data *data, const char *name, const TidyAttr atts)
+{
+	const char *namespace_uri = get_namespace_uri_of_the_tag(data, name);
+	if (namespace_uri == NULL) {
+		return false; // Namespace is unknown.
+	}
+	for (size_t i = 0; i < COUNTOF(namespace_handlers); ++i) {
+		if (strcmp(namespace_uri, namespace_handlers[i].name) == 0) {
+			const char *sep = strchr(name, XML_NAMESPACE_SEPARATOR);
+			namespace_handlers[i].parse_element_start(data, sep == NULL ? name : sep + 1, atts);
 			return true; // Success.
 		}
 	}
@@ -54,18 +73,16 @@ parse_namespace_element_start(struct xml_data *data, const XML_Char *name, const
 }
 
 bool
-parse_namespace_element_end(struct xml_data *data, const XML_Char *name)
+parse_namespace_element_end(struct xml_data *data, const char *name)
 {
-	const char *separator_pos = strchr(name, XML_NAMESPACE_SEPARATOR);
-	if (separator_pos == NULL) {
-		return false; // Tag has no namespace.
+	const char *namespace_uri = get_namespace_uri_of_the_tag(data, name);
+	if (namespace_uri == NULL) {
+		return false; // Namespace is unknown.
 	}
-	const size_t namespace_len = separator_pos - name;
 	for (size_t i = 0; i < COUNTOF(namespace_handlers); ++i) {
-		if ((namespace_len == namespace_handlers[i].name_len) &&
-		    (memcmp(name, namespace_handlers[i].name, namespace_len) == 0))
-		{
-			namespace_handlers[i].parse_element_end(data, separator_pos + 1);
+		if (strcmp(namespace_uri, namespace_handlers[i].name) == 0) {
+			const char *sep = strchr(name, XML_NAMESPACE_SEPARATOR);
+			namespace_handlers[i].parse_element_end(data, sep == NULL ? name : sep + 1);
 			return true; // Success.
 		}
 	}

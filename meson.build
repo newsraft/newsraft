@@ -14,20 +14,6 @@ add_project_arguments(
 		# for debugging
 		#'-fanalyzer', # gcc
 		#'-Xanalyzer', # clang
-		# enable namespaces functionality of expat
-		'-DXML_NS',
-		# enable parameter entity parsing functionality of expat
-		'-DXML_DTD',
-		# make expat use large integers for file/stream positions
-		'-DXML_LARGE_SIZE',
-		# set integer modifier to "ll" because of argument above
-		'-DXML_FMT_INT_MOD="ll"',
-		# undefine XML_UNICODE to make expat work in UTF-8 mode (when defined, expat uses UTF-16)
-		'-UXML_UNICODE',
-		# undefine XML_UNICODE_WCHAR_T to make expat use char for characters
-		'-UXML_UNICODE_WCHAR_T',
-		# set string specifier to "s" because of argument above
-		'-DXML_FMT_STR="s"',
 		# support for various formats
 		'-DFEEDEATER_FORMAT_SUPPORT_RSS20',        # RSS 0.91, 0.92, 0.93, 0.94, 2.0
 		'-DFEEDEATER_FORMAT_SUPPORT_RSS11',        # RSS 0.9, 1.0, 1.1
@@ -106,6 +92,7 @@ executable(
 		'src/update_feed/parse_feed/struct-person.c',
 		'src/update_feed/parse_feed/struct-category.c',
 		'src/update_feed/parse_feed/xml.c',
+		'src/update_feed/parse_feed/xml-namespace-stack.c',
 		'src/update_feed/parse_feed/xml-handler.c',
 		'src/update_feed/parse_feed/xml-handler-atom10.c',
 		'src/update_feed/parse_feed/xml-handler-atom03.c',
@@ -128,7 +115,6 @@ executable(
 	],
 	dependencies: [
 		dependency('ncursesw'),
-		dependency('expat'),
 		dependency('libcjson'),
 		dependency('sqlite3'),
 		dependency('libcurl'),

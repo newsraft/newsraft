@@ -145,7 +145,7 @@ url_end(struct xml_data *data)
 }
 
 void
-parse_rss11_element_start(struct xml_data *data, const XML_Char *name, const XML_Char **atts)
+parse_rss11_element_start(struct xml_data *data, const char *name, const TidyAttr atts)
 {
 	(void)atts;
 	     if (strcmp(name, "item") == 0)        { item_start(data);        }
@@ -157,7 +157,7 @@ parse_rss11_element_start(struct xml_data *data, const XML_Char *name, const XML
 }
 
 void
-parse_rss11_element_end(struct xml_data *data, const XML_Char *name)
+parse_rss11_element_end(struct xml_data *data, const char *name)
 {
 	     if (strcmp(name, "item") == 0)        { item_end(data);        }
 	else if (strcmp(name, "title") == 0)       { title_end(data);       }

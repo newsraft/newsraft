@@ -6,7 +6,7 @@
 // https://web.archive.org/web/20211201194224/https://datatracker.ietf.org/doc/html/rfc4287
 
 static inline void
-copy_type_of_text_construct(struct xml_data *data, const XML_Char **atts, struct string *dest)
+copy_type_of_text_construct(struct xml_data *data, const TidyAttr atts, struct string *dest)
 {
 	// Valid Atom 1.0 text construct types are "text", "html" and "xhtml".
 	// If the "type" attribute is not provided, then we MUST assume
@@ -41,7 +41,7 @@ entry_end(struct xml_data *data)
 }
 
 static inline void
-title_start(struct xml_data *data, const XML_Char **atts)
+title_start(struct xml_data *data, const TidyAttr atts)
 {
 	data->atom10_pos |= ATOM10_TITLE;
 	if ((data->atom10_pos & ATOM10_ENTRY) != 0) {
@@ -72,24 +72,14 @@ title_end(struct xml_data *data)
 }
 
 static inline void
-link_start(struct xml_data *data, const XML_Char **atts)
+link_start(struct xml_data *data, const TidyAttr atts)
 {
-	const char *href = NULL, *type = NULL, *rel = NULL, *length = NULL;
-	for (size_t i = 0; atts[i] != NULL; i = i + 2) {
-		if (strcmp(atts[i], "href") == 0) {
-			href = atts[i + 1];
-		} else if (strcmp(atts[i], "type") == 0) {
-			type = atts[i + 1];
-		} else if (strcmp(atts[i], "rel") == 0) {
-			rel = atts[i + 1];
-		} else if (strcmp(atts[i], "length") == 0) {
-			length = atts[i + 1];
-		}
-	}
+	const char *href = get_value_of_attribute_key(atts, "href");
 	if (href == NULL) {
 		// In Atom 1.0 links href attribute MUST be set.
 		return;
 	}
+	const char *rel = get_value_of_attribute_key(atts, "rel");
 	if ((rel != NULL) && (strcmp(rel, "self") == 0)) {
 		// Ignore links to feed itself.
 		return;
@@ -108,6 +98,8 @@ link_start(struct xml_data *data, const XML_Char **atts)
 			}
 		}
 	} else if ((data->atom10_pos & ATOM10_ENTRY) != 0) {
+		const char *type = get_value_of_attribute_key(atts, "type");
+		const char *length = get_value_of_attribute_key(atts, "length");
 		if (prepend_link(&data->feed->item->attachment) == false) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
@@ -129,7 +121,7 @@ link_start(struct xml_data *data, const XML_Char **atts)
 }
 
 static inline void
-summary_start(struct xml_data *data, const XML_Char **atts)
+summary_start(struct xml_data *data, const TidyAttr atts)
 {
 	if ((data->atom10_pos & ATOM10_ENTRY) == 0) {
 		return;
@@ -155,7 +147,7 @@ summary_end(struct xml_data *data)
 }
 
 static inline void
-content_start(struct xml_data *data, const XML_Char **atts)
+content_start(struct xml_data *data, const TidyAttr atts)
 {
 	if ((data->atom10_pos & ATOM10_ENTRY) == 0) {
 		return;
@@ -342,7 +334,7 @@ email_end(struct xml_data *data)
 }
 
 static inline void
-category_start(struct xml_data *data, const XML_Char **atts)
+category_start(struct xml_data *data, const TidyAttr atts)
 {
 	const char *term = get_value_of_attribute_key(atts, "term");
 	if (term == NULL) {
@@ -397,7 +389,7 @@ category_start(struct xml_data *data, const XML_Char **atts)
 }
 
 static inline void
-subtitle_start(struct xml_data *data, const XML_Char **atts)
+subtitle_start(struct xml_data *data, const TidyAttr atts)
 {
 	if ((data->atom10_pos & ATOM10_ENTRY) != 0) {
 		return;
@@ -423,7 +415,7 @@ subtitle_end(struct xml_data *data)
 }
 
 static inline void
-generator_start(struct xml_data *data, const XML_Char **atts)
+generator_start(struct xml_data *data, const TidyAttr atts)
 {
 	if ((data->atom10_pos & ATOM10_GENERATOR) != 0) {
 		return;
@@ -465,7 +457,7 @@ generator_end(struct xml_data *data)
 }
 
 void
-parse_atom10_element_start(struct xml_data *data, const XML_Char *name, const XML_Char **atts)
+parse_atom10_element_start(struct xml_data *data, const char *name, const TidyAttr atts)
 {
 	     if (strcmp(name, "entry")       == 0) { entry_start(data);           }
 	else if (strcmp(name, "id")          == 0) { id_start(data);              }
@@ -486,7 +478,7 @@ parse_atom10_element_start(struct xml_data *data, const XML_Char *name, const XM
 }
 
 void
-parse_atom10_element_end(struct xml_data *data, const XML_Char *name)
+parse_atom10_element_end(struct xml_data *data, const char *name)
 {
 	     if (strcmp(name, "entry")       == 0) { entry_end(data);     }
 	else if (strcmp(name, "id")          == 0) { id_end(data);        }

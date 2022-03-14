@@ -34,14 +34,14 @@ encoded_end(struct xml_data *data)
 }
 
 void
-parse_rss10content_element_start(struct xml_data *data, const XML_Char *name, const XML_Char **atts)
+parse_rss10content_element_start(struct xml_data *data, const char *name, const TidyAttr atts)
 {
 	(void)atts;
 	     if (strcmp(name, "encoded") == 0) { encoded_start(data); }
 }
 
 void
-parse_rss10content_element_end(struct xml_data *data, const XML_Char *name)
+parse_rss10content_element_end(struct xml_data *data, const char *name)
 {
 	     if (strcmp(name, "encoded") == 0) { encoded_end(data); }
 }

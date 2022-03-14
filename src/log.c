@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <curl/curl.h>
-#include <expat.h>
 #include <cjson/cJSON.h>
 #include <tidy.h>
 #include "feedeater.h"
@@ -32,13 +31,6 @@ log_curl_version(void)
 }
 
 static inline void
-log_expat_version(void)
-{
-	XML_Expat_Version ver = XML_ExpatVersionInfo();
-	INFO("Expat version: %d.%d.%d", ver.major, ver.minor, ver.micro);
-}
-
-static inline void
 log_cjson_version(void)
 {
 	INFO("cJSON version: %s", cJSON_Version());
@@ -67,7 +59,6 @@ log_init(const char *path)
 	log_ncurses_version();
 	log_sqlite_version();
 	log_curl_version();
-	log_expat_version();
 	log_cjson_version();
 	log_tidy_version();
 	return true;

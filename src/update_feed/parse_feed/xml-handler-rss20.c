@@ -171,7 +171,7 @@ author_end(struct xml_data *data)
 }
 
 static inline void
-enclosure_start(struct xml_data *data, const XML_Char **atts)
+enclosure_start(struct xml_data *data, const TidyAttr atts)
 {
 	if ((data->rss20_pos & RSS20_ITEM) == 0) {
 		return;
@@ -180,25 +180,28 @@ enclosure_start(struct xml_data *data, const XML_Char **atts)
 		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		return;
 	}
-	for (size_t i = 0; atts[i] != NULL; i = i + 2) {
-		if (strcmp(atts[i], "url") == 0) {
-			if (cpyas(data->feed->item->attachment->url, atts[i + 1], strlen(atts[i + 1])) == false) {
-				data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
-				return;
-			}
-		} else if (strcmp(atts[i], "type") == 0) {
-			if (cpyas(data->feed->item->attachment->type, atts[i + 1], strlen(atts[i + 1])) == false) {
-				data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
-				return;
-			}
-		} else if (strcmp(atts[i], "length") == 0) {
-			data->feed->item->attachment->size = convert_string_to_size_t_or_zero(atts[i + 1]);
+	const char *url = get_value_of_attribute_key(atts, "url");
+	if (url != NULL) {
+		if (cpyas(data->feed->item->attachment->url, url, strlen(url)) == false) {
+			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+			return;
 		}
+	}
+	const char *type = get_value_of_attribute_key(atts, "type");
+	if (type != NULL) {
+		if (cpyas(data->feed->item->attachment->type, type, strlen(type)) == false) {
+			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+			return;
+		}
+	}
+	const char *length = get_value_of_attribute_key(atts, "length");
+	if (length != NULL) {
+		data->feed->item->attachment->size = convert_string_to_size_t_or_zero(length);
 	}
 }
 
 static inline void
-category_start(struct xml_data *data, const XML_Char **atts)
+category_start(struct xml_data *data, const TidyAttr atts)
 {
 	data->rss20_pos |= RSS20_CATEGORY;
 	const char *domain = get_value_of_attribute_key(atts, "domain");
@@ -407,9 +410,8 @@ channel_end(struct xml_data *data)
 }
 
 void
-parse_rss20_element_start(struct xml_data *data, const XML_Char *name, const XML_Char **atts)
+parse_rss20_element_start(struct xml_data *data, const char *name, const TidyAttr atts)
 {
-	(void)atts;
 	     if (strcmp(name, "item")           == 0) { item_start(data);            }
 	else if (strcmp(name, "title")          == 0) { title_start(data);           }
 	else if (strcmp(name, "link")           == 0) { link_start(data);            }
@@ -429,7 +431,7 @@ parse_rss20_element_start(struct xml_data *data, const XML_Char *name, const XML
 }
 
 void
-parse_rss20_element_end(struct xml_data *data, const XML_Char *name)
+parse_rss20_element_end(struct xml_data *data, const char *name)
 {
 	if ((data->rss20_pos & RSS20_CHANNEL) == 0) {
 		return;

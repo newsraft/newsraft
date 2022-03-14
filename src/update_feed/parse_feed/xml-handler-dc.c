@@ -119,7 +119,7 @@ subject_end(struct xml_data *data)
 }
 
 void
-parse_dc_element_start(struct xml_data *data, const XML_Char *name, const XML_Char **atts)
+parse_dc_element_start(struct xml_data *data, const char *name, const TidyAttr atts)
 {
 	(void)atts;
 	     if (strcmp(name, "title")   == 0)     { title_start(data);       }
@@ -130,7 +130,7 @@ parse_dc_element_start(struct xml_data *data, const XML_Char *name, const XML_Ch
 }
 
 void
-parse_dc_element_end(struct xml_data *data, const XML_Char *name)
+parse_dc_element_end(struct xml_data *data, const char *name)
 {
 	     if (strcmp(name, "title") == 0)       { title_end(data);       }
 	else if (strcmp(name, "creator") == 0)     { creator_end(data);     }

@@ -44,6 +44,5 @@ free_namespace_stack(struct xml_namespace_stack *stack)
 		free_string(stack->buf[i].name);
 		free_string(stack->buf[i].uri);
 	}
-	free_string(stack->defaultns);
 	free(stack->buf);
 }

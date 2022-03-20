@@ -44,10 +44,23 @@ get_value_of_attribute_key(const TidyAttr attrs, const char *key)
 	return NULL; // failure, didn't find an attribute with key name
 }
 
-static inline uint16_t
-add_namespaces_to_stack(struct xml_namespace_stack *stack, const TidyAttr attrs)
+static inline const struct string *
+get_namespace_uri(struct xml_namespace_stack *namespaces, const char *namespace_name, size_t namespace_name_len)
 {
-	uint16_t added_count = 0;
+	for (size_t i = 0; i < namespaces->top; ++i) {
+		if ((namespace_name_len == namespaces->buf[i].name->len) &&
+		    (memcmp(namespace_name, namespaces->buf[i].name->ptr, namespace_name_len) == 0))
+		{
+			INFO("Found URI of the \"%s\" namespace: \"%s\".", namespaces->buf[i].name->ptr, namespaces->buf[i].uri->ptr);
+			return namespaces->buf[i].uri;
+		}
+	}
+	return NULL;
+}
+
+static inline bool
+process_tag_namespaces(struct xml_data *data, const TidyAttr attrs, bool *default_namespace_added)
+{
 	const char *attr_name;
 	const char *namespace_name;
 	const char *namespace_uri;
@@ -59,36 +72,46 @@ add_namespaces_to_stack(struct xml_namespace_stack *stack, const TidyAttr attrs)
 		if (strstr(attr_name, "xmlns:") == attr_name) {
 			namespace_name = attr_name + 6;
 			namespace_uri = tidyAttrValue(attr);
-			if (add_namespace_to_stack(stack, namespace_name, namespace_uri) == false) {
-				return added_count;
+			if (add_namespace_to_stack(&data->namespaces, namespace_name, namespace_uri) == false) {
+				return false;
 			}
-			added_count++;
-		} else if (strstr(attr_name, "xmlns") == attr_name) {
+		} else if (strcmp(attr_name, "xmlns") == 0) {
 			namespace_uri = tidyAttrValue(attr);
-			if (namespace_uri != NULL && stack->defaultns == NULL) {
-				stack->defaultns = crtas(namespace_uri, strlen(namespace_uri));
+			if (namespace_uri == NULL) {
+				continue;
+			}
+			if (*default_namespace_added == true) {
+				// Don't add another default namespace because XML tag must not have more than one "xmlns" attribute set.
+				// However we give the last "xmlns" attribute a higer priority here.
+				if (cpyas(data->def_ns->uri, namespace_uri, strlen(namespace_uri)) == false) {
+					return false;
+				}
+			} else {
+				if (prepend_default_namespace(&data->def_ns, namespace_uri, strlen(namespace_uri)) == false) {
+					return false;
+				}
+				*default_namespace_added = true;
 			}
 		}
 	}
-	return added_count;
+	return true;
 }
 
-static void
-start_element_handler(struct xml_data *data, const char *name, const TidyAttr atts)
+static inline void
+stuff_to_do_when_xml_element_starts(struct xml_data *data, const struct string *namespace, const char *name, const TidyAttr attrs, bool has_prefix)
 {
 	++(data->depth);
 	empty_string(data->value);
-	if (parse_namespace_element_start(data, name, atts) == true) {
-		// Successfully processed an element by its namespace.
+	if (namespace != NULL) {
+		parse_namespace_element_start(data, namespace, name, attrs);
 		return;
-	}
-	if (data->start_handler != NULL) {
-		data->start_handler(data, name, atts);
+	} else if ((has_prefix == false) && (data->start_handler != NULL)) {
+		data->start_handler(data, name, attrs);
 		return;
 	}
 #ifdef FEEDEATER_FORMAT_SUPPORT_RSS20
 	if ((data->depth == 1) && (strcmp(name, "rss") == 0)) {
-		const char *version = get_value_of_attribute_key(atts, "version");
+		const char *version = get_value_of_attribute_key(attrs, "version");
 		if ((version != NULL) &&
 			((strcmp(version, "2.0") == 0) ||
 			(strcmp(version, "0.94") == 0) ||
@@ -103,28 +126,31 @@ start_element_handler(struct xml_data *data, const char *name, const TidyAttr at
 #endif
 }
 
-static void
-end_element_handler(struct xml_data *data, const char *name)
+static inline void
+stuff_to_do_when_xml_element_ends(struct xml_data *data, const struct string *tag_namespace, const char *tag_name, bool has_prefix)
 {
-	--(data->depth);
+	(data->depth)--;
 	trim_whitespace_from_string(data->value);
-	if (parse_namespace_element_end(data, name) == true) {
-		// Successfully processed an element by its namespace.
-		return;
-	}
-	if (data->end_handler != NULL) {
-		data->end_handler(data, name);
-		return;
+
+	if (tag_namespace != NULL) {
+		parse_namespace_element_end(data, tag_namespace, tag_name);
+	} else if ((has_prefix == false) && (data->end_handler != NULL)) {
+		data->end_handler(data, tag_name);
 	}
 }
 
-static void
+static bool
 dumpNode(TidyDoc *tdoc, TidyNode tnod, TidyBuffer *buf, struct xml_data *data)
 {
-	uint16_t added_namespaces_count;
-	const char *child_name;
+	uint16_t old_namespaces_count;
+	bool default_namespace_added;
+	const char *tag_name;               // Name of the tag.
+	const struct string *tag_namespace; // Namespace URI to which the tag belongs.
+	const char *sep_pos;                // Pointer to the character that separates name and prefix of the tag.
+
 	TidyNodeType child_type;
-	TidyAttr child_attrs;
+	TidyAttr tag_attrs;
+
 	for (TidyNode child = tidyGetChild(tnod); child != NULL; child = tidyGetNext(child)) {
 		child_type = tidyNodeGetType(child);
 		if ((child_type == TidyNode_Text) || (child_type == TidyNode_CDATA)) {
@@ -134,17 +160,42 @@ dumpNode(TidyDoc *tdoc, TidyNode tnod, TidyBuffer *buf, struct xml_data *data)
 				catas(data->value, (char *)buf->bp, strlen((char *)buf->bp));
 			}
 		} else if ((child_type == TidyNode_Start) || (child_type == TidyNode_StartEnd)) {
-			child_name = tidyNodeGetName(child);
-			child_attrs = tidyAttrFirst(child);
-			added_namespaces_count = add_namespaces_to_stack(&data->namespaces, child_attrs);
-			start_element_handler(data, child_name, child_attrs);
-			dumpNode(tdoc, child, buf, data);
-			end_element_handler(data, child_name);
-			for (uint16_t i = 0; i < added_namespaces_count; ++i) {
+
+			tag_attrs = tidyAttrFirst(child);
+			default_namespace_added = false;
+			old_namespaces_count = data->namespaces.top;
+			if (process_tag_namespaces(data, tag_attrs, &default_namespace_added) == false) {
+				return false;
+			}
+
+			tag_name = tidyNodeGetName(child);
+			tag_namespace = NULL;
+			sep_pos = strchr(tag_name, XML_NAMESPACE_SEPARATOR);
+			if (sep_pos != NULL) {
+				tag_namespace = get_namespace_uri(&data->namespaces, tag_name, sep_pos - tag_name);
+				tag_name = sep_pos + 1;
+			} else if (data->def_ns != NULL) {
+				tag_namespace = data->def_ns->uri;
+			}
+
+			stuff_to_do_when_xml_element_starts(data, tag_namespace, tag_name, tag_attrs, sep_pos == NULL ? false : true);
+
+			if (dumpNode(tdoc, child, buf, data) == false) {
+				return false;
+			}
+
+			stuff_to_do_when_xml_element_ends(data, tag_namespace, tag_name, sep_pos == NULL ? false : true);
+
+			if (default_namespace_added == true) {
+				discard_default_namespace(&data->def_ns);
+			}
+			while (data->namespaces.top != old_namespaces_count) {
 				pop_namespace_from_stack(&data->namespaces);
 			}
 		}
 	}
+
+	return true;
 }
 
 static bool
@@ -173,19 +224,24 @@ enter_xml_parsing_loop(const struct string *feed_buf, struct xml_data *data)
 	tidyCleanAndRepair(tdoc);
 	tidyRunDiagnostics(tdoc);
 
-	dumpNode(&tdoc, tidyGetRoot(tdoc), &tempbuf, data);
-
 	if (tidy_errbuf.bp != NULL) {
-		INFO("Tidy report:\n%s", tidy_errbuf.bp);
+		INFO("Tidy's report:\n%s", tidy_errbuf.bp);
 	} else {
 		INFO("Tidy's error buffer is NULL.");
+	}
+
+	bool success = true;
+
+	if (dumpNode(&tdoc, tidyGetRoot(tdoc), &tempbuf, data) == false) {
+		FAIL("Something really bad happened during XML parsing!");
+		success = false;
 	}
 
 	tidyBufFree(&tempbuf);
 	tidyBufFree(&tidy_errbuf);
 	tidyRelease(tdoc);
 
-	return true;
+	return success;
 }
 
 struct getfeed_feed *
@@ -201,10 +257,10 @@ parse_xml_feed(const struct string *feed_buf)
 		free_string(data.value);
 		return NULL;
 	}
+	data.def_ns = NULL;
 	data.namespaces.top = 0;
 	data.namespaces.lim = 0;
 	data.namespaces.buf = NULL;
-	data.namespaces.defaultns = NULL;
 	data.depth = 0;
 #ifdef FEEDEATER_FORMAT_SUPPORT_RSS20
 	data.rss20_pos = RSS20_NONE;
@@ -238,6 +294,7 @@ parse_xml_feed(const struct string *feed_buf)
 		return NULL;
 	}
 
+	free_default_namespaces(data.def_ns);
 	free_namespace_stack(&data.namespaces);
 	free_string(data.value);
 

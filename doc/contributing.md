@@ -1,6 +1,6 @@
 # Dependency description
 
-Feedeater uses [ncurses](https://invisible-island.net/ncurses) to draw interface, [SQLite](https://www.sqlite.org) to store data, [curl](https://curl.se) to download feeds, [Tidy](http://www.html-tidy.org) to parse XML & HTML and [cJSON](https://github.com/DaveGamble/cJSON) to parse JSON.
+Feedeater uses [ncurses](https://invisible-island.net/ncurses) to draw user interface, [curl](https://curl.se) to download feeds, [SQLite](https://www.sqlite.org) to store data, [Tidy](http://www.html-tidy.org) to parse XML & HTML and [cJSON](https://github.com/DaveGamble/cJSON) to parse JSON.
 
 # Code guidelines
 
@@ -10,13 +10,17 @@ One tab per one level of indentation.
 
 ## Naming convention
 
-Use underscores to separate words in names (variables, functions, structures, etc)
+### Variables, functions, structures, etc
 
-For example:
+Stick to the snake case (use underscores to separate words).
 
-```
-static size_t sets_count = 0;
-```
+### Files
+
+Stick to the kebab case (use dashes to separate words).
+
+### Directories
+
+Every directory in the `src` directory is named after the function that the files in that directory implement.
 
 ## Control statements decoration
 

@@ -1,5 +1,5 @@
-#ifndef GETFEED_H
-#define GETFEED_H
+#ifndef PARSE_FEED_H
+#define PARSE_FEED_H
 #include <tidy.h>
 #include <cjson/cJSON.h>
 #include "update_feed/update_feed.h"
@@ -22,12 +22,17 @@ struct xml_namespace_stack {
 	uint16_t top;
 	size_t lim;
 	struct xml_namespace *buf;
-	struct string *defaultns;
+};
+
+struct xml_default_namespace {
+	struct string *uri;
+	struct xml_default_namespace *next;
 };
 
 struct xml_data {
 	struct string *value;
 	int depth;
+	struct xml_default_namespace *def_ns;
 	struct xml_namespace_stack namespaces;
 	const struct string *feed_url;
 	struct getfeed_feed *feed;
@@ -60,6 +65,10 @@ struct xml_data {
 struct json_data {
 	struct getfeed_feed *feed;
 };
+
+bool prepend_default_namespace(struct xml_default_namespace **first_def_ns, const char *uri_to_prepend, size_t uri_len);
+void discard_default_namespace(struct xml_default_namespace **first_def_ns);
+void free_default_namespaces(struct xml_default_namespace *first_def_ns);
 
 bool add_namespace_to_stack(struct xml_namespace_stack *stack, const char *name, const char *uri);
 void pop_namespace_from_stack(struct xml_namespace_stack *stack);
@@ -94,8 +103,8 @@ time_t parse_date_rfc3339(const char *src, size_t src_len);
 
 // Element handlers
 
-bool parse_namespace_element_start (struct xml_data *data, const char *name, const TidyAttr atts);
-bool parse_namespace_element_end   (struct xml_data *data, const char *name);
+bool parse_namespace_element_start(struct xml_data *data, const struct string *namespace_uri, const char *name, const TidyAttr attrs);
+bool parse_namespace_element_end(struct xml_data *data, const struct string *namespace_uri, const char *name);
 
 #ifdef FEEDEATER_FORMAT_SUPPORT_ATOM10
 enum atom10_position {
@@ -206,4 +215,4 @@ void parse_rss11_element_end   (struct xml_data *data, const char *name);
 #ifdef FEEDEATER_FORMAT_SUPPORT_JSONFEED
 void json_dump_jsonfeed(cJSON *json, struct json_data *data);
 #endif
-#endif // GETFEED_H
+#endif // PARSE_FEED_H

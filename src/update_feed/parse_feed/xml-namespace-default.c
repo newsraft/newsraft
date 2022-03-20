@@ -24,6 +24,7 @@ discard_default_namespace(struct xml_default_namespace **first_def_ns)
 	if (*first_def_ns == NULL) {
 		return;
 	}
+	INFO("Discarding previous default namespace.");
 	struct xml_default_namespace *namespace_to_free = *first_def_ns;
 	*first_def_ns = (*first_def_ns)->next;
 	free_string(namespace_to_free->uri);

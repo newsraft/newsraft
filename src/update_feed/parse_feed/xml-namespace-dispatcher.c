@@ -2,7 +2,7 @@
 #include "update_feed/parse_feed/parse_feed.h"
 
 struct namespace_handler {
-	const char *name;
+	const char *uri;
 	void (*parse_element_start)(struct xml_data *data, const char *name, const TidyAttr attrs);
 	void (*parse_element_end)(struct xml_data *data, const char *name);
 };
@@ -33,26 +33,24 @@ static const struct namespace_handler namespace_handlers[] = {
 #endif
 };
 
-bool
+void
 parse_namespace_element_start(struct xml_data *data, const struct string *namespace, const char *name, const TidyAttr attrs)
 {
 	for (size_t i = 0; i < COUNTOF(namespace_handlers); ++i) {
-		if (strcmp(namespace->ptr, namespace_handlers[i].name) == 0) {
+		if (strcmp(namespace->ptr, namespace_handlers[i].uri) == 0) {
 			namespace_handlers[i].parse_element_start(data, name, attrs);
-			return true; // Success.
+			break;
 		}
 	}
-	return false; // Namespace is unknown.
 }
 
-bool
+void
 parse_namespace_element_end(struct xml_data *data, const struct string *namespace, const char *name)
 {
 	for (size_t i = 0; i < COUNTOF(namespace_handlers); ++i) {
-		if (strcmp(namespace->ptr, namespace_handlers[i].name) == 0) {
+		if (strcmp(namespace->ptr, namespace_handlers[i].uri) == 0) {
 			namespace_handlers[i].parse_element_end(data, name);
-			return true; // Success.
+			break;
 		}
 	}
-	return false; // Namespace is unknown.
 }

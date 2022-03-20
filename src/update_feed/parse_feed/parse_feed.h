@@ -5,8 +5,6 @@
 #include "update_feed/update_feed.h"
 
 #define XML_NAMESPACE_SEPARATOR ':'
-#define COUNTOF(A) (sizeof(A) / sizeof(*A))
-#define ISWHITESPACE(A) (((A)==' ')||((A)=='\n')||((A)=='\t')||((A)=='\v')||((A)=='\f')||((A)=='\r'))
 
 enum update_error {
 	PARSE_OKAY = 0,
@@ -103,8 +101,8 @@ time_t parse_date_rfc3339(const char *src, size_t src_len);
 
 // Element handlers
 
-bool parse_namespace_element_start(struct xml_data *data, const struct string *namespace_uri, const char *name, const TidyAttr attrs);
-bool parse_namespace_element_end(struct xml_data *data, const struct string *namespace_uri, const char *name);
+void parse_namespace_element_start(struct xml_data *data, const struct string *namespace_uri, const char *name, const TidyAttr attrs);
+void parse_namespace_element_end(struct xml_data *data, const struct string *namespace_uri, const char *name);
 
 #ifdef FEEDEATER_FORMAT_SUPPORT_ATOM10
 enum atom10_position {

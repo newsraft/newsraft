@@ -1,6 +1,7 @@
 #ifndef PARSE_FEED_H
 #define PARSE_FEED_H
 #include <tidy.h>
+#include <tidybuffio.h>
 #include <cjson/cJSON.h>
 #include "update_feed/update_feed.h"
 
@@ -57,6 +58,8 @@ struct xml_data {
 #endif
 	void (*start_handler)(struct xml_data *data, const char *name, const TidyAttr atts);
 	void (*end_handler)(struct xml_data *data, const char *name);
+	TidyDoc tidy_doc;
+	TidyBuffer draft_buffer;
 	enum update_error error;
 };
 

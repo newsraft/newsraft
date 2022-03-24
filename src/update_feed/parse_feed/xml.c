@@ -1,5 +1,4 @@
 #include <string.h>
-#include <tidybuffio.h>
 #include "update_feed/parse_feed/parse_feed.h"
 
 bool
@@ -132,20 +131,19 @@ stuff_to_do_when_xml_element_starts(struct xml_data *data, const struct string *
 }
 
 static inline void
-stuff_to_do_when_xml_element_ends(struct xml_data *data, const struct string *tag_namespace, const char *tag_name, bool has_prefix)
+stuff_to_do_when_xml_element_ends(struct xml_data *data, const struct string *namespace, const char *name, bool has_prefix)
 {
-	(data->depth)--;
+	--(data->depth);
 	trim_whitespace_from_string(data->value);
-
-	if (tag_namespace != NULL) {
-		parse_namespace_element_end(data, tag_namespace, tag_name);
+	if (namespace != NULL) {
+		parse_namespace_element_end(data, namespace, name);
 	} else if ((has_prefix == false) && (data->end_handler != NULL)) {
-		data->end_handler(data, tag_name);
+		data->end_handler(data, name);
 	}
 }
 
 static bool
-dumpNode(TidyDoc *tdoc, TidyNode tnod, TidyBuffer *buf, struct xml_data *data)
+dumpNode(struct xml_data *data, TidyNode tnod)
 {
 	uint16_t old_namespaces_count;
 	bool changed_default_namespace;
@@ -160,10 +158,10 @@ dumpNode(TidyDoc *tdoc, TidyNode tnod, TidyBuffer *buf, struct xml_data *data)
 		child_type = tidyNodeGetType(child);
 		if ((child_type == TidyNode_Text) || (child_type == TidyNode_CDATA)) {
 
-			tidyBufClear(buf);
-			tidyNodeGetValue(*tdoc, child, buf);
-			if (buf->bp != NULL) {
-				catas(data->value, (char *)buf->bp, strlen((char *)buf->bp));
+			tidyBufClear(&data->draft_buffer);
+			tidyNodeGetValue(data->tidy_doc, child, &data->draft_buffer);
+			if (data->draft_buffer.bp != NULL) {
+				cpyas(data->value, (char *)data->draft_buffer.bp, strlen((char *)data->draft_buffer.bp));
 			}
 
 		} else if ((child_type == TidyNode_Start) || (child_type == TidyNode_StartEnd)) {
@@ -187,7 +185,7 @@ dumpNode(TidyDoc *tdoc, TidyNode tnod, TidyBuffer *buf, struct xml_data *data)
 
 			stuff_to_do_when_xml_element_starts(data, tag_namespace, tag_name, attrs, sep_pos == NULL ? false : true);
 
-			if (dumpNode(tdoc, child, buf, data) == false) {
+			if (dumpNode(data, child) == false) {
 				return false;
 			}
 
@@ -209,33 +207,29 @@ dumpNode(TidyDoc *tdoc, TidyNode tnod, TidyBuffer *buf, struct xml_data *data)
 static bool
 enter_xml_parsing_loop(const struct string *feed_buf, struct xml_data *data)
 {
-	TidyDoc tdoc = tidyCreate();
-	TidyBuffer draft_buffer;
 	TidyBuffer error_buffer;
-	tidyBufInit(&draft_buffer);
 	tidyBufInit(&error_buffer);
-	tidySetErrorBuffer(tdoc, &error_buffer);
-	tidyOptSetBool(tdoc, TidyXmlTags, true); // Enable XML mode.
-	tidyParseString(tdoc, feed_buf->ptr);
-	tidyCleanAndRepair(tdoc);
-	tidyRunDiagnostics(tdoc);
+	tidySetErrorBuffer(data->tidy_doc, &error_buffer);
+	tidyOptSetBool(data->tidy_doc, TidyXmlTags, true); // Enable XML mode.
+	tidyParseString(data->tidy_doc, feed_buf->ptr);
+	tidyCleanAndRepair(data->tidy_doc);
+	tidyRunDiagnostics(data->tidy_doc);
 
 	if (error_buffer.bp != NULL) {
 		INFO("Tidy's report:\n%s", error_buffer.bp);
 	} else {
-		INFO("Tidy's error buffer is nullified.");
+		// Shouldn't happen.
+		WARN("Tidy's error buffer is nullified!");
 	}
 
 	bool success = true;
 
-	if (dumpNode(&tdoc, tidyGetRoot(tdoc), &draft_buffer, data) == false) {
+	if (dumpNode(data, tidyGetRoot(data->tidy_doc)) == false) {
 		FAIL("Something really bad happened during XML parsing!");
 		success = false;
 	}
 
 	tidyBufFree(&error_buffer);
-	tidyBufFree(&draft_buffer);
-	tidyRelease(tdoc);
 
 	return success;
 }
@@ -281,15 +275,21 @@ parse_xml_feed(const struct string *feed_buf)
 #endif
 	data.start_handler = NULL;
 	data.end_handler = NULL;
+	data.tidy_doc = tidyCreate();
+	tidyBufInit(&data.draft_buffer);
 	data.error = PARSE_OKAY;
 
 	if (enter_xml_parsing_loop(feed_buf, &data) == false) {
 		FAIL("Feed update stopped due to parse error!");
+		tidyBufFree(&data.draft_buffer);
+		tidyRelease(data.tidy_doc);
 		free_string(data.value);
 		free_feed(data.feed);
 		return NULL;
 	}
 
+	tidyBufFree(&data.draft_buffer);
+	tidyRelease(data.tidy_doc);
 	free_default_namespaces(data.def_ns);
 	free_namespace_stack(&data.namespaces);
 	free_string(data.value);

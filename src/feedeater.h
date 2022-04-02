@@ -10,8 +10,6 @@
 
 #define FEEDEATER_VERSION "0.0.0"
 #define MAX_MIME_TYPE_LEN 255
-// This has to be the length of the longest HTML entity name in entities array.
-#define MAX_ENTITY_NAME_LENGTH 13
 
 #define COUNTOF(A) (sizeof(A) / sizeof(*A))
 #define ISWHITESPACE(A) (((A)==' ')||((A)=='\n')||((A)=='\t')||((A)=='\v')||((A)=='\f')||((A)=='\r'))
@@ -43,8 +41,8 @@ struct feed_line {
 struct item_line {
 	struct string *title;
 	bool is_unread;
+	int rowid;            // id of row in sqlite table related to this item
 	WINDOW *window;
-	int rowid;            // id of row related to this item
 };
 
 struct format_arg {
@@ -81,6 +79,7 @@ struct link_list {
 struct config_data {
 	size_t max_items;
 	bool append_links;
+	struct wstring *menu_section_entry_format;
 	struct wstring *menu_feed_entry_format;
 	struct wstring *menu_item_entry_format;
 	struct string *global_section_name;
@@ -108,6 +107,7 @@ enum input_cmd {
 	INPUT_MARK_READ_ALL,
 	INPUT_MARK_UNREAD,
 	INPUT_MARK_UNREAD_ALL,
+	INPUT_SECTIONS_MENU,
 	INPUT_RESIZE,
 	INPUTS_COUNT,
 };
@@ -147,10 +147,12 @@ enum item_column {
 	ITEM_COLUMN_NONE,
 };
 
+// sections
 bool create_global_section(void);
 bool add_feed_to_section(struct feed_line *feed, const struct string *section_name);
-bool obtain_feeds_of_section(const struct string *section_name, struct feed_line ***feeds_ptr, size_t *feeds_count_ptr);
+void obtain_feeds_of_global_section(struct feed_line ***feeds_ptr, size_t *feeds_count_ptr);
 void free_sections(void);
+input_cmd_id enter_sections_menu_loop(struct feed_line ***feeds_ptr, size_t *feeds_count_ptr);
 
 // list interface
 bool adjust_list_menu(void);
@@ -168,7 +170,7 @@ bool load_feeds(void);
 bool check_url_for_validity(const struct string *str);
 
 // items
-int enter_items_menu_loop(const struct string *url);
+input_cmd_id enter_items_menu_loop(const struct string *url);
 
 // contents
 int pager_view(const struct render_block *first_block);
@@ -182,7 +184,6 @@ struct string *generate_link_list_string_for_pager(const struct link_list *links
 bool add_another_url_to_trim_link_list(struct link_list *links, const char *url, size_t url_len);
 void free_trim_link_list(const struct link_list *links);
 bool join_links_render_block(struct render_block **contents, struct link_list *links);
-int enter_item_contents_menu_loop(int rowid);
 
 // path
 bool set_feeds_path(const char *path);

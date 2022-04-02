@@ -234,7 +234,7 @@ error:
 	return INPUTS_COUNT;
 }
 
-int
+input_cmd_id
 enter_items_menu_loop(const struct string *url)
 {
 	items = NULL;

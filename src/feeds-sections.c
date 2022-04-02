@@ -7,10 +7,23 @@ struct feed_section {
 	struct feed_line **feeds; // Array of pointers to related feed_line structs.
 	size_t feeds_count; // Length of feeds array.
 	size_t unread_count;
+	WINDOW *window;
 };
 
 static struct feed_section *sections = NULL;
 static size_t sections_count = 0;
+
+static size_t view_sel; // index of selected section
+static size_t view_min; // index of first visible section
+static size_t view_max; // index of last visible section
+
+static bool is_the_sections_menu_being_opened_for_the_first_time = true;
+
+static struct format_arg fmt_args[] = {
+	{L'n', L"d", {.i = 0}},
+	{L'u', L"d", {.i = 0}},
+	{L't', L"s", {.s = NULL}},
+};
 
 static inline void
 free_feed(struct feed_line *feed)
@@ -125,17 +138,11 @@ add_feed_to_section(struct feed_line *feed, const struct string *section_name)
 	return true;
 }
 
-bool
-obtain_feeds_of_section(const struct string *section_name, struct feed_line ***feeds_ptr, size_t *feeds_count_ptr)
+void
+obtain_feeds_of_global_section(struct feed_line ***feeds_ptr, size_t *feeds_count_ptr)
 {
-	for (size_t i = 0; i < sections_count; ++i) {
-		if (strcmp(section_name->ptr, sections[i].name->ptr) == 0) {
-			*feeds_ptr = sections[i].feeds;
-			*feeds_count_ptr = sections[i].feeds_count;
-			return true;
-		}
-	}
-	return false;
+	*feeds_ptr = sections[0].feeds;
+	*feeds_count_ptr = sections[0].feeds_count;
 }
 
 void
@@ -149,4 +156,122 @@ free_sections(void)
 		free(sections[i].feeds);
 	}
 	free(sections);
+}
+
+static void
+expose_section(size_t index)
+{
+	werase(sections[index].window);
+	fmt_args[0].value.i = index + 1;
+	fmt_args[1].value.i = sections[index].unread_count;
+	fmt_args[2].value.s = sections[index].name->ptr;
+	mvwaddnwstr(sections[index].window, 0, 0, do_format(cfg.menu_section_entry_format, fmt_args, COUNTOF(fmt_args)), list_menu_width);
+	mvwchgat(sections[index].window, 0, 0, -1, (index == view_sel) ? A_REVERSE : A_NORMAL, 0, NULL);
+	wrefresh(sections[index].window);
+}
+
+static void
+show_sections(void)
+{
+	for (size_t i = view_min, j = 0; i < sections_count && i <= view_max; ++i, ++j) {
+		sections[i].window = get_list_entry_by_index(j);
+		expose_section(i);
+	}
+}
+
+static void
+view_select(size_t i)
+{
+	size_t new_sel = i;
+
+	if (new_sel >= sections_count) {
+		new_sel = sections_count - 1;
+	}
+
+	if (new_sel == view_sel) {
+		return;
+	}
+
+	if (new_sel > view_max) {
+		view_min = new_sel - (list_menu_height - 1);
+		view_max = new_sel;
+		view_sel = new_sel;
+		show_sections();
+	} else if (new_sel < view_min) {
+		view_min = new_sel;
+		view_max = new_sel + (list_menu_height - 1);
+		view_sel = new_sel;
+		show_sections();
+	} else {
+		mvwchgat(sections[view_sel].window, 0, 0, -1, A_NORMAL, 0, NULL);
+		wrefresh(sections[view_sel].window);
+		view_sel = new_sel;
+		mvwchgat(sections[view_sel].window, 0, 0, -1, A_REVERSE, 0, NULL);
+		wrefresh(sections[view_sel].window);
+	}
+}
+
+static void
+redraw_sections_windows(void)
+{
+	clear();
+	refresh();
+	status_update();
+	view_max = view_min + (list_menu_height - 1);
+	if (view_max < view_sel) {
+		view_max = view_sel;
+		view_min = view_max - (list_menu_height - 1);
+	}
+	show_sections();
+}
+
+input_cmd_id
+enter_sections_menu_loop(struct feed_line ***feeds_ptr, size_t *feeds_count_ptr)
+{
+	if (sections_count == 1) {
+		status_write("There is no sections except for global one!");
+		return INPUTS_COUNT;
+	}
+
+	if (is_the_sections_menu_being_opened_for_the_first_time == true) {
+		view_sel = 0;
+		view_min = 0;
+		view_max = list_menu_height - 1;
+		is_the_sections_menu_being_opened_for_the_first_time = false;
+	}
+
+	status_clean();
+	redraw_sections_windows();
+
+	input_cmd_id cmd;
+	while (true) {
+		cmd = get_input_command();
+		if (cmd == INPUT_SELECT_NEXT) {
+			view_select(view_sel + 1);
+		} else if (cmd == INPUT_SELECT_PREV) {
+			view_select(view_sel == 0 ? (0) : (view_sel - 1));
+		} else if (cmd == INPUT_SELECT_FIRST) {
+			view_select(0);
+		} else if (cmd == INPUT_SELECT_LAST) {
+			view_select(sections_count - 1);
+		} else if (cmd == INPUT_MARK_READ) {
+			// TODO
+		} else if (cmd == INPUT_MARK_UNREAD) {
+			// TODO
+		} else if (cmd == INPUT_MARK_READ_ALL) {
+			// TODO
+		} else if (cmd == INPUT_MARK_UNREAD_ALL) {
+			// TODO
+		} else if (cmd == INPUT_ENTER) {
+			*feeds_ptr = sections[view_sel].feeds;
+			*feeds_count_ptr = sections[view_sel].feeds_count;
+			break;
+		} else if (cmd == INPUT_RESIZE) {
+			redraw_sections_windows();
+		} else if ((cmd == INPUT_SECTIONS_MENU) || (cmd == INPUT_QUIT_SOFT) || (cmd == INPUT_QUIT_HARD)) {
+			break;
+		}
+	}
+
+	return cmd;
 }

@@ -23,6 +23,7 @@ load_default_binds(void)
 	if (assign_action_to_key('C',       INPUT_MARK_READ_ALL)    == false) { goto error; }
 	if (assign_action_to_key('v',       INPUT_MARK_UNREAD)      == false) { goto error; }
 	if (assign_action_to_key('V',       INPUT_MARK_UNREAD_ALL)  == false) { goto error; }
+	if (assign_action_to_key('y',       INPUT_SECTIONS_MENU)    == false) { goto error; }
 	if (assign_action_to_key('q',       INPUT_QUIT_SOFT)        == false) { goto error; }
 	if (assign_action_to_key('Q',       INPUT_QUIT_HARD)        == false) { goto error; }
 	return true;
@@ -35,13 +36,14 @@ bool
 assign_default_values_to_empty_config_strings(void)
 {
 #define ADVTECS(A, B, C, D) if (A == NULL) { if ((A = B(C, D)) == NULL) { return false; } }
-	ADVTECS(cfg.menu_feed_entry_format, wcrtas, L"%4.0u │ %t",              10)
-	ADVTECS(cfg.menu_item_entry_format, wcrtas, L" %u │ %t",                8)
-	ADVTECS(cfg.global_section_name,    crtas,  "global",                   6)
-	ADVTECS(cfg.contents_meta_data,     crtas,  "feed,title,authors,published,updated,max-summary-content", 56)
-	ADVTECS(cfg.contents_date_format,   crtas,  "%a, %d %b %Y %H:%M:%S %z", 24)
-	ADVTECS(cfg.proxy,                  crtas,  "",                         0)
-	ADVTECS(cfg.proxy_auth,             crtas,  "",                         0)
+	ADVTECS(cfg.menu_section_entry_format, wcrtas, L"%4.0u │ %t",              10)
+	ADVTECS(cfg.menu_feed_entry_format,    wcrtas, L"%4.0u │ %t",              10)
+	ADVTECS(cfg.menu_item_entry_format,    wcrtas, L" %u │ %t",                8)
+	ADVTECS(cfg.global_section_name,       crtas,  "global",                   6)
+	ADVTECS(cfg.contents_meta_data,        crtas,  "feed,title,authors,published,updated,max-summary-content", 56)
+	ADVTECS(cfg.contents_date_format,      crtas,  "%a, %d %b %Y %H:%M:%S %z", 24)
+	ADVTECS(cfg.proxy,                     crtas,  "",                         0)
+	ADVTECS(cfg.proxy_auth,                crtas,  "",                         0)
 #undef ADVTECS
 	return true;
 }

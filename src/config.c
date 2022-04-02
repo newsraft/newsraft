@@ -34,6 +34,7 @@ void
 free_config_data(void)
 {
 	INFO("Freeing configuration strings.");
+	free_wstring(cfg.menu_section_entry_format);
 	free_wstring(cfg.menu_feed_entry_format);
 	free_wstring(cfg.menu_item_entry_format);
 	free_string(cfg.global_section_name);
@@ -50,6 +51,7 @@ load_config(void)
 
 	cfg.max_items = 0; // 0 == inf
 	cfg.append_links = true;
+	cfg.menu_section_entry_format = NULL;
 	cfg.menu_feed_entry_format = NULL;
 	cfg.menu_item_entry_format = NULL;
 	cfg.global_section_name = NULL;

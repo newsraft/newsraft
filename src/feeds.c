@@ -18,13 +18,8 @@ static struct format_arg fmt_args[] = {
 // On success returns 0.
 // On failure returns non-zero.
 static inline bool
-parse_feeds_file(void)
+parse_feeds_file(const char *path)
 {
-	const char *path = get_feeds_path();
-	if (path == NULL) {
-		// Error message is written by get_feeds_path().
-		return false;
-	}
 	struct string *word = crtes();
 	if (word == NULL) {
 		return false;
@@ -147,16 +142,19 @@ error:
 bool
 load_feeds(void)
 {
+	const char *feeds_file_path = get_feeds_path();
+	if (feeds_file_path == NULL) {
+		// Error message is written by get_feeds_path().
+		return false;
+	}
 	if (create_global_section() == false) {
 		fprintf(stderr, "Not enough memory for global section structure!\n");
 		return false;
 	}
-
-	if (parse_feeds_file() == false) {
+	if (parse_feeds_file(feeds_file_path) == false) {
 		fprintf(stderr, "Failed to load feeds from file!\n");
 		return false;
 	}
-
 	return true;
 }
 
@@ -302,9 +300,8 @@ redraw_feeds_windows(void)
 void
 enter_feeds_menu_loop(void)
 {
-	if (obtain_feeds_of_section(cfg.global_section_name, &feeds, &feeds_count) == false) {
-		return;
-	}
+	// Display feeds of global section (that is all feeds) by default.
+	obtain_feeds_of_global_section(&feeds, &feeds_count);
 
 	view_sel = 0;
 	view_min = 0;
@@ -335,6 +332,19 @@ enter_feeds_menu_loop(void)
 				redraw_feeds_windows();
 			} else if (cmd == INPUT_QUIT_HARD) {
 				break;
+			}
+		} else if (cmd == INPUT_SECTIONS_MENU) {
+			cmd = enter_sections_menu_loop(&feeds, &feeds_count);
+			if (cmd == INPUT_QUIT_HARD) {
+				break;
+			} else if (cmd != INPUTS_COUNT) {
+				status_clean();
+				if (cmd == INPUT_ENTER) {
+					view_sel = 0;
+					view_min = 0;
+					view_max = list_menu_height - 1;
+				}
+				redraw_feeds_windows();
 			}
 		} else if (cmd == INPUT_RESIZE) {
 			redraw_feeds_windows();

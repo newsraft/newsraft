@@ -12,9 +12,6 @@ struct data_handler {
 // Last character of the resulting wstring must be a newline too.
 // It is made that way so that we can quickly count number of lines needed
 // for pager pad window to store content.
-//
-// You can't find "text/plain" type here because plain text handler is the
-// default one and will be used only if none of these triggered.
 static const struct data_handler handlers[] = {
 	{"", &render_text_html}, // In many cases empty type means that
 	                         // text is HTML formatted.
@@ -60,7 +57,7 @@ render_data(const struct render_block *first_block)
 			}
 		}
 		if (found_handler == false) {
-			// This is prolly a separator, so don't trim whitespace!
+			// This is probably a separator, so don't trim whitespace!
 			line_string(&line, block->content->ptr, text);
 		}
 		block = block->next;

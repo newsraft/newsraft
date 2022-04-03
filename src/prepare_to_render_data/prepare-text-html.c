@@ -215,8 +215,8 @@ end_handler(TidyTagId t, struct string *w, struct link_list *l, const TidyAttr *
 	return false;
 }
 
-static void
-cat_tag_to_string(struct string *target, const char *tag_name, const TidyAttr *attrs, bool is_start)
+static inline void
+cat_opening_tag_to_string(struct string *target, const char *tag_name, const TidyAttr *attrs)
 {
 	if (tag_name == NULL) {
 		return;
@@ -227,9 +227,6 @@ cat_tag_to_string(struct string *target, const char *tag_name, const TidyAttr *a
 	}
 
 	catcs(target, '<');
-	if (is_start == false) {
-		catcs(target, '/');
-	}
 	catas(target, tag_name, tag_name_len);
 
 	// Add tag attributes.
@@ -272,6 +269,21 @@ cat_tag_to_string(struct string *target, const char *tag_name, const TidyAttr *a
 	catcs(target, '>');
 }
 
+static inline void
+cat_closing_tag_to_string(struct string *target, const char *tag_name)
+{
+	if (tag_name == NULL) {
+		return;
+	}
+	size_t tag_name_len = strlen(tag_name);
+	if (tag_name_len == 0) {
+		return;
+	}
+	catas(target, "</", 2);
+	catas(target, tag_name, tag_name_len);
+	catcs(target, '>');
+}
+
 static void
 dumpNode(TidyDoc *tdoc, TidyNode tnod, TidyBuffer *buf, struct string *text, struct link_list *links)
 {
@@ -292,14 +304,14 @@ dumpNode(TidyDoc *tdoc, TidyNode tnod, TidyBuffer *buf, struct string *text, str
 			child_id = tidyNodeGetId(child);
 			child_attrs = tidyAttrFirst(child);
 			if (start_handler(child_id, text, links, &child_attrs) == false) {
-				cat_tag_to_string(text, child_name, &child_attrs, true);
+				cat_opening_tag_to_string(text, child_name, &child_attrs);
 			}
 			// Don't descent into the <style> and <script> elements.
 			if ((child_id != TidyTag_STYLE) && (child_id != TidyTag_SCRIPT)) {
 				dumpNode(tdoc, child, buf, text, links);
 			}
 			if (end_handler(child_id, text, links, &child_attrs) == false) {
-				cat_tag_to_string(text, child_name, &child_attrs, false);
+				cat_closing_tag_to_string(text, child_name);
 			}
 		}
 	}

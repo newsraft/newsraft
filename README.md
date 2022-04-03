@@ -8,9 +8,9 @@ Feedeater is a piece of software that aggregates syndicated web content like blo
 
 * [ncursesw](https://invisible-island.net/ncurses) >= 6.2
 
-* [curl](https://curl.se) >= 7.80.0
-
 * [sqlite](https://www.sqlite.org) >= 3.35.4
+
+* [curl](https://curl.se) >= 7.80.0
 
 * [tidy](http://www.html-tidy.org) >= 5.8.0
 

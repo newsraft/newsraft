@@ -31,15 +31,15 @@ log_curl_version(void)
 }
 
 static inline void
-log_cjson_version(void)
-{
-	INFO("cJSON version: %s", cJSON_Version());
-}
-
-static inline void
 log_tidy_version(void)
 {
 	INFO("LibTidy version: %s (%s) for %s", tidyLibraryVersion(), tidyReleaseDate(), tidyPlatform());
+}
+
+static inline void
+log_cjson_version(void)
+{
+	INFO("cJSON version: %s", cJSON_Version());
 }
 
 bool
@@ -59,8 +59,8 @@ log_init(const char *path)
 	log_ncurses_version();
 	log_sqlite_version();
 	log_curl_version();
-	log_cjson_version();
 	log_tidy_version();
+	log_cjson_version();
 	return true;
 }
 

@@ -10,12 +10,15 @@ db_init(void)
 		// Error message is written by get_db_path().
 		return false;
 	}
+
 	if (sqlite3_open(path, &db) != SQLITE_OK) {
 		fprintf(stderr, "Failed to open database!\n");
 		sqlite3_close(db);
 		return false;
 	}
+
 	char *errmsg;
+
 	sqlite3_exec(
 		db,
 		"CREATE TABLE IF NOT EXISTS feeds("
@@ -48,18 +51,38 @@ db_init(void)
 			"comments_url TEXT NOT NULL,"
 			"summary TEXT NOT NULL,"
 			"content TEXT NOT NULL"
-		");"
-		"VACUUM;"
-		"ANALYZE;",
-		0,
-		0,
+		");",
+		NULL,
+		NULL,
 		&errmsg
 	);
 	if (errmsg != NULL) {
-		fprintf(stderr, "Failed to start database: %s!\n", errmsg);
+		fprintf(stderr, "Failed to initialize database: %s!\n", errmsg);
+		sqlite3_close(db);
 		sqlite3_free(errmsg);
 		return false;
 	}
+
+	if (cfg.run_cleaning_of_the_database_on_startup == true) {
+		sqlite3_exec(db, "VACUUM;", NULL, NULL, &errmsg);
+		if (errmsg != NULL) {
+			fprintf(stderr, "Failed to clean database: %s!\n", errmsg);
+			sqlite3_close(db);
+			sqlite3_free(errmsg);
+			return false;
+		}
+	}
+
+	if (cfg.run_analysis_of_the_database_on_startup == true) {
+		sqlite3_exec(db, "ANALYZE;", NULL, NULL, &errmsg);
+		if (errmsg != NULL) {
+			fprintf(stderr, "Failed to analyze database: %s!\n", errmsg);
+			sqlite3_close(db);
+			sqlite3_free(errmsg);
+			return false;
+		}
+	}
+
 	return true;
 }
 

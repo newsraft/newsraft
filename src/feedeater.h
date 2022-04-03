@@ -85,6 +85,8 @@ struct link_list {
 struct config_data {
 	size_t max_items;
 	bool append_links;
+	bool run_cleaning_of_the_database_on_startup;
+	bool run_analysis_of_the_database_on_startup;
 	struct wstring *menu_section_entry_format;
 	struct wstring *menu_feed_entry_format;
 	struct wstring *menu_item_entry_format;

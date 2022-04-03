@@ -31,18 +31,24 @@ struct wstring {
 	size_t lim;
 };
 
+struct menu_list_settings {
+	size_t entries_count;
+	size_t view_sel;
+	size_t view_min;
+	size_t view_max;
+	const wchar_t *(*paint_action)(size_t index);
+};
+
 struct feed_line {
 	struct string *name; // what is displayed in menu
-	struct string *link; // this is feed url if set is feed NULL otherwise
+	struct string *link; // url of the feed
 	int unread_count;
-	WINDOW *window;
 };
 
 struct item_line {
 	struct string *title;
-	bool is_unread;
 	int rowid;            // id of row in sqlite table related to this item
-	WINDOW *window;
+	bool is_unread;
 };
 
 struct format_arg {
@@ -160,6 +166,9 @@ WINDOW *get_list_entry_by_index(size_t i);
 void free_list_menu(void);
 bool adjust_list_menu_format_buffer(void);
 void free_list_menu_format_buffer(void);
+void expose_entry_of_the_menu_list(struct menu_list_settings *settings, size_t index);
+void redraw_menu_list(struct menu_list_settings *settings);
+void list_menu_view_select(struct menu_list_settings *s, size_t i);
 
 // format
 const wchar_t *do_format(const struct wstring *fmt, const struct format_arg *args, size_t args_count);

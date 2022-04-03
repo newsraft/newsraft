@@ -62,3 +62,72 @@ get_list_entry_by_index(size_t index)
 	}
 	return NULL;
 }
+
+void
+expose_entry_of_the_menu_list(struct menu_list_settings *settings, size_t index)
+{
+	size_t target_window = (index - settings->view_min) % list_menu_height;
+	werase(windows[target_window]);
+	mvwaddnwstr(windows[target_window], 0, 0, settings->paint_action(index), list_menu_width);
+	mvwchgat(windows[target_window], 0, 0, -1, (index == settings->view_sel) ? A_REVERSE : A_NORMAL, 0, NULL);
+	wrefresh(windows[target_window]);
+}
+
+static inline void
+expose_all_visible_entries_of_the_menu_list(struct menu_list_settings *settings)
+{
+	for (size_t i = settings->view_min; i < settings->entries_count && i <= settings->view_max; ++i) {
+		expose_entry_of_the_menu_list(settings, i);
+	}
+}
+
+void
+redraw_menu_list(struct menu_list_settings *settings)
+{
+	clear();
+	refresh();
+	status_update();
+	settings->view_max = settings->view_min + (list_menu_height - 1);
+	if (settings->view_max < settings->view_sel) {
+		settings->view_max = settings->view_sel;
+		settings->view_min = settings->view_max - (list_menu_height - 1);
+	}
+	expose_all_visible_entries_of_the_menu_list(settings);
+}
+
+void
+list_menu_view_select(struct menu_list_settings *s, size_t i)
+{
+	size_t new_sel = i;
+
+	if (new_sel >= s->entries_count) {
+		if (s->entries_count == 0) {
+			return;
+		}
+		new_sel = s->entries_count - 1;
+	}
+
+	if (new_sel == s->view_sel) {
+		return;
+	}
+
+	if (new_sel > s->view_max) {
+		s->view_min = new_sel - (list_menu_height - 1);
+		s->view_max = new_sel;
+		s->view_sel = new_sel;
+		expose_all_visible_entries_of_the_menu_list(s);
+	} else if (new_sel < s->view_min) {
+		s->view_min = new_sel;
+		s->view_max = new_sel + (list_menu_height - 1);
+		s->view_sel = new_sel;
+		expose_all_visible_entries_of_the_menu_list(s);
+	} else {
+		size_t target_window = (s->view_sel - s->view_min) % list_menu_height;
+		mvwchgat(windows[target_window], 0, 0, -1, A_NORMAL, 0, NULL);
+		wrefresh(windows[target_window]);
+		s->view_sel = new_sel;
+		target_window = (s->view_sel - s->view_min) % list_menu_height;
+		mvwchgat(windows[target_window], 0, 0, -1, A_REVERSE, 0, NULL);
+		wrefresh(windows[target_window]);
+	}
+}

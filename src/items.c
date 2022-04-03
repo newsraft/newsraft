@@ -5,9 +5,7 @@
 static struct item_line *items;
 static size_t items_count;
 
-static size_t view_sel; // index of selected item
-static size_t view_min; // index of first visible item
-static size_t view_max; // index of last visible item
+static struct menu_list_settings items_menu;
 
 static struct format_arg fmt_args[] = {
 	{L'n', L"d", {.i = 0}},
@@ -38,7 +36,7 @@ load_items(const struct string *url)
 		return false;
 	}
 	sqlite3_bind_text(res, 1, url->ptr, url->len, NULL);
-	view_sel = SIZE_MAX;
+	items_menu.view_sel = SIZE_MAX;
 	size_t item_index;
 	void *temp; // need to check if realloc failed
 	bool error = false;
@@ -59,8 +57,8 @@ load_items(const struct string *url)
 			error = true;
 			break;
 		}
-		if (view_sel == SIZE_MAX) {
-			view_sel = item_index;
+		if (items_menu.view_sel == SIZE_MAX) {
+			items_menu.view_sel = item_index;
 		}
 	}
 
@@ -70,7 +68,7 @@ load_items(const struct string *url)
 		return false;
 	}
 
-	if ((view_sel == SIZE_MAX) || (items_count == 0)) {
+	if ((items_menu.view_sel == SIZE_MAX) || (items_count == 0)) {
 		status_write("Items not found!");
 		return false;
 	}
@@ -78,59 +76,13 @@ load_items(const struct string *url)
 	return true;
 }
 
-static void
-item_expose(size_t index)
+static const wchar_t *
+paint_item_entry(size_t index)
 {
-	werase(items[index].window);
 	fmt_args[0].value.i = index + 1;
 	fmt_args[1].value.c = items[index].is_unread == true ? 'N' : ' ';
 	fmt_args[2].value.s = items[index].title->ptr;
-	mvwaddnwstr(items[index].window, 0, 0, do_format(cfg.menu_item_entry_format, fmt_args, COUNTOF(fmt_args)), list_menu_width);
-	mvwchgat(items[index].window, 0, 0, -1, (index == view_sel) ? A_REVERSE : A_NORMAL, 0, NULL);
-	wrefresh(items[index].window);
-}
-
-static void
-show_items(void)
-{
-	for (size_t i = view_min, j = 0; i < items_count && i <= view_max; ++i, ++j) {
-		items[i].window = get_list_entry_by_index(j);
-		item_expose(i);
-	}
-}
-
-static void
-view_select(size_t i)
-{
-	size_t new_sel = i;
-
-	if (new_sel >= items_count) {
-		// Don't check if items_count is zero because program
-		// won't even get here when not a single item loaded.
-		new_sel = items_count - 1;
-	}
-
-	if (new_sel == view_sel) {
-		return;
-	}
-
-	if (new_sel > view_max) {
-		view_min = new_sel - (list_menu_height - 1);
-		view_max = new_sel;
-		view_sel = new_sel;
-		show_items();
-	} else if (new_sel < view_min) {
-		view_min = new_sel;
-		view_max = new_sel + (list_menu_height - 1);
-		view_sel = new_sel;
-		show_items();
-	} else {
-		mvwchgat(items[view_sel].window, 0, 0, -1, A_NORMAL, 0, NULL);
-		wrefresh(items[view_sel].window);
-		view_sel = new_sel;
-		mvwchgat(items[view_sel].window, 0, 0, -1, A_REVERSE, 0, NULL);
-		wrefresh(items[view_sel].window);
-	}
+	return do_format(cfg.menu_item_entry_format, fmt_args, COUNTOF(fmt_args));
 }
 
 static void
@@ -143,8 +95,8 @@ mark_item_read(size_t index)
 		return; // failure
 	}
 	items[index].is_unread = 0;
-	if ((index >= view_min) && (index <= view_max)) {
-		item_expose(index);
+	if ((index >= items_menu.view_min) && (index <= items_menu.view_max)) {
+		expose_entry_of_the_menu_list(&items_menu, index);
 	}
 }
 
@@ -158,8 +110,8 @@ mark_item_unread(size_t index)
 		return; // failure
 	}
 	items[index].is_unread = 1;
-	if ((index >= view_min) && (index <= view_max)) {
-		item_expose(index);
+	if ((index >= items_menu.view_min) && (index <= items_menu.view_max)) {
+		expose_entry_of_the_menu_list(&items_menu, index);
 	}
 }
 
@@ -177,20 +129,6 @@ mark_all_items_unread(void)
 	for (size_t i = 0; i < items_count; ++i) {
 		mark_item_unread(i);
 	}
-}
-
-static void
-redraw_items_windows(void)
-{
-	clear();
-	refresh();
-	status_update();
-	view_max = view_min + (list_menu_height - 1);
-	if (view_max < view_sel) {
-		view_max = view_sel;
-		view_min = view_max - (list_menu_height - 1);
-	}
-	show_items();
 }
 
 static inline int
@@ -234,6 +172,15 @@ error:
 	return INPUTS_COUNT;
 }
 
+static inline void
+initialize_menu_list_settings(void)
+{
+	items_menu.entries_count = items_count;
+	items_menu.view_min = 0;
+	items_menu.view_max = list_menu_height - 1;
+	items_menu.paint_action = &paint_item_entry;
+}
+
 input_cmd_id
 enter_items_menu_loop(const struct string *url)
 {
@@ -247,44 +194,43 @@ enter_items_menu_loop(const struct string *url)
 		return INPUTS_COUNT;
 	}
 
-	view_min = 0;
-	view_max = list_menu_height - 1;
+	initialize_menu_list_settings();
 
 	status_clean();
-	redraw_items_windows();
+	redraw_menu_list(&items_menu);
 
 	input_cmd_id cmd;
 	while (true) {
 		cmd = get_input_command();
 		if (cmd == INPUT_SELECT_NEXT) {
-			view_select(view_sel + 1);
+			list_menu_view_select(&items_menu, items_menu.view_sel + 1);
 		} else if (cmd == INPUT_SELECT_PREV) {
-			view_select(view_sel == 0 ? (0) : (view_sel - 1));
+			list_menu_view_select(&items_menu, (items_menu.view_sel == 0) ? (0) : (items_menu.view_sel - 1));
 		} else if (cmd == INPUT_SELECT_FIRST) {
-			view_select(0);
+			list_menu_view_select(&items_menu, 0);
 		} else if (cmd == INPUT_SELECT_LAST) {
 			// Don't check if items_count is equal to zero,
 			// because we won't even get here if none items loaded.
-			view_select(items_count - 1);
+			list_menu_view_select(&items_menu, items_count - 1);
 		} else if (cmd == INPUT_MARK_READ) {
-			mark_item_read(view_sel);
+			mark_item_read(items_menu.view_sel);
 		} else if (cmd == INPUT_MARK_UNREAD) {
-			mark_item_unread(view_sel);
+			mark_item_unread(items_menu.view_sel);
 		} else if (cmd == INPUT_MARK_READ_ALL) {
 			mark_all_items_read();
 		} else if (cmd == INPUT_MARK_UNREAD_ALL) {
 			mark_all_items_unread();
 		} else if (cmd == INPUT_ENTER) {
-			cmd = enter_item_pager_loop(items[view_sel].rowid);
+			cmd = enter_item_pager_loop(items[items_menu.view_sel].rowid);
 			if (cmd == INPUT_QUIT_SOFT) {
-				items[view_sel].is_unread = 0;
-				db_mark_item_read(items[view_sel].rowid);
-				redraw_items_windows();
+				items[items_menu.view_sel].is_unread = 0;
+				db_mark_item_read(items[items_menu.view_sel].rowid);
+				redraw_menu_list(&items_menu);
 			} else if (cmd == INPUT_QUIT_HARD) {
 				break;
 			}
 		} else if (cmd == INPUT_RESIZE) {
-			redraw_items_windows();
+			redraw_menu_list(&items_menu);
 		} else if ((cmd == INPUT_QUIT_SOFT) || (cmd == INPUT_QUIT_HARD)) {
 			break;
 		}

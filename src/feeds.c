@@ -5,9 +5,7 @@
 static struct feed_line **feeds = NULL;
 static size_t feeds_count = 0;
 
-static size_t view_sel; // index of selected item
-static size_t view_min; // index of first visible item
-static size_t view_max; // index of last visible item
+static struct menu_list_settings feeds_menu;
 
 static struct format_arg fmt_args[] = {
 	{L'n', L"d", {.i = 0}},
@@ -155,6 +153,15 @@ load_feeds(void)
 		fprintf(stderr, "Failed to load feeds from file!\n");
 		return false;
 	}
+
+	// Display feeds of global section (that is all feeds) by default.
+	obtain_feeds_of_global_section(&feeds, &feeds_count);
+
+	if (feeds_count == 0) {
+		fprintf(stderr, "Not a single feed was loaded!\n");
+		return false;
+	}
+
 	return true;
 }
 
@@ -173,60 +180,13 @@ feed_image(const struct feed_line *feed)
 	}
 }
 
-static void
-feed_expose(size_t index)
+static const wchar_t *
+paint_feed_entry(size_t index)
 {
-	werase(feeds[index]->window);
 	fmt_args[0].value.i = index + 1;
 	fmt_args[1].value.i = feeds[index]->unread_count;
 	fmt_args[2].value.s = feed_image(feeds[index]);
-	mvwaddnwstr(feeds[index]->window, 0, 0, do_format(cfg.menu_feed_entry_format, fmt_args, COUNTOF(fmt_args)), list_menu_width);
-	mvwchgat(feeds[index]->window, 0, 0, -1, (index == view_sel) ? A_REVERSE : A_NORMAL, 0, NULL);
-	wrefresh(feeds[index]->window);
-}
-
-static void
-show_feeds(void)
-{
-	for (size_t i = view_min, j = 0; i < feeds_count && i <= view_max; ++i, ++j) {
-		feeds[i]->window = get_list_entry_by_index(j);
-		feed_expose(i);
-	}
-}
-
-static void
-view_select(size_t i)
-{
-	size_t new_sel = i;
-
-	if (new_sel >= feeds_count) {
-		if (feeds_count == 0) {
-			return;
-		}
-		new_sel = feeds_count - 1;
-	}
-
-	if (new_sel == view_sel) {
-		return;
-	}
-
-	if (new_sel > view_max) {
-		view_min = new_sel - (list_menu_height - 1);
-		view_max = new_sel;
-		view_sel = new_sel;
-		show_feeds();
-	} else if (new_sel < view_min) {
-		view_min = new_sel;
-		view_max = new_sel + (list_menu_height - 1);
-		view_sel = new_sel;
-		show_feeds();
-	} else {
-		mvwchgat(feeds[view_sel]->window, 0, 0, -1, A_NORMAL, 0, NULL);
-		wrefresh(feeds[view_sel]->window);
-		view_sel = new_sel;
-		mvwchgat(feeds[view_sel]->window, 0, 0, -1, A_REVERSE, 0, NULL);
-		wrefresh(feeds[view_sel]->window);
-	}
+	return do_format(cfg.menu_feed_entry_format, fmt_args, COUNTOF(fmt_args));
 }
 
 static void
@@ -235,8 +195,8 @@ update_unread_items_count(size_t index, bool redraw)
 	int new_unread_count = get_unread_items_count(feeds[index]->link);
 	if (feeds[index]->unread_count != new_unread_count) {
 		feeds[index]->unread_count = new_unread_count;
-		if ((redraw == true) && (index >= view_min) && (index <= view_max)) {
-			feed_expose(index);
+		if ((redraw == true) && (index >= feeds_menu.view_min) && (index <= feeds_menu.view_max)) {
+			expose_entry_of_the_menu_list(&feeds_menu, index);
 		}
 	}
 }
@@ -244,14 +204,14 @@ update_unread_items_count(size_t index, bool redraw)
 static void
 reload_current_feed(void)
 {
-	status_write("Loading %s", feeds[view_sel]->link->ptr);
+	status_write("Loading %s", feeds[feeds_menu.view_sel]->link->ptr);
 
-	if (update_feed(feeds[view_sel]->link) == false) {
-		status_write("Failed to load %s", feeds[view_sel]->link->ptr);
+	if (update_feed(feeds[feeds_menu.view_sel]->link) == false) {
+		status_write("Failed to load %s", feeds[feeds_menu.view_sel]->link->ptr);
 		return;
 	}
 
-	update_unread_items_count(view_sel, true);
+	update_unread_items_count(feeds_menu.view_sel, true);
 	status_clean();
 }
 
@@ -283,53 +243,44 @@ reload_all_feeds(void)
 	}
 }
 
-static void
-redraw_feeds_windows(void)
+static inline void
+reset_menu_list_settings(void)
 {
-	clear();
-	refresh();
-	status_update();
-	view_max = view_min + (list_menu_height - 1);
-	if (view_max < view_sel) {
-		view_max = view_sel;
-		view_min = view_max - (list_menu_height - 1);
-	}
-	show_feeds();
+	feeds_menu.entries_count = feeds_count;
+	feeds_menu.view_sel = 0;
+	feeds_menu.view_min = 0;
+	feeds_menu.view_max = list_menu_height - 1;
 }
 
 void
 enter_feeds_menu_loop(void)
 {
-	// Display feeds of global section (that is all feeds) by default.
-	obtain_feeds_of_global_section(&feeds, &feeds_count);
+	feeds_menu.paint_action = &paint_feed_entry;
+	reset_menu_list_settings();
 
-	view_sel = 0;
-	view_min = 0;
-	view_max = list_menu_height - 1;
-
-	redraw_feeds_windows();
+	redraw_menu_list(&feeds_menu);
 
 	input_cmd_id cmd;
 	while (true) {
 		cmd = get_input_command();
 		if (cmd == INPUT_SELECT_NEXT) {
-			view_select(view_sel + 1);
+			list_menu_view_select(&feeds_menu, feeds_menu.view_sel + 1);
 		} else if (cmd == INPUT_SELECT_PREV) {
-			view_select((view_sel == 0) ? (0) : (view_sel - 1));
+			list_menu_view_select(&feeds_menu, (feeds_menu.view_sel == 0) ? (0) : (feeds_menu.view_sel - 1));
 		} else if (cmd == INPUT_SELECT_FIRST) {
-			view_select(0);
+			list_menu_view_select(&feeds_menu, 0);
 		} else if (cmd == INPUT_SELECT_LAST) {
-			view_select((feeds_count == 0) ? (0) : (feeds_count - 1));
+			list_menu_view_select(&feeds_menu, feeds_count - 1);
 		} else if (cmd == INPUT_RELOAD) {
 			reload_current_feed();
 		} else if (cmd == INPUT_RELOAD_ALL) {
 			reload_all_feeds();
 		} else if (cmd == INPUT_ENTER) {
-			cmd = enter_items_menu_loop(feeds[view_sel]->link);
+			cmd = enter_items_menu_loop(feeds[feeds_menu.view_sel]->link);
 			if (cmd == INPUT_QUIT_SOFT) {
 				status_clean();
-				update_unread_items_count(view_sel, false);
-				redraw_feeds_windows();
+				update_unread_items_count(feeds_menu.view_sel, false);
+				redraw_menu_list(&feeds_menu);
 			} else if (cmd == INPUT_QUIT_HARD) {
 				break;
 			}
@@ -340,14 +291,12 @@ enter_feeds_menu_loop(void)
 			} else if (cmd != INPUTS_COUNT) {
 				status_clean();
 				if (cmd == INPUT_ENTER) {
-					view_sel = 0;
-					view_min = 0;
-					view_max = list_menu_height - 1;
+					reset_menu_list_settings();
 				}
-				redraw_feeds_windows();
+				redraw_menu_list(&feeds_menu);
 			}
 		} else if (cmd == INPUT_RESIZE) {
-			redraw_feeds_windows();
+			redraw_menu_list(&feeds_menu);
 		} else if ((cmd == INPUT_QUIT_SOFT) || (cmd == INPUT_QUIT_HARD)) {
 			break;
 		}

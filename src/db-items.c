@@ -68,18 +68,20 @@ db_mark_item_unread(int rowid)
 	return db_update_item_int(rowid, "unread", 1);
 }
 
-int
-get_unread_items_count(const struct string *url)
+int64_t
+get_unread_items_count_of_the_feed(const struct string *url)
 {
-	INFO("Trying to count unread items of the \"%s\" feed.", url->ptr);
+	INFO("Counting unread items of the \"%s\" feed.", url->ptr);
 
-	int unread_count = 0;
+	// This variable will be rewritten with proper value if everything goes okay;
+	// otherwise it will remain negative to indicate an error.
+	int64_t unread_count = -1;
+
 	sqlite3_stmt *res;
 	if (db_prepare("SELECT COUNT(*) FROM items WHERE feed_url=? AND unread=1;", 58, &res, NULL) == true) {
 		sqlite3_bind_text(res, 1, url->ptr, url->len, NULL);
 		if (sqlite3_step(res) == SQLITE_ROW) {
-			unread_count = sqlite3_column_int(res, 0);
-			INFO("Successfully counted the number of unread items: %d", unread_count);
+			unread_count = sqlite3_column_int64(res, 0);
 		}
 		sqlite3_finalize(res);
 	}

@@ -42,7 +42,7 @@ struct menu_list_settings {
 struct feed_line {
 	struct string *name; // what is displayed in menu
 	struct string *link; // url of the feed
-	int unread_count;
+	int64_t unread_count;
 };
 
 struct item_line {
@@ -228,7 +228,7 @@ sqlite3_stmt *db_find_item_by_rowid(int rowid);
 bool db_mark_item_read(int rowid);
 bool db_mark_item_unread(int rowid);
 struct string *db_get_plain_text_from_column(sqlite3_stmt *res, int column);
-int get_unread_items_count(const struct string *url);
+int64_t get_unread_items_count_of_the_feed(const struct string *url);
 
 bool curses_init(void);
 bool obtain_terminal_size(void);

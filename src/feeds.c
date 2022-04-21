@@ -88,7 +88,6 @@ parse_feeds_file(const char *path)
 		remove_trailing_slash_from_string(word);
 		feed->link = crtss(word);
 		if (feed->link == NULL) { goto error; }
-		feed->unread_count = get_unread_items_count(feed->link);
 		while (ISWHITESPACEEXCEPTNEWLINE(c)) { c = fgetc(f); }
 		// process name
 		if (c == '"') {
@@ -161,6 +160,14 @@ load_feeds(void)
 		return false;
 	}
 
+	for (size_t i = 0; i < feeds_count; ++i) {
+		feeds[i]->unread_count = get_unread_items_count_of_the_feed(feeds[i]->link);
+		if (feeds[i]->unread_count < 0) {
+			fprintf(stderr, "Failed to get unread items count of the \"%s\" feed!\n", feeds[i]->link->ptr);
+			return false;
+		}
+	}
+
 	return true;
 }
 
@@ -191,7 +198,10 @@ paint_feed_entry(size_t index)
 static void
 update_unread_items_count(size_t index, bool redraw)
 {
-	int new_unread_count = get_unread_items_count(feeds[index]->link);
+	int64_t new_unread_count = get_unread_items_count_of_the_feed(feeds[index]->link);
+	if (new_unread_count < 0) {
+		return;
+	}
 	if (feeds[index]->unread_count != new_unread_count) {
 		feeds[index]->unread_count = new_unread_count;
 		if ((redraw == true) && (index >= feeds_menu.view_min) && (index <= feeds_menu.view_max)) {

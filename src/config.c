@@ -53,6 +53,9 @@ load_config(void)
 	cfg.append_links = true;
 	cfg.run_cleaning_of_the_database_on_startup = true;
 	cfg.run_analysis_of_the_database_on_startup = true;
+	cfg.respect_etag_header = true;
+	cfg.attach_if_none_match_header = true;
+	cfg.attach_if_modified_since_header = true;
 	cfg.menu_section_entry_format = NULL;
 	cfg.menu_feed_entry_format = NULL;
 	cfg.menu_item_entry_format = NULL;

@@ -3,47 +3,64 @@
 bool
 update_feed(const struct string *url)
 {
-	struct string *feedbuf = download_feed(url->ptr);
+	bool success = false;
+	struct getfeed_feed feed = {0};
+
+	feed.etag_header = db_get_conserved_etag_header_of_the_feed(url);
+	if (feed.etag_header == NULL) {
+		goto undo0;
+	}
+
+	struct string *feedbuf = crtes();
 	if (feedbuf == NULL) {
-		// Just a warning because download can fail when there's no internet.
-		WARN("Failed to download a feed!");
-		return false;
+		goto undo1;
 	}
 
-	struct getfeed_feed *feed = parse_feed(feedbuf);
-	if (feed == NULL) {
-		free_string(feedbuf);
-		return false;
+	enum download_status status = download_feed(url->ptr, &feed, feedbuf);
+
+	if (status == DOWNLOAD_CANCELED) {
+		success = true; // Not an error.
+		goto undo2;
+	} else if (status == DOWNLOAD_FAILED) {
+		goto undo2;
 	}
 
-	free_string(feedbuf);
+	if (grow_meat_on_bones_of_the_feed(&feed) == false) {
+		goto undo2;
+	}
+
+	if (parse_feed(feedbuf, &feed) == false) {
+		goto undo2;
+	}
 
 	if (db_begin_transaction() == false) {
-		free_feed(feed);
-		return false;
+		goto undo2;
 	}
 
-	if (insert_feed(url, feed) == false) {
-		FAIL("Failed to insert %s feed!", url->ptr);
+	if (insert_feed(url, &feed) == false) {
+		FAIL("Failed to insert \"%s\" feed!", url->ptr);
 		db_rollback_transaction();
-		free_feed(feed);
-		return false;
+		goto undo2;
 	}
 
-	struct getfeed_item *item = feed->item;
+	struct getfeed_item *item = feed.item;
 	while (item != NULL) {
 		insert_item(url, item);
 		item = item->next;
 	}
 
-	free_feed(feed);
 	if (cfg.max_items != 0) {
 		delete_excess_items(url);
 	}
 
-	if (db_commit_transaction() == false) {
-		return false;
+	if (db_commit_transaction() == true) {
+		success = true;
 	}
 
-	return true;
+undo2:
+	free_string(feedbuf);
+undo1:
+	free_feed(&feed);
+undo0:
+	return success;
 }

@@ -35,7 +35,7 @@ db_init(void)
 			"rights TEXT NOT NULL,"
 			"update_time INTEGER(8) NOT NULL," // update date in seconds since 1970
 			"download_time INTEGER(8) NOT NULL," // download date in seconds since 1970
-			"etag TEXT NOT NULL"
+			"etag_header TEXT NOT NULL" // HTTP header that identifies a specific version of a resource
 		");"
 		"CREATE TABLE IF NOT EXISTS items("
 			"feed_url TEXT NOT NULL," // url of feed this item belongs to
@@ -185,4 +185,26 @@ db_get_plain_text_from_column(sqlite3_stmt *res, int column)
 error:
 	free_string(str);
 	return NULL;
+}
+
+struct string *
+db_get_conserved_etag_header_of_the_feed(const struct string *url)
+{
+	struct string *etag_header = crtes();
+	if (etag_header == NULL) {
+		FAIL("Not enough memory for conserved ETag header!");
+		return NULL;
+	}
+	sqlite3_stmt *res;
+	if (db_prepare("SELECT etag_header FROM feeds WHERE feed_url=?;", 48, &res, NULL) == true) {
+		sqlite3_bind_text(res, 1, url->ptr, url->len, NULL);
+		if (sqlite3_step(res) == SQLITE_ROW) {
+			const char *etag_header_value = (char *)sqlite3_column_text(res, 0);
+			if (etag_header_value != NULL) {
+				cpyas(etag_header, etag_header_value, strlen(etag_header_value));
+			}
+		}
+		sqlite3_finalize(res);
+	}
+	return etag_header;
 }

@@ -1,12 +1,10 @@
-#include "update_feed/parse_feed/parse_feed.h"
+#include "update_feed/update_feed.h"
 
 // On success returns true.
 // On memory shortage returns false.
-struct getfeed_feed *
-create_feed(void)
+bool
+grow_meat_on_bones_of_the_feed(struct getfeed_feed *feed)
 {
-	struct getfeed_feed *feed = malloc(sizeof(struct getfeed_feed));
-	if (feed == NULL)                               { return NULL; }
 	if (time(&feed->download_time) == (time_t) -1)   { goto undo0; }
 	if ((feed->title.value       = crtes()) == NULL) { goto undo0; }
 	if ((feed->title.type        = crtes()) == NULL) { goto undo1; }
@@ -25,7 +23,7 @@ create_feed(void)
 	feed->webmaster = NULL;
 	feed->update_time = 0;
 	feed->item = NULL;
-	return feed;
+	return true;
 undoA:
 	free_string(feed->rights.value);
 undo9:
@@ -47,16 +45,12 @@ undo2:
 undo1:
 	free_string(feed->title.value);
 undo0:
-	free(feed);
-	return NULL;
+	return false;
 }
 
 void
 free_feed(struct getfeed_feed *feed)
 {
-	if (feed == NULL) {
-		return;
-	}
 	free_string(feed->title.value);
 	free_string(feed->title.type);
 	free_string(feed->url);
@@ -72,6 +66,6 @@ free_feed(struct getfeed_feed *feed)
 	free_person(feed->author);
 	free_person(feed->editor);
 	free_person(feed->webmaster);
+	free_string(feed->etag_header);
 	free_item(feed->item);
-	free(feed);
 }

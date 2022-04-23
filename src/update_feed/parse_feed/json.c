@@ -1,21 +1,17 @@
 #include "update_feed/parse_feed/parse_feed.h"
 
-struct getfeed_feed *
-parse_json_feed(const struct string *feed_buf)
+bool
+parse_json_feed(const struct string *feed_buf, struct getfeed_feed *feed)
 {
 	struct json_data data;
-	data.feed = create_feed();
-	if (data.feed == NULL) {
-		return NULL;
-	}
+	data.feed = feed;
 
 	cJSON *json = cJSON_ParseWithLength(feed_buf->ptr, feed_buf->len);
 	if (json == NULL) {
 		// Call destructor anyways because cJSON has some
 		// magic going on "behind the doors" (static variables stuff).
 		cJSON_Delete(json);
-		free_feed(data.feed);
-		return NULL;
+		return false;
 	}
 
 #ifdef FEEDEATER_FORMAT_SUPPORT_JSONFEED
@@ -27,5 +23,5 @@ parse_json_feed(const struct string *feed_buf)
 
 	cJSON_Delete(json);
 
-	return data.feed;
+	return true;
 }

@@ -2,6 +2,12 @@
 #define UPDATE_FEED_H
 #include "feedeater.h"
 
+enum download_status {
+	DOWNLOAD_SUCCEEDED,
+	DOWNLOAD_CANCELED,
+	DOWNLOAD_FAILED,
+};
+
 struct getfeed_generator {
 	struct string *name;
 	struct string *version;
@@ -64,25 +70,41 @@ struct getfeed_feed {
 	struct getfeed_person *webmaster;
 	time_t update_time;
 	time_t download_time;
+	struct string *etag_header;
 	struct getfeed_item *item;
 };
 
-struct string *download_feed(const char *url);
+enum download_status download_feed(const char *url, struct getfeed_feed *feed, struct string *feedbuf);
+
+bool grow_meat_on_bones_of_the_feed(struct getfeed_feed *feed);
+void free_feed(struct getfeed_feed *feed);
 
 // See "parse_feed" directory for implementation.
-struct getfeed_feed *parse_feed(const struct string *feed_buf);
-void free_feed(struct getfeed_feed *feed);
+bool parse_feed(const struct string *feed_buf, struct getfeed_feed *feed);
 
 void delete_excess_items(const struct string *feed_url);
 
 bool db_bind_text_struct(sqlite3_stmt *s, intmax_t placeholder, const struct getfeed_text *text_struct);
 
-struct string *generate_link_list_string(const struct getfeed_link *link);
-struct string *generate_person_list_string(const struct getfeed_person *person);
-struct string *generate_generator_string(const struct getfeed_generator *generator);
-struct string *generate_category_list_string(const struct getfeed_category *category);
-
 void insert_item(const struct string *feed_url, const struct getfeed_item *item);
 bool insert_feed(const struct string *feed_url, const struct getfeed_feed *feed);
+
+struct string *generate_generator_string(const struct getfeed_generator *generator);
+
+// item bucket functions
+void prepend_item(struct getfeed_item **head_item_ptr);
+void free_item(struct getfeed_item *item);
+
+bool prepend_category(struct getfeed_category **head_category_ptr);
+void free_category(struct getfeed_category *category);
+struct string *generate_category_list_string(const struct getfeed_category *category);
+
+bool prepend_link(struct getfeed_link **head_link_ptr);
+void free_link(struct getfeed_link *link);
+struct string *generate_link_list_string(const struct getfeed_link *link);
+
+bool prepend_person(struct getfeed_person **head_person_ptr);
+void free_person(struct getfeed_person *person);
+struct string *generate_person_list_string(const struct getfeed_person *person);
 
 #endif // UPDATE_FEED_H

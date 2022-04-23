@@ -75,28 +75,11 @@ bool add_namespace_to_stack(struct xml_namespace_stack *stack, const char *name,
 void pop_namespace_from_stack(struct xml_namespace_stack *stack);
 void free_namespace_stack(struct xml_namespace_stack *stack);
 
-struct getfeed_feed *parse_xml_feed(const struct string *feed_buf);
-struct getfeed_feed *parse_json_feed(const struct string *feed_buf);
+bool parse_xml_feed(const struct string *feed_buf, struct getfeed_feed *feed);
+bool parse_json_feed(const struct string *feed_buf, struct getfeed_feed *feed);
 
 const char *get_value_of_attribute_key(const TidyAttr attrs, const char *key);
 bool we_are_inside_item(const struct xml_data *data);
-
-// feed bucket functions
-struct getfeed_feed *create_feed(void);
-void free_feed(struct getfeed_feed *feed);
-
-// item bucket functions
-void prepend_item(struct getfeed_item **head_item_ptr);
-void free_item(struct getfeed_item *item);
-
-bool prepend_category(struct getfeed_category **head_category_ptr);
-void free_category(struct getfeed_category *category);
-
-bool prepend_link(struct getfeed_link **head_link_ptr);
-void free_link(struct getfeed_link *link);
-
-bool prepend_person(struct getfeed_person **head_person_ptr);
-void free_person(struct getfeed_person *person);
 
 // date
 time_t parse_date_rfc822(const struct string *value);

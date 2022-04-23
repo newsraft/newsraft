@@ -87,6 +87,9 @@ struct config_data {
 	bool append_links;
 	bool run_cleaning_of_the_database_on_startup;
 	bool run_analysis_of_the_database_on_startup;
+	bool respect_etag_header;
+	bool attach_if_none_match_header;
+	bool attach_if_modified_since_header;
 	struct wstring *menu_section_entry_format;
 	struct wstring *menu_feed_entry_format;
 	struct wstring *menu_item_entry_format;
@@ -134,7 +137,7 @@ enum feed_column {
 	FEED_COLUMN_RIGHTS,
 	FEED_COLUMN_UPDATE_TIME,
 	FEED_COLUMN_DOWNLOAD_TIME,
-	FEED_COLUMN_ETAG,
+	FEED_COLUMN_ETAG_HEADER,
 	FEED_COLUMN_NONE,
 };
 
@@ -229,6 +232,7 @@ bool db_mark_item_read(int rowid);
 bool db_mark_item_unread(int rowid);
 struct string *db_get_plain_text_from_column(sqlite3_stmt *res, int column);
 int64_t get_unread_items_count_of_the_feed(const struct string *url);
+struct string *db_get_conserved_etag_header_of_the_feed(const struct string *url);
 
 bool curses_init(void);
 bool obtain_terminal_size(void);

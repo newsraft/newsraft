@@ -234,19 +234,15 @@ enter_xml_parsing_loop(const struct string *feed_buf, struct xml_data *data)
 	return success;
 }
 
-struct getfeed_feed *
-parse_xml_feed(const struct string *feed_buf)
+bool
+parse_xml_feed(const struct string *feed_buf, struct getfeed_feed *feed)
 {
 	struct xml_data data;
 	if ((data.value = crtes()) == NULL) {
 		FAIL("Not enough memory for updating a feed!");
-		return NULL;
+		return false;
 	}
-	if ((data.feed = create_feed()) == NULL) {
-		FAIL("Not enough memory for updating a feed!");
-		free_string(data.value);
-		return NULL;
-	}
+	data.feed = feed;
 	data.def_ns = NULL;
 	data.namespaces.top = 0;
 	data.namespaces.lim = 0;
@@ -284,8 +280,7 @@ parse_xml_feed(const struct string *feed_buf)
 		tidyBufFree(&data.draft_buffer);
 		tidyRelease(data.tidy_doc);
 		free_string(data.value);
-		free_feed(data.feed);
-		return NULL;
+		return false;
 	}
 
 	tidyBufFree(&data.draft_buffer);
@@ -294,5 +289,5 @@ parse_xml_feed(const struct string *feed_buf)
 	free_namespace_stack(&data.namespaces);
 	free_string(data.value);
 
-	return data.feed;
+	return true;
 }

@@ -228,7 +228,7 @@ updated_end(struct xml_data *data)
 	if ((data->atom10_pos & ATOM10_ENTRY) != 0) {
 		data->feed->item->upddate = parse_date_rfc3339(data->value->ptr, data->value->len);
 	} else {
-		data->feed->update_time = parse_date_rfc3339(data->value->ptr, data->value->len);
+		data->feed->update_date = parse_date_rfc3339(data->value->ptr, data->value->len);
 	}
 }
 

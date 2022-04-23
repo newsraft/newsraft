@@ -6,9 +6,14 @@ update_feed(const struct string *url)
 	bool success = false;
 	struct getfeed_feed feed = {0};
 
-	feed.etag_header = db_get_conserved_etag_header_of_the_feed(url);
-	if (feed.etag_header == NULL) {
+	feed.last_modified_header = db_get_string_from_feed_table(url, "last_modified_header", 20);
+	if (feed.last_modified_header == NULL) {
 		goto undo0;
+	}
+
+	feed.etag_header = db_get_string_from_feed_table(url, "etag_header", 11);
+	if (feed.etag_header == NULL) {
+		goto undo1;
 	}
 
 	struct string *feedbuf = crtes();

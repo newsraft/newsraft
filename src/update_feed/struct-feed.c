@@ -5,7 +5,7 @@
 bool
 grow_meat_on_bones_of_the_feed(struct getfeed_feed *feed)
 {
-	if (time(&feed->download_time) == (time_t) -1)   { goto undo0; }
+	if (time(&feed->download_date) == (time_t) -1)   { goto undo0; }
 	if ((feed->title.value       = crtes()) == NULL) { goto undo0; }
 	if ((feed->title.type        = crtes()) == NULL) { goto undo1; }
 	if ((feed->url               = crtes()) == NULL) { goto undo2; }
@@ -21,7 +21,7 @@ grow_meat_on_bones_of_the_feed(struct getfeed_feed *feed)
 	feed->author = NULL;
 	feed->editor = NULL;
 	feed->webmaster = NULL;
-	feed->update_time = 0;
+	feed->update_date = 0;
 	feed->item = NULL;
 	return true;
 undoA:
@@ -67,5 +67,6 @@ free_feed(struct getfeed_feed *feed)
 	free_person(feed->editor);
 	free_person(feed->webmaster);
 	free_string(feed->etag_header);
+	free_string(feed->last_modified_header);
 	free_item(feed->item);
 }

@@ -116,8 +116,8 @@ pubDate_end(struct xml_data *data)
 		// But lastBuildDate is more commonly used, so don't
 		// bother with pubDate value if lastBuildDate was already
 		// set.
-		if (data->feed->update_time == 0) {
-			data->feed->update_time = parse_date_rfc822(data->value);
+		if (data->feed->update_date == 0) {
+			data->feed->update_date = parse_date_rfc822(data->value);
 		}
 	}
 }
@@ -272,7 +272,7 @@ lastBuildDate_end(struct xml_data *data)
 	if ((data->rss20_pos & RSS20_ITEM) == 0) {
 		// In RSS 2.0 lastBuildDate element is only for channel,
 		// for items they use pubDate.
-		data->feed->update_time = parse_date_rfc822(data->value);
+		data->feed->update_date = parse_date_rfc822(data->value);
 	}
 }
 

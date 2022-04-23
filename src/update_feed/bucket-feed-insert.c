@@ -30,24 +30,25 @@ insert_feed(const struct string *feed_url, const struct getfeed_feed *feed)
 		goto undo4;
 	}
 	sqlite3_stmt *s;
-	if (db_prepare("INSERT OR REPLACE INTO feeds VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", 79, &s, NULL) == false) {
+	if (db_prepare("INSERT OR REPLACE INTO feeds VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", 82, &s, NULL) == false) {
 		success = false;
 		goto undo5;
 	}
-	sqlite3_bind_text(s,   FEED_COLUMN_FEED_URL      + 1, feed_url->ptr,          feed_url->len,          NULL);
-	db_bind_text_struct(s, FEED_COLUMN_TITLE         + 1, &feed->title);
-	sqlite3_bind_text(s,   FEED_COLUMN_LINK          + 1, feed->url->ptr,         feed->url->len,         NULL);
-	db_bind_text_struct(s, FEED_COLUMN_SUMMARY       + 1, &feed->summary);
-	sqlite3_bind_text(s,   FEED_COLUMN_AUTHORS       + 1, authors_str->ptr,       authors_str->len,       NULL);
-	sqlite3_bind_text(s,   FEED_COLUMN_EDITORS       + 1, editors_str->ptr,       editors_str->len,       NULL);
-	sqlite3_bind_text(s,   FEED_COLUMN_WEBMASTERS    + 1, webmasters_str->ptr,    webmasters_str->len,    NULL);
-	sqlite3_bind_text(s,   FEED_COLUMN_CATEGORIES    + 1, categories_str->ptr,    categories_str->len,    NULL);
-	sqlite3_bind_text(s,   FEED_COLUMN_LANGUAGE      + 1, feed->language->ptr,    feed->language->len,    NULL);
-	sqlite3_bind_text(s,   FEED_COLUMN_GENERATOR     + 1, generator_str->ptr,     generator_str->len,     NULL);
-	db_bind_text_struct(s, FEED_COLUMN_RIGHTS        + 1, &feed->rights);
-	sqlite3_bind_int64(s,  FEED_COLUMN_UPDATE_TIME   + 1, (sqlite3_int64)(feed->update_time));
-	sqlite3_bind_int64(s,  FEED_COLUMN_DOWNLOAD_TIME + 1, (sqlite3_int64)(feed->download_time));
-	sqlite3_bind_text(s,   FEED_COLUMN_ETAG_HEADER   + 1, feed->etag_header->ptr, feed->etag_header->len, NULL);
+	sqlite3_bind_text(s,   FEED_COLUMN_FEED_URL             + 1, feed_url->ptr,                   feed_url->len,                   NULL);
+	db_bind_text_struct(s, FEED_COLUMN_TITLE                + 1, &feed->title);
+	sqlite3_bind_text(s,   FEED_COLUMN_LINK                 + 1, feed->url->ptr,                  feed->url->len,                  NULL);
+	db_bind_text_struct(s, FEED_COLUMN_SUMMARY              + 1, &feed->summary);
+	sqlite3_bind_text(s,   FEED_COLUMN_AUTHORS              + 1, authors_str->ptr,                authors_str->len,                NULL);
+	sqlite3_bind_text(s,   FEED_COLUMN_EDITORS              + 1, editors_str->ptr,                editors_str->len,                NULL);
+	sqlite3_bind_text(s,   FEED_COLUMN_WEBMASTERS           + 1, webmasters_str->ptr,             webmasters_str->len,             NULL);
+	sqlite3_bind_text(s,   FEED_COLUMN_CATEGORIES           + 1, categories_str->ptr,             categories_str->len,             NULL);
+	sqlite3_bind_text(s,   FEED_COLUMN_LANGUAGE             + 1, feed->language->ptr,             feed->language->len,             NULL);
+	sqlite3_bind_text(s,   FEED_COLUMN_GENERATOR            + 1, generator_str->ptr,              generator_str->len,              NULL);
+	db_bind_text_struct(s, FEED_COLUMN_RIGHTS               + 1, &feed->rights);
+	sqlite3_bind_int64(s,  FEED_COLUMN_UPDATE_DATE          + 1, (sqlite3_int64)(feed->update_date));
+	sqlite3_bind_int64(s,  FEED_COLUMN_DOWNLOAD_DATE        + 1, (sqlite3_int64)(feed->download_date));
+	sqlite3_bind_text(s,   FEED_COLUMN_ETAG_HEADER          + 1, feed->etag_header->ptr,          feed->etag_header->len,          NULL);
+	sqlite3_bind_text(s,   FEED_COLUMN_LAST_MODIFIED_HEADER + 1, feed->last_modified_header->ptr, feed->last_modified_header->len, NULL);
 	if (sqlite3_step(s) != SQLITE_DONE) {
 		FAIL("Insertion of feed data failed: %s", db_error_string());
 		success = false;

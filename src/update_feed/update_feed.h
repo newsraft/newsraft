@@ -1,5 +1,6 @@
 #ifndef UPDATE_FEED_H
 #define UPDATE_FEED_H
+#include <curl/curl.h>
 #include "feedeater.h"
 
 enum download_status {
@@ -68,12 +69,14 @@ struct getfeed_feed {
 	struct getfeed_person *author;
 	struct getfeed_person *editor;
 	struct getfeed_person *webmaster;
-	time_t update_time;
-	time_t download_time;
+	time_t update_date;
+	time_t download_date;
 	struct string *etag_header;
+	struct string *last_modified_header;
 	struct getfeed_item *item;
 };
 
+struct curl_slist *create_list_of_headers(struct getfeed_feed *feed);
 enum download_status download_feed(const char *url, struct getfeed_feed *feed, struct string *feedbuf);
 
 bool grow_meat_on_bones_of_the_feed(struct getfeed_feed *feed);

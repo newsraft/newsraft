@@ -33,9 +33,10 @@ db_init(void)
 			"language TEXT NOT NULL,"
 			"generator TEXT NOT NULL,"
 			"rights TEXT NOT NULL,"
-			"update_time INTEGER(8) NOT NULL," // update date in seconds since 1970
-			"download_time INTEGER(8) NOT NULL," // download date in seconds since 1970
-			"etag_header TEXT NOT NULL" // HTTP header that identifies a specific version of a resource
+			"update_date INTEGER(8) NOT NULL," // epoch time of the moment when actual feed got updated
+			"download_date INTEGER(8) NOT NULL," // epoch time of the moment when last download did occur
+			"etag_header TEXT NOT NULL," // HTTP header that identifies a specific version of a resource
+			"last_modified_header TEXT NOT NULL" // HTTP header that contains a date when the resource was last modified
 		");"
 		"CREATE TABLE IF NOT EXISTS items("
 			"feed_url TEXT NOT NULL," // url of feed this item belongs to
@@ -188,23 +189,31 @@ error:
 }
 
 struct string *
-db_get_conserved_etag_header_of_the_feed(const struct string *url)
+db_get_string_from_feed_table(const struct string *url, const char *column, size_t column_len)
 {
-	struct string *etag_header = crtes();
-	if (etag_header == NULL) {
-		FAIL("Not enough memory for conserved ETag header!");
+	struct string *str = crtes();
+	if (str == NULL) {
+		FAIL("Not enough memory for string from feed table!");
 		return NULL;
 	}
+	struct string *query = crtas("SELECT ", 7);
+	if (query == NULL) {
+		free_string(str);
+		return NULL;
+	}
+	catas(query, column, column_len);
+	catas(query, " FROM feeds WHERE feed_url=?;", 29);
 	sqlite3_stmt *res;
-	if (db_prepare("SELECT etag_header FROM feeds WHERE feed_url=?;", 48, &res, NULL) == true) {
+	if (db_prepare(query->ptr, query->len + 1, &res, NULL) == true) {
 		sqlite3_bind_text(res, 1, url->ptr, url->len, NULL);
 		if (sqlite3_step(res) == SQLITE_ROW) {
-			const char *etag_header_value = (char *)sqlite3_column_text(res, 0);
-			if (etag_header_value != NULL) {
-				cpyas(etag_header, etag_header_value, strlen(etag_header_value));
+			const char *str_value = (char *)sqlite3_column_text(res, 0);
+			if (str_value != NULL) {
+				cpyas(str, str_value, strlen(str_value));
 			}
 		}
 		sqlite3_finalize(res);
 	}
-	return etag_header;
+	free_string(query);
+	return str;
 }

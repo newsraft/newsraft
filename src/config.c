@@ -1,34 +1,6 @@
-#include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
 #include "feedeater.h"
 
 struct config_data cfg;
-
-static inline time_t
-get_local_offset_relative_to_utc(void)
-{
-	time_t rawtime = time(NULL);
-	return rawtime - mktime(gmtime(&rawtime));
-}
-
-struct string *
-get_config_date_str(time_t time)
-{
-	char date_ptr[200];
-	time_t local_time = time + get_local_offset_relative_to_utc();
-	size_t date_len = strftime(date_ptr, sizeof(date_ptr), cfg.contents_date_format->ptr, localtime(&local_time));
-	if (date_len == 0) {
-		FAIL("Failed to create date string!");
-		return NULL;
-	}
-	struct string *date_str = crtas(date_ptr, date_len);
-	if (date_str == NULL) {
-		FAIL("Not enough memory for date string!");
-		return NULL;
-	}
-	return date_str;
-}
 
 void
 free_config_data(void)
@@ -53,9 +25,8 @@ load_config(void)
 	cfg.append_links = true;
 	cfg.run_cleaning_of_the_database_on_startup = true;
 	cfg.run_analysis_of_the_database_on_startup = true;
-	cfg.respect_etag_header = true;
-	cfg.attach_if_none_match_header = true;
-	cfg.attach_if_modified_since_header = true;
+	cfg.send_if_none_match_header = true;
+	cfg.send_if_modified_since_header = true;
 	cfg.menu_section_entry_format = NULL;
 	cfg.menu_feed_entry_format = NULL;
 	cfg.menu_item_entry_format = NULL;

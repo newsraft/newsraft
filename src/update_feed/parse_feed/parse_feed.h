@@ -73,6 +73,7 @@ void free_default_namespaces(struct xml_default_namespace *first_def_ns);
 
 bool add_namespace_to_stack(struct xml_namespace_stack *stack, const char *name, const char *uri);
 void pop_namespace_from_stack(struct xml_namespace_stack *stack);
+const struct string *find_namespace_uri_by_its_name(const struct xml_namespace_stack *namespaces, const char *name, size_t name_len);
 void free_namespace_stack(struct xml_namespace_stack *stack);
 
 bool parse_xml_feed(const struct string *feed_buf, struct getfeed_feed *feed);

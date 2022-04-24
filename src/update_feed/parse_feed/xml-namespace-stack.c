@@ -3,7 +3,7 @@
 bool
 add_namespace_to_stack(struct xml_namespace_stack *stack, const char *name, const char *uri)
 {
-	INFO("Adding the \"%s\" namespace identified as \"%s\" to stack.", uri, name);
+	INFO("Adding \"%s\" namespace identified as \"%s\" to stack.", uri, name);
 	if (stack->top == stack->lim) {
 		void *temp = realloc(stack->buf, sizeof(struct xml_namespace) * (stack->lim + 1));
 		if (temp == NULL) {
@@ -32,10 +32,24 @@ pop_namespace_from_stack(struct xml_namespace_stack *stack)
 	if (stack->top == 0) {
 		return;
 	}
-	INFO("Removing the \"%s\" namespace from stack.", stack->buf[stack->top - 1].uri->ptr);
+	INFO("Removing \"%s\" namespace from stack.", stack->buf[stack->top - 1].uri->ptr);
 	free_string(stack->buf[stack->top - 1].name);
 	free_string(stack->buf[stack->top - 1].uri);
 	--(stack->top);
+}
+
+const struct string *
+find_namespace_uri_by_its_name(const struct xml_namespace_stack *namespaces, const char *name, size_t name_len)
+{
+	for (size_t i = 0; i < namespaces->top; ++i) {
+		if ((name_len == namespaces->buf[i].name->len)
+		    && (memcmp(name, namespaces->buf[i].name->ptr, name_len) == 0))
+		{
+			return namespaces->buf[i].uri;
+		}
+	}
+	WARN("Couldn't find namespace URI for the \"%s\" identifier!", name);
+	return NULL;
 }
 
 void

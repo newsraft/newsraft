@@ -1,6 +1,27 @@
 #include <string.h>
 #include "update_feed/update_feed.h"
 
+static inline bool
+is_last_modified_date_string_valid(const struct string *date)
+{
+	// WARNING: This function does not guarantee 100% validity,
+	// because it checks only a few characters of the string.
+	// TODO: make it check the whole thing.
+	//
+	// Here is an example of the Last-Modified date string: Wed, 21 Oct 2015 07:28:00 GMT
+	// It must always be 29 characters long and have "GMT" at the end.
+	if (date->len != 29) {
+		return false;
+	}
+	if (strcmp(date->ptr + 26, "GMT") != 0) {
+		return false;
+	}
+	if ((date->ptr[3] != ',') || (date->ptr[19] != ':') || (date->ptr[22] != ':')) {
+		return false;
+	}
+	return true;
+}
+
 static size_t
 parse_stream_callback(char *contents, size_t length, size_t nmemb, struct string *data)
 {
@@ -33,7 +54,10 @@ header_callback(char *buffer, size_t size, size_t nitems, struct getfeed_feed *d
 		cpyas(data->last_modified_header, header->ptr + 15, header->len - 15);
 		trim_whitespace_from_string(data->last_modified_header);
 		INFO("Found Last-Modified header during feed download: %s", data->last_modified_header->ptr);
-		// TODO: verify that this is really a date
+		if (is_last_modified_date_string_valid(data->last_modified_header) == false) {
+			WARN("This Last-Modified header is not valid!");
+			empty_string(data->last_modified_header);
+		}
 	}
 	free_string(header);
 	return real_size;

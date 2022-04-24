@@ -43,20 +43,6 @@ get_value_of_attribute_key(const TidyAttr attrs, const char *key)
 	return NULL; // failure, didn't find an attribute with key name
 }
 
-static inline const struct string *
-get_namespace_uri(const struct xml_namespace_stack *namespaces, const char *namespace_name, size_t namespace_name_len)
-{
-	for (size_t i = 0; i < namespaces->top; ++i) {
-		if ((namespace_name_len == namespaces->buf[i].name->len) &&
-		    (memcmp(namespace_name, namespaces->buf[i].name->ptr, namespace_name_len) == 0))
-		{
-			INFO("Found URI of the \"%s\" namespace: \"%s\".", namespaces->buf[i].name->ptr, namespaces->buf[i].uri->ptr);
-			return namespaces->buf[i].uri;
-		}
-	}
-	return NULL;
-}
-
 static inline bool
 find_namespaces_among_tag_attributes_and_process_them(struct xml_data *data, const TidyAttr attrs, bool *changed_default_namespace)
 {
@@ -68,7 +54,7 @@ find_namespaces_among_tag_attributes_and_process_them(struct xml_data *data, con
 		if (attr_name == NULL) {
 			continue;
 		}
-		if (strstr(attr_name, "xmlns") != attr_name) {
+		if (strncmp(attr_name, "xmlns", 5) != 0) {
 			// Attribute name doesn't start with "xmlns".
 			continue;
 		}
@@ -177,7 +163,7 @@ dumpNode(struct xml_data *data, TidyNode tnod)
 			tag_namespace = NULL;
 			sep_pos = strchr(tag_name, XML_NAMESPACE_SEPARATOR);
 			if (sep_pos != NULL) {
-				tag_namespace = get_namespace_uri(&data->namespaces, tag_name, sep_pos - tag_name);
+				tag_namespace = find_namespace_uri_by_its_name(&data->namespaces, tag_name, sep_pos - tag_name);
 				tag_name = sep_pos + 1;
 			} else if (data->def_ns != NULL) {
 				tag_namespace = data->def_ns->uri;

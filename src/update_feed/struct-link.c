@@ -22,16 +22,14 @@ create_link(void)
 bool
 prepend_link(struct getfeed_link **head_link_ptr)
 {
-	if (*head_link_ptr == NULL) {
-		*head_link_ptr = create_link();
-	} else {
-		struct getfeed_link *link = create_link();
-		if (link == NULL) {
-			return false;
-		}
-		link->next = *head_link_ptr;
-		*head_link_ptr = link;
+	struct getfeed_link *link = create_link();
+	if (link == NULL) {
+		return false;
 	}
+	if (*head_link_ptr != NULL) {
+		link->next = *head_link_ptr;
+	}
+	*head_link_ptr = link;
 	return true;
 }
 

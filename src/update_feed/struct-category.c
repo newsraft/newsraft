@@ -18,19 +18,14 @@ create_category(void)
 bool
 prepend_category(struct getfeed_category **head_category_ptr)
 {
-	if (*head_category_ptr == NULL) {
-		*head_category_ptr = create_category();
-		if (*head_category_ptr == NULL) {
-			return false;
-		}
-	} else {
-		struct getfeed_category *category = create_category();
-		if (category == NULL) {
-			return false;
-		}
-		category->next = *head_category_ptr;
-		*head_category_ptr = category;
+	struct getfeed_category *category = create_category();
+	if (category == NULL) {
+		return false;
 	}
+	if (*head_category_ptr != NULL) {
+		category->next = *head_category_ptr;
+	}
+	*head_category_ptr = category;
 	return true;
 }
 

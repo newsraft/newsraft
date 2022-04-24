@@ -18,16 +18,14 @@ create_person(void)
 bool
 prepend_person(struct getfeed_person **head_person_ptr)
 {
-	if (*head_person_ptr == NULL) {
-		*head_person_ptr = create_person();
-	} else {
-		struct getfeed_person *person = create_person();
-		if (person == NULL) {
-			return false;
-		}
-		person->next = *head_person_ptr;
-		*head_person_ptr = person;
+	struct getfeed_person *person = create_person();
+	if (person == NULL) {
+		return false;
 	}
+	if (*head_person_ptr != NULL) {
+		person->next = *head_person_ptr;
+	}
+	*head_person_ptr = person;
 	return true;
 }
 

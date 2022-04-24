@@ -46,19 +46,18 @@ undo0:
 	return NULL;
 }
 
-void
+bool
 prepend_item(struct getfeed_item **head_item_ptr)
 {
-	if (*head_item_ptr == NULL) {
-		*head_item_ptr = create_item();
-	} else {
-		struct getfeed_item *item = create_item();
-		if (item == NULL) {
-			return;
-		}
-		item->next = *head_item_ptr;
-		*head_item_ptr = item;
+	struct getfeed_item *item = create_item();
+	if (item == NULL) {
+		return false;
 	}
+	if (*head_item_ptr != NULL) {
+		item->next = *head_item_ptr;
+	}
+	*head_item_ptr = item;
+	return true;
 }
 
 void

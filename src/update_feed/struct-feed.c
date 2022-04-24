@@ -3,7 +3,7 @@
 // On success returns true.
 // On memory shortage returns false.
 bool
-grow_meat_on_bones_of_the_feed(struct getfeed_feed *feed)
+initialize_feed(struct getfeed_feed *feed)
 {
 	if (time(&feed->download_date) == (time_t) -1)   { goto undo0; }
 	if ((feed->title.value       = crtes()) == NULL) { goto undo0; }

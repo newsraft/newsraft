@@ -30,7 +30,7 @@ update_feed(const struct string *url)
 		goto undo2;
 	}
 
-	if (grow_meat_on_bones_of_the_feed(&feed) == false) {
+	if (initialize_feed(&feed) == false) {
 		goto undo2;
 	}
 

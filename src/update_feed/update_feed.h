@@ -79,7 +79,7 @@ struct getfeed_feed {
 struct curl_slist *create_list_of_headers(struct getfeed_feed *feed);
 enum download_status download_feed(const char *url, struct getfeed_feed *feed, struct string *feedbuf);
 
-bool grow_meat_on_bones_of_the_feed(struct getfeed_feed *feed);
+bool initialize_feed(struct getfeed_feed *feed);
 void free_feed(struct getfeed_feed *feed);
 
 // See "parse_feed" directory for implementation.
@@ -95,7 +95,7 @@ bool insert_feed(const struct string *feed_url, const struct getfeed_feed *feed)
 struct string *generate_generator_string(const struct getfeed_generator *generator);
 
 // item bucket functions
-void prepend_item(struct getfeed_item **head_item_ptr);
+bool prepend_item(struct getfeed_item **head_item_ptr);
 void free_item(struct getfeed_item *item);
 
 bool prepend_category(struct getfeed_category **head_category_ptr);

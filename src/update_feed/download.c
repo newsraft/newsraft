@@ -100,10 +100,11 @@ download_feed(const char *url, struct getfeed_feed *feed, struct string *feedbuf
 	curl_easy_cleanup(curl);
 
 	if (http_code == 304) {
-		// 304 (Not Modified) response code indicates that there is
-		// no need to retransmit the requested resources.
-		// It is returned because server's ETag header value was
-		// equal to our ETag value (supplied with If-None-Match header).
+		// This 304 (Not Modified) response code indicates that
+		// there is no need to retransmit the requested resources.
+		// There may be two reasons for this:
+		// 1) server's ETag header is equal to our If-None-Match header;
+		// 2) server's Last-Modified header is equal to our If-Modified-Since header.
 		return DOWNLOAD_CANCELED;
 	}
 

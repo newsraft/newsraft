@@ -1,6 +1,5 @@
 #ifndef UPDATE_FEED_H
 #define UPDATE_FEED_H
-#include <curl/curl.h>
 #include "feedeater.h"
 
 enum download_status {
@@ -76,11 +75,11 @@ struct getfeed_feed {
 	struct getfeed_item *item;
 };
 
-struct curl_slist *create_list_of_headers(struct getfeed_feed *feed);
-enum download_status download_feed(const char *url, struct getfeed_feed *feed, struct string *feedbuf);
-
 bool initialize_feed(struct getfeed_feed *feed);
 void free_feed(struct getfeed_feed *feed);
+
+// See "download_feed" directory for implementation.
+enum download_status download_feed(const char *url, struct getfeed_feed *feed, struct string *feedbuf);
 
 // See "parse_feed" directory for implementation.
 bool parse_feed(const struct string *feed_buf, struct getfeed_feed *feed);

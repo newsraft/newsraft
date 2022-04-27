@@ -1,5 +1,5 @@
 #include <string.h>
-#include "update_feed/update_feed.h"
+#include "update_feed/download_feed/download_feed.h"
 
 static inline bool
 is_last_modified_date_string_valid(const struct string *date)

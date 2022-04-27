@@ -1,4 +1,4 @@
-#include "update_feed/update_feed.h"
+#include "update_feed/download_feed/download_feed.h"
 
 struct curl_slist *
 create_list_of_headers(struct getfeed_feed *feed)

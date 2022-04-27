@@ -1,9 +1,9 @@
 #include <string.h>
-#include "feedeater.h"
-#include "update_feed/update_feed.h"
+#include "update_feed/insert_feed/insert_feed.h"
 
 void
-delete_excess_items(const struct string *feed_url) {
+delete_excess_items(const struct string *feed_url)
+{
 	INFO("Deleting excess items...");
 	sqlite3_stmt *s;
 	if (db_prepare("SELECT rowid FROM items WHERE feed_url = ? ORDER BY upddate DESC, pubdate DESC, rowid DESC;", 92, &s, NULL) == false) {
@@ -102,7 +102,7 @@ db_insert_item(const struct string *feed_url, const struct getfeed_item *item, i
 }
 
 void
-insert_item(const struct string *feed_url, const struct getfeed_item *item)
+insert_item_data(const struct string *feed_url, const struct getfeed_item *item)
 {
 	sqlite3_stmt *s = NULL;
 	int step_status;

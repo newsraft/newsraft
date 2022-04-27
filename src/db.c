@@ -90,6 +90,7 @@ db_init(void)
 bool
 db_begin_transaction(void)
 {
+	INFO("Starting database transaction.");
 	char *errmsg;
 	sqlite3_exec(db, "BEGIN TRANSACTION;", NULL, NULL, &errmsg);
 	if (errmsg != NULL) {
@@ -103,6 +104,7 @@ db_begin_transaction(void)
 bool
 db_commit_transaction(void)
 {
+	INFO("Committing database transaction.");
 	char *errmsg;
 	sqlite3_exec(db, "COMMIT;", NULL, NULL, &errmsg);
 	if (errmsg != NULL) {
@@ -116,6 +118,7 @@ db_commit_transaction(void)
 bool
 db_rollback_transaction(void)
 {
+	INFO("Rolling back database transaction.");
 	char *errmsg;
 	sqlite3_exec(db, "ROLLBACK;", NULL, NULL, &errmsg);
 	if (errmsg != NULL) {

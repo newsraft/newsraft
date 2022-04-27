@@ -85,14 +85,8 @@ void free_feed(struct getfeed_feed *feed);
 // See "parse_feed" directory for implementation.
 bool parse_feed(const struct string *feed_buf, struct getfeed_feed *feed);
 
-void delete_excess_items(const struct string *feed_url);
-
-bool db_bind_text_struct(sqlite3_stmt *s, intmax_t placeholder, const struct getfeed_text *text_struct);
-
-void insert_item(const struct string *feed_url, const struct getfeed_item *item);
-bool insert_feed(const struct string *feed_url, const struct getfeed_feed *feed);
-
-struct string *generate_generator_string(const struct getfeed_generator *generator);
+// See "insert_feed" directory for implementation.
+bool insert_feed(const struct string *url, const struct getfeed_feed *feed);
 
 // item bucket functions
 bool prepend_item(struct getfeed_item **head_item_ptr);
@@ -109,5 +103,7 @@ struct string *generate_link_list_string(const struct getfeed_link *link);
 bool prepend_person(struct getfeed_person **head_person_ptr);
 void free_person(struct getfeed_person *person);
 struct string *generate_person_list_string(const struct getfeed_person *person);
+
+struct string *generate_generator_string(const struct getfeed_generator *generator);
 
 #endif // UPDATE_FEED_H

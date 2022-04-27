@@ -38,29 +38,7 @@ update_feed(const struct string *url)
 		goto undo2;
 	}
 
-	if (db_begin_transaction() == false) {
-		goto undo2;
-	}
-
-	if (insert_feed(url, &feed) == false) {
-		FAIL("Failed to insert \"%s\" feed!", url->ptr);
-		db_rollback_transaction();
-		goto undo2;
-	}
-
-	struct getfeed_item *item = feed.item;
-	while (item != NULL) {
-		insert_item(url, item);
-		item = item->next;
-	}
-
-	if (cfg.max_items != 0) {
-		delete_excess_items(url);
-	}
-
-	if (db_commit_transaction() == true) {
-		success = true;
-	}
+	success = insert_feed(url, &feed);
 
 undo2:
 	free_string(feedbuf);

@@ -1,7 +1,7 @@
-#include "update_feed/update_feed.h"
+#include "update_feed/insert_feed/insert_feed.h"
 
 bool
-insert_feed(const struct string *feed_url, const struct getfeed_feed *feed)
+insert_feed_data(const struct string *feed_url, const struct getfeed_feed *feed)
 {
 	bool success = true;
 	struct string *authors_str = generate_person_list_string(feed->author);

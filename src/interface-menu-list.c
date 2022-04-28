@@ -50,7 +50,6 @@ adjust_list_menu(void)
 	//     deletes everything that entirely gone out of bounds. Hence do nothing in this case...
 	// }
 	windows_count = list_menu_height;
-	refresh();
 	return true;
 }
 

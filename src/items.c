@@ -202,15 +202,17 @@ enter_items_menu_loop(const struct string *url)
 	while (true) {
 		cmd = get_input_command();
 		if (cmd == INPUT_SELECT_NEXT) {
-			list_menu_view_select(&items_menu, items_menu.view_sel + 1);
+			list_menu_select_next(&items_menu);
 		} else if (cmd == INPUT_SELECT_PREV) {
-			list_menu_view_select(&items_menu, (items_menu.view_sel == 0) ? (0) : (items_menu.view_sel - 1));
+			list_menu_select_prev(&items_menu);
+		} else if (cmd == INPUT_SELECT_NEXT_PAGE) {
+			list_menu_select_next_page(&items_menu);
+		} else if (cmd == INPUT_SELECT_PREV_PAGE) {
+			list_menu_select_prev_page(&items_menu);
 		} else if (cmd == INPUT_SELECT_FIRST) {
-			list_menu_view_select(&items_menu, 0);
+			list_menu_select_first(&items_menu);
 		} else if (cmd == INPUT_SELECT_LAST) {
-			// Don't check if items_count is equal to zero,
-			// because we won't even get here if none items loaded.
-			list_menu_view_select(&items_menu, items_count - 1);
+			list_menu_select_last(&items_menu);
 		} else if (cmd == INPUT_MARK_READ) {
 			mark_item_read(items_menu.view_sel);
 		} else if (cmd == INPUT_MARK_UNREAD) {

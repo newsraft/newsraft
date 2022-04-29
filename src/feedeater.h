@@ -173,7 +173,12 @@ bool adjust_list_menu_format_buffer(void);
 void free_list_menu_format_buffer(void);
 void expose_entry_of_the_menu_list(struct menu_list_settings *settings, size_t index);
 void redraw_menu_list(struct menu_list_settings *settings);
-void list_menu_view_select(struct menu_list_settings *s, size_t i);
+void list_menu_select_next(struct menu_list_settings *s);
+void list_menu_select_prev(struct menu_list_settings *s);
+void list_menu_select_next_page(struct menu_list_settings *s);
+void list_menu_select_prev_page(struct menu_list_settings *s);
+void list_menu_select_first(struct menu_list_settings *s);
+void list_menu_select_last(struct menu_list_settings *s);
 
 // format
 const wchar_t *do_format(const struct wstring *fmt, const struct format_arg *args, size_t args_count);

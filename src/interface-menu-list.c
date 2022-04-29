@@ -94,8 +94,8 @@ redraw_menu_list(struct menu_list_settings *settings)
 	expose_all_visible_entries_of_the_menu_list(settings);
 }
 
-void
-list_menu_view_select(struct menu_list_settings *s, size_t i)
+static void
+list_menu_change_view(struct menu_list_settings *s, size_t i)
 {
 	size_t new_sel = i;
 
@@ -129,4 +129,40 @@ list_menu_view_select(struct menu_list_settings *s, size_t i)
 		mvwchgat(windows[target_window], 0, 0, -1, A_REVERSE, 0, NULL);
 		wrefresh(windows[target_window]);
 	}
+}
+
+void
+list_menu_select_next(struct menu_list_settings *s)
+{
+	list_menu_change_view(s, s->view_sel + 1);
+}
+
+void
+list_menu_select_prev(struct menu_list_settings *s)
+{
+	list_menu_change_view(s, (s->view_sel > 1) ? (s->view_sel - 1) : (0));
+}
+
+void
+list_menu_select_next_page(struct menu_list_settings *s)
+{
+	list_menu_change_view(s, s->view_sel + list_menu_height);
+}
+
+void
+list_menu_select_prev_page(struct menu_list_settings *s)
+{
+	list_menu_change_view(s, (s->view_sel > list_menu_height) ? (s->view_sel - list_menu_height) : (0));
+}
+
+void
+list_menu_select_first(struct menu_list_settings *s)
+{
+	list_menu_change_view(s, 0);
+}
+
+void
+list_menu_select_last(struct menu_list_settings *s)
+{
+	list_menu_change_view(s, (s->entries_count > 1) ? (s->entries_count - 1) : (0));
 }

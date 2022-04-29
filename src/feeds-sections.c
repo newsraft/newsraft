@@ -194,13 +194,17 @@ enter_sections_menu_loop(struct feed_line ***feeds_ptr, size_t *feeds_count_ptr)
 	while (true) {
 		cmd = get_input_command();
 		if (cmd == INPUT_SELECT_NEXT) {
-			list_menu_view_select(&sections_menu, sections_menu.view_sel + 1);
+			list_menu_select_next(&sections_menu);
 		} else if (cmd == INPUT_SELECT_PREV) {
-			list_menu_view_select(&sections_menu, (sections_menu.view_sel == 0) ? (0) : (sections_menu.view_sel - 1));
+			list_menu_select_prev(&sections_menu);
+		} else if (cmd == INPUT_SELECT_NEXT_PAGE) {
+			list_menu_select_next_page(&sections_menu);
+		} else if (cmd == INPUT_SELECT_PREV_PAGE) {
+			list_menu_select_prev_page(&sections_menu);
 		} else if (cmd == INPUT_SELECT_FIRST) {
-			list_menu_view_select(&sections_menu, 0);
+			list_menu_select_first(&sections_menu);
 		} else if (cmd == INPUT_SELECT_LAST) {
-			list_menu_view_select(&sections_menu, sections_count - 1);
+			list_menu_select_last(&sections_menu);
 		} else if (cmd == INPUT_MARK_READ) {
 			// TODO
 		} else if (cmd == INPUT_MARK_UNREAD) {

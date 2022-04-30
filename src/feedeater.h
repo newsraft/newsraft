@@ -215,12 +215,6 @@ void free_feeds_path(void);
 void free_config_path(void);
 void free_db_path(void);
 
-// config processing
-void free_config_data(void);
-bool assign_default_values_to_config_settings(void);
-bool verify_config_values(void);
-bool load_config(void);
-
 // date parsing
 struct string *get_config_date_str(time_t time_ptr);
 
@@ -246,7 +240,6 @@ bool obtain_terminal_size(void);
 // See "interface-input.c" file for implementation.
 int get_input_command(void);
 bool assign_action_to_key(int bind_key, enum input_cmd bind_cmd);
-bool load_default_binds(void);
 void free_binds(void);
 
 // Functions related to window which displays status messages.
@@ -291,6 +284,11 @@ struct string *convert_wstring_to_string(const struct wstring *src);
 
 bool log_init(const char *path);
 void log_stop(void);
+
+// Parse config file, fill out config_data structure, bind keys to actions.
+// See "load_config" directory for implementation.
+bool load_config(void);
+void free_config(void);
 
 // Download, process and store new items of feed.
 // See "update_feed" directory for implementation.

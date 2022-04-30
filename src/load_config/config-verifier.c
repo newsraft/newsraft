@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <string.h>
-#include "feedeater.h"
+#include "load_config/load_config.h"
 
 bool
 verify_config_values(void)

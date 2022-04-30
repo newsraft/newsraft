@@ -1,9 +1,9 @@
-#include "feedeater.h"
+#include "load_config/load_config.h"
 
 struct config_data cfg;
 
 void
-free_config_data(void)
+free_config(void)
 {
 	INFO("Freeing configuration strings.");
 	free_wstring(cfg.menu_section_entry_format);
@@ -14,12 +14,19 @@ free_config_data(void)
 	free_string(cfg.global_section_name);
 	free_string(cfg.contents_meta_data);
 	free_string(cfg.contents_date_format);
+	free_binds();
 }
 
 bool
 load_config(void)
 {
 	if (assign_default_values_to_config_settings() == false) {
+		fprintf(stderr, "Failed to assign default values to configuration settings!\n");
+		return false;
+	}
+	if (load_default_binds() == false) {
+		fprintf(stderr, "Failed to load default bindings!\n");
+		free_config();
 		return false;
 	}
 
@@ -29,7 +36,7 @@ load_config(void)
 
 	if (verify_config_values() == false) {
 		fprintf(stderr, "Verification of the configuration failed!\n");
-		free_config_data();
+		free_config();
 		return false;
 	}
 

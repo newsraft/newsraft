@@ -7,6 +7,8 @@ struct string *generate_useragent_string(void);
 bool assign_default_values_to_config_settings(void);
 bool load_default_binds(void);
 
+void log_config_settings(void);
+
 bool verify_config_values(void);
 
 #endif // LOAD_CONFIG_H

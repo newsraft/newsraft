@@ -35,6 +35,8 @@ load_config(void)
 	/* 	success = false; */
 	/* } */
 
+	log_config_settings();
+
 	if (verify_config_values() == false) {
 		fprintf(stderr, "Verification of the configuration failed!\n");
 		free_config();

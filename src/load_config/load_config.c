@@ -9,11 +9,12 @@ free_config(void)
 	free_wstring(cfg.menu_section_entry_format);
 	free_wstring(cfg.menu_feed_entry_format);
 	free_wstring(cfg.menu_item_entry_format);
-	free_string(cfg.proxy);
-	free_string(cfg.proxy_auth);
 	free_string(cfg.global_section_name);
 	free_string(cfg.contents_meta_data);
 	free_string(cfg.contents_date_format);
+	free_string(cfg.useragent);
+	free_string(cfg.proxy);
+	free_string(cfg.proxy_auth);
 	free_binds();
 }
 

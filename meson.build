@@ -75,6 +75,7 @@ executable(
 		'src/items-metadata.c',
 		'src/load_config/load_config.c',
 		'src/load_config/config-defaults.c',
+		'src/load_config/config-useragent.c',
 		'src/load_config/config-verifier.c',
 		'src/update_feed/update_feed.c',
 		'src/update_feed/struct-feed.c',

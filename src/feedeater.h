@@ -87,6 +87,7 @@ struct config_data {
 	bool append_links;
 	bool run_cleaning_of_the_database_on_startup;
 	bool run_analysis_of_the_database_on_startup;
+	bool send_useragent_header;
 	bool send_if_none_match_header;
 	bool send_if_modified_since_header;
 	struct wstring *menu_section_entry_format;
@@ -95,6 +96,7 @@ struct config_data {
 	struct string *global_section_name;
 	struct string *contents_meta_data;
 	struct string *contents_date_format;
+	struct string *useragent;
 	struct string *proxy;
 	struct string *proxy_auth;
 	size_t size_conversion_threshold;

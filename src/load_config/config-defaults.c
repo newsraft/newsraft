@@ -29,14 +29,20 @@ assign_default_values_to_config_settings(void)
 	if ((cfg.contents_date_format = crtas("%a, %d %b %Y %H:%M:%S %z", 24)) == NULL) {
 		goto undo7;
 	}
+	if ((cfg.useragent = generate_useragent_string()) == NULL) {
+		goto undo8;
+	}
 	cfg.max_items = 0; // 0 == inf
 	cfg.append_links = true;
 	cfg.run_cleaning_of_the_database_on_startup = true;
 	cfg.run_analysis_of_the_database_on_startup = true;
+	cfg.send_useragent_header = true;
 	cfg.send_if_none_match_header = true;
 	cfg.send_if_modified_since_header = true;
 	cfg.size_conversion_threshold = 1200;
 	return true;
+undo8:
+	free_string(cfg.contents_date_format);
 undo7:
 	free_string(cfg.contents_meta_data);
 undo6:

@@ -67,6 +67,9 @@ static inline void
 prepare_curl_for_performance(CURL *curl, const char *url, struct curl_slist *headers, struct getfeed_feed *feed, void *writedata, char *errbuf)
 {
 	curl_easy_setopt(curl, CURLOPT_URL, url);
+	if (cfg.send_useragent_header == true) {
+		curl_easy_setopt(curl, CURLOPT_USERAGENT, cfg.useragent->ptr);
+	}
 	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &parse_stream_callback);
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, writedata);

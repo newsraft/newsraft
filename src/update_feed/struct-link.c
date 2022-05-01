@@ -2,7 +2,7 @@
 #include <string.h>
 #include "update_feed/update_feed.h"
 
-static struct getfeed_link *
+static inline struct getfeed_link *
 create_link(void)
 {
 	struct getfeed_link *link = malloc(sizeof(struct getfeed_link));
@@ -11,6 +11,12 @@ create_link(void)
 	}
 	link->url = crtes();
 	link->type = crtes();
+	if ((link->url == NULL) || (link->type == NULL)) {
+		free_string(link->url);
+		free_string(link->type);
+		free(link);
+		return NULL;
+	}
 	link->size = 0;
 	link->duration = 0;
 	link->next = NULL;
@@ -26,9 +32,7 @@ prepend_link(struct getfeed_link **head_link_ptr)
 	if (link == NULL) {
 		return false;
 	}
-	if (*head_link_ptr != NULL) {
-		link->next = *head_link_ptr;
-	}
+	link->next = *head_link_ptr;
 	*head_link_ptr = link;
 	return true;
 }

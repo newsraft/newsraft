@@ -6,20 +6,20 @@ static void
 populate_person(cJSON *json, struct getfeed_person *person)
 {
 	for (cJSON *credit = json->child; credit != NULL; credit = credit->next) {
-		if ((cJSON_IsString(credit) == false) || (credit->valuestring == NULL)) {
+		if (cJSON_IsString(credit) == false) {
 			// All members of the author object are strings, skip everything else.
-			// Also skip NULL strings.
 			continue;
 		}
-		if (credit->string == NULL) {
-			// wtf?
-		} else if (strcmp(credit->string, "name") == 0) {
+		if ((credit->string == NULL) || (credit->valuestring == NULL)) {
+			// Also skip invalid entries.
+			continue;
+		}
+		if (strcmp(credit->string, "name") == 0) {
 			cpyas(person->name, credit->valuestring, strlen(credit->valuestring));
 		} else if (strcmp(credit->string, "url") == 0) {
 			cpyas(person->url, credit->valuestring, strlen(credit->valuestring));
-		} else if (strcmp(credit->string, "avatar") == 0) {
-			// TODO
 		}
+		// JSON Feed also provides "avatar" field! Cool, nice, great... What about "email", huh?
 	}
 }
 
@@ -28,7 +28,7 @@ populate_link(cJSON *json, struct getfeed_link *link)
 {
 	for (cJSON *entry = json->child; entry != NULL; entry = entry->next) {
 		if (entry->string == NULL) {
-			continue; // wtf?
+			continue;
 		}
 		if (cJSON_IsString(entry) == true) {
 			if (entry->valuestring == NULL) {
@@ -56,7 +56,7 @@ process_item_entry(cJSON *json, struct json_data *data)
 {
 	for (cJSON *node = json->child; node != NULL; node = node->next) {
 		if (node->string == NULL) {
-			continue; // wtf?
+			continue;
 		}
 		if (cJSON_IsString(node) == true) {
 			if (node->valuestring == NULL) {
@@ -100,8 +100,7 @@ process_item_entry(cJSON *json, struct json_data *data)
 			} else if (strcmp(node->string, "tags") == 0) {
 				for (cJSON *tag = node->child; tag != NULL; tag = tag->next) {
 					if ((cJSON_IsString(tag) == false) || (tag->valuestring == NULL)) {
-						// All elements of the tags array are strings, skip everything else.
-						// Also skip NULL strings.
+						// All elements of the tags array are strings, skip everything else. Also skip NULL strings.
 						continue;
 					}
 					prepend_category(&data->feed->item->category);

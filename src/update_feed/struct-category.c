@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include "update_feed/update_feed.h"
 
-static struct getfeed_category *
+static inline struct getfeed_category *
 create_category(void)
 {
 	struct getfeed_category *category = malloc(sizeof(struct getfeed_category));
@@ -11,6 +11,13 @@ create_category(void)
 	category->label = crtes();
 	category->term = crtes();
 	category->scheme = crtes();
+	if ((category->label == NULL) || (category->term == NULL) || (category->scheme == NULL)) {
+		free_string(category->label);
+		free_string(category->term);
+		free_string(category->scheme);
+		free(category);
+		return NULL;
+	}
 	category->next = NULL;
 	return category;
 }
@@ -22,9 +29,7 @@ prepend_category(struct getfeed_category **head_category_ptr)
 	if (category == NULL) {
 		return false;
 	}
-	if (*head_category_ptr != NULL) {
-		category->next = *head_category_ptr;
-	}
+	category->next = *head_category_ptr;
 	*head_category_ptr = category;
 	return true;
 }

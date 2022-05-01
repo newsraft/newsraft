@@ -1,4 +1,3 @@
-#include <string.h>
 #include "update_feed/parse_feed/parse_feed.h"
 
 // On success returns true.
@@ -53,9 +52,7 @@ prepend_item(struct getfeed_item **head_item_ptr)
 	if (item == NULL) {
 		return false;
 	}
-	if (*head_item_ptr != NULL) {
-		item->next = *head_item_ptr;
-	}
+	item->next = *head_item_ptr;
 	*head_item_ptr = item;
 	return true;
 }

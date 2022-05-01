@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include "update_feed/update_feed.h"
 
-static struct getfeed_person *
+static inline struct getfeed_person *
 create_person(void)
 {
 	struct getfeed_person *person = malloc(sizeof(struct getfeed_person));
@@ -11,6 +11,13 @@ create_person(void)
 	person->name = crtes();
 	person->email = crtes();
 	person->url = crtes();
+	if ((person->name == NULL) || (person->email == NULL) || (person->url == NULL)) {
+		free_string(person->name);
+		free_string(person->email);
+		free_string(person->url);
+		free(person);
+		return NULL;
+	}
 	person->next = NULL;
 	return person;
 }
@@ -22,9 +29,7 @@ prepend_person(struct getfeed_person **head_person_ptr)
 	if (person == NULL) {
 		return false;
 	}
-	if (*head_person_ptr != NULL) {
-		person->next = *head_person_ptr;
-	}
+	person->next = *head_person_ptr;
 	*head_person_ptr = person;
 	return true;
 }

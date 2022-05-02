@@ -4,11 +4,12 @@
 
 // https://web.archive.org/web/20210303084351/https://pythonhosted.org/feedparser/annotated-atom03.html
 // https://web.archive.org/web/20210417183310/http://rakaz.nl/2005/07/moving-from-atom-03-to-10.html
+// https://web.archive.org/web/20220502094905/https://support.google.com/merchants/answer/160598?hl=en
 
 // Note to the future.
 // Atom 0.3 does not have category element.
 
-static inline void
+static void
 copy_type_of_text_construct(struct xml_data *data, const TidyAttr atts, struct string *dest)
 {
 	// Atom 0.3 text construct types are fully compliant with MIME standard.
@@ -18,6 +19,7 @@ copy_type_of_text_construct(struct xml_data *data, const TidyAttr atts, struct s
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}
+		return;
 	}
 	if (cpyas(dest, "text/plain", 10) == false) {
 		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
@@ -25,33 +27,39 @@ copy_type_of_text_construct(struct xml_data *data, const TidyAttr atts, struct s
 	}
 }
 
-static inline void
-entry_start(struct xml_data *data)
+static void
+entry_start(struct xml_data *data, const TidyAttr attrs)
 {
-	data->atom03_pos |= ATOM03_ENTRY;
+	(void)attrs;
 	prepend_item(&data->feed->item);
 }
 
-static inline void
-entry_end(struct xml_data *data)
+static void
+id_end(struct xml_data *data)
 {
-	data->atom03_pos &= ~ATOM03_ENTRY;
-}
-
-static inline void
-title_start(struct xml_data *data)
-{
-	data->atom03_pos |= ATOM03_TITLE;
-}
-
-static inline void
-title_end(struct xml_data *data)
-{
-	if ((data->atom03_pos & ATOM03_TITLE) == 0) {
+	if ((data->xml_pos[ATOM03_FORMAT] & ATOM03_ENTRY) == 0) {
+		return; // Ignore feed id.
+	}
+	if (cpyss(data->feed->item->guid, data->value) == false) {
+		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		return;
 	}
-	data->atom03_pos &= ~ATOM03_TITLE;
-	if ((data->atom03_pos & ATOM03_ENTRY) != 0) {
+}
+
+static void
+title_start(struct xml_data *data, const TidyAttr attrs)
+{
+	if ((data->xml_pos[ATOM03_FORMAT] & ATOM03_ENTRY) != 0) {
+		copy_type_of_text_construct(data, attrs, data->feed->item->title.type);
+	} else {
+		copy_type_of_text_construct(data, attrs, data->feed->title.type);
+	}
+}
+
+static void
+title_end(struct xml_data *data)
+{
+	if ((data->xml_pos[ATOM03_FORMAT] & ATOM03_ENTRY) != 0) {
 		if (cpyss(data->feed->item->title.value, data->value) == false) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
@@ -64,23 +72,23 @@ title_end(struct xml_data *data)
 	}
 }
 
-static inline void
-link_start(struct xml_data *data, const TidyAttr atts)
+static void
+link_start(struct xml_data *data, const TidyAttr attrs)
 {
 	// Atom 0.3 link element does not have length and hreflang attributes.
-	const char *href = get_value_of_attribute_key(atts, "href");
+	const char *href = get_value_of_attribute_key(attrs, "href");
 	if (href == NULL) {
-		// In Atom 1.0 links href attribute MUST be set.
+		// In Atom 0.3 links href attribute MUST be set.
 		return;
 	}
-	const char *rel = get_value_of_attribute_key(atts, "rel");
+	const char *rel = get_value_of_attribute_key(attrs, "rel");
 	if ((rel != NULL) && (strcmp(rel, "self") == 0)) {
 		// Ignore links to feed itself.
 		return;
 	}
 	if ((rel == NULL) || (strcmp(rel, "alternate") == 0)) {
 		// Default value of rel is alternate.
-		if ((data->atom03_pos & ATOM03_ENTRY) != 0) {
+		if ((data->xml_pos[ATOM03_FORMAT] & ATOM03_ENTRY) != 0) {
 			if (cpyas(data->feed->item->url, href, strlen(href)) == false) {
 				data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 				return;
@@ -91,7 +99,7 @@ link_start(struct xml_data *data, const TidyAttr atts)
 				return;
 			}
 		}
-	} else if ((data->atom03_pos & ATOM03_ENTRY) != 0) {
+	} else if ((data->xml_pos[ATOM03_FORMAT] & ATOM03_ENTRY) != 0) {
 		if (prepend_link(&data->feed->item->attachment) == false) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
@@ -100,7 +108,7 @@ link_start(struct xml_data *data, const TidyAttr atts)
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}
-		const char *type = get_value_of_attribute_key(atts, "type");
+		const char *type = get_value_of_attribute_key(attrs, "type");
 		if (type != NULL) {
 			if (cpyas(data->feed->item->attachment->type, type, strlen(type)) == false) {
 				data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
@@ -110,24 +118,19 @@ link_start(struct xml_data *data, const TidyAttr atts)
 	}
 }
 
-static inline void
-summary_start(struct xml_data *data, const TidyAttr atts)
+static void
+summary_start(struct xml_data *data, const TidyAttr attrs)
 {
-	if ((data->atom03_pos & ATOM03_ENTRY) == 0) {
+	if ((data->xml_pos[ATOM03_FORMAT] & ATOM03_ENTRY) == 0) {
 		return;
 	}
-	data->atom03_pos |= ATOM03_SUMMARY;
-	copy_type_of_text_construct(data, atts, data->feed->item->summary.type);
+	copy_type_of_text_construct(data, attrs, data->feed->item->summary.type);
 }
 
-static inline void
+static void
 summary_end(struct xml_data *data)
 {
-	if ((data->atom03_pos & ATOM03_SUMMARY) == 0) {
-		return;
-	}
-	data->atom03_pos &= ~ATOM03_SUMMARY;
-	if ((data->atom03_pos & ATOM03_ENTRY) == 0) {
+	if ((data->xml_pos[ATOM03_FORMAT] & ATOM03_ENTRY) == 0) {
 		return;
 	}
 	if (cpyss(data->feed->item->summary.value, data->value) == false) {
@@ -136,24 +139,19 @@ summary_end(struct xml_data *data)
 	}
 }
 
-static inline void
-content_start(struct xml_data *data, const TidyAttr atts)
+static void
+content_start(struct xml_data *data, const TidyAttr attrs)
 {
-	if ((data->atom03_pos & ATOM03_ENTRY) == 0) {
+	if ((data->xml_pos[ATOM03_FORMAT] & ATOM03_ENTRY) == 0) {
 		return;
 	}
-	data->atom03_pos |= ATOM03_CONTENT;
-	copy_type_of_text_construct(data, atts, data->feed->item->content.type);
+	copy_type_of_text_construct(data, attrs, data->feed->item->content.type);
 }
 
-static inline void
+static void
 content_end(struct xml_data *data)
 {
-	if ((data->atom03_pos & ATOM03_CONTENT) == 0) {
-		return;
-	}
-	data->atom03_pos &= ~ATOM03_CONTENT;
-	if ((data->atom03_pos & ATOM03_ENTRY) == 0) {
+	if ((data->xml_pos[ATOM03_FORMAT] & ATOM03_ENTRY) == 0) {
 		return;
 	}
 	if (cpyss(data->feed->item->content.value, data->value) == false) {
@@ -162,188 +160,113 @@ content_end(struct xml_data *data)
 	}
 }
 
-static inline void
-id_start(struct xml_data *data)
-{
-	data->atom03_pos |= ATOM03_ID;
-}
-
-static inline void
-id_end(struct xml_data *data)
-{
-	if ((data->atom03_pos & ATOM03_ID) == 0) {
-		return;
-	}
-	data->atom03_pos &= ~ATOM03_ID;
-	if ((data->atom03_pos & ATOM03_ENTRY) == 0) {
-		// In Atom 0.3 feed can have unique id, but who needs it?
-		return;
-	}
-	if (cpyss(data->feed->item->guid, data->value) == false) {
-		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
-		return;
-	}
-}
-
-static inline void
-issued_start(struct xml_data *data)
-{
-	data->atom03_pos |= ATOM03_ISSUED;
-}
-
-static inline void
+static void
 issued_end(struct xml_data *data)
 {
-	if ((data->atom03_pos & ATOM03_ISSUED) == 0) {
-		return;
-	}
-	data->atom03_pos &= ~ATOM03_ISSUED;
-	if ((data->atom03_pos & ATOM03_ENTRY) == 0) {
+	if ((data->xml_pos[ATOM03_FORMAT] & ATOM03_ENTRY) == 0) {
 		// Atom 0.3 feed can have issued date but who needs it?
 		return;
 	}
 	data->feed->item->pubdate = parse_date_rfc3339(data->value->ptr, data->value->len);
 }
 
-static inline void
-modified_start(struct xml_data *data)
-{
-	data->atom03_pos |= ATOM03_MODIFIED;
-}
-
-static inline void
+static void
 modified_end(struct xml_data *data)
 {
-	if ((data->atom03_pos & ATOM03_MODIFIED) == 0) {
-		return;
-	}
-	data->atom03_pos &= ~ATOM03_MODIFIED;
-	if ((data->atom03_pos & ATOM03_ENTRY) != 0) {
+	if ((data->xml_pos[ATOM03_FORMAT] & ATOM03_ENTRY) != 0) {
 		data->feed->item->upddate = parse_date_rfc3339(data->value->ptr, data->value->len);
 	} else {
 		data->feed->update_date = parse_date_rfc3339(data->value->ptr, data->value->len);
 	}
 }
 
-static inline void
-author_start(struct xml_data *data)
+static void
+author_start(struct xml_data *data, const TidyAttr attrs)
 {
-	data->atom03_pos |= ATOM03_AUTHOR;
-	if ((data->atom03_pos & ATOM03_ENTRY) == 0) {
-		// Atom 0.3 says that feed must have at least one author, but who needs it?
-		return;
-	}
-	if (prepend_person(&data->feed->item->author) == false) {
-		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
-		return;
+	(void)attrs;
+	if ((data->xml_pos[ATOM03_FORMAT] & ATOM03_ENTRY) != 0) {
+		if (prepend_person(&data->feed->item->author) == false) {
+			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+			return;
+		}
+	} else {
+		if (prepend_person(&data->feed->author) == false) {
+			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+			return;
+		}
 	}
 }
 
-static inline void
-author_end(struct xml_data *data)
-{
-	if ((data->atom03_pos & ATOM03_AUTHOR) == 0) {
-		return;
-	}
-	data->atom03_pos &= ~ATOM03_AUTHOR;
-}
-
-static inline void
-name_start(struct xml_data *data)
-{
-	data->atom03_pos |= ATOM03_NAME;
-}
-
-static inline void
+static void
 name_end(struct xml_data *data)
 {
-	if ((data->atom03_pos & ATOM03_NAME) == 0) {
+	if ((data->xml_pos[ATOM03_FORMAT] & ATOM03_AUTHOR) == 0) {
 		return;
 	}
-	data->atom03_pos &= ~ATOM03_NAME;
-	if ((data->atom03_pos & ATOM03_ENTRY) == 0) {
-		// Atom 0.3 says that feed can have global author, but who needs it?
-		return;
-	}
-	if ((data->atom03_pos & ATOM03_AUTHOR) == 0) {
-		return;
-	}
-	if (cpyss(data->feed->item->author->name, data->value) == false) {
-		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
-		return;
+	if ((data->xml_pos[ATOM03_FORMAT] & ATOM03_ENTRY) != 0) {
+		if (cpyss(data->feed->item->author->name, data->value) == false) {
+			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+			return;
+		}
+	} else {
+		if (cpyss(data->feed->author->name, data->value) == false) {
+			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+			return;
+		}
 	}
 }
 
-static inline void
-url_start(struct xml_data *data)
-{
-	data->atom03_pos |= ATOM03_URL;
-}
-
-static inline void
+static void
 url_end(struct xml_data *data)
 {
-	if ((data->atom03_pos & ATOM03_URL) == 0) {
+	if ((data->xml_pos[ATOM03_FORMAT] & ATOM03_AUTHOR) == 0) {
 		return;
 	}
-	data->atom03_pos &= ~ATOM03_URL;
-	if ((data->atom03_pos & ATOM03_ENTRY) == 0) {
-		// Atom 0.3 says that feed can have global author, but who needs it?
-		return;
-	}
-	if ((data->atom03_pos & ATOM03_AUTHOR) == 0) {
-		return;
-	}
-	if (cpyss(data->feed->item->author->url, data->value) == false) {
-		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
-		return;
+	if ((data->xml_pos[ATOM03_FORMAT] & ATOM03_ENTRY) != 0) {
+		if (cpyss(data->feed->item->author->url, data->value) == false) {
+			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+			return;
+		}
+	} else {
+		if (cpyss(data->feed->author->url, data->value) == false) {
+			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+			return;
+		}
 	}
 }
 
-static inline void
-email_start(struct xml_data *data)
-{
-	data->atom03_pos |= ATOM03_EMAIL;
-}
-
-static inline void
+static void
 email_end(struct xml_data *data)
 {
-	if ((data->atom03_pos & ATOM03_EMAIL) == 0) {
+	if ((data->xml_pos[ATOM03_FORMAT] & ATOM03_AUTHOR) == 0) {
 		return;
 	}
-	data->atom03_pos &= ~ATOM03_EMAIL;
-	if ((data->atom03_pos & ATOM03_ENTRY) == 0) {
-		// Atom 0.3 says that feed can have global author, but who needs it?
-		return;
-	}
-	if ((data->atom03_pos & ATOM03_AUTHOR) == 0) {
-		return;
-	}
-	if (cpyss(data->feed->item->author->email, data->value) == false) {
-		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
-		return;
+	if ((data->xml_pos[ATOM03_FORMAT] & ATOM03_ENTRY) != 0) {
+		if (cpyss(data->feed->item->author->email, data->value) == false) {
+			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+			return;
+		}
+	} else {
+		if (cpyss(data->feed->author->email, data->value) == false) {
+			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+			return;
+		}
 	}
 }
 
-static inline void
-tagline_start(struct xml_data *data, const TidyAttr atts)
+static void
+tagline_start(struct xml_data *data, const TidyAttr attrs)
 {
-	if ((data->atom03_pos & ATOM03_ENTRY) != 0) {
+	if ((data->xml_pos[ATOM03_FORMAT] & ATOM03_ENTRY) != 0) {
 		return;
 	}
-	data->atom03_pos |= ATOM03_TAGLINE;
-	copy_type_of_text_construct(data, atts, data->feed->summary.type);
+	copy_type_of_text_construct(data, attrs, data->feed->summary.type);
 }
 
-static inline void
+static void
 tagline_end(struct xml_data *data)
 {
-	if ((data->atom03_pos & ATOM03_TAGLINE) == 0) {
-		return;
-	}
-	data->atom03_pos &= ~ATOM03_TAGLINE;
-	if ((data->atom03_pos & ATOM03_ENTRY) != 0) {
+	if ((data->xml_pos[ATOM03_FORMAT] & ATOM03_ENTRY) != 0) {
 		return;
 	}
 	if (cpyss(data->feed->summary.value, data->value) == false) {
@@ -352,24 +275,20 @@ tagline_end(struct xml_data *data)
 	}
 }
 
-static inline void
-generator_start(struct xml_data *data, const TidyAttr atts)
+static void
+generator_start(struct xml_data *data, const TidyAttr attrs)
 {
-	if ((data->atom03_pos & ATOM03_GENERATOR) != 0) {
+	if ((data->xml_pos[ATOM03_FORMAT] & ATOM03_ENTRY) != 0) {
 		return;
 	}
-	if ((data->atom03_pos & ATOM03_ENTRY) != 0) {
-		return;
-	}
-	data->atom03_pos |= ATOM03_GENERATOR;
-	const char *version = get_value_of_attribute_key(atts, "version");
+	const char *version = get_value_of_attribute_key(attrs, "version");
 	if (version != NULL) {
 		if (cpyas(data->feed->generator.version, version, strlen(version)) == false) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}
 	}
-	const char *url = get_value_of_attribute_key(atts, "url");
+	const char *url = get_value_of_attribute_key(attrs, "url");
 	if (url != NULL) {
 		if (cpyas(data->feed->generator.url, url, strlen(url)) == false) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
@@ -378,14 +297,10 @@ generator_start(struct xml_data *data, const TidyAttr atts)
 	}
 }
 
-static inline void
+static void
 generator_end(struct xml_data *data)
 {
-	if ((data->atom03_pos & ATOM03_GENERATOR) == 0) {
-		return;
-	}
-	data->atom03_pos &= ~ATOM03_GENERATOR;
-	if ((data->atom03_pos & ATOM03_ENTRY) != 0) {
+	if ((data->xml_pos[ATOM03_FORMAT] & ATOM03_ENTRY) != 0) {
 		return;
 	}
 	if (cpyss(data->feed->generator.name, data->value) == false) {
@@ -394,44 +309,22 @@ generator_end(struct xml_data *data)
 	}
 }
 
-void
-parse_atom03_element_start(struct xml_data *data, const char *name, const TidyAttr atts)
-{
-	     if (strcmp(name, "entry")       == 0) { entry_start(data);           }
-	else if (strcmp(name, "id")          == 0) { id_start(data);              }
-	else if (strcmp(name, "title")       == 0) { title_start(data);           }
-	else if (strcmp(name, "link")        == 0) { link_start(data, atts);      }
-	else if (strcmp(name, "summary")     == 0) { summary_start(data, atts);   }
-	else if (strcmp(name, "content")     == 0) { content_start(data, atts);   }
-	else if (strcmp(name, "issued")      == 0) { issued_start(data);          }
-	else if (strcmp(name, "modified")    == 0) { modified_start(data);        }
-	else if (strcmp(name, "author")      == 0) { author_start(data);          }
-	else if (strcmp(name, "contributor") == 0) { author_start(data);          }
-	else if (strcmp(name, "name")        == 0) { name_start(data);            }
-	else if (strcmp(name, "url")         == 0) { url_start(data);             }
-	else if (strcmp(name, "email")       == 0) { email_start(data);           }
-	else if (strcmp(name, "tagline")     == 0) { tagline_start(data, atts);   }
-	else if (strcmp(name, "generator")   == 0) { generator_start(data, atts); }
-}
-
-void
-parse_atom03_element_end(struct xml_data *data, const char *name)
-{
-	     if (strcmp(name, "entry")       == 0) { entry_end(data);     }
-	else if (strcmp(name, "id")          == 0) { id_end(data);        }
-	else if (strcmp(name, "title")       == 0) { title_end(data);     }
-	else if (strcmp(name, "summary")     == 0) { summary_end(data);   }
-	else if (strcmp(name, "content")     == 0) { content_end(data);   }
-	else if (strcmp(name, "issued")      == 0) { issued_end(data);    }
-	else if (strcmp(name, "modified")    == 0) { modified_end(data);  }
-	else if (strcmp(name, "author")      == 0) { author_end(data);    }
-	else if (strcmp(name, "contributor") == 0) { author_end(data);    }
-	else if (strcmp(name, "name")        == 0) { name_end(data);      }
-	else if (strcmp(name, "url")         == 0) { url_end(data);       }
-	else if (strcmp(name, "email")       == 0) { email_end(data);     }
-	else if (strcmp(name, "tagline")     == 0) { tagline_end(data);   }
-	else if (strcmp(name, "generator")   == 0) { generator_end(data); }
-	// In Atom 0.3 link tag is a self-closing tag.
-	//else if (strcmp(name, "link")      == 0) {                     }
-}
+const struct xml_element_handler xml_atom03_handlers[] = {
+	{"entry",       ATOM03_ENTRY,     &entry_start,     NULL},
+	{"id",          ATOM03_ID,        NULL,             &id_end},
+	{"title",       ATOM03_TITLE,     &title_start,     &title_end},
+	{"link",        ATOM03_NONE,      &link_start,      NULL},
+	{"summary",     ATOM03_SUMMARY,   &summary_start,   &summary_end},
+	{"content",     ATOM03_CONTENT,   &content_start,   &content_end},
+	{"issued",      ATOM03_ISSUED,    NULL,             &issued_end},
+	{"modified",    ATOM03_MODIFIED,  NULL,             &modified_end},
+	{"author",      ATOM03_AUTHOR,    &author_start,    NULL},
+	{"contributor", ATOM03_AUTHOR,    &author_start,    NULL},
+	{"name",        ATOM03_NAME,      NULL,             &name_end},
+	{"url",         ATOM03_URL,       NULL,             &url_end},
+	{"email",       ATOM03_EMAIL,     NULL,             &email_end},
+	{"tagline",     ATOM03_TAGLINE,   &tagline_start,   &tagline_end},
+	{"generator",   ATOM03_GENERATOR, &generator_start, &generator_end},
+	{NULL,          ATOM03_NONE,      NULL,             NULL},
+};
 #endif // FEEDEATER_FORMAT_SUPPORT_ATOM03

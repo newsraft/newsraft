@@ -4,33 +4,29 @@
 
 // https://web.archive.org/web/20211208135333/https://validator.w3.org/feed/docs/rss2.html
 
-static inline void
-item_start(struct xml_data *data)
+static void
+item_start(struct xml_data *data, const TidyAttr attrs)
 {
-	data->rss20_pos |= RSS20_ITEM;
+	(void)attrs;
 	prepend_item(&data->feed->item);
 }
 
-static inline void
-item_end(struct xml_data *data)
+static void
+guid_end(struct xml_data *data)
 {
-	data->rss20_pos &= ~RSS20_ITEM;
-}
-
-static inline void
-title_start(struct xml_data *data)
-{
-	data->rss20_pos |= RSS20_TITLE;
-}
-
-static inline void
-title_end(struct xml_data *data)
-{
-	if ((data->rss20_pos & RSS20_TITLE) == 0) {
+	if ((data->xml_pos[RSS20_FORMAT] & RSS20_ITEM) == 0) {
 		return;
 	}
-	data->rss20_pos &= ~RSS20_TITLE;
-	if ((data->rss20_pos & RSS20_ITEM) != 0) {
+	if (cpyss(data->feed->item->guid, data->value) == false) {
+		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		return;
+	}
+}
+
+static void
+title_end(struct xml_data *data)
+{
+	if ((data->xml_pos[RSS20_FORMAT] & RSS20_ITEM) != 0) {
 		if (cpyss(data->feed->item->title.value, data->value) == false) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
@@ -43,20 +39,10 @@ title_end(struct xml_data *data)
 	}
 }
 
-static inline void
-link_start(struct xml_data *data)
-{
-	data->rss20_pos |= RSS20_LINK;
-}
-
-static inline void
+static void
 link_end(struct xml_data *data)
 {
-	if ((data->rss20_pos & RSS20_LINK) == 0) {
-		return;
-	}
-	data->rss20_pos &= ~RSS20_LINK;
-	if ((data->rss20_pos & RSS20_ITEM) != 0) {
+	if ((data->xml_pos[RSS20_FORMAT] & RSS20_ITEM) != 0) {
 		if (cpyss(data->feed->item->url, data->value) == false) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
@@ -69,20 +55,10 @@ link_end(struct xml_data *data)
 	}
 }
 
-static inline void
-description_start(struct xml_data *data)
-{
-	data->rss20_pos |= RSS20_DESCRIPTION;
-}
-
-static inline void
+static void
 description_end(struct xml_data *data)
 {
-	if ((data->rss20_pos & RSS20_DESCRIPTION) == 0) {
-		return;
-	}
-	data->rss20_pos &= ~RSS20_DESCRIPTION;
-	if ((data->rss20_pos & RSS20_ITEM) != 0) {
+	if ((data->xml_pos[RSS20_FORMAT] & RSS20_ITEM) != 0) {
 		if (cpyss(data->feed->item->content.value, data->value) == false) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
@@ -95,20 +71,10 @@ description_end(struct xml_data *data)
 	}
 }
 
-static inline void
-pubDate_start(struct xml_data *data)
-{
-	data->rss20_pos |= RSS20_PUBDATE;
-}
-
-static inline void
+static void
 pubDate_end(struct xml_data *data)
 {
-	if ((data->rss20_pos & RSS20_PUBDATE) == 0) {
-		return;
-	}
-	data->rss20_pos &= ~RSS20_PUBDATE;
-	if ((data->rss20_pos & RSS20_ITEM) != 0) {
+	if ((data->xml_pos[RSS20_FORMAT] & RSS20_ITEM) != 0) {
 		data->feed->item->pubdate = parse_date_rfc822(data->value);
 	} else {
 		// Some RSS 2.0 feeds use lastBuildDate and some
@@ -122,90 +88,80 @@ pubDate_end(struct xml_data *data)
 	}
 }
 
-static inline void
-guid_start(struct xml_data *data)
+static void
+lastBuildDate_end(struct xml_data *data)
 {
-	data->rss20_pos |= RSS20_GUID;
-}
-
-static inline void
-guid_end(struct xml_data *data)
-{
-	if ((data->rss20_pos & RSS20_GUID) == 0) {
-		return;
-	}
-	data->rss20_pos &= ~RSS20_GUID;
-	if ((data->rss20_pos & RSS20_ITEM) == 0) {
-		return;
-	}
-	if (cpyss(data->feed->item->guid, data->value) == false) {
-		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
-		return;
+	if ((data->xml_pos[RSS20_FORMAT] & RSS20_ITEM) == 0) {
+		// In RSS 2.0 lastBuildDate element is only for channel,
+		// for items they use pubDate.
+		data->feed->update_date = parse_date_rfc822(data->value);
 	}
 }
 
-static inline void
-author_start(struct xml_data *data)
-{
-	data->rss20_pos |= RSS20_AUTHOR;
-}
-
-static inline void
+static void
 author_end(struct xml_data *data)
 {
-	if ((data->rss20_pos & RSS20_AUTHOR) == 0) {
-		return;
-	}
-	data->rss20_pos &= ~RSS20_AUTHOR;
-	if ((data->rss20_pos & RSS20_ITEM) == 0) {
-		return;
-	}
-	if (prepend_person(&data->feed->item->author) == false) {
-		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
-		return;
-	}
-	if (cpyss(data->feed->item->author->email, data->value) == false) {
-		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
-		return;
+	if ((data->xml_pos[RSS20_FORMAT] & RSS20_ITEM) != 0) {
+		if (prepend_person(&data->feed->item->author) == false) {
+			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+			return;
+		}
+		if (cpyss(data->feed->item->author->email, data->value) == false) {
+			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+			return;
+		}
+	} else {
+		if (prepend_person(&data->feed->author) == false) {
+			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+			return;
+		}
+		if (cpyss(data->feed->author->email, data->value) == false) {
+			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+			return;
+		}
 	}
 }
 
-static inline void
-enclosure_start(struct xml_data *data, const TidyAttr atts)
+static void
+enclosure_start(struct xml_data *data, const TidyAttr attrs)
 {
-	if ((data->rss20_pos & RSS20_ITEM) == 0) {
+	if ((data->xml_pos[RSS20_FORMAT] & RSS20_ITEM) == 0) {
+		return;
+	}
+	const char *url = get_value_of_attribute_key(attrs, "url");
+	if (url == NULL) {
+		return;
+	}
+	const size_t url_len = strlen(url);
+	if (url_len == 0) {
 		return;
 	}
 	if (prepend_link(&data->feed->item->attachment) == false) {
 		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		return;
 	}
-	const char *url = get_value_of_attribute_key(atts, "url");
-	if (url != NULL) {
-		if (cpyas(data->feed->item->attachment->url, url, strlen(url)) == false) {
-			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
-			return;
-		}
+	if (cpyas(data->feed->item->attachment->url, url, url_len) == false) {
+		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		return;
 	}
-	const char *type = get_value_of_attribute_key(atts, "type");
+	const char *type = get_value_of_attribute_key(attrs, "type");
 	if (type != NULL) {
 		if (cpyas(data->feed->item->attachment->type, type, strlen(type)) == false) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}
 	}
-	const char *length = get_value_of_attribute_key(atts, "length");
+	const char *length = get_value_of_attribute_key(attrs, "length");
 	if (length != NULL) {
 		data->feed->item->attachment->size = convert_string_to_size_t_or_zero(length);
 	}
 }
 
-static inline void
-category_start(struct xml_data *data, const TidyAttr atts)
+static void
+category_start(struct xml_data *data, const TidyAttr attrs)
 {
-	data->rss20_pos |= RSS20_CATEGORY;
-	const char *domain = get_value_of_attribute_key(atts, "domain");
-	if ((data->rss20_pos & RSS20_ITEM) != 0) {
+	const char *domain = get_value_of_attribute_key(attrs, "domain");
+	if ((data->xml_pos[RSS20_FORMAT] & RSS20_ITEM) != 0) {
 		if (prepend_category(&data->feed->item->category) == false) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
@@ -230,14 +186,10 @@ category_start(struct xml_data *data, const TidyAttr atts)
 	}
 }
 
-static inline void
+static void
 category_end(struct xml_data *data)
 {
-	if ((data->rss20_pos & RSS20_CATEGORY) == 0) {
-		return;
-	}
-	data->rss20_pos &= ~RSS20_CATEGORY;
-	if ((data->rss20_pos & RSS20_ITEM) != 0) {
+	if ((data->xml_pos[RSS20_FORMAT] & RSS20_ITEM) != 0) {
 		if (data->feed->item->category == NULL) {
 			return;
 		}
@@ -256,40 +208,10 @@ category_end(struct xml_data *data)
 	}
 }
 
-static inline void
-lastBuildDate_start(struct xml_data *data)
-{
-	data->rss20_pos |= RSS20_LASTBUILDDATE;
-}
-
-static inline void
-lastBuildDate_end(struct xml_data *data)
-{
-	if ((data->rss20_pos & RSS20_LASTBUILDDATE) == 0) {
-		return;
-	}
-	data->rss20_pos &= ~RSS20_LASTBUILDDATE;
-	if ((data->rss20_pos & RSS20_ITEM) == 0) {
-		// In RSS 2.0 lastBuildDate element is only for channel,
-		// for items they use pubDate.
-		data->feed->update_date = parse_date_rfc822(data->value);
-	}
-}
-
-static inline void
-comments_start(struct xml_data *data)
-{
-	data->rss20_pos |= RSS20_COMMENTS;
-}
-
-static inline void
+static void
 comments_end(struct xml_data *data)
 {
-	if ((data->rss20_pos & RSS20_COMMENTS) == 0) {
-		return;
-	}
-	data->rss20_pos &= ~RSS20_COMMENTS;
-	if ((data->rss20_pos & RSS20_ITEM) == 0) {
+	if ((data->xml_pos[RSS20_FORMAT] & RSS20_ITEM) == 0) {
 		return;
 	}
 	if (cpyss(data->feed->item->comments_url, data->value) == false) {
@@ -298,20 +220,10 @@ comments_end(struct xml_data *data)
 	}
 }
 
-static inline void
-language_start(struct xml_data *data)
-{
-	data->rss20_pos |= RSS20_LANGUAGE;
-}
-
-static inline void
+static void
 language_end(struct xml_data *data)
 {
-	if ((data->rss20_pos & RSS20_LANGUAGE) == 0) {
-		return;
-	}
-	data->rss20_pos &= ~RSS20_LANGUAGE;
-	if ((data->rss20_pos & RSS20_ITEM) != 0) {
+	if ((data->xml_pos[RSS20_FORMAT] & RSS20_ITEM) != 0) {
 		return;
 	}
 	if (cpyss(data->feed->language, data->value) == false) {
@@ -320,20 +232,22 @@ language_end(struct xml_data *data)
 	}
 }
 
-static inline void
-webMaster_start(struct xml_data *data)
+static void
+generator_end(struct xml_data *data)
 {
-	data->rss20_pos |= RSS20_WEBMASTER;
-}
-
-static inline void
-webMaster_end(struct xml_data *data)
-{
-	if ((data->rss20_pos & RSS20_WEBMASTER) == 0) {
+	if ((data->xml_pos[RSS20_FORMAT] & RSS20_ITEM) != 0) {
 		return;
 	}
-	data->rss20_pos &= ~RSS20_WEBMASTER;
-	if ((data->rss20_pos & RSS20_ITEM) != 0) {
+	if (cpyss(data->feed->generator.name, data->value) == false) {
+		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		return;
+	}
+}
+
+static void
+webMaster_end(struct xml_data *data)
+{
+	if ((data->xml_pos[RSS20_FORMAT] & RSS20_ITEM) != 0) {
 		return;
 	}
 	if (prepend_person(&data->feed->webmaster) == false) {
@@ -346,20 +260,10 @@ webMaster_end(struct xml_data *data)
 	}
 }
 
-static inline void
-managingEditor_start(struct xml_data *data)
-{
-	data->rss20_pos |= RSS20_MANAGINGEDITOR;
-}
-
-static inline void
+static void
 managingEditor_end(struct xml_data *data)
 {
-	if ((data->rss20_pos & RSS20_MANAGINGEDITOR) == 0) {
-		return;
-	}
-	data->rss20_pos &= ~RSS20_MANAGINGEDITOR;
-	if ((data->rss20_pos & RSS20_ITEM) != 0) {
+	if ((data->xml_pos[RSS20_FORMAT] & RSS20_ITEM) != 0) {
 		return;
 	}
 	if (prepend_person(&data->feed->editor) == false) {
@@ -372,86 +276,23 @@ managingEditor_end(struct xml_data *data)
 	}
 }
 
-static inline void
-generator_start(struct xml_data *data)
-{
-	data->rss20_pos |= RSS20_GENERATOR;
-}
-
-static inline void
-generator_end(struct xml_data *data)
-{
-	if ((data->rss20_pos & RSS20_GENERATOR) == 0) {
-		return;
-	}
-	data->rss20_pos &= ~RSS20_GENERATOR;
-	if ((data->rss20_pos & RSS20_ITEM) != 0) {
-		return;
-	}
-	if (cpyss(data->feed->generator.name, data->value) == false) {
-		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
-		return;
-	}
-}
-
-static inline void
-channel_start(struct xml_data *data)
-{
-	data->rss20_pos |= RSS20_CHANNEL;
-}
-
-static inline void
-channel_end(struct xml_data *data)
-{
-	if ((data->rss20_pos & RSS20_CHANNEL) == 0) {
-		return;
-	}
-	data->rss20_pos &= ~RSS20_CHANNEL;
-}
-
-void
-parse_rss20_element_start(struct xml_data *data, const char *name, const TidyAttr atts)
-{
-	     if (strcmp(name, "item")           == 0) { item_start(data);            }
-	else if (strcmp(name, "title")          == 0) { title_start(data);           }
-	else if (strcmp(name, "link")           == 0) { link_start(data);            }
-	else if (strcmp(name, "description")    == 0) { description_start(data);     }
-	else if (strcmp(name, "pubDate")        == 0) { pubDate_start(data);         }
-	else if (strcmp(name, "guid")           == 0) { guid_start(data);            }
-	else if (strcmp(name, "author")         == 0) { author_start(data);          }
-	else if (strcmp(name, "enclosure")      == 0) { enclosure_start(data, atts); }
-	else if (strcmp(name, "category")       == 0) { category_start(data, atts);  }
-	else if (strcmp(name, "lastBuildDate")  == 0) { lastBuildDate_start(data);   }
-	else if (strcmp(name, "comments")       == 0) { comments_start(data);        }
-	else if (strcmp(name, "language")       == 0) { language_start(data);        }
-	else if (strcmp(name, "generator")      == 0) { generator_start(data);       }
-	else if (strcmp(name, "webMaster")      == 0) { webMaster_start(data);       }
-	else if (strcmp(name, "managingEditor") == 0) { managingEditor_start(data);  }
-	else if (strcmp(name, "channel")        == 0) { channel_start(data);         }
-}
-
-void
-parse_rss20_element_end(struct xml_data *data, const char *name)
-{
-	if ((data->rss20_pos & RSS20_CHANNEL) == 0) {
-		return;
-	}
-	     if (strcmp(name, "item")           == 0) { item_end(data);           }
-	else if (strcmp(name, "title")          == 0) { title_end(data);          }
-	else if (strcmp(name, "link")           == 0) { link_end(data);           }
-	else if (strcmp(name, "description")    == 0) { description_end(data);    }
-	else if (strcmp(name, "pubDate")        == 0) { pubDate_end(data);        }
-	else if (strcmp(name, "guid")           == 0) { guid_end(data);           }
-	else if (strcmp(name, "author")         == 0) { author_end(data);         }
-	else if (strcmp(name, "category")       == 0) { category_end(data);       }
-	else if (strcmp(name, "lastBuildDate")  == 0) { lastBuildDate_end(data);  }
-	else if (strcmp(name, "comments")       == 0) { comments_end(data);       }
-	else if (strcmp(name, "language")       == 0) { language_end(data);       }
-	else if (strcmp(name, "generator")      == 0) { generator_end(data);      }
-	else if (strcmp(name, "webMaster")      == 0) { webMaster_end(data);      }
-	else if (strcmp(name, "managingEditor") == 0) { managingEditor_end(data); }
-	else if (strcmp(name, "channel")        == 0) { channel_end(data);        }
-	// In RSS 2.0 enclosure tag is a self-closing tag.
-	//else if (strcmp(name, "enclosure") == 0) {                            }
-}
+const struct xml_element_handler xml_rss20_handlers[] = {
+	// <channel> is a container for all this stuff but it is quite redundant.
+	{"item",           RSS20_ITEM,           &item_start,      NULL},
+	{"guid",           RSS20_GUID,           NULL,             &guid_end},
+	{"title",          RSS20_TITLE,          NULL,             &title_end},
+	{"link",           RSS20_LINK,           NULL,             &link_end},
+	{"description",    RSS20_DESCRIPTION,    NULL,             &description_end},
+	{"pubDate",        RSS20_PUBDATE,        NULL,             &pubDate_end},
+	{"lastBuildDate",  RSS20_LASTBUILDDATE,  NULL,             &lastBuildDate_end},
+	{"author",         RSS20_AUTHOR,         NULL,             &author_end},
+	{"enclosure",      RSS20_NONE,           &enclosure_start, NULL},
+	{"category",       RSS20_CATEGORY,       &category_start,  &category_end},
+	{"comments",       RSS20_COMMENTS,       NULL,             &comments_end},
+	{"language",       RSS20_LANGUAGE,       NULL,             &language_end},
+	{"generator",      RSS20_GENERATOR,      NULL,             &generator_end},
+	{"webMaster",      RSS20_WEBMASTER,      NULL,             &webMaster_end},
+	{"managingEditor", RSS20_MANAGINGEDITOR, NULL,             &managingEditor_end},
+	{NULL,             RSS20_NONE,           NULL,             NULL},
+};
 #endif // FEEDEATER_FORMAT_SUPPORT_RSS20

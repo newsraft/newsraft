@@ -5,22 +5,22 @@ bool
 we_are_inside_item(const struct xml_data *data)
 {
 #ifdef FEEDEATER_FORMAT_SUPPORT_ATOM10
-	if ((data->atom10_pos & ATOM10_ENTRY) != 0) {
+	if ((data->xml_pos[ATOM10_FORMAT] & ATOM10_ENTRY) != 0) {
 		return true;
 	}
 #endif
 #ifdef FEEDEATER_FORMAT_SUPPORT_RSS20
-	if ((data->rss20_pos & RSS20_ITEM) != 0) {
+	if ((data->xml_pos[RSS20_FORMAT] & RSS20_ITEM) != 0) {
 		return true;
 	}
 #endif
 #ifdef FEEDEATER_FORMAT_SUPPORT_RSS11
-	if ((data->rss11_pos & RSS11_ITEM) != 0) {
+	if ((data->xml_pos[RSS11_FORMAT] & RSS11_ITEM) != 0) {
 		return true;
 	}
 #endif
 #ifdef FEEDEATER_FORMAT_SUPPORT_ATOM03
-	if ((data->atom03_pos & ATOM03_ENTRY) != 0) {
+	if ((data->xml_pos[ATOM03_FORMAT] & ATOM03_ENTRY) != 0) {
 		return true;
 	}
 #endif
@@ -92,15 +92,9 @@ stuff_to_do_when_xml_element_starts(struct xml_data *data, const struct string *
 {
 	++(data->depth);
 	empty_string(data->value);
-	if (namespace != NULL) {
-		parse_namespace_element_start(data, namespace, name, attrs);
-		return;
-	} else if ((has_prefix == false) && (data->start_handler != NULL)) {
-		data->start_handler(data, name, attrs);
-		return;
-	}
+	parse_element_start(data, namespace, name, attrs);
 #ifdef FEEDEATER_FORMAT_SUPPORT_RSS20
-	if ((data->depth == 1) && (strcmp(name, "rss") == 0)) {
+	if ((data->depth == 1) && (namespace == NULL) && (strcmp(name, "rss") == 0)) {
 		const char *version = get_value_of_attribute_key(attrs, "version");
 		if ((version != NULL) &&
 			((strcmp(version, "2.0") == 0) ||
@@ -109,8 +103,7 @@ stuff_to_do_when_xml_element_starts(struct xml_data *data, const struct string *
 			(strcmp(version, "0.92") == 0) ||
 			(strcmp(version, "0.91") == 0)))
 		{
-			data->start_handler = &parse_rss20_element_start;
-			data->end_handler = &parse_rss20_element_end;
+			data->default_handler = RSS20_FORMAT;
 		}
 	}
 #endif
@@ -121,11 +114,7 @@ stuff_to_do_when_xml_element_ends(struct xml_data *data, const struct string *na
 {
 	--(data->depth);
 	trim_whitespace_from_string(data->value);
-	if (namespace != NULL) {
-		parse_namespace_element_end(data, namespace, name);
-	} else if ((has_prefix == false) && (data->end_handler != NULL)) {
-		data->end_handler(data, name);
-	}
+	parse_element_end(data, namespace, name);
 }
 
 static bool
@@ -147,7 +136,10 @@ dumpNode(struct xml_data *data, TidyNode tnod)
 			tidyBufClear(&data->draft_buffer);
 			tidyNodeGetValue(data->tidy_doc, child, &data->draft_buffer);
 			if (data->draft_buffer.bp != NULL) {
-				cpyas(data->value, (char *)data->draft_buffer.bp, strlen((char *)data->draft_buffer.bp));
+				// Let's say the expression
+				//     data->draft_buffer.size == strlen(data->draft_buffer.bp)
+				// is always true. So far it has always worked.
+				cpyas(data->value, (char *)data->draft_buffer.bp, data->draft_buffer.size);
 			}
 
 		} else if ((child_type == TidyNode_Start) || (child_type == TidyNode_StartEnd)) {
@@ -199,7 +191,7 @@ enter_xml_parsing_loop(const struct string *feed_buf, struct xml_data *data)
 	tidyOptSetBool(data->tidy_doc, TidyXmlTags, true); // Enable XML mode.
 	tidyParseString(data->tidy_doc, feed_buf->ptr);
 	tidyCleanAndRepair(data->tidy_doc);
-	tidyRunDiagnostics(data->tidy_doc);
+	int tidy_status = tidyRunDiagnostics(data->tidy_doc);
 
 	if (error_buffer.bp != NULL) {
 		INFO("Tidy's report:\n%s", error_buffer.bp);
@@ -208,16 +200,19 @@ enter_xml_parsing_loop(const struct string *feed_buf, struct xml_data *data)
 		WARN("Tidy's error buffer is nullified!");
 	}
 
-	bool success = true;
+	tidyBufFree(&error_buffer);
+
+	if (tidy_status != 0) {
+		WARN("Tidy can't continue to process this buffer because it has critical errors!");
+		return false;
+	}
 
 	if (dumpNode(data, tidyGetRoot(data->tidy_doc)) == false) {
 		FAIL("Something really bad happened during XML parsing!");
-		success = false;
+		return false;
 	}
 
-	tidyBufFree(&error_buffer);
-
-	return success;
+	return true;
 }
 
 bool
@@ -234,35 +229,16 @@ parse_xml_feed(const struct string *feed_buf, struct getfeed_feed *feed)
 	data.namespaces.lim = 0;
 	data.namespaces.buf = NULL;
 	data.depth = 0;
-#ifdef FEEDEATER_FORMAT_SUPPORT_RSS20
-	data.rss20_pos = RSS20_NONE;
-#endif
-#ifdef FEEDEATER_FORMAT_SUPPORT_ATOM10
-	data.atom10_pos = ATOM10_NONE;
-#endif
-#ifdef FEEDEATER_FORMAT_SUPPORT_ATOM03
-	data.atom03_pos = ATOM03_NONE;
-#endif
-#ifdef FEEDEATER_FORMAT_SUPPORT_DUBLINCORE
-	data.dc_pos = DC_NONE;
-#endif
-#ifdef FEEDEATER_FORMAT_SUPPORT_YANDEX
-	data.yandex_pos = YANDEX_NONE;
-#endif
-#ifdef FEEDEATER_FORMAT_SUPPORT_RSS11
-	data.rss11_pos = RSS11_NONE;
-#endif
-#ifdef FEEDEATER_FORMAT_SUPPORT_RSS10CONTENT
-	data.rss10content_pos = RSS10CONTENT_NONE;
-#endif
-	data.start_handler = NULL;
-	data.end_handler = NULL;
+	for (size_t i = 0; i < XML_FORMATS_COUNT; ++i) {
+		data.xml_pos[i] = 0;
+	}
+	data.default_handler = XML_FORMATS_COUNT;
 	data.tidy_doc = tidyCreate();
 	tidyBufInit(&data.draft_buffer);
 	data.error = PARSE_OKAY;
 
 	if (enter_xml_parsing_loop(feed_buf, &data) == false) {
-		FAIL("Feed update stopped due to parse error!");
+		WARN("Feed update stopped due to parsing failure!");
 		tidyBufFree(&data.draft_buffer);
 		tidyRelease(data.tidy_doc);
 		free_string(data.value);

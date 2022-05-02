@@ -1,22 +1,11 @@
 #ifdef FEEDEATER_FORMAT_SUPPORT_YANDEX
-#include <string.h>
 #include "update_feed/parse_feed/parse_feed.h"
 
 // https://web.archive.org/web/20211009134219/https://yandex.ru/support/news/feed.html
 
-static inline void
-full_text_start(struct xml_data *data)
-{
-	data->yandex_pos |= YANDEX_FULL_TEXT;
-}
-
-static inline void
+static void
 full_text_end(struct xml_data *data)
 {
-	if ((data->yandex_pos & YANDEX_FULL_TEXT) == 0) {
-		return;
-	}
-	data->yandex_pos &= ~YANDEX_FULL_TEXT;
 	if (we_are_inside_item(data) == false) {
 		return;
 	}
@@ -35,19 +24,9 @@ full_text_end(struct xml_data *data)
 	}
 }
 
-static inline void
-genre_start(struct xml_data *data)
-{
-	data->yandex_pos |= YANDEX_GENRE;
-}
-
-static inline void
+static void
 genre_end(struct xml_data *data)
 {
-	if ((data->yandex_pos & YANDEX_GENRE) == 0) {
-		return;
-	}
-	data->yandex_pos &= ~YANDEX_GENRE;
 	if (we_are_inside_item(data) == false) {
 		return;
 	}
@@ -61,20 +40,9 @@ genre_end(struct xml_data *data)
 	}
 }
 
-static inline void
-comment_text_start(struct xml_data *data, const TidyAttr atts)
-{
-	(void)atts; // TODO read origin attribute
-	data->yandex_pos |= YANDEX_COMMENT_TEXT;
-}
-
-static inline void
+static void
 comment_text_end(struct xml_data *data)
 {
-	if ((data->yandex_pos & YANDEX_COMMENT_TEXT) == 0) {
-		return;
-	}
-	data->yandex_pos &= ~YANDEX_COMMENT_TEXT;
 	if (we_are_inside_item(data) == false) {
 		return;
 	}
@@ -93,19 +61,9 @@ comment_text_end(struct xml_data *data)
 	}
 }
 
-static inline void
-bind_to_start(struct xml_data *data)
-{
-	data->yandex_pos |= YANDEX_BIND_TO;
-}
-
-static inline void
+static void
 bind_to_end(struct xml_data *data)
 {
-	if ((data->yandex_pos & YANDEX_BIND_TO) == 0) {
-		return;
-	}
-	data->yandex_pos &= ~YANDEX_BIND_TO;
 	if (we_are_inside_item(data) == false) {
 		return;
 	}
@@ -119,26 +77,12 @@ bind_to_end(struct xml_data *data)
 	}
 }
 
-void
-parse_yandex_element_start(struct xml_data *data, const char *name, const TidyAttr atts)
-{
-	(void)atts;
-	     if (strcmp(name, "full-text")    == 0) { full_text_start(data);          }
-	else if (strcmp(name, "genre")        == 0) { genre_start(data);              }
-	else if (strcmp(name, "comment-text") == 0) { comment_text_start(data, atts); }
-	else if (strcmp(name, "bind-to")      == 0) { bind_to_start(data);            }
-	// official-comment is a container for most of this stuff but it is quite redundant.
-	//else if (strcmp(name, "official-comment") == 0) { /*      ignore it      */ }
-}
-
-void
-parse_yandex_element_end(struct xml_data *data, const char *name)
-{
-	     if (strcmp(name, "full-text")    == 0) { full_text_end(data);    }
-	else if (strcmp(name, "genre")        == 0) { genre_end(data);        }
-	else if (strcmp(name, "comment-text") == 0) { comment_text_end(data); }
-	else if (strcmp(name, "bind-to")      == 0) { bind_to_end(data);      }
-	// official-comment is a container for most of this stuff but it is quite redundant.
-	//else if (strcmp(name, "official-comment") == 0) { /*  ignore it  */ }
-}
+const struct xml_element_handler xml_yandex_handlers[] = {
+	// <official-comment> is a container for most of this stuff but it is quite redundant.
+	{"full-text",    YANDEX_FULL_TEXT,    NULL, &full_text_end},
+	{"genre",        YANDEX_GENRE,        NULL, &genre_end},
+	{"comment-text", YANDEX_COMMENT_TEXT, NULL, &comment_text_end},
+	{"bind-to",      YANDEX_BIND_TO,      NULL, &bind_to_end},
+	{NULL,           YANDEX_NONE,         NULL, NULL},
+};
 #endif // FEEDEATER_FORMAT_SUPPORT_YANDEX

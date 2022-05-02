@@ -7,6 +7,17 @@
 
 #define XML_NAMESPACE_SEPARATOR ':'
 
+enum xml_format {
+	ATOM10_FORMAT = 0,
+	RSS20_FORMAT,
+	RSSCONTENT_FORMAT,
+	DUBLINCORE_FORMAT,
+	YANDEX_FORMAT,
+	RSS11_FORMAT,
+	ATOM03_FORMAT,
+	XML_FORMATS_COUNT,
+};
+
 enum update_error {
 	PARSE_OKAY = 0,
 	PARSE_FAIL_NOT_ENOUGH_MEMORY,
@@ -35,32 +46,18 @@ struct xml_data {
 	struct xml_namespace_stack namespaces;
 	const struct string *feed_url;
 	struct getfeed_feed *feed;
-#ifdef FEEDEATER_FORMAT_SUPPORT_RSS20
-	int32_t rss20_pos;
-#endif
-#ifdef FEEDEATER_FORMAT_SUPPORT_ATOM10
-	int16_t atom10_pos;
-#endif
-#ifdef FEEDEATER_FORMAT_SUPPORT_DUBLINCORE
-	int8_t dc_pos;
-#endif
-#ifdef FEEDEATER_FORMAT_SUPPORT_RSS10CONTENT
-	int8_t rss10content_pos;
-#endif
-#ifdef FEEDEATER_FORMAT_SUPPORT_YANDEX
-	int8_t yandex_pos;
-#endif
-#ifdef FEEDEATER_FORMAT_SUPPORT_ATOM03
-	int16_t atom03_pos;
-#endif
-#ifdef FEEDEATER_FORMAT_SUPPORT_RSS11
-	int8_t rss11_pos;
-#endif
-	void (*start_handler)(struct xml_data *data, const char *name, const TidyAttr atts);
-	void (*end_handler)(struct xml_data *data, const char *name);
+	intmax_t xml_pos[XML_FORMATS_COUNT];
+	int8_t default_handler;
 	TidyDoc tidy_doc;
 	TidyBuffer draft_buffer;
 	enum update_error error;
+};
+
+struct xml_element_handler {
+	const char *name;
+	intmax_t bitpos;
+	void (*start_handle)(struct xml_data *data, const TidyAttr attrs);
+	void (*end_handle)(struct xml_data *data);
 };
 
 struct json_data {
@@ -88,8 +85,8 @@ time_t parse_date_rfc3339(const char *src, size_t src_len);
 
 // Element handlers
 
-void parse_namespace_element_start(struct xml_data *data, const struct string *namespace_uri, const char *name, const TidyAttr attrs);
-void parse_namespace_element_end(struct xml_data *data, const struct string *namespace_uri, const char *name);
+void parse_element_start(struct xml_data *data, const struct string *namespace_uri, const char *name, const TidyAttr attrs);
+void parse_element_end(struct xml_data *data, const struct string *namespace_uri, const char *name);
 
 #ifdef FEEDEATER_FORMAT_SUPPORT_ATOM10
 enum atom10_position {
@@ -108,31 +105,35 @@ enum atom10_position {
 	ATOM10_SUBTITLE = 2048,
 	ATOM10_GENERATOR = 4096,
 };
-void parse_atom10_element_start (struct xml_data *data, const char *name, const TidyAttr atts);
-void parse_atom10_element_end   (struct xml_data *data, const char *name);
+extern const struct xml_element_handler xml_atom10_handlers[];
 #endif
 #ifdef FEEDEATER_FORMAT_SUPPORT_RSS20
 enum rss20_position {
 	RSS20_NONE = 0,
 	RSS20_ITEM = 1,
-	RSS20_TITLE = 2,
-	RSS20_DESCRIPTION = 4,
+	RSS20_GUID = 2,
+	RSS20_TITLE = 4,
 	RSS20_LINK = 8,
-	RSS20_PUBDATE = 16,
-	RSS20_GUID = 32,
-	RSS20_AUTHOR = 64,
-	RSS20_SOURCE = 128,
+	RSS20_DESCRIPTION = 16,
+	RSS20_PUBDATE = 32,
+	RSS20_LASTBUILDDATE = 64,
+	RSS20_AUTHOR = 128,
 	RSS20_CATEGORY = 256,
-	RSS20_LASTBUILDDATE = 512,
-	RSS20_COMMENTS = 1024,
-	RSS20_LANGUAGE = 2048,
-	RSS20_GENERATOR = 4096,
-	RSS20_WEBMASTER = 8192,
-	RSS20_MANAGINGEDITOR = 16384,
-	RSS20_CHANNEL = 32768,
+	RSS20_COMMENTS = 512,
+	RSS20_LANGUAGE = 1024,
+	RSS20_GENERATOR = 2048,
+	RSS20_WEBMASTER = 4096,
+	RSS20_MANAGINGEDITOR = 8192,
+	RSS20_SOURCE = 16384,
 };
-void parse_rss20_element_start (struct xml_data *data, const char *name, const TidyAttr atts);
-void parse_rss20_element_end   (struct xml_data *data, const char *name);
+extern const struct xml_element_handler xml_rss20_handlers[];
+#endif
+#ifdef FEEDEATER_FORMAT_SUPPORT_RSSCONTENT
+enum rsscontent_position {
+	RSSCONTENT_NONE = 0,
+	RSSCONTENT_ENCODED = 1,
+};
+extern const struct xml_element_handler xml_rsscontent_handlers[];
 #endif
 #ifdef FEEDEATER_FORMAT_SUPPORT_DUBLINCORE
 enum dc_position {
@@ -140,18 +141,10 @@ enum dc_position {
 	DC_TITLE = 1,
 	DC_DESCRIPTION = 2,
 	DC_CREATOR = 4,
-	DC_SUBJECT = 8,
+	DC_CONTRIBUTOR = 8,
+	DC_SUBJECT = 16,
 };
-void parse_dc_element_start (struct xml_data *data, const char *name, const TidyAttr atts);
-void parse_dc_element_end   (struct xml_data *data, const char *name);
-#endif
-#ifdef FEEDEATER_FORMAT_SUPPORT_RSS10CONTENT
-enum rss10content_position {
-	RSS10CONTENT_NONE = 0,
-	RSS10CONTENT_ENCODED = 1,
-};
-void parse_rss10content_element_start (struct xml_data *data, const char *name, const TidyAttr atts);
-void parse_rss10content_element_end   (struct xml_data *data, const char *name);
+extern const struct xml_element_handler xml_dublincore_handlers[];
 #endif
 #ifdef FEEDEATER_FORMAT_SUPPORT_YANDEX
 enum yandex_position {
@@ -161,8 +154,19 @@ enum yandex_position {
 	YANDEX_COMMENT_TEXT = 4,
 	YANDEX_BIND_TO = 8,
 };
-void parse_yandex_element_start (struct xml_data *data, const char *name, const TidyAttr atts);
-void parse_yandex_element_end   (struct xml_data *data, const char *name);
+extern const struct xml_element_handler xml_yandex_handlers[];
+#endif
+#ifdef FEEDEATER_FORMAT_SUPPORT_RSS11
+enum rss11_position {
+	RSS11_NONE = 0,
+	RSS11_ITEM = 1,
+	RSS11_TITLE = 2,
+	RSS11_LINK = 4,
+	RSS11_DESCRIPTION = 8,
+	RSS11_IMAGE = 16,
+	RSS11_URL = 32,
+};
+extern const struct xml_element_handler xml_rss11_handlers[];
 #endif
 #ifdef FEEDEATER_FORMAT_SUPPORT_ATOM03
 enum atom03_position {
@@ -181,21 +185,7 @@ enum atom03_position {
 	ATOM03_TAGLINE = 2048,
 	ATOM03_GENERATOR = 4096,
 };
-void parse_atom03_element_start (struct xml_data *data, const char *name, const TidyAttr atts);
-void parse_atom03_element_end   (struct xml_data *data, const char *name);
-#endif
-#ifdef FEEDEATER_FORMAT_SUPPORT_RSS11
-enum rss11_position {
-	RSS11_NONE = 0,
-	RSS11_ITEM = 1,
-	RSS11_TITLE = 2,
-	RSS11_LINK = 4,
-	RSS11_DESCRIPTION = 8,
-	RSS11_IMAGE = 16,
-	RSS11_URL = 32,
-};
-void parse_rss11_element_start (struct xml_data *data, const char *name, const TidyAttr atts);
-void parse_rss11_element_end   (struct xml_data *data, const char *name);
+extern const struct xml_element_handler xml_atom03_handlers[];
 #endif
 #ifdef FEEDEATER_FORMAT_SUPPORT_JSONFEED
 void json_dump_jsonfeed(cJSON *json, struct json_data *data);

@@ -1,4 +1,4 @@
-#include "update_feed/parse_feed/parse_feed.h"
+#include "update_feed/parse_feed/parse_xml_feed/parse_xml_feed.h"
 
 bool
 add_namespace_to_stack(struct xml_namespace_stack *stack, const char *name, const char *uri)

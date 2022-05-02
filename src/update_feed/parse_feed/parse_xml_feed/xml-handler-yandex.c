@@ -1,5 +1,5 @@
 #ifdef FEEDEATER_FORMAT_SUPPORT_YANDEX
-#include "update_feed/parse_feed/parse_feed.h"
+#include "update_feed/parse_feed/parse_xml_feed/parse_xml_feed.h"
 
 // https://web.archive.org/web/20211009134219/https://yandex.ru/support/news/feed.html
 

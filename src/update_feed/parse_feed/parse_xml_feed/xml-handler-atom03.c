@@ -1,6 +1,6 @@
 #ifdef FEEDEATER_FORMAT_SUPPORT_ATOM03
 #include <string.h>
-#include "update_feed/parse_feed/parse_feed.h"
+#include "update_feed/parse_feed/parse_xml_feed/parse_xml_feed.h"
 
 // https://web.archive.org/web/20210303084351/https://pythonhosted.org/feedparser/annotated-atom03.html
 // https://web.archive.org/web/20210417183310/http://rakaz.nl/2005/07/moving-from-atom-03-to-10.html

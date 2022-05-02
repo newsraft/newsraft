@@ -1,4 +1,4 @@
-#include "update_feed/parse_feed/parse_feed.h"
+#include "update_feed/parse_feed/parse_xml_feed/parse_xml_feed.h"
 
 bool
 prepend_default_namespace(struct xml_default_namespace **first_def_ns, const char *uri_to_prepend, size_t uri_len)

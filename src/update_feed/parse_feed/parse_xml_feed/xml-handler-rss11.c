@@ -1,5 +1,5 @@
 #ifdef FEEDEATER_FORMAT_SUPPORT_RSS11
-#include "update_feed/parse_feed/parse_feed.h"
+#include "update_feed/parse_feed/parse_xml_feed/parse_xml_feed.h"
 
 // Despite this file named "xml-handler-rss11.c", it is actually
 // considered to parse RSS 0.9, RSS 1.0 and RSS 1.1 feeds.

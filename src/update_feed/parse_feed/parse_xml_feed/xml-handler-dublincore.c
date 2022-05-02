@@ -1,5 +1,5 @@
 #ifdef FEEDEATER_FORMAT_SUPPORT_DUBLINCORE
-#include "update_feed/parse_feed/parse_feed.h"
+#include "update_feed/parse_feed/parse_xml_feed/parse_xml_feed.h"
 
 static void
 title_end(struct xml_data *data)

@@ -1,4 +1,4 @@
-#include "update_feed/parse_feed/parse_feed.h"
+#include "update_feed/parse_feed/parse_json_feed/parse_json_feed.h"
 
 bool
 parse_json_feed(const struct string *feed_buf, struct getfeed_feed *feed)

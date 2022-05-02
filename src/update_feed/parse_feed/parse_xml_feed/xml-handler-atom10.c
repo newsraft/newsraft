@@ -1,6 +1,6 @@
 #ifdef FEEDEATER_FORMAT_SUPPORT_ATOM10
 #include <string.h>
-#include "update_feed/parse_feed/parse_feed.h"
+#include "update_feed/parse_feed/parse_xml_feed/parse_xml_feed.h"
 
 // https://web.archive.org/web/20211118181732/https://validator.w3.org/feed/docs/atom.html
 // https://web.archive.org/web/20211201194224/https://datatracker.ietf.org/doc/html/rfc4287

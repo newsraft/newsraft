@@ -1,5 +1,5 @@
 #ifdef FEEDEATER_FORMAT_SUPPORT_RSSCONTENT
-#include "update_feed/parse_feed/parse_feed.h"
+#include "update_feed/parse_feed/parse_xml_feed/parse_xml_feed.h"
 
 // https://web.archive.org/web/20211201074403/https://web.resource.org/rss/1.0/modules/content/
 

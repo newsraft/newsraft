@@ -1,5 +1,5 @@
 #include <string.h>
-#include "update_feed/parse_feed/parse_feed.h"
+#include "update_feed/parse_feed/parse_xml_feed/parse_xml_feed.h"
 
 struct namespace_handler {
 	const char *const uri;

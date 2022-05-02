@@ -1,6 +1,6 @@
 #ifdef FEEDEATER_FORMAT_SUPPORT_JSONFEED
 #include <string.h>
-#include "update_feed/parse_feed/parse_feed.h"
+#include "update_feed/parse_feed/parse_json_feed/parse_json_feed.h"
 
 static void
 populate_person(cJSON *json, struct getfeed_person *person)

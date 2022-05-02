@@ -84,12 +84,15 @@ struct link_list {
 
 struct config_data {
 	size_t max_items;
+	size_t download_timeout;
 	bool append_links;
 	bool run_cleaning_of_the_database_on_startup;
 	bool run_analysis_of_the_database_on_startup;
 	bool send_useragent_header;
 	bool send_if_none_match_header;
 	bool send_if_modified_since_header;
+	bool ssl_verify_host;
+	bool ssl_verify_peer;
 	struct wstring *menu_section_entry_format;
 	struct wstring *menu_feed_entry_format;
 	struct wstring *menu_item_entry_format;

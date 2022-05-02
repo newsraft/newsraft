@@ -68,6 +68,7 @@ prepare_curl_for_performance(CURL *curl, const char *url, struct curl_slist *hea
 {
 	curl_easy_setopt(curl, CURLOPT_URL, url);
 	if (cfg.send_useragent_header == true) {
+		INFO("Attached user-agent: %s", cfg.useragent->ptr);
 		curl_easy_setopt(curl, CURLOPT_USERAGENT, cfg.useragent->ptr);
 	}
 	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
@@ -75,6 +76,9 @@ prepare_curl_for_performance(CURL *curl, const char *url, struct curl_slist *hea
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, writedata);
 	curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, &header_callback);
 	curl_easy_setopt(curl, CURLOPT_HEADERDATA, feed);
+	curl_easy_setopt(curl, CURLOPT_TIMEOUT, cfg.download_timeout);
+	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, cfg.ssl_verify_host ? 2 : 0);
+	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, cfg.ssl_verify_peer ? 1 : 0);
 	curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, errbuf);
 	curl_easy_setopt(curl, CURLOPT_FAILONERROR, 1);
 	curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1);

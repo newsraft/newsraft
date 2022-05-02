@@ -33,12 +33,15 @@ assign_default_values_to_config_settings(void)
 		goto undo8;
 	}
 	cfg.max_items = 0; // 0 == inf
+	cfg.download_timeout = 20; // 0 == inf
 	cfg.append_links = true;
 	cfg.run_cleaning_of_the_database_on_startup = true;
 	cfg.run_analysis_of_the_database_on_startup = true;
 	cfg.send_useragent_header = true;
 	cfg.send_if_none_match_header = true;
 	cfg.send_if_modified_since_header = true;
+	cfg.ssl_verify_host = true;
+	cfg.ssl_verify_peer = true;
 	cfg.size_conversion_threshold = 1200;
 	return true;
 undo8:

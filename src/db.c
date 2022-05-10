@@ -43,7 +43,6 @@ db_init(void)
 			"title TEXT NOT NULL," // name of item
 			"guid TEXT NOT NULL,"
 			"link TEXT NOT NULL," // url to related resource
-			"unread INTEGER(1) NOT NULL," // 0 if item read and 1 if item unread
 			"attachments TEXT NOT NULL,"
 			"authors TEXT NOT NULL,"
 			"categories TEXT NOT NULL,"
@@ -51,7 +50,8 @@ db_init(void)
 			"upddate INTEGER(8) NOT NULL," // update date in seconds since 1970
 			"comments_url TEXT NOT NULL,"
 			"summary TEXT NOT NULL,"
-			"content TEXT NOT NULL"
+			"content TEXT NOT NULL,"
+			"unread INTEGER(1) NOT NULL" // 0 if item read and 1 if item unread
 		");",
 		NULL,
 		NULL,

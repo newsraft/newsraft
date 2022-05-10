@@ -7,6 +7,6 @@ bool db_bind_text_struct(sqlite3_stmt *s, intmax_t placeholder, const struct get
 void delete_excess_items(const struct string *feed_url);
 
 bool insert_feed_data(const struct string *feed_url, const struct getfeed_feed *feed);
-void insert_item_data(const struct string *feed_url, const struct getfeed_item *item);
+bool insert_item_data(const struct string *feed_url, const struct getfeed_item *item);
 
 #endif // INSERT_FEED_H

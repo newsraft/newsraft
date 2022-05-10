@@ -1,10 +1,8 @@
 #include <stdlib.h>
-#include <string.h>
 #include "feedeater.h"
 
 // Here, a pager is such a thing that serves as a text viewer.
 
-const struct render_block *data_list;
 static WINDOW *window;
 static size_t view_min; // index of first visible line (row)
 static size_t view_lim; // maximum reachable value of view_min
@@ -26,7 +24,7 @@ write_splitted_wstring_to_pad(WINDOW *pad, const struct wstring *wbuf)
 }
 
 static WINDOW *
-create_window_with_contents(void)
+create_window_with_contents(const struct render_block *data_list)
 {
 	struct wstring *text = render_data(data_list);
 	if (text == NULL) {
@@ -89,9 +87,7 @@ scroll_view(size_t pminrow)
 int
 pager_view(const struct render_block *first_block)
 {
-	data_list = first_block;
-
-	window = create_window_with_contents();
+	window = create_window_with_contents(first_block);
 	if (window == NULL) {
 		// Error message is written by create_window_with_contents
 		return INPUTS_COUNT;
@@ -116,7 +112,10 @@ pager_view(const struct render_block *first_block)
 			scroll_view(view_lim);
 		} else if (cmd == INPUT_RESIZE) {
 			delwin(window);
-			window = create_window_with_contents();
+			window = create_window_with_contents(first_block);
+			if (window == NULL) {
+				return INPUTS_COUNT;
+			}
 		} else if ((cmd == INPUT_QUIT_SOFT) || (cmd == INPUT_QUIT_HARD)) {
 			break;
 		}

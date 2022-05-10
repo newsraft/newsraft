@@ -34,7 +34,11 @@ insert_feed(const struct string *url, const struct getfeed_feed *feed)
 
 	const struct getfeed_item *item = feed->item;
 	while (item != NULL) {
-		insert_item_data(url, item);
+		if (insert_item_data(url, item) == false) {
+			FAIL("Failed to insert item data!");
+			db_rollback_transaction();
+			return false;
+		}
 		item = item->next;
 	}
 

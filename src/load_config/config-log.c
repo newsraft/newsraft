@@ -21,7 +21,7 @@ log_config_settings(void)
 	INFO("contents_meta_data = %s", cfg.contents_meta_data->ptr);
 	INFO("contents_date_format = %s", cfg.contents_date_format->ptr);
 	INFO("useragent = %s", cfg.useragent->ptr);
-	INFO("proxy is omitted because it is sensitive");
-	INFO("proxy_auth  is omitted because it is sensitive");
+	INFO("proxy is omitted because it is confidential");
+	INFO("proxy_auth is omitted because it is confidential");
 	INFO("size_conversion_threshold = %zu", cfg.size_conversion_threshold);
 }

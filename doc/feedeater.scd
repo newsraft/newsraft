@@ -6,7 +6,7 @@ feedeater - feed reader for terminal
 
 # SYNOPSIS
 
-*feedeater* [-f _feeds_file_] [-c _config_file_] [-d _data_file_] [-l _log_file_]
+*feedeater* [-f _FILE1_] [-c _FILE2_] [-d _FILE3_] [-l _FILE4_]
 
 *feedeater* -h
 
@@ -14,30 +14,30 @@ feedeater - feed reader for terminal
 
 # DESCRIPTION
 
-Feedeater is a piece of software that aggregates syndicated web content such
-as blogs, newspapers and podcasts in one location for easy access from your
-terminal via comfy curses interface. It is greatly inspired by *newsboat*(1)
-and yet has some significant differences.
+Feedeater is a piece of software that aggregates syndicated web content like
+blogs and podcasts in one location for easy access from your terminal via comfy
+curses interface. It is greatly inspired by *newsboat*(1) and yet has some
+significant differences.
 
 # OPTIONS
 
-\-f _feeds_file_
-	Force use of _feeds_file_ as feeds file.
+\-f _FILE_
+	Force use of _FILE_ as feeds file.
 
-\-c _config_file_
-	Force use of _config_file_ as config file.
+\-c _FILE_
+	Force use of _FILE_ as configuration file.
 
-\-d _data_file_
-	Force use of _data_file_ as data file.
+\-d _FILE_
+	Force use of _FILE_ as database file.
 
-\-l _log_file_
-	Write log information to _log_file_.
+\-l _FILE_
+	Write log information to _FILE_.
 
 \-h
 	Print usage information and quit with 0 exit code.
 
 \-v
-	Print version and quit with 0 exit code.
+	Print version information and quit with 0 exit code.
 
 # CONFIGURATION
 
@@ -52,11 +52,9 @@ Search order:
 
 ## CONFIG FILE
 
-Config file is used to override default settings of feedeater, such as
-maximum number of items in one feed, action key bindings or set of line
-breaking characters. Complete list of configurable options can be found
-in *SETTINGS* section. Presence of config file is totally optional and
-feedeater will work without it just fine.
+Config file is used to override default settings of feedeater. Complete list of
+configurable options can be found in *SETTINGS* section. Presence of config file
+is totally optional and feedeater will work without it just fine.
 
 Search order:
 . _$XDG_CONFIG_HOME_/feedeater/config
@@ -65,7 +63,7 @@ Search order:
 
 ## DATABASE FILE
 
-It stores everything you download from feeds in *sqlite3*(1) database format.
+Database file stores everything you download from feeds in *sqlite3*(1) format.
 
 Search order:
 . _$XDG_DATA_HOME_/feedeater/feedeater.sqlite3
@@ -73,27 +71,86 @@ Search order:
 
 # SETTINGS
 
-_set-entry-format_ (default: *"%4.0u │ %t"*)
-	Format of set entry.
-
-_item-entry-format_ (default: *" %u │ %t"*)
-	Format of item entry.
-
-_date-format_ (default: *"%a, %d %b %Y %H:%M:%S %z"*)
-	Format of date.
-
-_break-at_ (default: *" "*)
-	Characters that break the lines.
-
-_feed-items-limit_ (default: *0*)
+_max-items_ (default: *0*)
 	Shows how many items one feed can store. Zero means that it has no limits.
 
-_reload-at-startup_ (default: *false*)
-	If set to *true*, automatically updates all feeds at startup.
+_download-timeout_ (default: *20*)
+	Maximum time in seconds that you allow feedeater to download one feed.
 
-TODO
+_size-conversion-threshold_ (default: *1200*)
+	TODO
+
+_menu-section-entry-format_ (default: *"%4.0u │ %t"*)
+	TODO
+
+_menu-feed-entry-format_ (default: *"%4.0u │ %t"*)
+	TODO
+
+_menu-item-entry-format_ (default: *" %u │ %t"*)
+	TODO
+
+_proxy_ (default: *""*)
+	TODO
+
+_proxy-auth_ (default: *""*)
+	TODO
+
+_global-section-name_ (default: *"Global"*)
+	Name of the section that contains all feeds.
+
+_send-user-agent-header_ (default: *true*)
+	Attach user-agent header to download requests. See _user-agent_ setting.
+
+_user-agent_ (default: *""*)
+	User-agent string to attach to download requests. If it is empty, feedeater
+	will generate it in the following form:
+
+		*"feedeater/"* + _FEEDEATER_VERSION_ + *" ("* + _OS_NAME_ + *")"*
+
+	_OS_NAME_ shouldn't contain any confidential information - it is probably
+	something just like "Linux" or "Darwin".
+
+_content-data-order_ (default: *"feed,title,authors,published,updated,max-summary-content"*)
+	TODO
+
+_content-date-format_ (default: *"%a, %d %b %Y %H:%M:%S %z"*)
+	Format of date in the content view.
+
+_content-append-links_ (default: *true*)
+	Whether or not append links section to content view.
+
+_clean-database-on-startup_ (default: *true*)
+	Run "VACUUM" SQLite command on the database every time you start feedeater.
+	It rebuilds the database file, repacking it into a minimal amount of disk space.
+	This can significantly increase startup time.
+
+_analyze-database-on-startup_ (default: *true*)
+	Run "ANALYZE" SQLite command on the database every time you start feedeater.
+	It gathers statistics about database and uses it to optimize some queries.
+	This can significantly increase startup time.
+
+_send-if-none-match-header_ (default: *true*)
+	TODO
+	Disabling it is discouraged.
+
+_send-if-modified-since-header_ (default: *true*)
+	TODO
+	Disabling it is discouraged.
+
+_ssl-verify-host_ (default: *true*)
+	TODO
+	Disabling it is discouraged.
+
+_ssl-verify-peer_ (default: *true*)
+	TODO
+	Disabling it is discouraged.
 
 # ENVIRONMENT
+
+Since all feedeater's interactions with the network occur through the
+*libcurl*(3) library, all environment variables taken into account by
+*libcurl*(3) can be set for feedeater as well. You can learn more about the
+environment variables that *libcurl*(3) understands on *libcurl-env*(3).
 
 ## XDG_CONFIG_HOME
 
@@ -106,6 +163,10 @@ Directory for applications to store their data.
 ## HOME
 
 Home directory of your user.
+
+# SEE ALSO
+
+*newsboat*(1), *sqlite3*(1), *libcurl*(3), *libcurl-env*(3)
 
 # AUTHOR
 

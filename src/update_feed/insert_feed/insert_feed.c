@@ -42,7 +42,7 @@ insert_feed(const struct string *url, const struct getfeed_feed *feed)
 		item = item->next;
 	}
 
-	if (cfg.max_items != 0) {
+	if (get_cfg_uint(CFG_MAX_ITEMS) != 0) {
 		delete_excess_items(url);
 	}
 

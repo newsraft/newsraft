@@ -6,11 +6,12 @@ bool
 verify_config_values(void)
 {
 	bool success = true;
-	if (cfg.size_conversion_threshold < 1000U) {
+	if (get_cfg_uint(CFG_SIZE_CONVERSION_THRESHOLD) < 1000U) {
 		success = false;
 		fprintf(stderr, "Size conversion threshold must be greater than or equal to 1000!\n");
 	}
-	if ((cfg.proxy->len != 0) && (strstr(cfg.proxy->ptr, "://") == NULL)) {
+	const struct string *str = get_cfg_string(CFG_PROXY);
+	if ((str->len != 0) && (strstr(str->ptr, "://") == NULL)) {
 		success = false;
 		fprintf(stderr, "The proxy string must be prefixed with scheme:// to specify which kind of proxy is used!\n");
 	}

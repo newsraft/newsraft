@@ -2,10 +2,11 @@
 #define LOAD_CONFIG_H
 #include "feedeater.h"
 
-struct string *generate_useragent_string(void);
+bool generate_useragent_string(struct string *target);
 
-bool assign_default_values_to_config_settings(void);
 bool load_default_binds(void);
+
+bool assign_default_values_to_null_config_strings(void);
 
 void log_config_settings(void);
 

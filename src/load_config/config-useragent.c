@@ -3,11 +3,10 @@
 #include <sys/utsname.h>
 #include "load_config/load_config.h"
 
-struct string *
-generate_useragent_string(void)
+bool
+generate_useragent_string(struct string *ua)
 {
-	struct string *ua = crtas("feedeater/", 10);
-	if (ua == NULL) {
+	if (catas(ua, "feedeater/", 10) == false) {
 		goto error;
 	}
 	if (catas(ua, FEEDEATER_VERSION, strlen(FEEDEATER_VERSION)) == false) {
@@ -28,9 +27,8 @@ generate_useragent_string(void)
 			}
 		}
 	}
-	return ua;
+	return true;
 error:
 	fprintf(stderr, "Not enough memory for useragent string!\n");
-	free_string(ua);
-	return NULL;
+	return false;
 }

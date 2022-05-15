@@ -21,7 +21,8 @@ parse_feeds_file(const char *path)
 	if (word == NULL) {
 		return false;
 	}
-	struct string *section_name = crtss(cfg.global_section_name);
+	const struct string *global_section_name = get_cfg_string(CFG_GLOBAL_SECTION_NAME);
+	struct string *section_name = crtss(global_section_name);
 	if (section_name == NULL) {
 		free_string(word);
 		return false;
@@ -189,10 +190,11 @@ feed_image(const struct feed_line *feed)
 static const wchar_t *
 paint_feed_entry(size_t index)
 {
+	const struct wstring *format = get_cfg_wstring(CFG_MENU_FEED_ENTRY_FORMAT);
 	fmt_args[0].value.i = index + 1;
 	fmt_args[1].value.i = feeds[index]->unread_count;
 	fmt_args[2].value.s = feed_image(feeds[index]);
-	return do_format(cfg.menu_feed_entry_format, fmt_args, COUNTOF(fmt_args));
+	return do_format(format, fmt_args, COUNTOF(fmt_args));
 }
 
 static void

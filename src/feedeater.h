@@ -82,27 +82,28 @@ struct link_list {
 	size_t lim;        // Shows how many items list can fit.
 };
 
-struct config_data {
-	size_t max_items;
-	size_t download_timeout;
-	bool append_links;
-	bool run_cleaning_of_the_database_on_startup;
-	bool run_analysis_of_the_database_on_startup;
-	bool send_useragent_header;
-	bool send_if_none_match_header;
-	bool send_if_modified_since_header;
-	bool ssl_verify_host;
-	bool ssl_verify_peer;
-	struct wstring *menu_section_entry_format;
-	struct wstring *menu_feed_entry_format;
-	struct wstring *menu_item_entry_format;
-	struct string *global_section_name;
-	struct string *contents_meta_data;
-	struct string *contents_date_format;
-	struct string *useragent;
-	struct string *proxy;
-	struct string *proxy_auth;
-	size_t size_conversion_threshold;
+enum config_entry_index {
+	CFG_MAX_ITEMS,
+	CFG_DOWNLOAD_TIMEOUT,
+	CFG_SIZE_CONVERSION_THRESHOLD,
+	CFG_MENU_SECTION_ENTRY_FORMAT,
+	CFG_MENU_FEED_ENTRY_FORMAT,
+	CFG_MENU_ITEM_ENTRY_FORMAT,
+	CFG_PROXY,
+	CFG_PROXY_AUTH,
+	CFG_GLOBAL_SECTION_NAME,
+	CFG_USER_AGENT,
+	CFG_CONTENT_DATA_ORDER,
+	CFG_CONTENT_DATE_FORMAT,
+	CFG_CONTENT_APPEND_LINKS,
+	CFG_CLEAN_DATABASE_ON_STARTUP,
+	CFG_ANALYZE_DATABASE_ON_STARTUP,
+	CFG_SEND_USER_AGENT_HEADER,
+	CFG_SEND_IF_NONE_MATCH_HEADER,
+	CFG_SEND_IF_MODIFIED_SINCE_HEADER,
+	CFG_SSL_VERIFY_HOST,
+	CFG_SSL_VERIFY_PEER,
+	CFG_ENTRIES_COUNT,
 };
 
 typedef uint8_t input_cmd_id;
@@ -293,6 +294,10 @@ void log_stop(void);
 // Parse config file, fill out config_data structure, bind keys to actions.
 // See "load_config" directory for implementation.
 bool load_config(void);
+bool get_cfg_bool(size_t i);
+size_t get_cfg_uint(size_t i);
+const struct string *get_cfg_string(size_t i);
+const struct wstring *get_cfg_wstring(size_t i);
 void free_config(void);
 
 // Download, process and store new items of feed.
@@ -313,6 +318,5 @@ struct wstring *render_data(const struct render_block *first_block);
 extern FILE *log_stream;
 extern size_t list_menu_height;
 extern size_t list_menu_width;
-extern struct config_data cfg;
 
 #endif // FEEDEATER_H

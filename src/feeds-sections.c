@@ -58,7 +58,8 @@ create_new_section(const struct string *section_name)
 bool
 create_global_section(void)
 {
-	return create_new_section(cfg.global_section_name);
+	const struct string *global_section_name = get_cfg_string(CFG_GLOBAL_SECTION_NAME);
+	return create_new_section(global_section_name);
 }
 
 // On success returns a pointer to the attached feed.
@@ -111,7 +112,8 @@ add_feed_to_section(struct feed_line *feed, const struct string *section_name)
 	if (attached_feed == NULL) {
 		return false;
 	}
-	if (strcmp(section_name->ptr, cfg.global_section_name->ptr) == 0) {
+	const struct string *global_section_name = get_cfg_string(CFG_GLOBAL_SECTION_NAME);
+	if (strcmp(section_name->ptr, global_section_name->ptr) == 0) {
 		// The section we add a feed to is global and we already added
 		// a feed to the global section above. So exit innocently here.
 		return true; // Not an error.
@@ -158,10 +160,11 @@ free_sections(void)
 static const wchar_t *
 paint_section_entry(size_t index)
 {
+	const struct wstring *format = get_cfg_wstring(CFG_MENU_SECTION_ENTRY_FORMAT);
 	fmt_args[0].value.i = index + 1;
 	fmt_args[1].value.i = sections[index].unread_count;
 	fmt_args[2].value.s = sections[index].name->ptr;
-	return do_format(cfg.menu_section_entry_format, fmt_args, COUNTOF(fmt_args));
+	return do_format(format, fmt_args, COUNTOF(fmt_args));
 }
 
 static inline void

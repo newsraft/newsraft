@@ -67,18 +67,19 @@ static inline void
 prepare_curl_for_performance(CURL *curl, const char *url, struct curl_slist *headers, struct getfeed_feed *feed, void *writedata, char *errbuf)
 {
 	curl_easy_setopt(curl, CURLOPT_URL, url);
-	if (cfg.send_useragent_header == true) {
-		INFO("Attached user-agent: %s", cfg.useragent->ptr);
-		curl_easy_setopt(curl, CURLOPT_USERAGENT, cfg.useragent->ptr);
+	if (get_cfg_bool(CFG_SEND_USER_AGENT_HEADER) == true) {
+		const struct string *useragent = get_cfg_string(CFG_USER_AGENT);
+		INFO("Attached user-agent: %s", useragent->ptr);
+		curl_easy_setopt(curl, CURLOPT_USERAGENT, useragent->ptr);
 	}
 	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &parse_stream_callback);
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, writedata);
 	curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, &header_callback);
 	curl_easy_setopt(curl, CURLOPT_HEADERDATA, feed);
-	curl_easy_setopt(curl, CURLOPT_TIMEOUT, cfg.download_timeout);
-	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, cfg.ssl_verify_host ? 2 : 0);
-	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, cfg.ssl_verify_peer ? 1 : 0);
+	curl_easy_setopt(curl, CURLOPT_TIMEOUT, get_cfg_uint(CFG_DOWNLOAD_TIMEOUT));
+	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, get_cfg_bool(CFG_SSL_VERIFY_HOST) ? 2 : 0);
+	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, get_cfg_bool(CFG_SSL_VERIFY_PEER) ? 1 : 0);
 	curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, errbuf);
 	curl_easy_setopt(curl, CURLOPT_FAILONERROR, 1);
 	curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1);
@@ -89,10 +90,12 @@ prepare_curl_for_performance(CURL *curl, const char *url, struct curl_slist *hea
 	curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1);
 	curl_easy_setopt(curl, CURLOPT_VERBOSE, 0);
 
-	if (cfg.proxy->len != 0) {
-		curl_easy_setopt(curl, CURLOPT_PROXY, cfg.proxy->ptr);
-		if (cfg.proxy_auth->len != 0) {
-			curl_easy_setopt(curl, CURLOPT_PROXYUSERPWD, cfg.proxy_auth->ptr);
+	const struct string *proxy = get_cfg_string(CFG_PROXY);
+	if (proxy->len != 0) {
+		curl_easy_setopt(curl, CURLOPT_PROXY, proxy->ptr);
+		const struct string *proxy_auth = get_cfg_string(CFG_PROXY_AUTH);
+		if (proxy_auth->len != 0) {
+			curl_easy_setopt(curl, CURLOPT_PROXYUSERPWD, proxy_auth->ptr);
 		}
 	}
 }

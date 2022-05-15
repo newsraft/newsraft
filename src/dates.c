@@ -31,5 +31,6 @@ get_formatted_date_string(time_t time, time_t offset, const char *format)
 struct string *
 get_config_date_str(time_t date)
 {
-	return get_formatted_date_string(date, get_local_offset_relative_to_utc(), cfg.contents_date_format->ptr);
+	const struct string *format = get_cfg_string(CFG_CONTENT_DATE_FORMAT);
+	return get_formatted_date_string(date, get_local_offset_relative_to_utc(), format->ptr);
 }

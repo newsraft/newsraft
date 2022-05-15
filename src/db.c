@@ -64,7 +64,7 @@ db_init(void)
 		return false;
 	}
 
-	if (cfg.run_cleaning_of_the_database_on_startup == true) {
+	if (get_cfg_bool(CFG_CLEAN_DATABASE_ON_STARTUP) == true) {
 		sqlite3_exec(db, "VACUUM;", NULL, NULL, &errmsg);
 		if (errmsg != NULL) {
 			fprintf(stderr, "Failed to clean database: %s!\n", errmsg);
@@ -74,7 +74,7 @@ db_init(void)
 		}
 	}
 
-	if (cfg.run_analysis_of_the_database_on_startup == true) {
+	if (get_cfg_bool(CFG_ANALYZE_DATABASE_ON_STARTUP) == true) {
 		sqlite3_exec(db, "ANALYZE;", NULL, NULL, &errmsg);
 		if (errmsg != NULL) {
 			fprintf(stderr, "Failed to analyze database: %s!\n", errmsg);

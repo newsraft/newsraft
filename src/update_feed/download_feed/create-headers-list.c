@@ -10,7 +10,7 @@ create_list_of_headers(struct getfeed_feed *feed)
 	INFO("Attached header: A-IM: feed");
 
 	// If-None-Match
-	if ((cfg.send_if_none_match_header == true) && (feed->etag_header->len != 0)) {
+	if ((get_cfg_bool(CFG_SEND_IF_NONE_MATCH_HEADER) == true) && (feed->etag_header->len != 0)) {
 		struct string *if_none_match_header = crtas("If-None-Match: \"", 16);
 		catss(if_none_match_header, feed->etag_header);
 		catcs(if_none_match_header, '"');
@@ -20,7 +20,7 @@ create_list_of_headers(struct getfeed_feed *feed)
 	}
 
 	// If-Modified-Since
-	if ((cfg.send_if_modified_since_header == true) && (feed->last_modified_header->len != 0)) {
+	if ((get_cfg_bool(CFG_SEND_IF_MODIFIED_SINCE_HEADER) == true) && (feed->last_modified_header->len != 0)) {
 		struct string *if_modified_since_header = crtas("If-Modified-Since: ", 19);
 		catss(if_modified_since_header, feed->last_modified_header);
 		headers = curl_slist_append(headers, if_modified_since_header->ptr);

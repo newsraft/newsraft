@@ -178,7 +178,8 @@ join_render_blocks_of_item_data(struct render_block **list, sqlite3_stmt *res)
 {
 	char entry[MAX_METADATA_ENTRY_NAME_LENGTH + 1];
 	size_t entry_len = 0;
-	const char *i = cfg.contents_meta_data->ptr;
+	const struct string *content_order = get_cfg_string(CFG_CONTENT_DATA_ORDER);
+	const char *i = content_order->ptr;
 	while (true) {
 		if ((*i == ',') || (*i == '\0')) {
 			entry[entry_len] = '\0';

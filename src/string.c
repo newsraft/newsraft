@@ -273,7 +273,8 @@ convert_bytes_to_human_readable_size_string(const char *value)
 	}
 	float size = bytes;
 	int prefix = 0;
-	while ((size > cfg.size_conversion_threshold) && (prefix < 3)) {
+	const size_t conversion_threshold = get_cfg_uint(CFG_SIZE_CONVERSION_THRESHOLD);
+	while ((size > conversion_threshold) && (prefix < 3)) {
 		size = size / 1000;
 		++prefix;
 	}

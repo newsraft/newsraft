@@ -43,9 +43,25 @@ significant differences.
 
 ## FEEDS FILE
 
-TODO
+Feeds file contains feed entries that feedeater will display and process. There
+are 3 types of lines in feeds file.
 
-Search order:
+Feed lines start with a feed URL. After at least one whitespace character
+(except newline) custom feed name can be specified - it must be enclosed in
+double quotes. For example:
+
+	_https://example.org/feed.xml "Lorem Ipsum Blog"_
+
+Section lines start with [ and end with ]. Everything in between is the name
+of the section. Sections are used to organize feeds. For example:
+
+	_\[Software Releases\]_
+
+Comment lines start with #. These lines are completely ignored. For example:
+
+	_# haha i'm being ignored_
+
+Search precedence:
 . _$XDG_CONFIG_HOME_/feedeater/feeds
 . _$HOME_/.config/feedeater/feeds
 . _$HOME_/.feedeater/feeds
@@ -56,7 +72,7 @@ Config file is used to override default settings of feedeater. Complete list of
 configurable options can be found in *SETTINGS* section. Presence of config file
 is totally optional and feedeater will work without it just fine.
 
-Search order:
+Search precedence:
 . _$XDG_CONFIG_HOME_/feedeater/config
 . _$HOME_/.config/feedeater/config
 . _$HOME_/.feedeater/config
@@ -65,7 +81,7 @@ Search order:
 
 Database file stores everything you download from feeds in *sqlite3*(1) format.
 
-Search order:
+Search precedence:
 . _$XDG_DATA_HOME_/feedeater/feedeater.sqlite3
 . _$HOME_/.local/share/feedeater/feedeater.sqlite3
 

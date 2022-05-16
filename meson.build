@@ -47,7 +47,7 @@ else
 endif
 
 scdoc = dependency('scdoc', version: '>=1.11.2', native: true, required: get_option('man-page'))
-scdoc_prog = find_program(scdoc.get_variable(pkgconfig: 'scdoc'), native: true)
+scdoc_prog = find_program('scdoc', native: true)
 mandir = get_option('mandir')
 custom_target(
 	'feedeater.1',

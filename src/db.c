@@ -7,7 +7,7 @@ db_init(void)
 {
 	const char *path = get_db_path();
 	if (path == NULL) {
-		// Error message is written by get_db_path().
+		// Error message written by get_db_path.
 		return false;
 	}
 

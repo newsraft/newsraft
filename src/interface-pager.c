@@ -89,7 +89,7 @@ pager_view(const struct render_block *first_block)
 {
 	window = create_window_with_contents(first_block);
 	if (window == NULL) {
-		// Error message is written by create_window_with_contents
+		// Error message written by create_window_with_contents.
 		return INPUTS_COUNT;
 	}
 

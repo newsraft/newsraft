@@ -141,7 +141,7 @@ load_feeds(void)
 {
 	const char *feeds_file_path = get_feeds_path();
 	if (feeds_file_path == NULL) {
-		// Error message is written by get_feeds_path().
+		// Error message written by get_feeds_path.
 		return false;
 	}
 	if (create_global_section() == false) {
@@ -198,18 +198,13 @@ paint_feed_entry(size_t index)
 }
 
 static void
-update_unread_items_count(size_t index, bool redraw)
+update_unread_items_count(size_t index)
 {
 	int64_t new_unread_count = get_unread_items_count_of_the_feed(feeds[index]->link);
 	if (new_unread_count < 0) {
 		return;
 	}
-	if (feeds[index]->unread_count != new_unread_count) {
-		feeds[index]->unread_count = new_unread_count;
-		if ((redraw == true) && (index >= feeds_menu.view_min) && (index <= feeds_menu.view_max)) {
-			expose_entry_of_the_menu_list(&feeds_menu, index);
-		}
-	}
+	feeds[index]->unread_count = new_unread_count;
 }
 
 static void
@@ -222,7 +217,8 @@ reload_current_feed(void)
 		return;
 	}
 
-	update_unread_items_count(feeds_menu.view_sel, true);
+	update_unread_items_count(feeds_menu.view_sel);
+	expose_entry_of_the_menu_list(&feeds_menu, feeds_menu.view_sel);
 	status_clean();
 }
 
@@ -238,7 +234,10 @@ reload_all_feeds(void)
 		}
 		status_write("(%d/%d) Loading %s", i + 1, feeds_count, feeds[i]->link->ptr);
 		if (update_feed(feeds[i]->link) == true) {
-			update_unread_items_count(i, true);
+			update_unread_items_count(i);
+			if ((i >= feeds_menu.view_min) && (i <= feeds_menu.view_max)) {
+				expose_entry_of_the_menu_list(&feeds_menu, i);
+			}
 		} else {
 			failed_feed = feeds[i]->link;
 			++errors;
@@ -294,7 +293,7 @@ enter_feeds_menu_loop(void)
 			cmd = enter_items_menu_loop(feeds[feeds_menu.view_sel]->link);
 			if (cmd == INPUT_QUIT_SOFT) {
 				status_clean();
-				update_unread_items_count(feeds_menu.view_sel, false);
+				update_unread_items_count(feeds_menu.view_sel);
 				redraw_menu_list(&feeds_menu);
 			} else if (cmd == INPUT_QUIT_HARD) {
 				break;

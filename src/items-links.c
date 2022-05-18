@@ -214,28 +214,30 @@ error:
 	return NULL;
 }
 
-// Creates new URL without pathes, for example:
+// Creates new URL without paths. For example:
 //     http://example.org/feeds/atom.xml
 // becomes:
 //     http://example.org
 static inline struct string *
-trim_pathes_from_url(const char *url, size_t url_len)
+strip_paths_from_url(const char *url, size_t url_len)
 {
-	struct string *url_without_pathes = NULL;
 	const char *slash_pos = strchr(url, '/');
 	if ((slash_pos == NULL) || (slash_pos == url)) {
-		url_without_pathes = crtas(url, url_len);
-		return url_without_pathes;
-	} else if ((*(slash_pos - 1) == ':') && (*(slash_pos + 1) == '/')) {
+		return crtas(url, url_len);
+	}
+	if ((*(slash_pos - 1) == ':') && (*(slash_pos + 1) == '/')) {
 		slash_pos = strchr(slash_pos + 2, '/');
+		if (slash_pos == NULL) {
+			return crtas(url, url_len);
+		}
 	}
-	if (slash_pos == NULL) {
-		url_without_pathes = crtas(url, url_len);
+	struct string *result = crtas(url, slash_pos - url);
+	if (result != NULL) {
+		INFO("URL \"%s\" without paths looks like \"%s\".", url, result->ptr);
 	} else {
-		size_t url_without_pathes_len = slash_pos - url - 1;
-		url_without_pathes = crtas(url, url_without_pathes_len);
+		FAIL("Not enough memory for URL without paths!");
 	}
-	return url_without_pathes;
+	return result;
 }
 
 // Some URLs of item links are presented in relative form.
@@ -268,9 +270,9 @@ complete_urls_of_links(struct link_list *links, sqlite3_stmt *res)
 		FAIL("Feed URL of the item is empty!");
 		return false;
 	}
-	struct string *url_without_pathes = trim_pathes_from_url(feed_url, feed_url_len);
-	if (url_without_pathes == NULL) {
-		FAIL("Not enough memory for URL without pathes!");
+	struct string *url_without_paths = strip_paths_from_url(feed_url, feed_url_len);
+	if (url_without_paths == NULL) {
+		// Error message written by strip_paths_from_url.
 		return false;
 	}
 	const char *item_link;
@@ -280,9 +282,9 @@ complete_urls_of_links(struct link_list *links, sqlite3_stmt *res)
 	size_t protocol_name_len;
 	for (size_t i = 0; i < links->len; ++i) {
 		if (links->list[i].url->ptr[0] == '/') {
-			temp = crtss(url_without_pathes);
+			temp = crtss(url_without_paths);
 			if (temp == NULL) {
-				free_string(url_without_pathes);
+				free_string(url_without_paths);
 				return false;
 			}
 			catss(temp, links->list[i].url);
@@ -306,7 +308,7 @@ complete_urls_of_links(struct link_list *links, sqlite3_stmt *res)
 				if (item_link_len == 0) { continue; }
 				temp = crtas(item_link, item_link_len);
 				if (temp == NULL) {
-					free_string(url_without_pathes);
+					free_string(url_without_paths);
 					return false;
 				}
 				if (links->list[i].url->ptr[0] == '#') {
@@ -325,6 +327,6 @@ complete_urls_of_links(struct link_list *links, sqlite3_stmt *res)
 			}
 		}
 	}
-	free_string(url_without_pathes);
+	free_string(url_without_paths);
 	return true;
 }

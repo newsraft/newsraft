@@ -25,6 +25,11 @@ struct string {
 	size_t lim;
 };
 
+struct string_list {
+	struct string *str;
+	struct string_list *next;
+};
+
 struct wstring {
 	wchar_t *ptr;
 	size_t len;
@@ -85,6 +90,7 @@ struct link_list {
 enum config_entry_index {
 	CFG_MAX_ITEMS,
 	CFG_DOWNLOAD_TIMEOUT,
+	CFG_STATUS_MESSAGES_LIMIT,
 	CFG_SIZE_CONVERSION_THRESHOLD,
 	CFG_MENU_SECTION_ENTRY_FORMAT,
 	CFG_MENU_FEED_ENTRY_FORMAT,
@@ -287,6 +293,9 @@ void empty_wstring(struct wstring *wstr);
 void free_wstring(struct wstring *wstr);
 void trim_whitespace_from_wstring(struct wstring *wstr);
 struct string *convert_wstring_to_string(const struct wstring *src);
+// string_list
+bool append_empty_string_to_string_list(struct string_list **list);
+void free_string_list(struct string_list *list);
 
 bool log_init(const char *path);
 void log_stop(void);

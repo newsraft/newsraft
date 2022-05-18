@@ -88,10 +88,14 @@ Search precedence:
 # SETTINGS
 
 _max-items_ (default: *0*)
-	Shows how many items one feed can store. Zero means that it has no limits.
+	Maximum number of items stored in one feed. Zero disables the limit.
 
 _download-timeout_ (default: *20*)
-	Maximum time in seconds that you allow feedeater to download one feed.
+	Maximum time in seconds that you allow feedeater to download one feed. Zero
+	disables the limit.
+
+_status-messages-limit_ (default: *0*)
+	Maximum number of status messages stored in memory. Zero disables the limit.
 
 _size-conversion-threshold_ (default: *1200*)
 	TODO

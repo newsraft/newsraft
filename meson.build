@@ -70,6 +70,7 @@ executable(
 		'src/log.c',
 		'src/path.c',
 		'src/string.c',
+		'src/string-list.c',
 		'src/wstring.c',
 		'src/dates.c',
 		'src/db.c',

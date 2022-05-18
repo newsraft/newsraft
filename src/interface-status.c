@@ -1,7 +1,11 @@
 #include "feedeater.h"
 
-static WINDOW *status_win = NULL; 
-static struct string *status_buf = NULL;
+// TODO respect status-messages-limit setting
+
+static WINDOW *status_win;
+static struct string_list *status_messages;
+static size_t status_messages_count;
+static size_t status_messages_limit;
 
 bool
 status_create(void)
@@ -11,12 +15,9 @@ status_create(void)
 		fprintf(stderr, "Failed to create status line window!\n");
 		return false;
 	}
-	status_buf = crtes();
-	if (status_buf == NULL) {
-		fprintf(stderr, "Failed to create status line buffer!\n");
-		delwin(status_win);
-		return false;
-	}
+	status_messages = NULL;
+	status_messages_count = 0;
+	status_messages_limit = get_cfg_uint(CFG_STATUS_MESSAGES_LIMIT);
 	return true;
 }
 
@@ -24,7 +25,9 @@ void
 status_update(void)
 {
 	werase(status_win);
-	mvwaddnstr(status_win, 0, 0, status_buf->ptr, list_menu_width);
+	if (status_messages != NULL) {
+		mvwaddnstr(status_win, 0, 0, status_messages->str->ptr, list_menu_width);
+	}
 	wrefresh(status_win);
 }
 
@@ -33,11 +36,16 @@ status_write(const char *format, ...)
 {
 	va_list args;
 	va_start(args, format);
-	if (string_vprintf(status_buf, format, args) == false) {
+	if ((status_messages == NULL) || (status_messages->str->len != 0)) {
+		if (append_empty_string_to_string_list(&status_messages) == false) {
+			return;
+		}
+	}
+	if (string_vprintf(status_messages->str, format, args) == false) {
 		va_end(args);
 		return;
 	}
-	INFO("Wrote to status: %s", status_buf->ptr);
+	INFO("Last status message: %s", status_messages->str->ptr);
 	status_update();
 	va_end(args);
 }
@@ -47,7 +55,13 @@ status_clean(void)
 {
 	werase(status_win);
 	wrefresh(status_win);
-	empty_string(status_buf);
+	if (status_messages == NULL) {
+		return;
+	}
+	if (status_messages->str->len == 0) {
+		return;
+	}
+	append_empty_string_to_string_list(&status_messages);
 }
 
 void
@@ -57,7 +71,10 @@ status_resize(void)
 		delwin(status_win);
 	}
 	status_win = newwin(1, list_menu_width, list_menu_height, 0);
-	if (status_win == NULL) {
+	if (status_win != NULL) {
+		INFO("Created new status window.");
+	} else {
+		FAIL("Failed to create new status window!");
 		return;
 	}
 	status_update();
@@ -66,6 +83,7 @@ status_resize(void)
 void
 status_delete(void)
 {
+	INFO("Freeing status window and status messages.");
 	delwin(status_win);
-	free_string(status_buf);
+	free_string_list(status_messages);
 }

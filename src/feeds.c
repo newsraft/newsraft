@@ -309,6 +309,13 @@ enter_feeds_menu_loop(void)
 				}
 				redraw_menu_list(&feeds_menu);
 			}
+		} else if (cmd == INPUT_STATUS_HISTORY_MENU) {
+			cmd = enter_status_pager_view_loop();
+			if (cmd == INPUT_QUIT_SOFT) {
+				redraw_menu_list(&feeds_menu);
+			} else if (cmd == INPUT_QUIT_HARD) {
+				break;
+			}
 		} else if (cmd == INPUT_RESIZE) {
 			redraw_menu_list(&feeds_menu);
 		} else if ((cmd == INPUT_QUIT_SOFT) || (cmd == INPUT_QUIT_HARD)) {

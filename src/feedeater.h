@@ -25,11 +25,6 @@ struct string {
 	size_t lim;
 };
 
-struct string_list {
-	struct string *str;
-	struct string_list *next;
-};
-
 struct wstring {
 	wchar_t *ptr;
 	size_t len;
@@ -130,6 +125,7 @@ enum input_cmd {
 	INPUT_MARK_UNREAD,
 	INPUT_MARK_UNREAD_ALL,
 	INPUT_SECTIONS_MENU,
+	INPUT_STATUS_HISTORY_MENU,
 	INPUT_RESIZE,
 	INPUTS_COUNT,
 };
@@ -204,7 +200,6 @@ bool check_url_for_validity(const struct string *str);
 input_cmd_id enter_items_menu_loop(const struct string *url);
 
 // contents
-int pager_view(const struct render_block *first_block);
 bool join_render_block(struct render_block **list, const char *content, size_t content_len, const char *content_type, size_t content_type_len);
 bool join_render_separator(struct render_block **list);
 bool join_render_blocks_of_item_data(struct render_block **data_list, sqlite3_stmt *res);
@@ -215,6 +210,11 @@ struct string *generate_link_list_string_for_pager(const struct link_list *links
 bool add_another_url_to_trim_link_list(struct link_list *links, const char *url, size_t url_len);
 void free_trim_link_list(const struct link_list *links);
 bool join_links_render_block(struct render_block **contents, struct link_list *links);
+
+// pager
+int pager_view(const struct render_block *first_block);
+int enter_item_pager_view_loop(int rowid);
+int enter_status_pager_view_loop(void);
 
 // path
 bool set_feeds_path(const char *path);
@@ -262,6 +262,7 @@ void status_write(const char *format, ...);
 void status_clean(void);
 void status_resize(void);
 void status_delete(void);
+struct string *generate_string_with_status_messages_for_pager(void);
 
 // string
 struct string *crtas(const char *src_ptr, size_t src_len);
@@ -293,9 +294,6 @@ void empty_wstring(struct wstring *wstr);
 void free_wstring(struct wstring *wstr);
 void trim_whitespace_from_wstring(struct wstring *wstr);
 struct string *convert_wstring_to_string(const struct wstring *src);
-// string_list
-bool append_empty_string_to_string_list(struct string_list **list);
-void free_string_list(struct string_list *list);
 
 bool log_init(const char *path);
 void log_stop(void);

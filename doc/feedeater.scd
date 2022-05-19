@@ -94,7 +94,7 @@ _download-timeout_ (default: *20*)
 	Maximum time in seconds that you allow feedeater to download one feed. Zero
 	disables the limit.
 
-_status-messages-limit_ (default: *0*)
+_status-messages-limit_ (default: *10000*)
 	Maximum number of status messages stored in memory. Zero disables the limit.
 
 _size-conversion-threshold_ (default: *1200*)

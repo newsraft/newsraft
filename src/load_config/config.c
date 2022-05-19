@@ -30,7 +30,7 @@ struct config_entry {
 static struct config_entry config[] = {
 	{"max-items",                     CFG_UINT,    {.u = 0},     {.s = NULL},                                                       0},
 	{"download-timeout",              CFG_UINT,    {.u = 20},    {.s = NULL},                                                       0},
-	{"status-messages-limit",         CFG_UINT,    {.u = 0},     {.s = NULL},                                                       0},
+	{"status-messages-limit",         CFG_UINT,    {.u = 10000}, {.s = NULL},                                                       0},
 	{"size-conversion-threshold",     CFG_UINT,    {.u = 1200},  {.s = NULL},                                                       0},
 	{"menu-section-entry-format",     CFG_WSTRING, {.w = NULL},  {.w = L"%4.0u │ %t"},                                              10},
 	{"menu-feed-entry-format",        CFG_WSTRING, {.w = NULL},  {.w = L"%4.0u │ %t"},                                              10},

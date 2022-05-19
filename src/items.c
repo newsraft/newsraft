@@ -131,47 +131,6 @@ mark_all_items_unread(void)
 	}
 }
 
-static inline int
-enter_item_pager_loop(int rowid)
-{
-	INFO("Trying to view an item with rowid %d...", rowid);
-	sqlite3_stmt *res = db_find_item_by_rowid(rowid);
-	if (res == NULL) {
-		return INPUTS_COUNT;
-	}
-	struct link_list links = {NULL, 0, 0};
-	if (populate_link_list_with_links_of_item(&links, res) == false) {
-		free_trim_link_list(&links);
-		sqlite3_finalize(res);
-		return INPUTS_COUNT;
-	}
-	struct render_block *first_block = NULL;
-	if (join_render_blocks_of_item_data(&first_block, res) == false) {
-		goto error;
-	}
-	if (prepare_to_render_data(first_block, &links) == false) {
-		goto error;
-	}
-	if (complete_urls_of_links(&links, res) == false) {
-		goto error;
-	}
-	if (get_cfg_bool(CFG_CONTENT_APPEND_LINKS) == true) {
-		if (join_links_render_block(&first_block, &links) == false) {
-			goto error;
-		}
-	}
-	int destination = pager_view(first_block);
-	free_render_blocks(first_block);
-	free_trim_link_list(&links);
-	sqlite3_finalize(res);
-	return destination;
-error:
-	free_render_blocks(first_block);
-	free_trim_link_list(&links);
-	sqlite3_finalize(res);
-	return INPUTS_COUNT;
-}
-
 static inline void
 initialize_menu_list_settings(void)
 {
@@ -223,10 +182,17 @@ enter_items_menu_loop(const struct string *url)
 		} else if (cmd == INPUT_MARK_UNREAD_ALL) {
 			mark_all_items_unread();
 		} else if (cmd == INPUT_ENTER) {
-			cmd = enter_item_pager_loop(items[items_menu.view_sel].rowid);
+			cmd = enter_item_pager_view_loop(items[items_menu.view_sel].rowid);
 			if (cmd == INPUT_QUIT_SOFT) {
 				items[items_menu.view_sel].is_unread = 0;
 				db_mark_item_read(items[items_menu.view_sel].rowid);
+				redraw_menu_list(&items_menu);
+			} else if (cmd == INPUT_QUIT_HARD) {
+				break;
+			}
+		} else if (cmd == INPUT_STATUS_HISTORY_MENU) {
+			cmd = enter_status_pager_view_loop();
+			if (cmd == INPUT_QUIT_SOFT) {
 				redraw_menu_list(&items_menu);
 			} else if (cmd == INPUT_QUIT_HARD) {
 				break;

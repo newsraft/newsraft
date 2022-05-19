@@ -220,6 +220,13 @@ enter_sections_menu_loop(struct feed_line ***feeds_ptr, size_t *feeds_count_ptr)
 			*feeds_ptr = sections[sections_menu.view_sel].feeds;
 			*feeds_count_ptr = sections[sections_menu.view_sel].feeds_count;
 			break;
+		} else if (cmd == INPUT_STATUS_HISTORY_MENU) {
+			cmd = enter_status_pager_view_loop();
+			if (cmd == INPUT_QUIT_SOFT) {
+				redraw_menu_list(&sections_menu);
+			} else if (cmd == INPUT_QUIT_HARD) {
+				break;
+			}
 		} else if (cmd == INPUT_RESIZE) {
 			redraw_menu_list(&sections_menu);
 		} else if ((cmd == INPUT_SECTIONS_MENU) || (cmd == INPUT_QUIT_SOFT) || (cmd == INPUT_QUIT_HARD)) {

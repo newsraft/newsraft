@@ -58,32 +58,32 @@ main(int argc, char **argv)
 		}
 	}
 
-	if (curl_global_init(CURL_GLOBAL_DEFAULT) != 0) { error = 6;  goto undo1; }
-	if (load_config()                     == false) { error = 7;  goto undo2; }
-	if (db_init()                         == false) { error = 8;  goto undo3; }
-	if (load_feeds()                      == false) { error = 9;  goto undo4; }
-	if (curses_init()                     == false) { error = 10; goto undo5; }
-	if (adjust_list_menu()                == false) { error = 11; goto undo6; }
-	if (adjust_list_menu_format_buffer()  == false) { error = 12; goto undo7; }
-	if (status_create()                   == false) { error = 13; goto undo8; }
+	if (load_config()                     == false) { error = 6;  goto undo1; }
+	if (db_init()                         == false) { error = 7;  goto undo2; }
+	if (load_feeds()                      == false) { error = 8;  goto undo3; }
+	if (curses_init()                     == false) { error = 9;  goto undo4; }
+	if (adjust_list_menu()                == false) { error = 10; goto undo5; }
+	if (adjust_list_menu_format_buffer()  == false) { error = 11; goto undo6; }
+	if (status_create()                   == false) { error = 12; goto undo7; }
+	if (curl_global_init(CURL_GLOBAL_DEFAULT) != 0) { error = 13; goto undo8; }
 
 	enter_feeds_menu_loop();
 
-	status_delete();
-undo8:
-	free_list_menu_format_buffer();
-undo7:
-	free_list_menu();
-undo6:
-	endwin();
-undo5:
-	free_sections();
-undo4:
-	db_stop();
-undo3:
-	free_config();
-undo2:
 	curl_global_cleanup();
+undo8:
+	status_delete();
+undo7:
+	free_list_menu_format_buffer();
+undo6:
+	free_list_menu();
+undo5:
+	endwin();
+undo4:
+	free_sections();
+undo3:
+	db_stop();
+undo2:
+	free_config();
 undo1:
 	log_stop();
 undo0:

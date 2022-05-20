@@ -82,12 +82,12 @@ append_meta_data_entry(struct render_block **list, sqlite3_stmt *res, int index)
 			return false;
 		}
 		const size_t type_len = type_separator - text;
-		if (type_len > MAX_MIME_TYPE_LEN) {
+		if (type_len > MIME_TYPE_LENGTH_LIMIT) {
 			return false;
 		}
 		const char *real_text = type_separator + 1;
 		const size_t real_text_len = text_len - (type_len + 1);
-		char type[MAX_MIME_TYPE_LEN + 1];
+		char type[MIME_TYPE_LENGTH_LIMIT + 1];
 		memcpy(type, text, type_len);
 		type[type_len] = '\0';
 		if (join_render_block(list, real_text, real_text_len, type, type_len) == false) {
@@ -128,12 +128,12 @@ append_max_summary_content(struct render_block **list, sqlite3_stmt *res)
 		return false;
 	}
 	const size_t type_len = type_separator - content;
-	if (type_len > MAX_MIME_TYPE_LEN) {
+	if (type_len > MIME_TYPE_LENGTH_LIMIT) {
 		return false;
 	}
 	const char *real_content = content + (type_len + 1);
 	const size_t real_content_len = content_len - (type_len + 1);
-	char type[MAX_MIME_TYPE_LEN + 1];
+	char type[MIME_TYPE_LENGTH_LIMIT + 1];
 	memcpy(type, content, type_len);
 	type[type_len] = '\0';
 	if (join_render_separator(list) == false) {

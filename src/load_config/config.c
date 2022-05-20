@@ -134,6 +134,12 @@ log_config_settings(void)
 	}
 }
 
+const char *
+get_cfg_name(size_t i)
+{
+	return config[i].name;
+}
+
 bool
 get_cfg_bool(size_t i)
 {

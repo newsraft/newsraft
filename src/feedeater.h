@@ -9,7 +9,6 @@
 #include <sqlite3.h>
 
 #define FEEDEATER_VERSION "0.0.0"
-#define MAX_MIME_TYPE_LEN 255
 
 #define COUNTOF(A) (sizeof(A) / sizeof(*A))
 #define ISWHITESPACE(A) (((A)==' ')||((A)=='\n')||((A)=='\t')||((A)=='\v')||((A)=='\f')||((A)=='\r'))
@@ -18,6 +17,11 @@
 #define INFO(A, ...) do { if (log_stream != NULL) { fprintf(log_stream, "[INFO] " A "\n", ##__VA_ARGS__); } } while (0)
 #define WARN(A, ...) do { if (log_stream != NULL) { fprintf(log_stream, "[WARN] " A "\n", ##__VA_ARGS__); } } while (0)
 #define FAIL(A, ...) do { if (log_stream != NULL) { fprintf(log_stream, "[FAIL] " A "\n", ##__VA_ARGS__); } } while (0)
+
+// Limits that will most likely never be reached, but are needed to avoid
+// unexpected crashes.
+#define MIME_TYPE_LENGTH_LIMIT 255
+#define FORMAT_STRING_LENGTH_LIMIT 1000
 
 struct string {
 	char *ptr;
@@ -302,6 +306,7 @@ void log_stop(void);
 // Parse config file, fill out config_data structure, bind keys to actions.
 // See "load_config" directory for implementation.
 bool load_config(void);
+const char *get_cfg_name(size_t i);
 bool get_cfg_bool(size_t i);
 size_t get_cfg_uint(size_t i);
 const struct string *get_cfg_string(size_t i);

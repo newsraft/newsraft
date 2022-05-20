@@ -4,6 +4,7 @@
 #include "feedeater.h"
 
 static wchar_t *fmt_buf;
+static wchar_t tmp[FORMAT_STRING_LENGTH_LIMIT + 1];
 
 // On success returns true.
 // On memory shortage returns false.
@@ -33,7 +34,6 @@ do_format(const struct wstring *fmt, const struct format_arg *args, size_t args_
 	const wchar_t *iter = fmt->ptr;
 	const wchar_t *next_percent;
 	const wchar_t *specifier;
-	wchar_t word[3333];
 	size_t fmt_buf_len = 0;
 	while ((iter[0] != L'\0') && (fmt_buf_len < list_menu_width)) {
 		if (iter[0] != L'%') {
@@ -48,43 +48,32 @@ do_format(const struct wstring *fmt, const struct format_arg *args, size_t args_
 		} else if (iter[1] == L'\0') {
 			break;
 		}
+		// At this point iter[0] is percent sign and iter[1] is some character
+		// other than a percent sign and a null terminator.
 		next_percent = iter + 1;
 		specifier = NULL;
-		while (1) {
-			if (next_percent[0] == L'%') {
-				if (next_percent[1] == L'%') {
-					fmt_buf[fmt_buf_len++] = L'%';
-					next_percent += 2;
-					continue;
-				} else {
-					break;
-				}
-			} else if (next_percent[0] == L'\0') {
-				break;
-			} else if ((specifier == NULL) && (isalpha(next_percent[0]) != 0)) {
+		while ((next_percent[0] != L'%') && (next_percent[0] != L'\0')) {
+			if ((specifier == NULL) && (isalpha(next_percent[0]) != 0)) {
 				specifier = next_percent;
 			}
 			++next_percent;
-		}
-		if (fmt_buf_len >= list_menu_width) {
-			break;
 		}
 		if (specifier != NULL) {
 			for (size_t j = 0; j < args_count; ++j) {
 				if (specifier[0] != args[j].specifier) {
 					continue;
 				}
-				wcsncpy(word, iter, specifier - iter);
-				wcscpy(word + (specifier - iter), args[j].type_specifier);
-				wcsncat(word, specifier + 1, next_percent - (specifier + 1));
+				wcsncpy(tmp, iter, specifier - iter);
+				wcscpy(tmp + (specifier - iter), args[j].type_specifier);
+				wcsncat(tmp, specifier + 1, next_percent - (specifier + 1));
 				if (wcscmp(args[j].type_specifier, L"d") == 0) {
-					fmt_buf_len += swprintf(fmt_buf + fmt_buf_len, list_menu_width + 1 - fmt_buf_len, word, args[j].value.i);
+					fmt_buf_len += swprintf(fmt_buf + fmt_buf_len, list_menu_width + 1 - fmt_buf_len, tmp, args[j].value.i);
 				} else if (wcscmp(args[j].type_specifier, L"s") == 0) {
-					fmt_buf_len += swprintf(fmt_buf + fmt_buf_len, list_menu_width + 1 - fmt_buf_len, word, args[j].value.s);
+					fmt_buf_len += swprintf(fmt_buf + fmt_buf_len, list_menu_width + 1 - fmt_buf_len, tmp, args[j].value.s);
 				} else if (wcscmp(args[j].type_specifier, L"c") == 0) {
-					fmt_buf_len += swprintf(fmt_buf + fmt_buf_len, list_menu_width + 1 - fmt_buf_len, word, args[j].value.c);
+					fmt_buf_len += swprintf(fmt_buf + fmt_buf_len, list_menu_width + 1 - fmt_buf_len, tmp, args[j].value.c);
 				} else if (wcscmp(args[j].type_specifier, L"ls") == 0) {
-					fmt_buf_len += swprintf(fmt_buf + fmt_buf_len, list_menu_width + 1 - fmt_buf_len, word, args[j].value.ls);
+					fmt_buf_len += swprintf(fmt_buf + fmt_buf_len, list_menu_width + 1 - fmt_buf_len, tmp, args[j].value.ls);
 				}
 				break;
 			}

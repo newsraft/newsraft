@@ -1,6 +1,6 @@
 #include "feedeater.h"
 
-bool
+static bool
 obtain_terminal_size(void)
 {
 	int terminal_width = getmaxx(stdscr);
@@ -54,5 +54,27 @@ curses_init(void)
 	if (keypad(stdscr, TRUE) == ERR) { // used to enable arrow keys, function keys...
 		FAIL("Can not enable extended keys!");
 	}
+	return true;
+}
+
+bool
+resize_counter_action(void)
+{
+	if (obtain_terminal_size() == false) {
+		// Some really crazy resize happend. It is either a glitch or user
+		// deliberately trying to break something. This state is really
+		// dangerous anyways.
+		fprintf(stderr, "Don't flex around with me, okay?\n");
+		return false;
+	}
+
+	adjust_list_menu();
+
+	if (adjust_list_menu_format_buffer() == false) {
+		return false;
+	}
+
+	status_resize();
+
 	return true;
 }

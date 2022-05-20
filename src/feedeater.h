@@ -245,8 +245,9 @@ struct string *db_get_plain_text_from_column(sqlite3_stmt *res, int column);
 int64_t get_unread_items_count_of_the_feed(const struct string *url);
 struct string *db_get_string_from_feed_table(const struct string *url, const char *column, size_t column_len);
 
+// interface
 bool curses_init(void);
-bool obtain_terminal_size(void);
+bool resize_counter_action(void);
 
 // Functions responsible for handling input.
 // See "interface-input.c" file for implementation.

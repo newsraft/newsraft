@@ -22,25 +22,11 @@ get_input_command(void)
 	}
 
 	if (c == KEY_RESIZE) {
-		// If getch() returns KEY_RESIZE, then user's terminal got resized.
-
-		if (obtain_terminal_size() == false) {
-			// Some really crazy resize happend. It is either a glitch or
-			// user deliberately trying to break something. This state is really
-			// dangerous anyways, better just break all loops and exit the program.
-			fprintf(stderr, "Don't flex around with me, okay?\n");
+		if (resize_counter_action() == true) {
+			return INPUT_RESIZE;
+		} else {
 			return INPUT_QUIT_HARD;
 		}
-
-		adjust_list_menu();
-
-		if (adjust_list_menu_format_buffer() == false) {
-			return INPUT_QUIT_HARD;
-		}
-
-		status_resize();
-
-		return INPUT_RESIZE;
 	}
 
 	return INPUTS_COUNT; // no command matched with this key

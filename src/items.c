@@ -78,11 +78,10 @@ load_items(const struct string *url)
 static const wchar_t *
 paint_item_entry(size_t index)
 {
-	const struct wstring *format = get_cfg_wstring(CFG_MENU_ITEM_ENTRY_FORMAT);
 	fmt_args[0].value.i = index + 1;
 	fmt_args[1].value.c = items[index].is_unread == true ? 'N' : ' ';
 	fmt_args[2].value.s = items[index].title->ptr;
-	return do_format(format, fmt_args, COUNTOF(fmt_args));
+	return do_format(CFG_MENU_ITEM_ENTRY_FORMAT, fmt_args, COUNTOF(fmt_args));
 }
 
 static void

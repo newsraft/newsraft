@@ -160,11 +160,10 @@ free_sections(void)
 static const wchar_t *
 paint_section_entry(size_t index)
 {
-	const struct wstring *format = get_cfg_wstring(CFG_MENU_SECTION_ENTRY_FORMAT);
 	fmt_args[0].value.i = index + 1;
 	fmt_args[1].value.i = sections[index].unread_count;
 	fmt_args[2].value.s = sections[index].name->ptr;
-	return do_format(format, fmt_args, COUNTOF(fmt_args));
+	return do_format(CFG_MENU_SECTION_ENTRY_FORMAT, fmt_args, COUNTOF(fmt_args));
 }
 
 static inline void

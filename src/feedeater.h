@@ -193,7 +193,7 @@ void list_menu_select_first(struct menu_list_settings *s);
 void list_menu_select_last(struct menu_list_settings *s);
 
 // format
-const wchar_t *do_format(const struct wstring *fmt, const struct format_arg *args, size_t args_count);
+const wchar_t *do_format(int format_setting, const struct format_arg *args, size_t args_count);
 
 // feeds
 void enter_feeds_menu_loop(void);

@@ -48,18 +48,22 @@ else
 endif
 
 scdoc = dependency('scdoc', version: '>=1.11.2', native: true, required: get_option('man-page'))
-scdoc_prog = find_program('scdoc', native: true)
-mandir = get_option('mandir')
-custom_target(
-	'feedeater.1',
-	input: 'doc/feedeater.scd',
-	output: 'feedeater.1',
-	command: scdoc_prog,
-	install: true,
-	feed: true,
-	capture: true,
-	install_dir: '@0@/man1'.format(mandir)
-)
+if scdoc.found()
+	scdoc_program = find_program('scdoc', native: true, required: get_option('man-page'))
+	if scdoc_program.found()
+		mandir = get_option('mandir')
+		custom_target(
+			'feedeater.1',
+			input: 'doc/feedeater.scd',
+			output: 'feedeater.1',
+			command: scdoc_program,
+			install: true,
+			feed: true,
+			capture: true,
+			install_dir: '@0@/man1'.format(mandir)
+		)
+	endif
+endif
 
 executable(
 	'feedeater',

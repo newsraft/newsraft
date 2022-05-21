@@ -10,24 +10,6 @@
 // Atom 0.3 does not have category element.
 
 static void
-copy_type_of_text_construct(struct xml_data *data, const TidyAttr atts, struct string *dest)
-{
-	// Atom 0.3 text construct types are fully compliant with MIME standard.
-	const char *type = get_value_of_attribute_key(atts, "type");
-	if (type != NULL) {
-		if (cpyas(dest, type, strlen(type)) == false) {
-			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
-			return;
-		}
-		return;
-	}
-	if (cpyas(dest, "text/plain", 10) == false) {
-		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
-		return;
-	}
-}
-
-static void
 entry_start(struct xml_data *data, const TidyAttr attrs)
 {
 	(void)attrs;
@@ -51,14 +33,20 @@ static void
 title_end(struct xml_data *data, const TidyAttr attrs)
 {
 	if ((data->xml_pos[ATOM03_FORMAT] & ATOM03_ENTRY) != 0) {
-		copy_type_of_text_construct(data, attrs, data->feed->item->title.type);
 		if (cpyss(data->feed->item->title.value, data->value) == false) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}
+		if (copy_type_of_text_construct(data->feed->item->title.type, attrs) == false) {
+			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+			return;
+		}
 	} else {
-		copy_type_of_text_construct(data, attrs, data->feed->title.type);
 		if (cpyss(data->feed->title.value, data->value) == false) {
+			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+			return;
+		}
+		if (copy_type_of_text_construct(data->feed->title.type, attrs) == false) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}
@@ -117,8 +105,11 @@ summary_end(struct xml_data *data, const TidyAttr attrs)
 	if ((data->xml_pos[ATOM03_FORMAT] & ATOM03_ENTRY) == 0) {
 		return;
 	}
-	copy_type_of_text_construct(data, attrs, data->feed->item->summary.type);
 	if (cpyss(data->feed->item->summary.value, data->value) == false) {
+		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		return;
+	}
+	if (copy_type_of_text_construct(data->feed->item->summary.type, attrs) == false) {
 		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		return;
 	}
@@ -130,8 +121,11 @@ content_end(struct xml_data *data, const TidyAttr attrs)
 	if ((data->xml_pos[ATOM03_FORMAT] & ATOM03_ENTRY) == 0) {
 		return;
 	}
-	copy_type_of_text_construct(data, attrs, data->feed->item->content.type);
 	if (cpyss(data->feed->item->content.value, data->value) == false) {
+		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		return;
+	}
+	if (copy_type_of_text_construct(data->feed->item->content.type, attrs) == false) {
 		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		return;
 	}
@@ -242,8 +236,11 @@ tagline_end(struct xml_data *data, const TidyAttr attrs)
 	if ((data->xml_pos[ATOM03_FORMAT] & ATOM03_ENTRY) != 0) {
 		return;
 	}
-	copy_type_of_text_construct(data, attrs, data->feed->summary.type);
 	if (cpyss(data->feed->summary.value, data->value) == false) {
+		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		return;
+	}
+	if (copy_type_of_text_construct(data->feed->summary.type, attrs) == false) {
 		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		return;
 	}

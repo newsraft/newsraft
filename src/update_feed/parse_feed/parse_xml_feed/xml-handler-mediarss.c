@@ -6,25 +6,6 @@
 // https://www.rssboard.org/media-rss
 
 static void
-copy_type_of_text_construct(struct xml_data *data, const TidyAttr atts, struct string *dest)
-{
-	const char *type = get_value_of_attribute_key(atts, "type");
-	if (type != NULL) {
-		if ((strcmp(type, "html") == 0) || (strcmp(type, "xhtml") == 0)) {
-			if (cpyas(dest, "text/html", 9) == false) {
-				data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
-				return;
-			}
-			return;
-		}
-	}
-	if (cpyas(dest, "text/plain", 10) == false) {
-		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
-		return;
-	}
-}
-
-static void
 content_start(struct xml_data *data, const TidyAttr attrs)
 {
 	if (we_are_inside_item(data) == false) {
@@ -94,14 +75,20 @@ description_end(struct xml_data *data, const TidyAttr attrs)
 		return;
 	}
 	if (data->feed->item->content.value->len == 0) {
-		copy_type_of_text_construct(data, attrs, data->feed->item->content.type);
 		if (cpyss(data->feed->item->content.value, data->value) == false) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}
+		if (copy_type_of_text_construct(data->feed->item->content.type, attrs) == false) {
+			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+			return;
+		}
 	} else if (data->feed->item->summary.value->len == 0) {
-		copy_type_of_text_construct(data, attrs, data->feed->item->summary.type);
 		if (cpyss(data->feed->item->summary.value, data->value) == false) {
+			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+			return;
+		}
+		if (copy_type_of_text_construct(data->feed->item->summary.type, attrs) == false) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}

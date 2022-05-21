@@ -4,7 +4,7 @@
 struct namespace_handler {
 	const char *const uri;
 	const size_t uri_len;
-	const struct xml_element_handler *const handler;
+	const struct xml_element_handler *const handlers;
 };
 
 static const struct namespace_handler namespace_handlers[] = {
@@ -62,17 +62,17 @@ parse_element_start(struct xml_data *data, const struct string *namespace, const
 	if (handler_index == XML_FORMATS_COUNT) {
 		return;
 	}
-	const struct xml_element_handler *handler = namespace_handlers[handler_index].handler;
-	for (size_t i = 0; handler[i].name != NULL; ++i) {
-		if (strcmp(name, handler[i].name) == 0) {
-			if (handler[i].bitpos != 0) {
-				if ((data->xml_pos[handler_index] & handler[i].bitpos) != 0) {
+	const struct xml_element_handler *handlers = namespace_handlers[handler_index].handlers;
+	for (size_t i = 0; handlers[i].name != NULL; ++i) {
+		if (strcmp(name, handlers[i].name) == 0) {
+			if (handlers[i].bitpos != 0) {
+				if ((data->xml_pos[handler_index] & handlers[i].bitpos) != 0) {
 					return;
 				}
-				data->xml_pos[handler_index] |= handler[i].bitpos;
+				data->xml_pos[handler_index] |= handlers[i].bitpos;
 			}
-			if (handler[i].start_handle != NULL) {
-				handler[i].start_handle(data, attrs);
+			if (handlers[i].start_handle != NULL) {
+				handlers[i].start_handle(data, attrs);
 			}
 			return;
 		}
@@ -91,17 +91,17 @@ parse_element_end(struct xml_data *data, const struct string *namespace, const c
 	if (handler_index == XML_FORMATS_COUNT) {
 		return;
 	}
-	const struct xml_element_handler *handler = namespace_handlers[handler_index].handler;
-	for (size_t i = 0; handler[i].name != NULL; ++i) {
-		if (strcmp(name, handler[i].name) == 0) {
-			if (handler[i].bitpos != 0) {
-				if ((data->xml_pos[handler_index] & handler[i].bitpos) == 0) {
+	const struct xml_element_handler *handlers = namespace_handlers[handler_index].handlers;
+	for (size_t i = 0; handlers[i].name != NULL; ++i) {
+		if (strcmp(name, handlers[i].name) == 0) {
+			if (handlers[i].bitpos != 0) {
+				if ((data->xml_pos[handler_index] & handlers[i].bitpos) == 0) {
 					return;
 				}
-				data->xml_pos[handler_index] &= ~handler[i].bitpos;
+				data->xml_pos[handler_index] &= ~handlers[i].bitpos;
 			}
-			if (handler[i].end_handle != NULL) {
-				handler[i].end_handle(data, attrs);
+			if (handlers[i].end_handle != NULL) {
+				handlers[i].end_handle(data, attrs);
 			}
 			return;
 		}

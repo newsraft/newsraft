@@ -20,6 +20,9 @@ static const struct namespace_handler namespace_handlers[] = {
 #ifdef FEEDEATER_FORMAT_SUPPORT_DUBLINCORE
 	{"http://purl.org/dc/elements/1.1/", 32, xml_dublincore_handlers},
 #endif
+#ifdef FEEDEATER_FORMAT_SUPPORT_MEDIARSS
+	{"http://search.yahoo.com/mrss/", 29, xml_mediarss_handlers},
+#endif
 #ifdef FEEDEATER_FORMAT_SUPPORT_YANDEX
 	{"http://news.yandex.ru", 21, xml_yandex_handlers},
 #endif
@@ -77,7 +80,7 @@ parse_element_start(struct xml_data *data, const struct string *namespace, const
 }
 
 void
-parse_element_end(struct xml_data *data, const struct string *namespace, const char *name)
+parse_element_end(struct xml_data *data, const struct string *namespace, const char *name, const TidyAttr attrs)
 {
 	size_t handler_index;
 	if (namespace == NULL) {
@@ -98,7 +101,7 @@ parse_element_end(struct xml_data *data, const struct string *namespace, const c
 				data->xml_pos[handler_index] &= ~handler[i].bitpos;
 			}
 			if (handler[i].end_handle != NULL) {
-				handler[i].end_handle(data);
+				handler[i].end_handle(data, attrs);
 			}
 			return;
 		}

@@ -11,6 +11,7 @@ enum xml_format {
 	RSS20_FORMAT,
 	RSSCONTENT_FORMAT,
 	DUBLINCORE_FORMAT,
+	MEDIARSS_FORMAT,
 	YANDEX_FORMAT,
 	RSS11_FORMAT,
 	ATOM03_FORMAT,
@@ -51,7 +52,7 @@ struct xml_element_handler {
 	const char *name;
 	intmax_t bitpos;
 	void (*start_handle)(struct xml_data *data, const TidyAttr attrs);
-	void (*end_handle)(struct xml_data *data);
+	void (*end_handle)(struct xml_data *data, const TidyAttr attrs);
 };
 
 bool prepend_default_namespace(struct xml_default_namespace **first_def_ns, const char *uri_to_prepend, size_t uri_len);
@@ -69,7 +70,7 @@ bool we_are_inside_item(const struct xml_data *data);
 // Element handlers
 
 void parse_element_start(struct xml_data *data, const struct string *namespace_uri, const char *name, const TidyAttr attrs);
-void parse_element_end(struct xml_data *data, const struct string *namespace_uri, const char *name);
+void parse_element_end(struct xml_data *data, const struct string *namespace_uri, const char *name, const TidyAttr attrs);
 
 #ifdef FEEDEATER_FORMAT_SUPPORT_ATOM10
 enum atom10_position {
@@ -128,6 +129,15 @@ enum dc_position {
 	DC_SUBJECT = 16,
 };
 extern const struct xml_element_handler xml_dublincore_handlers[];
+#endif
+#ifdef FEEDEATER_FORMAT_SUPPORT_MEDIARSS
+enum mrss_position {
+	MRSS_NONE = 0,
+	MRSS_CONTENT = 1,
+	MRSS_THUMBNAIL = 2,
+	MRSS_DESCRIPTION = 4,
+};
+extern const struct xml_element_handler xml_mediarss_handlers[];
 #endif
 #ifdef FEEDEATER_FORMAT_SUPPORT_YANDEX
 enum yandex_position {

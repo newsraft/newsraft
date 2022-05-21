@@ -2,8 +2,9 @@
 #include "update_feed/parse_feed/parse_xml_feed/parse_xml_feed.h"
 
 static void
-title_end(struct xml_data *data)
+title_end(struct xml_data *data, const TidyAttr attrs)
 {
+	(void)attrs;
 	if (we_are_inside_item(data) == true) {
 		if (data->feed->item->title.value->len == 0) {
 			if (cpyss(data->feed->item->title.value, data->value) == false) {
@@ -20,8 +21,9 @@ title_end(struct xml_data *data)
 }
 
 static void
-description_end(struct xml_data *data)
+description_end(struct xml_data *data, const TidyAttr attrs)
 {
+	(void)attrs;
 	if (we_are_inside_item(data) == true) {
 		if (data->feed->item->summary.value->len == 0) {
 			if (cpyss(data->feed->item->summary.value, data->value) == false) {
@@ -38,8 +40,9 @@ description_end(struct xml_data *data)
 }
 
 static void
-creator_end(struct xml_data *data)
+creator_end(struct xml_data *data, const TidyAttr attrs)
 {
+	(void)attrs;
 	if (we_are_inside_item(data) == true) {
 		if (prepend_person(&data->feed->item->author) == false) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
@@ -62,8 +65,9 @@ creator_end(struct xml_data *data)
 }
 
 static void
-subject_end(struct xml_data *data)
+subject_end(struct xml_data *data, const TidyAttr attrs)
 {
+	(void)attrs;
 	if (we_are_inside_item(data) == false) {
 		return;
 	}

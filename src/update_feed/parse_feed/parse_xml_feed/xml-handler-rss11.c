@@ -22,8 +22,9 @@ item_start(struct xml_data *data, const TidyAttr attrs)
 }
 
 static void
-title_end(struct xml_data *data)
+title_end(struct xml_data *data, const TidyAttr attrs)
 {
+	(void)attrs;
 	if ((data->xml_pos[RSS11_FORMAT] & RSS11_ITEM) != 0) {
 		if (cpyss(data->feed->item->title.value, data->value) == false) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
@@ -38,8 +39,9 @@ title_end(struct xml_data *data)
 }
 
 static void
-link_end(struct xml_data *data)
+link_end(struct xml_data *data, const TidyAttr attrs)
 {
+	(void)attrs;
 	if ((data->xml_pos[RSS11_FORMAT] & RSS11_ITEM) != 0) {
 		if (cpyss(data->feed->item->url, data->value) == false) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
@@ -54,8 +56,9 @@ link_end(struct xml_data *data)
 }
 
 static void
-description_end(struct xml_data *data)
+description_end(struct xml_data *data, const TidyAttr attrs)
 {
+	(void)attrs;
 	if ((data->xml_pos[RSS11_FORMAT] & RSS11_ITEM) != 0) {
 		if (cpyss(data->feed->item->content.value, data->value) == false) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;

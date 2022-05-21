@@ -19,6 +19,7 @@ add_project_arguments(
 		'-DFEEDEATER_FORMAT_SUPPORT_RSS20',        # RSS 0.91, 0.92, 0.93, 0.94, 2.0
 		'-DFEEDEATER_FORMAT_SUPPORT_RSSCONTENT',
 		'-DFEEDEATER_FORMAT_SUPPORT_DUBLINCORE',
+		'-DFEEDEATER_FORMAT_SUPPORT_MEDIARSS',
 		'-DFEEDEATER_FORMAT_SUPPORT_YANDEX',
 		'-DFEEDEATER_FORMAT_SUPPORT_RSS11',        # RSS 0.9, 1.0, 1.1
 		'-DFEEDEATER_FORMAT_SUPPORT_ATOM03',       # Atom 0.3
@@ -114,6 +115,7 @@ executable(
 		'src/update_feed/parse_feed/parse_xml_feed/xml-handler-rss20.c',
 		'src/update_feed/parse_feed/parse_xml_feed/xml-handler-rsscontent.c',
 		'src/update_feed/parse_feed/parse_xml_feed/xml-handler-dublincore.c',
+		'src/update_feed/parse_feed/parse_xml_feed/xml-handler-mediarss.c',
 		'src/update_feed/parse_feed/parse_xml_feed/xml-handler-yandex.c',
 		'src/update_feed/parse_feed/parse_xml_feed/xml-handler-rss11.c',
 		'src/update_feed/parse_feed/parse_xml_feed/xml-handler-atom03.c',

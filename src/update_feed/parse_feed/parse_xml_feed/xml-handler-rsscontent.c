@@ -4,8 +4,9 @@
 // https://web.archive.org/web/20211201074403/https://web.resource.org/rss/1.0/modules/content/
 
 static void
-encoded_end(struct xml_data *data)
+encoded_end(struct xml_data *data, const TidyAttr attrs)
 {
+	(void)attrs;
 	if (we_are_inside_item(data) == false) {
 		return;
 	}

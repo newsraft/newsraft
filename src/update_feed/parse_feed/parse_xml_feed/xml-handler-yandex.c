@@ -4,8 +4,9 @@
 // https://web.archive.org/web/20211009134219/https://yandex.ru/support/news/feed.html
 
 static void
-full_text_end(struct xml_data *data)
+full_text_end(struct xml_data *data, const TidyAttr attrs)
 {
+	(void)attrs;
 	if (we_are_inside_item(data) == false) {
 		return;
 	}
@@ -25,8 +26,9 @@ full_text_end(struct xml_data *data)
 }
 
 static void
-genre_end(struct xml_data *data)
+genre_end(struct xml_data *data, const TidyAttr attrs)
 {
+	(void)attrs;
 	if (we_are_inside_item(data) == false) {
 		return;
 	}
@@ -41,8 +43,9 @@ genre_end(struct xml_data *data)
 }
 
 static void
-comment_text_end(struct xml_data *data)
+comment_text_end(struct xml_data *data, const TidyAttr attrs)
 {
+	(void)attrs;
 	if (we_are_inside_item(data) == false) {
 		return;
 	}
@@ -62,8 +65,9 @@ comment_text_end(struct xml_data *data)
 }
 
 static void
-bind_to_end(struct xml_data *data)
+bind_to_end(struct xml_data *data, const TidyAttr attrs)
 {
+	(void)attrs;
 	if (we_are_inside_item(data) == false) {
 		return;
 	}

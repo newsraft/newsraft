@@ -35,8 +35,9 @@ entry_start(struct xml_data *data, const TidyAttr attrs)
 }
 
 static void
-id_end(struct xml_data *data)
+id_end(struct xml_data *data, const TidyAttr attrs)
 {
+	(void)attrs;
 	if ((data->xml_pos[ATOM10_FORMAT] & ATOM10_ENTRY) == 0) {
 		return; // Ignore feed id.
 	}
@@ -47,24 +48,16 @@ id_end(struct xml_data *data)
 }
 
 static void
-title_start(struct xml_data *data, const TidyAttr attrs)
+title_end(struct xml_data *data, const TidyAttr attrs)
 {
 	if ((data->xml_pos[ATOM10_FORMAT] & ATOM10_ENTRY) != 0) {
 		copy_type_of_text_construct(data, attrs, data->feed->item->title.type);
-	} else {
-		copy_type_of_text_construct(data, attrs, data->feed->title.type);
-	}
-}
-
-static void
-title_end(struct xml_data *data)
-{
-	if ((data->xml_pos[ATOM10_FORMAT] & ATOM10_ENTRY) != 0) {
 		if (cpyss(data->feed->item->title.value, data->value) == false) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}
 	} else {
+		copy_type_of_text_construct(data, attrs, data->feed->title.type);
 		if (cpyss(data->feed->title.value, data->value) == false) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
@@ -124,20 +117,12 @@ link_start(struct xml_data *data, const TidyAttr attrs)
 }
 
 static void
-summary_start(struct xml_data *data, const TidyAttr attrs)
+summary_end(struct xml_data *data, const TidyAttr attrs)
 {
 	if ((data->xml_pos[ATOM10_FORMAT] & ATOM10_ENTRY) == 0) {
 		return;
 	}
 	copy_type_of_text_construct(data, attrs, data->feed->item->summary.type);
-}
-
-static void
-summary_end(struct xml_data *data)
-{
-	if ((data->xml_pos[ATOM10_FORMAT] & ATOM10_ENTRY) == 0) {
-		return;
-	}
 	if (cpyss(data->feed->item->summary.value, data->value) == false) {
 		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		return;
@@ -145,20 +130,12 @@ summary_end(struct xml_data *data)
 }
 
 static void
-content_start(struct xml_data *data, const TidyAttr attrs)
+content_end(struct xml_data *data, const TidyAttr attrs)
 {
 	if ((data->xml_pos[ATOM10_FORMAT] & ATOM10_ENTRY) == 0) {
 		return;
 	}
 	copy_type_of_text_construct(data, attrs, data->feed->item->content.type);
-}
-
-static void
-content_end(struct xml_data *data)
-{
-	if ((data->xml_pos[ATOM10_FORMAT] & ATOM10_ENTRY) == 0) {
-		return;
-	}
 	if (cpyss(data->feed->item->content.value, data->value) == false) {
 		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		return;
@@ -166,16 +143,18 @@ content_end(struct xml_data *data)
 }
 
 static void
-published_end(struct xml_data *data)
+published_end(struct xml_data *data, const TidyAttr attrs)
 {
+	(void)attrs;
 	if ((data->xml_pos[ATOM10_FORMAT] & ATOM10_ENTRY) != 0) {
 		data->feed->item->pubdate = parse_date_rfc3339(data->value->ptr, data->value->len);
 	}
 }
 
 static void
-updated_end(struct xml_data *data)
+updated_end(struct xml_data *data, const TidyAttr attrs)
 {
+	(void)attrs;
 	if ((data->xml_pos[ATOM10_FORMAT] & ATOM10_ENTRY) != 0) {
 		data->feed->item->upddate = parse_date_rfc3339(data->value->ptr, data->value->len);
 	} else {
@@ -201,8 +180,9 @@ author_start(struct xml_data *data, const TidyAttr attrs)
 }
 
 static void
-name_end(struct xml_data *data)
+name_end(struct xml_data *data, const TidyAttr attrs)
 {
+	(void)attrs;
 	if ((data->xml_pos[ATOM10_FORMAT] & ATOM10_AUTHOR) == 0) {
 		return;
 	}
@@ -220,8 +200,9 @@ name_end(struct xml_data *data)
 }
 
 static void
-uri_end(struct xml_data *data)
+uri_end(struct xml_data *data, const TidyAttr attrs)
 {
+	(void)attrs;
 	if ((data->xml_pos[ATOM10_FORMAT] & ATOM10_AUTHOR) == 0) {
 		return;
 	}
@@ -239,8 +220,9 @@ uri_end(struct xml_data *data)
 }
 
 static void
-email_end(struct xml_data *data)
+email_end(struct xml_data *data, const TidyAttr attrs)
 {
+	(void)attrs;
 	if ((data->xml_pos[ATOM10_FORMAT] & ATOM10_AUTHOR) == 0) {
 		return;
 	}
@@ -316,20 +298,12 @@ category_start(struct xml_data *data, const TidyAttr attrs)
 }
 
 static void
-subtitle_start(struct xml_data *data, const TidyAttr attrs)
+subtitle_end(struct xml_data *data, const TidyAttr attrs)
 {
 	if ((data->xml_pos[ATOM10_FORMAT] & ATOM10_ENTRY) != 0) {
 		return;
 	}
 	copy_type_of_text_construct(data, attrs, data->feed->summary.type);
-}
-
-static void
-subtitle_end(struct xml_data *data)
-{
-	if ((data->xml_pos[ATOM10_FORMAT] & ATOM10_ENTRY) != 0) {
-		return;
-	}
 	if (cpyss(data->feed->summary.value, data->value) == false) {
 		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		return;
@@ -337,7 +311,7 @@ subtitle_end(struct xml_data *data)
 }
 
 static void
-generator_start(struct xml_data *data, const TidyAttr attrs)
+generator_end(struct xml_data *data, const TidyAttr attrs)
 {
 	if ((data->xml_pos[ATOM10_FORMAT] & ATOM10_ENTRY) != 0) {
 		return;
@@ -356,14 +330,6 @@ generator_start(struct xml_data *data, const TidyAttr attrs)
 			return;
 		}
 	}
-}
-
-static void
-generator_end(struct xml_data *data)
-{
-	if ((data->xml_pos[ATOM10_FORMAT] & ATOM10_ENTRY) != 0) {
-		return;
-	}
 	if (cpyss(data->feed->generator.name, data->value) == false) {
 		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		return;
@@ -371,22 +337,22 @@ generator_end(struct xml_data *data)
 }
 
 const struct xml_element_handler xml_atom10_handlers[] = {
-	{"entry",       ATOM10_ENTRY,     &entry_start,     NULL},
-	{"id",          ATOM10_ID,        NULL,             &id_end},
-	{"title",       ATOM10_TITLE,     &title_start,     &title_end},
-	{"link",        ATOM10_NONE,      &link_start,      NULL},
-	{"summary",     ATOM10_SUMMARY,   &summary_start,   &summary_end},
-	{"content",     ATOM10_CONTENT,   &content_start,   &content_end},
-	{"published",   ATOM10_PUBLISHED, NULL,             &published_end},
-	{"updated",     ATOM10_UPDATED,   NULL,             &updated_end},
-	{"author",      ATOM10_AUTHOR,    &author_start,    NULL},
-	{"contributor", ATOM10_AUTHOR,    &author_start,    NULL},
-	{"name",        ATOM10_NAME,      NULL,             &name_end},
-	{"uri",         ATOM10_URI,       NULL,             &uri_end},
-	{"email",       ATOM10_EMAIL,     NULL,             &email_end},
-	{"category",    ATOM10_NONE,      &category_start,  NULL},
-	{"subtitle",    ATOM10_SUBTITLE,  &subtitle_start,  &subtitle_end},
-	{"generator",   ATOM10_GENERATOR, &generator_start, &generator_end},
-	{NULL,          ATOM10_NONE,      NULL,             NULL},
+	{"entry",       ATOM10_ENTRY,     &entry_start,    NULL},
+	{"id",          ATOM10_ID,        NULL,            &id_end},
+	{"title",       ATOM10_TITLE,     NULL,            &title_end},
+	{"link",        ATOM10_NONE,      &link_start,     NULL},
+	{"summary",     ATOM10_SUMMARY,   NULL,            &summary_end},
+	{"content",     ATOM10_CONTENT,   NULL,            &content_end},
+	{"published",   ATOM10_PUBLISHED, NULL,            &published_end},
+	{"updated",     ATOM10_UPDATED,   NULL,            &updated_end},
+	{"author",      ATOM10_AUTHOR,    &author_start,   NULL},
+	{"contributor", ATOM10_AUTHOR,    &author_start,   NULL},
+	{"name",        ATOM10_NAME,      NULL,            &name_end},
+	{"uri",         ATOM10_URI,       NULL,            &uri_end},
+	{"email",       ATOM10_EMAIL,     NULL,            &email_end},
+	{"category",    ATOM10_NONE,      &category_start, NULL},
+	{"subtitle",    ATOM10_SUBTITLE,  NULL,            &subtitle_end},
+	{"generator",   ATOM10_GENERATOR, NULL,            &generator_end},
+	{NULL,          ATOM10_NONE,      NULL,            NULL},
 };
 #endif // FEEDEATER_FORMAT_SUPPORT_ATOM10

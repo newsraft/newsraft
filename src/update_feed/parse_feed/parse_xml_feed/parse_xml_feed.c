@@ -68,11 +68,11 @@ stuff_to_do_when_xml_element_starts(struct xml_data *data, const struct string *
 }
 
 static inline void
-stuff_to_do_when_xml_element_ends(struct xml_data *data, const struct string *namespace, const char *name, bool has_prefix)
+stuff_to_do_when_xml_element_ends(struct xml_data *data, const struct string *namespace, const char *name, const TidyAttr attrs, bool has_prefix)
 {
 	--(data->depth);
 	trim_whitespace_from_string(data->value);
-	parse_element_end(data, namespace, name);
+	parse_element_end(data, namespace, name, attrs);
 }
 
 static bool
@@ -125,7 +125,7 @@ dumpNode(struct xml_data *data, TidyNode tnod)
 				return false;
 			}
 
-			stuff_to_do_when_xml_element_ends(data, tag_namespace, tag_name, sep_pos == NULL ? false : true);
+			stuff_to_do_when_xml_element_ends(data, tag_namespace, tag_name, attrs, sep_pos == NULL ? false : true);
 
 			if (changed_default_namespace == true) {
 				discard_default_namespace(&data->def_ns);
@@ -147,6 +147,7 @@ enter_xml_parsing_loop(const struct string *feed_buf, struct xml_data *data)
 	tidyBufInit(&error_buffer);
 	tidySetErrorBuffer(data->tidy_doc, &error_buffer);
 	tidyOptSetBool(data->tidy_doc, TidyXmlTags, true); // Enable XML mode.
+	tidyOptSetBool(data->tidy_doc, TidyXmlSpace, true);
 	tidyParseString(data->tidy_doc, feed_buf->ptr);
 	tidyCleanAndRepair(data->tidy_doc);
 	int tidy_status = tidyRunDiagnostics(data->tidy_doc);

@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include "update_feed/parse_feed/parse_feed.h"
 
 // On success returns true.

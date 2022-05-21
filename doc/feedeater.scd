@@ -16,8 +16,7 @@ feedeater - feed reader for terminal
 
 Feedeater is a piece of software that aggregates syndicated web content like
 blogs and podcasts in one location for easy access from your terminal via comfy
-curses interface. It is greatly inspired by *newsboat*(1) and yet has some
-significant differences.
+curses interface.
 
 # OPTIONS
 
@@ -46,18 +45,19 @@ significant differences.
 Feeds file contains feed entries that feedeater will display and process. There
 are 3 types of lines in feeds file.
 
-Feed lines start with a feed URL. After at least one whitespace character
-(except newline) custom feed name can be specified - it must be enclosed in
-double quotes. For example:
+Feed lines start with a URL. After at least one whitespace character, the name
+of the feed may be specified - it must be enclosed in double quotes. For
+example:
 
 	_https://example.org/feed.xml "Lorem Ipsum Blog"_
 
-Section lines start with [ and end with ]. Everything in between is the name
-of the section. Sections are used to organize feeds. For example:
+Section lines start with @ character. After any number of whitespace characters,
+the name of the section must be specified. For example:
 
-	_\[Software Releases\]_
+	_@ Software Releases_
 
-Comment lines start with #. These lines are completely ignored. For example:
+Comment lines start with # character. These lines are completely ignored. For
+example:
 
 	_# haha i'm being ignored_
 

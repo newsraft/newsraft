@@ -52,15 +52,12 @@ parse_feeds_file(const char *path)
 			} else {
 				break;
 			}
-		} else if (c == '[') {
+		} else if (c == '@') {
 			empty_string(section_name);
-			while (true) {
-				c = fgetc(f);
-				if (c == ']' || c == '\n' || c == EOF) { break; }
+			do { c = fgetc(f); } while (ISWHITESPACEEXCEPTNEWLINE(c));
+			while ((c != '\n') && (c != EOF)) {
 				if (catcs(section_name, c) == false) { goto error; }
-			}
-			if (c == ']') {
-				do { c = fgetc(f); } while ((c != '\n') && (c != EOF));
+				c = fgetc(f);
 			}
 			if (c == EOF) {
 				break;

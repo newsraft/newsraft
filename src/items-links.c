@@ -73,9 +73,12 @@ append_attachments(struct link_list *links, sqlite3_stmt *res)
 	}
 	int8_t field_num = ATTACHMENT_URL;
 	struct string **target;
-	const char *iter = text;
-	while (*iter != '\0') {
-		if ((*iter == ' ') || (*iter == '\n')) {
+	for (const char *iter = text; *iter != '\0'; ++iter) {
+		if ((*iter != ' ') && (*iter != '\n')) {
+			if (catcs(word, *iter) == false) {
+				goto error;
+			}
+		} else {
 			if (word->len != 0) {
 				target = NULL;
 				if (field_num == ATTACHMENT_URL) {
@@ -95,19 +98,14 @@ append_attachments(struct link_list *links, sqlite3_stmt *res)
 						goto error;
 					}
 				}
+				empty_string(word);
 			}
 			if (*iter == '\n') {
-				field_num = ATTACHMENT_TYPE;
+				field_num = ATTACHMENT_URL;
 			} else {
 				++field_num;
 			}
-			empty_string(word);
-		} else {
-			if (catcs(word, *iter) == false) {
-				goto error;
-			}
 		}
-		++iter;
 	}
 	free_string(word);
 	return true;

@@ -40,7 +40,7 @@ header_callback(char *buffer, size_t size, size_t nitems, struct getfeed_feed *d
 	if (header == NULL) {
 		return 0;
 	}
-	if (strncmp(header->ptr, "ETag: ", 6) == 0) {
+	if (strncasecmp(header->ptr, "ETag: ", 6) == 0) {
 		char *first_quote_pos = strchr(header->ptr, '"');
 		if (first_quote_pos != NULL) {
 			char *second_quote_pos = strchr(first_quote_pos + 1, '"');
@@ -50,7 +50,7 @@ header_callback(char *buffer, size_t size, size_t nitems, struct getfeed_feed *d
 				INFO("Found ETag header during feed download: %s", data->etag_header->ptr);
 			}
 		}
-	} else if (strncmp(header->ptr, "Last-Modified: ", 15) == 0) {
+	} else if (strncasecmp(header->ptr, "Last-Modified: ", 15) == 0) {
 		cpyas(data->last_modified_header, header->ptr + 15, header->len - 15);
 		trim_whitespace_from_string(data->last_modified_header);
 		INFO("Found Last-Modified header during feed download: %s", data->last_modified_header->ptr);

@@ -34,3 +34,35 @@ get_config_date_str(time_t date)
 	const struct string *format = get_cfg_string(CFG_CONTENT_DATE_FORMAT);
 	return get_formatted_date_string(date, get_local_offset_relative_to_utc(), format->ptr);
 }
+
+static inline void
+http_response_date(char *buf, size_t buf_len, struct tm *tm)
+{
+	const char *days[] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
+	const char *months[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
+	snprintf(buf, buf_len, "%s, %d %s %d %02d:%02d:%02d GMT",
+		days[tm->tm_wday], tm->tm_mday, months[tm->tm_mon],
+		tm->tm_year + 1900, tm->tm_hour, tm->tm_min, tm->tm_sec);
+}
+
+static inline bool
+http_response_date_now(char *buf, size_t buf_len, time_t date_value)
+{
+	time_t date = date_value;
+	struct tm *tm = gmtime(&date);
+	if (tm == NULL) {
+		return false;
+	}
+	http_response_date(buf, buf_len, tm);
+	return true;
+}
+
+struct string *
+get_http_date_str(time_t date)
+{
+	char date_str[30];
+	if (http_response_date_now(date_str, 30, date) == false) {
+		return NULL;
+	}
+	return crtas(date_str, strlen(date_str));
+}

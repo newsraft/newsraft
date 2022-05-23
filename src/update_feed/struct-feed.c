@@ -66,7 +66,6 @@ free_feed(struct getfeed_feed *feed)
 	free_person(feed->author);
 	free_person(feed->editor);
 	free_person(feed->webmaster);
-	free_string(feed->etag_header);
-	free_string(feed->last_modified_header);
+	free_string(feed->http_header_etag);
 	free_item(feed->item);
 }

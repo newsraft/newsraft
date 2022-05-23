@@ -6,14 +6,16 @@ update_feed(const struct string *url)
 	bool success = false;
 	struct getfeed_feed feed = {0};
 
-	feed.last_modified_header = db_get_string_from_feed_table(url, "last_modified_header", 20);
-	if (feed.last_modified_header == NULL) {
+	feed.http_header_last_modified = db_get_date_from_feeds_table(url, "http_header_last_modified", 25);
+	if (feed.http_header_last_modified == -1) {
+		// Error message written by db_get_date_from_feeds_table.
 		goto undo0;
 	}
 
-	feed.etag_header = db_get_string_from_feed_table(url, "etag_header", 11);
-	if (feed.etag_header == NULL) {
-		goto undo1;
+	feed.http_header_etag = db_get_string_from_feed_table(url, "http_header_etag", 16);
+	if (feed.http_header_etag == NULL) {
+		// Error message written by db_get_string_from_feed_table.
+		goto undo0;
 	}
 
 	struct string *feedbuf = crtes();

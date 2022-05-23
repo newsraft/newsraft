@@ -70,8 +70,8 @@ struct getfeed_feed {
 	struct getfeed_person *webmaster;
 	time_t update_date;
 	time_t download_date;
-	struct string *etag_header;
-	struct string *last_modified_header;
+	int64_t http_header_last_modified;
+	struct string *http_header_etag;
 	struct getfeed_item *item;
 };
 

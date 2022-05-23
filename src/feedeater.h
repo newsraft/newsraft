@@ -156,8 +156,8 @@ enum feed_column {
 	FEED_COLUMN_RIGHTS,
 	FEED_COLUMN_UPDATE_DATE,
 	FEED_COLUMN_DOWNLOAD_DATE,
-	FEED_COLUMN_ETAG_HEADER,
-	FEED_COLUMN_LAST_MODIFIED_HEADER,
+	FEED_COLUMN_HTTP_HEADER_ETAG,
+	FEED_COLUMN_HTTP_HEADER_LAST_MODIFIED,
 	FEED_COLUMN_NONE,
 };
 
@@ -250,7 +250,8 @@ void free_config_path(void);
 void free_db_path(void);
 
 // date parsing
-struct string *get_config_date_str(time_t time_ptr);
+struct string *get_config_date_str(time_t date);
+struct string *get_http_date_str(time_t date);
 
 // db
 bool db_init(void);
@@ -265,6 +266,7 @@ bool db_mark_item_read(int rowid);
 bool db_mark_item_unread(int rowid);
 struct string *db_get_plain_text_from_column(sqlite3_stmt *res, int column);
 int64_t get_unread_items_count_of_the_feed(const struct string *url);
+int64_t db_get_date_from_feeds_table(const struct string *url, const char *column, size_t column_len);
 struct string *db_get_string_from_feed_table(const struct string *url, const char *column, size_t column_len);
 
 // interface

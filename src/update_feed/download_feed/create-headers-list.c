@@ -10,9 +10,10 @@ create_list_of_headers(struct getfeed_feed *feed)
 	INFO("Attached header: A-IM: feed");
 
 	// If-None-Match
-	if ((get_cfg_bool(CFG_SEND_IF_NONE_MATCH_HEADER) == true) && (feed->etag_header->len != 0)) {
+	if ((get_cfg_bool(CFG_SEND_IF_NONE_MATCH_HEADER) == true) && (feed->http_header_etag->len != 0)) {
 		struct string *if_none_match_header = crtas("If-None-Match: \"", 16);
-		catss(if_none_match_header, feed->etag_header);
+		// TODO null check
+		catss(if_none_match_header, feed->http_header_etag);
 		catcs(if_none_match_header, '"');
 		headers = curl_slist_append(headers, if_none_match_header->ptr);
 		INFO("Attached header: %s", if_none_match_header->ptr);
@@ -20,12 +21,16 @@ create_list_of_headers(struct getfeed_feed *feed)
 	}
 
 	// If-Modified-Since
-	if ((get_cfg_bool(CFG_SEND_IF_MODIFIED_SINCE_HEADER) == true) && (feed->last_modified_header->len != 0)) {
+	if ((get_cfg_bool(CFG_SEND_IF_MODIFIED_SINCE_HEADER) == true) && (feed->http_header_last_modified > 0)) {
 		struct string *if_modified_since_header = crtas("If-Modified-Since: ", 19);
-		catss(if_modified_since_header, feed->last_modified_header);
+		// TODO null check
+		struct string *http_date = get_http_date_str(feed->http_header_last_modified);
+		// TODO null check
+		catss(if_modified_since_header, http_date);
 		headers = curl_slist_append(headers, if_modified_since_header->ptr);
 		INFO("Attached header: %s", if_modified_since_header->ptr);
 		free_string(if_modified_since_header);
+		free_string(http_date);
 	}
 
 	return headers;

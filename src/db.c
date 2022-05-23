@@ -36,8 +36,8 @@ db_init(void)
 			"rights TEXT NOT NULL,"
 			"update_date INTEGER(8) NOT NULL," // epoch time of the moment when actual feed got updated
 			"download_date INTEGER(8) NOT NULL," // epoch time of the moment when last download did occur
-			"etag_header TEXT NOT NULL," // HTTP header that identifies a specific version of a resource
-			"last_modified_header TEXT NOT NULL" // HTTP header that contains a date when the resource was last modified
+			"http_header_etag TEXT NOT NULL," // ETag HTTP header
+			"http_header_last_modified INTEGER(8) NOT NULL" // Last-Modified HTTP header expressed in epoch time
 		");"
 		"CREATE TABLE IF NOT EXISTS items("
 			"feed_url TEXT NOT NULL," // url of feed this item belongs to
@@ -190,6 +190,34 @@ db_get_plain_text_from_column(sqlite3_stmt *res, int column)
 error:
 	free_string(str);
 	return NULL;
+}
+
+int64_t
+db_get_date_from_feeds_table(const struct string *url, const char *column, size_t column_len)
+{
+	struct string *query = crtas("SELECT ", 7);
+	if (query == NULL) {
+		FAIL("Not enough memory for query string to get date from feeds table!");
+		return -1;
+	}
+	catas(query, column, column_len);
+	catas(query, " FROM feeds WHERE feed_url=?;", 29);
+	sqlite3_stmt *res;
+	if (db_prepare(query->ptr, query->len + 1, &res, NULL) == false) {
+		free_string(query);
+		return -1;
+	}
+	sqlite3_bind_text(res, 1, url->ptr, url->len, NULL);
+	int64_t date;
+	if (sqlite3_step(res) == SQLITE_ROW) {
+		date = sqlite3_column_int64(res, 0);
+	} else {
+		// This is probably the first reloading of the feed.
+		date = 0;
+	}
+	sqlite3_finalize(res);
+	free_string(query);
+	return date;
 }
 
 struct string *

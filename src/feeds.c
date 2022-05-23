@@ -217,7 +217,7 @@ reload_current_feed(void)
 	status_write("Loading %s", feeds[feeds_menu.view_sel]->link->ptr);
 
 	if (update_feed(feeds[feeds_menu.view_sel]->link) == false) {
-		status_write("Failed to load %s", feeds[feeds_menu.view_sel]->link->ptr);
+		status_write("Failed to update %s", feeds[feeds_menu.view_sel]->link->ptr);
 		return;
 	}
 
@@ -230,28 +230,25 @@ static void
 reload_all_feeds(void)
 {
 	size_t errors = 0;
-	const struct string *failed_feed;
 
 	for (size_t i = 0; i < feeds_count; ++i) {
 		if (feeds[i]->link == NULL) {
 			continue;
 		}
-		status_write("(%d/%d) Loading %s", i + 1, feeds_count, feeds[i]->link->ptr);
+		status_write("(%zu/%zu) Loading %s", i + 1, feeds_count, feeds[i]->link->ptr);
 		if (update_feed(feeds[i]->link) == true) {
 			update_unread_items_count(i);
 			expose_entry_of_the_menu_list(&feeds_menu, i);
 		} else {
-			failed_feed = feeds[i]->link;
+			status_write("Failed to update %s", feeds[i]->link->ptr);
 			++errors;
 		}
 	}
 
 	if (errors == 0) {
 		status_clean();
-	} else if (errors == 1) {
-		status_write("Failed to update %s", failed_feed->ptr);
-	} else {
-		status_write("Failed to update %u feeds.", errors);
+	} else if (errors != 1) {
+		status_write("Failed to update %zu feeds (check out status history for more details).", errors);
 	}
 }
 

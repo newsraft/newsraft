@@ -6,21 +6,16 @@ Feedeater is a piece of software that aggregates syndicated web content like blo
 
 # Dependencies
 
-* [ncursesw](https://invisible-island.net/ncurses) >= 6.2
-
-* [sqlite](https://www.sqlite.org) >= 3.35.4
-
-* [curl](https://curl.se) >= 7.80.0
-
-* [tidy](http://www.html-tidy.org) >= 5.8.0
-
-* [cjson](https://github.com/DaveGamble/cJSON) >= 1.7.15
-
-* [gcc](https://gcc.gnu.org) >= 8.1.0 (build-time)
-
-* [meson](https://github.com/mesonbuild/meson) >= 0.58.1 (build-time)
-
-* [scdoc](https://git.sr.ht/~sircmpwn/scdoc) >= 1.11.2 (build-time, optional)
+| Name                                             | Version   | Necessity            |
+|--------------------------------------------------|-----------|----------------------|
+| [ncursesw](https://invisible-island.net/ncurses) | >= 6.2    | required             |
+| [sqlite](https://www.sqlite.org)                 | >= 3.35.4 | required             |
+| [curl](https://curl.se)                          | >= 7.80.0 | required             |
+| [tidy](http://www.html-tidy.org)                 | >= 5.8.0  | required             |
+| [cjson](https://github.com/DaveGamble/cJSON)     | >= 1.7.15 | required             |
+| [gcc](https://gcc.gnu.org)                       | >= 8.1.0  | required, build-time |
+| [meson](https://github.com/mesonbuild/meson)     | >= 0.58.1 | required, build-time |
+| [scdoc](https://git.sr.ht/~sircmpwn/scdoc)       | >= 1.11.2 | optional, build-time |
 
 # Building
 

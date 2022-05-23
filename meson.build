@@ -91,6 +91,7 @@ executable(
 		'src/interface-pager-item.c',
 		'src/interface-pager-status.c',
 		'src/items.c',
+		'src/items-list.c',
 		'src/items-links.c',
 		'src/items-content.c',
 		'src/items-metadata.c',

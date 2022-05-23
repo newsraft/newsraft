@@ -53,8 +53,8 @@ do_format(int format_setting, const struct format_arg *args, size_t args_count)
 		// other than a percent sign and a null terminator.
 		next_percent = iter + 1;
 		specifier = NULL;
-		while ((next_percent[0] != L'%') && (next_percent[0] != L'\0')) {
-			if ((specifier == NULL) && (isalpha(next_percent[0]) != 0)) {
+		while ((specifier == NULL) && (next_percent[0] != L'%') && (next_percent[0] != L'\0')) {
+			if (isalpha(next_percent[0]) != 0) {
 				specifier = next_percent;
 			}
 			++next_percent;
@@ -76,6 +76,7 @@ do_format(int format_setting, const struct format_arg *args, size_t args_count)
 				} else if (wcscmp(args[j].type_specifier, L"ls") == 0) {
 					fmt_buf_len += swprintf(fmt_buf + fmt_buf_len, list_menu_width + 1 - fmt_buf_len, tmp, args[j].value.ls);
 				}
+
 				break;
 			}
 		}

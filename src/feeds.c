@@ -203,6 +203,14 @@ update_unread_items_count(size_t index)
 	feeds[index]->unread_count = new_unread_count;
 }
 
+static inline void
+update_unread_items_count_of_all_feeds(void)
+{
+	for (size_t i = 0; i < feeds_count; ++i) {
+		update_unread_items_count(i);
+	}
+}
+
 static void
 reload_current_feed(void)
 {
@@ -231,9 +239,7 @@ reload_all_feeds(void)
 		status_write("(%d/%d) Loading %s", i + 1, feeds_count, feeds[i]->link->ptr);
 		if (update_feed(feeds[i]->link) == true) {
 			update_unread_items_count(i);
-			if ((i >= feeds_menu.view_min) && (i <= feeds_menu.view_max)) {
-				expose_entry_of_the_menu_list(&feeds_menu, i);
-			}
+			expose_entry_of_the_menu_list(&feeds_menu, i);
 		} else {
 			failed_feed = feeds[i]->link;
 			++errors;
@@ -286,10 +292,19 @@ enter_feeds_menu_loop(void)
 		} else if (cmd == INPUT_RELOAD_ALL) {
 			reload_all_feeds();
 		} else if (cmd == INPUT_ENTER) {
-			cmd = enter_items_menu_loop(feeds[feeds_menu.view_sel]->link);
+			cmd = enter_items_menu_loop((const struct feed_line **)&feeds[feeds_menu.view_sel], 1, CFG_MENU_ITEM_ENTRY_FORMAT);
 			if (cmd == INPUT_QUIT_SOFT) {
 				status_clean();
 				update_unread_items_count(feeds_menu.view_sel);
+				redraw_menu_list(&feeds_menu);
+			} else if (cmd == INPUT_QUIT_HARD) {
+				break;
+			}
+		} else if (cmd == INPUT_OVERVIEW_MENU) {
+			cmd = enter_items_menu_loop((const struct feed_line **)feeds, feeds_count, CFG_MENU_OVERVIEW_ITEM_ENTRY_FORMAT);
+			if (cmd == INPUT_QUIT_SOFT) {
+				status_clean();
+				update_unread_items_count_of_all_feeds();
 				redraw_menu_list(&feeds_menu);
 			} else if (cmd == INPUT_QUIT_HARD) {
 				break;

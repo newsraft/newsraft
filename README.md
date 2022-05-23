@@ -20,7 +20,7 @@ Feedeater is a piece of software that aggregates syndicated web content like blo
 
 * [meson](https://github.com/mesonbuild/meson) >= 0.58.1 (build-time)
 
-* [scdoc](https://git.sr.ht/~sircmpwn/scdoc) >= 1.11.2 (build-time, for man page)
+* [scdoc](https://git.sr.ht/~sircmpwn/scdoc) >= 1.11.2 (build-time, optional)
 
 # Building
 
@@ -39,7 +39,7 @@ meson install -C builddir
 
 # Configuration
 
-Check out man page (or see [doc/feedeater.scd](https://codeberg.org/grisha/feedeater/src/branch/main/doc/feedeater.scd)).
+Check out man page (or you can try to read it in scdoc format at [doc/feedeater.scd](https://codeberg.org/grisha/feedeater/src/branch/main/doc/feedeater.scd)).
 
 # Contributing
 

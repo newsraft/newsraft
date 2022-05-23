@@ -21,6 +21,7 @@ load_default_binds(void)
 	if (assign_action_to_key('C',       INPUT_MARK_READ_ALL)       == false) { goto error; }
 	if (assign_action_to_key('v',       INPUT_MARK_UNREAD)         == false) { goto error; }
 	if (assign_action_to_key('V',       INPUT_MARK_UNREAD_ALL)     == false) { goto error; }
+	if (assign_action_to_key('a',       INPUT_OVERVIEW_MENU)       == false) { goto error; }
 	if (assign_action_to_key('y',       INPUT_SECTIONS_MENU)       == false) { goto error; }
 	if (assign_action_to_key('p',       INPUT_STATUS_HISTORY_MENU) == false) { goto error; }
 	if (assign_action_to_key('q',       INPUT_QUIT_SOFT)           == false) { goto error; }

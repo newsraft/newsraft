@@ -65,6 +65,9 @@ get_list_entry_by_index(size_t index)
 void
 expose_entry_of_the_menu_list(struct menu_list_settings *settings, size_t index)
 {
+	if ((index < settings->view_min) || (index > settings->view_max)) {
+		return;
+	}
 	size_t target_window = (index - settings->view_min) % list_menu_height;
 	werase(windows[target_window]);
 	mvwaddnwstr(windows[target_window], 0, 0, settings->paint_action(index), list_menu_width);

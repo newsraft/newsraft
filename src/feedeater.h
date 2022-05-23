@@ -49,10 +49,16 @@ struct feed_line {
 	int64_t unread_count;
 };
 
-struct item_line {
+struct item_entry {
 	struct string *title;
-	int rowid;            // id of row in sqlite table related to this item
+	const struct string *feed_name; // name of the feed to which this item belongs
+	int rowid;                      // id of row in sqlite table related to this item
 	bool is_unread;
+};
+
+struct items_list {
+	struct item_entry *list;
+	size_t count;
 };
 
 struct format_arg {
@@ -94,6 +100,7 @@ enum config_entry_index {
 	CFG_MENU_SECTION_ENTRY_FORMAT,
 	CFG_MENU_FEED_ENTRY_FORMAT,
 	CFG_MENU_ITEM_ENTRY_FORMAT,
+	CFG_MENU_OVERVIEW_ITEM_ENTRY_FORMAT,
 	CFG_PROXY,
 	CFG_PROXY_AUTH,
 	CFG_GLOBAL_SECTION_NAME,
@@ -128,6 +135,7 @@ enum input_cmd {
 	INPUT_MARK_READ_ALL,
 	INPUT_MARK_UNREAD,
 	INPUT_MARK_UNREAD_ALL,
+	INPUT_OVERVIEW_MENU,
 	INPUT_SECTIONS_MENU,
 	INPUT_STATUS_HISTORY_MENU,
 	INPUT_RESIZE,
@@ -170,6 +178,14 @@ enum item_column {
 	ITEM_COLUMN_NONE,
 };
 
+enum sorting_order {
+	SORT_BY_NONE,
+	SORT_BY_TIME_DESC,
+	SORT_BY_TIME_ASC,
+	SORT_BY_NAME_DESC,
+	SORT_BY_NAME_ASC,
+};
+
 // sections
 bool create_global_section(void);
 bool add_feed_to_section(struct feed_line *feed, const struct string *section_name);
@@ -201,7 +217,9 @@ bool load_feeds(void);
 bool check_url_for_validity(const struct string *str);
 
 // items
-input_cmd_id enter_items_menu_loop(const struct string *url);
+struct items_list *generate_items_list(const struct feed_line **feeds, size_t feeds_count, enum sorting_order order);
+void free_items_list(struct items_list *items);
+input_cmd_id enter_items_menu_loop(const struct feed_line **feeds, size_t feeds_count, int format);
 
 // contents
 bool join_render_block(struct render_block **list, const char *content, size_t content_len, const char *content_type, size_t content_type_len);

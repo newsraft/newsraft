@@ -1,123 +1,57 @@
 #include <stdlib.h>
 #include "feedeater.h"
 
-static struct item_line *items;
-static size_t items_count;
-
+static struct items_list *items;
 static struct menu_list_settings items_menu;
+static enum config_entry_index entry_format;
 
 static struct format_arg fmt_args[] = {
 	{L'n', L"d", {.i = 0}},
 	{L'u', L"c", {.c = '\0'}},
+	{L'f', L"s", {.s = NULL}},
 	{L't', L"s", {.s = NULL}},
 };
-
-static void
-free_items(void)
-{
-	if (items == NULL) {
-		return;
-	}
-	for (size_t i = 0; i < items_count; ++i) {
-		free_string(items[i].title);
-	}
-	free(items);
-}
-
-// On success returns true.
-// On failure returns false.
-static bool
-load_items(const struct string *url)
-{
-	sqlite3_stmt *res;
-	if (db_prepare("SELECT rowid, unread, title FROM items WHERE feed_url=? ORDER BY upddate DESC, pubdate DESC, rowid DESC;", 105, &res, NULL) == false) {
-		status_write("There is some error with the tag expression!");
-		return false;
-	}
-	sqlite3_bind_text(res, 1, url->ptr, url->len, NULL);
-	items_menu.view_sel = SIZE_MAX;
-	size_t item_index;
-	void *temp; // need to check if realloc failed
-	bool error = false;
-	while (sqlite3_step(res) == SQLITE_ROW) {
-		item_index = items_count++;
-		temp = realloc(items, sizeof(struct item_line) * items_count);
-		if (temp == NULL) {
-			FAIL("Not enough memory for loading items!");
-			--items_count;
-			error = true;
-			break;
-		}
-		items = temp;
-		items[item_index].rowid = sqlite3_column_int(res, 0);
-		items[item_index].is_unread = sqlite3_column_int(res, 1);
-		items[item_index].title = db_get_plain_text_from_column(res, 2);
-		if (items[item_index].title == NULL) {
-			error = true;
-			break;
-		}
-		if (items_menu.view_sel == SIZE_MAX) {
-			items_menu.view_sel = item_index;
-		}
-	}
-
-	sqlite3_finalize(res);
-
-	if (error == true) {
-		return false;
-	}
-
-	if ((items_menu.view_sel == SIZE_MAX) || (items_count == 0)) {
-		status_write("Items not found!");
-		return false;
-	}
-
-	return true;
-}
 
 static const wchar_t *
 paint_item_entry(size_t index)
 {
 	fmt_args[0].value.i = index + 1;
-	fmt_args[1].value.c = items[index].is_unread == true ? 'N' : ' ';
-	fmt_args[2].value.s = items[index].title->ptr;
-	return do_format(CFG_MENU_ITEM_ENTRY_FORMAT, fmt_args, COUNTOF(fmt_args));
+	fmt_args[1].value.c = items->list[index].is_unread == true ? 'N' : ' ';
+	fmt_args[2].value.s = items->list[index].feed_name->ptr;
+	fmt_args[3].value.s = items->list[index].title->ptr;
+	return do_format(entry_format, fmt_args, COUNTOF(fmt_args));
 }
 
 static void
 mark_item_read(size_t index)
 {
-	if (items[index].is_unread == 0) {
+	if (items->list[index].is_unread == 0) {
 		return; // success, item is already read
 	}
-	if (db_mark_item_read(items[index].rowid) == false) {
+	if (db_mark_item_read(items->list[index].rowid) == false) {
 		return; // failure
 	}
-	items[index].is_unread = 0;
-	if ((index >= items_menu.view_min) && (index <= items_menu.view_max)) {
-		expose_entry_of_the_menu_list(&items_menu, index);
-	}
+	items->list[index].is_unread = 0;
+	expose_entry_of_the_menu_list(&items_menu, index);
 }
 
 static void
 mark_item_unread(size_t index)
 {
-	if (items[index].is_unread == 1) {
+	if (items->list[index].is_unread == 1) {
 		return; // success, item is already unread
 	}
-	if (db_mark_item_unread(items[index].rowid) == false) {
+	if (db_mark_item_unread(items->list[index].rowid) == false) {
 		return; // failure
 	}
-	items[index].is_unread = 1;
-	if ((index >= items_menu.view_min) && (index <= items_menu.view_max)) {
-		expose_entry_of_the_menu_list(&items_menu, index);
-	}
+	items->list[index].is_unread = 1;
+	expose_entry_of_the_menu_list(&items_menu, index);
 }
 
 static void
 mark_all_items_read(void)
 {
-	for (size_t i = 0; i < items_count; ++i) {
+	for (size_t i = 0; i < items->count; ++i) {
 		mark_item_read(i);
 	}
 }
@@ -125,34 +59,33 @@ mark_all_items_read(void)
 static void
 mark_all_items_unread(void)
 {
-	for (size_t i = 0; i < items_count; ++i) {
+	for (size_t i = 0; i < items->count; ++i) {
 		mark_item_unread(i);
 	}
 }
 
 static inline void
-initialize_menu_list_settings(void)
+initialize_menu_list_settings(struct menu_list_settings *menu)
 {
-	items_menu.entries_count = items_count;
-	items_menu.view_min = 0;
-	items_menu.view_max = list_menu_height - 1;
-	items_menu.paint_action = &paint_item_entry;
+	menu->entries_count = items->count;
+	menu->view_sel = 0;
+	menu->view_min = 0;
+	menu->view_max = list_menu_height - 1;
+	menu->paint_action = &paint_item_entry;
 }
 
 input_cmd_id
-enter_items_menu_loop(const struct string *url)
+enter_items_menu_loop(const struct feed_line **feeds, size_t feeds_count, int format)
 {
-	items = NULL;
-	items_count = 0;
-
-	INFO("Loading items...");
-	if (load_items(url) == false) {
-		WARN("Failed to load items!");
-		free_items();
+	items = generate_items_list(feeds, feeds_count, SORT_BY_TIME_DESC);
+	if (items == NULL) {
+		// Error message written by generate_items_list.
 		return INPUTS_COUNT;
 	}
 
-	initialize_menu_list_settings();
+	entry_format = format;
+
+	initialize_menu_list_settings(&items_menu);
 
 	status_clean();
 	redraw_menu_list(&items_menu);
@@ -181,10 +114,10 @@ enter_items_menu_loop(const struct string *url)
 		} else if (cmd == INPUT_MARK_UNREAD_ALL) {
 			mark_all_items_unread();
 		} else if (cmd == INPUT_ENTER) {
-			cmd = enter_item_pager_view_loop(items[items_menu.view_sel].rowid);
+			cmd = enter_item_pager_view_loop(items->list[items_menu.view_sel].rowid);
 			if (cmd == INPUT_QUIT_SOFT) {
-				items[items_menu.view_sel].is_unread = 0;
-				db_mark_item_read(items[items_menu.view_sel].rowid);
+				items->list[items_menu.view_sel].is_unread = 0;
+				db_mark_item_read(items->list[items_menu.view_sel].rowid);
 				redraw_menu_list(&items_menu);
 			} else if (cmd == INPUT_QUIT_HARD) {
 				break;
@@ -203,7 +136,7 @@ enter_items_menu_loop(const struct string *url)
 		}
 	}
 
-	free_items();
+	free_items_list(items);
 
 	return cmd;
 }

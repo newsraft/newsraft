@@ -263,13 +263,17 @@ bool db_begin_transaction(void);
 bool db_commit_transaction(void);
 bool db_rollback_transaction(void);
 const char *db_error_string(void);
+struct string *db_get_plain_text_from_column(sqlite3_stmt *res, int column);
+int64_t db_get_date_from_feeds_table(const struct string *url, const char *column, size_t column_len);
+struct string *db_get_string_from_feed_table(const struct string *url, const char *column, size_t column_len);
+
+// db-items.c
 sqlite3_stmt *db_find_item_by_rowid(int rowid);
 bool db_mark_item_read(int rowid);
 bool db_mark_item_unread(int rowid);
-struct string *db_get_plain_text_from_column(sqlite3_stmt *res, int column);
 int64_t get_unread_items_count_of_the_feed(const struct string *url);
-int64_t db_get_date_from_feeds_table(const struct string *url, const char *column, size_t column_len);
-struct string *db_get_string_from_feed_table(const struct string *url, const char *column, size_t column_len);
+bool db_mark_all_items_in_feeds_as_read(const struct feed_line **feeds, size_t feeds_count);
+bool db_mark_all_items_in_feeds_as_unread(const struct feed_line **feeds, size_t feeds_count);
 
 // interface
 bool curses_init(void);

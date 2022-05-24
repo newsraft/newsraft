@@ -88,3 +88,54 @@ get_unread_items_count_of_the_feed(const struct string *url)
 
 	return unread_count;
 }
+
+static bool
+change_unread_status_of_all_items_in_feeds(const struct feed_line **feeds, size_t feeds_count, bool unread)
+{
+	if (feeds_count == 0) {
+		return true;
+	}
+	struct string *query = crtas("UPDATE items SET unread = ? WHERE feed_url = ?", 46);
+	if (query == NULL) {
+		return false;
+	}
+	for (size_t i = 1; i < feeds_count; ++i) {
+		if (catas(query, " OR feed_url=?", 14) == false) {
+			free_string(query);
+			return false;
+		}
+	}
+	if (catcs(query, ';') == false) {
+		free_string(query);
+		return false;
+	}
+	sqlite3_stmt *res;
+	if (db_prepare(query->ptr, query->len + 1, &res, NULL) == false) {
+		free_string(query);
+		return false;
+	}
+	sqlite3_bind_int(res, 1, unread);
+	for (size_t i = 0; i < feeds_count; ++i) {
+		sqlite3_bind_text(res, i + 2, feeds[i]->link->ptr, feeds[i]->link->len, NULL);
+	}
+	if (sqlite3_step(res) != SQLITE_DONE) {
+		sqlite3_finalize(res);
+		free_string(query);
+		return false;
+	}
+	sqlite3_finalize(res);
+	free_string(query);
+	return true;
+}
+
+bool
+db_mark_all_items_in_feeds_as_read(const struct feed_line **feeds, size_t feeds_count)
+{
+	return change_unread_status_of_all_items_in_feeds(feeds, feeds_count, false);
+}
+
+bool
+db_mark_all_items_in_feeds_as_unread(const struct feed_line **feeds, size_t feeds_count)
+{
+	return change_unread_status_of_all_items_in_feeds(feeds, feeds_count, true);
+}

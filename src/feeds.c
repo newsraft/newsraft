@@ -284,6 +284,14 @@ enter_feeds_menu_loop(void)
 			list_menu_select_first(&feeds_menu);
 		} else if (cmd == INPUT_SELECT_LAST) {
 			list_menu_select_last(&feeds_menu);
+		} else if (cmd == INPUT_MARK_READ) {
+			db_mark_all_items_in_feeds_as_read((const struct feed_line **)&feeds[feeds_menu.view_sel], 1);
+			update_unread_items_count(feeds_menu.view_sel);
+			expose_entry_of_the_menu_list(&feeds_menu, feeds_menu.view_sel);
+		} else if (cmd == INPUT_MARK_UNREAD) {
+			db_mark_all_items_in_feeds_as_unread((const struct feed_line **)&feeds[feeds_menu.view_sel], 1);
+			update_unread_items_count(feeds_menu.view_sel);
+			expose_entry_of_the_menu_list(&feeds_menu, feeds_menu.view_sel);
 		} else if (cmd == INPUT_RELOAD) {
 			reload_current_feed();
 		} else if (cmd == INPUT_RELOAD_ALL) {

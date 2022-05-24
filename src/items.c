@@ -27,42 +27,58 @@ paint_item_entry(size_t index)
 static void
 mark_item_read(size_t index)
 {
-	if (items->list[index].is_unread == 0) {
+	if (items->list[index].is_unread == false) {
 		return; // success, item is already read
 	}
 	if (db_mark_item_read(items->list[index].rowid) == false) {
 		return; // failure
 	}
-	items->list[index].is_unread = 0;
+	items->list[index].is_unread = false;
 	expose_entry_of_the_menu_list(&items_menu, index);
 }
 
 static void
 mark_item_unread(size_t index)
 {
-	if (items->list[index].is_unread == 1) {
+	if (items->list[index].is_unread == true) {
 		return; // success, item is already unread
 	}
 	if (db_mark_item_unread(items->list[index].rowid) == false) {
 		return; // failure
 	}
-	items->list[index].is_unread = 1;
+	items->list[index].is_unread = true;
 	expose_entry_of_the_menu_list(&items_menu, index);
 }
 
 static void
-mark_all_items_read(void)
+mark_all_items_read(const struct feed_line **feeds, size_t feeds_count, struct menu_list_settings *menu)
 {
+	if (db_mark_all_items_in_feeds_as_read(feeds, feeds_count) == false) {
+		return;
+	}
 	for (size_t i = 0; i < items->count; ++i) {
-		mark_item_read(i);
+		if ((items->list[i].is_unread == true) && (i >= menu->view_min) && (i <= menu->view_max)) {
+			items->list[i].is_unread = false;
+			expose_entry_of_the_menu_list(menu, i);
+		} else {
+			items->list[i].is_unread = false;
+		}
 	}
 }
 
 static void
-mark_all_items_unread(void)
+mark_all_items_unread(const struct feed_line **feeds, size_t feeds_count, struct menu_list_settings *menu)
 {
+	if (db_mark_all_items_in_feeds_as_unread(feeds, feeds_count) == false) {
+		return;
+	}
 	for (size_t i = 0; i < items->count; ++i) {
-		mark_item_unread(i);
+		if ((items->list[i].is_unread == false) && (i >= menu->view_min) && (i <= menu->view_max)) {
+			items->list[i].is_unread = true;
+			expose_entry_of_the_menu_list(menu, i);
+		} else {
+			items->list[i].is_unread = true;
+		}
 	}
 }
 
@@ -112,9 +128,9 @@ enter_items_menu_loop(const struct feed_line **feeds, size_t feeds_count, int fo
 		} else if (cmd == INPUT_MARK_UNREAD) {
 			mark_item_unread(items_menu.view_sel);
 		} else if (cmd == INPUT_MARK_READ_ALL) {
-			mark_all_items_read();
+			mark_all_items_read(feeds, feeds_count, &items_menu);
 		} else if (cmd == INPUT_MARK_UNREAD_ALL) {
-			mark_all_items_unread();
+			mark_all_items_unread(feeds, feeds_count, &items_menu);
 		} else if (cmd == INPUT_ENTER) {
 			cmd = enter_item_pager_view_loop(items->list[items_menu.view_sel].rowid);
 			if (cmd == INPUT_QUIT_SOFT) {

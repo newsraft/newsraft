@@ -38,7 +38,7 @@ append_date(struct render_block **list, sqlite3_stmt *res, intmax_t column, cons
 	if (date_entry == NULL) {
 		return false;
 	}
-	struct string *date_str = get_config_date_str(date);
+	struct string *date_str = get_config_date_str(date, CFG_CONTENT_DATE_FORMAT);
 	if (date_str == NULL) {
 		free_string(date_entry);
 		return false;
@@ -149,11 +149,11 @@ static inline bool
 process_specifier(const char *entry, struct render_block **list, sqlite3_stmt *res)
 {
 	if (strcmp(entry, "published") == 0) {
-		if (append_date(list, res, ITEM_COLUMN_PUBDATE, "Published: ", 11) == false) {
+		if (append_date(list, res, ITEM_COLUMN_PUBLICATION_DATE, "Published: ", 11) == false) {
 			return false;
 		}
 	} else if (strcmp(entry, "updated") == 0) {
-		if (append_date(list, res, ITEM_COLUMN_UPDDATE, "Updated: ", 9) == false) {
+		if (append_date(list, res, ITEM_COLUMN_UPDATE_DATE, "Updated: ", 9) == false) {
 			return false;
 		}
 	} else if (strcmp(entry, "max-summary-content") == 0) {

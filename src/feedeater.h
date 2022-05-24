@@ -54,6 +54,7 @@ struct item_entry {
 	const struct string *feed_name; // name of the feed to which this item belongs
 	int rowid;                      // id of row in sqlite table related to this item
 	bool is_unread;
+	struct string *date_str;
 };
 
 struct items_list {
@@ -97,16 +98,17 @@ enum config_entry_index {
 	CFG_DOWNLOAD_TIMEOUT,
 	CFG_STATUS_MESSAGES_LIMIT,
 	CFG_SIZE_CONVERSION_THRESHOLD,
-	CFG_MENU_SECTION_ENTRY_FORMAT,
-	CFG_MENU_FEED_ENTRY_FORMAT,
-	CFG_MENU_ITEM_ENTRY_FORMAT,
-	CFG_MENU_OVERVIEW_ITEM_ENTRY_FORMAT,
 	CFG_PROXY,
 	CFG_PROXY_AUTH,
 	CFG_GLOBAL_SECTION_NAME,
 	CFG_USER_AGENT,
 	CFG_CONTENT_DATA_ORDER,
 	CFG_CONTENT_DATE_FORMAT,
+	CFG_LIST_ENTRY_DATE_FORMAT,
+	CFG_MENU_SECTION_ENTRY_FORMAT,
+	CFG_MENU_FEED_ENTRY_FORMAT,
+	CFG_MENU_ITEM_ENTRY_FORMAT,
+	CFG_MENU_OVERVIEW_ITEM_ENTRY_FORMAT,
 	CFG_CONTENT_APPEND_LINKS,
 	CFG_CLEAN_DATABASE_ON_STARTUP,
 	CFG_ANALYZE_DATABASE_ON_STARTUP,
@@ -169,11 +171,11 @@ enum item_column {
 	ITEM_COLUMN_ATTACHMENTS,
 	ITEM_COLUMN_AUTHORS,
 	ITEM_COLUMN_CATEGORIES,
-	ITEM_COLUMN_PUBDATE,
-	ITEM_COLUMN_UPDDATE,
 	ITEM_COLUMN_COMMENTS_URL,
 	ITEM_COLUMN_SUMMARY,
 	ITEM_COLUMN_CONTENT,
+	ITEM_COLUMN_PUBLICATION_DATE,
+	ITEM_COLUMN_UPDATE_DATE,
 	ITEM_COLUMN_UNREAD,
 	ITEM_COLUMN_NONE,
 };
@@ -250,7 +252,7 @@ void free_config_path(void);
 void free_db_path(void);
 
 // date parsing
-struct string *get_config_date_str(time_t date);
+struct string *get_config_date_str(time_t date, enum config_entry_index format_index);
 struct string *get_http_date_str(time_t date);
 
 // db

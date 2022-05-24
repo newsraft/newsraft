@@ -20,6 +20,7 @@ db_init(void)
 
 	char *errmsg;
 
+	// Dates are stored as the number of seconds since 1970.
 	sqlite3_exec(
 		db,
 		"CREATE TABLE IF NOT EXISTS feeds("
@@ -34,8 +35,8 @@ db_init(void)
 			"language TEXT NOT NULL,"
 			"generator TEXT NOT NULL,"
 			"rights TEXT NOT NULL,"
-			"update_date INTEGER(8) NOT NULL," // epoch time of the moment when actual feed got updated
-			"download_date INTEGER(8) NOT NULL," // epoch time of the moment when last download did occur
+			"update_date INTEGER(8) NOT NULL,"
+			"download_date INTEGER(8) NOT NULL,"
 			"http_header_etag TEXT NOT NULL," // ETag HTTP header
 			"http_header_last_modified INTEGER(8) NOT NULL" // Last-Modified HTTP header expressed in epoch time
 		");"
@@ -47,11 +48,11 @@ db_init(void)
 			"attachments TEXT NOT NULL,"
 			"authors TEXT NOT NULL,"
 			"categories TEXT NOT NULL,"
-			"pubdate INTEGER(8) NOT NULL," // publication date in seconds since 1970
-			"upddate INTEGER(8) NOT NULL," // update date in seconds since 1970
 			"comments_url TEXT NOT NULL,"
 			"summary TEXT NOT NULL,"
 			"content TEXT NOT NULL,"
+			"publication_date INTEGER(8) NOT NULL,"
+			"update_date INTEGER(8) NOT NULL,"
 			"unread INTEGER(1) NOT NULL" // 0 if item read and 1 if item unread
 		");",
 		NULL,

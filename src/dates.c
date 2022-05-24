@@ -29,9 +29,9 @@ get_formatted_date_string(time_t time, time_t offset, const char *format)
 }
 
 struct string *
-get_config_date_str(time_t date)
+get_config_date_str(time_t date, enum config_entry_index format_index)
 {
-	const struct string *format = get_cfg_string(CFG_CONTENT_DATE_FORMAT);
+	const struct string *format = get_cfg_string(format_index);
 	return get_formatted_date_string(date, get_local_offset_relative_to_utc(), format->ptr);
 }
 

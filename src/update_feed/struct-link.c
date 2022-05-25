@@ -38,6 +38,21 @@ prepend_link(struct getfeed_link **head_link_ptr)
 }
 
 void
+reverse_link_list(struct getfeed_link **list)
+{
+	struct getfeed_link *prev = NULL;
+	struct getfeed_link *current = *list;
+	struct getfeed_link *next = NULL;
+	while (current != NULL) {
+		next = current->next;
+		current->next = prev;
+		prev = current;
+		current = next;
+	}
+	*list = prev;
+}
+
+void
 free_link(struct getfeed_link *link)
 {
 	struct getfeed_link *temp;

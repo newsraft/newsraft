@@ -33,24 +33,32 @@ delete_excess_items(const struct string *feed_url)
 static inline bool
 db_insert_item(const struct string *feed_url, const struct getfeed_item *item, int rowid)
 {
-	struct string *authors_list = generate_person_list_string(item->author);
-	if (authors_list == NULL) {
+	struct string *authors_str = generate_person_list_string(item->author);
+	if (authors_str == NULL) {
 		FAIL("Not enough memory for creating authors list of item bucket!");
 		return false;
 	}
 
-	struct string *attachments_list = generate_link_list_string(item->attachment);
-	if (attachments_list == NULL) {
+	struct string *attachments_str = generate_link_list_string(item->attachment);
+	if (attachments_str == NULL) {
 		FAIL("Not enough memory for creating attachments list of item bucket!");
-		free_string(authors_list);
+		free_string(authors_str);
 		return false;
 	}
 
-	struct string *categories_list = generate_category_list_string(item->category);
-	if (categories_list == NULL) {
+	struct string *categories_str = generate_category_list_string(item->category);
+	if (categories_str == NULL) {
 		FAIL("Not enough memory for creating categories list of item bucket!");
-		free_string(attachments_list);
-		free_string(authors_list);
+		free_string(attachments_str);
+		free_string(authors_str);
+		return false;
+	}
+
+	struct string *locations_str = concatenate_strings_of_string_list_into_one_string(item->location);
+	if (locations_str == NULL) {
+		free_string(categories_str);
+		free_string(attachments_str);
+		free_string(authors_str);
 		return false;
 	}
 
@@ -58,32 +66,34 @@ db_insert_item(const struct string *feed_url, const struct getfeed_item *item, i
 	bool prepare_status;
 
 	if (rowid == -1) {
-		prepare_status = db_prepare("INSERT INTO items VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", 66, &s, NULL);
+		prepare_status = db_prepare("INSERT INTO items VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", 69, &s, NULL);
 	} else {
-		prepare_status = db_prepare("UPDATE items SET feed_url = ?, title = ?, guid = ?, link = ?, attachments = ?, authors = ?, categories = ?, comments_url = ?, summary = ?, content = ?, publication_date = ?, update_date = ?, unread = ? WHERE rowid = ?;", 219, &s, NULL);
+		prepare_status = db_prepare("UPDATE items SET feed_url = ?, title = ?, guid = ?, link = ?, attachments = ?, authors = ?, categories = ?, comments_url = ?, summary = ?, content = ?, locations = ?, publication_date = ?, update_date = ?, unread = ? WHERE rowid = ?;", 234, &s, NULL);
 	}
 
 	if (prepare_status == false) {
 		FAIL("Failed to prepare item insertion statement!");
-		free_string(categories_list);
-		free_string(attachments_list);
-		free_string(authors_list);
+		free_string(locations_str);
+		free_string(categories_str);
+		free_string(attachments_str);
+		free_string(authors_str);
 		return false;
 	}
 
-	sqlite3_bind_text(s,   ITEM_COLUMN_FEED_URL         + 1, feed_url->ptr, feed_url->len, NULL);
-	db_bind_text_struct(s, ITEM_COLUMN_TITLE            + 1, &item->title);
-	sqlite3_bind_text(s,   ITEM_COLUMN_GUID             + 1, item->guid->ptr, item->guid->len, NULL);
-	sqlite3_bind_text(s,   ITEM_COLUMN_LINK             + 1, item->url->ptr, item->url->len, NULL);
-	sqlite3_bind_text(s,   ITEM_COLUMN_ATTACHMENTS      + 1, attachments_list->ptr, attachments_list->len, NULL);
-	sqlite3_bind_text(s,   ITEM_COLUMN_AUTHORS          + 1, authors_list->ptr, authors_list->len, NULL);
-	sqlite3_bind_text(s,   ITEM_COLUMN_CATEGORIES       + 1, categories_list->ptr, categories_list->len, NULL);
-	sqlite3_bind_text(s,   ITEM_COLUMN_COMMENTS_URL     + 1, item->comments_url->ptr, item->comments_url->len, NULL);
-	db_bind_text_struct(s, ITEM_COLUMN_SUMMARY          + 1, &item->summary);
-	db_bind_text_struct(s, ITEM_COLUMN_CONTENT          + 1, &item->content);
-	sqlite3_bind_int64(s,  ITEM_COLUMN_PUBLICATION_DATE + 1, (sqlite3_int64)(item->pubdate));
-	sqlite3_bind_int64(s,  ITEM_COLUMN_UPDATE_DATE      + 1, (sqlite3_int64)(item->upddate));
-	sqlite3_bind_int(s,    ITEM_COLUMN_UNREAD           + 1, 1);
+	sqlite3_bind_text(s,   1 + ITEM_COLUMN_FEED_URL,         feed_url->ptr,           feed_url->len, NULL);
+	db_bind_text_struct(s, 1 + ITEM_COLUMN_TITLE,            &item->title);
+	sqlite3_bind_text(s,   1 + ITEM_COLUMN_GUID,             item->guid->ptr,         item->guid->len, NULL);
+	sqlite3_bind_text(s,   1 + ITEM_COLUMN_LINK,             item->url->ptr,          item->url->len, NULL);
+	sqlite3_bind_text(s,   1 + ITEM_COLUMN_ATTACHMENTS,      attachments_str->ptr,    attachments_str->len, NULL);
+	sqlite3_bind_text(s,   1 + ITEM_COLUMN_AUTHORS,          authors_str->ptr,        authors_str->len, NULL);
+	sqlite3_bind_text(s,   1 + ITEM_COLUMN_CATEGORIES,       categories_str->ptr,     categories_str->len, NULL);
+	sqlite3_bind_text(s,   1 + ITEM_COLUMN_COMMENTS_URL,     item->comments_url->ptr, item->comments_url->len, NULL);
+	db_bind_text_struct(s, 1 + ITEM_COLUMN_SUMMARY,          &item->summary);
+	db_bind_text_struct(s, 1 + ITEM_COLUMN_CONTENT,          &item->content);
+	sqlite3_bind_text(s,   1 + ITEM_COLUMN_LOCATIONS,        locations_str->ptr,      locations_str->len, NULL);
+	sqlite3_bind_int64(s,  1 + ITEM_COLUMN_PUBLICATION_DATE, (sqlite3_int64)(item->pubdate));
+	sqlite3_bind_int64(s,  1 + ITEM_COLUMN_UPDATE_DATE,      (sqlite3_int64)(item->upddate));
+	sqlite3_bind_int(s,    1 + ITEM_COLUMN_UNREAD,           1);
 	if (rowid != -1) {
 		sqlite3_bind_int(s, ITEM_COLUMN_CONTENT + 2, rowid);
 	}
@@ -100,15 +110,16 @@ db_insert_item(const struct string *feed_url, const struct getfeed_item *item, i
 	}
 
 	sqlite3_finalize(s);
-	free_string(categories_list);
-	free_string(attachments_list);
-	free_string(authors_list);
+	free_string(locations_str);
+	free_string(categories_str);
+	free_string(attachments_str);
+	free_string(authors_str);
 
 	return success;
 }
 
 bool
-insert_item_data(const struct string *feed_url, const struct getfeed_item *item)
+insert_item_data(const struct string *feed_url, struct getfeed_item *item)
 {
 	sqlite3_stmt *s = NULL;
 	int step_status;
@@ -156,6 +167,14 @@ insert_item_data(const struct string *feed_url, const struct getfeed_item *item)
 	if (s != NULL) {
 		sqlite3_finalize(s);
 	}
+
+	// Reverse linked lists to match the order in which the entries were added.
+	reverse_person_list(&item->author);
+	reverse_link_list(&item->attachment);
+	reverse_category_list(&item->category);
+	reverse_string_list(&item->location);
+	// We don't have to reverse items list itself because in feed we already read
+	// items in reverse order (from top to bottom).
 
 	return db_insert_item(feed_url, item, item_rowid);
 }

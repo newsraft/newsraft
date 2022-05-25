@@ -52,6 +52,7 @@ struct getfeed_item {
 	struct getfeed_link *attachment;
 	struct getfeed_person *author;
 	struct getfeed_person *contributor;
+	struct string_list *location;
 	time_t pubdate; // Publication date in seconds since the Epoch (0 means unset).
 	time_t upddate; // Update date in seconds since the Epoch (0 means unset).
 	struct getfeed_item *next;
@@ -85,21 +86,24 @@ enum download_status download_feed(const char *url, struct getfeed_feed *feed, s
 bool parse_feed(const struct string *feed_buf, struct getfeed_feed *feed);
 
 // See "insert_feed" directory for implementation.
-bool insert_feed(const struct string *url, const struct getfeed_feed *feed);
+bool insert_feed(const struct string *url, struct getfeed_feed *feed);
 
 // item bucket functions
 bool prepend_item(struct getfeed_item **head_item_ptr);
 void free_item(struct getfeed_item *item);
 
 bool prepend_category(struct getfeed_category **head_category_ptr);
+void reverse_category_list(struct getfeed_category **list);
 void free_category(struct getfeed_category *category);
 struct string *generate_category_list_string(const struct getfeed_category *category);
 
 bool prepend_link(struct getfeed_link **head_link_ptr);
+void reverse_link_list(struct getfeed_link **list);
 void free_link(struct getfeed_link *link);
 struct string *generate_link_list_string(const struct getfeed_link *link);
 
 bool prepend_person(struct getfeed_person **head_person_ptr);
+void reverse_person_list(struct getfeed_person **list);
 void free_person(struct getfeed_person *person);
 struct string *generate_person_list_string(const struct getfeed_person *person);
 

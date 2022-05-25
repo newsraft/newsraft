@@ -29,6 +29,11 @@ struct string {
 	size_t lim;
 };
 
+struct string_list {
+	struct string *str;
+	struct string_list *next;
+};
+
 struct wstring {
 	wchar_t *ptr;
 	size_t len;
@@ -174,6 +179,7 @@ enum item_column {
 	ITEM_COLUMN_COMMENTS_URL,
 	ITEM_COLUMN_SUMMARY,
 	ITEM_COLUMN_CONTENT,
+	ITEM_COLUMN_LOCATIONS,
 	ITEM_COLUMN_PUBLICATION_DATE,
 	ITEM_COLUMN_UPDATE_DATE,
 	ITEM_COLUMN_UNREAD,
@@ -295,7 +301,7 @@ void status_resize(void);
 void status_delete(void);
 struct string *generate_string_with_status_messages_for_pager(void);
 
-// string
+// string.c
 struct string *crtas(const char *src_ptr, size_t src_len);
 struct string *crtss(const struct string *src);
 struct string *crtes(void);
@@ -313,6 +319,13 @@ void remove_trailing_slash_from_string(struct string *str);
 void trim_whitespace_from_string(struct string *str);
 struct wstring *convert_string_to_wstring(const struct string *src);
 struct string *convert_bytes_to_human_readable_size_string(const char *value);
+
+// string-list.c
+bool prepend_empty_string_to_string_list(struct string_list **list);
+struct string *concatenate_strings_of_string_list_into_one_string(const struct string_list *list);
+void reverse_string_list(struct string_list **list);
+void free_string_list(struct string_list *list);
+
 // wstring
 struct wstring *wcrtas(const wchar_t *src_ptr, size_t src_len);
 struct wstring *wcrtss(const struct wstring *src);

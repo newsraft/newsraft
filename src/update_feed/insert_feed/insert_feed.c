@@ -20,7 +20,7 @@ db_bind_text_struct(sqlite3_stmt *s, intmax_t placeholder, const struct getfeed_
 }
 
 bool
-insert_feed(const struct string *url, const struct getfeed_feed *feed)
+insert_feed(const struct string *url, struct getfeed_feed *feed)
 {
 	if (db_begin_transaction() == false) {
 		return false;
@@ -32,7 +32,7 @@ insert_feed(const struct string *url, const struct getfeed_feed *feed)
 		return false;
 	}
 
-	const struct getfeed_item *item = feed->item;
+	struct getfeed_item *item = feed->item;
 	while (item != NULL) {
 		if (insert_item_data(url, item) == false) {
 			FAIL("Failed to insert item data!");

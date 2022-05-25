@@ -35,6 +35,21 @@ prepend_person(struct getfeed_person **head_person_ptr)
 }
 
 void
+reverse_person_list(struct getfeed_person **list)
+{
+	struct getfeed_person *prev = NULL;
+	struct getfeed_person *current = *list;
+	struct getfeed_person *next = NULL;
+	while (current != NULL) {
+		next = current->next;
+		current->next = prev;
+		prev = current;
+		current = next;
+	}
+	*list = prev;
+}
+
+void
 free_person(struct getfeed_person *person)
 {
 	struct getfeed_person *temp;

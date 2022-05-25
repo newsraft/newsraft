@@ -35,6 +35,21 @@ prepend_category(struct getfeed_category **head_category_ptr)
 }
 
 void
+reverse_category_list(struct getfeed_category **list)
+{
+	struct getfeed_category *prev = NULL;
+	struct getfeed_category *current = *list;
+	struct getfeed_category *next = NULL;
+	while (current != NULL) {
+		next = current->next;
+		current->next = prev;
+		prev = current;
+		current = next;
+	}
+	*list = prev;
+}
+
+void
 free_category(struct getfeed_category *category)
 {
 	struct getfeed_category *temp;

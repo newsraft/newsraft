@@ -15,6 +15,8 @@ enum xml_format {
 	YANDEX_FORMAT,
 	RSS11_FORMAT,
 	ATOM03_FORMAT,
+	GEORSS_FORMAT,
+	GEORSS_GML_FORMAT,
 	XML_FORMATS_COUNT,
 };
 
@@ -182,5 +184,19 @@ enum atom03_position {
 	ATOM03_GENERATOR = 4096,
 };
 extern const struct xml_element_handler xml_atom03_handlers[];
+#endif
+#ifdef FEEDEATER_FORMAT_SUPPORT_GEORSS
+enum georss_position {
+	GEORSS_NONE = 0,
+	GEORSS_POINT = 1,
+};
+extern const struct xml_element_handler xml_georss_handlers[];
+#endif
+#ifdef FEEDEATER_FORMAT_SUPPORT_GEORSS_GML
+enum georss_gml_position {
+	GEORSS_GML_NONE = 0,
+	GEORSS_GML_POS = 1,
+};
+extern const struct xml_element_handler xml_georss_gml_handlers[];
 #endif
 #endif // PARSE_XML_FEED_H

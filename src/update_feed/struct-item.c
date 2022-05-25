@@ -21,6 +21,7 @@ create_item(void)
 	item->attachment = NULL;
 	item->author = NULL;
 	item->contributor = NULL;
+	item->location = NULL;
 	item->pubdate = 0;
 	item->upddate = 0;
 	item->next = NULL;
@@ -77,6 +78,7 @@ free_item(struct getfeed_item *item)
 		free_link(i->attachment);
 		free_person(i->author);
 		free_person(i->contributor);
+		free_string_list(i->location);
 		temp = i;
 		i = i->next;
 		free(temp);

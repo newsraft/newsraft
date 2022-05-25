@@ -34,6 +34,12 @@ static const struct namespace_handler namespace_handlers[] = {
 #ifdef FEEDEATER_FORMAT_SUPPORT_ATOM03
 	{"http://purl.org/atom/ns#", 24, xml_atom03_handlers},
 #endif
+#ifdef FEEDEATER_FORMAT_SUPPORT_GEORSS
+	{"http://www.georss.org/georss", 28, xml_georss_handlers},
+#endif
+#ifdef FEEDEATER_FORMAT_SUPPORT_GEORSS_GML
+	{"http://www.opengis.net/gml", 26, xml_georss_gml_handlers},
+#endif
 	{NULL, 0, NULL}
 };
 

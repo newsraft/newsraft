@@ -23,6 +23,8 @@ add_project_arguments(
 		'-DFEEDEATER_FORMAT_SUPPORT_YANDEX',
 		'-DFEEDEATER_FORMAT_SUPPORT_RSS11',        # RSS 0.9, 1.0, 1.1
 		'-DFEEDEATER_FORMAT_SUPPORT_ATOM03',       # Atom 0.3
+		'-DFEEDEATER_FORMAT_SUPPORT_GEORSS',
+		'-DFEEDEATER_FORMAT_SUPPORT_GEORSS_GML',
 		'-DFEEDEATER_FORMAT_SUPPORT_JSONFEED',
 	],
 	language: 'c',
@@ -75,6 +77,7 @@ executable(
 		'src/log.c',
 		'src/path.c',
 		'src/string.c',
+		'src/string-list.c',
 		'src/wstring.c',
 		'src/dates.c',
 		'src/db.c',
@@ -124,6 +127,8 @@ executable(
 		'src/update_feed/parse_feed/parse_xml_feed/xml-handler-yandex.c',
 		'src/update_feed/parse_feed/parse_xml_feed/xml-handler-rss11.c',
 		'src/update_feed/parse_feed/parse_xml_feed/xml-handler-atom03.c',
+		'src/update_feed/parse_feed/parse_xml_feed/xml-handler-georss.c',
+		'src/update_feed/parse_feed/parse_xml_feed/xml-handler-georss-gml.c',
 		'src/update_feed/parse_feed/parse_json_feed/parse_json_feed.c',
 		'src/update_feed/parse_feed/parse_json_feed/json-handler-jsonfeed.c',
 		'src/update_feed/insert_feed/insert_feed.c',

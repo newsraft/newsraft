@@ -78,6 +78,8 @@ parse_element_start(struct xml_data *data, const struct string *namespace, const
 				data->xml_pos[handler_index] |= handlers[i].bitpos;
 			}
 			if (handlers[i].start_handle != NULL) {
+				INFO("Handling start of \"%s\" element in \"%s\" namespace.",
+					name, namespace_handlers[handler_index].uri);
 				handlers[i].start_handle(data, attrs);
 			}
 			return;
@@ -107,6 +109,8 @@ parse_element_end(struct xml_data *data, const struct string *namespace, const c
 				data->xml_pos[handler_index] &= ~handlers[i].bitpos;
 			}
 			if (handlers[i].end_handle != NULL) {
+				INFO("Handling close of \"%s\" element in \"%s\" namespace.",
+					name, namespace_handlers[handler_index].uri);
 				handlers[i].end_handle(data, attrs);
 			}
 			return;

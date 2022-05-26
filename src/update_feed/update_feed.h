@@ -41,6 +41,15 @@ struct getfeed_person {
 	struct getfeed_person *next;
 };
 
+struct getfeed_picture {
+	struct string *url;  // URL link to data.
+	struct string *type; // Standard MIME type of data.
+	size_t width;
+	size_t height;
+	size_t size;         // Size of data in bytes (0 means unset).
+	struct getfeed_picture *next;
+};
+
 struct getfeed_item {
 	struct string *guid;
 	struct getfeed_text title;
@@ -53,6 +62,7 @@ struct getfeed_item {
 	struct getfeed_person *author;
 	struct getfeed_person *contributor;
 	struct string_list *location;
+	struct getfeed_picture *thumbnail;
 	time_t pubdate; // Publication date in seconds since the Epoch (0 means unset).
 	time_t upddate; // Update date in seconds since the Epoch (0 means unset).
 	struct getfeed_item *next;
@@ -106,6 +116,11 @@ bool prepend_person(struct getfeed_person **head_person_ptr);
 void reverse_person_list(struct getfeed_person **list);
 void free_person(struct getfeed_person *person);
 struct string *generate_person_list_string(const struct getfeed_person *person);
+
+bool prepend_empty_picture(struct getfeed_picture **head_picture_ptr);
+void reverse_picture_list(struct getfeed_picture **head_picture_ptr);
+void free_picture(struct getfeed_picture *picture);
+struct string *generate_picture_list_string(const struct getfeed_picture *picture);
 
 struct string *generate_generator_string(const struct getfeed_generator *generator);
 

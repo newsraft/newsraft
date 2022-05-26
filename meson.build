@@ -107,6 +107,7 @@ executable(
 		'src/update_feed/struct-feed.c',
 		'src/update_feed/struct-item.c',
 		'src/update_feed/struct-link.c',
+		'src/update_feed/struct-picture.c',
 		'src/update_feed/struct-person.c',
 		'src/update_feed/struct-category.c',
 		'src/update_feed/struct-generator.c',

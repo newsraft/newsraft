@@ -52,6 +52,7 @@ db_init(void)
 			"summary TEXT NOT NULL,"
 			"content TEXT NOT NULL,"
 			"locations TEXT NOT NULL,"
+			"thumbnails TEXT NOT NULL,"
 			"publication_date INTEGER(8) NOT NULL,"
 			"update_date INTEGER(8) NOT NULL,"
 			"unread INTEGER(1) NOT NULL" // 0 if item read and 1 if item unread

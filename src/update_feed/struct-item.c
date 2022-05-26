@@ -22,6 +22,7 @@ create_item(void)
 	item->author = NULL;
 	item->contributor = NULL;
 	item->location = NULL;
+	item->thumbnail = NULL;
 	item->pubdate = 0;
 	item->upddate = 0;
 	item->next = NULL;
@@ -79,6 +80,7 @@ free_item(struct getfeed_item *item)
 		free_person(i->author);
 		free_person(i->contributor);
 		free_string_list(i->location);
+		free_picture(i->thumbnail);
 		temp = i;
 		i = i->next;
 		free(temp);

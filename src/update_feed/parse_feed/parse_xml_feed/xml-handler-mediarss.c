@@ -50,21 +50,29 @@ thumbnail_start(struct xml_data *data, const TidyAttr attrs)
 	if (we_are_inside_item(data) == false) {
 		return;
 	}
-	const char *url = get_value_of_attribute_key(attrs, "url");
-	if (url == NULL) {
+	const char *attr = get_value_of_attribute_key(attrs, "url");
+	if (attr == NULL) {
 		return; // Ignore empty content entries.
 	}
-	const size_t url_len = strlen(url);
-	if (url_len == 0) {
+	const size_t attr_len = strlen(attr);
+	if (attr_len == 0) {
 		return; // Ignore empty content entries.
 	}
-	if (prepend_link(&data->feed->item->attachment) == false) {
+	if (prepend_empty_picture(&data->feed->item->thumbnail) == false) {
 		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		return;
 	}
-	if (cpyas(data->feed->item->attachment->url, url, url_len) == false) {
+	if (cpyas(data->feed->item->thumbnail->url, attr, attr_len) == false) {
 		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		return;
+	}
+	attr = get_value_of_attribute_key(attrs, "width");
+	if (attr != NULL) {
+		data->feed->item->thumbnail->width = convert_string_to_size_t_or_zero(attr);
+	}
+	attr = get_value_of_attribute_key(attrs, "height");
+	if (attr != NULL) {
+		data->feed->item->thumbnail->height = convert_string_to_size_t_or_zero(attr);
 	}
 }
 

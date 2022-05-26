@@ -100,15 +100,6 @@ _status-messages-limit_ (default: *10000*)
 _size-conversion-threshold_ (default: *1200*)
 	TODO
 
-_menu-section-entry-format_ (default: *"%4.0u │ %t"*)
-	TODO
-
-_menu-feed-entry-format_ (default: *"%4.0u │ %t"*)
-	TODO
-
-_menu-item-entry-format_ (default: *" %u │ %t"*)
-	TODO
-
 _proxy_ (default: *""*)
 	TODO
 
@@ -134,7 +125,24 @@ _content-data-order_ (default: *"feed,title,authors,published,updated,max-summar
 	TODO
 
 _content-date-format_ (default: *"%a, %d %b %Y %H:%M:%S %z"*)
-	Format of date in the content view.
+	Date format in the content view. Specifier values correspond to the
+	*strftime*(3) format.
+
+_list-entry-date-format_ (default: *"%b %d"*)
+	Date format of the list entries. Specifier values correspond to the
+	*strftime*(3) format.
+
+_menu-section-entry-format_ (default: *"%4.0u │ %t"*)
+	TODO
+
+_menu-feed-entry-format_ (default: *"%4.0u │ %t"*)
+	TODO
+
+_menu-item-entry-format_ (default: *" %u │ %d │ %t"*)
+	TODO
+
+_menu-overview-item-entry-format_ (default: *" %u │ %d │ %-28.28f │ %t"*)
+	TODO
 
 _content-append-links_ (default: *true*)
 	Whether or not append links section to content view.
@@ -150,20 +158,22 @@ _analyze-database-on-startup_ (default: *true*)
 	This can significantly increase startup time.
 
 _send-if-none-match-header_ (default: *true*)
-	TODO
-	Disabling it is discouraged.
+	Sends a entity tag corresponding to the previously downloaded information.
+	If the server from which the feed is downloaded contains information with
+	the same tag, then in order to save traffic and resources, it will reject
+	the download request. Disabling it is strongly discouraged.
 
 _send-if-modified-since-header_ (default: *true*)
 	TODO
-	Disabling it is discouraged.
+	Disabling it is strongly discouraged.
 
 _ssl-verify-host_ (default: *true*)
 	TODO
-	Disabling it is discouraged.
+	Disabling it is strongly discouraged.
 
 _ssl-verify-peer_ (default: *true*)
 	TODO
-	Disabling it is discouraged.
+	Disabling it is strongly discouraged.
 
 # ENVIRONMENT
 
@@ -186,7 +196,7 @@ Home directory of your user.
 
 # SEE ALSO
 
-*newsboat*(1), *sqlite3*(1), *libcurl*(3), *libcurl-env*(3)
+*sqlite3*(1), *strftime*(3), *libcurl*(3), *libcurl-env*(3)
 
 # AUTHOR
 

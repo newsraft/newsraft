@@ -1,16 +1,22 @@
 #include "update_feed/insert_feed/insert_feed.h"
 
 bool
-db_bind_text_struct(sqlite3_stmt *s, intmax_t placeholder, const struct getfeed_text *text_struct)
+db_bind_text_struct(sqlite3_stmt *s, intmax_t placeholder, struct getfeed_text *text_struct)
 {
-	if (text_struct->value->len == 0) {
-		sqlite3_bind_text(s, placeholder, "", 0, NULL);
+	if ((text_struct->value == NULL) || (text_struct->value->len == 0)) {
+		sqlite3_bind_null(s, placeholder);
 		return true;
 	}
-	if (catcs((struct string *)text_struct->type, ';') == false) {
+	if (text_struct->type == NULL) {
+		text_struct->type = crtas("text/plain", 10);
+		if (text_struct->type == NULL) {
+			return false;
+		}
+	}
+	if (catcs(text_struct->type, ';') == false) {
 		return false;
 	}
-	if (catss((struct string *)text_struct->type, (struct string *)text_struct->value) == false) {
+	if (catss(text_struct->type, text_struct->value) == false) {
 		return false;
 	}
 	if (sqlite3_bind_text(s, placeholder, text_struct->type->ptr, text_struct->type->len, NULL) != SQLITE_OK) {

@@ -25,37 +25,37 @@ db_init(void)
 		db,
 		"CREATE TABLE IF NOT EXISTS feeds("
 			"feed_url TEXT NOT NULL UNIQUE," // url of feed itself
-			"title TEXT NOT NULL," // name of feed
-			"link TEXT NOT NULL," // url to related resource
-			"summary TEXT NOT NULL,"
-			"authors TEXT NOT NULL,"
-			"editors TEXT NOT NULL,"
-			"webmasters TEXT NOT NULL,"
-			"categories TEXT NOT NULL,"
-			"language TEXT NOT NULL,"
-			"generator TEXT NOT NULL,"
-			"rights TEXT NOT NULL,"
-			"update_date INTEGER(8) NOT NULL,"
-			"download_date INTEGER(8) NOT NULL,"
-			"http_header_etag TEXT NOT NULL," // ETag HTTP header
-			"http_header_last_modified INTEGER(8) NOT NULL" // Last-Modified HTTP header expressed in epoch time
+			"title TEXT," // name of feed
+			"link TEXT," // url to related resource
+			"summary TEXT,"
+			"authors TEXT,"
+			"editors TEXT,"
+			"webmasters TEXT,"
+			"categories TEXT,"
+			"language TEXT,"
+			"generator TEXT,"
+			"rights TEXT,"
+			"update_date INTEGER(8) NOT NULL DEFAULT 0,"
+			"download_date INTEGER(8) NOT NULL DEFAULT 0,"
+			"http_header_etag TEXT," // ETag HTTP header
+			"http_header_last_modified INTEGER(8) NOT NULL DEFAULT 0" // Last-Modified HTTP header expressed in epoch time
 		");"
 		"CREATE TABLE IF NOT EXISTS items("
 			"feed_url TEXT NOT NULL," // url of feed this item belongs to
-			"title TEXT NOT NULL," // name of item
-			"guid TEXT NOT NULL,"
-			"link TEXT NOT NULL," // url to related resource
-			"attachments TEXT NOT NULL,"
-			"authors TEXT NOT NULL,"
-			"categories TEXT NOT NULL,"
-			"comments_url TEXT NOT NULL,"
-			"summary TEXT NOT NULL,"
-			"content TEXT NOT NULL,"
-			"locations TEXT NOT NULL,"
-			"thumbnails TEXT NOT NULL,"
-			"publication_date INTEGER(8) NOT NULL,"
-			"update_date INTEGER(8) NOT NULL,"
-			"unread INTEGER(1) NOT NULL" // 0 if item read and 1 if item unread
+			"title TEXT," // name of item
+			"guid TEXT,"
+			"link TEXT," // url to related resource
+			"attachments TEXT,"
+			"authors TEXT,"
+			"categories TEXT,"
+			"comments_url TEXT,"
+			"summary TEXT,"
+			"content TEXT,"
+			"locations TEXT,"
+			"thumbnails TEXT,"
+			"publication_date INTEGER(8) NOT NULL DEFAULT 0,"
+			"update_date INTEGER(8) NOT NULL DEFAULT 0,"
+			"unread INTEGER(1) NOT NULL DEFAULT 0" // 0 if item read and 1 if item unread
 		");",
 		NULL,
 		NULL,
@@ -154,6 +154,16 @@ const char *
 db_error_string(void)
 {
 	return sqlite3_errmsg(db);
+}
+
+int
+db_bind_string(sqlite3_stmt *stmt, int pos, const struct string *str)
+{
+	if ((str == NULL) || (str->len == 0)) {
+		return sqlite3_bind_null(stmt, pos);
+	} else {
+		return sqlite3_bind_text(stmt, pos, str->ptr, str->len, NULL);
+	}
 }
 
 struct string *

@@ -10,16 +10,16 @@ full_text_end(struct xml_data *data, const TidyAttr attrs)
 	if (we_are_inside_item(data) == false) {
 		return;
 	}
-	if (data->value->len < data->feed->item->content.value->len) {
+	if ((data->feed->item->content.value != NULL) && (data->value->len < data->feed->item->content.value->len)) {
 		// Don't save content if it's shorter than the content we currently have.
 		return;
 	}
-	if (cpyss(data->feed->item->content.value, data->value) == false) {
+	if (crtss_or_cpyss(&data->feed->item->content.value, data->value) == false) {
 		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		return;
 	}
 	// In most cases this is HTML.
-	if (cpyas(data->feed->item->content.type, "text/html", 9) == false) {
+	if (crtas_or_cpyas(&data->feed->item->content.type, "text/html", 9) == false) {
 		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		return;
 	}
@@ -36,7 +36,7 @@ genre_end(struct xml_data *data, const TidyAttr attrs)
 		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		return;
 	}
-	if (cpyss(data->feed->item->category->term, data->value) == false) {
+	if (crtss_or_cpyss(&data->feed->item->category->term, data->value) == false) {
 		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		return;
 	}
@@ -49,16 +49,16 @@ comment_text_end(struct xml_data *data, const TidyAttr attrs)
 	if (we_are_inside_item(data) == false) {
 		return;
 	}
-	if (data->value->len < data->feed->item->summary.value->len) {
+	if ((data->feed->item->summary.value != NULL) && (data->value->len < data->feed->item->summary.value->len)) {
 		// Don't save summary if it's shorter than the summary we currently have.
 		return;
 	}
-	if (cpyss(data->feed->item->summary.value, data->value) == false) {
+	if (crtss_or_cpyss(&data->feed->item->summary.value, data->value) == false) {
 		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		return;
 	}
 	// Spec says that all comments are plain text.
-	if (cpyas(data->feed->item->summary.type, "text/plain", 10) == false) {
+	if (crtas_or_cpyas(&data->feed->item->summary.type, "text/plain", 10) == false) {
 		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		return;
 	}
@@ -75,7 +75,7 @@ bind_to_end(struct xml_data *data, const TidyAttr attrs)
 		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		return;
 	}
-	if (cpyss(data->feed->item->attachment->url, data->value) == false) {
+	if (crtss_or_cpyss(&data->feed->item->attachment->url, data->value) == false) {
 		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		return;
 	}

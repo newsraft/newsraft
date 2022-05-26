@@ -1,34 +1,12 @@
 #include <stdlib.h>
-#include <string.h>
 #include "update_feed/update_feed.h"
-
-static inline struct getfeed_link *
-create_link(void)
-{
-	struct getfeed_link *link = malloc(sizeof(struct getfeed_link));
-	if (link == NULL) {
-		return NULL;
-	}
-	link->url = crtes();
-	link->type = crtes();
-	if ((link->url == NULL) || (link->type == NULL)) {
-		free_string(link->url);
-		free_string(link->type);
-		free(link);
-		return NULL;
-	}
-	link->size = 0;
-	link->duration = 0;
-	link->next = NULL;
-	return link;
-}
 
 // On success returns true.
 // On memory shortage returns false.
 bool
 prepend_link(struct getfeed_link **head_link_ptr)
 {
-	struct getfeed_link *link = create_link();
+	struct getfeed_link *link = calloc(1, sizeof(struct getfeed_link));
 	if (link == NULL) {
 		return false;
 	}
@@ -69,30 +47,32 @@ free_link(struct getfeed_link *link)
 struct string *
 generate_link_list_string(const struct getfeed_link *link)
 {
-	char temp[123];
 	struct string *str = crtes();
 	if (str == NULL) {
 		return NULL;
 	}
+	char tmp[100];
+	int64_t tmp_len;
 	const struct getfeed_link *l = link;
 	while (l != NULL) {
-		if (l->url->len != 0) {
-			if (str->len != 0) {
-				if (catcs(str, '\n') == false) { goto error; }
-			}
-			if (catas(str, l->url->ptr, l->url->len) == false) { goto error; }
-		} else {
+		if ((l->url == NULL) || (l->url->len == 0)) {
 			continue;
 		}
-		if (catcs(str, ' ') == false) { goto error; }
-		if (l->type->len != 0) {
-			if (catas(str, l->type->ptr, l->type->len) == false) { goto error; }
+		if (str->len != 0) {
+			if (catcs(str, '\n') == false) { goto error; }
 		}
-		// Mind the heading space character! It is needed for separation.
-		snprintf(temp, 123, " %zu", l->size);
-		if (catas(str, temp, strlen(temp)) == false) { goto error; }
-		snprintf(temp, 123, " %zu", l->duration);
-		if (catas(str, temp, strlen(temp)) == false) { goto error; }
+		if (catss(str, l->url) == false) { goto error; }
+		if (catcs(str, ' ') == false) { goto error; }
+		if ((l->type != NULL) && (l->type->len != 0)) {
+			if (catss(str, l->type) == false) { goto error; }
+		}
+		// Mind the heading space character! It's needed for separation.
+		tmp_len = snprintf(tmp, 100, " %zu", l->size);
+		if ((tmp_len < 0) || (tmp_len >= 100)) { goto error; }
+		if (catas(str, tmp, tmp_len) == false) { goto error; }
+		tmp_len = snprintf(tmp, 100, " %zu", l->duration);
+		if ((tmp_len < 0) || (tmp_len >= 100)) { goto error; }
+		if (catas(str, tmp, tmp_len) == false) { goto error; }
 		l = l->next;
 	}
 	return str;

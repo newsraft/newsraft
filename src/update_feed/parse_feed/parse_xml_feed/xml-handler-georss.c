@@ -14,7 +14,7 @@ point_end(struct xml_data *data, const TidyAttr attrs)
 		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		return;
 	}
-	if (cpyss(data->feed->item->location->str, data->value) == false) {
+	if (crtss_or_cpyss(&data->feed->item->location->str, data->value) == false) {
 		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		return;
 	}

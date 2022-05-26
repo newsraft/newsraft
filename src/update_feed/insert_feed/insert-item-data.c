@@ -31,7 +31,7 @@ delete_excess_items(const struct string *feed_url)
 }
 
 static inline bool
-db_insert_item(const struct string *feed_url, const struct getfeed_item *item, int rowid)
+db_insert_item(const struct string *feed_url, struct getfeed_item *item, int rowid)
 {
 	struct string *authors_str = generate_person_list_string(item->author);
 	if (authors_str == NULL) {
@@ -90,18 +90,18 @@ db_insert_item(const struct string *feed_url, const struct getfeed_item *item, i
 		return false;
 	}
 
-	sqlite3_bind_text(s,   1 + ITEM_COLUMN_FEED_URL,         feed_url->ptr,           feed_url->len, NULL);
+	db_bind_string(s,      1 + ITEM_COLUMN_FEED_URL,         feed_url);
 	db_bind_text_struct(s, 1 + ITEM_COLUMN_TITLE,            &item->title);
-	sqlite3_bind_text(s,   1 + ITEM_COLUMN_GUID,             item->guid->ptr,         item->guid->len, NULL);
-	sqlite3_bind_text(s,   1 + ITEM_COLUMN_LINK,             item->url->ptr,          item->url->len, NULL);
-	sqlite3_bind_text(s,   1 + ITEM_COLUMN_ATTACHMENTS,      attachments_str->ptr,    attachments_str->len, NULL);
-	sqlite3_bind_text(s,   1 + ITEM_COLUMN_AUTHORS,          authors_str->ptr,        authors_str->len, NULL);
-	sqlite3_bind_text(s,   1 + ITEM_COLUMN_CATEGORIES,       categories_str->ptr,     categories_str->len, NULL);
-	sqlite3_bind_text(s,   1 + ITEM_COLUMN_COMMENTS_URL,     item->comments_url->ptr, item->comments_url->len, NULL);
+	db_bind_string(s,      1 + ITEM_COLUMN_GUID,             item->guid);
+	db_bind_string(s,      1 + ITEM_COLUMN_LINK,             item->url);
+	db_bind_string(s,      1 + ITEM_COLUMN_ATTACHMENTS,      attachments_str);
+	db_bind_string(s,      1 + ITEM_COLUMN_AUTHORS,          authors_str);
+	db_bind_string(s,      1 + ITEM_COLUMN_CATEGORIES,       categories_str);
+	db_bind_string(s,      1 + ITEM_COLUMN_COMMENTS_URL,     item->comments_url);
 	db_bind_text_struct(s, 1 + ITEM_COLUMN_SUMMARY,          &item->summary);
 	db_bind_text_struct(s, 1 + ITEM_COLUMN_CONTENT,          &item->content);
-	sqlite3_bind_text(s,   1 + ITEM_COLUMN_LOCATIONS,        locations_str->ptr,      locations_str->len, NULL);
-	sqlite3_bind_text(s,   1 + ITEM_COLUMN_THUMBNAILS,       thumbnails_str->ptr,     thumbnails_str->len, NULL);
+	db_bind_string(s,      1 + ITEM_COLUMN_LOCATIONS,        locations_str);
+	db_bind_string(s,      1 + ITEM_COLUMN_THUMBNAILS,       thumbnails_str);
 	sqlite3_bind_int64(s,  1 + ITEM_COLUMN_PUBLICATION_DATE, (sqlite3_int64)(item->pubdate));
 	sqlite3_bind_int64(s,  1 + ITEM_COLUMN_UPDATE_DATE,      (sqlite3_int64)(item->upddate));
 	sqlite3_bind_int(s,    1 + ITEM_COLUMN_UNREAD,           1);
@@ -152,7 +152,7 @@ insert_item_data(const struct string *feed_url, struct getfeed_item *item)
 	// Before trying to write some item to the database we have to check if this
 	// item is duplicate or not.
 
-	if (item->guid->len > 0) {
+	if ((item->guid != NULL) && (item->guid->len > 0)) {
 		if (db_prepare("SELECT rowid, publication_date, update_date, content FROM items WHERE feed_url = ? AND guid = ? LIMIT 1;", 105, &s, NULL) == false) {
 			FAIL("Failed to prepare SELECT statement for searching item duplicate by guid!");
 			return false;
@@ -160,7 +160,7 @@ insert_item_data(const struct string *feed_url, struct getfeed_item *item)
 		sqlite3_bind_text(s, 1, feed_url->ptr, feed_url->len, NULL);
 		sqlite3_bind_text(s, 2, item->guid->ptr, item->guid->len, NULL);
 		step_status = sqlite3_step(s);
-	} else if (item->url->len > 0) {
+	} else if ((item->url != NULL) && (item->url->len > 0)) {
 		if (db_prepare("SELECT rowid, publication_date, update_date, content FROM items WHERE feed_url = ? AND link = ? LIMIT 1;", 105, &s, NULL) == false) {
 			FAIL("Failed to prepare SELECT statement for searching item duplicate by link!");
 			return false;
@@ -174,19 +174,25 @@ insert_item_data(const struct string *feed_url, struct getfeed_item *item)
 
 	int item_rowid = -1;
 	if (step_status == SQLITE_ROW) {
-		item_rowid = sqlite3_column_int(s, 0);
 		int item_pubdate = sqlite3_column_int(s, 1);
 		int item_upddate = sqlite3_column_int(s, 2);
-		const char *item_content = (const char *)sqlite3_column_text(s, 3);
-		const char *type_separator = strchr(item_content, ';');
-		if (type_separator != NULL) {
-			item_content = type_separator + 1;
+		if ((item_upddate == item->upddate) && (item_pubdate == item->pubdate)) {
+			const char *item_content = (const char *)sqlite3_column_text(s, 3);
+			if (item_content != NULL) {
+				const char *type_separator = strchr(item_content, ';');
+				if (type_separator != NULL) {
+					item_content = type_separator + 1;
+				}
+			}
+			if (((item_content == NULL) && (item->content.value == NULL))
+					|| ((item_content != NULL) && (item->content.value != NULL) &&
+						(strcmp(item_content, item->content.value->ptr) == 0)))
+			{
+				sqlite3_finalize(s);
+				return true;
+			}
 		}
-		if ((item_upddate == item->upddate) && (item_pubdate == item->pubdate) && (strcmp(item_content, item->content.value->ptr) == 0)) {
-			// This is a complete duplicate of the item in database.
-			sqlite3_finalize(s);
-			return true; // This is not an error - we just ignore duplicates.
-		}
+		item_rowid = sqlite3_column_int(s, 0);
 	}
 
 	if (s != NULL) {

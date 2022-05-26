@@ -86,9 +86,6 @@ struct getfeed_feed {
 	struct getfeed_item *item;
 };
 
-bool initialize_feed(struct getfeed_feed *feed);
-void free_feed(struct getfeed_feed *feed);
-
 // See "download_feed" directory for implementation.
 enum download_status download_feed(const char *url, struct getfeed_feed *feed, struct string *feedbuf);
 

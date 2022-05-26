@@ -124,6 +124,32 @@ catcs(struct string *dest, char c)
 }
 
 bool
+crtas_or_cpyas(struct string **dest, const char *src_ptr, size_t src_len)
+{
+	if (*dest != NULL) {
+		return cpyas(*dest, src_ptr, src_len);
+	}
+	*dest = crtas(src_ptr, src_len);
+	if (*dest == NULL) {
+		return false;
+	}
+	return true;
+}
+
+bool
+crtss_or_cpyss(struct string **dest, const struct string *src)
+{
+	if (*dest != NULL) {
+		return cpyss(*dest, src);
+	}
+	*dest = crtss(src);
+	if (*dest == NULL) {
+		return false;
+	}
+	return true;
+}
+
+bool
 string_vprintf(struct string *dest, const char *format, va_list args)
 {
 	int required_length = vsnprintf(dest->ptr, 0, format, args);

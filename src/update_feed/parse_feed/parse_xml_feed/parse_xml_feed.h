@@ -72,7 +72,7 @@ void free_namespace_stack(struct xml_namespace_stack *stack);
 // See "xml-common.c" file for implementation.
 bool we_are_inside_item(const struct xml_data *data);
 const char *get_value_of_attribute_key(const TidyAttr attrs, const char *key);
-bool copy_type_of_text_construct(struct string *dest, const TidyAttr attrs);
+bool copy_type_of_text_construct(struct string **dest, const TidyAttr attrs);
 
 // Element handlers
 

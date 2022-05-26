@@ -18,7 +18,7 @@ guid_end(struct xml_data *data, const TidyAttr attrs)
 	if ((data->xml_pos[RSS20_FORMAT] & RSS20_ITEM) == 0) {
 		return;
 	}
-	if (cpyss(data->feed->item->guid, data->value) == false) {
+	if (crtss_or_cpyss(&data->feed->item->guid, data->value) == false) {
 		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		return;
 	}
@@ -29,12 +29,12 @@ title_end(struct xml_data *data, const TidyAttr attrs)
 {
 	(void)attrs;
 	if ((data->xml_pos[RSS20_FORMAT] & RSS20_ITEM) != 0) {
-		if (cpyss(data->feed->item->title.value, data->value) == false) {
+		if (crtss_or_cpyss(&data->feed->item->title.value, data->value) == false) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}
 	} else {
-		if (cpyss(data->feed->title.value, data->value) == false) {
+		if (crtss_or_cpyss(&data->feed->title.value, data->value) == false) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}
@@ -46,12 +46,12 @@ link_end(struct xml_data *data, const TidyAttr attrs)
 {
 	(void)attrs;
 	if ((data->xml_pos[RSS20_FORMAT] & RSS20_ITEM) != 0) {
-		if (cpyss(data->feed->item->url, data->value) == false) {
+		if (crtss_or_cpyss(&data->feed->item->url, data->value) == false) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}
 	} else {
-		if (cpyss(data->feed->url, data->value) == false) {
+		if (crtss_or_cpyss(&data->feed->url, data->value) == false) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}
@@ -63,12 +63,20 @@ description_end(struct xml_data *data, const TidyAttr attrs)
 {
 	(void)attrs;
 	if ((data->xml_pos[RSS20_FORMAT] & RSS20_ITEM) != 0) {
-		if (cpyss(data->feed->item->content.value, data->value) == false) {
+		if (crtss_or_cpyss(&data->feed->item->content.value, data->value) == false) {
+			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+			return;
+		}
+		if (crtas_or_cpyas(&data->feed->item->content.type, "text/html", 9) == false) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}
 	} else {
-		if (cpyss(data->feed->summary.value, data->value) == false) {
+		if (crtss_or_cpyss(&data->feed->summary.value, data->value) == false) {
+			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+			return;
+		}
+		if (crtas_or_cpyas(&data->feed->summary.type, "text/html", 9) == false) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}
@@ -113,7 +121,7 @@ author_end(struct xml_data *data, const TidyAttr attrs)
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}
-		if (cpyss(data->feed->item->author->email, data->value) == false) {
+		if (crtss_or_cpyss(&data->feed->item->author->email, data->value) == false) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}
@@ -122,7 +130,7 @@ author_end(struct xml_data *data, const TidyAttr attrs)
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}
-		if (cpyss(data->feed->author->email, data->value) == false) {
+		if (crtss_or_cpyss(&data->feed->author->email, data->value) == false) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}
@@ -147,13 +155,13 @@ enclosure_start(struct xml_data *data, const TidyAttr attrs)
 		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		return;
 	}
-	if (cpyas(data->feed->item->attachment->url, url, url_len) == false) {
+	if (crtas_or_cpyas(&data->feed->item->attachment->url, url, url_len) == false) {
 		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		return;
 	}
 	const char *type = get_value_of_attribute_key(attrs, "type");
 	if (type != NULL) {
-		if (cpyas(data->feed->item->attachment->type, type, strlen(type)) == false) {
+		if (crtas_or_cpyas(&data->feed->item->attachment->type, type, strlen(type)) == false) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}
@@ -174,12 +182,12 @@ category_end(struct xml_data *data, const TidyAttr attrs)
 			return;
 		}
 		if (domain != NULL) {
-			if (cpyas(data->feed->item->category->scheme, domain, strlen(domain)) == false) {
+			if (crtas_or_cpyas(&data->feed->item->category->scheme, domain, strlen(domain)) == false) {
 				data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 				return;
 			}
 		}
-		if (cpyss(data->feed->item->category->term, data->value) == false) {
+		if (crtss_or_cpyss(&data->feed->item->category->term, data->value) == false) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}
@@ -189,12 +197,12 @@ category_end(struct xml_data *data, const TidyAttr attrs)
 			return;
 		}
 		if (domain != NULL) {
-			if (cpyas(data->feed->category->scheme, domain, strlen(domain)) == false) {
+			if (crtas_or_cpyas(&data->feed->category->scheme, domain, strlen(domain)) == false) {
 				data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 				return;
 			}
 		}
-		if (cpyss(data->feed->category->term, data->value) == false) {
+		if (crtss_or_cpyss(&data->feed->category->term, data->value) == false) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}
@@ -208,7 +216,7 @@ comments_end(struct xml_data *data, const TidyAttr attrs)
 	if ((data->xml_pos[RSS20_FORMAT] & RSS20_ITEM) == 0) {
 		return;
 	}
-	if (cpyss(data->feed->item->comments_url, data->value) == false) {
+	if (crtss_or_cpyss(&data->feed->item->comments_url, data->value) == false) {
 		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		return;
 	}
@@ -221,7 +229,7 @@ language_end(struct xml_data *data, const TidyAttr attrs)
 	if ((data->xml_pos[RSS20_FORMAT] & RSS20_ITEM) != 0) {
 		return;
 	}
-	if (cpyss(data->feed->language, data->value) == false) {
+	if (crtss_or_cpyss(&data->feed->language, data->value) == false) {
 		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		return;
 	}
@@ -234,7 +242,7 @@ generator_end(struct xml_data *data, const TidyAttr attrs)
 	if ((data->xml_pos[RSS20_FORMAT] & RSS20_ITEM) != 0) {
 		return;
 	}
-	if (cpyss(data->feed->generator.name, data->value) == false) {
+	if (crtss_or_cpyss(&data->feed->generator.name, data->value) == false) {
 		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		return;
 	}
@@ -251,7 +259,7 @@ webMaster_end(struct xml_data *data, const TidyAttr attrs)
 		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		return;
 	}
-	if (cpyss(data->feed->webmaster->email, data->value) == false) {
+	if (crtss_or_cpyss(&data->feed->webmaster->email, data->value) == false) {
 		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		return;
 	}
@@ -268,7 +276,7 @@ managingEditor_end(struct xml_data *data, const TidyAttr attrs)
 		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		return;
 	}
-	if (cpyss(data->feed->editor->email, data->value) == false) {
+	if (crtss_or_cpyss(&data->feed->editor->email, data->value) == false) {
 		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		return;
 	}

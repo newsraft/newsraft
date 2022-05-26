@@ -104,7 +104,6 @@ executable(
 		'src/load_config/config-useragent.c',
 		'src/load_config/config-verifier.c',
 		'src/update_feed/update_feed.c',
-		'src/update_feed/struct-feed.c',
 		'src/update_feed/struct-item.c',
 		'src/update_feed/struct-link.c',
 		'src/update_feed/struct-picture.c',

@@ -1,31 +1,10 @@
 #include <stdlib.h>
 #include "update_feed/update_feed.h"
 
-static inline struct getfeed_person *
-create_person(void)
-{
-	struct getfeed_person *person = malloc(sizeof(struct getfeed_person));
-	if (person == NULL) {
-		return NULL;
-	}
-	person->name = crtes();
-	person->email = crtes();
-	person->url = crtes();
-	if ((person->name == NULL) || (person->email == NULL) || (person->url == NULL)) {
-		free_string(person->name);
-		free_string(person->email);
-		free_string(person->url);
-		free(person);
-		return NULL;
-	}
-	person->next = NULL;
-	return person;
-}
-
 bool
 prepend_person(struct getfeed_person **head_person_ptr)
 {
-	struct getfeed_person *person = create_person();
+	struct getfeed_person *person = calloc(1, sizeof(struct getfeed_person));
 	if (person == NULL) {
 		return false;
 	}
@@ -75,25 +54,25 @@ generate_person_list_string(const struct getfeed_person *person)
 	const struct getfeed_person *p = person;
 	while (p != NULL) {
 		added_name = false;
-		if (p->name->len != 0) {
+		if ((p->name != NULL) && (p->name->len != 0)) {
 			if (str->len != 0) {
 				if (catas(str, ", ", 2) == false) {
 					goto error;
 				}
 			}
-			if (catas(str, p->name->ptr, p->name->len) == false) {
+			if (catss(str, p->name) == false) {
 				goto error;
 			}
 			added_name = true;
 		}
 		added_email = false;
-		if (p->email->len != 0) {
+		if ((p->email != NULL) && (p->email->len != 0)) {
 			if (added_name == true) {
 				if (catas(str, " <", 2) == false) {
 					goto error;
 				}
 			}
-			if (catas(str, p->email->ptr, p->email->len) == false) {
+			if (catss(str, p->email) == false) {
 				goto error;
 			}
 			if (added_name == true) {
@@ -103,13 +82,13 @@ generate_person_list_string(const struct getfeed_person *person)
 			}
 			added_email = true;
 		}
-		if (p->url->len != 0) {
+		if ((p->url != NULL) && (p->url->len != 0)) {
 			if (added_name == true || added_email == true) {
 				if (catas(str, " (", 2) == false) {
 					goto error;
 				}
 			}
-			if (catas(str, p->url->ptr, p->url->len) == false) {
+			if (catss(str, p->url) == false) {
 				goto error;
 			}
 			if (added_name == true || added_email == true) {

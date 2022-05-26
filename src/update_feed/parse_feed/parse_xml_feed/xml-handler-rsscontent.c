@@ -10,14 +10,14 @@ encoded_end(struct xml_data *data, const TidyAttr attrs)
 	if (we_are_inside_item(data) == false) {
 		return;
 	}
-	if (data->feed->item->content.value->len > data->value->len) {
+	if ((data->feed->item->content.value != NULL) && (data->feed->item->content.value->len > data->value->len)) {
 		return;
 	}
-	if (cpyss(data->feed->item->content.value, data->value) == false) {
+	if (crtss_or_cpyss(&data->feed->item->content.value, data->value) == false) {
 		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		return;
 	}
-	if (cpyas(data->feed->item->content.type, "text/html", 9) == false) {
+	if (crtas_or_cpyas(&data->feed->item->content.type, "text/html", 9) == false) {
 		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		return;
 	}

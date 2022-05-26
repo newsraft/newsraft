@@ -110,17 +110,24 @@ static inline bool
 append_max_summary_content(struct render_block **list, sqlite3_stmt *res)
 {
 	const char *summary = (char *)sqlite3_column_text(res, ITEM_COLUMN_SUMMARY);
+	size_t summary_len;
+	if (summary == NULL) {
+		summary_len = 0;
+	} else {
+		summary_len = strlen(summary);
+	}
 	const char *content = (char *)sqlite3_column_text(res, ITEM_COLUMN_CONTENT);
-	const size_t summary_len = strlen(summary);
-	size_t content_len = strlen(content);
+	size_t content_len;
+	if (content == NULL) {
+		content_len = 0;
+	} else {
+		content_len = strlen(content);
+	}
 	if (summary_len > content_len) {
 		content = summary;
 		content_len = summary_len;
 	}
-	if (content == NULL) {
-		return true;
-	}
-	if (content_len == 0) {
+	if ((content == NULL) || (content_len == 0)) {
 		return true;
 	}
 	const char *type_separator = strchr(content, ';');

@@ -23,13 +23,13 @@ content_start(struct xml_data *data, const TidyAttr attrs)
 		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		return;
 	}
-	if (cpyas(data->feed->item->attachment->url, url, url_len) == false) {
+	if (crtas_or_cpyas(&data->feed->item->attachment->url, url, url_len) == false) {
 		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		return;
 	}
 	const char *type = get_value_of_attribute_key(attrs, "type");
 	if (type != NULL) {
-		if (cpyas(data->feed->item->attachment->type, type, strlen(type)) == false) {
+		if (crtas_or_cpyas(&data->feed->item->attachment->type, type, strlen(type)) == false) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}
@@ -62,7 +62,7 @@ thumbnail_start(struct xml_data *data, const TidyAttr attrs)
 		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		return;
 	}
-	if (cpyas(data->feed->item->thumbnail->url, attr, attr_len) == false) {
+	if (crtas_or_cpyas(&data->feed->item->thumbnail->url, attr, attr_len) == false) {
 		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		return;
 	}
@@ -82,21 +82,21 @@ description_end(struct xml_data *data, const TidyAttr attrs)
 	if (we_are_inside_item(data) == false) {
 		return;
 	}
-	if (data->feed->item->content.value->len == 0) {
-		if (cpyss(data->feed->item->content.value, data->value) == false) {
+	if ((data->feed->item->content.value == NULL) || (data->feed->item->content.value->len == 0)) {
+		if (crtss_or_cpyss(&data->feed->item->content.value, data->value) == false) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}
-		if (copy_type_of_text_construct(data->feed->item->content.type, attrs) == false) {
+		if (copy_type_of_text_construct(&data->feed->item->content.type, attrs) == false) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}
-	} else if (data->feed->item->summary.value->len == 0) {
-		if (cpyss(data->feed->item->summary.value, data->value) == false) {
+	} else if ((data->feed->item->summary.value == NULL) || (data->feed->item->summary.value->len == 0)) {
+		if (crtss_or_cpyss(&data->feed->item->summary.value, data->value) == false) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}
-		if (copy_type_of_text_construct(data->feed->item->summary.type, attrs) == false) {
+		if (copy_type_of_text_construct(&data->feed->item->summary.type, attrs) == false) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}

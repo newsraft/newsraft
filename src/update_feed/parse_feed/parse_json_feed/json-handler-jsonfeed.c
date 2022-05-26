@@ -15,9 +15,9 @@ populate_person(cJSON *json, struct getfeed_person *person)
 			continue;
 		}
 		if (strcmp(credit->string, "name") == 0) {
-			cpyas(person->name, credit->valuestring, strlen(credit->valuestring));
+			crtas_or_cpyas(&person->name, credit->valuestring, strlen(credit->valuestring));
 		} else if (strcmp(credit->string, "url") == 0) {
-			cpyas(person->url, credit->valuestring, strlen(credit->valuestring));
+			crtas_or_cpyas(&person->url, credit->valuestring, strlen(credit->valuestring));
 		}
 		// JSON Feed also provides "avatar" field! Cool, nice, great... What about "email", huh?
 	}
@@ -35,9 +35,9 @@ populate_link(cJSON *json, struct getfeed_link *link)
 				continue;
 			}
 			if (strcmp(entry->string, "url") == 0) {
-				cpyas(link->url, entry->valuestring, strlen(entry->valuestring));
+				crtas_or_cpyas(&link->url, entry->valuestring, strlen(entry->valuestring));
 			} else if (strcmp(entry->string, "mime_type") == 0) {
-				cpyas(link->type, entry->valuestring, strlen(entry->valuestring));
+				crtas_or_cpyas(&link->type, entry->valuestring, strlen(entry->valuestring));
 			} else if (strcmp(entry->string, "title") == 0) {
 				// TODO
 			}
@@ -63,28 +63,28 @@ process_item_entry(cJSON *json, struct json_data *data)
 				continue;
 			}
 			if (strcmp(node->string, "id") == 0) {
-				cpyas(data->feed->item->guid, node->valuestring, strlen(node->valuestring));
+				crtas_or_cpyas(&data->feed->item->guid, node->valuestring, strlen(node->valuestring));
 			} else if (strcmp(node->string, "url") == 0) {
-				cpyas(data->feed->item->url, node->valuestring, strlen(node->valuestring));
+				crtas_or_cpyas(&data->feed->item->url, node->valuestring, strlen(node->valuestring));
 			} else if (strcmp(node->string, "title") == 0) {
-				cpyas(data->feed->item->title.value, node->valuestring, strlen(node->valuestring));
-				cpyas(data->feed->item->title.type, "text/plain", 10);
+				crtas_or_cpyas(&data->feed->item->title.value, node->valuestring, strlen(node->valuestring));
+				crtas_or_cpyas(&data->feed->item->title.type, "text/plain", 10);
 			} else if (strcmp(node->string, "content_html") == 0) {
-				cpyas(data->feed->item->content.value, node->valuestring, strlen(node->valuestring));
-				cpyas(data->feed->item->content.type, "text/html", 9);
+				crtas_or_cpyas(&data->feed->item->content.value, node->valuestring, strlen(node->valuestring));
+				crtas_or_cpyas(&data->feed->item->content.type, "text/html", 9);
 			} else if (strcmp(node->string, "content_text") == 0) {
-				cpyas(data->feed->item->content.value, node->valuestring, strlen(node->valuestring));
-				cpyas(data->feed->item->content.type, "text/plain", 10);
+				crtas_or_cpyas(&data->feed->item->content.value, node->valuestring, strlen(node->valuestring));
+				crtas_or_cpyas(&data->feed->item->content.type, "text/plain", 10);
 			} else if (strcmp(node->string, "summary") == 0) {
-				cpyas(data->feed->item->summary.value, node->valuestring, strlen(node->valuestring));
-				cpyas(data->feed->item->summary.type, "text/plain", 10);
+				crtas_or_cpyas(&data->feed->item->summary.value, node->valuestring, strlen(node->valuestring));
+				crtas_or_cpyas(&data->feed->item->summary.type, "text/plain", 10);
 			} else if (strcmp(node->string, "date_published") == 0) {
 				data->feed->item->pubdate = parse_date_rfc3339(node->valuestring, strlen(node->valuestring));
 			} else if (strcmp(node->string, "date_modified") == 0) {
 				data->feed->item->upddate = parse_date_rfc3339(node->valuestring, strlen(node->valuestring));
 			} else if (strcmp(node->string, "external_url") == 0) {
 				prepend_link(&data->feed->item->attachment);
-				cpyas(data->feed->item->attachment->url, node->valuestring, strlen(node->valuestring));
+				crtas_or_cpyas(&data->feed->item->attachment->url, node->valuestring, strlen(node->valuestring));
 			}
 		} else if (cJSON_IsArray(node) == true) {
 			if (strcmp(node->string, "authors") == 0) {
@@ -104,7 +104,7 @@ process_item_entry(cJSON *json, struct json_data *data)
 						continue;
 					}
 					prepend_category(&data->feed->item->category);
-					cpyas(data->feed->item->category->term, tag->valuestring, strlen(tag->valuestring));
+					crtas_or_cpyas(&data->feed->item->category->term, tag->valuestring, strlen(tag->valuestring));
 				}
 			}
 		}
@@ -126,15 +126,15 @@ json_dump_jsonfeed(cJSON *json, struct json_data *data)
 				continue;
 			}
 			if (strcmp(node->string, "title") == 0) {
-				cpyas(data->feed->title.value, node->valuestring, strlen(node->valuestring));
-				cpyas(data->feed->title.type, "text/plain", 10);
+				crtas_or_cpyas(&data->feed->title.value, node->valuestring, strlen(node->valuestring));
+				crtas_or_cpyas(&data->feed->title.type, "text/plain", 10);
 			} else if (strcmp(node->string, "home_page_url") == 0) {
-				cpyas(data->feed->url, node->valuestring, strlen(node->valuestring));
+				crtas_or_cpyas(&data->feed->url, node->valuestring, strlen(node->valuestring));
 			} else if (strcmp(node->string, "description") == 0) {
-				cpyas(data->feed->summary.value, node->valuestring, strlen(node->valuestring));
-				cpyas(data->feed->summary.type, "text/plain", 10);
+				crtas_or_cpyas(&data->feed->summary.value, node->valuestring, strlen(node->valuestring));
+				crtas_or_cpyas(&data->feed->summary.type, "text/plain", 10);
 			} else if (strcmp(node->string, "language") == 0) {
-				cpyas(data->feed->language, node->valuestring, strlen(node->valuestring));
+				crtas_or_cpyas(&data->feed->language, node->valuestring, strlen(node->valuestring));
 			}
 		} else if (cJSON_IsArray(node) == true) {
 			if (strcmp(node->string, "authors") == 0) {

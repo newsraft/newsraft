@@ -81,6 +81,7 @@ struct getfeed_feed {
 	struct getfeed_person *webmaster;
 	time_t update_date;
 	time_t download_date;
+	int64_t previous_download_date;
 	int64_t http_header_last_modified;
 	struct string *http_header_etag;
 	struct getfeed_item *item;

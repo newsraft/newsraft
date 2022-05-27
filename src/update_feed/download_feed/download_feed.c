@@ -21,7 +21,22 @@ header_callback(char *buffer, size_t size, size_t nitems, struct getfeed_feed *d
 	}
 	trim_whitespace_from_string(header);
 	INFO("Found a header during loading - \"%s\".", header->ptr);
-	if (strncasecmp(header->ptr, "ETag: ", 6) == 0) {
+	if (strncasecmp(header->ptr, "Expires: ", 9) == 0) {
+		if (get_cfg_bool(CFG_RESPECT_EXPIRES_HEADER) == true) {
+			time_t expire_date = curl_getdate(header->ptr + 9, NULL);
+			if (expire_date > 0) {
+				if ((data->previous_download_date > 0) && (data->previous_download_date < expire_date)) {
+					INFO("Closing connection because previous download date is less than expiration date.");
+					// Set this variable to -1 to indicate that curl was stopped because of this ^.
+					data->previous_download_date = -1;
+					free_string(header);
+					return 0;
+				}
+			} else {
+				FAIL("Curl failed to parse date string!");
+			}
+		}
+	} else if (strncasecmp(header->ptr, "ETag: ", 6) == 0) {
 		char *first_quote_pos = strchr(header->ptr, '"');
 		if (first_quote_pos != NULL) {
 			char *second_quote_pos = strchr(first_quote_pos + 1, '"');
@@ -100,12 +115,20 @@ download_feed(const char *url, struct getfeed_feed *feed, struct string *feedbuf
 
 	CURLcode res = curl_easy_perform(curl);
 	if (res != CURLE_OK) {
-		// These are just warnings because perform can fail due to lack of network connection.
-		WARN("Feed update has stopped due to fail in curl request!");
-		WARN("Detailed error explanation: %s", *curl_errbuf == '\0' ? curl_easy_strerror(res) : curl_errbuf);
-		curl_slist_free_all(headers);
-		curl_easy_cleanup(curl);
-		return DOWNLOAD_FAILED;
+		if (feed->previous_download_date == -1) {
+			// See header_callback function to understand what is going on here.
+			curl_slist_free_all(headers);
+			curl_easy_cleanup(curl);
+			INFO("Download is canceled because the information on the server hasn't expired yet.");
+			return DOWNLOAD_CANCELED;
+		} else {
+			// These are just warnings because perform can fail due to lack of network connection.
+			WARN("Feed update has stopped due to fail in curl request!");
+			WARN("Detailed error explanation: %s", *curl_errbuf == '\0' ? curl_easy_strerror(res) : curl_errbuf);
+			curl_slist_free_all(headers);
+			curl_easy_cleanup(curl);
+			return DOWNLOAD_FAILED;
+		}
 	}
 
 	long http_code = 0;

@@ -28,6 +28,12 @@ update_feed(const struct string *url)
 	bool success = false;
 	struct getfeed_feed feed = {0};
 
+	feed.previous_download_date = db_get_date_from_feeds_table(url, "download_date", 13);
+	if (feed.previous_download_date == -1) {
+		// Error message written by db_get_date_from_feeds_table.
+		goto undo0;
+	}
+
 	feed.http_header_last_modified = db_get_date_from_feeds_table(url, "http_header_last_modified", 25);
 	if (feed.http_header_last_modified == -1) {
 		// Error message written by db_get_date_from_feeds_table.

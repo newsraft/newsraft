@@ -62,79 +62,95 @@ create_global_section(void)
 	return create_new_section(global_section_name);
 }
 
-// On success returns a pointer to the attached feed.
-// On failure returns NULL.
-static struct feed_line *
-attach_feed_to_section(struct feed_line *feed, struct feed_section *section, bool do_free)
+static inline struct feed_line *
+find_feed_in_section(const struct string *link, const struct feed_section *section)
 {
-	INFO("Adding feed \"%s\" to section \"%s\".", feed->link->ptr, section->name->ptr);
-	// We have to make sure that this feed is unique.
 	for (size_t i = 0; i < section->feeds_count; ++i) {
-		if (strcmp(section->feeds[i]->link->ptr, feed->link->ptr) == 0) {
-			INFO("This feed is already in this section.");
-			if (do_free == true) {
-				free_feed(feed);
-			}
+		if ((link->len == section->feeds[i]->link->len) && (strcmp(link->ptr, section->feeds[i]->link->ptr) == 0)) {
 			return section->feeds[i];
 		}
+	}
+	return NULL;
+}
+
+static inline struct feed_line *
+copy_feed_to_global_section(const struct feed_line *feed)
+{
+	struct feed_line *potential_duplicate = find_feed_in_section(feed->link, &sections[0]);
+	if (potential_duplicate != NULL) {
+		return potential_duplicate;
+	}
+	size_t feed_index = (sections[0].feeds_count)++;
+	struct feed_line **temp = realloc(sections[0].feeds, sizeof(struct feed_line *) * sections[0].feeds_count);
+	if (temp == NULL) {
+		return NULL;
+	}
+	sections[0].feeds = temp;
+	sections[0].feeds[feed_index] = malloc(sizeof(struct feed_line));
+	if (sections[0].feeds[feed_index] == NULL) {
+		return NULL;
+	}
+	if ((feed->name == NULL) || (feed->name->len == 0)) {
+		sections[0].feeds[feed_index]->name = NULL;
+	} else {
+		sections[0].feeds[feed_index]->name = crtss(feed->name);
+		if (sections[0].feeds[feed_index]->name == NULL) {
+			return NULL;
+		}
+	}
+	sections[0].feeds[feed_index]->link = crtss(feed->link);
+	if (sections[0].feeds[feed_index]->link == NULL) {
+		return NULL;
+	}
+	sections[0].feeds[feed_index]->unread_count = 0;
+	return sections[0].feeds[feed_index];
+}
+
+static bool
+attach_feed_to_section(struct feed_line *feed, struct feed_section *section)
+{
+	const struct feed_line *potential_duplicate = find_feed_in_section(feed->link, section);
+	if (potential_duplicate != NULL) {
+		return true;
 	}
 	size_t feed_index = (section->feeds_count)++;
 	struct feed_line **temp = realloc(section->feeds, sizeof(struct feed_line *) * section->feeds_count);
 	if (temp == NULL) {
-		fprintf(stderr, "Not enough memory for new feed in section!\n");
-		return NULL;
+		return false;
 	}
 	section->feeds = temp;
 	section->feeds[feed_index] = feed;
-	return section->feeds[feed_index];
-}
-
-static inline struct feed_line *
-add_feed_to_global_section(struct feed_line *feed)
-{
-	return attach_feed_to_section(feed, &sections[0], true);
-}
-
-static inline struct feed_line *
-add_feed_to_regular_section(struct feed_line *feed, struct feed_section *section)
-{
-	return attach_feed_to_section(feed, section, false);
+	return true;
 }
 
 bool
-add_feed_to_section(struct feed_line *feed, const struct string *section_name)
+copy_feed_to_section(const struct feed_line *feed, const struct string *section_name)
 {
 	if (feed->link == NULL) {
 		fprintf(stderr, "Encountered a NULL feed link while adding a new feed to the section!\n");
 		return false;
 	}
-	struct feed_line *attached_feed = add_feed_to_global_section(feed);
+	struct feed_line *attached_feed = copy_feed_to_global_section(feed);
 	if (attached_feed == NULL) {
+		fprintf(stderr, "Not enough memory for new feed in global section!\n");
 		return false;
 	}
-	const struct string *global_section_name = get_cfg_string(CFG_GLOBAL_SECTION_NAME);
-	if (strcmp(section_name->ptr, global_section_name->ptr) == 0) {
+	if (strcmp(section_name->ptr, sections[0].name->ptr) == 0) {
 		// The section we add a feed to is global and we already added
 		// a feed to the global section above. So exit innocently here.
-		return true; // Not an error.
+		return true;
 	}
 	// Skip (i == 0) because first section is always the global one and
 	// we already know that the section we add a feed to is not global.
 	for (size_t i = 1; i < sections_count; ++i) {
 		if (strcmp(section_name->ptr, sections[i].name->ptr) == 0) {
-			if (add_feed_to_regular_section(attached_feed, &sections[i]) == NULL) {
-				return false;
-			}
-			return true;
+			return attach_feed_to_section(attached_feed, &sections[i]);
 		}
 	}
 	if (create_new_section(section_name) == false) {
 		return false;
 	}
-	if (add_feed_to_regular_section(attached_feed, &sections[sections_count - 1]) == NULL) {
-		return false;
-	}
-	return true;
+	return attach_feed_to_section(attached_feed, &sections[sections_count - 1]);
 }
 
 void

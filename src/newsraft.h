@@ -199,7 +199,7 @@ enum sorting_order {
 
 // sections
 bool create_global_section(void);
-bool add_feed_to_section(struct feed_line *feed, const struct string *section_name);
+bool copy_feed_to_section(const struct feed_line *feed, const struct string *section_name);
 void obtain_feeds_of_global_section(struct feed_line ***feeds_ptr, size_t *feeds_count_ptr);
 void free_sections(void);
 input_cmd_id enter_sections_menu_loop(struct feed_line ***feeds_ptr, size_t *feeds_count_ptr);

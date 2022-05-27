@@ -17,26 +17,33 @@ static struct format_arg fmt_args[] = {
 static inline bool
 parse_feeds_file(const char *path)
 {
-	struct string *word = crtes();
-	if (word == NULL) {
+	FILE *f = fopen(path, "r");
+	if (f == NULL) {
+		fprintf(stderr, "Couldn't open feeds file!\n");
 		return false;
 	}
 	const struct string *global_section_name = get_cfg_string(CFG_GLOBAL_SECTION_NAME);
 	struct string *section_name = crtss(global_section_name);
 	if (section_name == NULL) {
-		free_string(word);
+		fclose(f);
 		return false;
 	}
-	FILE *f = fopen(path, "r");
-	if (f == NULL) {
-		fprintf(stderr, "Could not open feeds file!\n");
-		free_string(word);
+	struct feed_line feed;
+	feed.name = crtes();
+	if (feed.name == NULL) {
 		free_string(section_name);
+		fclose(f);
 		return false;
 	}
-	struct feed_line *feed;
-	char c;
+	feed.link = crtes();
+	if (feed.link == NULL) {
+		free_string(feed.name);
+		free_string(section_name);
+		fclose(f);
+		return false;
+	}
 
+	char c;
 	// This is line-by-line file processing loop:
 	// one iteration of loop results in one processed line.
 	while (true) {
@@ -67,39 +74,30 @@ parse_feeds_file(const char *path)
 			break;
 		}
 
-		feed = malloc(sizeof(struct feed_line));
-		if (feed == NULL) { goto error; }
-		feed->name = NULL;
-		feed->link = NULL;
-		feed->unread_count = 0;
+		empty_string(feed.name);
+		empty_string(feed.link);
 
-		empty_string(word);
 		while (true) {
-			if (catcs(word, c) == false) { goto error; }
+			if (catcs(feed.link, c) == false) { goto error; }
 			c = fgetc(f);
 			if (ISWHITESPACE(c) || c == EOF) { break; }
 		}
-		if (check_url_for_validity(word) == false) {
-			fprintf(stderr, "Stumbled across an invalid URL: \"%s\"!\n", word->ptr);
+		if (check_url_for_validity(feed.link) == false) {
+			fprintf(stderr, "Stumbled across an invalid URL: \"%s\"!\n", feed.link->ptr);
 			goto error;
 		}
-		remove_trailing_slash_from_string(word);
-		feed->link = crtss(word);
-		if (feed->link == NULL) { goto error; }
+		remove_trailing_slash_from_string(feed.link);
 		while (ISWHITESPACEEXCEPTNEWLINE(c)) { c = fgetc(f); }
 		// process name
 		if (c == '"') {
-			empty_string(word);
 			while (true) {
 				c = fgetc(f);
 				if (c == '"' || c == '\n' || c == EOF) { break; }
-				if (catcs(word, c) == false) { goto error; }
+				if (catcs(feed.name, c) == false) { goto error; }
 			}
-			feed->name = crtss(word);
-			if (feed->name == NULL) { goto error; }
 		}
-		if (add_feed_to_section(feed, section_name) == false) {
-			fprintf(stderr, "Failed to add feed \"%s\" to section \"%s\"!\n", feed->link->ptr, section_name->ptr);
+		if (copy_feed_to_section(&feed, section_name) == false) {
+			fprintf(stderr, "Failed to add feed \"%s\" to section \"%s\"!\n", feed.link->ptr, section_name->ptr);
 			goto error;
 		}
 
@@ -116,20 +114,17 @@ parse_feeds_file(const char *path)
 
 	}
 
-	free_string(word);
+	free_string(feed.link);
+	free_string(feed.name);
 	free_string(section_name);
 	fclose(f);
 	return true;
 error:
-	if (feed != NULL) {
-		free_string(feed->name);
-		free_string(feed->link);
-		free(feed);
-	}
-	free_string(word);
+	free_sections();
+	free_string(feed.link);
+	free_string(feed.name);
 	free_string(section_name);
 	fclose(f);
-	free_sections();
 	return false;
 }
 

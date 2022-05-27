@@ -6,7 +6,7 @@ delete_excess_items(const struct string *feed_url)
 {
 	INFO("Deleting excess items...");
 	sqlite3_stmt *s;
-	if (db_prepare("SELECT rowid FROM items WHERE feed_url = ? ORDER BY update_date DESC, publication_date DESC, rowid DESC;", 105, &s, NULL) == false) {
+	if (db_prepare("SELECT rowid FROM items WHERE feed_url = ? ORDER BY MAX(publication_date, update_date) DESC, rowid DESC;", 105, &s, NULL) == false) {
 		FAIL("Failed to prepare an excess items deletion statement:");
 		return;
 	}

@@ -14,11 +14,12 @@ parse_json_feed(const struct string *feed_buf, struct getfeed_feed *feed)
 		return false;
 	}
 
-#ifdef FEEDEATER_FORMAT_SUPPORT_JSONFEED
 	// Currently JSON Feed is the only JSON feed format supported.
-	if (true) {
-		json_dump_jsonfeed(json, &data);
-	}
+#ifdef FEEDEATER_FORMAT_SUPPORT_JSONFEED
+	json_dump_jsonfeed(json, &data);
+#else
+	cJSON_Delete(json);
+	return false;
 #endif
 
 	cJSON_Delete(json);

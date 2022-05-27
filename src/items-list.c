@@ -1,5 +1,5 @@
 #include <stdlib.h>
-#include "feedeater.h"
+#include "newsraft.h"
 
 static inline bool
 append_sorting_order_expression_to_query(struct string *query, enum sorting_order order)

@@ -1,4 +1,4 @@
-#include "feedeater.h"
+#include "newsraft.h"
 
 int
 enter_status_pager_view_loop(void)

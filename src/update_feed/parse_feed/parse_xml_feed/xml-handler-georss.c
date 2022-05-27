@@ -1,4 +1,4 @@
-#ifdef FEEDEATER_FORMAT_SUPPORT_GEORSS
+#ifdef NEWSRAFT_FORMAT_SUPPORT_GEORSS
 #include "update_feed/parse_feed/parse_xml_feed/parse_xml_feed.h"
 
 // https://georss.org
@@ -24,4 +24,4 @@ const struct xml_element_handler xml_georss_handlers[] = {
 	{"point", GEORSS_POINT, NULL, &point_end},
 	{NULL,    GEORSS_NONE,  NULL, NULL},
 };
-#endif // FEEDEATER_FORMAT_SUPPORT_GEORSS
+#endif // NEWSRAFT_FORMAT_SUPPORT_GEORSS

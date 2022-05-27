@@ -1,20 +1,20 @@
-FEEDEATER(1)
+NEWSRAFT(1)
 
 # NAME
 
-feedeater - feed reader for terminal
+newsraft - feed reader for terminal
 
 # SYNOPSIS
 
-*feedeater* [-f _FILE1_] [-c _FILE2_] [-d _FILE3_] [-l _FILE4_]
+*newsraft* [-f _FILE1_] [-c _FILE2_] [-d _FILE3_] [-l _FILE4_]
 
-*feedeater* -h
+*newsraft* -h
 
-*feedeater* -v
+*newsraft* -v
 
 # DESCRIPTION
 
-Feedeater is a piece of software that aggregates syndicated web content like
+Newsraft is a piece of software that aggregates syndicated web content like
 blogs and podcasts in one location for easy access from your terminal via comfy
 curses interface.
 
@@ -42,7 +42,7 @@ curses interface.
 
 ## FEEDS FILE
 
-Feeds file contains feed entries that feedeater will display and process. There
+Feeds file contains feed entries that newsraft will display and process. There
 are 3 types of lines in feeds file.
 
 Feed lines start with a URL. After at least one whitespace character, the name
@@ -62,28 +62,28 @@ example:
 	_# haha i'm being ignored_
 
 Search precedence:
-. _$XDG_CONFIG_HOME_/feedeater/feeds
-. _$HOME_/.config/feedeater/feeds
-. _$HOME_/.feedeater/feeds
+. _$XDG_CONFIG_HOME_/newsraft/feeds
+. _$HOME_/.config/newsraft/feeds
+. _$HOME_/.newsraft/feeds
 
 ## CONFIG FILE
 
-Config file is used to override default settings of feedeater. Complete list of
+Config file is used to override default settings of newsraft. Complete list of
 configurable options can be found in *SETTINGS* section. Presence of config file
-is totally optional and feedeater will work without it just fine.
+is totally optional and newsraft will work without it just fine.
 
 Search precedence:
-. _$XDG_CONFIG_HOME_/feedeater/config
-. _$HOME_/.config/feedeater/config
-. _$HOME_/.feedeater/config
+. _$XDG_CONFIG_HOME_/newsraft/config
+. _$HOME_/.config/newsraft/config
+. _$HOME_/.newsraft/config
 
 ## DATABASE FILE
 
 Database file stores everything you download from feeds in *sqlite3*(1) format.
 
 Search precedence:
-. _$XDG_DATA_HOME_/feedeater/feedeater.sqlite3
-. _$HOME_/.local/share/feedeater/feedeater.sqlite3
+. _$XDG_DATA_HOME_/newsraft/newsraft.sqlite3
+. _$HOME_/.local/share/newsraft/newsraft.sqlite3
 
 # SETTINGS
 
@@ -91,7 +91,7 @@ _max-items_ (default: *0*)
 	Maximum number of items stored in one feed. Zero disables the limit.
 
 _download-timeout_ (default: *20*)
-	Maximum time in seconds that you allow feedeater to download one feed. Zero
+	Maximum time in seconds that you allow newsraft to download one feed. Zero
 	disables the limit.
 
 _status-messages-limit_ (default: *10000*)
@@ -113,10 +113,10 @@ _send-user-agent-header_ (default: *true*)
 	Attach user-agent header to download requests. See _user-agent_ setting.
 
 _user-agent_ (default: *""*)
-	User-agent string to attach to download requests. If it is empty, feedeater
+	User-agent string to attach to download requests. If it is empty, newsraft
 	will generate it in the following form:
 
-		*"feedeater/"* + _FEEDEATER_VERSION_ + *" ("* + _OS_NAME_ + *")"*
+		*"newsraft/"* + _NEWSRAFT_VERSION_ + *" ("* + _OS_NAME_ + *")"*
 
 	_OS_NAME_ shouldn't contain any confidential information - it is probably
 	something just like "Linux" or "Darwin".
@@ -148,12 +148,12 @@ _content-append-links_ (default: *true*)
 	Whether or not append links section to content view.
 
 _clean-database-on-startup_ (default: *true*)
-	Run "VACUUM" SQLite command on the database every time you start feedeater.
+	Run "VACUUM" SQLite command on the database every time you start newsraft.
 	It rebuilds the database file, repacking it into a minimal amount of disk space.
 	This can significantly increase startup time.
 
 _analyze-database-on-startup_ (default: *true*)
-	Run "ANALYZE" SQLite command on the database every time you start feedeater.
+	Run "ANALYZE" SQLite command on the database every time you start newsraft.
 	It gathers statistics about database and uses it to optimize some queries.
 	This can significantly increase startup time.
 
@@ -177,9 +177,9 @@ _ssl-verify-peer_ (default: *true*)
 
 # ENVIRONMENT
 
-Since all feedeater's interactions with the network occur through the
+Since all newsraft's interactions with the network occur through the
 *libcurl*(3) library, all environment variables taken into account by
-*libcurl*(3) can be set for feedeater as well. You can learn more about the
+*libcurl*(3) can be set for newsraft as well. You can learn more about the
 environment variables that *libcurl*(3) understands on *libcurl-env*(3).
 
 ## XDG_CONFIG_HOME

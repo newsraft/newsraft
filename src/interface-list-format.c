@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
-#include "feedeater.h"
+#include "newsraft.h"
 
 static wchar_t *fmt_buf;
 static wchar_t tmp[FORMAT_STRING_LENGTH_LIMIT + 1];

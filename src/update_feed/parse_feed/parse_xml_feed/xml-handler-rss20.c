@@ -1,4 +1,4 @@
-#ifdef FEEDEATER_FORMAT_SUPPORT_RSS20
+#ifdef NEWSRAFT_FORMAT_SUPPORT_RSS20
 #include <string.h>
 #include "update_feed/parse_feed/parse_xml_feed/parse_xml_feed.h"
 
@@ -301,4 +301,4 @@ const struct xml_element_handler xml_rss20_handlers[] = {
 	{"managingEditor", RSS20_MANAGINGEDITOR, NULL,             &managingEditor_end},
 	{NULL,             RSS20_NONE,           NULL,             NULL},
 };
-#endif // FEEDEATER_FORMAT_SUPPORT_RSS20
+#endif // NEWSRAFT_FORMAT_SUPPORT_RSS20

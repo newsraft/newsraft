@@ -1,4 +1,4 @@
-#ifdef FEEDEATER_FORMAT_SUPPORT_ATOM03
+#ifdef NEWSRAFT_FORMAT_SUPPORT_ATOM03
 #include <string.h>
 #include "update_feed/parse_feed/parse_xml_feed/parse_xml_feed.h"
 
@@ -290,4 +290,4 @@ const struct xml_element_handler xml_atom03_handlers[] = {
 	{"generator",   ATOM03_GENERATOR, NULL,          &generator_end},
 	{NULL,          ATOM03_NONE,      NULL,          NULL},
 };
-#endif // FEEDEATER_FORMAT_SUPPORT_ATOM03
+#endif // NEWSRAFT_FORMAT_SUPPORT_ATOM03

@@ -1,5 +1,5 @@
 #include <stdlib.h>
-#include "feedeater.h"
+#include "newsraft.h"
 
 static struct feed_line **feeds = NULL;
 static size_t feeds_count = 0;

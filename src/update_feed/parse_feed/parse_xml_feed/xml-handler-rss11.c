@@ -1,4 +1,4 @@
-#ifdef FEEDEATER_FORMAT_SUPPORT_RSS11
+#ifdef NEWSRAFT_FORMAT_SUPPORT_RSS11
 #include "update_feed/parse_feed/parse_xml_feed/parse_xml_feed.h"
 
 // Despite this file named "xml-handler-rss11.c", it is actually
@@ -81,4 +81,4 @@ const struct xml_element_handler xml_rss11_handlers[] = {
 	//{"url",         RSS11_URL,         NULL,        &url_end},
 	{NULL,          RSS11_NONE,        NULL,        NULL},
 };
-#endif // FEEDEATER_FORMAT_SUPPORT_RSS11
+#endif // NEWSRAFT_FORMAT_SUPPORT_RSS11

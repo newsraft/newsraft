@@ -1,6 +1,6 @@
 #ifndef LOAD_CONFIG_H
 #define LOAD_CONFIG_H
-#include "feedeater.h"
+#include "newsraft.h"
 
 bool generate_useragent_string(struct string *target);
 

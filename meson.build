@@ -1,5 +1,5 @@
 project(
-	'feedeater',
+	'newsraft',
 	'c',
 	default_options: [
 		'c_std=gnu18',
@@ -7,7 +7,7 @@ project(
 		'buildtype=release',
 	],
 	license: 'MIT',
-	version: 'this is not even pre-alpha',
+	version: '0.0.0',
 )
 if get_option('buildtype') == 'release'
 	add_project_arguments(
@@ -35,9 +35,9 @@ if scdoc.found()
 	if scdoc_program.found()
 		mandir = get_option('mandir')
 		custom_target(
-			'feedeater.1',
-			input: 'doc/feedeater.scd',
-			output: 'feedeater.1',
+			'newsraft.1',
+			input: 'doc/newsraft.scd',
+			output: 'newsraft.1',
 			command: scdoc_program,
 			install: true,
 			feed: true,
@@ -47,8 +47,8 @@ if scdoc.found()
 	endif
 endif
 
-feedeater_sources = [
-		'src/feedeater.c',
+newsraft_sources = [
+		'src/newsraft.c',
 		'src/log.c',
 		'src/path.c',
 		'src/string.c',
@@ -108,56 +108,58 @@ feedeater_sources = [
 ]
 
 if get_option('support-format-atom10').enabled()
-	add_project_arguments(['-DFEEDEATER_FORMAT_SUPPORT_ATOM10'], language: 'c')
-	feedeater_sources += ['src/update_feed/parse_feed/parse_xml_feed/xml-handler-atom10.c']
+	add_project_arguments(['-DNEWSRAFT_FORMAT_SUPPORT_ATOM10'], language: 'c')
+	newsraft_sources += ['src/update_feed/parse_feed/parse_xml_feed/xml-handler-atom10.c']
 endif
 if get_option('support-format-rss20').enabled()
-	add_project_arguments(['-DFEEDEATER_FORMAT_SUPPORT_RSS20'], language: 'c')
-	feedeater_sources += ['src/update_feed/parse_feed/parse_xml_feed/xml-handler-rss20.c']
+	add_project_arguments(['-DNEWSRAFT_FORMAT_SUPPORT_RSS20'], language: 'c')
+	newsraft_sources += ['src/update_feed/parse_feed/parse_xml_feed/xml-handler-rss20.c']
 endif
 if get_option('support-format-rsscontent').enabled()
-	add_project_arguments(['-DFEEDEATER_FORMAT_SUPPORT_RSSCONTENT'], language: 'c')
-	feedeater_sources += ['src/update_feed/parse_feed/parse_xml_feed/xml-handler-rsscontent.c']
+	add_project_arguments(['-DNEWSRAFT_FORMAT_SUPPORT_RSSCONTENT'], language: 'c')
+	newsraft_sources += ['src/update_feed/parse_feed/parse_xml_feed/xml-handler-rsscontent.c']
 endif
 if get_option('support-format-dublincore').enabled()
-	add_project_arguments(['-DFEEDEATER_FORMAT_SUPPORT_DUBLINCORE'], language: 'c')
-	feedeater_sources += ['src/update_feed/parse_feed/parse_xml_feed/xml-handler-dublincore.c']
+	add_project_arguments(['-DNEWSRAFT_FORMAT_SUPPORT_DUBLINCORE'], language: 'c')
+	newsraft_sources += ['src/update_feed/parse_feed/parse_xml_feed/xml-handler-dublincore.c']
 endif
 if get_option('support-format-mediarss').enabled()
-	add_project_arguments(['-DFEEDEATER_FORMAT_SUPPORT_MEDIARSS'], language: 'c')
-	feedeater_sources += ['src/update_feed/parse_feed/parse_xml_feed/xml-handler-mediarss.c']
+	add_project_arguments(['-DNEWSRAFT_FORMAT_SUPPORT_MEDIARSS'], language: 'c')
+	newsraft_sources += ['src/update_feed/parse_feed/parse_xml_feed/xml-handler-mediarss.c']
 endif
 if get_option('support-format-yandex').enabled()
-	add_project_arguments(['-DFEEDEATER_FORMAT_SUPPORT_YANDEX'], language: 'c')
-	feedeater_sources += ['src/update_feed/parse_feed/parse_xml_feed/xml-handler-yandex.c']
+	add_project_arguments(['-DNEWSRAFT_FORMAT_SUPPORT_YANDEX'], language: 'c')
+	newsraft_sources += ['src/update_feed/parse_feed/parse_xml_feed/xml-handler-yandex.c']
 endif
 if get_option('support-format-rss11').enabled()
-	add_project_arguments(['-DFEEDEATER_FORMAT_SUPPORT_RSS11'], language: 'c')
-	feedeater_sources += ['src/update_feed/parse_feed/parse_xml_feed/xml-handler-rss11.c']
+	add_project_arguments(['-DNEWSRAFT_FORMAT_SUPPORT_RSS11'], language: 'c')
+	newsraft_sources += ['src/update_feed/parse_feed/parse_xml_feed/xml-handler-rss11.c']
 endif
 if get_option('support-format-atom03').enabled()
-	add_project_arguments(['-DFEEDEATER_FORMAT_SUPPORT_ATOM03'], language: 'c')
-	feedeater_sources += ['src/update_feed/parse_feed/parse_xml_feed/xml-handler-atom03.c']
+	add_project_arguments(['-DNEWSRAFT_FORMAT_SUPPORT_ATOM03'], language: 'c')
+	newsraft_sources += ['src/update_feed/parse_feed/parse_xml_feed/xml-handler-atom03.c']
 endif
 if get_option('support-format-georss').enabled()
-	add_project_arguments(['-DFEEDEATER_FORMAT_SUPPORT_GEORSS'], language: 'c')
-	feedeater_sources += ['src/update_feed/parse_feed/parse_xml_feed/xml-handler-georss.c']
+	add_project_arguments(['-DNEWSRAFT_FORMAT_SUPPORT_GEORSS'], language: 'c')
+	newsraft_sources += ['src/update_feed/parse_feed/parse_xml_feed/xml-handler-georss.c']
 endif
 if get_option('support-format-georss-gml').enabled()
-	add_project_arguments(['-DFEEDEATER_FORMAT_SUPPORT_GEORSS_GML'], language: 'c')
-	feedeater_sources += ['src/update_feed/parse_feed/parse_xml_feed/xml-handler-georss-gml.c']
+	add_project_arguments(['-DNEWSRAFT_FORMAT_SUPPORT_GEORSS_GML'], language: 'c')
+	newsraft_sources += ['src/update_feed/parse_feed/parse_xml_feed/xml-handler-georss-gml.c']
 endif
 if get_option('support-format-jsonfeed').enabled()
-	add_project_arguments(['-DFEEDEATER_FORMAT_SUPPORT_JSONFEED'], language: 'c')
-	feedeater_sources += ['src/update_feed/parse_feed/parse_json_feed/json-handler-jsonfeed.c']
+	add_project_arguments(['-DNEWSRAFT_FORMAT_SUPPORT_JSONFEED'], language: 'c')
+	newsraft_sources += ['src/update_feed/parse_feed/parse_json_feed/json-handler-jsonfeed.c']
 endif
 
+add_project_arguments(['-DNEWSRAFT_VERSION="@0@"'.format(meson.project_version())], language: 'c')
+
 executable(
-	'feedeater',
+	'newsraft',
 	include_directories: [
 		include_directories('src'),
 	],
-	sources: feedeater_sources,
+	sources: newsraft_sources,
 	dependencies: [
 		dependency('ncursesw'),
 		dependency('libcurl'),

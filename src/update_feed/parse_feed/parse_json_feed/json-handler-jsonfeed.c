@@ -1,4 +1,4 @@
-#ifdef FEEDEATER_FORMAT_SUPPORT_JSONFEED
+#ifdef NEWSRAFT_FORMAT_SUPPORT_JSONFEED
 #include <string.h>
 #include "update_feed/parse_feed/parse_json_feed/parse_json_feed.h"
 
@@ -153,4 +153,4 @@ json_dump_jsonfeed(cJSON *json, struct json_data *data)
 		}
 	}
 }
-#endif // FEEDEATER_FORMAT_SUPPORT_JSONFEED
+#endif // NEWSRAFT_FORMAT_SUPPORT_JSONFEED

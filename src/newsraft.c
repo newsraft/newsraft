@@ -2,13 +2,13 @@
 #include <locale.h>
 #include <unistd.h>
 #include <curl/curl.h>
-#include "feedeater.h"
+#include "newsraft.h"
 
 static inline void
 print_usage(void)
 {
 	fprintf(stderr,
-	        "feedeater - feed reader for terminal\n"
+	        "newsraft - feed reader for terminal\n"
 	        "-f PATH  force use of PATH as feeds file\n"
 	        "-c PATH  force use of PATH as config file\n"
 	        "-d PATH  force use of PATH as database file\n"
@@ -44,7 +44,7 @@ main(int argc, char **argv)
 			print_usage();
 			goto undo1;
 		} else if (opt == 'v') {
-			fprintf(stderr, FEEDEATER_VERSION "\n");
+			fprintf(stderr, NEWSRAFT_VERSION "\n");
 			goto undo1;
 		} else if (opt == 'l') {
 			if (log_init(optarg) == false) {

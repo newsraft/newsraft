@@ -7,7 +7,7 @@ struct json_data {
 	struct getfeed_feed *feed;
 };
 
-#ifdef FEEDEATER_FORMAT_SUPPORT_JSONFEED
+#ifdef NEWSRAFT_FORMAT_SUPPORT_JSONFEED
 void json_dump_jsonfeed(cJSON *json, struct json_data *data);
 #endif
 #endif // PARSE_JSON_FEED_H

@@ -1,5 +1,5 @@
 #include <stdlib.h>
-#include "feedeater.h"
+#include "newsraft.h"
 
 static const char separators[] = {',', ';', '|', '/', '\\', '-', '~', '*', '@', '&', ':', '+', '=', '!', '%', '_', '.', '\0'};
 

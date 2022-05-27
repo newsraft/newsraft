@@ -1,5 +1,5 @@
 #include <string.h>
-#include "feedeater.h"
+#include "newsraft.h"
 
 static sqlite3 *db;
 

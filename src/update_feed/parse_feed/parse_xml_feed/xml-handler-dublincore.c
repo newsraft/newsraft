@@ -1,4 +1,4 @@
-#ifdef FEEDEATER_FORMAT_SUPPORT_DUBLINCORE
+#ifdef NEWSRAFT_FORMAT_SUPPORT_DUBLINCORE
 #include "update_feed/parse_feed/parse_xml_feed/parse_xml_feed.h"
 
 static void
@@ -89,4 +89,4 @@ const struct xml_element_handler xml_dublincore_handlers[] = {
 	{"subject",     DC_SUBJECT,     NULL, &subject_end},
 	{NULL,          DC_NONE,        NULL, NULL},
 };
-#endif // FEEDEATER_FORMAT_SUPPORT_DUBLINCORE
+#endif // NEWSRAFT_FORMAT_SUPPORT_DUBLINCORE

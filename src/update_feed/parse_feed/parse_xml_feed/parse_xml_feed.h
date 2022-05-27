@@ -7,36 +7,36 @@
 #define XML_NAMESPACE_SEPARATOR ':'
 
 enum xml_format {
-#ifdef FEEDEATER_FORMAT_SUPPORT_ATOM10
+#ifdef NEWSRAFT_FORMAT_SUPPORT_ATOM10
 	ATOM10_FORMAT = 0,
 #endif
-#ifdef FEEDEATER_FORMAT_SUPPORT_RSS20
+#ifdef NEWSRAFT_FORMAT_SUPPORT_RSS20
 	RSS20_FORMAT,
 #endif
-#ifdef FEEDEATER_FORMAT_SUPPORT_RSSCONTENT
+#ifdef NEWSRAFT_FORMAT_SUPPORT_RSSCONTENT
 	RSSCONTENT_FORMAT,
 #endif
-#ifdef FEEDEATER_FORMAT_SUPPORT_DUBLINCORE
+#ifdef NEWSRAFT_FORMAT_SUPPORT_DUBLINCORE
 	DUBLINCORE_FORMAT,
 #endif
-#ifdef FEEDEATER_FORMAT_SUPPORT_MEDIARSS
+#ifdef NEWSRAFT_FORMAT_SUPPORT_MEDIARSS
 	MEDIARSS_FORMAT,
 #endif
-#ifdef FEEDEATER_FORMAT_SUPPORT_YANDEX
+#ifdef NEWSRAFT_FORMAT_SUPPORT_YANDEX
 	YANDEX_FORMAT,
 #endif
-#ifdef FEEDEATER_FORMAT_SUPPORT_RSS11
+#ifdef NEWSRAFT_FORMAT_SUPPORT_RSS11
 	RSS11_FORMAT,
 	RSS11_2_FORMAT, // don't use it
 	RSS11_3_FORMAT, // don't use it
 #endif
-#ifdef FEEDEATER_FORMAT_SUPPORT_ATOM03
+#ifdef NEWSRAFT_FORMAT_SUPPORT_ATOM03
 	ATOM03_FORMAT,
 #endif
-#ifdef FEEDEATER_FORMAT_SUPPORT_GEORSS
+#ifdef NEWSRAFT_FORMAT_SUPPORT_GEORSS
 	GEORSS_FORMAT,
 #endif
-#ifdef FEEDEATER_FORMAT_SUPPORT_GEORSS_GML
+#ifdef NEWSRAFT_FORMAT_SUPPORT_GEORSS_GML
 	GEORSS_GML_FORMAT,
 #endif
 	XML_FORMATS_COUNT,
@@ -99,7 +99,7 @@ bool copy_type_of_text_construct(struct string **dest, const TidyAttr attrs);
 void parse_element_start(struct xml_data *data, const struct string *namespace_uri, const char *name, const TidyAttr attrs);
 void parse_element_end(struct xml_data *data, const struct string *namespace_uri, const char *name, const TidyAttr attrs);
 
-#ifdef FEEDEATER_FORMAT_SUPPORT_ATOM10
+#ifdef NEWSRAFT_FORMAT_SUPPORT_ATOM10
 enum atom10_position {
 	ATOM10_NONE = 0,
 	ATOM10_ENTRY = 1,
@@ -118,7 +118,7 @@ enum atom10_position {
 };
 extern const struct xml_element_handler xml_atom10_handlers[];
 #endif
-#ifdef FEEDEATER_FORMAT_SUPPORT_RSS20
+#ifdef NEWSRAFT_FORMAT_SUPPORT_RSS20
 enum rss20_position {
 	RSS20_NONE = 0,
 	RSS20_ITEM = 1,
@@ -139,14 +139,14 @@ enum rss20_position {
 };
 extern const struct xml_element_handler xml_rss20_handlers[];
 #endif
-#ifdef FEEDEATER_FORMAT_SUPPORT_RSSCONTENT
+#ifdef NEWSRAFT_FORMAT_SUPPORT_RSSCONTENT
 enum rsscontent_position {
 	RSSCONTENT_NONE = 0,
 	RSSCONTENT_ENCODED = 1,
 };
 extern const struct xml_element_handler xml_rsscontent_handlers[];
 #endif
-#ifdef FEEDEATER_FORMAT_SUPPORT_DUBLINCORE
+#ifdef NEWSRAFT_FORMAT_SUPPORT_DUBLINCORE
 enum dc_position {
 	DC_NONE = 0,
 	DC_TITLE = 1,
@@ -157,7 +157,7 @@ enum dc_position {
 };
 extern const struct xml_element_handler xml_dublincore_handlers[];
 #endif
-#ifdef FEEDEATER_FORMAT_SUPPORT_MEDIARSS
+#ifdef NEWSRAFT_FORMAT_SUPPORT_MEDIARSS
 enum mrss_position {
 	MRSS_NONE = 0,
 	MRSS_CONTENT = 1,
@@ -166,7 +166,7 @@ enum mrss_position {
 };
 extern const struct xml_element_handler xml_mediarss_handlers[];
 #endif
-#ifdef FEEDEATER_FORMAT_SUPPORT_YANDEX
+#ifdef NEWSRAFT_FORMAT_SUPPORT_YANDEX
 enum yandex_position {
 	YANDEX_NONE = 0,
 	YANDEX_FULL_TEXT = 1,
@@ -176,7 +176,7 @@ enum yandex_position {
 };
 extern const struct xml_element_handler xml_yandex_handlers[];
 #endif
-#ifdef FEEDEATER_FORMAT_SUPPORT_RSS11
+#ifdef NEWSRAFT_FORMAT_SUPPORT_RSS11
 enum rss11_position {
 	RSS11_NONE = 0,
 	RSS11_ITEM = 1,
@@ -188,7 +188,7 @@ enum rss11_position {
 };
 extern const struct xml_element_handler xml_rss11_handlers[];
 #endif
-#ifdef FEEDEATER_FORMAT_SUPPORT_ATOM03
+#ifdef NEWSRAFT_FORMAT_SUPPORT_ATOM03
 enum atom03_position {
 	ATOM03_NONE = 0,
 	ATOM03_ENTRY = 1,
@@ -207,14 +207,14 @@ enum atom03_position {
 };
 extern const struct xml_element_handler xml_atom03_handlers[];
 #endif
-#ifdef FEEDEATER_FORMAT_SUPPORT_GEORSS
+#ifdef NEWSRAFT_FORMAT_SUPPORT_GEORSS
 enum georss_position {
 	GEORSS_NONE = 0,
 	GEORSS_POINT = 1,
 };
 extern const struct xml_element_handler xml_georss_handlers[];
 #endif
-#ifdef FEEDEATER_FORMAT_SUPPORT_GEORSS_GML
+#ifdef NEWSRAFT_FORMAT_SUPPORT_GEORSS_GML
 enum georss_gml_position {
 	GEORSS_GML_NONE = 0,
 	GEORSS_GML_POS = 1,

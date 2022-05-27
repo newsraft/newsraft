@@ -8,36 +8,36 @@ struct namespace_handler {
 };
 
 static const struct namespace_handler namespace_handlers[] = {
-#ifdef FEEDEATER_FORMAT_SUPPORT_ATOM10
+#ifdef NEWSRAFT_FORMAT_SUPPORT_ATOM10
 	{"http://www.w3.org/2005/Atom", 27, xml_atom10_handlers},
 #endif
-#ifdef FEEDEATER_FORMAT_SUPPORT_RSS20
+#ifdef NEWSRAFT_FORMAT_SUPPORT_RSS20
 	{"http://backend.userland.com/rss2", 32, xml_rss20_handlers},
 #endif
-#ifdef FEEDEATER_FORMAT_SUPPORT_RSSCONTENT
+#ifdef NEWSRAFT_FORMAT_SUPPORT_RSSCONTENT
 	{"http://purl.org/rss/1.0/modules/content/", 40, xml_rsscontent_handlers},
 #endif
-#ifdef FEEDEATER_FORMAT_SUPPORT_DUBLINCORE
+#ifdef NEWSRAFT_FORMAT_SUPPORT_DUBLINCORE
 	{"http://purl.org/dc/elements/1.1/", 32, xml_dublincore_handlers},
 #endif
-#ifdef FEEDEATER_FORMAT_SUPPORT_MEDIARSS
+#ifdef NEWSRAFT_FORMAT_SUPPORT_MEDIARSS
 	{"http://search.yahoo.com/mrss/", 29, xml_mediarss_handlers},
 #endif
-#ifdef FEEDEATER_FORMAT_SUPPORT_YANDEX
+#ifdef NEWSRAFT_FORMAT_SUPPORT_YANDEX
 	{"http://news.yandex.ru", 21, xml_yandex_handlers},
 #endif
-#ifdef FEEDEATER_FORMAT_SUPPORT_RSS11
+#ifdef NEWSRAFT_FORMAT_SUPPORT_RSS11
 	{"http://purl.org/net/rss1.1#", 27, xml_rss11_handlers},
 	{"http://purl.org/rss/1.0/", 24, xml_rss11_handlers},
 	{"http://channel.netscape.com/rdf/simple/0.9/", 43, xml_rss11_handlers},
 #endif
-#ifdef FEEDEATER_FORMAT_SUPPORT_ATOM03
+#ifdef NEWSRAFT_FORMAT_SUPPORT_ATOM03
 	{"http://purl.org/atom/ns#", 24, xml_atom03_handlers},
 #endif
-#ifdef FEEDEATER_FORMAT_SUPPORT_GEORSS
+#ifdef NEWSRAFT_FORMAT_SUPPORT_GEORSS
 	{"http://www.georss.org/georss", 28, xml_georss_handlers},
 #endif
-#ifdef FEEDEATER_FORMAT_SUPPORT_GEORSS_GML
+#ifdef NEWSRAFT_FORMAT_SUPPORT_GEORSS_GML
 	{"http://www.opengis.net/gml", 26, xml_georss_gml_handlers},
 #endif
 	{NULL, 0, NULL}

@@ -1,4 +1,4 @@
-#ifdef FEEDEATER_FORMAT_SUPPORT_YANDEX
+#ifdef NEWSRAFT_FORMAT_SUPPORT_YANDEX
 #include "update_feed/parse_feed/parse_xml_feed/parse_xml_feed.h"
 
 // https://web.archive.org/web/20211009134219/https://yandex.ru/support/news/feed.html
@@ -89,4 +89,4 @@ const struct xml_element_handler xml_yandex_handlers[] = {
 	{"bind-to",      YANDEX_BIND_TO,      NULL, &bind_to_end},
 	{NULL,           YANDEX_NONE,         NULL, NULL},
 };
-#endif // FEEDEATER_FORMAT_SUPPORT_YANDEX
+#endif // NEWSRAFT_FORMAT_SUPPORT_YANDEX

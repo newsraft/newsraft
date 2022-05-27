@@ -1,6 +1,6 @@
 #ifndef UPDATE_FEED_H
 #define UPDATE_FEED_H
-#include "feedeater.h"
+#include "newsraft.h"
 
 enum download_status {
 	DOWNLOAD_SUCCEEDED,

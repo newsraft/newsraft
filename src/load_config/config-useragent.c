@@ -6,10 +6,10 @@
 bool
 generate_useragent_string(struct string *ua)
 {
-	if (catas(ua, "feedeater/", 10) == false) {
+	if (catas(ua, "newsraft/", 9) == false) {
 		goto error;
 	}
-	if (catas(ua, FEEDEATER_VERSION, strlen(FEEDEATER_VERSION)) == false) {
+	if (catas(ua, NEWSRAFT_VERSION, strlen(NEWSRAFT_VERSION)) == false) {
 		goto error;
 	}
 	struct utsname sys_data;

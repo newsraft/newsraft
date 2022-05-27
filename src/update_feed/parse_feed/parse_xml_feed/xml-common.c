@@ -4,22 +4,22 @@
 bool
 we_are_inside_item(const struct xml_data *data)
 {
-#ifdef FEEDEATER_FORMAT_SUPPORT_ATOM10
+#ifdef NEWSRAFT_FORMAT_SUPPORT_ATOM10
 	if ((data->xml_pos[ATOM10_FORMAT] & ATOM10_ENTRY) != 0) {
 		return true;
 	}
 #endif
-#ifdef FEEDEATER_FORMAT_SUPPORT_RSS20
+#ifdef NEWSRAFT_FORMAT_SUPPORT_RSS20
 	if ((data->xml_pos[RSS20_FORMAT] & RSS20_ITEM) != 0) {
 		return true;
 	}
 #endif
-#ifdef FEEDEATER_FORMAT_SUPPORT_RSS11
+#ifdef NEWSRAFT_FORMAT_SUPPORT_RSS11
 	if ((data->xml_pos[RSS11_FORMAT] & RSS11_ITEM) != 0) {
 		return true;
 	}
 #endif
-#ifdef FEEDEATER_FORMAT_SUPPORT_ATOM03
+#ifdef NEWSRAFT_FORMAT_SUPPORT_ATOM03
 	if ((data->xml_pos[ATOM03_FORMAT] & ATOM03_ENTRY) != 0) {
 		return true;
 	}

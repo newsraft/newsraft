@@ -1,5 +1,5 @@
 #include <stdlib.h>
-#include "feedeater.h"
+#include "newsraft.h"
 
 static WINDOW **windows = NULL;
 static size_t windows_count = 0;

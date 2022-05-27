@@ -1,5 +1,5 @@
-#ifndef FEEDEATER_H
-#define FEEDEATER_H
+#ifndef NEWSRAFT_H
+#define NEWSRAFT_H
 #include <stdbool.h>
 #include <stdarg.h>
 #include <inttypes.h>
@@ -8,7 +8,9 @@
 #include <ncurses.h>
 #include <sqlite3.h>
 
-#define FEEDEATER_VERSION "0.0.0"
+#ifndef NEWSRAFT_VERSION
+#define NEWSRAFT_VERSION "custom"
+#endif
 
 #define COUNTOF(A) (sizeof(A) / sizeof(*A))
 #define ISWHITESPACE(A) (((A)==' ')||((A)=='\n')||((A)=='\t')||((A)=='\v')||((A)=='\f')||((A)=='\r'))
@@ -375,4 +377,4 @@ extern FILE *log_stream;
 extern size_t list_menu_height;
 extern size_t list_menu_width;
 
-#endif // FEEDEATER_H
+#endif // NEWSRAFT_H

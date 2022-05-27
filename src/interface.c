@@ -1,4 +1,4 @@
-#include "feedeater.h"
+#include "newsraft.h"
 
 static bool
 obtain_terminal_size(void)

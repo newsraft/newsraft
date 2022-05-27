@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
-#include "feedeater.h"
+#include "newsraft.h"
 
 // On success returns pointer to sqlite3_stmt.
 // On failure returns NULL.

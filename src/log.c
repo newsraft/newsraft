@@ -2,14 +2,14 @@
 #include <curl/curl.h>
 #include <cjson/cJSON.h>
 #include <tidy.h>
-#include "feedeater.h"
+#include "newsraft.h"
 
 FILE *log_stream = NULL;
 
 static inline void
-log_feedeater_version(void)
+log_newsraft_version(void)
 {
-	INFO("feedeater version: " FEEDEATER_VERSION);
+	INFO("newsraft version: " NEWSRAFT_VERSION);
 }
 
 static inline void
@@ -55,7 +55,7 @@ log_init(const char *path)
 		return false;
 	}
 	INFO("Opened log file.");
-	log_feedeater_version();
+	log_newsraft_version();
 	log_ncurses_version();
 	log_sqlite_version();
 	log_curl_version();

@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
-#include "feedeater.h"
+#include "newsraft.h"
 
 struct feed_section {
 	struct string *name;

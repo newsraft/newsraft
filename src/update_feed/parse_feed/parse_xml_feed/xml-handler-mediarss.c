@@ -1,4 +1,4 @@
-#ifdef FEEDEATER_FORMAT_SUPPORT_MEDIARSS
+#ifdef NEWSRAFT_FORMAT_SUPPORT_MEDIARSS
 #include <string.h>
 #include "update_feed/parse_feed/parse_xml_feed/parse_xml_feed.h"
 
@@ -109,4 +109,4 @@ const struct xml_element_handler xml_mediarss_handlers[] = {
 	{"description", MRSS_DESCRIPTION, NULL,               &description_end},
 	{NULL,          MRSS_NONE,        NULL,               NULL},
 };
-#endif // FEEDEATER_FORMAT_SUPPORT_MEDIARSS
+#endif // NEWSRAFT_FORMAT_SUPPORT_MEDIARSS

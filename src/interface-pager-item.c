@@ -1,4 +1,4 @@
-#include "feedeater.h"
+#include "newsraft.h"
 
 static inline struct render_block *
 generate_render_blocks_for_item(sqlite3_stmt *res)

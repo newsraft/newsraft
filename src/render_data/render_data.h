@@ -1,6 +1,6 @@
 #ifndef RENDER_DATA_H
 #define RENDER_DATA_H
-#include "feedeater.h"
+#include "newsraft.h"
 
 struct line {
 	wchar_t *ptr;  // Line text.

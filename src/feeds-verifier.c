@@ -1,5 +1,5 @@
 #include <string.h>
-#include "feedeater.h"
+#include "newsraft.h"
 
 bool
 check_url_for_validity(const struct string *str)

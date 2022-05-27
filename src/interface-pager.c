@@ -1,5 +1,5 @@
 #include <stdlib.h>
-#include "feedeater.h"
+#include "newsraft.h"
 
 struct pager_menu {
 	WINDOW *window;

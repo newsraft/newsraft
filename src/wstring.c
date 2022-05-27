@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
-#include "feedeater.h"
+#include "newsraft.h"
 
 // Create wstring out of array.
 // On success returns pointer to wstring.

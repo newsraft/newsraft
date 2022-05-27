@@ -1,5 +1,5 @@
 #include <stdlib.h>
-#include "feedeater.h"
+#include "newsraft.h"
 
 static struct items_list *items;
 static struct menu_list_settings items_menu;

@@ -51,7 +51,7 @@ stuff_to_do_when_xml_element_starts(struct xml_data *data, const struct string *
 	++(data->depth);
 	empty_string(data->value);
 	parse_element_start(data, namespace, name, attrs);
-#ifdef FEEDEATER_FORMAT_SUPPORT_RSS20
+#ifdef NEWSRAFT_FORMAT_SUPPORT_RSS20
 	if ((data->depth == 1) && (namespace == NULL) && (strcmp(name, "rss") == 0)) {
 		const char *version = get_value_of_attribute_key(attrs, "version");
 		if ((version != NULL) &&

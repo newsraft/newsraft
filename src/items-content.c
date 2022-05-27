@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
-#include "feedeater.h"
+#include "newsraft.h"
 
 bool
 join_render_block(struct render_block **list, const char *content, size_t content_len, const char *content_type, size_t content_type_len)

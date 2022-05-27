@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include "feedeater.h"
+#include "newsraft.h"
 
 static inline time_t
 get_local_offset_relative_to_utc(void)

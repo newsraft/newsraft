@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include "feedeater.h"
+#include "newsraft.h"
 
 struct input_binding {
 	int key;

@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
-#include "feedeater.h"
+#include "newsraft.h"
 
 #define MAX_METADATA_ENTRY_NAME_LENGTH 19
 // Currently it is "max-summary-content".

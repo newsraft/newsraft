@@ -3,10 +3,10 @@
 #include <dirent.h>
 #include <string.h>
 #include <sys/stat.h>
-#include "feedeater.h"
+#include "newsraft.h"
 
 // Note to the future.
-// Do not read feedeater-specific file pathes from environment variables (like FEEDEATER_CONFIG_DIR),
+// Do not read newsraft-specific file pathes from environment variables (like NEWSRAFT_CONFIG_DIR),
 // because environment is intended for settings that are valueable to many programs, not just a single one.
 
 #define MAXPATH 4096 // maximum length of path
@@ -69,15 +69,15 @@ get_feeds_path(void)
 	size_t env_var_len;
 
 	// Order in which to look up a feeds file:
-	// 1. $XDG_CONFIG_HOME/feedeater/feeds
-	// 2. $HOME/.config/feedeater/feeds
-	// 3. $HOME/.feedeater/feeds
+	// 1. $XDG_CONFIG_HOME/newsraft/feeds
+	// 2. $HOME/.config/newsraft/feeds
+	// 3. $HOME/.newsraft/feeds
 
 	if (env_var != NULL) {
 		env_var_len = strlen(env_var);
 		if (env_var_len != 0) {
 			strcpy(new_path, env_var);
-			strcat(new_path, "/feedeater/feeds");
+			strcat(new_path, "/newsraft/feeds");
 			f = fopen(new_path, "r");
 			if (f != NULL) {
 				fclose(f);
@@ -92,7 +92,7 @@ get_feeds_path(void)
 		env_var_len = strlen(env_var);
 		if (env_var_len != 0) {
 			strcpy(new_path, env_var);
-			strcat(new_path, "/.config/feedeater/feeds");
+			strcat(new_path, "/.config/newsraft/feeds");
 			f = fopen(new_path, "r");
 			if (f != NULL) {
 				fclose(f);
@@ -100,7 +100,7 @@ get_feeds_path(void)
 				return (const char *)feeds_file_path; // 2
 			}
 			strcpy(new_path, env_var);
-			strcat(new_path, "/.feedeater/feeds");
+			strcat(new_path, "/.newsraft/feeds");
 			f = fopen(new_path, "r");
 			if (f != NULL) {
 				fclose(f);
@@ -135,15 +135,15 @@ get_config_path(void)
 	size_t env_var_len;
 
 	// Order in which to look up a config file:
-	// 1. $XDG_CONFIG_HOME/feedeater/config
-	// 2. $HOME/.config/feedeater/config
-	// 3. $HOME/.feedeater/config
+	// 1. $XDG_CONFIG_HOME/newsraft/config
+	// 2. $HOME/.config/newsraft/config
+	// 3. $HOME/.newsraft/config
 
 	if (env_var != NULL) {
 		env_var_len = strlen(env_var);
 		if (env_var_len != 0) {
 			strcpy(new_path, env_var);
-			strcat(new_path, "/feedeater/config");
+			strcat(new_path, "/newsraft/config");
 			f = fopen(new_path, "r");
 			if (f != NULL) {
 				fclose(f);
@@ -158,7 +158,7 @@ get_config_path(void)
 		env_var_len = strlen(env_var);
 		if (env_var_len != 0) {
 			strcpy(new_path, env_var);
-			strcat(new_path, "/.config/feedeater/config");
+			strcat(new_path, "/.config/newsraft/config");
 			f = fopen(new_path, "r");
 			if (f != NULL) {
 				fclose(f);
@@ -166,7 +166,7 @@ get_config_path(void)
 				return (const char *)config_file_path; // 2
 			}
 			strcpy(new_path, env_var);
-			strcat(new_path, "/.feedeater/config");
+			strcat(new_path, "/.newsraft/config");
 			f = fopen(new_path, "r");
 			if (f != NULL) {
 				fclose(f);
@@ -203,15 +203,15 @@ get_db_path(void)
 	bool home_dir_is_set = false;
 
 	// Order in which to look up a database file:
-	// 1. $XDG_DATA_HOME/feedeater/feedeater.sqlite3
-	// 2. $HOME/.local/share/feedeater/feedeater.sqlite3
+	// 1. $XDG_DATA_HOME/newsraft/newsraft.sqlite3
+	// 2. $HOME/.local/share/newsraft/newsraft.sqlite3
 
 	if (env_var != NULL) {
 		env_var_len = strlen(env_var);
 		if (env_var_len != 0) {
 			xdg_dir_is_set = true;
 			strcpy(new_path, env_var);
-			strcat(new_path, "/feedeater/feedeater.sqlite3");
+			strcat(new_path, "/newsraft/newsraft.sqlite3");
 			f = fopen(new_path, "r");
 			if (f != NULL) {
 				fclose(f);
@@ -227,7 +227,7 @@ get_db_path(void)
 		if (env_var_len != 0) {
 			home_dir_is_set = true;
 			strcpy(new_path, env_var);
-			strcat(new_path, "/.local/share/feedeater/feedeater.sqlite3");
+			strcat(new_path, "/.local/share/newsraft/newsraft.sqlite3");
 			f = fopen(new_path, "r");
 			if (f != NULL) {
 				fclose(f);
@@ -246,12 +246,12 @@ get_db_path(void)
 		env_var = getenv("XDG_DATA_HOME");
 		strcpy(new_path, env_var);
 		mkdir(new_path, 0777);
-		strcat(new_path, "/feedeater");
+		strcat(new_path, "/newsraft");
 		mkdir(new_path, 0777);
 		d = opendir(new_path);
 		if (d != NULL) {
 			closedir(d);
-			strcat(new_path, "/feedeater.sqlite3");
+			strcat(new_path, "/newsraft.sqlite3");
 			db_file_path = new_path;
 			return (const char *)db_file_path; // 1
 		} else {
@@ -265,12 +265,12 @@ get_db_path(void)
 		mkdir(new_path, 0777);
 		strcat(new_path, "/share");
 		mkdir(new_path, 0777);
-		strcat(new_path, "/feedeater");
+		strcat(new_path, "/newsraft");
 		mkdir(new_path, 0777);
 		d = opendir(new_path);
 		if (d != NULL) {
 			closedir(d);
-			strcat(new_path, "/feedeater.sqlite3");
+			strcat(new_path, "/newsraft.sqlite3");
 			db_file_path = new_path;
 			return (const char *)db_file_path; // 2
 		} else {

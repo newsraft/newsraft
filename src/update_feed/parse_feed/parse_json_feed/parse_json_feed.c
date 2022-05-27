@@ -15,7 +15,7 @@ parse_json_feed(const struct string *feed_buf, struct getfeed_feed *feed)
 	}
 
 	// Currently JSON Feed is the only JSON feed format supported.
-#ifdef FEEDEATER_FORMAT_SUPPORT_JSONFEED
+#ifdef NEWSRAFT_FORMAT_SUPPORT_JSONFEED
 	json_dump_jsonfeed(json, &data);
 #else
 	cJSON_Delete(json);

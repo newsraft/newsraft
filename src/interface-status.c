@@ -1,5 +1,5 @@
 #include <stdlib.h>
-#include "feedeater.h"
+#include "newsraft.h"
 
 static WINDOW *status_window;
 static bool status_window_is_clean;

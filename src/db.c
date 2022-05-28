@@ -38,7 +38,8 @@ db_init(void)
 			"update_date INTEGER(8) NOT NULL DEFAULT 0,"
 			"download_date INTEGER(8) NOT NULL DEFAULT 0,"
 			"http_header_etag TEXT," // ETag HTTP header
-			"http_header_last_modified INTEGER(8) NOT NULL DEFAULT 0" // Last-Modified HTTP header expressed in epoch time
+			"http_header_last_modified INTEGER(8) NOT NULL DEFAULT 0," // Last-Modified HTTP header expressed in epoch time
+			"http_header_expires INTEGER(8) NOT NULL DEFAULT 0" // Expires HTTP header expressed in epoch time
 		");"
 		"CREATE TABLE IF NOT EXISTS items("
 			"feed_url TEXT NOT NULL," // url of feed this item belongs to

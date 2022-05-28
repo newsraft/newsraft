@@ -28,7 +28,7 @@ parse_stream_callback(char *contents, size_t length, size_t nmemb, struct stream
 }
 
 static size_t
-header_callback(char *contents, size_t length, size_t nmemb, struct getfeed_feed *data)
+header_callback(char *contents, size_t length, size_t nmemb, struct getfeed_feed *feed)
 {
 	const size_t real_size = nmemb * length;
 	struct string *header = crtas(contents, real_size);
@@ -37,37 +37,29 @@ header_callback(char *contents, size_t length, size_t nmemb, struct getfeed_feed
 	}
 	trim_whitespace_from_string(header);
 	INFO("Found a header during loading - \"%s\".", header->ptr);
-	if (strncasecmp(header->ptr, "Expires: ", 9) == 0) {
-		if (get_cfg_bool(CFG_RESPECT_EXPIRES_HEADER) == true) {
-			time_t expire_date = curl_getdate(header->ptr + 9, NULL);
-			if (expire_date > 0) {
-				if ((data->previous_download_date > 0) && (data->previous_download_date < expire_date)) {
-					INFO("Closing connection because previous download date is less than expiration date.");
-					// Set this variable to -1 to indicate that curl was stopped because of this ^.
-					data->previous_download_date = -1;
-					free_string(header);
-					return 0;
-				}
-			} else {
-				FAIL("Curl failed to parse date string!");
-			}
-		}
-	} else if (strncasecmp(header->ptr, "ETag: ", 6) == 0) {
+	if (strncasecmp(header->ptr, "ETag: ", 6) == 0) {
 		char *first_quote_pos = strchr(header->ptr, '"');
 		if (first_quote_pos != NULL) {
 			char *second_quote_pos = strchr(first_quote_pos + 1, '"');
 			if (second_quote_pos != NULL) {
 				size_t new_etag_value_len = second_quote_pos - first_quote_pos - 1;
-				cpyas(data->http_header_etag, first_quote_pos + 1, new_etag_value_len);
+				cpyas(feed->http_header_etag, first_quote_pos + 1, new_etag_value_len);
 			}
 		} else {
-			cpyas(data->http_header_etag, header->ptr + 6, header->len - 6);
-			trim_whitespace_from_string(data->http_header_etag);
+			cpyas(feed->http_header_etag, header->ptr + 6, header->len - 6);
+			trim_whitespace_from_string(feed->http_header_etag);
 		}
 	} else if (strncasecmp(header->ptr, "Last-Modified: ", 15) == 0) {
 		time_t date = curl_getdate(header->ptr + 15, NULL);
 		if (date > 0) {
-			data->http_header_last_modified = date;
+			feed->http_header_last_modified = date;
+		} else {
+			FAIL("Curl failed to parse date string!");
+		}
+	} else if (strncasecmp(header->ptr, "Expires: ", 9) == 0) {
+		time_t expire_date = curl_getdate(header->ptr + 9, NULL);
+		if (expire_date > 0) {
+			feed->http_header_expires = expire_date;
 		} else {
 			FAIL("Curl failed to parse date string!");
 		}
@@ -131,19 +123,12 @@ download_feed(const char *url, struct stream_callback_data *data)
 
 	CURLcode res = curl_easy_perform(curl);
 	if (res != CURLE_OK) {
-		if (data->feed.previous_download_date == -1) {
-			// See header_callback function to understand what is going on here.
-			curl_slist_free_all(headers);
-			curl_easy_cleanup(curl);
-			return DOWNLOAD_CANCELED;
-		} else {
-			// These are just warnings because perform can fail due to lack of network connection.
-			WARN("Feed update has stopped due to fail in curl request!");
-			WARN("Detailed error explanation: %s", *curl_errbuf == '\0' ? curl_easy_strerror(res) : curl_errbuf);
-			curl_slist_free_all(headers);
-			curl_easy_cleanup(curl);
-			return DOWNLOAD_FAILED;
-		}
+		// These are just warnings because perform can fail due to lack of network connection.
+		WARN("Feed update has stopped due to fail in curl request!");
+		WARN("Detailed error explanation: %s", *curl_errbuf == '\0' ? curl_easy_strerror(res) : curl_errbuf);
+		curl_slist_free_all(headers);
+		curl_easy_cleanup(curl);
+		return DOWNLOAD_FAILED;
 	}
 
 	long http_code = 0;

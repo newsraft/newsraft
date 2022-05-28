@@ -28,10 +28,20 @@ update_feed(const struct string *url)
 	bool success = false;
 	struct stream_callback_data data = {0};
 
-	data.feed.previous_download_date = db_get_date_from_feeds_table(url, "download_date", 13);
-	if (data.feed.previous_download_date == -1) {
-		// Error message written by db_get_date_from_feeds_table.
+	if (time(&data.feed.download_date) == (time_t) -1) {
 		goto undo0;
+	}
+
+	if (get_cfg_bool(CFG_RESPECT_EXPIRES_HEADER) == true) {
+		int64_t expires_date = db_get_date_from_feeds_table(url, "http_header_expires", 19);
+		if (expires_date == -1) {
+			goto undo0;
+		}
+		if ((expires_date != 0) && (data.feed.download_date < expires_date)) {
+			INFO("Content hasn't expired yet - aborting update without error.");
+			success = true;
+			goto undo0;
+		}
 	}
 
 	data.feed.http_header_last_modified = db_get_date_from_feeds_table(url, "http_header_last_modified", 25);
@@ -44,10 +54,6 @@ update_feed(const struct string *url)
 	if (data.feed.http_header_etag == NULL) {
 		// Error message written by db_get_string_from_feed_table.
 		goto undo0;
-	}
-
-	if (time(&data.feed.download_date) == (time_t) -1) {
-		goto undo1;
 	}
 
 	data.value = crtes();

@@ -1,11 +1,53 @@
 #ifndef UPDATE_FEED_H
 #define UPDATE_FEED_H
+#include <expat.h>
 #include "newsraft.h"
 
 enum download_status {
 	DOWNLOAD_SUCCEEDED,
 	DOWNLOAD_CANCELED,
 	DOWNLOAD_FAILED,
+};
+
+enum update_error {
+	PARSE_OKAY = 0,
+	PARSE_FAIL_NOT_ENOUGH_MEMORY,
+};
+
+enum xml_format_index {
+#ifdef NEWSRAFT_FORMAT_SUPPORT_ATOM10
+	ATOM10_FORMAT = 0,
+#endif
+#ifdef NEWSRAFT_FORMAT_SUPPORT_RSS20
+	RSS20_FORMAT,
+#endif
+#ifdef NEWSRAFT_FORMAT_SUPPORT_RSSCONTENT
+	RSSCONTENT_FORMAT,
+#endif
+#ifdef NEWSRAFT_FORMAT_SUPPORT_DUBLINCORE
+	DUBLINCORE_FORMAT,
+#endif
+#ifdef NEWSRAFT_FORMAT_SUPPORT_MEDIARSS
+	MEDIARSS_FORMAT,
+#endif
+#ifdef NEWSRAFT_FORMAT_SUPPORT_YANDEX
+	YANDEX_FORMAT,
+#endif
+#ifdef NEWSRAFT_FORMAT_SUPPORT_RSS11
+	RSS11_FORMAT,
+	RSS11_2_FORMAT, // don't use it
+	RSS11_3_FORMAT, // don't use it
+#endif
+#ifdef NEWSRAFT_FORMAT_SUPPORT_ATOM03
+	ATOM03_FORMAT,
+#endif
+#ifdef NEWSRAFT_FORMAT_SUPPORT_GEORSS
+	GEORSS_FORMAT,
+#endif
+#ifdef NEWSRAFT_FORMAT_SUPPORT_GEORSS_GML
+	GEORSS_GML_FORMAT,
+#endif
+	XML_FORMATS_COUNT,
 };
 
 struct getfeed_generator {
@@ -87,8 +129,21 @@ struct getfeed_feed {
 	struct getfeed_item *item;
 };
 
+struct stream_callback_data {
+	int8_t media_type;
+	XML_Parser xml_parser;
+	struct getfeed_feed feed;
+	int64_t default_handler;
+	intmax_t xml_pos[XML_FORMATS_COUNT];
+	struct string *value;
+	uint64_t depth;
+	int8_t error;
+};
+
+bool engage_xml_parser(struct stream_callback_data *data);
+
 // See "download_feed" directory for implementation.
-enum download_status download_feed(const char *url, struct getfeed_feed *feed, struct string *feedbuf);
+enum download_status download_feed(const char *url, struct stream_callback_data *data);
 
 // See "parse_feed" directory for implementation.
 bool parse_feed(const struct string *feed_buf, struct getfeed_feed *feed);
@@ -121,5 +176,4 @@ void free_picture(struct getfeed_picture *picture);
 struct string *generate_picture_list_string(const struct getfeed_picture *picture);
 
 struct string *generate_generator_string(const struct getfeed_generator *generator);
-
 #endif // UPDATE_FEED_H

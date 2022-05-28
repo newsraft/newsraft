@@ -9,4 +9,4 @@ option('support-format-rss11', type: 'feature', value: 'enabled', description: '
 option('support-format-atom03', type: 'feature', value: 'enabled', description: 'Support for Atom 0.3 format')
 option('support-format-georss', type: 'feature', value: 'enabled', description: 'Support for GeoRSS format')
 option('support-format-georss-gml', type: 'feature', value: 'enabled', description: 'Support for GeoRSS GML format')
-option('support-format-jsonfeed', type: 'feature', value: 'enabled', description: 'Support for JSON Feed format')
+option('support-format-jsonfeed', type: 'feature', value: 'disabled', description: 'Support for JSON Feed format')

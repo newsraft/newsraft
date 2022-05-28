@@ -5,17 +5,16 @@
 // https://georss.org/gml.html
 
 static void
-pos_end(struct xml_data *data, const TidyAttr attrs)
+pos_end(struct stream_callback_data *data)
 {
-	(void)attrs;
 	if (we_are_inside_item(data) == false) {
 		return;
 	}
-	if (prepend_empty_string_to_string_list(&data->feed->item->location) == false) {
+	if (prepend_empty_string_to_string_list(&data->feed.item->location) == false) {
 		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		return;
 	}
-	if (crtss_or_cpyss(&data->feed->item->location->str, data->value) == false) {
+	if (crtss_or_cpyss(&data->feed.item->location->str, data->value) == false) {
 		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		return;
 	}

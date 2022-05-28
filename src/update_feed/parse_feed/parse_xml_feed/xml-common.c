@@ -2,7 +2,7 @@
 #include "update_feed/parse_feed/parse_xml_feed/parse_xml_feed.h"
 
 bool
-we_are_inside_item(const struct xml_data *data)
+we_are_inside_item(const struct stream_callback_data *data)
 {
 #ifdef NEWSRAFT_FORMAT_SUPPORT_ATOM10
 	if ((data->xml_pos[ATOM10_FORMAT] & ATOM10_ENTRY) != 0) {
@@ -28,25 +28,20 @@ we_are_inside_item(const struct xml_data *data)
 }
 
 const char *
-get_value_of_attribute_key(const TidyAttr attrs, const char *key)
+get_value_of_attribute_key(const XML_Char **atts, const char *key)
 {
-	const char *attr_name;
-	for (TidyAttr attr = attrs; attr != NULL; attr = tidyAttrNext(attr)) {
-		attr_name = tidyAttrName(attr);
-		if (attr_name == NULL) {
-			continue;
-		}
-		if (strcmp(attr_name, key) == 0) {
-			return tidyAttrValue(attr); // success
+	for (size_t i = 0; atts[i] != NULL; i += 2) {
+		if (strcmp(key, atts[i]) == 0) {
+			return atts[i + 1];
 		}
 	}
-	return NULL; // failure, didn't find an attribute with key name
+	return NULL;
 }
 
 bool
-copy_type_of_text_construct(struct string **dest, const TidyAttr attrs)
+copy_type_of_text_construct(struct string **dest, const XML_Char **atts)
 {
-	const char *type = get_value_of_attribute_key(attrs, "type");
+	const char *type = get_value_of_attribute_key(atts, "type");
 	if (type != NULL) {
 		if ((strcmp(type, "html") == 0) || (strcmp(type, "xhtml") == 0)) {
 			if (crtas_or_cpyas(dest, "text/html", 9) == false) {

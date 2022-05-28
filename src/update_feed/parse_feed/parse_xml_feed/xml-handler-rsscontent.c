@@ -4,20 +4,19 @@
 // https://web.archive.org/web/20211201074403/https://web.resource.org/rss/1.0/modules/content/
 
 static void
-encoded_end(struct xml_data *data, const TidyAttr attrs)
+encoded_end(struct stream_callback_data *data)
 {
-	(void)attrs;
 	if (we_are_inside_item(data) == false) {
 		return;
 	}
-	if ((data->feed->item->content.value != NULL) && (data->feed->item->content.value->len > data->value->len)) {
+	if ((data->feed.item->content.value != NULL) && (data->value->len < data->feed.item->content.value->len)) {
 		return;
 	}
-	if (crtss_or_cpyss(&data->feed->item->content.value, data->value) == false) {
+	if (crtss_or_cpyss(&data->feed.item->content.value, data->value) == false) {
 		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		return;
 	}
-	if (crtas_or_cpyas(&data->feed->item->content.type, "text/html", 9) == false) {
+	if (crtas_or_cpyas(&data->feed.item->content.type, "text/html", 9) == false) {
 		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		return;
 	}

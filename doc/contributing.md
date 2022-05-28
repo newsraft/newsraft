@@ -1,6 +1,6 @@
 # Dependency description
 
-Newsraft uses [ncurses](https://invisible-island.net/ncurses) to draw user interface, [SQLite](https://www.sqlite.org) to store data, [curl](https://curl.se) to download feeds, [Tidy](http://www.html-tidy.org) to parse XML & HTML and [cJSON](https://github.com/DaveGamble/cJSON) to parse JSON.
+Newsraft uses [ncurses](https://invisible-island.net/ncurses) to draw user interface, [SQLite](https://www.sqlite.org) to store data, [curl](https://curl.se) to download feeds, [Expat](https://github.com/libexpat/libexpat) to parse XML, [YAJL](https://github.com/lloyd/yajl) to parse JSON and [Tidy](http://www.html-tidy.org) to parse HTML.
 
 # Code guidelines
 

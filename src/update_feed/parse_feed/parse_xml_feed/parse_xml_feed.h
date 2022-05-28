@@ -1,103 +1,19 @@
 #ifndef PARSE_XML_FEED_H
 #define PARSE_XML_FEED_H
-#include <tidy.h>
-#include <tidybuffio.h>
 #include "update_feed/parse_feed/parse_feed.h"
-
-#define XML_NAMESPACE_SEPARATOR ':'
-
-enum xml_format {
-#ifdef NEWSRAFT_FORMAT_SUPPORT_ATOM10
-	ATOM10_FORMAT = 0,
-#endif
-#ifdef NEWSRAFT_FORMAT_SUPPORT_RSS20
-	RSS20_FORMAT,
-#endif
-#ifdef NEWSRAFT_FORMAT_SUPPORT_RSSCONTENT
-	RSSCONTENT_FORMAT,
-#endif
-#ifdef NEWSRAFT_FORMAT_SUPPORT_DUBLINCORE
-	DUBLINCORE_FORMAT,
-#endif
-#ifdef NEWSRAFT_FORMAT_SUPPORT_MEDIARSS
-	MEDIARSS_FORMAT,
-#endif
-#ifdef NEWSRAFT_FORMAT_SUPPORT_YANDEX
-	YANDEX_FORMAT,
-#endif
-#ifdef NEWSRAFT_FORMAT_SUPPORT_RSS11
-	RSS11_FORMAT,
-	RSS11_2_FORMAT, // don't use it
-	RSS11_3_FORMAT, // don't use it
-#endif
-#ifdef NEWSRAFT_FORMAT_SUPPORT_ATOM03
-	ATOM03_FORMAT,
-#endif
-#ifdef NEWSRAFT_FORMAT_SUPPORT_GEORSS
-	GEORSS_FORMAT,
-#endif
-#ifdef NEWSRAFT_FORMAT_SUPPORT_GEORSS_GML
-	GEORSS_GML_FORMAT,
-#endif
-	XML_FORMATS_COUNT,
-};
-
-struct xml_namespace {
-	struct string *name;
-	struct string *uri;
-};
-
-struct xml_namespace_stack {
-	uint16_t top;
-	size_t lim;
-	struct xml_namespace *buf;
-};
-
-struct xml_default_namespace {
-	struct string *uri;
-	struct xml_default_namespace *next;
-};
-
-struct xml_data {
-	struct string *value;
-	int depth;
-	struct xml_default_namespace *def_ns;
-	struct xml_namespace_stack namespaces;
-	const struct string *feed_url;
-	struct getfeed_feed *feed;
-	intmax_t xml_pos[XML_FORMATS_COUNT];
-	int8_t default_handler;
-	TidyDoc tidy_doc;
-	TidyBuffer draft_buffer;
-	enum update_error error;
-};
 
 struct xml_element_handler {
 	const char *name;
 	intmax_t bitpos;
-	void (*start_handle)(struct xml_data *data, const TidyAttr attrs);
-	void (*end_handle)(struct xml_data *data, const TidyAttr attrs);
+	void (*start_handle)(struct stream_callback_data *data, const XML_Char **atts);
+	void (*end_handle)(struct stream_callback_data *data);
 };
-
-bool prepend_default_namespace(struct xml_default_namespace **first_def_ns, const char *uri_to_prepend, size_t uri_len);
-void discard_default_namespace(struct xml_default_namespace **first_def_ns);
-void free_default_namespaces(struct xml_default_namespace *first_def_ns);
-
-bool add_namespace_to_stack(struct xml_namespace_stack *stack, const char *name, const char *uri);
-void pop_namespace_from_stack(struct xml_namespace_stack *stack);
-const struct string *find_namespace_uri_by_its_name(const struct xml_namespace_stack *namespaces, const char *name, size_t name_len);
-void free_namespace_stack(struct xml_namespace_stack *stack);
 
 // Functions common to parsers of all formats.
 // See "xml-common.c" file for implementation.
-bool we_are_inside_item(const struct xml_data *data);
-const char *get_value_of_attribute_key(const TidyAttr attrs, const char *key);
-bool copy_type_of_text_construct(struct string **dest, const TidyAttr attrs);
-
-// Element handlers
-
-void parse_element_start(struct xml_data *data, const struct string *namespace_uri, const char *name, const TidyAttr attrs);
-void parse_element_end(struct xml_data *data, const struct string *namespace_uri, const char *name, const TidyAttr attrs);
+bool we_are_inside_item(const struct stream_callback_data *data);
+const char *get_value_of_attribute_key(const XML_Char **atts, const char *key);
+bool copy_type_of_text_construct(struct string **dest, const XML_Char **atts);
 
 #ifdef NEWSRAFT_FORMAT_SUPPORT_ATOM10
 enum atom10_position {

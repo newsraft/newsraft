@@ -1,7 +1,7 @@
 #include "update_feed/download_feed/download_feed.h"
 
 struct curl_slist *
-create_list_of_headers(struct getfeed_feed *feed)
+create_list_of_headers(const struct getfeed_feed *feed)
 {
 	struct curl_slist *headers = NULL;
 

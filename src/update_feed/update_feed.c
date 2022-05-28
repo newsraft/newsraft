@@ -26,54 +26,59 @@ bool
 update_feed(const struct string *url)
 {
 	bool success = false;
-	struct getfeed_feed feed = {0};
+	struct stream_callback_data data = {0};
 
-	feed.previous_download_date = db_get_date_from_feeds_table(url, "download_date", 13);
-	if (feed.previous_download_date == -1) {
+	data.feed.previous_download_date = db_get_date_from_feeds_table(url, "download_date", 13);
+	if (data.feed.previous_download_date == -1) {
 		// Error message written by db_get_date_from_feeds_table.
 		goto undo0;
 	}
 
-	feed.http_header_last_modified = db_get_date_from_feeds_table(url, "http_header_last_modified", 25);
-	if (feed.http_header_last_modified == -1) {
+	data.feed.http_header_last_modified = db_get_date_from_feeds_table(url, "http_header_last_modified", 25);
+	if (data.feed.http_header_last_modified == -1) {
 		// Error message written by db_get_date_from_feeds_table.
 		goto undo0;
 	}
 
-	feed.http_header_etag = db_get_string_from_feed_table(url, "http_header_etag", 16);
-	if (feed.http_header_etag == NULL) {
+	data.feed.http_header_etag = db_get_string_from_feed_table(url, "http_header_etag", 16);
+	if (data.feed.http_header_etag == NULL) {
 		// Error message written by db_get_string_from_feed_table.
 		goto undo0;
 	}
 
-	if (time(&feed.download_date) == (time_t) -1) {
+	if (time(&data.feed.download_date) == (time_t) -1) {
 		goto undo1;
 	}
 
-	struct string *feedbuf = crtes();
-	if (feedbuf == NULL) {
+	data.value = crtes();
+	if (data.value == NULL) {
 		goto undo1;
 	}
 
-	enum download_status status = download_feed(url->ptr, &feed, feedbuf);
+	if (engage_xml_parser(&data) == false) {
+		goto undo2;
+	}
+
+	enum download_status status = download_feed(url->ptr, &data);
+
+	XML_Parse(data.xml_parser, NULL, 0, true); // final call
+	XML_ParserFree(data.xml_parser);
 
 	if (status == DOWNLOAD_CANCELED) {
-		success = true; // Not an error.
+		INFO("Download canceled.");
+		success = true;
 		goto undo2;
 	} else if (status == DOWNLOAD_FAILED) {
+		WARN("Download failed.");
 		goto undo2;
 	}
 
-	if (parse_feed(feedbuf, &feed) == false) {
-		goto undo2;
-	}
-
-	success = insert_feed(url, &feed);
+	success = insert_feed(url, &data.feed);
 
 undo2:
-	free_string(feedbuf);
+	free_string(data.value);
 undo1:
-	free_feed(&feed);
+	free_feed(&data.feed);
 undo0:
 	return success;
 }

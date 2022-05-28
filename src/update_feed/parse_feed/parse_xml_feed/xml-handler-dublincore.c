@@ -2,62 +2,63 @@
 #include "update_feed/parse_feed/parse_xml_feed/parse_xml_feed.h"
 
 static void
-title_end(struct xml_data *data, const TidyAttr attrs)
+title_end(struct stream_callback_data *data)
 {
-	(void)attrs;
 	if (we_are_inside_item(data) == true) {
-		if ((data->feed->item->title.value == NULL) || (data->feed->item->title.value->len == 0)) {
-			if (crtss_or_cpyss(&data->feed->item->title.value, data->value) == false) {
+		if ((data->feed.item->title.value == NULL) || (data->feed.item->title.value->len == 0)) {
+			if (crtss_or_cpyss(&data->feed.item->title.value, data->value) == false) {
 				data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 				return;
 			}
 		}
 	} else {
-		if (crtss_or_cpyss(&data->feed->title.value, data->value) == false) {
-			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
-			return;
+		if ((data->feed.title.value == NULL) || (data->feed.title.value->len == 0)) {
+			if (crtss_or_cpyss(&data->feed.title.value, data->value) == false) {
+				data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+				return;
+			}
 		}
 	}
 }
 
 static void
-description_end(struct xml_data *data, const TidyAttr attrs)
+description_end(struct stream_callback_data *data)
 {
-	(void)attrs;
 	if (we_are_inside_item(data) == true) {
-		if ((data->feed->item->summary.value == NULL) || (data->feed->item->summary.value->len == 0)) {
-			if (crtss_or_cpyss(&data->feed->item->summary.value, data->value) == false) {
+		if ((data->feed.item->summary.value == NULL) || (data->feed.item->summary.value->len == 0)) {
+			if (crtss_or_cpyss(&data->feed.item->summary.value, data->value) == false) {
 				data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 				return;
 			}
 		}
 	} else {
-		if (crtss_or_cpyss(&data->feed->summary.value, data->value) == false) {
-			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
-			return;
+		if ((data->feed.summary.value == NULL) || (data->feed.summary.value->len == 0)) {
+			if (crtss_or_cpyss(&data->feed.summary.value, data->value) == false) {
+				data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+				return;
+			}
 		}
 	}
 }
 
 static void
-creator_end(struct xml_data *data, const TidyAttr attrs)
+creator_end(struct stream_callback_data *data)
 {
-	(void)attrs;
 	if (we_are_inside_item(data) == true) {
-		if (prepend_person(&data->feed->item->author) == false) {
+		if (prepend_person(&data->feed.item->author) == false) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}
-		if (crtss_or_cpyss(&data->feed->item->author->name, data->value) == false) {
+		if (crtss_or_cpyss(&data->feed.item->author->name, data->value) == false) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}
 	} else {
-		if (prepend_person(&data->feed->author) == false) {
+		if (prepend_person(&data->feed.author) == false) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}
-		if (crtss_or_cpyss(&data->feed->author->name, data->value) == false) {
+		if (crtss_or_cpyss(&data->feed.author->name, data->value) == false) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}
@@ -65,19 +66,26 @@ creator_end(struct xml_data *data, const TidyAttr attrs)
 }
 
 static void
-subject_end(struct xml_data *data, const TidyAttr attrs)
+subject_end(struct stream_callback_data *data)
 {
-	(void)attrs;
-	if (we_are_inside_item(data) == false) {
-		return;
-	}
-	if (prepend_category(&data->feed->item->category) == false) {
-		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
-		return;
-	}
-	if (crtss_or_cpyss(&data->feed->item->category->term, data->value) == false) {
-		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
-		return;
+	if (we_are_inside_item(data) == true) {
+		if (prepend_category(&data->feed.item->category) == false) {
+			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+			return;
+		}
+		if (crtss_or_cpyss(&data->feed.item->category->term, data->value) == false) {
+			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+			return;
+		}
+	} else {
+		if (prepend_category(&data->feed.category) == false) {
+			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+			return;
+		}
+		if (crtss_or_cpyss(&data->feed.category->term, data->value) == false) {
+			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+			return;
+		}
 	}
 }
 

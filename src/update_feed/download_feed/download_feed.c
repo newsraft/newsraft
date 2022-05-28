@@ -2,20 +2,36 @@
 #include "update_feed/download_feed/download_feed.h"
 
 static size_t
-parse_stream_callback(char *contents, size_t length, size_t nmemb, struct string *data)
+parse_stream_callback(char *contents, size_t length, size_t nmemb, struct stream_callback_data *data)
 {
-	size_t real_size = length * nmemb;
-	if (catas(data, contents, real_size) == false) {
-		FAIL("Not enough memory for downloading a feed!");
+	const size_t real_size = length * nmemb;
+	if (data->media_type == MEDIA_TYPE_UNKNOWN) {
+		for (size_t i = 0; i < real_size; ++i) {
+			if (contents[i] == '<') {
+				data->media_type = MEDIA_TYPE_XML;
+				break;
+			} else if (contents[i] == '{') {
+				data->media_type = MEDIA_TYPE_JSON;
+				break;
+			}
+		}
+	}
+	if (data->media_type == MEDIA_TYPE_XML) {
+		if (XML_Parse(data->xml_parser, contents, real_size, false) == XML_STATUS_ERROR) {
+			FAIL("Expat failed to parse: \"%s\"!", XML_ErrorString(XML_GetErrorCode(data->xml_parser)));
+			return 0;
+		}
+	} else if (data->media_type == MEDIA_TYPE_JSON) {
+		INFO("Pretending to process JSON here :)");
 	}
 	return real_size;
 }
 
 static size_t
-header_callback(char *buffer, size_t size, size_t nitems, struct getfeed_feed *data)
+header_callback(char *contents, size_t length, size_t nmemb, struct getfeed_feed *data)
 {
-	size_t real_size = nitems * size;
-	struct string *header = crtas(buffer, real_size);
+	const size_t real_size = nmemb * length;
+	struct string *header = crtas(contents, real_size);
 	if (header == NULL) {
 		return 0;
 	}
@@ -61,7 +77,7 @@ header_callback(char *buffer, size_t size, size_t nitems, struct getfeed_feed *d
 }
 
 static inline void
-prepare_curl_for_performance(CURL *curl, const char *url, struct curl_slist *headers, struct getfeed_feed *feed, void *writedata, char *errbuf)
+prepare_curl_for_performance(CURL *curl, const char *url, struct curl_slist *headers, struct stream_callback_data *data, char *errbuf)
 {
 	curl_easy_setopt(curl, CURLOPT_URL, url);
 	if (get_cfg_bool(CFG_SEND_USER_AGENT_HEADER) == true) {
@@ -71,9 +87,9 @@ prepare_curl_for_performance(CURL *curl, const char *url, struct curl_slist *hea
 	}
 	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &parse_stream_callback);
-	curl_easy_setopt(curl, CURLOPT_WRITEDATA, writedata);
+	curl_easy_setopt(curl, CURLOPT_WRITEDATA, data);
 	curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, &header_callback);
-	curl_easy_setopt(curl, CURLOPT_HEADERDATA, feed);
+	curl_easy_setopt(curl, CURLOPT_HEADERDATA, &data->feed);
 	curl_easy_setopt(curl, CURLOPT_TIMEOUT, get_cfg_uint(CFG_DOWNLOAD_TIMEOUT));
 	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, get_cfg_bool(CFG_SSL_VERIFY_HOST) ? 2 : 0);
 	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, get_cfg_bool(CFG_SSL_VERIFY_PEER) ? 1 : 0);
@@ -98,28 +114,27 @@ prepare_curl_for_performance(CURL *curl, const char *url, struct curl_slist *hea
 }
 
 enum download_status
-download_feed(const char *url, struct getfeed_feed *feed, struct string *feedbuf)
+download_feed(const char *url, struct stream_callback_data *data)
 {
 	CURL *curl = curl_easy_init();
 	if (curl == NULL) {
-		FAIL("Failed to create a curl easy handle!");
+		FAIL("Failed to create curl handle!");
 		return DOWNLOAD_FAILED;
 	}
 
 	char curl_errbuf[CURL_ERROR_SIZE];
 	curl_errbuf[0] = '\0';
 
-	struct curl_slist *headers = create_list_of_headers(feed);
+	struct curl_slist *headers = create_list_of_headers(&data->feed);
 
-	prepare_curl_for_performance(curl, url, headers, feed, feedbuf, curl_errbuf);
+	prepare_curl_for_performance(curl, url, headers, data, curl_errbuf);
 
 	CURLcode res = curl_easy_perform(curl);
 	if (res != CURLE_OK) {
-		if (feed->previous_download_date == -1) {
+		if (data->feed.previous_download_date == -1) {
 			// See header_callback function to understand what is going on here.
 			curl_slist_free_all(headers);
 			curl_easy_cleanup(curl);
-			INFO("Download is canceled because the information on the server hasn't expired yet.");
 			return DOWNLOAD_CANCELED;
 		} else {
 			// These are just warnings because perform can fail due to lack of network connection.
@@ -144,10 +159,6 @@ download_feed(const char *url, struct getfeed_feed *feed, struct string *feedbuf
 		// There may be two reasons for this:
 		// 1) server's ETag header is equal to our If-None-Match header;
 		// 2) server's Last-Modified header is equal to our If-Modified-Since header.
-		return DOWNLOAD_CANCELED;
-	}
-
-	if (feedbuf->len == 0) {
 		return DOWNLOAD_CANCELED;
 	}
 

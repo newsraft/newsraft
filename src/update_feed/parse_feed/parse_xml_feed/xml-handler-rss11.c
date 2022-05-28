@@ -15,23 +15,22 @@
 // https://web.archive.org/web/20210411040907/http://inamidst.com/rss1.1/
 
 static void
-item_start(struct xml_data *data, const TidyAttr attrs)
+item_start(struct stream_callback_data *data, const XML_Char **attrs)
 {
 	(void)attrs;
-	prepend_item(&data->feed->item);
+	prepend_item(&data->feed.item);
 }
 
 static void
-title_end(struct xml_data *data, const TidyAttr attrs)
+title_end(struct stream_callback_data *data)
 {
-	(void)attrs;
 	if ((data->xml_pos[RSS11_FORMAT] & RSS11_ITEM) != 0) {
-		if (crtss_or_cpyss(&data->feed->item->title.value, data->value) == false) {
+		if (crtss_or_cpyss(&data->feed.item->title.value, data->value) == false) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}
 	} else {
-		if (crtss_or_cpyss(&data->feed->title.value, data->value) == false) {
+		if (crtss_or_cpyss(&data->feed.title.value, data->value) == false) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}
@@ -39,16 +38,15 @@ title_end(struct xml_data *data, const TidyAttr attrs)
 }
 
 static void
-link_end(struct xml_data *data, const TidyAttr attrs)
+link_end(struct stream_callback_data *data)
 {
-	(void)attrs;
 	if ((data->xml_pos[RSS11_FORMAT] & RSS11_ITEM) != 0) {
-		if (crtss_or_cpyss(&data->feed->item->url, data->value) == false) {
+		if (crtss_or_cpyss(&data->feed.item->url, data->value) == false) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}
 	} else {
-		if (crtss_or_cpyss(&data->feed->url, data->value) == false) {
+		if (crtss_or_cpyss(&data->feed.url, data->value) == false) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}
@@ -56,16 +54,15 @@ link_end(struct xml_data *data, const TidyAttr attrs)
 }
 
 static void
-description_end(struct xml_data *data, const TidyAttr attrs)
+description_end(struct stream_callback_data *data)
 {
-	(void)attrs;
 	if ((data->xml_pos[RSS11_FORMAT] & RSS11_ITEM) != 0) {
-		if (crtss_or_cpyss(&data->feed->item->content.value, data->value) == false) {
+		if (crtss_or_cpyss(&data->feed.item->content.value, data->value) == false) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}
 	} else {
-		if (crtss_or_cpyss(&data->feed->summary.value, data->value) == false) {
+		if (crtss_or_cpyss(&data->feed.summary.value, data->value) == false) {
 			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			return;
 		}

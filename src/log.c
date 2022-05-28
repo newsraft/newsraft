@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <curl/curl.h>
-#include <cjson/cJSON.h>
+#include <expat.h>
+#include <yajl/yajl_version.h>
 #include <tidy.h>
 #include "newsraft.h"
 
@@ -31,15 +32,21 @@ log_curl_version(void)
 }
 
 static inline void
-log_tidy_version(void)
+log_expat_version(void)
 {
-	INFO("LibTidy version: %s (%s) for %s", tidyLibraryVersion(), tidyReleaseDate(), tidyPlatform());
+	INFO("expat version: %s", XML_ExpatVersion());
 }
 
 static inline void
-log_cjson_version(void)
+log_yajl_version(void)
 {
-	INFO("cJSON version: %s", cJSON_Version());
+	INFO("yajl version: %d", yajl_version());
+}
+
+static inline void
+log_tidy_version(void)
+{
+	INFO("LibTidy version: %s (%s) for %s", tidyLibraryVersion(), tidyReleaseDate(), tidyPlatform());
 }
 
 bool
@@ -59,8 +66,9 @@ log_init(const char *path)
 	log_ncurses_version();
 	log_sqlite_version();
 	log_curl_version();
+	log_expat_version();
+	log_yajl_version();
 	log_tidy_version();
-	log_cjson_version();
 	return true;
 }
 

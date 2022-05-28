@@ -8,9 +8,15 @@ parse_stream_callback(char *contents, size_t length, size_t nmemb, struct stream
 	if (data->media_type == MEDIA_TYPE_UNKNOWN) {
 		for (size_t i = 0; i < real_size; ++i) {
 			if (contents[i] == '<') {
+				if (engage_xml_parser(data) == false) {
+					return 0;
+				}
 				data->media_type = MEDIA_TYPE_XML;
 				break;
 			} else if (contents[i] == '{') {
+				if (engage_json_parser(data) == false) {
+					return 0;
+				}
 				data->media_type = MEDIA_TYPE_JSON;
 				break;
 			}
@@ -22,6 +28,10 @@ parse_stream_callback(char *contents, size_t length, size_t nmemb, struct stream
 			return 0;
 		}
 	} else if (data->media_type == MEDIA_TYPE_JSON) {
+		if (yajl_parse(data->json_parser, (const unsigned char *)contents, real_size) != yajl_status_ok) {
+			FAIL("YAJL failed to parse.");
+			return 0;
+		}
 		INFO("Pretending to process JSON here :)");
 	}
 	return real_size;
@@ -122,6 +132,13 @@ download_feed(const char *url, struct stream_callback_data *data)
 	prepare_curl_for_performance(curl, url, headers, data, curl_errbuf);
 
 	CURLcode res = curl_easy_perform(curl);
+
+	if (data->media_type == MEDIA_TYPE_XML) {
+		free_xml_parser(data);
+	} else if (data->media_type == MEDIA_TYPE_JSON) {
+		free_json_parser(data);
+	}
+
 	if (res != CURLE_OK) {
 		// These are just warnings because perform can fail due to lack of network connection.
 		WARN("Feed update has stopped due to fail in curl request!");

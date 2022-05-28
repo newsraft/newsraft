@@ -1,12 +1,21 @@
 #ifndef UPDATE_FEED_H
 #define UPDATE_FEED_H
 #include <expat.h>
+#include <yajl/yajl_parse.h>
 #include "newsraft.h"
 
 enum download_status {
 	DOWNLOAD_SUCCEEDED,
 	DOWNLOAD_CANCELED,
 	DOWNLOAD_FAILED,
+};
+
+// Unknown type must have 0 value!
+enum {
+	MEDIA_TYPE_UNKNOWN = 0,
+	MEDIA_TYPE_XML,
+	MEDIA_TYPE_JSON,
+	MEDIA_TYPE_OTHER,
 };
 
 enum update_error {
@@ -132,6 +141,7 @@ struct getfeed_feed {
 struct stream_callback_data {
 	int8_t media_type;
 	XML_Parser xml_parser;
+	yajl_handle json_parser;
 	struct getfeed_feed feed;
 	int64_t default_handler;
 	intmax_t xml_pos[XML_FORMATS_COUNT];
@@ -141,6 +151,10 @@ struct stream_callback_data {
 };
 
 bool engage_xml_parser(struct stream_callback_data *data);
+void free_xml_parser(struct stream_callback_data *data);
+
+bool engage_json_parser(struct stream_callback_data *data);
+void free_json_parser(struct stream_callback_data *data);
 
 // See "download_feed" directory for implementation.
 enum download_status download_feed(const char *url, struct stream_callback_data *data);

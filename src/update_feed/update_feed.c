@@ -61,14 +61,7 @@ update_feed(const struct string *url)
 		goto undo1;
 	}
 
-	if (engage_xml_parser(&data) == false) {
-		goto undo2;
-	}
-
 	enum download_status status = download_feed(url->ptr, &data);
-
-	XML_Parse(data.xml_parser, NULL, 0, true); // final call
-	XML_ParserFree(data.xml_parser);
 
 	if (status == DOWNLOAD_CANCELED) {
 		INFO("Download canceled.");

@@ -167,3 +167,10 @@ engage_xml_parser(struct stream_callback_data *data)
 	XML_SetCharacterDataHandler(data->xml_parser, character_data_handler);
 	return true;
 }
+
+void
+free_xml_parser(struct stream_callback_data *data)
+{
+	XML_Parse(data->xml_parser, NULL, 0, true); // final call
+	XML_ParserFree(data->xml_parser);
+}

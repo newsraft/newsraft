@@ -7,9 +7,9 @@ append_sorting_order_expression_to_query(struct string *query, enum sorting_orde
 	if (order == SORT_BY_NONE) {
 		return true;
 	} else if (order == SORT_BY_TIME_DESC) {
-		return catas(query, " ORDER BY MAX(publication_date, update_date) DESC, rowid DESC", 61);
+		return catas(query, " ORDER BY publication_date DESC, update_date DESC, rowid DESC", 61);
 	} else if (order == SORT_BY_TIME_ASC) {
-		return catas(query, " ORDER BY MAX(publication_date, update_date) ASC, rowid ASC", 59);
+		return catas(query, " ORDER BY publication_date ASC, update_date ASC, rowid ASC", 58);
 	} else if (order == SORT_BY_NAME_DESC) {
 		return true; // TODO
 	} else if (order == SORT_BY_NAME_ASC) {

@@ -157,6 +157,11 @@ _analyze-database-on-startup_ (default: *true*)
 	It gathers statistics about database and uses it to optimize some queries.
 	This can significantly increase startup time.
 
+_respect-expires-header_ (default: *true*)
+	Prevents feed updates until the expiration date of the previously downloaded
+	information in order to save traffic and resources. Disabling it is strongly
+	discouraged.
+
 _send-if-none-match-header_ (default: *true*)
 	Sends a entity tag corresponding to the previously downloaded information.
 	If the server from which the feed is downloaded contains information with

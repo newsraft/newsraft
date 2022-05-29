@@ -113,6 +113,7 @@ struct getfeed_item {
 	struct getfeed_person *author;
 	struct getfeed_person *contributor;
 	struct string_list *location;
+	struct string *language;
 	struct getfeed_picture *thumbnail;
 	time_t pubdate; // Publication date in seconds since the Epoch (0 means unset).
 	time_t upddate; // Update date in seconds since the Epoch (0 means unset).

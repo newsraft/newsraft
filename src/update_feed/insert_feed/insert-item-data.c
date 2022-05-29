@@ -75,9 +75,9 @@ db_insert_item(const struct string *feed_url, struct getfeed_item *item, int row
 	bool prepare_status;
 
 	if (rowid == -1) {
-		prepare_status = db_prepare("INSERT INTO items VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", 72, &s, NULL);
+		prepare_status = db_prepare("INSERT INTO items VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", 75, &s, NULL);
 	} else {
-		prepare_status = db_prepare("UPDATE items SET feed_url = ?, title = ?, guid = ?, link = ?, attachments = ?, authors = ?, categories = ?, comments_url = ?, summary = ?, content = ?, locations = ?, thumbnails = ?, publication_date = ?, update_date = ?, unread = ? WHERE rowid = ?;", 250, &s, NULL);
+		prepare_status = db_prepare("UPDATE items SET feed_url = ?, title = ?, guid = ?, link = ?, attachments = ?, authors = ?, categories = ?, comments_url = ?, summary = ?, content = ?, locations = ?, languages = ?, thumbnails = ?, publication_date = ?, update_date = ?, unread = ? WHERE rowid = ?;", 265, &s, NULL);
 	}
 
 	if (prepare_status == false) {
@@ -101,6 +101,7 @@ db_insert_item(const struct string *feed_url, struct getfeed_item *item, int row
 	db_bind_text_struct(s, 1 + ITEM_COLUMN_SUMMARY,          &item->summary);
 	db_bind_text_struct(s, 1 + ITEM_COLUMN_CONTENT,          &item->content);
 	db_bind_string(s,      1 + ITEM_COLUMN_LOCATIONS,        locations_str);
+	db_bind_string(s,      1 + ITEM_COLUMN_LANGUAGES,        item->language);
 	db_bind_string(s,      1 + ITEM_COLUMN_THUMBNAILS,       thumbnails_str);
 	sqlite3_bind_int64(s,  1 + ITEM_COLUMN_PUBLICATION_DATE, (sqlite3_int64)(item->pubdate));
 	sqlite3_bind_int64(s,  1 + ITEM_COLUMN_UPDATE_DATE,      (sqlite3_int64)(item->upddate));

@@ -90,7 +90,9 @@ item_string_handler(struct stream_callback_data *data, const char *val, size_t l
 			return false;
 		}
 	} else if (strcmp(data->json_key->ptr, "language") == 0) {
-		// TODO
+		if (crtas_or_cpyas(&data->feed.item->language, val, len) == false) {
+			return false;
+		}
 	}
 	return true;
 }

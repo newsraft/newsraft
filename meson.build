@@ -115,7 +115,6 @@ if get_option('support-format-georss-gml').enabled()
 endif
 if get_option('support-format-jsonfeed').enabled()
 	add_project_arguments(['-DNEWSRAFT_FORMAT_SUPPORT_JSONFEED'], language: 'c')
-	newsraft_sources += ['src/update_feed/parse_feed/parse_json_feed/json-handler-jsonfeed.c']
 endif
 
 add_project_arguments(['-DNEWSRAFT_VERSION="@0@"'.format(meson.project_version())], language: 'c')

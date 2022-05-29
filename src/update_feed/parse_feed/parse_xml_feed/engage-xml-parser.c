@@ -72,7 +72,7 @@ start_element_handler(void *userData, const XML_Char *name, const XML_Char **att
 		handler_index = get_namespace_handler_index_by_namespace_name(name, sep_pos - name);
 	} else {
 		tag = name;
-		handler_index = data->default_handler;
+		handler_index = data->xml_format;
 	}
 	INFO("Element start: %s (%s)", tag, name);
 	if (handler_index != XML_FORMATS_COUNT) {
@@ -92,7 +92,7 @@ start_element_handler(void *userData, const XML_Char *name, const XML_Char **att
 			}
 		}
 	}
-	if (data->default_handler != XML_FORMATS_COUNT) {
+	if (data->xml_format != XML_FORMATS_COUNT) {
 		return;
 	}
 #ifdef NEWSRAFT_FORMAT_SUPPORT_RSS20
@@ -105,7 +105,7 @@ start_element_handler(void *userData, const XML_Char *name, const XML_Char **att
 			(strcmp(version, "0.92") == 0) ||
 			(strcmp(version, "0.91") == 0)))
 		{
-			data->default_handler = RSS20_FORMAT;
+			data->xml_format = RSS20_FORMAT;
 		}
 	}
 #endif
@@ -125,7 +125,7 @@ end_element_handler(void *userData, const XML_Char *name)
 		handler_index = get_namespace_handler_index_by_namespace_name(name, sep_pos - name);
 	} else {
 		tag = name;
-		handler_index = data->default_handler;
+		handler_index = data->xml_format;
 	}
 	INFO("Element close: %s (%s)", tag, name);
 	if (handler_index != XML_FORMATS_COUNT) {
@@ -157,11 +157,16 @@ character_data_handler(void *userData, const XML_Char *s, int len)
 bool
 engage_xml_parser(struct stream_callback_data *data)
 {
-	data->xml_parser = XML_ParserCreateNS(NULL, XML_NAMESPACE_SEPARATOR);
-	if (data->xml_parser == NULL) {
+	data->value = crtes();
+	if (data->value == NULL) {
 		return false;
 	}
-	data->default_handler = XML_FORMATS_COUNT;
+	data->xml_parser = XML_ParserCreateNS(NULL, XML_NAMESPACE_SEPARATOR);
+	if (data->xml_parser == NULL) {
+		free_string(data->value);
+		return false;
+	}
+	data->xml_format = XML_FORMATS_COUNT;
 	XML_SetUserData(data->xml_parser, data);
 	XML_SetElementHandler(data->xml_parser, start_element_handler, end_element_handler);
 	XML_SetCharacterDataHandler(data->xml_parser, character_data_handler);
@@ -171,6 +176,7 @@ engage_xml_parser(struct stream_callback_data *data)
 void
 free_xml_parser(struct stream_callback_data *data)
 {
+	free_string(data->value);
 	XML_Parse(data->xml_parser, NULL, 0, true); // final call
 	XML_ParserFree(data->xml_parser);
 }

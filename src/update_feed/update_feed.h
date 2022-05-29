@@ -143,8 +143,11 @@ struct stream_callback_data {
 	XML_Parser xml_parser;
 	yajl_handle json_parser;
 	struct getfeed_feed feed;
-	int64_t default_handler;
+	int8_t xml_format;
 	intmax_t xml_pos[XML_FORMATS_COUNT];
+	struct string *json_key;
+	int8_t json_array_types[100];
+	int8_t json_array_depth;
 	struct string *value;
 	uint64_t depth;
 	int8_t error;

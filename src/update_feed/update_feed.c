@@ -56,26 +56,19 @@ update_feed(const struct string *url)
 		goto undo0;
 	}
 
-	data.value = crtes();
-	if (data.value == NULL) {
-		goto undo1;
-	}
-
 	enum download_status status = download_feed(url->ptr, &data);
 
 	if (status == DOWNLOAD_CANCELED) {
 		INFO("Download canceled.");
 		success = true;
-		goto undo2;
+		goto undo1;
 	} else if (status == DOWNLOAD_FAILED) {
 		WARN("Download failed.");
-		goto undo2;
+		goto undo1;
 	}
 
 	success = insert_feed(url, &data.feed);
 
-undo2:
-	free_string(data.value);
 undo1:
 	free_feed(&data.feed);
 undo0:

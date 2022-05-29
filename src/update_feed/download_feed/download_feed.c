@@ -8,13 +8,17 @@ parse_stream_callback(char *contents, size_t length, size_t nmemb, struct stream
 	if (data->media_type == MEDIA_TYPE_UNKNOWN) {
 		for (size_t i = 0; i < real_size; ++i) {
 			if (contents[i] == '<') {
+				INFO("Found \"<\" character in the beginning of the stream - consider it to be XML data.");
 				if (engage_xml_parser(data) == false) {
+					FAIL("Failed to engage XML parser!");
 					return 0;
 				}
 				data->media_type = MEDIA_TYPE_XML;
 				break;
 			} else if (contents[i] == '{') {
+				INFO("Found \"{\" character in the beginning of the stream - consider it to be JSON data.");
 				if (engage_json_parser(data) == false) {
+					FAIL("Failed to engage JSON parser!");
 					return 0;
 				}
 				data->media_type = MEDIA_TYPE_JSON;
@@ -32,7 +36,6 @@ parse_stream_callback(char *contents, size_t length, size_t nmemb, struct stream
 			FAIL("YAJL failed to parse.");
 			return 0;
 		}
-		INFO("Pretending to process JSON here :)");
 	}
 	return real_size;
 }

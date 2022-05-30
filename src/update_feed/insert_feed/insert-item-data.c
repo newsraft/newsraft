@@ -77,7 +77,7 @@ db_insert_item(const struct string *feed_url, struct getfeed_item *item, int row
 	if (rowid == -1) {
 		prepare_status = db_prepare("INSERT INTO items VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", 75, &s, NULL);
 	} else {
-		prepare_status = db_prepare("UPDATE items SET feed_url = ?, title = ?, guid = ?, link = ?, attachments = ?, authors = ?, categories = ?, comments_url = ?, summary = ?, content = ?, locations = ?, languages = ?, thumbnails = ?, publication_date = ?, update_date = ?, unread = ? WHERE rowid = ?;", 265, &s, NULL);
+		prepare_status = db_prepare("UPDATE items SET feed_url = ?, guid = ?, title = ?, link = ?, summary = ?, content = ?, attachments = ?, authors = ?, categories = ?, comments_url = ?, locations = ?, languages = ?, thumbnails = ?, publication_date = ?, update_date = ?, unread = ? WHERE rowid = ?;", 265, &s, NULL);
 	}
 
 	if (prepare_status == false) {
@@ -91,15 +91,15 @@ db_insert_item(const struct string *feed_url, struct getfeed_item *item, int row
 	}
 
 	db_bind_string(s,      1 + ITEM_COLUMN_FEED_URL,         feed_url);
-	db_bind_text_struct(s, 1 + ITEM_COLUMN_TITLE,            &item->title);
 	db_bind_string(s,      1 + ITEM_COLUMN_GUID,             item->guid);
+	db_bind_text_struct(s, 1 + ITEM_COLUMN_TITLE,            &item->title);
 	db_bind_string(s,      1 + ITEM_COLUMN_LINK,             item->url);
+	db_bind_text_struct(s, 1 + ITEM_COLUMN_SUMMARY,          &item->summary);
+	db_bind_text_struct(s, 1 + ITEM_COLUMN_CONTENT,          &item->content);
 	db_bind_string(s,      1 + ITEM_COLUMN_ATTACHMENTS,      attachments_str);
 	db_bind_string(s,      1 + ITEM_COLUMN_AUTHORS,          authors_str);
 	db_bind_string(s,      1 + ITEM_COLUMN_CATEGORIES,       categories_str);
 	db_bind_string(s,      1 + ITEM_COLUMN_COMMENTS_URL,     item->comments_url);
-	db_bind_text_struct(s, 1 + ITEM_COLUMN_SUMMARY,          &item->summary);
-	db_bind_text_struct(s, 1 + ITEM_COLUMN_CONTENT,          &item->content);
 	db_bind_string(s,      1 + ITEM_COLUMN_LOCATIONS,        locations_str);
 	db_bind_string(s,      1 + ITEM_COLUMN_LANGUAGES,        item->language);
 	db_bind_string(s,      1 + ITEM_COLUMN_THUMBNAILS,       thumbnails_str);

@@ -20,45 +20,45 @@ db_init(void)
 
 	char *errmsg;
 
-	// Dates are stored as the number of seconds since 1970.
+	// All dates are stored as the number of seconds since 1970.
 	sqlite3_exec(
 		db,
 		"CREATE TABLE IF NOT EXISTS feeds("
-			"feed_url TEXT NOT NULL UNIQUE," // url of feed itself
-			"title TEXT," // name of feed
-			"link TEXT," // url to related resource
+			"feed_url TEXT NOT NULL UNIQUE,"
+			"title TEXT,"
+			"link TEXT,"
 			"summary TEXT,"
 			"authors TEXT,"
 			"editors TEXT,"
 			"webmasters TEXT,"
 			"categories TEXT,"
 			"languages TEXT,"
-			"generator TEXT,"
+			"generators TEXT,"
 			"rights TEXT,"
 			"time_to_live INTEGER(8) NOT NULL DEFAULT 0,"
 			"update_date INTEGER(8) NOT NULL DEFAULT 0,"
 			"download_date INTEGER(8) NOT NULL DEFAULT 0,"
-			"http_header_etag TEXT," // ETag HTTP header
-			"http_header_last_modified INTEGER(8) NOT NULL DEFAULT 0," // Last-Modified HTTP header expressed in epoch time
-			"http_header_expires INTEGER(8) NOT NULL DEFAULT 0" // Expires HTTP header expressed in epoch time
+			"http_header_etag TEXT,"
+			"http_header_last_modified INTEGER(8) NOT NULL DEFAULT 0,"
+			"http_header_expires INTEGER(8) NOT NULL DEFAULT 0"
 		");"
 		"CREATE TABLE IF NOT EXISTS items("
-			"feed_url TEXT NOT NULL," // url of feed this item belongs to
-			"title TEXT," // name of item
+			"feed_url TEXT NOT NULL,"
 			"guid TEXT,"
-			"link TEXT," // url to related resource
+			"title TEXT,"
+			"link TEXT,"
+			"summary TEXT,"
+			"content TEXT,"
 			"attachments TEXT,"
 			"authors TEXT,"
 			"categories TEXT,"
 			"comments_url TEXT,"
-			"summary TEXT,"
-			"content TEXT,"
 			"locations TEXT,"
 			"languages TEXT,"
 			"thumbnails TEXT,"
 			"publication_date INTEGER(8) NOT NULL DEFAULT 0,"
 			"update_date INTEGER(8) NOT NULL DEFAULT 0,"
-			"unread INTEGER(1) NOT NULL DEFAULT 0" // 0 if item read and 1 if item unread
+			"unread INTEGER(1) NOT NULL DEFAULT 0"
 		");",
 		NULL,
 		NULL,

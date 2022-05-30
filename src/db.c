@@ -25,6 +25,7 @@ db_init(void)
 		db,
 		"CREATE TABLE IF NOT EXISTS feeds("
 			"feed_url TEXT NOT NULL UNIQUE,"
+			"guid TEXT,"
 			"title TEXT,"
 			"link TEXT,"
 			"summary TEXT,"

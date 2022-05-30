@@ -30,11 +30,12 @@ insert_feed_data(const struct string *feed_url, struct getfeed_feed *feed)
 		goto undo4;
 	}
 	sqlite3_stmt *s;
-	if (db_prepare("INSERT OR REPLACE INTO feeds VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", 88, &s, NULL) == false) {
+	if (db_prepare("INSERT OR REPLACE INTO feeds VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", 91, &s, NULL) == false) {
 		success = false;
 		goto undo5;
 	}
 	db_bind_string(s,      1 + FEED_COLUMN_FEED_URL,                  feed_url);
+	db_bind_string(s,      1 + FEED_COLUMN_GUID,                      feed->guid);
 	db_bind_text_struct(s, 1 + FEED_COLUMN_TITLE,                     &feed->title);
 	db_bind_string(s,      1 + FEED_COLUMN_LINK,                      feed->url);
 	db_bind_text_struct(s, 1 + FEED_COLUMN_SUMMARY,                   &feed->summary);

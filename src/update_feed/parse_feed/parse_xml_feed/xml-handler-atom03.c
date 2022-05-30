@@ -20,11 +20,15 @@ static void
 id_end(struct stream_callback_data *data)
 {
 	if ((data->xml_pos[ATOM03_FORMAT] & ATOM03_ENTRY) == 0) {
-		return; // Ignore feed id.
-	}
-	if (crtss_or_cpyss(&data->feed.item->guid, data->value) == false) {
-		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
-		return;
+		if (crtss_or_cpyss(&data->feed.guid, data->value) == false) {
+			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+			return;
+		}
+	} else {
+		if (crtss_or_cpyss(&data->feed.item->guid, data->value) == false) {
+			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
+			return;
+		}
 	}
 }
 

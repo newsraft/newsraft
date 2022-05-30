@@ -1,7 +1,7 @@
 #include "update_feed/insert_feed/insert_feed.h"
 
 bool
-db_bind_text_struct(sqlite3_stmt *s, intmax_t placeholder, struct getfeed_text *text_struct)
+db_bind_text_struct(sqlite3_stmt *s, int8_t placeholder, struct getfeed_text *text_struct)
 {
 	if ((text_struct->value == NULL) || (text_struct->value->len == 0)) {
 		sqlite3_bind_null(s, placeholder);

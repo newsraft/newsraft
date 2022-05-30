@@ -1,4 +1,5 @@
 #ifdef NEWSRAFT_FORMAT_SUPPORT_RSS20
+#include <stdio.h>
 #include <string.h>
 #include "update_feed/parse_feed/parse_xml_feed/parse_xml_feed.h"
 
@@ -223,6 +224,22 @@ comments_end(struct stream_callback_data *data)
 }
 
 static void
+ttl_end(struct stream_callback_data *data)
+{
+	if ((data->xml_pos[RSS20_FORMAT] & RSS20_ITEM) != 0) {
+		return;
+	}
+	int64_t minutes;
+	if (sscanf(data->value->ptr, "%" SCNd64, &minutes) != 1) {
+		return;
+	}
+	if (minutes <= 0) {
+		return;
+	}
+	data->feed.time_to_live = minutes * 60;
+}
+
+static void
 language_end(struct stream_callback_data *data)
 {
 	if ((data->xml_pos[RSS20_FORMAT] & RSS20_ITEM) != 0) {
@@ -291,6 +308,7 @@ const struct xml_element_handler xml_rss20_handlers[] = {
 	{"enclosure",      RSS20_NONE,           &enclosure_start, NULL},
 	{"category",       RSS20_CATEGORY,       &category_start,  &category_end},
 	{"comments",       RSS20_COMMENTS,       NULL,             &comments_end},
+	{"ttl",            RSS20_TTL,            NULL,             &ttl_end},
 	{"language",       RSS20_LANGUAGE,       NULL,             &language_end},
 	{"generator",      RSS20_GENERATOR,      NULL,             &generator_end},
 	{"webMaster",      RSS20_WEBMASTER,      NULL,             &webMaster_end},

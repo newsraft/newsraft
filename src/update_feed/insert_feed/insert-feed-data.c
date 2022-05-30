@@ -30,7 +30,7 @@ insert_feed_data(const struct string *feed_url, struct getfeed_feed *feed)
 		goto undo4;
 	}
 	sqlite3_stmt *s;
-	if (db_prepare("INSERT OR REPLACE INTO feeds VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", 85, &s, NULL) == false) {
+	if (db_prepare("INSERT OR REPLACE INTO feeds VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", 88, &s, NULL) == false) {
 		success = false;
 		goto undo5;
 	}
@@ -45,6 +45,7 @@ insert_feed_data(const struct string *feed_url, struct getfeed_feed *feed)
 	db_bind_string(s,      1 + FEED_COLUMN_LANGUAGES,                 feed->language);
 	db_bind_string(s,      1 + FEED_COLUMN_GENERATOR,                 generator_str);
 	db_bind_text_struct(s, 1 + FEED_COLUMN_RIGHTS,                    &feed->rights);
+	sqlite3_bind_int64(s,  1 + FEED_COLUMN_TIME_TO_LIVE,              (sqlite3_int64)(feed->time_to_live));
 	sqlite3_bind_int64(s,  1 + FEED_COLUMN_UPDATE_DATE,               (sqlite3_int64)(feed->update_date));
 	sqlite3_bind_int64(s,  1 + FEED_COLUMN_DOWNLOAD_DATE,             (sqlite3_int64)(feed->download_date));
 	db_bind_string(s,      1 + FEED_COLUMN_HTTP_HEADER_ETAG,          feed->http_header_etag);

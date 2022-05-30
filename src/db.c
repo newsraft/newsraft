@@ -35,6 +35,7 @@ db_init(void)
 			"languages TEXT,"
 			"generator TEXT,"
 			"rights TEXT,"
+			"time_to_live INTEGER(8) NOT NULL DEFAULT 0,"
 			"update_date INTEGER(8) NOT NULL DEFAULT 0,"
 			"download_date INTEGER(8) NOT NULL DEFAULT 0,"
 			"http_header_etag TEXT," // ETag HTTP header

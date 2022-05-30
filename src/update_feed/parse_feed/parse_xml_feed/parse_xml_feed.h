@@ -4,7 +4,7 @@
 
 struct xml_element_handler {
 	const char *name;
-	intmax_t bitpos;
+	int32_t bitpos;
 	void (*start_handle)(struct stream_callback_data *data, const XML_Char **atts);
 	void (*end_handle)(struct stream_callback_data *data);
 };
@@ -47,11 +47,12 @@ enum rss20_position {
 	RSS20_AUTHOR = 128,
 	RSS20_CATEGORY = 256,
 	RSS20_COMMENTS = 512,
-	RSS20_LANGUAGE = 1024,
-	RSS20_GENERATOR = 2048,
-	RSS20_WEBMASTER = 4096,
-	RSS20_MANAGINGEDITOR = 8192,
-	RSS20_SOURCE = 16384,
+	RSS20_TTL = 1024,
+	RSS20_LANGUAGE = 2048,
+	RSS20_GENERATOR = 4096,
+	RSS20_WEBMASTER = 8192,
+	RSS20_MANAGINGEDITOR = 16384,
+	RSS20_SOURCE = 32768,
 };
 extern const struct xml_element_handler xml_rss20_handlers[];
 #endif

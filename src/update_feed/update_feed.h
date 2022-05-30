@@ -131,6 +131,7 @@ struct getfeed_feed {
 	struct getfeed_person *author;
 	struct getfeed_person *editor;
 	struct getfeed_person *webmaster;
+	time_t time_to_live;
 	time_t update_date;
 	time_t download_date;
 	int64_t http_header_last_modified;
@@ -145,7 +146,7 @@ struct stream_callback_data {
 	yajl_handle json_parser;
 	struct getfeed_feed feed;
 	int8_t xml_format;
-	intmax_t xml_pos[XML_FORMATS_COUNT];
+	int32_t xml_pos[XML_FORMATS_COUNT];
 	struct string *json_key;
 	int8_t json_array_types[100];
 	int8_t json_array_depth;

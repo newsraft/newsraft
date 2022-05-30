@@ -46,6 +46,7 @@ static struct config_entry config[] = {
 	{"content-append-links",            CFG_BOOL,    {.b = true},  {.s = NULL},                                                       0},
 	{"clean-database-on-startup",       CFG_BOOL,    {.b = true},  {.s = NULL},                                                       0},
 	{"analyze-database-on-startup",     CFG_BOOL,    {.b = true},  {.s = NULL},                                                       0},
+	{"respect-ttl-element",             CFG_BOOL,    {.b = true},  {.s = NULL},                                                       0},
 	{"respect-expires-header",          CFG_BOOL,    {.b = true},  {.s = NULL},                                                       0},
 	{"send-user-agent-header",          CFG_BOOL,    {.b = true},  {.s = NULL},                                                       0},
 	{"send-if-none-match-header",       CFG_BOOL,    {.b = true},  {.s = NULL},                                                       0},

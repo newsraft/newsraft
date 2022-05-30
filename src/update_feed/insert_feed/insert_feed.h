@@ -2,7 +2,7 @@
 #define INSERT_FEED_H
 #include "update_feed/update_feed.h"
 
-bool db_bind_text_struct(sqlite3_stmt *s, intmax_t placeholder, struct getfeed_text *text_struct);
+bool db_bind_text_struct(sqlite3_stmt *s, int8_t placeholder, struct getfeed_text *text_struct);
 
 void delete_excess_items(const struct string *feed_url);
 

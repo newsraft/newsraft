@@ -157,6 +157,11 @@ _analyze-database-on-startup_ (default: *true*)
 	It gathers statistics about database and uses it to optimize some queries.
 	This can significantly increase startup time.
 
+_respect-ttl-element_ (default: *true*)
+	Prevents too frequent updates for some feeds. The limit is set by the
+	creators of the feeds in order to save traffic and resources for a very
+	rarely updated feeds. Disabling it is strongly discouraged.
+
 _respect-expires-header_ (default: *true*)
 	Prevents feed updates until the expiration date of the previously downloaded
 	information in order to save traffic and resources. Disabling it is strongly

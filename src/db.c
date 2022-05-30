@@ -144,10 +144,13 @@ db_stop(void)
 }
 
 bool
-db_prepare(const char *zSql, int nByte, sqlite3_stmt **ppStmt, const char **pzTail)
+db_prepare(const char *zSql, int nByte, sqlite3_stmt **ppStmt)
 {
+	// Last argument to sqlite3_prepare_v2 is pointer to unused portion of zSql
+	// (sqlite3_prepare_v2 will prepare only first statement). But given that we
+	// always pass one statement to the function, this parameter is useless.
 	INFO("Preparing \"%s\" statement...", zSql);
-	if (sqlite3_prepare_v2(db, zSql, nByte, ppStmt, pzTail) != SQLITE_OK) {
+	if (sqlite3_prepare_v2(db, zSql, nByte, ppStmt, NULL) != SQLITE_OK) {
 		FAIL("Failed to prepare \"%s\" statement: %s", zSql, sqlite3_errmsg(db));
 		return false;
 	}
@@ -220,7 +223,7 @@ db_get_date_from_feeds_table(const struct string *url, const char *column, size_
 	catas(query, column, column_len);
 	catas(query, " FROM feeds WHERE feed_url=?;", 29);
 	sqlite3_stmt *res;
-	if (db_prepare(query->ptr, query->len + 1, &res, NULL) == false) {
+	if (db_prepare(query->ptr, query->len + 1, &res) == false) {
 		free_string(query);
 		return -1;
 	}
@@ -253,7 +256,7 @@ db_get_string_from_feed_table(const struct string *url, const char *column, size
 	catas(query, column, column_len);
 	catas(query, " FROM feeds WHERE feed_url=?;", 29);
 	sqlite3_stmt *res;
-	if (db_prepare(query->ptr, query->len + 1, &res, NULL) == true) {
+	if (db_prepare(query->ptr, query->len + 1, &res) == true) {
 		sqlite3_bind_text(res, 1, url->ptr, url->len, NULL);
 		if (sqlite3_step(res) == SQLITE_ROW) {
 			const char *str_value = (char *)sqlite3_column_text(res, 0);

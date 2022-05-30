@@ -273,7 +273,7 @@ struct string *get_http_date_str(time_t date);
 // db
 bool db_init(void);
 void db_stop(void);
-bool db_prepare(const char *zSql, int nByte, sqlite3_stmt **ppStmt, const char **pzTail);
+bool db_prepare(const char *zSql, int nByte, sqlite3_stmt **ppStmt);
 bool db_begin_transaction(void);
 bool db_commit_transaction(void);
 bool db_rollback_transaction(void);

@@ -30,7 +30,7 @@ insert_feed_data(const struct string *feed_url, struct getfeed_feed *feed)
 		goto undo4;
 	}
 	sqlite3_stmt *s;
-	if (db_prepare("INSERT OR REPLACE INTO feeds VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", 91, &s, NULL) == false) {
+	if (db_prepare("INSERT OR REPLACE INTO feeds VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", 91, &s) == false) {
 		success = false;
 		goto undo5;
 	}

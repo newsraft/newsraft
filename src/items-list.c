@@ -94,7 +94,7 @@ generate_items_list(const struct feed_line **feeds, size_t feeds_count, enum sor
 		return NULL;
 	}
 	sqlite3_stmt *res;
-	if (db_prepare(query->ptr, query->len + 1, &res, NULL) == false) {
+	if (db_prepare(query->ptr, query->len + 1, &res) == false) {
 		status_write("Can't prepare search query for action!");
 		free_string(query);
 		return NULL;

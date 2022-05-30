@@ -6,7 +6,7 @@ delete_excess_items(const struct string *feed_url)
 {
 	INFO("Deleting excess items...");
 	sqlite3_stmt *s;
-	if (db_prepare("SELECT rowid FROM items WHERE feed_url = ? ORDER BY publication_date DESC, update_date DESC, rowid DESC;", 105, &s, NULL) == false) {
+	if (db_prepare("SELECT rowid FROM items WHERE feed_url = ? ORDER BY publication_date DESC, update_date DESC, rowid DESC;", 105, &s) == false) {
 		FAIL("Failed to prepare an excess items deletion statement:");
 		return;
 	}
@@ -19,7 +19,7 @@ delete_excess_items(const struct string *feed_url)
 		if (item_iterator <= max_items) {
 			continue;
 		}
-		if (db_prepare("DELETE FROM items WHERE rowid = ?", 34, &t, NULL) == true) {
+		if (db_prepare("DELETE FROM items WHERE rowid = ?", 34, &t) == true) {
 			sqlite3_bind_int(t, 1, sqlite3_column_int(s, 0));
 			if (sqlite3_step(t) != SQLITE_DONE) {
 				FAIL("Deletion of the excess item is failed!");
@@ -75,9 +75,9 @@ db_insert_item(const struct string *feed_url, struct getfeed_item *item, int row
 	bool prepare_status;
 
 	if (rowid == -1) {
-		prepare_status = db_prepare("INSERT INTO items VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", 75, &s, NULL);
+		prepare_status = db_prepare("INSERT INTO items VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", 75, &s);
 	} else {
-		prepare_status = db_prepare("UPDATE items SET feed_url = ?, guid = ?, title = ?, link = ?, summary = ?, content = ?, attachments = ?, authors = ?, categories = ?, comments_url = ?, locations = ?, languages = ?, thumbnails = ?, publication_date = ?, update_date = ?, unread = ? WHERE rowid = ?;", 265, &s, NULL);
+		prepare_status = db_prepare("UPDATE items SET feed_url = ?, guid = ?, title = ?, link = ?, summary = ?, content = ?, attachments = ?, authors = ?, categories = ?, comments_url = ?, locations = ?, languages = ?, thumbnails = ?, publication_date = ?, update_date = ?, unread = ? WHERE rowid = ?;", 265, &s);
 	}
 
 	if (prepare_status == false) {
@@ -154,7 +154,7 @@ insert_item_data(const struct string *feed_url, struct getfeed_item *item)
 	// item is duplicate or not.
 
 	if ((item->guid != NULL) && (item->guid->len > 0)) {
-		if (db_prepare("SELECT rowid, publication_date, update_date, content FROM items WHERE feed_url = ? AND guid = ? LIMIT 1;", 105, &s, NULL) == false) {
+		if (db_prepare("SELECT rowid, publication_date, update_date, content FROM items WHERE feed_url = ? AND guid = ? LIMIT 1;", 105, &s) == false) {
 			FAIL("Failed to prepare SELECT statement for searching item duplicate by guid!");
 			return false;
 		}
@@ -162,7 +162,7 @@ insert_item_data(const struct string *feed_url, struct getfeed_item *item)
 		sqlite3_bind_text(s, 2, item->guid->ptr, item->guid->len, NULL);
 		step_status = sqlite3_step(s);
 	} else if ((item->url != NULL) && (item->url->len > 0)) {
-		if (db_prepare("SELECT rowid, publication_date, update_date, content FROM items WHERE feed_url = ? AND link = ? LIMIT 1;", 105, &s, NULL) == false) {
+		if (db_prepare("SELECT rowid, publication_date, update_date, content FROM items WHERE feed_url = ? AND link = ? LIMIT 1;", 105, &s) == false) {
 			FAIL("Failed to prepare SELECT statement for searching item duplicate by link!");
 			return false;
 		}

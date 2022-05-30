@@ -9,7 +9,7 @@ db_find_item_by_rowid(int rowid)
 {
 	INFO("Looking for item with rowid %d...", rowid);
 	sqlite3_stmt *res;
-	if (db_prepare("SELECT * FROM items WHERE rowid = ? LIMIT 1", 44, &res, NULL) == false) {
+	if (db_prepare("SELECT * FROM items WHERE rowid = ? LIMIT 1", 44, &res) == false) {
 		return NULL;
 	}
 	sqlite3_bind_int(res, 1, rowid);
@@ -41,7 +41,7 @@ db_update_item_int(int rowid, const char *column, int value)
 	bool success = true;
 
 	sqlite3_stmt *res;
-	if (db_prepare(cmd, cmd_size, &res, NULL) == true) {
+	if (db_prepare(cmd, cmd_size, &res) == true) {
 		sqlite3_bind_int(res, 1, value);
 		sqlite3_bind_int(res, 2, rowid);
 		if (sqlite3_step(res) != SQLITE_DONE) {
@@ -78,7 +78,7 @@ get_unread_items_count_of_the_feed(const struct string *url)
 	int64_t unread_count = -1;
 
 	sqlite3_stmt *res;
-	if (db_prepare("SELECT COUNT(*) FROM items WHERE feed_url=? AND unread=1;", 58, &res, NULL) == true) {
+	if (db_prepare("SELECT COUNT(*) FROM items WHERE feed_url=? AND unread=1;", 58, &res) == true) {
 		sqlite3_bind_text(res, 1, url->ptr, url->len, NULL);
 		if (sqlite3_step(res) == SQLITE_ROW) {
 			unread_count = sqlite3_column_int64(res, 0);
@@ -110,7 +110,7 @@ change_unread_status_of_all_items_in_feeds(const struct feed_line **feeds, size_
 		return false;
 	}
 	sqlite3_stmt *res;
-	if (db_prepare(query->ptr, query->len + 1, &res, NULL) == false) {
+	if (db_prepare(query->ptr, query->len + 1, &res) == false) {
 		free_string(query);
 		return false;
 	}

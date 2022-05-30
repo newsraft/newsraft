@@ -20,6 +20,23 @@ prepend_empty_string_to_string_list(struct string_list **list)
 	return true;
 }
 
+bool
+copy_string_to_string_list(struct string_list **list, const struct string *src)
+{
+	struct string_list *new = malloc(sizeof(struct string_list));
+	if (new == NULL) {
+		return false;
+	}
+	new->str = crtss(src);
+	if (new->str == NULL) {
+		free(new);
+		return false;
+	}
+	new->next = *list;
+	*list = new;
+	return true;
+}
+
 struct string *
 concatenate_strings_of_string_list_into_one_string(const struct string_list *list)
 {

@@ -334,6 +334,7 @@ struct string *convert_bytes_to_human_readable_size_string(const char *value);
 
 // string-list.c
 bool prepend_empty_string_to_string_list(struct string_list **list);
+bool copy_string_to_string_list(struct string_list **list, const struct string *src);
 struct string *concatenate_strings_of_string_list_into_one_string(const struct string_list *list);
 void reverse_string_list(struct string_list **list);
 void free_string_list(struct string_list *list);

@@ -2,11 +2,16 @@
 #define PARSE_XML_FEED_H
 #include "update_feed/parse_feed/parse_feed.h"
 
+enum parsing_error {
+	PARSE_OKAY = 0,
+	PARSE_FAIL_NOT_ENOUGH_MEMORY,
+};
+
 struct xml_element_handler {
 	const char *name;
 	int32_t bitpos;
-	void (*start_handle)(struct stream_callback_data *data, const XML_Char **atts);
-	void (*end_handle)(struct stream_callback_data *data);
+	int8_t (*start_handle)(struct stream_callback_data *data, const XML_Char **atts);
+	int8_t (*end_handle)(struct stream_callback_data *data);
 };
 
 // Functions common to parsers of all formats.

@@ -3,78 +3,72 @@
 
 // https://web.archive.org/web/20211009134219/https://yandex.ru/support/news/feed.html
 
-static void
+static int8_t
 full_text_end(struct stream_callback_data *data)
 {
 	if (we_are_inside_item(data) == false) {
-		return;
+		return PARSE_OKAY;
 	}
 	if ((data->feed.item->content.value != NULL) && (data->value->len < data->feed.item->content.value->len)) {
 		// Don't save content if it's shorter than the content we currently have.
-		return;
+		return PARSE_OKAY;
 	}
 	if (crtss_or_cpyss(&data->feed.item->content.value, data->value) == false) {
-		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
-		return;
+		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 	}
 	// In most cases this is HTML.
 	if (crtas_or_cpyas(&data->feed.item->content.type, "text/html", 9) == false) {
-		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
-		return;
+		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 	}
+	return PARSE_OKAY;
 }
 
-static void
+static int8_t
 genre_end(struct stream_callback_data *data)
 {
-	if (we_are_inside_item(data) == false) {
-		return;
+	if (we_are_inside_item(data) == true) {
+		if (prepend_category(&data->feed.item->category) == false) {
+			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		}
+		if (crtss_or_cpyss(&data->feed.item->category->term, data->value) == false) {
+			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		}
 	}
-	if (prepend_category(&data->feed.item->category) == false) {
-		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
-		return;
-	}
-	if (crtss_or_cpyss(&data->feed.item->category->term, data->value) == false) {
-		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
-		return;
-	}
+	return PARSE_OKAY;
 }
 
-static void
+static int8_t
 comment_text_end(struct stream_callback_data *data)
 {
 	if (we_are_inside_item(data) == false) {
-		return;
+		return PARSE_OKAY;
 	}
 	if ((data->feed.item->summary.value != NULL) && (data->value->len < data->feed.item->summary.value->len)) {
 		// Don't save summary if it's shorter than the summary we currently have.
-		return;
+		return PARSE_OKAY;
 	}
 	if (crtss_or_cpyss(&data->feed.item->summary.value, data->value) == false) {
-		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
-		return;
+		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 	}
-	// Spec says that all comments are plain text.
+	// Specification says that all comments are plain text.
 	if (crtas_or_cpyas(&data->feed.item->summary.type, "text/plain", 10) == false) {
-		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
-		return;
+		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 	}
+	return PARSE_OKAY;
 }
 
-static void
+static int8_t
 bind_to_end(struct stream_callback_data *data)
 {
-	if (we_are_inside_item(data) == false) {
-		return;
+	if (we_are_inside_item(data) == true) {
+		if (prepend_link(&data->feed.item->attachment) == false) {
+			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		}
+		if (crtss_or_cpyss(&data->feed.item->attachment->url, data->value) == false) {
+			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		}
 	}
-	if (prepend_link(&data->feed.item->attachment) == false) {
-		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
-		return;
-	}
-	if (crtss_or_cpyss(&data->feed.item->attachment->url, data->value) == false) {
-		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
-		return;
-	}
+	return PARSE_OKAY;
 }
 
 const struct xml_element_handler xml_yandex_handlers[] = {

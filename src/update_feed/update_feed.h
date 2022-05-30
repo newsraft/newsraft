@@ -18,11 +18,6 @@ enum {
 	MEDIA_TYPE_OTHER,
 };
 
-enum update_error {
-	PARSE_OKAY = 0,
-	PARSE_FAIL_NOT_ENOUGH_MEMORY,
-};
-
 enum xml_format_index {
 #ifdef NEWSRAFT_FORMAT_SUPPORT_ATOM10
 	ATOM10_FORMAT = 0,
@@ -153,7 +148,6 @@ struct stream_callback_data {
 	int8_t json_array_depth;
 	struct string *value;
 	uint64_t depth;
-	int8_t error;
 };
 
 bool engage_xml_parser(struct stream_callback_data *data);

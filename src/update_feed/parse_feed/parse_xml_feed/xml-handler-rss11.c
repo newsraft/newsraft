@@ -14,59 +14,73 @@
 // https://web.archive.org/web/20211106023928/https://web.resource.org/rss/1.0/spec
 // https://web.archive.org/web/20210411040907/http://inamidst.com/rss1.1/
 
-static void
+static int8_t
 item_start(struct stream_callback_data *data, const XML_Char **attrs)
 {
 	(void)attrs;
-	prepend_item(&data->feed.item);
+	if (prepend_item(&data->feed.item) == false) {
+		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+	}
+	return PARSE_OKAY;
 }
 
-static void
+static int8_t
 title_end(struct stream_callback_data *data)
 {
 	if ((data->xml_pos[RSS11_FORMAT] & RSS11_ITEM) != 0) {
 		if (crtss_or_cpyss(&data->feed.item->title.value, data->value) == false) {
-			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
-			return;
+			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		}
+		if (crtas_or_cpyas(&data->feed.item->title.type, "text/plain", 10) == false) {
+			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	} else {
 		if (crtss_or_cpyss(&data->feed.title.value, data->value) == false) {
-			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
-			return;
+			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		}
+		if (crtas_or_cpyas(&data->feed.title.type, "text/plain", 10) == false) {
+			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	}
+	return PARSE_OKAY;
 }
 
-static void
+static int8_t
 link_end(struct stream_callback_data *data)
 {
 	if ((data->xml_pos[RSS11_FORMAT] & RSS11_ITEM) != 0) {
 		if (crtss_or_cpyss(&data->feed.item->url, data->value) == false) {
-			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
-			return;
+			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	} else {
 		if (crtss_or_cpyss(&data->feed.url, data->value) == false) {
-			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
-			return;
+			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	}
+	return PARSE_OKAY;
 }
 
-static void
+static int8_t
 description_end(struct stream_callback_data *data)
 {
 	if ((data->xml_pos[RSS11_FORMAT] & RSS11_ITEM) != 0) {
 		if (crtss_or_cpyss(&data->feed.item->content.value, data->value) == false) {
-			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
-			return;
+			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		}
+		// Specification explicitly says that this is plain text.
+		if (crtas_or_cpyas(&data->feed.item->content.type, "text/plain", 10) == false) {
+			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	} else {
 		if (crtss_or_cpyss(&data->feed.summary.value, data->value) == false) {
-			data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
-			return;
+			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		}
+		// Specification explicitly says that this is plain text.
+		if (crtas_or_cpyas(&data->feed.summary.type, "text/plain", 10) == false) {
+			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	}
+	return PARSE_OKAY;
 }
 
 const struct xml_element_handler xml_rss11_handlers[] = {

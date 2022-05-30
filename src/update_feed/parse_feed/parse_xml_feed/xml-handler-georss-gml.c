@@ -4,20 +4,15 @@
 // https://en.wikipedia.org/wiki/Geography_Markup_Language
 // https://georss.org/gml.html
 
-static void
+static int8_t
 pos_end(struct stream_callback_data *data)
 {
-	if (we_are_inside_item(data) == false) {
-		return;
+	if (we_are_inside_item(data) == true) {
+		if (copy_string_to_string_list(&data->feed.item->location, data->value) == false) {
+			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		}
 	}
-	if (prepend_empty_string_to_string_list(&data->feed.item->location) == false) {
-		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
-		return;
-	}
-	if (crtss_or_cpyss(&data->feed.item->location->str, data->value) == false) {
-		data->error = PARSE_FAIL_NOT_ENOUGH_MEMORY;
-		return;
-	}
+	return PARSE_OKAY;
 }
 
 const struct xml_element_handler xml_georss_gml_handlers[] = {

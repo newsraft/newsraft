@@ -12,6 +12,10 @@ db_bind_text_struct(sqlite3_stmt *s, int8_t placeholder, struct getfeed_text *te
 		if (text_struct->type == NULL) {
 			return false;
 		}
+	} else if (text_struct->type->len == 0) {
+		if (cpyas(text_struct->type, "text/plain", 10) == false) {
+			return false;
+		}
 	}
 	if (catcs(text_struct->type, ';') == false) {
 		return false;
@@ -19,7 +23,7 @@ db_bind_text_struct(sqlite3_stmt *s, int8_t placeholder, struct getfeed_text *te
 	if (catss(text_struct->type, text_struct->value) == false) {
 		return false;
 	}
-	if (sqlite3_bind_text(s, placeholder, text_struct->type->ptr, text_struct->type->len, NULL) != SQLITE_OK) {
+	if (db_bind_string(s, placeholder, text_struct->type) != SQLITE_OK) {
 		return false;
 	}
 	return true;

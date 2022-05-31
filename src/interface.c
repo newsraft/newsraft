@@ -46,13 +46,13 @@ curses_init(void)
 		return false;
 	}
 	if (curs_set(0) == ERR) {
-		FAIL("Can not hide cursor!");
+		WARN("Can't hide cursor!");
 	}
 	if (noecho() == ERR) {
-		FAIL("Can not disable echoing of characters typed by the user!");
+		WARN("Can't disable echoing of characters typed by the user!");
 	}
-	if (keypad(stdscr, TRUE) == ERR) { // used to enable arrow keys, function keys...
-		FAIL("Can not enable extended keys!");
+	if (keypad(stdscr, TRUE) == ERR) {
+		WARN("Can't enable keypad and function keys!");
 	}
 	return true;
 }

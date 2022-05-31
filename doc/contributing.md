@@ -36,24 +36,15 @@ for (size_t i = 0; i < items_count; ++i) {
 
 ## Function definitions
 
-Every function definition in the source code has to be of the form:
-
-```
-SPECIFIERS TYPE
-NAME(ARGUMENTS)
-{
-	BODY
-}
-```
+Every function name in a function definition must start on a new line, and the curly braces that enclose the body of the function must be on their own lines.
 
 For example:
 
 ```
 static void
-redraw_items_windows(void)
+character_data_handler(void *userData, const XML_Char *s, int len)
 {
-	clear();
-	refresh();
-	show_items();
+	struct stream_callback_data *data = userData;
+	catas(data->value, s, len);
 }
 ```

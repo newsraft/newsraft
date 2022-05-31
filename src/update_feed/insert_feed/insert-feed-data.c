@@ -1,8 +1,20 @@
 #include "update_feed/insert_feed/insert_feed.h"
 
+static inline void
+reverse_linked_list_structures_of_feed(struct getfeed_feed *feed)
+{
+	// Reverse linked lists to match the order in which the entries were added.
+	reverse_category_list(&feed->category);
+	reverse_person_list(&feed->author);
+	reverse_person_list(&feed->editor);
+	reverse_person_list(&feed->webmaster);
+}
+
 bool
 insert_feed_data(const struct string *feed_url, struct getfeed_feed *feed)
 {
+	reverse_linked_list_structures_of_feed(feed);
+
 	bool success = true;
 	struct string *authors_str = generate_person_list_string(feed->author);
 	if (authors_str == NULL) {

@@ -11,7 +11,7 @@ enum download_status {
 };
 
 // Unknown type must have 0 value!
-enum {
+enum media_type {
 	MEDIA_TYPE_UNKNOWN = 0,
 	MEDIA_TYPE_XML,
 	MEDIA_TYPE_JSON,
@@ -150,17 +150,13 @@ struct stream_callback_data {
 	uint64_t depth;
 };
 
+enum download_status download_feed(const char *url, struct stream_callback_data *data);
+
 bool engage_xml_parser(struct stream_callback_data *data);
 void free_xml_parser(struct stream_callback_data *data);
 
 bool engage_json_parser(struct stream_callback_data *data);
 void free_json_parser(struct stream_callback_data *data);
-
-// See "download_feed" directory for implementation.
-enum download_status download_feed(const char *url, struct stream_callback_data *data);
-
-// See "parse_feed" directory for implementation.
-bool parse_feed(const struct string *feed_buf, struct getfeed_feed *feed);
 
 // See "insert_feed" directory for implementation.
 bool insert_feed(const struct string *url, struct getfeed_feed *feed);

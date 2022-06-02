@@ -91,12 +91,13 @@ static void
 a_handler(struct string *text, struct link_list *links, const TidyAttr *attrs)
 {
 	const char *url = get_value_of_xml_attribute(attrs, "href");
+	const char *type = get_value_of_xml_attribute(attrs, "type");
 	const char *title = get_value_of_xml_attribute(attrs, "title");
 	size_t title_len;
 	if (title != NULL) {
 		title_len = strlen(title);
 	}
-	add_url_mark(text, url, title, title_len, links, NULL);
+	add_url_mark(text, url, title, title_len, links, type);
 }
 
 static void
@@ -132,7 +133,7 @@ iframe_handler(struct string *text, struct link_list *links, const TidyAttr *att
 			title_len = strlen(title);
 		}
 	}
-	add_url_mark(text, url, title, title_len, links, "frame");
+	add_url_mark(text, url, title, title_len, links, "iframe");
 }
 
 static void

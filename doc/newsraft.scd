@@ -144,6 +144,9 @@ _menu-item-entry-format_ (default: *" %u │ %d │ %t"*)
 _menu-overview-item-entry-format_ (default: *" %u │ %d │ %-28.28f │ %t"*)
 	TODO
 
+_mark-item-read-on-hover_ (default: *false*)
+	Mark every item that gets selected as read.
+
 _content-append-links_ (default: *true*)
 	Whether or not append links section to content view.
 

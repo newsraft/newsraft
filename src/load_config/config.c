@@ -43,6 +43,7 @@ static struct config_entry config[] = {
 	{"menu-feed-entry-format",          CFG_WSTRING, {.w = NULL},  {.w = L"%4.0u │ %t"},                                              10},
 	{"menu-item-entry-format",          CFG_WSTRING, {.w = NULL},  {.w = L" %u │ %d │ %t"},                                           13},
 	{"menu-overview-item-entry-format", CFG_WSTRING, {.w = NULL},  {.w = L" %u │ %d │ %-28.28f │ %t"},                                24},
+	{"mark-item-read-on-hover",         CFG_BOOL,    {.b = false}, {.s = NULL},                                                       0},
 	{"content-append-links",            CFG_BOOL,    {.b = true},  {.s = NULL},                                                       0},
 	{"clean-database-on-startup",       CFG_BOOL,    {.b = true},  {.s = NULL},                                                       0},
 	{"analyze-database-on-startup",     CFG_BOOL,    {.b = true},  {.s = NULL},                                                       0},

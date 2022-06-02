@@ -29,7 +29,7 @@ newsraft_sources = [
 	'src/db-items.c',
 	'src/feeds.c',
 	'src/feeds-verifier.c',
-	'src/feeds-sections.c',
+	'src/sections.c',
 	'src/input.c',
 	'src/interface.c',
 	'src/interface-status.c',

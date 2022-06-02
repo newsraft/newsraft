@@ -160,6 +160,17 @@ obtain_feeds_of_global_section(struct feed_line ***feeds_ptr, size_t *feeds_coun
 	*feeds_count_ptr = sections[0].feeds_count;
 }
 
+static inline void
+update_unread_count_of_sections(void)
+{
+	for (size_t i = 0; i < sections_count; ++i) {
+		sections[i].unread_count = 0;
+		for (size_t j = 0; j < sections[i].feeds_count; ++j) {
+			sections[i].unread_count += sections[i].feeds[j]->unread_count;
+		}
+	}
+}
+
 void
 free_sections(void)
 {
@@ -204,6 +215,8 @@ enter_sections_menu_loop(struct feed_line ***feeds_ptr, size_t *feeds_count_ptr)
 		reset_menu_list_settings();
 		is_the_sections_menu_being_opened_for_the_first_time = false;
 	}
+
+	update_unread_count_of_sections();
 
 	status_clean();
 	redraw_menu_list(&sections_menu);

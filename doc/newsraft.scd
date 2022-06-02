@@ -94,6 +94,10 @@ _download-timeout_ (default: *20*)
 	Maximum time in seconds that you allow newsraft to download one feed. Zero
 	disables the limit.
 
+_download-speed-limit_ (default: *0*)
+	Maximum download speed in kilobytes per second (kB/s). Zero disables the
+	limit.
+
 _status-messages-limit_ (default: *10000*)
 	Maximum number of status messages stored in memory. Zero disables the limit.
 

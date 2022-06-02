@@ -133,6 +133,7 @@ prepare_curl_for_performance(CURL *curl, const char *url, struct curl_slist *hea
 	curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, &header_callback);
 	curl_easy_setopt(curl, CURLOPT_HEADERDATA, &data->feed);
 	curl_easy_setopt(curl, CURLOPT_TIMEOUT, get_cfg_uint(CFG_DOWNLOAD_TIMEOUT));
+	curl_easy_setopt(curl, CURLOPT_MAX_RECV_SPEED_LARGE, get_cfg_uint(CFG_DOWNLOAD_SPEED_LIMIT) * 1024);
 	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, get_cfg_bool(CFG_SSL_VERIFY_HOST) ? 2 : 0);
 	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, get_cfg_bool(CFG_SSL_VERIFY_PEER) ? 1 : 0);
 	curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, errbuf);

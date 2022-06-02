@@ -35,6 +35,7 @@ do_format(int format_setting, const struct format_arg *args, size_t args_count)
 	const wchar_t *iter = fmt->ptr;
 	const wchar_t *next_percent;
 	const wchar_t *specifier;
+	int tmp_int;
 	size_t fmt_buf_len = 0;
 	while ((iter[0] != L'\0') && (fmt_buf_len < list_menu_width)) {
 		if (iter[0] != L'%') {
@@ -67,16 +68,24 @@ do_format(int format_setting, const struct format_arg *args, size_t args_count)
 				wcsncpy(tmp, iter, specifier - iter);
 				wcscpy(tmp + (specifier - iter), args[j].type_specifier);
 				wcsncat(tmp, specifier + 1, next_percent - (specifier + 1));
+				tmp_int = 0;
 				if (wcscmp(args[j].type_specifier, L"d") == 0) {
-					fmt_buf_len += swprintf(fmt_buf + fmt_buf_len, list_menu_width + 1 - fmt_buf_len, tmp, args[j].value.i);
+					tmp_int = swprintf(fmt_buf + fmt_buf_len, list_menu_width + 1 - fmt_buf_len, tmp, args[j].value.i);
 				} else if (wcscmp(args[j].type_specifier, L"s") == 0) {
-					fmt_buf_len += swprintf(fmt_buf + fmt_buf_len, list_menu_width + 1 - fmt_buf_len, tmp, args[j].value.s);
+					tmp_int = swprintf(fmt_buf + fmt_buf_len, list_menu_width + 1 - fmt_buf_len, tmp, args[j].value.s);
 				} else if (wcscmp(args[j].type_specifier, L"c") == 0) {
-					fmt_buf_len += swprintf(fmt_buf + fmt_buf_len, list_menu_width + 1 - fmt_buf_len, tmp, args[j].value.c);
+					tmp_int = swprintf(fmt_buf + fmt_buf_len, list_menu_width + 1 - fmt_buf_len, tmp, args[j].value.c);
 				} else if (wcscmp(args[j].type_specifier, L"ls") == 0) {
-					fmt_buf_len += swprintf(fmt_buf + fmt_buf_len, list_menu_width + 1 - fmt_buf_len, tmp, args[j].value.ls);
+					tmp_int = swprintf(fmt_buf + fmt_buf_len, list_menu_width + 1 - fmt_buf_len, tmp, args[j].value.ls);
 				}
-
+				if (tmp_int == -1) {
+					fmt_buf_len = list_menu_width + 1;
+				} else {
+					fmt_buf_len += tmp_int;
+				}
+				break;
+			}
+			if (fmt_buf_len > list_menu_width) {
 				break;
 			}
 		}
@@ -85,8 +94,6 @@ do_format(int format_setting, const struct format_arg *args, size_t args_count)
 
 	if (fmt_buf_len > list_menu_width) {
 		fmt_buf[list_menu_width] = L'\0';
-	} else {
-		fmt_buf[fmt_buf_len] = L'\0';
 	}
 
 	return (const wchar_t *)fmt_buf;

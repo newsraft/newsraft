@@ -95,17 +95,17 @@ change_unread_status_of_all_items_in_feeds(const struct feed_line **feeds, size_
 	if (feeds_count == 0) {
 		return true;
 	}
-	struct string *query = crtas("UPDATE items SET unread = ? WHERE feed_url = ?", 46);
+	struct string *query = crtas("UPDATE items SET unread = ? WHERE feed_url IN (?", 48);
 	if (query == NULL) {
 		return false;
 	}
 	for (size_t i = 1; i < feeds_count; ++i) {
-		if (catas(query, " OR feed_url=?", 14) == false) {
+		if (catas(query, ",?", 2) == false) {
 			free_string(query);
 			return false;
 		}
 	}
-	if (catcs(query, ';') == false) {
+	if (catas(query, ");", 2) == false) {
 		free_string(query);
 		return false;
 	}

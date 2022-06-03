@@ -206,6 +206,38 @@ update_unread_items_count_of_all_feeds(void)
 	}
 }
 
+static inline void
+mark_selected_feed_read(void)
+{
+	db_mark_all_items_in_feeds_as_read((const struct feed_line **)&feeds[feeds_menu.view_sel], 1);
+	update_unread_items_count(feeds_menu.view_sel);
+	expose_entry_of_the_menu_list(&feeds_menu, feeds_menu.view_sel);
+}
+
+static inline void
+mark_selected_feed_unread(void)
+{
+	db_mark_all_items_in_feeds_as_unread((const struct feed_line **)&feeds[feeds_menu.view_sel], 1);
+	update_unread_items_count(feeds_menu.view_sel);
+	expose_entry_of_the_menu_list(&feeds_menu, feeds_menu.view_sel);
+}
+
+static inline void
+mark_all_feeds_read(void)
+{
+	db_mark_all_items_in_feeds_as_read((const struct feed_line **)feeds, feeds_count);
+	update_unread_items_count_of_all_feeds();
+	expose_all_visible_entries_of_the_menu_list(&feeds_menu);
+}
+
+static inline void
+mark_all_feeds_unread(void)
+{
+	db_mark_all_items_in_feeds_as_unread((const struct feed_line **)feeds, feeds_count);
+	update_unread_items_count_of_all_feeds();
+	expose_all_visible_entries_of_the_menu_list(&feeds_menu);
+}
+
 static void
 reload_current_feed(void)
 {
@@ -280,13 +312,13 @@ enter_feeds_menu_loop(void)
 		} else if (cmd == INPUT_SELECT_LAST) {
 			list_menu_select_last(&feeds_menu);
 		} else if (cmd == INPUT_MARK_READ) {
-			db_mark_all_items_in_feeds_as_read((const struct feed_line **)&feeds[feeds_menu.view_sel], 1);
-			update_unread_items_count(feeds_menu.view_sel);
-			expose_entry_of_the_menu_list(&feeds_menu, feeds_menu.view_sel);
+			mark_selected_feed_read();
 		} else if (cmd == INPUT_MARK_UNREAD) {
-			db_mark_all_items_in_feeds_as_unread((const struct feed_line **)&feeds[feeds_menu.view_sel], 1);
-			update_unread_items_count(feeds_menu.view_sel);
-			expose_entry_of_the_menu_list(&feeds_menu, feeds_menu.view_sel);
+			mark_selected_feed_unread();
+		} else if (cmd == INPUT_MARK_READ_ALL) {
+			mark_all_feeds_read();
+		} else if (cmd == INPUT_MARK_UNREAD_ALL) {
+			mark_all_feeds_unread();
 		} else if (cmd == INPUT_RELOAD) {
 			reload_current_feed();
 		} else if (cmd == INPUT_RELOAD_ALL) {

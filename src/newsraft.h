@@ -222,6 +222,7 @@ void free_list_menu(void);
 bool adjust_list_menu_format_buffer(void);
 void free_list_menu_format_buffer(void);
 void expose_entry_of_the_menu_list(struct menu_list_settings *settings, size_t index);
+void expose_all_visible_entries_of_the_menu_list(struct menu_list_settings *settings);
 void redraw_menu_list(struct menu_list_settings *settings);
 void list_menu_select_next(struct menu_list_settings *s);
 void list_menu_select_prev(struct menu_list_settings *s);

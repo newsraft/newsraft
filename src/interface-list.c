@@ -75,7 +75,7 @@ expose_entry_of_the_menu_list(struct menu_list_settings *settings, size_t index)
 	wrefresh(windows[target_window]);
 }
 
-static inline void
+void
 expose_all_visible_entries_of_the_menu_list(struct menu_list_settings *settings)
 {
 	for (size_t i = settings->view_min; i < settings->entries_count && i <= settings->view_max; ++i) {

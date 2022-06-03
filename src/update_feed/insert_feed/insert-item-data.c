@@ -75,9 +75,9 @@ db_insert_item(const struct string *feed_url, struct getfeed_item *item, int row
 	bool prepare_status;
 
 	if (rowid == -1) {
-		prepare_status = db_prepare("INSERT INTO items VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", 75, &s);
+		prepare_status = db_prepare("INSERT INTO items VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", 81, &s);
 	} else {
-		prepare_status = db_prepare("UPDATE items SET feed_url = ?, guid = ?, title = ?, link = ?, summary = ?, content = ?, attachments = ?, authors = ?, categories = ?, comments_url = ?, locations = ?, languages = ?, thumbnails = ?, publication_date = ?, update_date = ?, unread = ? WHERE rowid = ?;", 265, &s);
+		prepare_status = db_prepare("UPDATE items SET feed_url = ?, guid = ?, title = ?, link = ?, summary = ?, content = ?, attachments = ?, authors = ?, comments_url = ?, locations = ?, categories = ?, languages = ?, rights = ?, rating = ?, thumbnails = ?, publication_date = ?, update_date = ?, unread = ? WHERE rowid = ?;", 289, &s);
 	}
 
 	if (prepare_status == false) {
@@ -98,16 +98,18 @@ db_insert_item(const struct string *feed_url, struct getfeed_item *item, int row
 	db_bind_text_struct(s, 1 + ITEM_COLUMN_CONTENT,          &item->content);
 	db_bind_string(s,      1 + ITEM_COLUMN_ATTACHMENTS,      attachments_str);
 	db_bind_string(s,      1 + ITEM_COLUMN_AUTHORS,          authors_str);
-	db_bind_string(s,      1 + ITEM_COLUMN_CATEGORIES,       categories_str);
 	db_bind_string(s,      1 + ITEM_COLUMN_COMMENTS_URL,     item->comments_url);
 	db_bind_string(s,      1 + ITEM_COLUMN_LOCATIONS,        locations_str);
+	db_bind_string(s,      1 + ITEM_COLUMN_CATEGORIES,       categories_str);
 	db_bind_string(s,      1 + ITEM_COLUMN_LANGUAGES,        item->language);
+	db_bind_text_struct(s, 1 + ITEM_COLUMN_RIGHTS,           &item->rights);
+	db_bind_string(s,      1 + ITEM_COLUMN_RATING,           item->rating);
 	db_bind_string(s,      1 + ITEM_COLUMN_THUMBNAILS,       thumbnails_str);
 	sqlite3_bind_int64(s,  1 + ITEM_COLUMN_PUBLICATION_DATE, (sqlite3_int64)(item->pubdate));
 	sqlite3_bind_int64(s,  1 + ITEM_COLUMN_UPDATE_DATE,      (sqlite3_int64)(item->upddate));
 	sqlite3_bind_int(s,    1 + ITEM_COLUMN_UNREAD,           1);
 	if (rowid != -1) {
-		sqlite3_bind_int(s, ITEM_COLUMN_CONTENT + 2, rowid);
+		sqlite3_bind_int(s, 1 + ITEM_COLUMN_NONE, rowid);
 	}
 
 	bool success = true;

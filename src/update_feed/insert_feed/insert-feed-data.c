@@ -42,7 +42,7 @@ insert_feed_data(const struct string *feed_url, struct getfeed_feed *feed)
 		goto undo4;
 	}
 	sqlite3_stmt *s;
-	if (db_prepare("INSERT OR REPLACE INTO feeds VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", 91, &s) == false) {
+	if (db_prepare("INSERT OR REPLACE INTO feeds VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", 94, &s) == false) {
 		success = false;
 		goto undo5;
 	}
@@ -56,11 +56,12 @@ insert_feed_data(const struct string *feed_url, struct getfeed_feed *feed)
 	db_bind_string(s,      1 + FEED_COLUMN_WEBMASTERS,                webmasters_str);
 	db_bind_string(s,      1 + FEED_COLUMN_CATEGORIES,                categories_str);
 	db_bind_string(s,      1 + FEED_COLUMN_LANGUAGES,                 feed->language);
-	db_bind_string(s,      1 + FEED_COLUMN_GENERATORS,                generator_str);
 	db_bind_text_struct(s, 1 + FEED_COLUMN_RIGHTS,                    &feed->rights);
-	sqlite3_bind_int64(s,  1 + FEED_COLUMN_TIME_TO_LIVE,              (sqlite3_int64)(feed->time_to_live));
-	sqlite3_bind_int64(s,  1 + FEED_COLUMN_UPDATE_DATE,               (sqlite3_int64)(feed->update_date));
+	db_bind_string(s,      1 + FEED_COLUMN_RATING,                    feed->rating);
+	db_bind_string(s,      1 + FEED_COLUMN_GENERATORS,                generator_str);
 	sqlite3_bind_int64(s,  1 + FEED_COLUMN_DOWNLOAD_DATE,             (sqlite3_int64)(feed->download_date));
+	sqlite3_bind_int64(s,  1 + FEED_COLUMN_UPDATE_DATE,               (sqlite3_int64)(feed->update_date));
+	sqlite3_bind_int64(s,  1 + FEED_COLUMN_TIME_TO_LIVE,              (sqlite3_int64)(feed->time_to_live));
 	db_bind_string(s,      1 + FEED_COLUMN_HTTP_HEADER_ETAG,          feed->http_header_etag);
 	sqlite3_bind_int64(s,  1 + FEED_COLUMN_HTTP_HEADER_LAST_MODIFIED, (sqlite3_int64)(feed->http_header_last_modified));
 	sqlite3_bind_int64(s,  1 + FEED_COLUMN_HTTP_HEADER_EXPIRES,       (sqlite3_int64)(feed->http_header_expires));

@@ -33,6 +33,7 @@ static struct config_entry config[] = {
 	{"download-speed-limit",            CFG_UINT,    {.u = 0},     {.s = NULL},                                                       0},
 	{"status-messages-limit",           CFG_UINT,    {.u = 10000}, {.s = NULL},                                                       0},
 	{"size-conversion-threshold",       CFG_UINT,    {.u = 1200},  {.s = NULL},                                                       0},
+	{"copy-to-clipboard-command",       CFG_STRING,  {.s = NULL},  {.s = "xclip -selection clipboard"},                               26},
 	{"proxy",                           CFG_STRING,  {.s = NULL},  {.s = ""},                                                         0},
 	{"proxy-auth",                      CFG_STRING,  {.s = NULL},  {.s = ""},                                                         0},
 	{"global-section-name",             CFG_STRING,  {.s = NULL},  {.s = "Global"},                                                   6},

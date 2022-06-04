@@ -106,6 +106,7 @@ enum config_entry_index {
 	CFG_DOWNLOAD_SPEED_LIMIT,
 	CFG_STATUS_MESSAGES_LIMIT,
 	CFG_SIZE_CONVERSION_THRESHOLD,
+	CFG_COPY_TO_CLIPBOARD_COMMAND,
 	CFG_PROXY,
 	CFG_PROXY_AUTH,
 	CFG_GLOBAL_SECTION_NAME,
@@ -151,6 +152,7 @@ enum input_cmd {
 	INPUT_OVERVIEW_MENU,
 	INPUT_SECTIONS_MENU,
 	INPUT_STATUS_HISTORY_MENU,
+	INPUT_COPY_TO_CLIPBOARD,
 	INPUT_RESIZE,
 	INPUTS_COUNT,
 };
@@ -257,7 +259,7 @@ void free_trim_link_list(const struct link_list *links);
 bool join_links_render_block(struct render_block **contents, struct link_list *links);
 
 // pager
-int pager_view(const struct render_block *first_block);
+int pager_view(const struct render_block *first_block, void (*custom_input_handler)(void *data, input_cmd_id cmd), void *data);
 int enter_item_pager_view_loop(int rowid);
 int enter_status_pager_view_loop(void);
 

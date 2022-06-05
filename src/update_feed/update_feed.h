@@ -101,7 +101,9 @@ struct getfeed_item {
 	struct getfeed_text title;
 	struct string *url;
 	struct getfeed_text summary;
+	int64_t summary_hash;
 	struct getfeed_text content;
+	int64_t content_hash;
 	struct getfeed_category *category;
 	struct string *comments_url;
 	struct getfeed_link *attachment;

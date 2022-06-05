@@ -28,7 +28,7 @@ struct config_entry {
 };
 
 static struct config_entry config[] = {
-	{"max-items",                       CFG_UINT,    {.u = 0},     {.s = NULL},                                                       0},
+	{"items-count-limit",               CFG_UINT,    {.u = 0},     {.s = NULL},                                                       0},
 	{"download-timeout",                CFG_UINT,    {.u = 20},    {.s = NULL},                                                       0},
 	{"download-speed-limit",            CFG_UINT,    {.u = 0},     {.s = NULL},                                                       0},
 	{"status-messages-limit",           CFG_UINT,    {.u = 10000}, {.s = NULL},                                                       0},

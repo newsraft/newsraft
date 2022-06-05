@@ -87,7 +87,7 @@ Search precedence:
 
 # SETTINGS
 
-_max-items_ (default: *0*)
+_items-count-limit_ (default: *0*)
 	Maximum number of items stored in one feed. Zero disables the limit.
 
 _download-timeout_ (default: *20*)

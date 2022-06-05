@@ -52,7 +52,7 @@ insert_feed(const struct string *url, struct getfeed_feed *feed)
 		item = item->next;
 	}
 
-	int64_t items_limit = (int64_t)get_cfg_uint(CFG_MAX_ITEMS);
+	int64_t items_limit = (int64_t)get_cfg_uint(CFG_ITEMS_COUNT_LIMIT);
 	if (items_limit > 0) {
 		if (delete_excess_items(url, items_limit) == false) {
 			FAIL("Failed to delete excess items!");

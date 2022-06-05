@@ -52,8 +52,11 @@ insert_feed(const struct string *url, struct getfeed_feed *feed)
 		item = item->next;
 	}
 
-	if (get_cfg_uint(CFG_MAX_ITEMS) != 0) {
-		delete_excess_items(url);
+	int64_t items_limit = (int64_t)get_cfg_uint(CFG_MAX_ITEMS);
+	if (items_limit > 0) {
+		if (delete_excess_items(url, items_limit) == false) {
+			FAIL("Failed to delete excess items!");
+		}
 	}
 
 	if (db_commit_transaction() == false) {

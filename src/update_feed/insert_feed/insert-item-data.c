@@ -1,32 +1,19 @@
 #include "update_feed/insert_feed/insert_feed.h"
 
-void
-delete_excess_items(const struct string *feed_url)
+bool
+delete_excess_items(const struct string *feed_url, int64_t limit)
 {
 	INFO("Deleting excess items...");
 	sqlite3_stmt *s;
-	if (db_prepare("SELECT rowid FROM items WHERE feed_url = ? ORDER BY publication_date DESC, update_date DESC, rowid DESC;", 105, &s) == false) {
-		FAIL("Failed to prepare an excess items deletion statement:");
-		return;
+	if (db_prepare("DELETE FROM items WHERE rowid IN (SELECT rowid FROM items WHERE feed_url = ? ORDER BY publication_date DESC, update_date DESC, rowid DESC LIMIT -1 OFFSET ?);", 158, &s) == false) {
+		FAIL("Failed to prepare an excess items deletion statement!");
+		return false;
 	}
 	db_bind_string(s, 1, feed_url);
-	sqlite3_stmt *t;
-	const size_t max_items = get_cfg_uint(CFG_MAX_ITEMS);
-	size_t item_iterator = 0;
-	while (sqlite3_step(s) == SQLITE_ROW) {
-		++item_iterator;
-		if (item_iterator <= max_items) {
-			continue;
-		}
-		if (db_prepare("DELETE FROM items WHERE rowid = ?", 34, &t) == true) {
-			sqlite3_bind_int(t, 1, sqlite3_column_int(s, 0));
-			if (sqlite3_step(t) != SQLITE_DONE) {
-				FAIL("Deletion of the excess item is failed!");
-			}
-			sqlite3_finalize(t);
-		}
-	}
+	sqlite3_bind_int64(s, 2, limit);
+	sqlite3_step(s);
 	sqlite3_finalize(s);
+	return true;
 }
 
 static inline bool

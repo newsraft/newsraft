@@ -5,6 +5,25 @@
 // Useful links:
 // https://www.rssboard.org/media-rss
 
+static inline bool
+copy_type_of_mediarss_text(struct string **dest, const XML_Char **attrs)
+{
+	const char *type = get_value_of_attribute_key(attrs, "type");
+	if (type == NULL) {
+		return true; // Attribute is not set.
+	}
+	if (strcmp(type, "plain") == 0) {
+		if (crtas_or_cpyas(dest, "text/plain", 10) == false) {
+			return false;
+		}
+	} else if (strcmp(type, "html") == 0) {
+		if (crtas_or_cpyas(dest, "text/html", 9) == false) {
+			return false;
+		}
+	}
+	return true; // Attribute doesn't meet the specification. Ignore it.
+}
+
 static int8_t
 content_start(struct stream_callback_data *data, const XML_Char **attrs)
 {
@@ -81,11 +100,11 @@ description_start(struct stream_callback_data *data, const XML_Char **attrs)
 {
 	if (we_are_inside_item(data) == true) {
 		if ((data->feed.item->content.value == NULL) || (data->feed.item->content.value->len == 0)) {
-			if (copy_type_of_text_construct(&data->feed.item->content.type, attrs) == false) {
+			if (copy_type_of_mediarss_text(&data->feed.item->content.type, attrs) == false) {
 				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			}
 		} else if ((data->feed.item->summary.value == NULL) || (data->feed.item->summary.value->len == 0)) {
-			if (copy_type_of_text_construct(&data->feed.item->summary.type, attrs) == false) {
+			if (copy_type_of_mediarss_text(&data->feed.item->summary.type, attrs) == false) {
 				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			}
 		}
@@ -96,7 +115,7 @@ description_start(struct stream_callback_data *data, const XML_Char **attrs)
 static int8_t
 description_end(struct stream_callback_data *data)
 {
-	if (we_are_inside_item(data) == true) {
+	if ((we_are_inside_item(data) == true) && (data->value->len != 0)) {
 		if ((data->feed.item->content.value == NULL) || (data->feed.item->content.value->len == 0)) {
 			if (crtss_or_cpyss(&data->feed.item->content.value, data->value) == false) {
 				return PARSE_FAIL_NOT_ENOUGH_MEMORY;

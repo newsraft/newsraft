@@ -138,7 +138,9 @@ end_element_handler(void *userData, const XML_Char *name)
 					}
 					data->xml_pos[handler_index] &= ~handlers[i].bitpos;
 				}
-				if (handlers[i].end_handle != NULL) {
+				// We only need to call the end handler if it is set and there's
+				// some text content in the element.
+				if ((handlers[i].end_handle != NULL) && (data->value->len != 0)) {
 					handlers[i].end_handle(data);
 				}
 				return;

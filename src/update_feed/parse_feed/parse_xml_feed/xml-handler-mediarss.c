@@ -115,7 +115,7 @@ description_start(struct stream_callback_data *data, const XML_Char **attrs)
 static int8_t
 description_end(struct stream_callback_data *data)
 {
-	if ((we_are_inside_item(data) == true) && (data->value->len != 0)) {
+	if (we_are_inside_item(data) == true) {
 		if ((data->feed.item->content.value == NULL) || (data->feed.item->content.value->len == 0)) {
 			if (crtss_or_cpyss(&data->feed.item->content.value, data->value) == false) {
 				return PARSE_FAIL_NOT_ENOUGH_MEMORY;

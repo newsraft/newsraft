@@ -62,29 +62,33 @@ add_url_mark(struct string *text, const char *url, const char *title, size_t tit
 		return;
 	}
 
+	int64_t url_index = add_another_url_to_trim_link_list(links, url, url_len);
+	if (url_index == -1) {
+		return;
+	}
+
 	// Add link mark to HTML content.
 	struct string *url_mark = crtes();
 	if (url_mark == NULL) {
 		return;
 	}
+
 	if (data_type == NULL) {
 		if ((title != NULL) && (title_len != 0)) {
-			string_printf(url_mark, " [%zu, \"%s\"]", links->len + 1, title);
+			string_printf(url_mark, " [%" PRId64 ", \"%s\"]", url_index + 1, title);
 		} else {
-			string_printf(url_mark, " [%zu]", links->len + 1);
+			string_printf(url_mark, " [%" PRId64 "]", url_index + 1);
 		}
 	} else {
 		if ((title != NULL) && (title_len != 0)) {
-			string_printf(url_mark, " [%zu, %s \"%s\"]", links->len + 1, data_type, title);
+			string_printf(url_mark, " [%" PRId64 ", %s \"%s\"]", url_index + 1, data_type, title);
 		} else {
-			string_printf(url_mark, " [%zu, %s]", links->len + 1, data_type);
+			string_printf(url_mark, " [%" PRId64 ", %s]", url_index + 1, data_type);
 		}
 	}
+
 	catss(text, url_mark);
 	free_string(url_mark);
-
-	// Add URL to link list.
-	add_another_url_to_trim_link_list(links, url, url_len);
 }
 
 static void

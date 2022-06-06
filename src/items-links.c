@@ -2,23 +2,29 @@
 #include <string.h>
 #include "newsraft.h"
 
-bool
+int64_t
 add_another_url_to_trim_link_list(struct link_list *links, const char *url, size_t url_len)
 {
+	for (int64_t i = 0; i < (int64_t)links->len; ++i) {
+		if ((url_len == links->list[i].url->len) && (strncmp(url, links->list[i].url->ptr, url_len) == 0)) {
+			// Don't add duplicate.
+			return i;
+		}
+	}
 	struct link *temp = realloc(links->list, sizeof(struct link) * (links->len + 1));
 	if (temp == NULL) {
-		return false;
+		return -1;
 	}
+	size_t index = (links->len)++;
 	links->list = temp;
-	links->list[links->len].url = crtas(url, url_len);
-	if (links->list[links->len].url == NULL) {
-		return false;
+	links->list[index].url = crtas(url, url_len);
+	links->list[index].type = NULL;
+	links->list[index].size = NULL;
+	links->list[index].duration = NULL;
+	if (links->list[index].url == NULL) {
+		return -1;
 	}
-	links->list[links->len].type = NULL;
-	links->list[links->len].size = NULL;
-	links->list[links->len].duration = NULL;
-	++(links->len);
-	return true;
+	return index;
 }
 
 void
@@ -47,7 +53,7 @@ append_raw_link(struct link_list *links, sqlite3_stmt *res, enum item_column col
 	if (text_len == 0) {
 		return true; // It is not an error because this item simply does not have link set.
 	}
-	if (add_another_url_to_trim_link_list(links, text, text_len) == false) {
+	if (add_another_url_to_trim_link_list(links, text, text_len) == -1) {
 		return false;
 	}
 	return true;
@@ -65,7 +71,7 @@ append_attachments(struct link_list *links, sqlite3_stmt *res)
 {
 	const char *text = (const char *)sqlite3_column_text(res, ITEM_COLUMN_ATTACHMENTS);
 	if (text == NULL) {
-		return true; // It is not an error because this item simply does not have link set.
+		return true; // It is not an error because this item simply does not have attachments set.
 	}
 	struct string *word = crtes();
 	if (word == NULL) {
@@ -73,6 +79,7 @@ append_attachments(struct link_list *links, sqlite3_stmt *res)
 	}
 	int8_t field_num = ATTACHMENT_URL;
 	struct string **target;
+	int64_t link_index;
 	for (const char *iter = text; *iter != '\0'; ++iter) {
 		if ((*iter != ' ') && (*iter != '\n')) {
 			if (catcs(word, *iter) == false) {
@@ -82,15 +89,16 @@ append_attachments(struct link_list *links, sqlite3_stmt *res)
 			if (word->len != 0) {
 				target = NULL;
 				if (field_num == ATTACHMENT_URL) {
-					if (add_another_url_to_trim_link_list(links, word->ptr, word->len) == false) {
+					link_index = add_another_url_to_trim_link_list(links, word->ptr, word->len);
+					if (link_index == -1) {
 						goto error;
 					}
 				} else if (field_num == ATTACHMENT_TYPE) {
-					target = &links->list[links->len - 1].type;
+					target = &links->list[link_index].type;
 				} else if (field_num == ATTACHMENT_SIZE) {
-					target = &links->list[links->len - 1].size;
+					target = &links->list[link_index].size;
 				} else if (field_num == ATTACHMENT_DURATION) {
-					target = &links->list[links->len - 1].duration;
+					target = &links->list[link_index].duration;
 				}
 				if ((target != NULL) && (*target == NULL)) {
 					*target = crtss(word);

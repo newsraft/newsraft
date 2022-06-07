@@ -104,6 +104,10 @@ _status-messages-limit_ (default: *10000*)
 _size-conversion-threshold_ (default: *1200*)
 	TODO
 
+_copy-to-clipboard-command_ (default: *"xclip -selection clipboard"*)
+	Shell command for copying text to clipboard. All copied information is sent
+	to the standard input of the command.
+
 _proxy_ (default: *""*)
 	TODO
 

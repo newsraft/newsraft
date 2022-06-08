@@ -22,7 +22,7 @@ Stick to the kebab case (use dashes to separate words).
 
 Every directory in the `src` directory is named after the function that the files in that directory implement.
 
-## Control statements decoration
+## Control statements
 
 Every control statement must be followed by parentheses to describe compound statement even if it has only one command. The first parenthesis must be on the same line with the control expression, and the closing parenthesis must be on a separate line.
 
@@ -33,6 +33,8 @@ for (size_t i = 0; i < items_count; ++i) {
 	mark_item_read(i);
 }
 ```
+
+Note that it is forbidden to use assignment operator within conditions of `if`, `while` and `switch` statements.
 
 ## Function definitions
 

@@ -19,7 +19,7 @@ static int8_t
 guid_end(struct stream_callback_data *data)
 {
 	if (data->path[data->depth] == RSS20_ITEM) {
-		if (crtss_or_cpyss(&data->feed.item->guid, data->value) == false) {
+		if (crtss_or_cpyss(&data->feed.item->guid, data->text) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	}
@@ -30,14 +30,14 @@ static int8_t
 title_end(struct stream_callback_data *data)
 {
 	if (data->path[data->depth] == RSS20_ITEM) {
-		if (crtss_or_cpyss(&data->feed.item->title.value, data->value) == false) {
+		if (crtss_or_cpyss(&data->feed.item->title.value, data->text) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 		if (crtas_or_cpyas(&data->feed.item->title.type, "text/plain", 10) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	} else if (data->path[data->depth] == RSS20_CHANNEL) {
-		if (crtss_or_cpyss(&data->feed.title.value, data->value) == false) {
+		if (crtss_or_cpyss(&data->feed.title.value, data->text) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 		if (crtas_or_cpyas(&data->feed.title.type, "text/plain", 10) == false) {
@@ -51,11 +51,11 @@ static int8_t
 link_end(struct stream_callback_data *data)
 {
 	if (data->path[data->depth] == RSS20_ITEM) {
-		if (crtss_or_cpyss(&data->feed.item->url, data->value) == false) {
+		if (crtss_or_cpyss(&data->feed.item->url, data->text) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	} else if (data->path[data->depth] == RSS20_CHANNEL) {
-		if (crtss_or_cpyss(&data->feed.url, data->value) == false) {
+		if (crtss_or_cpyss(&data->feed.url, data->text) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	}
@@ -66,14 +66,14 @@ static int8_t
 description_end(struct stream_callback_data *data)
 {
 	if (data->path[data->depth] == RSS20_ITEM) {
-		if (crtss_or_cpyss(&data->feed.item->content.value, data->value) == false) {
+		if (crtss_or_cpyss(&data->feed.item->content.value, data->text) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 		if (crtas_or_cpyas(&data->feed.item->content.type, "text/html", 9) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	} else if (data->path[data->depth] == RSS20_CHANNEL) {
-		if (crtss_or_cpyss(&data->feed.summary.value, data->value) == false) {
+		if (crtss_or_cpyss(&data->feed.summary.value, data->text) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 		if (crtas_or_cpyas(&data->feed.summary.type, "text/html", 9) == false) {
@@ -87,7 +87,7 @@ static int8_t
 pub_date_end(struct stream_callback_data *data)
 {
 	if (data->path[data->depth] == RSS20_ITEM) {
-		data->feed.item->pubdate = parse_date_rfc822(data->value);
+		data->feed.item->pubdate = parse_date_rfc822(data->text);
 	} else if (data->path[data->depth] == RSS20_CHANNEL) {
 		// Some RSS 2.0 feeds use lastBuildDate and some
 		// use pubDate for showing last update time of channel.
@@ -95,7 +95,7 @@ pub_date_end(struct stream_callback_data *data)
 		// bother with pubDate value if lastBuildDate was already
 		// set.
 		if (data->feed.update_date == 0) {
-			data->feed.update_date = parse_date_rfc822(data->value);
+			data->feed.update_date = parse_date_rfc822(data->text);
 		}
 	}
 	return PARSE_OKAY;
@@ -107,7 +107,7 @@ last_build_date_end(struct stream_callback_data *data)
 	// In RSS 2.0 lastBuildDate element is only for channel,
 	// for items they use pubDate.
 	if (data->path[data->depth] == RSS20_CHANNEL) {
-		data->feed.update_date = parse_date_rfc822(data->value);
+		data->feed.update_date = parse_date_rfc822(data->text);
 	}
 	return PARSE_OKAY;
 }
@@ -119,7 +119,7 @@ author_end(struct stream_callback_data *data)
 		if (prepend_person(&data->feed.item->author) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
-		data->feed.item->author->email = crtss(data->value);
+		data->feed.item->author->email = crtss(data->text);
 		if (data->feed.item->author->email == NULL) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
@@ -127,7 +127,7 @@ author_end(struct stream_callback_data *data)
 		if (prepend_person(&data->feed.author) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
-		data->feed.author->email = crtss(data->value);
+		data->feed.author->email = crtss(data->text);
 		if (data->feed.author->email == NULL) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
@@ -212,11 +212,11 @@ static int8_t
 category_end(struct stream_callback_data *data)
 {
 	if (data->path[data->depth] == RSS20_ITEM) {
-		if (crtss_or_cpyss(&data->feed.item->category->term, data->value) == false) {
+		if (crtss_or_cpyss(&data->feed.item->category->term, data->text) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	} else if (data->path[data->depth] == RSS20_CHANNEL) {
-		if (crtss_or_cpyss(&data->feed.category->term, data->value) == false) {
+		if (crtss_or_cpyss(&data->feed.category->term, data->text) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	}
@@ -227,7 +227,7 @@ static int8_t
 comments_end(struct stream_callback_data *data)
 {
 	if (data->path[data->depth] == RSS20_ITEM) {
-		if (crtss_or_cpyss(&data->feed.item->comments_url, data->value) == false) {
+		if (crtss_or_cpyss(&data->feed.item->comments_url, data->text) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	}
@@ -239,7 +239,7 @@ ttl_end(struct stream_callback_data *data)
 {
 	if (data->path[data->depth] == RSS20_CHANNEL) {
 		int64_t minutes;
-		if (sscanf(data->value->ptr, "%" SCNd64, &minutes) != 1) {
+		if (sscanf(data->text->ptr, "%" SCNd64, &minutes) != 1) {
 			WARN("Couldn't convert value of <ttl> element to a number!");
 			return PARSE_OKAY; // Continue parsing like nothing happened.
 		}
@@ -256,7 +256,7 @@ static int8_t
 language_end(struct stream_callback_data *data)
 {
 	if (data->path[data->depth] == RSS20_CHANNEL) {
-		if (crtss_or_cpyss(&data->feed.language, data->value) == false) {
+		if (crtss_or_cpyss(&data->feed.language, data->text) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	}
@@ -267,7 +267,7 @@ static int8_t
 generator_end(struct stream_callback_data *data)
 {
 	if (data->path[data->depth] == RSS20_CHANNEL) {
-		if (crtss_or_cpyss(&data->feed.generator.name, data->value) == false) {
+		if (crtss_or_cpyss(&data->feed.generator.name, data->text) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	}
@@ -281,7 +281,7 @@ web_master_end(struct stream_callback_data *data)
 		if (prepend_person(&data->feed.webmaster) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
-		data->feed.webmaster->email = crtss(data->value);
+		data->feed.webmaster->email = crtss(data->text);
 		if (data->feed.webmaster->email == NULL) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
@@ -296,7 +296,7 @@ managing_editor_end(struct stream_callback_data *data)
 		if (prepend_person(&data->feed.editor) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
-		data->feed.editor->email = crtss(data->value);
+		data->feed.editor->email = crtss(data->text);
 		if (data->feed.editor->email == NULL) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}

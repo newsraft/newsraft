@@ -9,10 +9,10 @@ encoded_end(struct stream_callback_data *data)
 	if (we_are_inside_item(data) == false) {
 		return PARSE_OKAY;
 	}
-	if ((data->feed.item->content.value != NULL) && (data->value->len < data->feed.item->content.value->len)) {
+	if ((data->feed.item->content.value != NULL) && (data->text->len < data->feed.item->content.value->len)) {
 		return PARSE_OKAY;
 	}
-	if (crtss_or_cpyss(&data->feed.item->content.value, data->value) == false) {
+	if (crtss_or_cpyss(&data->feed.item->content.value, data->text) == false) {
 		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 	}
 	if (crtas_or_cpyas(&data->feed.item->content.type, "text/html", 9) == false) {

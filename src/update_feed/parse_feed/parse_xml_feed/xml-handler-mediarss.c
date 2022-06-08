@@ -117,11 +117,11 @@ description_end(struct stream_callback_data *data)
 {
 	if (we_are_inside_item(data) == true) {
 		if ((data->feed.item->content.value == NULL) || (data->feed.item->content.value->len == 0)) {
-			if (crtss_or_cpyss(&data->feed.item->content.value, data->value) == false) {
+			if (crtss_or_cpyss(&data->feed.item->content.value, data->text) == false) {
 				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			}
 		} else if ((data->feed.item->summary.value == NULL) || (data->feed.item->summary.value->len == 0)) {
-			if (crtss_or_cpyss(&data->feed.item->summary.value, data->value) == false) {
+			if (crtss_or_cpyss(&data->feed.item->summary.value, data->text) == false) {
 				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			}
 		}

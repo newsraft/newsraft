@@ -66,7 +66,7 @@ static void
 start_element_handler(void *userData, const XML_Char *name, const XML_Char **atts)
 {
 	struct stream_callback_data *data = userData;
-	empty_string(data->value);
+	empty_string(data->text);
 	data->depth += 1;
 	data->path[data->depth] = XML_UNKNOWN_POS;
 	const char *tag;
@@ -120,7 +120,7 @@ end_element_handler(void *userData, const XML_Char *name)
 	if (data->depth > 0) {
 		data->depth -= 1;
 	}
-	trim_whitespace_from_string(data->value);
+	trim_whitespace_from_string(data->text);
 	const char *tag;
 	size_t handler_index;
 	const char *sep_pos = strchr(name, XML_NAMESPACE_SEPARATOR);
@@ -138,7 +138,7 @@ end_element_handler(void *userData, const XML_Char *name)
 			if (strcmp(tag, handlers[i].name) == 0) {
 				// We only need to call the end handler if it is set and there's
 				// some text content in the element.
-				if ((handlers[i].end_handle != NULL) && (data->value->len != 0)) {
+				if ((handlers[i].end_handle != NULL) && (data->text->len != 0)) {
 					handlers[i].end_handle(data);
 				}
 				return;
@@ -151,32 +151,32 @@ static void
 character_data_handler(void *userData, const XML_Char *s, int len)
 {
 	struct stream_callback_data *data = userData;
-	catas(data->value, s, len);
+	catas(data->text, s, len);
 }
 
 bool
 engage_xml_parser(struct stream_callback_data *data)
 {
-	data->value = crtes();
-	if (data->value == NULL) {
+	data->text = crtes();
+	if (data->text == NULL) {
 		return false;
 	}
 	data->xml_parser = XML_ParserCreateNS(NULL, XML_NAMESPACE_SEPARATOR);
 	if (data->xml_parser == NULL) {
-		free_string(data->value);
+		free_string(data->text);
 		return false;
 	}
 	data->xml_format = XML_FORMATS_COUNT;
 	XML_SetUserData(data->xml_parser, data);
-	XML_SetElementHandler(data->xml_parser, start_element_handler, end_element_handler);
-	XML_SetCharacterDataHandler(data->xml_parser, character_data_handler);
+	XML_SetElementHandler(data->xml_parser, &start_element_handler, &end_element_handler);
+	XML_SetCharacterDataHandler(data->xml_parser, &character_data_handler);
 	return true;
 }
 
 void
 free_xml_parser(struct stream_callback_data *data)
 {
-	free_string(data->value);
+	free_string(data->text);
 	XML_Parse(data->xml_parser, NULL, 0, true); // final call
 	XML_ParserFree(data->xml_parser);
 }

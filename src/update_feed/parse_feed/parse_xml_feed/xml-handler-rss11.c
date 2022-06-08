@@ -23,14 +23,14 @@ static int8_t
 title_end(struct stream_callback_data *data)
 {
 	if (data->path[data->depth] == RSS11_ITEM) {
-		if (crtss_or_cpyss(&data->feed.item->title.value, data->value) == false) {
+		if (crtss_or_cpyss(&data->feed.item->title.value, data->text) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 		if (crtas_or_cpyas(&data->feed.item->title.type, "text/plain", 10) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	} else if (data->path[data->depth] == RSS11_CHANNEL) {
-		if (crtss_or_cpyss(&data->feed.title.value, data->value) == false) {
+		if (crtss_or_cpyss(&data->feed.title.value, data->text) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 		if (crtas_or_cpyas(&data->feed.title.type, "text/plain", 10) == false) {
@@ -44,11 +44,11 @@ static int8_t
 link_end(struct stream_callback_data *data)
 {
 	if (data->path[data->depth] == RSS11_ITEM) {
-		if (crtss_or_cpyss(&data->feed.item->url, data->value) == false) {
+		if (crtss_or_cpyss(&data->feed.item->url, data->text) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	} else if (data->path[data->depth] == RSS11_CHANNEL) {
-		if (crtss_or_cpyss(&data->feed.url, data->value) == false) {
+		if (crtss_or_cpyss(&data->feed.url, data->text) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	}
@@ -59,7 +59,7 @@ static int8_t
 description_end(struct stream_callback_data *data)
 {
 	if (data->path[data->depth] == RSS11_ITEM) {
-		if (crtss_or_cpyss(&data->feed.item->content.value, data->value) == false) {
+		if (crtss_or_cpyss(&data->feed.item->content.value, data->text) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 		// Specification explicitly says that this is plain text.
@@ -67,7 +67,7 @@ description_end(struct stream_callback_data *data)
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	} else if (data->path[data->depth] == RSS11_CHANNEL) {
-		if (crtss_or_cpyss(&data->feed.summary.value, data->value) == false) {
+		if (crtss_or_cpyss(&data->feed.summary.value, data->text) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 		// Specification explicitly says that this is plain text.

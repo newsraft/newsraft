@@ -6,7 +6,7 @@ title_end(struct stream_callback_data *data)
 {
 	if (we_are_inside_item(data) == true) {
 		if ((data->feed.item->title.value == NULL) || (data->feed.item->title.value->len == 0)) {
-			if (crtss_or_cpyss(&data->feed.item->title.value, data->value) == false) {
+			if (crtss_or_cpyss(&data->feed.item->title.value, data->text) == false) {
 				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			}
 			if (crtas_or_cpyas(&data->feed.item->title.type, "text/plain", 10) == false) {
@@ -15,7 +15,7 @@ title_end(struct stream_callback_data *data)
 		}
 	} else {
 		if ((data->feed.title.value == NULL) || (data->feed.title.value->len == 0)) {
-			if (crtss_or_cpyss(&data->feed.title.value, data->value) == false) {
+			if (crtss_or_cpyss(&data->feed.title.value, data->text) == false) {
 				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			}
 			if (crtas_or_cpyas(&data->feed.title.type, "text/plain", 10) == false) {
@@ -31,7 +31,7 @@ description_end(struct stream_callback_data *data)
 {
 	if (we_are_inside_item(data) == true) {
 		if ((data->feed.item->summary.value == NULL) || (data->feed.item->summary.value->len == 0)) {
-			if (crtss_or_cpyss(&data->feed.item->summary.value, data->value) == false) {
+			if (crtss_or_cpyss(&data->feed.item->summary.value, data->text) == false) {
 				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			}
 			if (crtas_or_cpyas(&data->feed.item->summary.type, "text/plain", 10) == false) {
@@ -40,7 +40,7 @@ description_end(struct stream_callback_data *data)
 		}
 	} else {
 		if ((data->feed.summary.value == NULL) || (data->feed.summary.value->len == 0)) {
-			if (crtss_or_cpyss(&data->feed.summary.value, data->value) == false) {
+			if (crtss_or_cpyss(&data->feed.summary.value, data->text) == false) {
 				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			}
 			if (crtas_or_cpyas(&data->feed.summary.type, "text/plain", 10) == false) {
@@ -58,14 +58,16 @@ creator_end(struct stream_callback_data *data)
 		if (prepend_person(&data->feed.item->author) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
-		if ((data->feed.item->author->name = crtss(data->value)) == NULL) {
+		data->feed.item->author->name = crtss(data->text);
+		if (data->feed.item->author->name == NULL) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	} else {
 		if (prepend_person(&data->feed.author) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
-		if ((data->feed.author->name = crtss(data->value)) == NULL) {
+		data->feed.author->name = crtss(data->text);
+		if (data->feed.author->name == NULL) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	}
@@ -79,14 +81,16 @@ subject_end(struct stream_callback_data *data)
 		if (prepend_category(&data->feed.item->category) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
-		if ((data->feed.item->category->term = crtss(data->value)) == NULL) {
+		data->feed.item->category->term = crtss(data->text);
+		if (data->feed.item->category->term == NULL) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	} else {
 		if (prepend_category(&data->feed.category) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
-		if ((data->feed.category->term = crtss(data->value)) == NULL) {
+		data->feed.category->term = crtss(data->text);
+		if (data->feed.category->term == NULL) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	}

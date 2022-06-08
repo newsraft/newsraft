@@ -9,11 +9,11 @@ full_text_end(struct stream_callback_data *data)
 	if (we_are_inside_item(data) == false) {
 		return PARSE_OKAY;
 	}
-	if ((data->feed.item->content.value != NULL) && (data->value->len < data->feed.item->content.value->len)) {
+	if ((data->feed.item->content.value != NULL) && (data->text->len < data->feed.item->content.value->len)) {
 		// Don't save content if it's shorter than the content we currently have.
 		return PARSE_OKAY;
 	}
-	if (crtss_or_cpyss(&data->feed.item->content.value, data->value) == false) {
+	if (crtss_or_cpyss(&data->feed.item->content.value, data->text) == false) {
 		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 	}
 	// In most cases this is HTML.
@@ -29,11 +29,11 @@ comment_text_end(struct stream_callback_data *data)
 	if (we_are_inside_item(data) == false) {
 		return PARSE_OKAY;
 	}
-	if ((data->feed.item->summary.value != NULL) && (data->value->len < data->feed.item->summary.value->len)) {
+	if ((data->feed.item->summary.value != NULL) && (data->text->len < data->feed.item->summary.value->len)) {
 		// Don't save summary if it's shorter than the summary we currently have.
 		return PARSE_OKAY;
 	}
-	if (crtss_or_cpyss(&data->feed.item->summary.value, data->value) == false) {
+	if (crtss_or_cpyss(&data->feed.item->summary.value, data->text) == false) {
 		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 	}
 	// Specification says that all comments are plain text.
@@ -50,7 +50,8 @@ genre_end(struct stream_callback_data *data)
 		if (prepend_category(&data->feed.item->category) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
-		if ((data->feed.item->category->term = crtss(data->value)) == NULL) {
+		data->feed.item->category->term = crtss(data->text);
+		if (data->feed.item->category->term == NULL) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	}
@@ -64,7 +65,8 @@ bind_to_end(struct stream_callback_data *data)
 		if (prepend_link(&data->feed.item->attachment) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
-		if ((data->feed.item->attachment->url = crtss(data->value)) == NULL) {
+		data->feed.item->attachment->url = crtss(data->text);
+		if (data->feed.item->attachment->url == NULL) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	}

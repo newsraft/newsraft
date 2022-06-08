@@ -23,11 +23,11 @@ static int8_t
 id_end(struct stream_callback_data *data)
 {
 	if (data->path[data->depth] == ATOM03_ENTRY) {
-		if (crtss_or_cpyss(&data->feed.item->guid, data->value) == false) {
+		if (crtss_or_cpyss(&data->feed.item->guid, data->text) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	} else if (data->path[data->depth] == ATOM03_FEED) {
-		if (crtss_or_cpyss(&data->feed.guid, data->value) == false) {
+		if (crtss_or_cpyss(&data->feed.guid, data->text) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	}
@@ -53,11 +53,11 @@ static int8_t
 title_end(struct stream_callback_data *data)
 {
 	if (data->path[data->depth] == ATOM03_ENTRY) {
-		if (crtss_or_cpyss(&data->feed.item->title.value, data->value) == false) {
+		if (crtss_or_cpyss(&data->feed.item->title.value, data->text) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	} else if (data->path[data->depth] == ATOM03_FEED) {
-		if (crtss_or_cpyss(&data->feed.title.value, data->value) == false) {
+		if (crtss_or_cpyss(&data->feed.title.value, data->text) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	}
@@ -128,7 +128,7 @@ static int8_t
 summary_end(struct stream_callback_data *data)
 {
 	if (data->path[data->depth] == ATOM03_ENTRY) {
-		if (crtss_or_cpyss(&data->feed.item->summary.value, data->value) == false) {
+		if (crtss_or_cpyss(&data->feed.item->summary.value, data->text) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	}
@@ -150,7 +150,7 @@ static int8_t
 content_end(struct stream_callback_data *data)
 {
 	if (data->path[data->depth] == ATOM03_ENTRY) {
-		if (crtss_or_cpyss(&data->feed.item->content.value, data->value) == false) {
+		if (crtss_or_cpyss(&data->feed.item->content.value, data->text) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	}
@@ -162,7 +162,7 @@ issued_end(struct stream_callback_data *data)
 {
 	// Atom 0.3 feed can have issued date but who needs it?
 	if (data->path[data->depth] == ATOM03_ENTRY) {
-		data->feed.item->pubdate = parse_date_rfc3339(data->value->ptr, data->value->len);
+		data->feed.item->pubdate = parse_date_rfc3339(data->text->ptr, data->text->len);
 	}
 	return PARSE_OKAY;
 }
@@ -171,9 +171,9 @@ static int8_t
 modified_end(struct stream_callback_data *data)
 {
 	if (data->path[data->depth] == ATOM03_ENTRY) {
-		data->feed.item->upddate = parse_date_rfc3339(data->value->ptr, data->value->len);
+		data->feed.item->upddate = parse_date_rfc3339(data->text->ptr, data->text->len);
 	} else if (data->path[data->depth] == ATOM03_FEED) {
-		data->feed.update_date = parse_date_rfc3339(data->value->ptr, data->value->len);
+		data->feed.update_date = parse_date_rfc3339(data->text->ptr, data->text->len);
 	}
 	return PARSE_OKAY;
 }
@@ -199,11 +199,11 @@ name_end(struct stream_callback_data *data)
 {
 	if (data->path[data->depth] == ATOM03_AUTHOR) {
 		if (data->path[data->depth - 1] == ATOM03_ENTRY) {
-			if (crtss_or_cpyss(&data->feed.item->author->name, data->value) == false) {
+			if (crtss_or_cpyss(&data->feed.item->author->name, data->text) == false) {
 				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			}
 		} else if (data->path[data->depth - 1] == ATOM03_FEED) {
-			if (crtss_or_cpyss(&data->feed.author->name, data->value) == false) {
+			if (crtss_or_cpyss(&data->feed.author->name, data->text) == false) {
 				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			}
 		}
@@ -216,11 +216,11 @@ url_end(struct stream_callback_data *data)
 {
 	if (data->path[data->depth] == ATOM03_AUTHOR) {
 		if (data->path[data->depth - 1] == ATOM03_ENTRY) {
-			if (crtss_or_cpyss(&data->feed.item->author->url, data->value) == false) {
+			if (crtss_or_cpyss(&data->feed.item->author->url, data->text) == false) {
 				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			}
 		} else if (data->path[data->depth - 1] == ATOM03_FEED) {
-			if (crtss_or_cpyss(&data->feed.author->url, data->value) == false) {
+			if (crtss_or_cpyss(&data->feed.author->url, data->text) == false) {
 				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			}
 		}
@@ -233,11 +233,11 @@ email_end(struct stream_callback_data *data)
 {
 	if (data->path[data->depth] == ATOM03_AUTHOR) {
 		if (data->path[data->depth - 1] == ATOM03_ENTRY) {
-			if (crtss_or_cpyss(&data->feed.item->author->email, data->value) == false) {
+			if (crtss_or_cpyss(&data->feed.item->author->email, data->text) == false) {
 				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			}
 		} else if (data->path[data->depth - 1] == ATOM03_FEED) {
-			if (crtss_or_cpyss(&data->feed.author->email, data->value) == false) {
+			if (crtss_or_cpyss(&data->feed.author->email, data->text) == false) {
 				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			}
 		}
@@ -260,7 +260,7 @@ static int8_t
 tagline_end(struct stream_callback_data *data)
 {
 	if (data->path[data->depth] == ATOM03_FEED) {
-		if (crtss_or_cpyss(&data->feed.summary.value, data->value) == false) {
+		if (crtss_or_cpyss(&data->feed.summary.value, data->text) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	}
@@ -298,7 +298,7 @@ static int8_t
 generator_end(struct stream_callback_data *data)
 {
 	if (data->path[data->depth] == ATOM03_FEED) {
-		if (crtss_or_cpyss(&data->feed.generator.name, data->value) == false) {
+		if (crtss_or_cpyss(&data->feed.generator.name, data->text) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	}

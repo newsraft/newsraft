@@ -150,7 +150,6 @@ struct stream_callback_data {
 	int32_t xml_pos[XML_FORMATS_COUNT];
 	struct string *json_key;
 	int8_t json_array_types[100];
-	int8_t json_array_depth;
 	struct string *value;
 	uint64_t depth;
 };

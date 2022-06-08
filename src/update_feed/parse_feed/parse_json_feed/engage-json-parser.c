@@ -205,7 +205,7 @@ number_handler(void *ctx, const char *val, size_t len)
 {
 	struct stream_callback_data *data = ctx;
 	INFO("Stumbled upon number.");
-	if ((data->json_array_depth == 2)
+	if ((data->depth == 2)
 			&& (data->json_array_types[0] == JSON_ARRAY_ITEMS)
 			&& (data->json_array_types[1] == JSON_ARRAY_ATTACHMENTS)
 			&& (data->feed.item != NULL)
@@ -223,7 +223,7 @@ string_handler(void *ctx, const unsigned char *val, size_t len)
 {
 	struct stream_callback_data *data = ctx;
 	INFO("Stumbled upon string.");
-	if (data->json_array_depth == 1) {
+	if (data->depth == 1) {
 		if (data->json_array_types[0] == JSON_ARRAY_ITEMS) {
 			if (item_string_handler(data, (const char *)val, len) == false) {
 				return 0;
@@ -233,11 +233,11 @@ string_handler(void *ctx, const unsigned char *val, size_t len)
 				return 0;
 			}
 		}
-	} else if (data->json_array_depth == 0) {
+	} else if (data->depth == 0) {
 		if (feed_string_handler(data, (const char *)val, len) == false) {
 			return 0;
 		}
-	} else if (data->json_array_depth == 2) {
+	} else if (data->depth == 2) {
 		if ((data->json_array_types[0] == JSON_ARRAY_ITEMS) && (data->feed.item != NULL)) {
 			if (data->json_array_types[1] == JSON_ARRAY_AUTHORS) {
 				if (person_string_handler(data->feed.item->author, data->json_key, (const char *)val, len) == false) {
@@ -265,13 +265,13 @@ start_map_handler(void *ctx)
 {
 	struct stream_callback_data *data = ctx;
 	INFO("Stumbled upon object start.");
-	if (data->json_array_depth == 1) {
+	if (data->depth == 1) {
 		if (data->json_array_types[0] == JSON_ARRAY_ITEMS) {
 			prepend_item(&data->feed.item);
 		} else if (data->json_array_types[0] == JSON_ARRAY_AUTHORS) {
 			prepend_person(&data->feed.author);
 		}
-	} else if (data->json_array_depth == 2) {
+	} else if (data->depth == 2) {
 		if ((data->json_array_types[0] == JSON_ARRAY_ITEMS) && (data->feed.item != NULL)) {
 			if (data->json_array_types[1] == JSON_ARRAY_AUTHORS) {
 				prepend_person(&data->feed.item->author);
@@ -308,17 +308,17 @@ start_array_handler(void *ctx)
 	struct stream_callback_data *data = ctx;
 	INFO("Stumbled upon array start.");
 	if (strcmp(data->json_key->ptr, "items") == 0) {
-		data->json_array_types[data->json_array_depth] = JSON_ARRAY_ITEMS;
+		data->json_array_types[data->depth] = JSON_ARRAY_ITEMS;
 	} else if (strcmp(data->json_key->ptr, "attachments") == 0) {
-		data->json_array_types[data->json_array_depth] = JSON_ARRAY_ATTACHMENTS;
+		data->json_array_types[data->depth] = JSON_ARRAY_ATTACHMENTS;
 	} else if (strcmp(data->json_key->ptr, "authors") == 0) {
-		data->json_array_types[data->json_array_depth] = JSON_ARRAY_AUTHORS;
+		data->json_array_types[data->depth] = JSON_ARRAY_AUTHORS;
 	} else if (strcmp(data->json_key->ptr, "tags") == 0) {
-		data->json_array_types[data->json_array_depth] = JSON_ARRAY_TAGS;
+		data->json_array_types[data->depth] = JSON_ARRAY_TAGS;
 	} else {
-		data->json_array_types[data->json_array_depth] = JSON_ARRAY_UNKNOWN;
+		data->json_array_types[data->depth] = JSON_ARRAY_UNKNOWN;
 	}
-	data->json_array_depth += 1;
+	data->depth += 1;
 	return 1;
 }
 
@@ -327,8 +327,8 @@ end_array_handler(void *ctx)
 {
 	struct stream_callback_data *data = ctx;
 	INFO("Stumbled upon array end.");
-	if (data->json_array_depth > 0) {
-		data->json_array_depth -= 1;
+	if (data->depth > 0) {
+		data->depth -= 1;
 	}
 	return 1;
 }
@@ -359,7 +359,7 @@ engage_json_parser(struct stream_callback_data *data)
 		free_string(data->json_key);
 		return false;
 	}
-	data->json_array_depth = 0;
+	data->depth = 0;
 	return true;
 }
 

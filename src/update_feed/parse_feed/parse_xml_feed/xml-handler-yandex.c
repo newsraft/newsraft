@@ -24,20 +24,6 @@ full_text_end(struct stream_callback_data *data)
 }
 
 static int8_t
-genre_end(struct stream_callback_data *data)
-{
-	if (we_are_inside_item(data) == true) {
-		if (prepend_category(&data->feed.item->category) == false) {
-			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-		}
-		if (crtss_or_cpyss(&data->feed.item->category->term, data->value) == false) {
-			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-		}
-	}
-	return PARSE_OKAY;
-}
-
-static int8_t
 comment_text_end(struct stream_callback_data *data)
 {
 	if (we_are_inside_item(data) == false) {
@@ -58,13 +44,27 @@ comment_text_end(struct stream_callback_data *data)
 }
 
 static int8_t
+genre_end(struct stream_callback_data *data)
+{
+	if (we_are_inside_item(data) == true) {
+		if (prepend_category(&data->feed.item->category) == false) {
+			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		}
+		if ((data->feed.item->category->term = crtss(data->value)) == NULL) {
+			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		}
+	}
+	return PARSE_OKAY;
+}
+
+static int8_t
 bind_to_end(struct stream_callback_data *data)
 {
 	if (we_are_inside_item(data) == true) {
 		if (prepend_link(&data->feed.item->attachment) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
-		if (crtss_or_cpyss(&data->feed.item->attachment->url, data->value) == false) {
+		if ((data->feed.item->attachment->url = crtss(data->value)) == NULL) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	}
@@ -74,9 +74,9 @@ bind_to_end(struct stream_callback_data *data)
 const struct xml_element_handler xml_yandex_handlers[] = {
 	// <official-comment> is a container for most of this stuff but it is quite redundant.
 	{"full-text",    YANDEX_FULL_TEXT,    NULL, &full_text_end},
-	{"genre",        YANDEX_GENRE,        NULL, &genre_end},
 	{"comment-text", YANDEX_COMMENT_TEXT, NULL, &comment_text_end},
+	{"genre",        YANDEX_GENRE,        NULL, &genre_end},
 	{"bind-to",      YANDEX_BIND_TO,      NULL, &bind_to_end},
-	{NULL,           YANDEX_NONE,         NULL, NULL},
+	{NULL,           XML_UNKNOWN_POS,     NULL, NULL},
 };
 #endif // NEWSRAFT_FORMAT_SUPPORT_YANDEX

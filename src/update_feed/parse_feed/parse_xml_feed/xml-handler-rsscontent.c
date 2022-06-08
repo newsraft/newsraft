@@ -23,6 +23,6 @@ encoded_end(struct stream_callback_data *data)
 
 const struct xml_element_handler xml_rsscontent_handlers[] = {
 	{"encoded", RSSCONTENT_ENCODED, NULL, &encoded_end},
-	{NULL,      RSSCONTENT_NONE,    NULL, NULL},
+	{NULL,      XML_UNKNOWN_POS,    NULL, NULL},
 };
 #endif // NEWSRAFT_FORMAT_SUPPORT_RSSCONTENT

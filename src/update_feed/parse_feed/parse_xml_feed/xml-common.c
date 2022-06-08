@@ -4,26 +4,28 @@
 bool
 we_are_inside_item(const struct stream_callback_data *data)
 {
+	for (size_t i = 0; i <= data->depth; ++i) {
 #ifdef NEWSRAFT_FORMAT_SUPPORT_ATOM10
-	if ((data->xml_pos[ATOM10_FORMAT] & ATOM10_ENTRY) != 0) {
-		return true;
-	}
+		if (data->path[i] == ATOM10_ENTRY) {
+			return true;
+		}
 #endif
 #ifdef NEWSRAFT_FORMAT_SUPPORT_RSS20
-	if ((data->xml_pos[RSS20_FORMAT] & RSS20_ITEM) != 0) {
-		return true;
-	}
+		if (data->path[i] == RSS20_ITEM) {
+			return true;
+		}
 #endif
 #ifdef NEWSRAFT_FORMAT_SUPPORT_RSS11
-	if ((data->xml_pos[RSS11_FORMAT] & RSS11_ITEM) != 0) {
-		return true;
-	}
+		if (data->path[i] == RSS11_ITEM) {
+			return true;
+		}
 #endif
 #ifdef NEWSRAFT_FORMAT_SUPPORT_ATOM03
-	if ((data->xml_pos[ATOM03_FORMAT] & ATOM03_ENTRY) != 0) {
-		return true;
-	}
+		if (data->path[i] == ATOM03_ENTRY) {
+			return true;
+		}
 #endif
+	}
 	return false;
 }
 

@@ -39,8 +39,12 @@ enum xml_format_index {
 #endif
 #ifdef NEWSRAFT_FORMAT_SUPPORT_RSS11
 	RSS11_FORMAT,
-	RSS11_2_FORMAT, // don't use it
-	RSS11_3_FORMAT, // don't use it
+#endif
+#ifdef NEWSRAFT_FORMAT_SUPPORT_RSS10
+	RSS10_FORMAT,
+#endif
+#ifdef NEWSRAFT_FORMAT_SUPPORT_RSS09
+	RSS09_FORMAT,
 #endif
 #ifdef NEWSRAFT_FORMAT_SUPPORT_ATOM03
 	ATOM03_FORMAT,
@@ -147,11 +151,10 @@ struct stream_callback_data {
 	yajl_handle json_parser;
 	struct getfeed_feed feed;
 	int8_t xml_format;
-	int32_t xml_pos[XML_FORMATS_COUNT];
 	struct string *json_key;
-	int8_t json_array_types[100];
 	struct string *value;
-	uint64_t depth;
+	uint8_t path[256];
+	uint8_t depth;
 };
 
 enum download_status download_feed(const char *url, struct stream_callback_data *data);

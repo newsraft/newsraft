@@ -206,8 +206,8 @@ number_handler(void *ctx, const char *val, size_t len)
 	struct stream_callback_data *data = ctx;
 	INFO("Stumbled upon number.");
 	if ((data->depth == 2)
-			&& (data->json_array_types[0] == JSON_ARRAY_ITEMS)
-			&& (data->json_array_types[1] == JSON_ARRAY_ATTACHMENTS)
+			&& (data->path[0] == JSON_ARRAY_ITEMS)
+			&& (data->path[1] == JSON_ARRAY_ATTACHMENTS)
 			&& (data->feed.item != NULL)
 			&& (data->feed.item->attachment != NULL))
 	{
@@ -224,11 +224,11 @@ string_handler(void *ctx, const unsigned char *val, size_t len)
 	struct stream_callback_data *data = ctx;
 	INFO("Stumbled upon string.");
 	if (data->depth == 1) {
-		if (data->json_array_types[0] == JSON_ARRAY_ITEMS) {
+		if (data->path[0] == JSON_ARRAY_ITEMS) {
 			if (item_string_handler(data, (const char *)val, len) == false) {
 				return 0;
 			}
-		} else if (data->json_array_types[0] == JSON_ARRAY_AUTHORS) {
+		} else if (data->path[0] == JSON_ARRAY_AUTHORS) {
 			if (person_string_handler(data->feed.author, data->json_key, (const char *)val, len) == false) {
 				return 0;
 			}
@@ -238,16 +238,16 @@ string_handler(void *ctx, const unsigned char *val, size_t len)
 			return 0;
 		}
 	} else if (data->depth == 2) {
-		if ((data->json_array_types[0] == JSON_ARRAY_ITEMS) && (data->feed.item != NULL)) {
-			if (data->json_array_types[1] == JSON_ARRAY_AUTHORS) {
+		if ((data->path[0] == JSON_ARRAY_ITEMS) && (data->feed.item != NULL)) {
+			if (data->path[1] == JSON_ARRAY_AUTHORS) {
 				if (person_string_handler(data->feed.item->author, data->json_key, (const char *)val, len) == false) {
 					return 0;
 				}
-			} else if (data->json_array_types[1] == JSON_ARRAY_ATTACHMENTS) {
+			} else if (data->path[1] == JSON_ARRAY_ATTACHMENTS) {
 				if (attachment_string_handler(data->feed.item->attachment, data->json_key, (const char *)val, len) == false) {
 					return 0;
 				}
-			} else if (data->json_array_types[1] == JSON_ARRAY_TAGS) {
+			} else if (data->path[1] == JSON_ARRAY_TAGS) {
 				if (prepend_category(&data->feed.item->category) == false) {
 					return 0;
 				}
@@ -266,18 +266,18 @@ start_map_handler(void *ctx)
 	struct stream_callback_data *data = ctx;
 	INFO("Stumbled upon object start.");
 	if (data->depth == 1) {
-		if (data->json_array_types[0] == JSON_ARRAY_ITEMS) {
+		if (data->path[0] == JSON_ARRAY_ITEMS) {
 			prepend_item(&data->feed.item);
-		} else if (data->json_array_types[0] == JSON_ARRAY_AUTHORS) {
+		} else if (data->path[0] == JSON_ARRAY_AUTHORS) {
 			prepend_person(&data->feed.author);
 		}
 	} else if (data->depth == 2) {
-		if ((data->json_array_types[0] == JSON_ARRAY_ITEMS) && (data->feed.item != NULL)) {
-			if (data->json_array_types[1] == JSON_ARRAY_AUTHORS) {
+		if ((data->path[0] == JSON_ARRAY_ITEMS) && (data->feed.item != NULL)) {
+			if (data->path[1] == JSON_ARRAY_AUTHORS) {
 				prepend_person(&data->feed.item->author);
-			} else if (data->json_array_types[1] == JSON_ARRAY_ATTACHMENTS) {
+			} else if (data->path[1] == JSON_ARRAY_ATTACHMENTS) {
 				prepend_link(&data->feed.item->attachment);
-			} else if (data->json_array_types[1] == JSON_ARRAY_TAGS) {
+			} else if (data->path[1] == JSON_ARRAY_TAGS) {
 				prepend_category(&data->feed.item->category);
 			}
 		}
@@ -308,15 +308,15 @@ start_array_handler(void *ctx)
 	struct stream_callback_data *data = ctx;
 	INFO("Stumbled upon array start.");
 	if (strcmp(data->json_key->ptr, "items") == 0) {
-		data->json_array_types[data->depth] = JSON_ARRAY_ITEMS;
+		data->path[data->depth] = JSON_ARRAY_ITEMS;
 	} else if (strcmp(data->json_key->ptr, "attachments") == 0) {
-		data->json_array_types[data->depth] = JSON_ARRAY_ATTACHMENTS;
+		data->path[data->depth] = JSON_ARRAY_ATTACHMENTS;
 	} else if (strcmp(data->json_key->ptr, "authors") == 0) {
-		data->json_array_types[data->depth] = JSON_ARRAY_AUTHORS;
+		data->path[data->depth] = JSON_ARRAY_AUTHORS;
 	} else if (strcmp(data->json_key->ptr, "tags") == 0) {
-		data->json_array_types[data->depth] = JSON_ARRAY_TAGS;
+		data->path[data->depth] = JSON_ARRAY_TAGS;
 	} else {
-		data->json_array_types[data->depth] = JSON_ARRAY_UNKNOWN;
+		data->path[data->depth] = JSON_ARRAY_UNKNOWN;
 	}
 	data->depth += 1;
 	return 1;

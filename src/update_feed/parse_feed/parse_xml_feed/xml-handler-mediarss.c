@@ -41,14 +41,14 @@ content_start(struct stream_callback_data *data, const XML_Char **attrs)
 	if (prepend_link(&data->feed.item->attachment) == false) {
 		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 	}
-	if (crtas_or_cpyas(&data->feed.item->attachment->url, attr, attr_len) == false) {
+	if ((data->feed.item->attachment->url = crtas(attr, attr_len)) == NULL) {
 		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 	}
 	attr = get_value_of_attribute_key(attrs, "type");
 	if (attr != NULL) {
 		attr_len = strlen(attr);
 		if (attr_len != 0) {
-			if (crtas_or_cpyas(&data->feed.item->attachment->type, attr, attr_len) == false) {
+			if ((data->feed.item->attachment->type = crtas(attr, attr_len)) == NULL) {
 				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			}
 		}
@@ -81,7 +81,7 @@ thumbnail_start(struct stream_callback_data *data, const XML_Char **attrs)
 	if (prepend_empty_picture(&data->feed.item->thumbnail) == false) {
 		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 	}
-	if (crtas_or_cpyas(&data->feed.item->thumbnail->url, attr, attr_len) == false) {
+	if ((data->feed.item->thumbnail->url = crtas(attr, attr_len)) == NULL) {
 		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 	}
 	attr = get_value_of_attribute_key(attrs, "width");
@@ -133,6 +133,6 @@ const struct xml_element_handler xml_mediarss_handlers[] = {
 	{"content",     MRSS_CONTENT,     &content_start,     NULL},
 	{"thumbnail",   MRSS_THUMBNAIL,   &thumbnail_start,   NULL},
 	{"description", MRSS_DESCRIPTION, &description_start, &description_end},
-	{NULL,          MRSS_NONE,        NULL,               NULL},
+	{NULL,          XML_UNKNOWN_POS,  NULL,               NULL},
 };
 #endif // NEWSRAFT_FORMAT_SUPPORT_MEDIARSS

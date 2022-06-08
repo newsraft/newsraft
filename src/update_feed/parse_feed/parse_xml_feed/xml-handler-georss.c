@@ -15,7 +15,7 @@ point_end(struct stream_callback_data *data)
 }
 
 const struct xml_element_handler xml_georss_handlers[] = {
-	{"point", GEORSS_POINT, NULL, &point_end},
-	{NULL,    GEORSS_NONE,  NULL, NULL},
+	{"point", GEORSS_POINT,    NULL, &point_end},
+	{NULL,    XML_UNKNOWN_POS, NULL, NULL},
 };
 #endif // NEWSRAFT_FORMAT_SUPPORT_GEORSS

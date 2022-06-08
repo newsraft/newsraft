@@ -100,6 +100,14 @@ if get_option('support-format-rss11').enabled()
 	add_project_arguments(['-DNEWSRAFT_FORMAT_SUPPORT_RSS11'], language: 'c')
 	newsraft_sources += ['src/update_feed/parse_feed/parse_xml_feed/xml-handler-rss11.c']
 endif
+if get_option('support-format-rss10').enabled()
+	add_project_arguments(['-DNEWSRAFT_FORMAT_SUPPORT_RSS10'], language: 'c')
+	newsraft_sources += ['src/update_feed/parse_feed/parse_xml_feed/xml-handler-rss10.c']
+endif
+if get_option('support-format-rss09').enabled()
+	add_project_arguments(['-DNEWSRAFT_FORMAT_SUPPORT_RSS09'], language: 'c')
+	newsraft_sources += ['src/update_feed/parse_feed/parse_xml_feed/xml-handler-rss09.c']
+endif
 if get_option('support-format-atom03').enabled()
 	add_project_arguments(['-DNEWSRAFT_FORMAT_SUPPORT_ATOM03'], language: 'c')
 	newsraft_sources += ['src/update_feed/parse_feed/parse_xml_feed/xml-handler-atom03.c']

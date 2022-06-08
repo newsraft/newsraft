@@ -1,17 +1,12 @@
 #ifdef NEWSRAFT_FORMAT_SUPPORT_RSS11
 #include "update_feed/parse_feed/parse_xml_feed/parse_xml_feed.h"
 
-// Despite this file named "xml-handler-rss11.c", it is actually
-// considered to parse RSS 0.9, RSS 1.0 and RSS 1.1 feeds.
-//
 // Some useful notes:
 //
 // All of these formats do support image attachments with the <image> tag
 // but the flaw is that you can't include image elements in items.
 // They are only for channel overall...
 //
-// https://web.archive.org/web/20211011074123/https://www.rssboard.org/rss-0-9-0
-// https://web.archive.org/web/20211106023928/https://web.resource.org/rss/1.0/spec
 // https://web.archive.org/web/20210411040907/http://inamidst.com/rss1.1/
 
 static int8_t
@@ -27,14 +22,14 @@ item_start(struct stream_callback_data *data, const XML_Char **attrs)
 static int8_t
 title_end(struct stream_callback_data *data)
 {
-	if ((data->xml_pos[RSS11_FORMAT] & RSS11_ITEM) != 0) {
+	if (data->path[data->depth] == RSS11_ITEM) {
 		if (crtss_or_cpyss(&data->feed.item->title.value, data->value) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 		if (crtas_or_cpyas(&data->feed.item->title.type, "text/plain", 10) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
-	} else {
+	} else if (data->path[data->depth] == RSS11_CHANNEL) {
 		if (crtss_or_cpyss(&data->feed.title.value, data->value) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
@@ -48,11 +43,11 @@ title_end(struct stream_callback_data *data)
 static int8_t
 link_end(struct stream_callback_data *data)
 {
-	if ((data->xml_pos[RSS11_FORMAT] & RSS11_ITEM) != 0) {
+	if (data->path[data->depth] == RSS11_ITEM) {
 		if (crtss_or_cpyss(&data->feed.item->url, data->value) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
-	} else {
+	} else if (data->path[data->depth] == RSS11_CHANNEL) {
 		if (crtss_or_cpyss(&data->feed.url, data->value) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
@@ -63,7 +58,7 @@ link_end(struct stream_callback_data *data)
 static int8_t
 description_end(struct stream_callback_data *data)
 {
-	if ((data->xml_pos[RSS11_FORMAT] & RSS11_ITEM) != 0) {
+	if (data->path[data->depth] == RSS11_ITEM) {
 		if (crtss_or_cpyss(&data->feed.item->content.value, data->value) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
@@ -71,7 +66,7 @@ description_end(struct stream_callback_data *data)
 		if (crtas_or_cpyas(&data->feed.item->content.type, "text/plain", 10) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
-	} else {
+	} else if (data->path[data->depth] == RSS11_CHANNEL) {
 		if (crtss_or_cpyss(&data->feed.summary.value, data->value) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
@@ -90,6 +85,7 @@ const struct xml_element_handler xml_rss11_handlers[] = {
 	{"description", RSS11_DESCRIPTION, NULL,        &description_end},
 	//{"image",       RSS11_IMAGE,       NULL,        &image_end},
 	//{"url",         RSS11_URL,         NULL,        &url_end},
-	{NULL,          RSS11_NONE,        NULL,        NULL},
+	{"Channel",     RSS11_CHANNEL,     NULL,        NULL},
+	{NULL,          XML_UNKNOWN_POS,   NULL,        NULL},
 };
 #endif // NEWSRAFT_FORMAT_SUPPORT_RSS11

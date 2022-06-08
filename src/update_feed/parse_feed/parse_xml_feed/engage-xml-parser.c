@@ -30,8 +30,12 @@ static const struct namespace_handler namespace_handlers[] = {
 #endif
 #ifdef NEWSRAFT_FORMAT_SUPPORT_RSS11
 	{"http://purl.org/net/rss1.1#", 27, xml_rss11_handlers},
-	{"http://purl.org/rss/1.0/", 24, xml_rss11_handlers},
-	{"http://channel.netscape.com/rdf/simple/0.9/", 43, xml_rss11_handlers},
+#endif
+#ifdef NEWSRAFT_FORMAT_SUPPORT_RSS10
+	{"http://purl.org/rss/1.0/", 24, xml_rss10_handlers},
+#endif
+#ifdef NEWSRAFT_FORMAT_SUPPORT_RSS09
+	{"http://channel.netscape.com/rdf/simple/0.9/", 43, xml_rss09_handlers},
 #endif
 #ifdef NEWSRAFT_FORMAT_SUPPORT_ATOM03
 	{"http://purl.org/atom/ns#", 24, xml_atom03_handlers},
@@ -62,8 +66,9 @@ static void
 start_element_handler(void *userData, const XML_Char *name, const XML_Char **atts)
 {
 	struct stream_callback_data *data = userData;
-	++(data->depth);
 	empty_string(data->value);
+	data->depth += 1;
+	data->path[data->depth] = XML_UNKNOWN_POS;
 	const char *tag;
 	size_t handler_index;
 	const char *sep_pos = strchr(name, XML_NAMESPACE_SEPARATOR);
@@ -79,14 +84,11 @@ start_element_handler(void *userData, const XML_Char *name, const XML_Char **att
 		const struct xml_element_handler *handlers = namespace_handlers[handler_index].handlers;
 		for (size_t i = 0; handlers[i].name != NULL; ++i) {
 			if (strcmp(tag, handlers[i].name) == 0) {
-				if (handlers[i].bitpos != 0) {
-					if ((data->xml_pos[handler_index] & handlers[i].bitpos) != 0) {
-						return;
-					}
-					data->xml_pos[handler_index] |= handlers[i].bitpos;
-				}
+				data->path[data->depth] = handlers[i].bitpos;
 				if (handlers[i].start_handle != NULL) {
+					data->depth -= 1;
 					handlers[i].start_handle(data, atts);
+					data->depth += 1;
 				}
 				return;
 			}
@@ -115,7 +117,9 @@ static void
 end_element_handler(void *userData, const XML_Char *name)
 {
 	struct stream_callback_data *data = userData;
-	--(data->depth);
+	if (data->depth > 0) {
+		data->depth -= 1;
+	}
 	trim_whitespace_from_string(data->value);
 	const char *tag;
 	size_t handler_index;
@@ -132,12 +136,6 @@ end_element_handler(void *userData, const XML_Char *name)
 		const struct xml_element_handler *handlers = namespace_handlers[handler_index].handlers;
 		for (size_t i = 0; handlers[i].name != NULL; ++i) {
 			if (strcmp(tag, handlers[i].name) == 0) {
-				if (handlers[i].bitpos != 0) {
-					if ((data->xml_pos[handler_index] & handlers[i].bitpos) == 0) {
-						return;
-					}
-					data->xml_pos[handler_index] &= ~handlers[i].bitpos;
-				}
 				// We only need to call the end handler if it is set and there's
 				// some text content in the element.
 				if ((handlers[i].end_handle != NULL) && (data->value->len != 0)) {

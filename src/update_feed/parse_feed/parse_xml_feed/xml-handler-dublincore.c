@@ -58,16 +58,14 @@ creator_end(struct stream_callback_data *data)
 		if (prepend_person(&data->feed.item->author) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
-		data->feed.item->author->name = crtss(data->value);
-		if (data->feed.item->author->name == NULL) {
+		if ((data->feed.item->author->name = crtss(data->value)) == NULL) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	} else {
 		if (prepend_person(&data->feed.author) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
-		data->feed.author->name = crtss(data->value);
-		if (data->feed.author->name == NULL) {
+		if ((data->feed.author->name = crtss(data->value)) == NULL) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	}
@@ -81,16 +79,14 @@ subject_end(struct stream_callback_data *data)
 		if (prepend_category(&data->feed.item->category) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
-		data->feed.item->category->term = crtss(data->value);
-		if (data->feed.item->category->term == NULL) {
+		if ((data->feed.item->category->term = crtss(data->value)) == NULL) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	} else {
 		if (prepend_category(&data->feed.category) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
-		data->feed.category->term = crtss(data->value);
-		if (data->feed.category->term == NULL) {
+		if ((data->feed.category->term = crtss(data->value)) == NULL) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	}
@@ -98,11 +94,11 @@ subject_end(struct stream_callback_data *data)
 }
 
 const struct xml_element_handler xml_dublincore_handlers[] = {
-	{"title",       DC_TITLE,       NULL, &title_end},
-	{"description", DC_DESCRIPTION, NULL, &description_end},
-	{"creator",     DC_CREATOR,     NULL, &creator_end},
-	{"contributor", DC_CONTRIBUTOR, NULL, &creator_end},
-	{"subject",     DC_SUBJECT,     NULL, &subject_end},
-	{NULL,          DC_NONE,        NULL, NULL},
+	{"title",       DC_TITLE,        NULL, &title_end},
+	{"description", DC_DESCRIPTION,  NULL, &description_end},
+	{"creator",     DC_CREATOR,      NULL, &creator_end},
+	{"contributor", DC_CONTRIBUTOR,  NULL, &creator_end},
+	{"subject",     DC_SUBJECT,      NULL, &subject_end},
+	{NULL,          XML_UNKNOWN_POS, NULL, NULL},
 };
 #endif // NEWSRAFT_FORMAT_SUPPORT_DUBLINCORE

@@ -33,6 +33,7 @@ newsraft_sources = [
 	'src/input.c',
 	'src/interface.c',
 	'src/interface-status.c',
+	'src/interface-counter.c',
 	'src/interface-list.c',
 	'src/interface-list-format.c',
 	'src/interface-pager.c',

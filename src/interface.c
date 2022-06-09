@@ -51,9 +51,6 @@ curses_init(void)
 	if (noecho() == ERR) {
 		WARN("Can't disable echoing of characters typed by the user!");
 	}
-	if (keypad(stdscr, TRUE) == ERR) {
-		WARN("Can't enable keypad and function keys!");
-	}
 	return true;
 }
 
@@ -67,14 +64,17 @@ resize_counter_action(void)
 		fprintf(stderr, "Don't flex around with me, okay?\n");
 		return false;
 	}
-
-	adjust_list_menu();
-
+	if (adjust_list_menu() == false) {
+		return false;
+	}
 	if (adjust_list_menu_format_buffer() == false) {
 		return false;
 	}
-
-	status_resize();
-
+	if (status_resize() == false) {
+		return false;
+	}
+	if (counter_resize() == false) {
+		return false;
+	}
 	return true;
 }

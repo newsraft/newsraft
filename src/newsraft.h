@@ -305,7 +305,7 @@ bool resize_counter_action(void);
 
 // Functions responsible for handling input.
 // See "interface-input.c" file for implementation.
-int get_input_command(void);
+int get_input_command(uint32_t *count);
 bool assign_action_to_key(int bind_key, enum input_cmd bind_cmd);
 void free_binds(void);
 
@@ -315,9 +315,19 @@ bool status_create(void);
 void status_update(void);
 void status_write(const char *format, ...);
 void status_clean(void);
-void status_resize(void);
+bool status_resize(void);
 void status_delete(void);
+int read_key_from_status(void);
 struct string *generate_string_with_status_messages_for_pager(void);
+
+// Functions related to window which displays command counter.
+// See "interface-counter.c" file for implementation.
+bool counter_create(void);
+void counter_send_character(char c);
+uint32_t counter_extract_count(void);
+void counter_clean(void);
+bool counter_resize(void);
+void counter_delete(void);
 
 // string.c
 struct string *crtas(const char *src_ptr, size_t src_len);

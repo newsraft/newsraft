@@ -65,11 +65,14 @@ main(int argc, char **argv)
 	if (adjust_list_menu()                == false) { error = 10; goto undo5; }
 	if (adjust_list_menu_format_buffer()  == false) { error = 11; goto undo6; }
 	if (status_create()                   == false) { error = 12; goto undo7; }
-	if (curl_global_init(CURL_GLOBAL_DEFAULT) != 0) { error = 13; goto undo8; }
+	if (counter_create()                  == false) { error = 13; goto undo8; }
+	if (curl_global_init(CURL_GLOBAL_DEFAULT) != 0) { error = 14; goto undo9; }
 
 	enter_feeds_menu_loop();
 
 	curl_global_cleanup();
+undo9:
+	counter_delete();
 undo8:
 	status_delete();
 undo7:

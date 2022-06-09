@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <ctype.h>
 #include "newsraft.h"
 
 struct input_binding {
@@ -11,21 +12,30 @@ static struct input_binding *binds = NULL;
 static size_t binds_count = 0;
 
 int
-get_input_command(void)
+get_input_command(uint32_t *count)
 {
-	int c = getch();
+	int c = read_key_from_status();
 
-	for (size_t i = 0; i < binds_count; ++i) {
-		if (c == binds[i].key) {
-			return binds[i].cmd;
-		}
+	while (isdigit(c) != 0) {
+		counter_send_character(c);
+		c = read_key_from_status();
 	}
 
 	if (c == KEY_RESIZE) {
+		INFO("Apparently, resize action code is %d.", c);
 		if (resize_counter_action() == true) {
 			return INPUT_RESIZE;
 		} else {
 			return INPUT_QUIT_HARD;
+		}
+	}
+
+	*count = counter_extract_count();
+	counter_clean();
+
+	for (size_t i = 0; i < binds_count; ++i) {
+		if (c == binds[i].key) {
+			return binds[i].cmd;
 		}
 	}
 

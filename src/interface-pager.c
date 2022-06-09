@@ -65,9 +65,6 @@ update_pager_menu(struct pager_menu *menu, const struct render_block *data_list)
 	menu->view_min = 0;
 	menu->view_lim = pad_height > list_menu_height ? pad_height - list_menu_height : 0;
 
-	clear();
-	refresh();
-	status_update();
 	prefresh(menu->window, menu->view_min, 0, 0, 0, list_menu_height - 1, list_menu_width - 1);
 
 	free_wstring(text);
@@ -126,17 +123,20 @@ scroll_to_the_end(struct pager_menu *menu)
 int
 pager_view(const struct render_block *first_block, void (*custom_input_handler)(void *data, input_cmd_id cmd), void *data)
 {
+	status_clean();
+	clear();
+	refresh();
+
 	struct pager_menu menu = {NULL, 0, 0};
 	if (update_pager_menu(&menu, first_block) == false) {
 		// Error message written by update_pager_menu.
 		return INPUTS_COUNT;
 	}
 
-	status_clean();
-
+	uint32_t count;
 	input_cmd_id cmd;
 	while (true) {
-		cmd = get_input_command();
+		cmd = get_input_command(&count);
 		if ((cmd == INPUT_SELECT_NEXT) || (cmd == INPUT_ENTER)) {
 			scroll_one_line_down(&menu);
 		} else if (cmd == INPUT_SELECT_PREV) {

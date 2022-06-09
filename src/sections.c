@@ -221,9 +221,10 @@ enter_sections_menu_loop(struct feed_line ***feeds_ptr, size_t *feeds_count_ptr)
 	status_clean();
 	redraw_menu_list(&sections_menu);
 
+	uint32_t count;
 	input_cmd_id cmd;
 	while (true) {
-		cmd = get_input_command();
+		cmd = get_input_command(&count);
 		if (cmd == INPUT_SELECT_NEXT) {
 			list_menu_select_next(&sections_menu);
 		} else if (cmd == INPUT_SELECT_PREV) {

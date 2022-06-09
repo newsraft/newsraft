@@ -7,10 +7,40 @@ static struct string **status_messages;
 static size_t status_messages_count;
 static size_t status_messages_limit;
 
+static inline WINDOW *
+create_status_window(void)
+{
+	WINDOW *win;
+	if (list_menu_width > 9) {
+		win = newwin(1, list_menu_width - 9, list_menu_height, 0);
+	} else {
+		win = newwin(1, list_menu_width, list_menu_height, 0);
+	}
+	if (win != NULL) {
+		INFO("Created new status window.");
+		if (keypad(win, TRUE) == ERR) {
+			WARN("Can't enable keypad and function keys for status window!");
+		}
+	} else {
+		FAIL("Failed to create new status window!");
+	}
+	return win;
+}
+
+static inline void
+write_to_status_window(const char *src)
+{
+	if (list_menu_width > 9) {
+		mvwaddnstr(status_window, 0, 0, src, list_menu_width - 9);
+	} else {
+		mvwaddnstr(status_window, 0, 0, src, list_menu_width);
+	}
+}
+
 bool
 status_create(void)
 {
-	status_window = newwin(1, list_menu_width, list_menu_height, 0);
+	status_window = create_status_window();
 	if (status_window == NULL) {
 		fprintf(stderr, "Failed to create status line window!\n");
 		return false;
@@ -41,7 +71,7 @@ status_update(void)
 	if (status_window_is_clean == false) {
 		const struct string *last_status_message = get_last_status_message();
 		if (last_status_message != NULL) {
-			mvwaddnstr(status_window, 0, 0, last_status_message->ptr, list_menu_width);
+			write_to_status_window(last_status_message->ptr);
 		}
 	}
 	wrefresh(status_window);
@@ -106,19 +136,29 @@ status_clean(void)
 	wrefresh(status_window);
 }
 
-void
+bool
 status_resize(void)
 {
 	if (status_window != NULL) {
 		delwin(status_window);
 	}
-	status_window = newwin(1, list_menu_width, list_menu_height, 0);
+	status_window = create_status_window();
 	if (status_window != NULL) {
-		INFO("Created new status window.");
 		status_update();
 	} else {
-		FAIL("Failed to create new status window!");
+		return false;
 	}
+	return true;
+}
+
+int
+read_key_from_status(void)
+{
+	// We can't read keys from stdscr via getch() function because calling it
+	// will bring stdscr on top of other windows and overlap them.
+	int c = wgetch(status_window);
+	INFO("Received \"%c\" character with %d key code.", c, c);
+	return c;
 }
 
 struct string *

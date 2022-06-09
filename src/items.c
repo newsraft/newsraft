@@ -108,9 +108,10 @@ enter_items_menu_loop(const struct feed_line **feeds, size_t feeds_count, int fo
 	status_clean();
 	redraw_menu_list(&items_menu);
 
+	uint32_t count;
 	input_cmd_id cmd;
 	while (true) {
-		cmd = get_input_command();
+		cmd = get_input_command(&count);
 		if (cmd == INPUT_SELECT_NEXT) {
 			list_menu_select_next(&items_menu);
 			if (get_cfg_bool(CFG_MARK_ITEM_READ_ON_HOVER) == true) {

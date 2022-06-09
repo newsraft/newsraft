@@ -296,9 +296,10 @@ enter_feeds_menu_loop(void)
 
 	redraw_menu_list(&feeds_menu);
 
+	uint32_t count;
 	input_cmd_id cmd;
 	while (true) {
-		cmd = get_input_command();
+		cmd = get_input_command(&count);
 		if (cmd == INPUT_SELECT_NEXT) {
 			list_menu_select_next(&feeds_menu);
 		} else if (cmd == INPUT_SELECT_PREV) {

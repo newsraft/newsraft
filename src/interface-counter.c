@@ -1,0 +1,95 @@
+#include <stdlib.h>
+#include "newsraft.h"
+
+static WINDOW *counter_window;
+
+// We take 999999999 as the maximum value for count variable to avoid
+// overflow of the uint32_t integer.
+// 9 (max length of input) + 1 (terminator) = 10
+static char count_buf[10];
+static uint8_t count_buf_len = 0;
+
+bool
+counter_create(void)
+{
+	if (list_menu_width > 9) {
+		INFO("Creating counter window.");
+		counter_window = newwin(1, 9, list_menu_height, list_menu_width - 9);
+		if (counter_window == NULL) {
+			return false;
+		}
+	} else {
+		WARN("Terminal screen is too small for counter window!");
+		counter_window = NULL;
+	}
+	return true;
+}
+
+static inline void
+counter_update(void)
+{
+	if (counter_window != NULL) {
+		werase(counter_window);
+		if (count_buf_len != 0) {
+			mvwaddnstr(counter_window, 0, 0, count_buf, count_buf_len);
+		}
+		wrefresh(counter_window);
+	}
+}
+
+void
+counter_send_character(char c)
+{
+	if (count_buf_len == 9) {
+		count_buf_len = 0;
+	}
+	count_buf[count_buf_len++] = c;
+	counter_update();
+}
+
+uint32_t
+counter_extract_count(void)
+{
+	uint32_t count;
+	if (count_buf_len == 0) {
+		count = 1;
+	} else {
+		count_buf[count_buf_len] = '\0';
+		if (sscanf(count_buf, "%" SCNu32, &count) != 1) {
+			count = 1;
+		}
+	}
+	return count;
+}
+
+void
+counter_clean(void)
+{
+	if (counter_window != NULL) {
+		werase(counter_window);
+		wrefresh(counter_window);
+	}
+	count_buf_len = 0;
+}
+
+bool
+counter_resize(void)
+{
+	if (counter_window != NULL) {
+		delwin(counter_window);
+	}
+	if (counter_create() == false) {
+		return false;
+	}
+	counter_update();
+	return true;
+}
+
+void
+counter_delete(void)
+{
+	INFO("Freeing counter window.");
+	if (counter_window != NULL) {
+		delwin(counter_window);
+	}
+}

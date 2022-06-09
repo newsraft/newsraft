@@ -18,37 +18,24 @@ free_list_menu(void)
 bool
 adjust_list_menu(void)
 {
-	if (list_menu_height > windows_count) {
-		WINDOW **temp = realloc(windows, sizeof(WINDOW *) * list_menu_height);
-		if (temp == NULL) {
-			FAIL("Not enough memory for reallocating list menu windows!");
+	INFO("Adjusting list menu.");
+	for (size_t i = 0; i < windows_count; ++i) {
+		delwin(windows[i]);
+	}
+	WINDOW **temp = realloc(windows, sizeof(WINDOW *) * list_menu_height);
+	if (temp == NULL) {
+		FAIL("Not enough memory for reallocating list menu windows!");
+		return false;
+	}
+	windows = temp;
+	for (size_t i = 0; i < list_menu_height; ++i) {
+		windows[i] = newwin(1, list_menu_width, i, 0);
+		if (windows[i] == NULL) {
+			FAIL("Not enough memory for window to adjust list menu!");
+			windows_count = i;
 			return false;
 		}
-		windows = temp;
-		for (size_t i = windows_count; i < list_menu_height; ++i) {
-			windows[i] = newwin(1, list_menu_width, i, 0);
-			if (windows[i] == NULL) {
-				FAIL("Not enough memory for window to adjust list menu!");
-				windows_count = i;
-				free_list_menu();
-
-				// Set these to 0 because free_list_menu() will
-				// be called again in the end of main(). That way we will
-				// avoid double free. Yeah, yeah, looks "very" ineffective,
-				// but what are the odds of shortage of memory on list menu
-				// reallocation?
-				windows_count = 0;
-				windows = NULL;
-
-				return false;
-			}
-		}
 	}
-	// if (list_menu_height < windows_count) {
-	//     You might think that these windows that are not needed anymore should be deleted,
-	//     but this function is called on screen resize, on which ncurses automatically
-	//     deletes everything that entirely gone out of bounds. Hence do nothing in this case...
-	// }
 	windows_count = list_menu_height;
 	return true;
 }
@@ -83,18 +70,26 @@ expose_all_visible_entries_of_the_menu_list(struct menu_list_settings *settings)
 	}
 }
 
+static inline void
+erase_all_visible_entries_not_in_the_menu_list(struct menu_list_settings *settings)
+{
+	for (size_t i = settings->entries_count; i <= settings->view_max; ++i) {
+		werase(windows[i]);
+		wnoutrefresh(windows[i]);
+	}
+	doupdate();
+}
+
 void
 redraw_menu_list(struct menu_list_settings *settings)
 {
-	clear();
-	refresh();
-	status_update();
 	settings->view_max = settings->view_min + (list_menu_height - 1);
 	if (settings->view_max < settings->view_sel) {
 		settings->view_max = settings->view_sel;
 		settings->view_min = settings->view_max - (list_menu_height - 1);
 	}
 	expose_all_visible_entries_of_the_menu_list(settings);
+	erase_all_visible_entries_not_in_the_menu_list(settings);
 }
 
 static void

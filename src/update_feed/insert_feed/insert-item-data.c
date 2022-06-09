@@ -32,9 +32,18 @@ db_insert_item(const struct string *feed_url, struct getfeed_item *item, int row
 		return false;
 	}
 
+	struct string *sources_str = generate_source_list_string(item->source);
+	if (sources_str == NULL) {
+		FAIL("Not enough memory for creating sources list of item bucket!");
+		free_string(attachments_str);
+		free_string(authors_str);
+		return false;
+	}
+
 	struct string *categories_str = generate_category_list_string(item->category);
 	if (categories_str == NULL) {
 		FAIL("Not enough memory for creating categories list of item bucket!");
+		free_string(sources_str);
 		free_string(attachments_str);
 		free_string(authors_str);
 		return false;
@@ -43,6 +52,7 @@ db_insert_item(const struct string *feed_url, struct getfeed_item *item, int row
 	struct string *locations_str = concatenate_strings_of_string_list_into_one_string(item->location);
 	if (locations_str == NULL) {
 		free_string(categories_str);
+		free_string(sources_str);
 		free_string(attachments_str);
 		free_string(authors_str);
 		return false;
@@ -52,6 +62,7 @@ db_insert_item(const struct string *feed_url, struct getfeed_item *item, int row
 	if (thumbnails_str == NULL) {
 		free_string(locations_str);
 		free_string(categories_str);
+		free_string(sources_str);
 		free_string(attachments_str);
 		free_string(authors_str);
 		return false;
@@ -61,9 +72,9 @@ db_insert_item(const struct string *feed_url, struct getfeed_item *item, int row
 	bool prepare_status;
 
 	if (rowid == -1) {
-		prepare_status = db_prepare("INSERT INTO items VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", 81, &s);
+		prepare_status = db_prepare("INSERT INTO items VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", 84, &s);
 	} else {
-		prepare_status = db_prepare("UPDATE items SET feed_url = ?, guid = ?, title = ?, link = ?, summary = ?, content = ?, attachments = ?, authors = ?, comments_url = ?, locations = ?, categories = ?, languages = ?, rights = ?, rating = ?, thumbnails = ?, publication_date = ?, update_date = ?, unread = ? WHERE rowid = ?;", 289, &s);
+		prepare_status = db_prepare("UPDATE items SET feed_url = ?, guid = ?, title = ?, link = ?, summary = ?, content = ?, attachments = ?, sources = ?, authors = ?, comments_url = ?, locations = ?, categories = ?, languages = ?, rights = ?, rating = ?, thumbnails = ?, publication_date = ?, update_date = ?, unread = ? WHERE rowid = ?;", 302, &s);
 	}
 
 	if (prepare_status == false) {
@@ -71,6 +82,7 @@ db_insert_item(const struct string *feed_url, struct getfeed_item *item, int row
 		free_string(thumbnails_str);
 		free_string(locations_str);
 		free_string(categories_str);
+		free_string(sources_str);
 		free_string(attachments_str);
 		free_string(authors_str);
 		return false;
@@ -83,6 +95,7 @@ db_insert_item(const struct string *feed_url, struct getfeed_item *item, int row
 	db_bind_text_struct(s, 1 + ITEM_COLUMN_SUMMARY,          &item->summary);
 	db_bind_text_struct(s, 1 + ITEM_COLUMN_CONTENT,          &item->content);
 	db_bind_string(s,      1 + ITEM_COLUMN_ATTACHMENTS,      attachments_str);
+	db_bind_string(s,      1 + ITEM_COLUMN_SOURCES,          sources_str);
 	db_bind_string(s,      1 + ITEM_COLUMN_AUTHORS,          authors_str);
 	db_bind_string(s,      1 + ITEM_COLUMN_COMMENTS_URL,     item->comments_url);
 	db_bind_string(s,      1 + ITEM_COLUMN_LOCATIONS,        locations_str);
@@ -113,6 +126,7 @@ db_insert_item(const struct string *feed_url, struct getfeed_item *item, int row
 	free_string(thumbnails_str);
 	free_string(locations_str);
 	free_string(categories_str);
+	free_string(sources_str);
 	free_string(attachments_str);
 	free_string(authors_str);
 
@@ -127,6 +141,7 @@ reverse_linked_list_structures_of_item(struct getfeed_item *item)
 	// items in reverse order (from top (newest) to bottom (oldest)).
 	reverse_person_list(&item->author);
 	reverse_link_list(&item->attachment);
+	reverse_source_list(&item->source);
 	reverse_category_list(&item->category);
 	reverse_string_list(&item->location);
 	reverse_picture_list(&item->thumbnail);

@@ -53,6 +53,7 @@ newsraft_sources = [
 	'src/update_feed/download.c',
 	'src/update_feed/struct-item.c',
 	'src/update_feed/struct-link.c',
+	'src/update_feed/struct-source.c',
 	'src/update_feed/struct-picture.c',
 	'src/update_feed/struct-person.c',
 	'src/update_feed/struct-category.c',

@@ -304,6 +304,47 @@ managing_editor_end(struct stream_callback_data *data)
 	return PARSE_OKAY;
 }
 
+static int8_t
+source_start(struct stream_callback_data *data, const XML_Char **attrs)
+{
+	if (data->path[data->depth] != RSS20_ITEM) {
+		return PARSE_OKAY; // Ignore sources outside of item element.
+	}
+	const char *attr = get_value_of_attribute_key(attrs, "url");
+	if (attr == NULL) {
+		return PARSE_OKAY;
+	}
+	const size_t attr_len = strlen(attr);
+	if (attr_len == 0) {
+		return PARSE_OKAY;
+	}
+	if (prepend_source(&data->feed.item->source) == false) {
+		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+	}
+	data->feed.item->source->url = crtas(attr, attr_len);
+	if (data->feed.item->source->url == NULL) {
+		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+	}
+	return PARSE_OKAY;
+}
+
+static int8_t
+source_end(struct stream_callback_data *data)
+{
+	if (data->path[data->depth] == RSS20_ITEM) {
+		if ((data->feed.item->source != NULL)
+				&& (data->feed.item->source->url != NULL)
+				&& (data->feed.item->source->name == NULL))
+		{
+			data->feed.item->source->name = crtss(data->text);
+			if (data->feed.item->source->name == NULL) {
+				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+			}
+		}
+	}
+	return PARSE_OKAY;
+}
+
 const struct xml_element_handler xml_rss20_handlers[] = {
 	// <channel> is a container for all this stuff but it is quite redundant.
 	{"item",           RSS20_ITEM,           &item_start,      NULL},
@@ -322,6 +363,7 @@ const struct xml_element_handler xml_rss20_handlers[] = {
 	{"generator",      RSS20_GENERATOR,      NULL,             &generator_end},
 	{"webMaster",      RSS20_WEBMASTER,      NULL,             &web_master_end},
 	{"managingEditor", RSS20_MANAGINGEDITOR, NULL,             &managing_editor_end},
+	{"source",         RSS20_SOURCE,         &source_start,    &source_end},
 	{"channel",        RSS20_CHANNEL,        NULL,             NULL},
 	{NULL,             XML_UNKNOWN_POS,      NULL,             NULL},
 };

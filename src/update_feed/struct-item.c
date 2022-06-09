@@ -30,6 +30,7 @@ free_item(struct getfeed_item *item)
 		free_string(i->comments_url);
 		free_category(i->category);
 		free_link(i->attachment);
+		free_source(i->source);
 		free_person(i->author);
 		free_person(i->contributor);
 		free_string_list(i->location);

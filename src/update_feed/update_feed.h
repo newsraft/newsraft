@@ -91,6 +91,12 @@ struct getfeed_person {
 	struct getfeed_person *next;
 };
 
+struct getfeed_source {
+	struct string *name;
+	struct string *url;
+	struct getfeed_source *next;
+};
+
 struct getfeed_picture {
 	struct string *url;  // URL link to data.
 	struct string *type; // Standard MIME type of data.
@@ -111,6 +117,7 @@ struct getfeed_item {
 	struct getfeed_category *category;
 	struct string *comments_url;
 	struct getfeed_link *attachment;
+	struct getfeed_source *source;
 	struct getfeed_person *author;
 	struct getfeed_person *contributor;
 	struct string_list *location;
@@ -185,6 +192,11 @@ bool prepend_person(struct getfeed_person **head_person_ptr);
 void reverse_person_list(struct getfeed_person **list);
 void free_person(struct getfeed_person *person);
 struct string *generate_person_list_string(const struct getfeed_person *person);
+
+bool prepend_source(struct getfeed_source **head_ptr);
+void reverse_source_list(struct getfeed_source **list);
+void free_source(struct getfeed_source *source);
+struct string *generate_source_list_string(const struct getfeed_source *source);
 
 bool prepend_empty_picture(struct getfeed_picture **head_picture_ptr);
 void reverse_picture_list(struct getfeed_picture **head_picture_ptr);

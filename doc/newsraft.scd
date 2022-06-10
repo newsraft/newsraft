@@ -120,14 +120,15 @@ _global-section-name_ (default: *"Global"*)
 _send-user-agent-header_ (default: *true*)
 	Attach user-agent header to download requests. See _user-agent_ setting.
 
-_user-agent_ (default: *""*)
-	User-agent string to attach to download requests. If it is empty, newsraft
-	will generate it in the following form:
+_user-agent_ (default: *"auto"*)
+	User-agent string to attach to download requests. If it is set to "auto",
+	newsraft will generate it in the following form:
 
-		*"newsraft/"* + _NEWSRAFT_VERSION_ + *" ("* + _OS_NAME_ + *")"*
+		*"newsraft/"* + NEWSRAFT_VERSION + *" ("* + OS_NAME + *")"*
 
-	_OS_NAME_ shouldn't contain any confidential information - it is probably
-	something just like "Linux" or "Darwin".
+	OS_NAME shouldn't be a matter of privacy concern, because on most systems it
+	contains nothing more like "Linux" or "Darwin". If you want to be sure of
+	this, check newsraft log to see which _user-agent_ is set at startup.
 
 _content-data-order_ (default: *"feed,title,authors,published,updated,max-summary-content"*)
 	TODO

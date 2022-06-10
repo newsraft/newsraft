@@ -6,7 +6,7 @@
 bool
 generate_useragent_string(struct string *ua)
 {
-	if (catas(ua, "newsraft/", 9) == false) {
+	if (cpyas(ua, "newsraft/", 9) == false) {
 		goto error;
 	}
 	if (catas(ua, NEWSRAFT_VERSION, strlen(NEWSRAFT_VERSION)) == false) {

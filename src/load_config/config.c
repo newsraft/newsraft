@@ -37,7 +37,7 @@ static struct config_entry config[] = {
 	{"proxy",                           CFG_STRING,  {.s = NULL},  {.s = ""},                                                         0},
 	{"proxy-auth",                      CFG_STRING,  {.s = NULL},  {.s = ""},                                                         0},
 	{"global-section-name",             CFG_STRING,  {.s = NULL},  {.s = "Global"},                                                   6},
-	{"user-agent",                      CFG_STRING,  {.s = NULL},  {.s = ""}, /* generated later */                                   0},
+	{"user-agent",                      CFG_STRING,  {.s = NULL},  {.s = "auto"},                                                     4},
 	{"content-data-order",              CFG_STRING,  {.s = NULL},  {.s = "feed,title,authors,published,updated,max-summary-content"}, 56},
 	{"content-date-format",             CFG_STRING,  {.s = NULL},  {.s = "%a, %d %b %Y %H:%M:%S %z"},                                 24},
 	{"list-entry-date-format",          CFG_STRING,  {.s = NULL},  {.s = "%b %d"},                                                    5},
@@ -102,7 +102,7 @@ assign_default_values_to_null_config_strings(void)
 			}
 		}
 	}
-	if (config[CFG_USER_AGENT].value.s->len == 0) {
+	if (strcmp(config[CFG_USER_AGENT].value.s->ptr, "auto") == 0) {
 		if (generate_useragent_string(config[CFG_USER_AGENT].value.s) == false) {
 			return false;
 		}

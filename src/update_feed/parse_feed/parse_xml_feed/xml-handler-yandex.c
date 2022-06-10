@@ -5,19 +5,17 @@
 static int8_t
 full_text_end(struct stream_callback_data *data)
 {
-	if (we_are_inside_item(data) == false) {
-		return PARSE_OKAY;
-	}
-	if ((data->feed.item->content.value != NULL) && (data->text->len < data->feed.item->content.value->len)) {
-		// Don't save content if it's shorter than the content we currently have.
-		return PARSE_OKAY;
-	}
-	if (crtss_or_cpyss(&data->feed.item->content.value, data->text) == false) {
-		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-	}
-	// In most cases this is HTML.
-	if (crtas_or_cpyas(&data->feed.item->content.type, "text/html", 9) == false) {
-		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+	if (we_are_inside_item(data) == true) {
+		// Save content only if it's longer than the content we currently have.
+		if ((data->feed.item->content.value == NULL) || (data->text->len > data->feed.item->content.value->len)) {
+			if (crtss_or_cpyss(&data->feed.item->content.value, data->text) == false) {
+				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+			}
+			// In most cases this is HTML.
+			if (crtas_or_cpyas(&data->feed.item->content.type, "text/html", 9) == false) {
+				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+			}
+		}
 	}
 	return PARSE_OKAY;
 }

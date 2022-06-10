@@ -4,7 +4,7 @@ option('support-format-rss20', type: 'feature', value: 'enabled', description: '
 option('support-format-rsscontent', type: 'feature', value: 'enabled', description: 'Support for RSS Content module format')
 option('support-format-dublincore', type: 'feature', value: 'enabled', description: 'Support for Dublin Core format')
 option('support-format-mediarss', type: 'feature', value: 'enabled', description: 'Support for Media RSS format')
-option('support-format-yandex', type: 'feature', value: 'enabled', description: 'Support for Yandex format')
+option('support-format-yandex', type: 'feature', value: 'disabled', description: 'Support for Yandex format')
 option('support-format-rbcnews', type: 'feature', value: 'disabled', description: 'Support for RBC News format')
 option('support-format-rss11', type: 'feature', value: 'enabled', description: 'Support for RSS 1.1 format')
 option('support-format-rss10', type: 'feature', value: 'enabled', description: 'Support for RSS 1.0 format')

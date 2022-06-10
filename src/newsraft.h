@@ -97,7 +97,6 @@ struct link {
 struct link_list {
 	struct link *list; // Dynamic array of links.
 	size_t len;        // Shows how many items is in list.
-	size_t lim;        // Shows how many items list can fit.
 };
 
 enum config_entry_index {
@@ -238,6 +237,7 @@ void list_menu_select_last(struct menu_list_settings *s);
 const wchar_t *do_format(int format_setting, const struct format_arg *args, size_t args_count);
 
 // feeds
+bool parse_feeds_file(const char *path);
 void enter_feeds_menu_loop(void);
 bool load_feeds(void);
 bool check_url_for_validity(const struct string *str);
@@ -346,7 +346,7 @@ bool string_printf(struct string *dest, const char *format, ...);
 void empty_string(struct string *str);
 void free_string(struct string *str);
 size_t convert_string_to_size_t_or_zero(const char *src);
-void remove_trailing_slash_from_string(struct string *str);
+void remove_trailing_slashes_from_string(struct string *str);
 void trim_whitespace_from_string(struct string *str);
 struct wstring *convert_string_to_wstring(const struct string *src);
 struct string *convert_bytes_to_human_readable_size_string(const char *value);

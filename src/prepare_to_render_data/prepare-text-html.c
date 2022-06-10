@@ -62,8 +62,14 @@ add_url_mark(struct string *text, const char *url, const char *title, size_t tit
 		return;
 	}
 
+	if (url[0] == '#') {
+		// Don't pollute the list of links with anchors to elements.
+		INFO("Ignoring an anchor to element.");
+		return;
+	}
+
 	int64_t url_index = add_another_url_to_trim_link_list(links, url, url_len);
-	if (url_index == -1) {
+	if (url_index < 0) {
 		return;
 	}
 

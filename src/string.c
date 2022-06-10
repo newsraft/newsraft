@@ -276,16 +276,11 @@ convert_string_to_size_t_or_zero(const char *src)
 }
 
 void
-remove_trailing_slash_from_string(struct string *str)
+remove_trailing_slashes_from_string(struct string *str)
 {
-	if (str->len == 0) {
-		return;
+	while ((str->len > 0) && (str->ptr[str->len - 1] == '/')) {
+		str->len -= 1;
 	}
-	if (str->ptr[str->len - 1] != '/') {
-		return;
-	}
-	INFO("Removing trailing slash from \"%s\".", str->ptr);
-	--(str->len);
 	str->ptr[str->len] = '\0';
 }
 

@@ -28,6 +28,7 @@ newsraft_sources = [
 	'src/db.c',
 	'src/db-items.c',
 	'src/feeds.c',
+	'src/feeds-parse.c',
 	'src/feeds-verifier.c',
 	'src/sections.c',
 	'src/input.c',

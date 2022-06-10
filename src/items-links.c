@@ -2,6 +2,9 @@
 #include <string.h>
 #include "newsraft.h"
 
+// Return codes correspond to:
+// [0; +inf] link was added successfully with that index
+// {-1}      memory failure
 int64_t
 add_another_url_to_trim_link_list(struct link_list *links, const char *url, size_t url_len)
 {
@@ -53,7 +56,7 @@ append_raw_link(struct link_list *links, sqlite3_stmt *res, enum item_column col
 	if (text_len == 0) {
 		return true; // It is not an error because this item simply does not have link set.
 	}
-	if (add_another_url_to_trim_link_list(links, text, text_len) == -1) {
+	if (add_another_url_to_trim_link_list(links, text, text_len) < 0) {
 		return false;
 	}
 	return true;
@@ -90,7 +93,7 @@ append_attachments(struct link_list *links, sqlite3_stmt *res)
 				target = NULL;
 				if (field_num == ATTACHMENT_URL) {
 					link_index = add_another_url_to_trim_link_list(links, word->ptr, word->len);
-					if (link_index == -1) {
+					if (link_index < 0) {
 						goto error;
 					}
 				} else if (field_num == ATTACHMENT_TYPE) {
@@ -247,22 +250,18 @@ strip_paths_from_url(const char *url, size_t url_len)
 	return result;
 }
 
-// Some URLs of item links are presented in relative form.
-// For example:
+// Some URLs of item links are presented in relative form. For example:
 //     (1)  /upload/podcast83.mp3
 // or:
 //     (2)  ../../images/image-194.jpg
-// or:
-//     (3)  #fnref:5
-// Better to beautify these URLs by prepending feed url root
-// in case (1) or by prepending item url with trailing slash
-// in case (2) or by prepending item url without trailing slash
-// in case (3). So it transforms to:
+// Here we beautify these URLs by prepending feed url root in case (1) and by
+// prepending item url with trailing slash in case (2). So it transforms to:
 //     (1)  http://example.org/upload/podcast83.mp3
 // or:
 //     (2)  http://example.org/posts/83-new-podcast/../../images/image-194.jpg
-// or:
-//     (3)  http://example.org/posts/83-new-podcast#fnref:5
+// TODO:
+//     convert http://example.org/posts/83-new-podcast/../../images/image-194.jpg
+//     to      http://example.org/images/image-194.jpg
 bool
 complete_urls_of_links(struct link_list *links, sqlite3_stmt *res)
 {
@@ -272,7 +271,7 @@ complete_urls_of_links(struct link_list *links, sqlite3_stmt *res)
 		FAIL("Feed URL of the item is unset!");
 		return false;
 	}
-	size_t feed_url_len = strlen(feed_url);
+	const size_t feed_url_len = strlen(feed_url);
 	if (feed_url_len == 0) {
 		FAIL("Feed URL of the item is empty!");
 		return false;
@@ -282,8 +281,11 @@ complete_urls_of_links(struct link_list *links, sqlite3_stmt *res)
 		// Error message written by strip_paths_from_url.
 		return false;
 	}
-	const char *item_link;
-	size_t item_link_len;
+	const char *item_link = (const char *)sqlite3_column_text(res, ITEM_COLUMN_LINK);
+	if (item_link == NULL) {
+		item_link = "";
+	}
+	const size_t item_link_len = strlen(item_link);
 	struct string *temp;
 	const char *protocol_sep_pos;
 	size_t protocol_name_len;
@@ -309,24 +311,13 @@ complete_urls_of_links(struct link_list *links, sqlite3_stmt *res)
 #define MAX_PROTOCOL_NAME_LEN 10
 			if ((protocol_sep_pos == NULL) || (protocol_name_len > MAX_PROTOCOL_NAME_LEN)) {
 #undef MAX_PROTOCOL_NAME_LEN
-				item_link = (const char *)sqlite3_column_text(res, ITEM_COLUMN_LINK);
-				if (item_link == NULL) { continue; }
-				item_link_len = strlen(item_link);
-				if (item_link_len == 0) { continue; }
 				temp = crtas(item_link, item_link_len);
 				if (temp == NULL) {
 					free_string(url_without_paths);
 					return false;
 				}
-				if (links->list[i].url->ptr[0] == '#') {
-					if (temp->ptr[temp->len - 1] == '/') {
-						temp->ptr[temp->len - 1] = '\0';
-						--(temp->len);
-					}
-				} else {
-					if (temp->ptr[temp->len - 1] != '/') {
-						catcs(temp, '/');
-					}
+				if (temp->ptr[temp->len - 1] != '/') {
+					catcs(temp, '/');
 				}
 				catss(temp, links->list[i].url);
 				free_string(links->list[i].url);

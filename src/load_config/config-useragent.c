@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <string.h>
 #include <sys/utsname.h>
 #include "load_config/load_config.h"
 
@@ -29,6 +28,6 @@ generate_useragent_string(struct string *ua)
 	}
 	return true;
 error:
-	fprintf(stderr, "Not enough memory for useragent string!\n");
+	fprintf(stderr, "Not enough memory for user-agent setting string!\n");
 	return false;
 }

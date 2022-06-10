@@ -104,9 +104,13 @@ _status-messages-limit_ (default: *10000*)
 _size-conversion-threshold_ (default: *1200*)
 	TODO
 
-_copy-to-clipboard-command_ (default: *"xclip -selection clipboard"*)
+_copy-to-clipboard-command_ (default: *"auto"*)
 	Shell command for copying text to clipboard. All copied information is sent
-	to the standard input of the command.
+	to the standard input of the command. If it is set to "auto", then newsraft
+	will set the setting value depending on the environment variables: "wl-copy"
+	command will be set if environment variable WAYLAND_DISPLAY is present and
+	"xclip -selection clipboard" command will be set if environment variable
+	DISPLAY is present, otherwise "false" command will be set.
 
 _proxy_ (default: *""*)
 	TODO

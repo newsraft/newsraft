@@ -48,6 +48,7 @@ newsraft_sources = [
 	'src/load_config/config.c',
 	'src/load_config/config-binds-default.c',
 	'src/load_config/config-useragent.c',
+	'src/load_config/config-copytoclipboardcommand.c',
 	'src/load_config/config-verifier.c',
 	'src/update_feed/update_feed.c',
 	'src/update_feed/download.c',

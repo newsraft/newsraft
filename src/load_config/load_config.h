@@ -3,6 +3,7 @@
 #include "newsraft.h"
 
 bool generate_useragent_string(struct string *target);
+bool generate_copy_to_clipboard_command_string(struct string *cmd);
 
 bool load_default_binds(void);
 

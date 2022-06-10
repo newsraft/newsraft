@@ -98,6 +98,10 @@ if get_option('support-format-yandex').enabled()
 	add_project_arguments(['-DNEWSRAFT_FORMAT_SUPPORT_YANDEX'], language: 'c')
 	newsraft_sources += ['src/update_feed/parse_feed/parse_xml_feed/xml-handler-yandex.c']
 endif
+if get_option('support-format-rbcnews').enabled()
+	add_project_arguments(['-DNEWSRAFT_FORMAT_SUPPORT_RBCNEWS'], language: 'c')
+	newsraft_sources += ['src/update_feed/parse_feed/parse_xml_feed/xml-handler-rbcnews.c']
+endif
 if get_option('support-format-rss11').enabled()
 	add_project_arguments(['-DNEWSRAFT_FORMAT_SUPPORT_RSS11'], language: 'c')
 	newsraft_sources += ['src/update_feed/parse_feed/parse_xml_feed/xml-handler-rss11.c']

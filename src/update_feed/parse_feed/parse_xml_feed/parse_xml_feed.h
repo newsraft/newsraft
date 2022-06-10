@@ -110,6 +110,9 @@ extern const struct xml_element_handler xml_mediarss_handlers[];
 #ifdef NEWSRAFT_FORMAT_SUPPORT_YANDEX
 extern const struct xml_element_handler xml_yandex_handlers[];
 #endif
+#ifdef NEWSRAFT_FORMAT_SUPPORT_RBCNEWS
+extern const struct xml_element_handler xml_rbcnews_handlers[];
+#endif
 #ifdef NEWSRAFT_FORMAT_SUPPORT_RSS11
 extern const struct xml_element_handler xml_rss11_handlers[];
 #endif

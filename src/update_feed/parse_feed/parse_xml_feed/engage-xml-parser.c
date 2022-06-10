@@ -3,6 +3,49 @@
 
 #define XML_NAMESPACE_SEPARATOR ' '
 
+enum xml_format_index {
+#ifdef NEWSRAFT_FORMAT_SUPPORT_ATOM10
+	ATOM10_FORMAT = 0,
+#endif
+#ifdef NEWSRAFT_FORMAT_SUPPORT_RSS20
+	RSS20_FORMAT,
+#endif
+#ifdef NEWSRAFT_FORMAT_SUPPORT_RSSCONTENT
+	RSSCONTENT_FORMAT,
+#endif
+#ifdef NEWSRAFT_FORMAT_SUPPORT_DUBLINCORE
+	DUBLINCORE_FORMAT,
+#endif
+#ifdef NEWSRAFT_FORMAT_SUPPORT_MEDIARSS
+	MEDIARSS_FORMAT,
+#endif
+#ifdef NEWSRAFT_FORMAT_SUPPORT_YANDEX
+	YANDEX_FORMAT,
+#endif
+#ifdef NEWSRAFT_FORMAT_SUPPORT_RBCNEWS
+	RBCNEWS_FORMAT,
+#endif
+#ifdef NEWSRAFT_FORMAT_SUPPORT_RSS11
+	RSS11_FORMAT,
+#endif
+#ifdef NEWSRAFT_FORMAT_SUPPORT_RSS10
+	RSS10_FORMAT,
+#endif
+#ifdef NEWSRAFT_FORMAT_SUPPORT_RSS09
+	RSS09_FORMAT,
+#endif
+#ifdef NEWSRAFT_FORMAT_SUPPORT_ATOM03
+	ATOM03_FORMAT,
+#endif
+#ifdef NEWSRAFT_FORMAT_SUPPORT_GEORSS
+	GEORSS_FORMAT,
+#endif
+#ifdef NEWSRAFT_FORMAT_SUPPORT_GEORSS_GML
+	GEORSS_GML_FORMAT,
+#endif
+	XML_FORMATS_COUNT,
+};
+
 struct namespace_handler {
 	const char *const uri;
 	const size_t uri_len;
@@ -27,6 +70,9 @@ static const struct namespace_handler namespace_handlers[] = {
 #endif
 #ifdef NEWSRAFT_FORMAT_SUPPORT_YANDEX
 	{"http://news.yandex.ru", 21, xml_yandex_handlers},
+#endif
+#ifdef NEWSRAFT_FORMAT_SUPPORT_RBCNEWS
+	{"http://www.rbc.ru", 17, xml_rbcnews_handlers},
 #endif
 #ifdef NEWSRAFT_FORMAT_SUPPORT_RSS11
 	{"http://purl.org/net/rss1.1#", 27, xml_rss11_handlers},

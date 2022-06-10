@@ -1,4 +1,3 @@
-#ifdef NEWSRAFT_FORMAT_SUPPORT_ATOM10
 #include <string.h>
 #include "update_feed/parse_feed/parse_xml_feed/parse_xml_feed.h"
 
@@ -376,4 +375,3 @@ const struct xml_element_handler xml_atom10_handlers[] = {
 	{"feed",        ATOM10_FEED,      NULL,             NULL},
 	{NULL,          XML_UNKNOWN_POS,  NULL,             NULL},
 };
-#endif // NEWSRAFT_FORMAT_SUPPORT_ATOM10

@@ -1,4 +1,3 @@
-#ifdef NEWSRAFT_FORMAT_SUPPORT_RSS11
 #include "update_feed/parse_feed/parse_xml_feed/parse_xml_feed.h"
 
 // Some useful notes:
@@ -88,4 +87,3 @@ const struct xml_element_handler xml_rss11_handlers[] = {
 	{"Channel",     RSS11_CHANNEL,     NULL,        NULL},
 	{NULL,          XML_UNKNOWN_POS,   NULL,        NULL},
 };
-#endif // NEWSRAFT_FORMAT_SUPPORT_RSS11

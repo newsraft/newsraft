@@ -1,4 +1,3 @@
-#ifdef NEWSRAFT_FORMAT_SUPPORT_RSSCONTENT
 #include "update_feed/parse_feed/parse_xml_feed/parse_xml_feed.h"
 
 // https://web.archive.org/web/20211201074403/https://web.resource.org/rss/1.0/modules/content/
@@ -25,4 +24,3 @@ const struct xml_element_handler xml_rsscontent_handlers[] = {
 	{"encoded", RSSCONTENT_ENCODED, NULL, &encoded_end},
 	{NULL,      XML_UNKNOWN_POS,    NULL, NULL},
 };
-#endif // NEWSRAFT_FORMAT_SUPPORT_RSSCONTENT

@@ -1,4 +1,3 @@
-#ifdef NEWSRAFT_FORMAT_SUPPORT_GEORSS_GML
 #include "update_feed/parse_feed/parse_xml_feed/parse_xml_feed.h"
 
 // https://en.wikipedia.org/wiki/Geography_Markup_Language
@@ -19,4 +18,3 @@ const struct xml_element_handler xml_georss_gml_handlers[] = {
 	{"pos", GEORSS_GML_POS,  NULL, &pos_end},
 	{NULL,  XML_UNKNOWN_POS, NULL, NULL},
 };
-#endif // NEWSRAFT_FORMAT_SUPPORT_GEORSS_GML

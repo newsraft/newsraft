@@ -1,4 +1,3 @@
-#ifdef NEWSRAFT_FORMAT_SUPPORT_RSS20
 #include <stdio.h>
 #include <string.h>
 #include "update_feed/parse_feed/parse_xml_feed/parse_xml_feed.h"
@@ -346,7 +345,6 @@ source_end(struct stream_callback_data *data)
 }
 
 const struct xml_element_handler xml_rss20_handlers[] = {
-	// <channel> is a container for all this stuff but it is quite redundant.
 	{"item",           RSS20_ITEM,           &item_start,      NULL},
 	{"guid",           RSS20_GUID,           NULL,             &guid_end},
 	{"title",          RSS20_TITLE,          NULL,             &title_end},
@@ -367,4 +365,3 @@ const struct xml_element_handler xml_rss20_handlers[] = {
 	{"channel",        RSS20_CHANNEL,        NULL,             NULL},
 	{NULL,             XML_UNKNOWN_POS,      NULL,             NULL},
 };
-#endif // NEWSRAFT_FORMAT_SUPPORT_RSS20

@@ -1,4 +1,3 @@
-#ifdef NEWSRAFT_FORMAT_SUPPORT_DUBLINCORE
 #include "update_feed/parse_feed/parse_xml_feed/parse_xml_feed.h"
 
 static int8_t
@@ -105,4 +104,3 @@ const struct xml_element_handler xml_dublincore_handlers[] = {
 	{"subject",     DC_SUBJECT,      NULL, &subject_end},
 	{NULL,          XML_UNKNOWN_POS, NULL, NULL},
 };
-#endif // NEWSRAFT_FORMAT_SUPPORT_DUBLINCORE

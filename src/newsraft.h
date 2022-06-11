@@ -266,7 +266,7 @@ int64_t add_another_url_to_trim_link_list(struct link_list *links, const char *u
 void free_trim_link_list(const struct link_list *links);
 
 // pager
-int pager_view(const struct render_block *first_block, void (*custom_input_handler)(void *data, input_cmd_id cmd), void *data);
+int pager_view(const struct render_block *first_block, void (*custom_input_handler)(void *data, input_cmd_id cmd, uint32_t count), void *data);
 int enter_item_pager_view_loop(int rowid);
 int enter_status_pager_view_loop(void);
 

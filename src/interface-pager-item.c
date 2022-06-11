@@ -44,25 +44,46 @@ error:
 	return NULL;
 }
 
-static inline void
+static inline const char *
+number_suffix(uint32_t n)
+{
+	if ((n > 3) && (n < 21)) {
+		return "th";
+	}
+	uint32_t mod = n % 10;
+	if (mod == 1) {
+		return "st";
+	} else if (mod == 2) {
+		return "nd";
+	} else if (mod == 3) {
+		return "rd";
+	} else {
+		return "th";
+	}
+}
+
+static inline bool
 copy_string_to_clipboard(const struct string *src)
 {
 	const struct string *copy_cmd = get_cfg_string(CFG_COPY_TO_CLIPBOARD_COMMAND);
 	FILE *p = popen(copy_cmd->ptr, "w");
 	if (p == NULL) {
-		return;
+		return false;
 	}
 	fwrite(src->ptr, sizeof(char), src->len, p);
 	pclose(p);
+	return true;
 }
 
 static void
-custom_input_handler(void *data, input_cmd_id cmd)
+custom_input_handler(void *data, input_cmd_id cmd, uint32_t count)
 {
 	if (cmd == INPUT_COPY_TO_CLIPBOARD) {
 		const struct link_list *links = data;
-		if ((links->len > 0) && (links->list[0].url != NULL)) {
-			copy_string_to_clipboard(links->list[0].url);
+		if ((count != 0) && (links->len >= count) && (links->list[count - 1].url != NULL)) {
+			if (copy_string_to_clipboard(links->list[count - 1].url) == true) {
+				status_write("Copied %" PRIu32 "%s link to clipboard.", count, number_suffix(count));
+			}
 		}
 	}
 }

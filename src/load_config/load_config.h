@@ -5,8 +5,6 @@
 bool generate_useragent_string(struct string *target);
 bool generate_copy_to_clipboard_command_string(struct string *cmd);
 
-bool load_default_binds(void);
-
 bool assign_default_values_to_null_config_strings(void);
 
 void log_config_settings(void);

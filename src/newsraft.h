@@ -313,6 +313,7 @@ bool resize_counter_action(void);
 // Functions responsible for handling input.
 // See "interface-input.c" file for implementation.
 int get_input_command(uint32_t *count);
+bool assign_default_binds(void);
 bool assign_action_to_key(int bind_key, enum input_cmd bind_cmd);
 void free_binds(void);
 

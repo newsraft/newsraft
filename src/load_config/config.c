@@ -126,7 +126,6 @@ free_config(void)
 			free_wstring(config[i].value.w);
 		}
 	}
-	free_binds();
 }
 
 void

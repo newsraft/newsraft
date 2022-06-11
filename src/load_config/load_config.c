@@ -3,11 +3,6 @@
 bool
 load_config(void)
 {
-	if (load_default_binds() == false) {
-		fprintf(stderr, "Failed to load default bindings!\n");
-		return false;
-	}
-
 	/* if (parse_config_file() != 0) { */
 	/* 	success = false; */
 	/* } */

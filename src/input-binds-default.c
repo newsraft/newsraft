@@ -1,7 +1,7 @@
-#include "load_config/load_config.h"
+#include "newsraft.h"
 
 bool
-load_default_binds(void)
+assign_default_binds(void)
 {
 	if (assign_action_to_key('j',       INPUT_SELECT_NEXT)         == false) { goto error; }
 	if (assign_action_to_key(KEY_DOWN,  INPUT_SELECT_NEXT)         == false) { goto error; }
@@ -29,6 +29,7 @@ load_default_binds(void)
 	if (assign_action_to_key('Q',       INPUT_QUIT_HARD)           == false) { goto error; }
 	return true;
 error:
+	fprintf(stderr, "Failed to assign default bindings!\n");
 	free_binds();
 	return false;
 }

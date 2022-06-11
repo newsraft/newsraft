@@ -65,6 +65,12 @@ update_pager_menu(struct pager_menu *menu, const struct render_block *data_list)
 	menu->view_min = 0;
 	menu->view_lim = pad_height > list_menu_height ? pad_height - list_menu_height : 0;
 
+	// We need to call clear and refresh before every prefresh here because
+	// after terminal resize (i. e. terminal size increased) in the area where
+	// the pad is no longer there, the text of previous buffer may remain.
+	clear();
+	refresh();
+
 	prefresh(menu->window, menu->view_min, 0, 0, 0, list_menu_height - 1, list_menu_width - 1);
 
 	free_wstring(text);
@@ -124,8 +130,6 @@ int
 pager_view(const struct render_block *first_block, void (*custom_input_handler)(void *data, input_cmd_id cmd, uint32_t count), void *data)
 {
 	status_clean();
-	clear();
-	refresh();
 
 	struct pager_menu menu = {NULL, 0, 0};
 	if (update_pager_menu(&menu, first_block) == false) {
@@ -162,6 +166,7 @@ pager_view(const struct render_block *first_block, void (*custom_input_handler)(
 	}
 
 	delwin(menu.window);
+	status_clean();
 
 	return cmd;
 }

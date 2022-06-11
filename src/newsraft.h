@@ -247,17 +247,23 @@ struct items_list *generate_items_list(const struct feed_line **feeds, size_t fe
 void free_items_list(struct items_list *items);
 input_cmd_id enter_items_menu_loop(const struct feed_line **feeds, size_t feeds_count, int format);
 
-// contents
+// Functions responsible for managing render blocks.
+// Render block is a piece of text in a single format. They are stored as linked
+// list and sent to pager_view function so it can generate a single text buffer
+// out of texts with different types (plain, html, markdown).
+// See "render-block.c" file for implementation.
 bool join_render_block(struct render_block **list, const char *content, size_t content_len, const char *content_type, size_t content_type_len);
+void reverse_render_blocks(struct render_block **list);
 bool join_render_separator(struct render_block **list);
 bool join_render_blocks_of_item_data(struct render_block **data_list, sqlite3_stmt *res);
 void free_render_blocks(struct render_block *first_block);
+
+// contents
 bool populate_link_list_with_links_of_item(struct link_list *links, sqlite3_stmt *res);
 bool complete_urls_of_links(struct link_list *links, sqlite3_stmt *res);
 struct string *generate_link_list_string_for_pager(const struct link_list *links);
 int64_t add_another_url_to_trim_link_list(struct link_list *links, const char *url, size_t url_len);
 void free_trim_link_list(const struct link_list *links);
-bool join_links_render_block(struct render_block **contents, struct link_list *links);
 
 // pager
 int pager_view(const struct render_block *first_block, void (*custom_input_handler)(void *data, input_cmd_id cmd), void *data);

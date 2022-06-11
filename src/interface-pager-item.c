@@ -1,6 +1,21 @@
 #include <stdio.h>
 #include "newsraft.h"
 
+static inline bool
+join_links_render_block(struct render_block **contents, struct link_list *links)
+{
+	struct string *str = generate_link_list_string_for_pager(links);
+	if (str == NULL) {
+		return false;
+	}
+	join_render_separator(contents);
+	join_render_separator(contents);
+	join_render_block(contents, str->ptr, str->len, "text/plain", 10);
+	join_render_separator(contents);
+	free_string(str);
+	return true;
+}
+
 static inline struct render_block *
 generate_render_blocks_for_item(sqlite3_stmt *res, struct link_list *links)
 {
@@ -66,6 +81,7 @@ enter_item_pager_view_loop(int rowid)
 	if (block == NULL) {
 		return INPUTS_COUNT;
 	}
+	reverse_render_blocks(&block);
 	const int pager_result = pager_view(block, &custom_input_handler, (void *)&links);
 	free_render_blocks(block);
 	free_trim_link_list(&links);

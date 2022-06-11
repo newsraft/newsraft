@@ -1,5 +1,4 @@
 #include <stdlib.h>
-#include <string.h>
 #include "newsraft.h"
 
 bool
@@ -28,21 +27,24 @@ join_render_block(struct render_block **list, const char *content, size_t conten
 	}
 	memcpy(new_entry->content_type, content_type, sizeof(char) * content_type_len);
 	new_entry->content_type[content_type_len] = '\0';
-	new_entry->next = NULL;
-
-	if (*list != NULL) {
-		struct render_block *temp = *list;
-		while (temp != NULL) {
-			if (temp->next == NULL) {
-				temp->next = new_entry;
-				break;
-			}
-			temp = temp->next;
-		}
-	} else {
-		*list = new_entry;
-	}
+	new_entry->next = *list;
+	*list = new_entry;
 	return true;
+}
+
+void
+reverse_render_blocks(struct render_block **list)
+{
+	struct render_block *prev = NULL;
+	struct render_block *current = *list;
+	struct render_block *next = NULL;
+	while (current != NULL) {
+		next = current->next;
+		current->next = prev;
+		prev = current;
+		current = next;
+	}
+	*list = prev;
 }
 
 bool
@@ -65,17 +67,3 @@ free_render_blocks(struct render_block *first_block)
 	}
 }
 
-bool
-join_links_render_block(struct render_block **contents, struct link_list *links)
-{
-	struct string *str = generate_link_list_string_for_pager(links);
-	if (str == NULL) {
-		return false;
-	}
-	join_render_separator(contents);
-	join_render_separator(contents);
-	join_render_block(contents, str->ptr, str->len, "text/plain", 10);
-	join_render_separator(contents);
-	free_string(str);
-	return true;
-}

@@ -48,6 +48,7 @@ newsraft_sources = [
 	'src/items-metadata.c',
 	'src/load_config/load_config.c',
 	'src/load_config/config.c',
+	'src/load_config/config-parse.c',
 	'src/load_config/config-useragent.c',
 	'src/load_config/config-copytoclipboardcommand.c',
 	'src/load_config/config-verifier.c',

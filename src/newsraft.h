@@ -99,6 +99,7 @@ struct link_list {
 	size_t len;        // Shows how many items is in list.
 };
 
+typedef uint8_t config_entry_id;
 enum config_entry_index {
 	CFG_ITEMS_COUNT_LIMIT,
 	CFG_DOWNLOAD_TIMEOUT,

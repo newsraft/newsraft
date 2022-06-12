@@ -3,12 +3,21 @@
 bool
 load_config(void)
 {
-	/* if (parse_config_file() != 0) { */
-	/* 	success = false; */
-	/* } */
+	const char *config_path = get_config_path();
+	if (config_path != NULL) {
+		if (parse_config_file(config_path) == false) {
+			fputs("Failed to parse config file!\n", stderr);
+			return false;
+		}
+	}
 
 	if (assign_default_values_to_null_config_strings() == false) {
-		fprintf(stderr, "Failed to assign default values to NULL config strings!\n");
+		fputs("Failed to assign default values to NULL config strings!\n", stderr);
+		free_config();
+		return false;
+	}
+	if (assign_calculated_values_to_auto_config_strings() == false) {
+		fputs("Failed to assign calculated values to auto config strings!\n", stderr);
 		free_config();
 		return false;
 	}
@@ -16,7 +25,7 @@ load_config(void)
 	log_config_settings();
 
 	if (verify_config_values() == false) {
-		fprintf(stderr, "Verification of the configuration failed!\n");
+		fputs("Verification of the configuration failed!\n", stderr);
 		free_config();
 		return false;
 	}

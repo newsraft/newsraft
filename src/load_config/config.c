@@ -1,12 +1,5 @@
 #include "load_config/load_config.h"
 
-enum config_type {
-	CFG_BOOL,
-	CFG_UINT,
-	CFG_STRING,
-	CFG_WSTRING,
-};
-
 union config_value {
 	bool b;
 	size_t u;
@@ -21,7 +14,7 @@ union config_default_string {
 
 struct config_entry {
 	const char *const name;
-	const enum config_type type;
+	const config_type_id type;
 	union config_value value;
 	const union config_default_string default_string;
 	const size_t default_string_len;
@@ -58,6 +51,17 @@ static struct config_entry config[] = {
 	{"ssl-verify-peer",                 CFG_BOOL,    {.b = true},  {.s = NULL},                                                       0},
 	{NULL,                              CFG_BOOL,    {.b = false}, {.s = NULL},                                                       0},
 };
+
+config_entry_id
+find_config_entry_by_name(const char *name)
+{
+	for (size_t i = 0; config[i].name != NULL; ++i) {
+		if (strcmp(name, config[i].name) == 0) {
+			return i;
+		}
+	}
+	return CFG_ENTRIES_COUNT;
+}
 
 static inline bool
 assign_default_value_to_config_string(size_t i)
@@ -102,6 +106,13 @@ assign_default_values_to_null_config_strings(void)
 			}
 		}
 	}
+	return true;
+}
+
+bool
+assign_calculated_values_to_auto_config_strings(void)
+{
+	INFO("Assigning calculated values to auto config strings.");
 	if (strcmp(config[CFG_USER_AGENT].value.s->ptr, "auto") == 0) {
 		if (generate_useragent_string(config[CFG_USER_AGENT].value.s) == false) {
 			return false;
@@ -145,6 +156,12 @@ log_config_settings(void)
 	}
 }
 
+config_type_id
+get_cfg_type(size_t i)
+{
+	return config[i].type;
+}
+
 const char *
 get_cfg_name(size_t i)
 {
@@ -173,4 +190,41 @@ const struct wstring *
 get_cfg_wstring(size_t i)
 {
 	return config[i].value.w;
+}
+
+void
+set_cfg_bool(size_t i, bool value)
+{
+	config[i].value.b = value;
+}
+
+void
+set_cfg_uint(size_t i, size_t value)
+{
+	config[i].value.u = value;
+}
+
+bool
+set_cfg_string(size_t i, const struct string *value)
+{
+	return crtss_or_cpyss(&config[i].value.s, value);
+}
+
+bool
+set_cfg_wstring(size_t i, const struct string *value)
+{
+	struct wstring *wstr = convert_string_to_wstring(value);
+	if (wstr == NULL) {
+		return false;
+	}
+	if (config[i].value.w == NULL) {
+		config[i].value.w = wstr;
+	} else {
+		if (wcpyss(config[i].value.w, wstr) == false) {
+			free_wstring(wstr);
+			return false;
+		}
+		free_wstring(wstr);
+	}
+	return true;
 }

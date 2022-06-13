@@ -62,9 +62,9 @@ newsraft_sources = [
 	'src/update_feed/struct-category.c',
 	'src/update_feed/struct-generator.c',
 	'src/update_feed/parse_feed/date-utils.c',
-	'src/update_feed/parse_feed/parse_xml_feed/engage-xml-parser.c',
-	'src/update_feed/parse_feed/parse_xml_feed/xml-common.c',
-	'src/update_feed/parse_feed/parse_json_feed/engage-json-parser.c',
+	'src/update_feed/parse_feed/xml/engage-xml-parser.c',
+	'src/update_feed/parse_feed/xml/xml-common.c',
+	'src/update_feed/parse_feed/json/engage-json-parser.c',
 	'src/update_feed/insert_feed/insert_feed.c',
 	'src/update_feed/insert_feed/insert-feed-data.c',
 	'src/update_feed/insert_feed/insert-item-data.c',
@@ -79,55 +79,55 @@ newsraft_sources = [
 
 if get_option('support-format-atom10').enabled()
 	add_project_arguments(['-DNEWSRAFT_FORMAT_SUPPORT_ATOM10'], language: 'c')
-	newsraft_sources += ['src/update_feed/parse_feed/parse_xml_feed/xml-handler-atom10.c']
+	newsraft_sources += ['src/update_feed/parse_feed/xml/xml-handler-atom10.c']
 endif
 if get_option('support-format-rss20').enabled()
 	add_project_arguments(['-DNEWSRAFT_FORMAT_SUPPORT_RSS20'], language: 'c')
-	newsraft_sources += ['src/update_feed/parse_feed/parse_xml_feed/xml-handler-rss20.c']
+	newsraft_sources += ['src/update_feed/parse_feed/xml/xml-handler-rss20.c']
 endif
 if get_option('support-format-rsscontent').enabled()
 	add_project_arguments(['-DNEWSRAFT_FORMAT_SUPPORT_RSSCONTENT'], language: 'c')
-	newsraft_sources += ['src/update_feed/parse_feed/parse_xml_feed/xml-handler-rsscontent.c']
+	newsraft_sources += ['src/update_feed/parse_feed/xml/xml-handler-rsscontent.c']
 endif
 if get_option('support-format-dublincore').enabled()
 	add_project_arguments(['-DNEWSRAFT_FORMAT_SUPPORT_DUBLINCORE'], language: 'c')
-	newsraft_sources += ['src/update_feed/parse_feed/parse_xml_feed/xml-handler-dublincore.c']
+	newsraft_sources += ['src/update_feed/parse_feed/xml/xml-handler-dublincore.c']
 endif
 if get_option('support-format-mediarss').enabled()
 	add_project_arguments(['-DNEWSRAFT_FORMAT_SUPPORT_MEDIARSS'], language: 'c')
-	newsraft_sources += ['src/update_feed/parse_feed/parse_xml_feed/xml-handler-mediarss.c']
+	newsraft_sources += ['src/update_feed/parse_feed/xml/xml-handler-mediarss.c']
 endif
 if get_option('support-format-yandex').enabled()
 	add_project_arguments(['-DNEWSRAFT_FORMAT_SUPPORT_YANDEX'], language: 'c')
-	newsraft_sources += ['src/update_feed/parse_feed/parse_xml_feed/xml-handler-yandex.c']
+	newsraft_sources += ['src/update_feed/parse_feed/xml/xml-handler-yandex.c']
 endif
 if get_option('support-format-rbcnews').enabled()
 	add_project_arguments(['-DNEWSRAFT_FORMAT_SUPPORT_RBCNEWS'], language: 'c')
-	newsraft_sources += ['src/update_feed/parse_feed/parse_xml_feed/xml-handler-rbcnews.c']
+	newsraft_sources += ['src/update_feed/parse_feed/xml/xml-handler-rbcnews.c']
 endif
 if get_option('support-format-rss11').enabled()
 	add_project_arguments(['-DNEWSRAFT_FORMAT_SUPPORT_RSS11'], language: 'c')
-	newsraft_sources += ['src/update_feed/parse_feed/parse_xml_feed/xml-handler-rss11.c']
+	newsraft_sources += ['src/update_feed/parse_feed/xml/xml-handler-rss11.c']
 endif
 if get_option('support-format-rss10').enabled()
 	add_project_arguments(['-DNEWSRAFT_FORMAT_SUPPORT_RSS10'], language: 'c')
-	newsraft_sources += ['src/update_feed/parse_feed/parse_xml_feed/xml-handler-rss10.c']
+	newsraft_sources += ['src/update_feed/parse_feed/xml/xml-handler-rss10.c']
 endif
 if get_option('support-format-rss09').enabled()
 	add_project_arguments(['-DNEWSRAFT_FORMAT_SUPPORT_RSS09'], language: 'c')
-	newsraft_sources += ['src/update_feed/parse_feed/parse_xml_feed/xml-handler-rss09.c']
+	newsraft_sources += ['src/update_feed/parse_feed/xml/xml-handler-rss09.c']
 endif
 if get_option('support-format-atom03').enabled()
 	add_project_arguments(['-DNEWSRAFT_FORMAT_SUPPORT_ATOM03'], language: 'c')
-	newsraft_sources += ['src/update_feed/parse_feed/parse_xml_feed/xml-handler-atom03.c']
+	newsraft_sources += ['src/update_feed/parse_feed/xml/xml-handler-atom03.c']
 endif
 if get_option('support-format-georss').enabled()
 	add_project_arguments(['-DNEWSRAFT_FORMAT_SUPPORT_GEORSS'], language: 'c')
-	newsraft_sources += ['src/update_feed/parse_feed/parse_xml_feed/xml-handler-georss.c']
+	newsraft_sources += ['src/update_feed/parse_feed/xml/xml-handler-georss.c']
 endif
 if get_option('support-format-georss-gml').enabled()
 	add_project_arguments(['-DNEWSRAFT_FORMAT_SUPPORT_GEORSS_GML'], language: 'c')
-	newsraft_sources += ['src/update_feed/parse_feed/parse_xml_feed/xml-handler-georss-gml.c']
+	newsraft_sources += ['src/update_feed/parse_feed/xml/xml-handler-georss-gml.c']
 endif
 if get_option('support-format-jsonfeed').enabled()
 	add_project_arguments(['-DNEWSRAFT_FORMAT_SUPPORT_JSONFEED'], language: 'c')

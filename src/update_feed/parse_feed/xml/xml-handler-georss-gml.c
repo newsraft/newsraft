@@ -1,4 +1,4 @@
-#include "update_feed/parse_feed/parse_xml_feed/parse_xml_feed.h"
+#include "update_feed/parse_feed/xml/parse_xml_feed.h"
 
 // https://en.wikipedia.org/wiki/Geography_Markup_Language
 // https://georss.org/gml.html

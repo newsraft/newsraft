@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <string.h>
-#include "update_feed/parse_feed/parse_xml_feed/parse_xml_feed.h"
+#include "update_feed/parse_feed/xml/parse_xml_feed.h"
 
 // https://web.archive.org/web/20211208135333/https://validator.w3.org/feed/docs/rss2.html
 

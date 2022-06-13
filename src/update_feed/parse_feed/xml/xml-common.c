@@ -1,5 +1,5 @@
 #include <string.h>
-#include "update_feed/parse_feed/parse_xml_feed/parse_xml_feed.h"
+#include "update_feed/parse_feed/xml/parse_xml_feed.h"
 
 bool
 we_are_inside_item(const struct stream_callback_data *data)

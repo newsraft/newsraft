@@ -1,4 +1,4 @@
-#include "update_feed/parse_feed/parse_xml_feed/parse_xml_feed.h"
+#include "update_feed/parse_feed/xml/parse_xml_feed.h"
 
 // https://web.resource.org/rss/1.0/modules/content/
 

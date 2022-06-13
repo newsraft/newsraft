@@ -1,82 +1,42 @@
-#include <stdlib.h>
+#include <stdio.h>
 #include "update_feed/update_feed.h"
 
-// On success returns true.
-// On memory shortage returns false.
-bool
-prepend_link(struct getfeed_link **head_link_ptr)
+void
+empty_link(struct getfeed_temp *temp)
 {
-	struct getfeed_link *link = calloc(1, sizeof(struct getfeed_link));
-	if (link == NULL) {
+	empty_string_safe(temp->attachment.url);
+	empty_string_safe(temp->attachment.type);
+	temp->attachment.size = 0;
+	temp->attachment.duration = 0;
+}
+
+bool
+serialize_link(struct getfeed_temp *temp, struct string **str)
+{
+	if ((temp->attachment.url == NULL) || (temp->attachment.url->len == 0)) {
+		return true;
+	}
+	if (cat_string_to_serialization(str, "url", 3, temp->attachment.url) == false) {
 		return false;
 	}
-	link->next = *head_link_ptr;
-	*head_link_ptr = link;
+	if (cat_string_to_serialization(str, "type", 4, temp->attachment.type) == false) {
+		return false;
+	}
+	if (temp->attachment.size != 0) {
+		temp->buf_len = snprintf(temp->buf, 100, "%zu", temp->attachment.size);
+		if ((temp->buf_len > 0) && (temp->buf_len < 100)) {
+			if (cat_array_to_serialization(str, "size", 4, temp->buf, temp->buf_len) == false) {
+				return false;
+			}
+		}
+	}
+	if (temp->attachment.duration != 0) {
+		temp->buf_len = snprintf(temp->buf, 100, "%zu", temp->attachment.duration);
+		if ((temp->buf_len > 0) && (temp->buf_len < 100)) {
+			if (cat_array_to_serialization(str, "duration", 8, temp->buf, temp->buf_len) == false) {
+				return false;
+			}
+		}
+	}
 	return true;
-}
-
-void
-reverse_link_list(struct getfeed_link **list)
-{
-	struct getfeed_link *prev = NULL;
-	struct getfeed_link *current = *list;
-	struct getfeed_link *next = NULL;
-	while (current != NULL) {
-		next = current->next;
-		current->next = prev;
-		prev = current;
-		current = next;
-	}
-	*list = prev;
-}
-
-void
-free_link(struct getfeed_link *link)
-{
-	struct getfeed_link *temp;
-	struct getfeed_link *l = link;
-	while (l != NULL) {
-		free_string(l->url);
-		free_string(l->type);
-		temp = l;
-		l = l->next;
-		free(temp);
-	}
-}
-
-struct string *
-generate_link_list_string(const struct getfeed_link *link)
-{
-	struct string *str = crtes();
-	if (str == NULL) {
-		return NULL;
-	}
-	char tmp[100];
-	int64_t tmp_len;
-	const struct getfeed_link *l = link;
-	while (l != NULL) {
-		if ((l->url == NULL) || (l->url->len == 0)) {
-			continue;
-		}
-		if (str->len != 0) {
-			if (catcs(str, '\n') == false) { goto error; }
-		}
-		if (catss(str, l->url) == false) { goto error; }
-		if (catcs(str, ' ') == false) { goto error; }
-		if ((l->type != NULL) && (l->type->len != 0)) {
-			if (catss(str, l->type) == false) { goto error; }
-		}
-		// Mind the heading space character! It's needed for separation.
-		tmp_len = snprintf(tmp, 100, " %zu", l->size);
-		if ((tmp_len < 0) || (tmp_len >= 100)) { goto error; }
-		if (catas(str, tmp, tmp_len) == false) { goto error; }
-		tmp_len = snprintf(tmp, 100, " %zu", l->duration);
-		if ((tmp_len < 0) || (tmp_len >= 100)) { goto error; }
-		if (catas(str, tmp, tmp_len) == false) { goto error; }
-		l = l->next;
-	}
-	return str;
-error:
-	free_string(str);
-	return NULL;
 }

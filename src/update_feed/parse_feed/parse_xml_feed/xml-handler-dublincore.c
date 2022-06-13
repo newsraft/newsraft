@@ -54,19 +54,38 @@ static int8_t
 creator_end(struct stream_callback_data *data)
 {
 	if (we_are_inside_item(data) == true) {
-		if (prepend_person(&data->feed.item->author) == false) {
+		if (cat_array_to_serialization(&data->feed.item->authors, "type", 4, "author", 6) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
-		data->feed.item->author->name = crtss(data->text);
-		if (data->feed.item->author->name == NULL) {
+		if (cat_string_to_serialization(&data->feed.item->authors, "name", 4, data->text) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	} else {
-		if (prepend_person(&data->feed.author) == false) {
+		if (cat_array_to_serialization(&data->feed.authors, "type", 4, "author", 6) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
-		data->feed.author->name = crtss(data->text);
-		if (data->feed.author->name == NULL) {
+		if (cat_string_to_serialization(&data->feed.authors, "name", 4, data->text) == false) {
+			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		}
+	}
+	return PARSE_OKAY;
+}
+
+static int8_t
+contributor_end(struct stream_callback_data *data)
+{
+	if (we_are_inside_item(data) == true) {
+		if (cat_array_to_serialization(&data->feed.item->authors, "type", 4, "contributor", 11) == false) {
+			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		}
+		if (cat_string_to_serialization(&data->feed.item->authors, "name", 4, data->text) == false) {
+			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		}
+	} else {
+		if (cat_array_to_serialization(&data->feed.authors, "type", 4, "contributor", 11) == false) {
+			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		}
+		if (cat_string_to_serialization(&data->feed.authors, "name", 4, data->text) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	}
@@ -77,19 +96,11 @@ static int8_t
 subject_end(struct stream_callback_data *data)
 {
 	if (we_are_inside_item(data) == true) {
-		if (prepend_category(&data->feed.item->category) == false) {
-			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-		}
-		data->feed.item->category->term = crtss(data->text);
-		if (data->feed.item->category->term == NULL) {
+		if (cat_string_to_serialization(&data->feed.item->categories, "term", 4, data->text) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	} else {
-		if (prepend_category(&data->feed.category) == false) {
-			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-		}
-		data->feed.category->term = crtss(data->text);
-		if (data->feed.category->term == NULL) {
+		if (cat_string_to_serialization(&data->feed.categories, "term", 4, data->text) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	}
@@ -100,7 +111,7 @@ const struct xml_element_handler xml_dublincore_handlers[] = {
 	{"title",       DC_TITLE,        NULL, &title_end},
 	{"description", DC_DESCRIPTION,  NULL, &description_end},
 	{"creator",     DC_CREATOR,      NULL, &creator_end},
-	{"contributor", DC_CONTRIBUTOR,  NULL, &creator_end},
+	{"contributor", DC_CONTRIBUTOR,  NULL, &contributor_end},
 	{"subject",     DC_SUBJECT,      NULL, &subject_end},
 	{NULL,          XML_UNKNOWN_POS, NULL, NULL},
 };

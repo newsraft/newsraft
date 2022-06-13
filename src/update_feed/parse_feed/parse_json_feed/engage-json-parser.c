@@ -85,8 +85,7 @@ item_string_handler(struct stream_callback_data *data, const char *val, size_t l
 	} else if (strcmp(data->text->ptr, "date_modified") == 0) {
 		data->feed.item->upddate = parse_date_rfc3339(val, len);
 	} else if (strcmp(data->text->ptr, "external_url") == 0) {
-		prepend_link(&data->feed.item->attachment);
-		if (crtas_or_cpyas(&data->feed.item->attachment->url, val, len) == false) {
+		if (cat_array_to_serialization(&data->feed.item->attachments, "url", 3, val, len) == false) {
 			return false;
 		}
 	} else if (strcmp(data->text->ptr, "language") == 0) {
@@ -100,9 +99,6 @@ item_string_handler(struct stream_callback_data *data, const char *val, size_t l
 static inline bool
 person_string_handler(struct getfeed_person *person, const struct string *key, const char *val, size_t len)
 {
-	if (person == NULL) {
-		return true;
-	}
 	if (strcmp(key->ptr, "name") == 0) {
 		if (crtas_or_cpyas(&person->name, val, len) == false) {
 			return false;
@@ -120,9 +116,6 @@ person_string_handler(struct getfeed_person *person, const struct string *key, c
 static inline bool
 attachment_string_handler(struct getfeed_link *link, const struct string *key, const char *val, size_t len)
 {
-	if (link == NULL) {
-		return true;
-	}
 	if (strcmp(key->ptr, "url") == 0) {
 		if (crtas_or_cpyas(&link->url, val, len) == false) {
 			return false;
@@ -208,10 +201,9 @@ number_handler(void *ctx, const char *val, size_t len)
 	if ((data->depth == 2)
 			&& (data->path[0] == JSON_ARRAY_ITEMS)
 			&& (data->path[1] == JSON_ARRAY_ATTACHMENTS)
-			&& (data->feed.item != NULL)
-			&& (data->feed.item->attachment != NULL))
+			&& (data->feed.item != NULL))
 	{
-		if (attachment_number_handler(data->feed.item->attachment, data->text, (const char *)val, len) == false) {
+		if (attachment_number_handler(&data->feed.temp.attachment, data->text, val, len) == false) {
 			return 0;
 		}
 	}
@@ -229,7 +221,7 @@ string_handler(void *ctx, const unsigned char *val, size_t len)
 				return 0;
 			}
 		} else if (data->path[0] == JSON_ARRAY_AUTHORS) {
-			if (person_string_handler(data->feed.author, data->text, (const char *)val, len) == false) {
+			if (person_string_handler(&data->feed.temp.author, data->text, (const char *)val, len) == false) {
 				return 0;
 			}
 		}
@@ -240,18 +232,15 @@ string_handler(void *ctx, const unsigned char *val, size_t len)
 	} else if (data->depth == 2) {
 		if ((data->path[0] == JSON_ARRAY_ITEMS) && (data->feed.item != NULL)) {
 			if (data->path[1] == JSON_ARRAY_AUTHORS) {
-				if (person_string_handler(data->feed.item->author, data->text, (const char *)val, len) == false) {
+				if (person_string_handler(&data->feed.temp.author, data->text, (const char *)val, len) == false) {
 					return 0;
 				}
 			} else if (data->path[1] == JSON_ARRAY_ATTACHMENTS) {
-				if (attachment_string_handler(data->feed.item->attachment, data->text, (const char *)val, len) == false) {
+				if (attachment_string_handler(&data->feed.temp.attachment, data->text, (const char *)val, len) == false) {
 					return 0;
 				}
 			} else if (data->path[1] == JSON_ARRAY_TAGS) {
-				if (prepend_category(&data->feed.item->category) == false) {
-					return 0;
-				}
-				if (crtas_or_cpyas(&data->feed.item->category->term, (const char *)val, len) == false) {
+				if (cat_array_to_serialization(&data->feed.item->categories, "term", 4, (const char *)val, len) == false) {
 					return 0;
 				}
 			}
@@ -269,16 +258,14 @@ start_map_handler(void *ctx)
 		if (data->path[0] == JSON_ARRAY_ITEMS) {
 			prepend_item(&data->feed.item);
 		} else if (data->path[0] == JSON_ARRAY_AUTHORS) {
-			prepend_person(&data->feed.author);
+			empty_person(&data->feed.temp);
 		}
 	} else if (data->depth == 2) {
 		if ((data->path[0] == JSON_ARRAY_ITEMS) && (data->feed.item != NULL)) {
 			if (data->path[1] == JSON_ARRAY_AUTHORS) {
-				prepend_person(&data->feed.item->author);
+				empty_person(&data->feed.temp);
 			} else if (data->path[1] == JSON_ARRAY_ATTACHMENTS) {
-				prepend_link(&data->feed.item->attachment);
-			} else if (data->path[1] == JSON_ARRAY_TAGS) {
-				prepend_category(&data->feed.item->category);
+				empty_link(&data->feed.temp);
 			}
 		}
 	}
@@ -297,8 +284,27 @@ map_key_handler(void *ctx, const unsigned char *key, size_t key_len)
 static int
 end_map_handler(void *ctx)
 {
-	(void)ctx;
+	struct stream_callback_data *data = ctx;
 	INFO("Stumbled upon object end.");
+	if (data->depth == 1) {
+		if (data->path[0] == JSON_ARRAY_AUTHORS) {
+			if (serialize_person(&data->feed.temp, &data->feed.authors) == false) {
+				return 0;
+			}
+		}
+	} else if (data->depth == 2) {
+		if ((data->path[0] == JSON_ARRAY_ITEMS) && (data->feed.item != NULL)) {
+			if (data->path[1] == JSON_ARRAY_AUTHORS) {
+				if (serialize_person(&data->feed.temp, &data->feed.item->authors) == false) {
+					return 0;
+				}
+			} else if (data->path[1] == JSON_ARRAY_ATTACHMENTS) {
+				if (serialize_link(&data->feed.temp, &data->feed.item->attachments) == false) {
+					return 0;
+				}
+			}
+		}
+	}
 	return 1;
 }
 

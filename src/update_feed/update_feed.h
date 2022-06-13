@@ -18,6 +18,14 @@ enum media_type {
 	MEDIA_TYPE_OTHER,
 };
 
+enum person_involvement {
+	PERSON_AUTHOR = 0,
+	PERSON_CONTRIBUTOR,
+	PERSON_EDITOR,
+	PERSON_WEBMASTER,
+	PERSON_ASSIGNEE,
+};
+
 struct getfeed_generator {
 	struct string *name;
 	struct string *version;
@@ -30,10 +38,9 @@ struct getfeed_text {
 };
 
 struct getfeed_category {
-	struct string *label;  // Provides a human-readable label for display.
 	struct string *term;   // Identifies the category. If it's empty, then category is undefined.
 	struct string *scheme; // Identifies the categorization scheme (mostly via an URI).
-	struct getfeed_category *next;
+	struct string *label;  // Provides a human-readable label to display.
 };
 
 struct getfeed_link {
@@ -41,20 +48,21 @@ struct getfeed_link {
 	struct string *type; // Standard MIME type of data.
 	size_t size;         // Size of data in bytes (0 means unset).
 	size_t duration;     // Duration of data in seconds (0 means unset).
-	struct getfeed_link *next;
 };
 
 struct getfeed_person {
+	// What kind of participation did the person take in the publication (possible
+	// values are presented in person_involvement enumeration.
+	uint8_t involvement;
 	struct string *name;
 	struct string *email;
 	struct string *url;
-	struct getfeed_person *next;
 };
 
 struct getfeed_source {
-	struct string *name;
 	struct string *url;
-	struct getfeed_source *next;
+	struct string *title;
+	bool url_is_set;
 };
 
 struct getfeed_picture {
@@ -63,7 +71,16 @@ struct getfeed_picture {
 	size_t width;
 	size_t height;
 	size_t size;         // Size of data in bytes (0 means unset).
-	struct getfeed_picture *next;
+};
+
+struct getfeed_temp {
+	char buf[256];
+	uint8_t buf_len;
+	struct getfeed_person author;
+	struct getfeed_link attachment;
+	struct getfeed_category category;
+	struct getfeed_source source;
+	struct getfeed_picture picture;
 };
 
 struct getfeed_item {
@@ -71,20 +88,17 @@ struct getfeed_item {
 	struct getfeed_text title;
 	struct string *url;
 	struct getfeed_text summary;
-	int64_t summary_hash;
 	struct getfeed_text content;
-	int64_t content_hash;
-	struct getfeed_category *category;
+	struct string *attachments;
+	struct string *sources;
+	struct string *authors;
 	struct string *comments_url;
-	struct getfeed_link *attachment;
-	struct getfeed_source *source;
-	struct getfeed_person *author;
-	struct getfeed_person *contributor;
-	struct string_list *location;
+	struct string *locations;
+	struct string *categories;
 	struct string *language;
 	struct getfeed_text rights;
 	struct string *rating;
-	struct getfeed_picture *thumbnail;
+	struct string *pictures;
 	time_t pubdate; // Publication date in seconds since the Epoch (0 means unset).
 	time_t upddate; // Update date in seconds since the Epoch (0 means unset).
 	struct getfeed_item *next;
@@ -95,21 +109,21 @@ struct getfeed_feed {
 	struct getfeed_text title;
 	struct string *url;
 	struct getfeed_text summary;
-	struct getfeed_category *category;
+	struct string *authors;
+	struct string *categories;
 	struct string *language;
-	struct getfeed_generator generator;
 	struct getfeed_text rights;
 	struct string *rating;
-	struct getfeed_person *author;
-	struct getfeed_person *editor;
-	struct getfeed_person *webmaster;
-	time_t time_to_live;
-	time_t update_date;
+	struct string *pictures;
+	struct getfeed_generator generator;
 	time_t download_date;
+	time_t update_date;
+	time_t time_to_live;
+	struct string *http_header_etag;
 	int64_t http_header_last_modified;
 	int64_t http_header_expires;
-	struct string *http_header_etag;
 	struct getfeed_item *item;
+	struct getfeed_temp temp;
 };
 
 struct stream_callback_data {
@@ -138,30 +152,20 @@ bool insert_feed(const struct string *url, struct getfeed_feed *feed);
 bool prepend_item(struct getfeed_item **head_item_ptr);
 void free_item(struct getfeed_item *item);
 
-bool prepend_category(struct getfeed_category **head_category_ptr);
-void reverse_category_list(struct getfeed_category **list);
-void free_category(struct getfeed_category *category);
-struct string *generate_category_list_string(const struct getfeed_category *category);
+void empty_category(struct getfeed_temp *temp);
+bool serialize_category(struct getfeed_temp *temp, struct string **str);
 
-bool prepend_link(struct getfeed_link **head_link_ptr);
-void reverse_link_list(struct getfeed_link **list);
-void free_link(struct getfeed_link *link);
-struct string *generate_link_list_string(const struct getfeed_link *link);
+void empty_link(struct getfeed_temp *temp);
+bool serialize_link(struct getfeed_temp *temp, struct string **str);
 
-bool prepend_person(struct getfeed_person **head_person_ptr);
-void reverse_person_list(struct getfeed_person **list);
-void free_person(struct getfeed_person *person);
-struct string *generate_person_list_string(const struct getfeed_person *person);
+void empty_person(struct getfeed_temp *temp);
+bool serialize_person(struct getfeed_temp *temp, struct string **str);
 
-bool prepend_source(struct getfeed_source **head_ptr);
-void reverse_source_list(struct getfeed_source **list);
-void free_source(struct getfeed_source *source);
-struct string *generate_source_list_string(const struct getfeed_source *source);
+void empty_source(struct getfeed_temp *temp);
+bool serialize_source(struct getfeed_temp *temp, struct string **str);
 
-bool prepend_empty_picture(struct getfeed_picture **head_picture_ptr);
-void reverse_picture_list(struct getfeed_picture **head_picture_ptr);
-void free_picture(struct getfeed_picture *picture);
-struct string *generate_picture_list_string(const struct getfeed_picture *picture);
+void empty_picture(struct getfeed_temp *temp);
+bool serialize_picture(struct getfeed_temp *temp, struct string **str);
 
 struct string *generate_generator_string(const struct getfeed_generator *generator);
 #endif // UPDATE_FEED_H

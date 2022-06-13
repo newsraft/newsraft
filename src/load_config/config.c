@@ -1,55 +1,60 @@
 #include "load_config/load_config.h"
 
+struct config_string {
+	struct string *actual;
+	const char *const primary;
+	const size_t primary_len;
+};
+
+struct config_wstring {
+	struct wstring *actual;
+	const wchar_t *const primary;
+	const size_t primary_len;
+};
+
 union config_value {
 	bool b;
 	size_t u;
-	struct string *s;
-	struct wstring *w;
-};
-
-union config_default_string {
-	const char *const s;
-	const wchar_t *const w;
+	struct config_string s;
+	struct config_wstring w;
 };
 
 struct config_entry {
 	const char *const name;
 	const config_type_id type;
 	union config_value value;
-	const union config_default_string default_string;
-	const size_t default_string_len;
 };
 
 static struct config_entry config[] = {
-	{"items-count-limit",               CFG_UINT,    {.u = 0},     {.s = NULL},                                                       0},
-	{"download-timeout",                CFG_UINT,    {.u = 20},    {.s = NULL},                                                       0},
-	{"download-speed-limit",            CFG_UINT,    {.u = 0},     {.s = NULL},                                                       0},
-	{"status-messages-limit",           CFG_UINT,    {.u = 10000}, {.s = NULL},                                                       0},
-	{"size-conversion-threshold",       CFG_UINT,    {.u = 1200},  {.s = NULL},                                                       0},
-	{"copy-to-clipboard-command",       CFG_STRING,  {.s = NULL},  {.s = "auto"},                                                     4},
-	{"proxy",                           CFG_STRING,  {.s = NULL},  {.s = ""},                                                         0},
-	{"proxy-auth",                      CFG_STRING,  {.s = NULL},  {.s = ""},                                                         0},
-	{"global-section-name",             CFG_STRING,  {.s = NULL},  {.s = "Global"},                                                   6},
-	{"user-agent",                      CFG_STRING,  {.s = NULL},  {.s = "auto"},                                                     4},
-	{"content-data-order",              CFG_STRING,  {.s = NULL},  {.s = "feed,title,authors,published,updated,max-summary-content"}, 56},
-	{"content-date-format",             CFG_STRING,  {.s = NULL},  {.s = "%a, %d %b %Y %H:%M:%S %z"},                                 24},
-	{"list-entry-date-format",          CFG_STRING,  {.s = NULL},  {.s = "%b %d"},                                                    5},
-	{"menu-section-entry-format",       CFG_WSTRING, {.w = NULL},  {.w = L"%4.0u │ %t"},                                              10},
-	{"menu-feed-entry-format",          CFG_WSTRING, {.w = NULL},  {.w = L"%4.0u │ %t"},                                              10},
-	{"menu-item-entry-format",          CFG_WSTRING, {.w = NULL},  {.w = L" %u │ %d │ %t"},                                           13},
-	{"menu-overview-item-entry-format", CFG_WSTRING, {.w = NULL},  {.w = L" %u │ %d │ %-28.28f │ %t"},                                24},
-	{"mark-item-read-on-hover",         CFG_BOOL,    {.b = false}, {.s = NULL},                                                       0},
-	{"content-append-links",            CFG_BOOL,    {.b = true},  {.s = NULL},                                                       0},
-	{"clean-database-on-startup",       CFG_BOOL,    {.b = true},  {.s = NULL},                                                       0},
-	{"analyze-database-on-startup",     CFG_BOOL,    {.b = true},  {.s = NULL},                                                       0},
-	{"respect-ttl-element",             CFG_BOOL,    {.b = true},  {.s = NULL},                                                       0},
-	{"respect-expires-header",          CFG_BOOL,    {.b = true},  {.s = NULL},                                                       0},
-	{"send-user-agent-header",          CFG_BOOL,    {.b = true},  {.s = NULL},                                                       0},
-	{"send-if-none-match-header",       CFG_BOOL,    {.b = true},  {.s = NULL},                                                       0},
-	{"send-if-modified-since-header",   CFG_BOOL,    {.b = true},  {.s = NULL},                                                       0},
-	{"ssl-verify-host",                 CFG_BOOL,    {.b = true},  {.s = NULL},                                                       0},
-	{"ssl-verify-peer",                 CFG_BOOL,    {.b = true},  {.s = NULL},                                                       0},
-	{NULL,                              CFG_BOOL,    {.b = false}, {.s = NULL},                                                       0},
+	{"items-count-limit",               CFG_UINT,    {.u = 0    }},
+	{"download-timeout",                CFG_UINT,    {.u = 20   }},
+	{"download-speed-limit",            CFG_UINT,    {.u = 0    }},
+	{"status-messages-limit",           CFG_UINT,    {.u = 10000}},
+	{"size-conversion-threshold",       CFG_UINT,    {.u = 1200 }},
+	{"copy-to-clipboard-command",       CFG_STRING,  {.s = {NULL, "auto",   4}}},
+	{"proxy",                           CFG_STRING,  {.s = {NULL, "",       0}}},
+	{"proxy-auth",                      CFG_STRING,  {.s = {NULL, "",       0}}},
+	{"global-section-name",             CFG_STRING,  {.s = {NULL, "Global", 6}}},
+	{"user-agent",                      CFG_STRING,  {.s = {NULL, "auto",   4}}},
+	{"content-data-order",              CFG_STRING,  {.s = {NULL, "feed,title,authors,published,updated,max-summary-content", 56}}},
+	{"content-date-format",             CFG_STRING,  {.s = {NULL, "%a, %d %b %Y %H:%M:%S %z",  24}}},
+	{"list-entry-date-format",          CFG_STRING,  {.s = {NULL, "%b %d",                      5}}},
+	{"menu-section-entry-format",       CFG_WSTRING, {.w = {NULL, L"%4.0u │ %t",               10}}},
+	{"menu-feed-entry-format",          CFG_WSTRING, {.w = {NULL, L"%4.0u │ %t",               10}}},
+	{"menu-item-entry-format",          CFG_WSTRING, {.w = {NULL, L" %u │ %d │ %t",            13}}},
+	{"menu-overview-item-entry-format", CFG_WSTRING, {.w = {NULL, L" %u │ %d │ %-28.28f │ %t", 24}}},
+	{"mark-item-read-on-hover",         CFG_BOOL,    {.b = false}},
+	{"content-append-links",            CFG_BOOL,    {.b = true }},
+	{"clean-database-on-startup",       CFG_BOOL,    {.b = true }},
+	{"analyze-database-on-startup",     CFG_BOOL,    {.b = true }},
+	{"respect-ttl-element",             CFG_BOOL,    {.b = true }},
+	{"respect-expires-header",          CFG_BOOL,    {.b = true }},
+	{"send-user-agent-header",          CFG_BOOL,    {.b = true }},
+	{"send-if-none-match-header",       CFG_BOOL,    {.b = true }},
+	{"send-if-modified-since-header",   CFG_BOOL,    {.b = true }},
+	{"ssl-verify-host",                 CFG_BOOL,    {.b = true }},
+	{"ssl-verify-peer",                 CFG_BOOL,    {.b = true }},
+	{NULL,                              CFG_BOOL,    {.b = false}},
 };
 
 config_entry_id
@@ -66,24 +71,20 @@ find_config_entry_by_name(const char *name)
 static inline bool
 assign_default_value_to_config_string(size_t i)
 {
-	config[i].value.s = crtas(config[i].default_string.s, config[i].default_string_len);
-	if (config[i].value.s == NULL) {
-		FAIL("Failed to assign \"%s\" to %s!", config[i].default_string.s, config[i].name);
+	config[i].value.s.actual = crtas(config[i].value.s.primary, config[i].value.s.primary_len);
+	if (config[i].value.s.actual == NULL) {
 		return false;
 	}
-	INFO("Assigned \"%s\" to %s.", config[i].default_string.s, config[i].name);
 	return true;
 }
 
 static inline bool
 assign_default_value_to_config_wstring(size_t i)
 {
-	config[i].value.w = wcrtas(config[i].default_string.w, config[i].default_string_len);
-	if (config[i].value.w == NULL) {
-		FAIL("Failed to assign \"%ls\" to %s!", config[i].default_string.w, config[i].name);
+	config[i].value.w.actual = wcrtas(config[i].value.w.primary, config[i].value.w.primary_len);
+	if (config[i].value.w.actual == NULL) {
 		return false;
 	}
-	INFO("Assigned \"%ls\" to %s.", config[i].default_string.w, config[i].name);
 	return true;
 }
 
@@ -93,13 +94,13 @@ assign_default_values_to_null_config_strings(void)
 	INFO("Assigning default values to NULL config strings.");
 	for (size_t i = 0; config[i].name != NULL; ++i) {
 		if (config[i].type == CFG_STRING) {
-			if (config[i].value.s == NULL) {
+			if (config[i].value.s.actual == NULL) {
 				if (assign_default_value_to_config_string(i) == false) {
 					return false;
 				}
 			}
 		} else if (config[i].type == CFG_WSTRING) {
-			if (config[i].value.w == NULL) {
+			if (config[i].value.w.actual == NULL) {
 				if (assign_default_value_to_config_wstring(i) == false) {
 					return false;
 				}
@@ -113,13 +114,13 @@ bool
 assign_calculated_values_to_auto_config_strings(void)
 {
 	INFO("Assigning calculated values to auto config strings.");
-	if (strcmp(config[CFG_USER_AGENT].value.s->ptr, "auto") == 0) {
-		if (generate_useragent_string(config[CFG_USER_AGENT].value.s) == false) {
+	if (strcmp(config[CFG_USER_AGENT].value.s.actual->ptr, "auto") == 0) {
+		if (generate_useragent_string(config[CFG_USER_AGENT].value.s.actual) == false) {
 			return false;
 		}
 	}
-	if (strcmp(config[CFG_COPY_TO_CLIPBOARD_COMMAND].value.s->ptr, "auto") == 0) {
-		if (generate_copy_to_clipboard_command_string(config[CFG_COPY_TO_CLIPBOARD_COMMAND].value.s) == false) {
+	if (strcmp(config[CFG_COPY_TO_CLIPBOARD_COMMAND].value.s.actual->ptr, "auto") == 0) {
+		if (generate_copy_to_clipboard_command_string(config[CFG_COPY_TO_CLIPBOARD_COMMAND].value.s.actual) == false) {
 			return false;
 		}
 	}
@@ -132,9 +133,9 @@ free_config(void)
 	INFO("Freeing configuration strings.");
 	for (size_t i = 0; config[i].name != NULL; ++i) {
 		if (config[i].type == CFG_STRING) {
-			free_string(config[i].value.s);
+			free_string(config[i].value.s.actual);
 		} else if (config[i].type == CFG_WSTRING) {
-			free_wstring(config[i].value.w);
+			free_wstring(config[i].value.w.actual);
 		}
 	}
 }
@@ -142,16 +143,16 @@ free_config(void)
 void
 log_config_settings(void)
 {
-	INFO("Final configuration settings are:");
+	INFO("Current configuration settings:");
 	for (size_t i = 0; config[i].name != NULL; ++i) {
 		if (config[i].type == CFG_BOOL) {
 			INFO("%s = %d", config[i].name, config[i].value.b);
 		} else if (config[i].type == CFG_UINT) {
 			INFO("%s = %zu", config[i].name, config[i].value.u);
 		} else if (config[i].type == CFG_STRING) {
-			INFO("%s = %s", config[i].name, config[i].value.s->ptr);
+			INFO("%s = \"%s\"", config[i].name, config[i].value.s.actual->ptr);
 		} else if (config[i].type == CFG_WSTRING) {
-			INFO("%s = %ls", config[i].name, config[i].value.w->ptr);
+			INFO("%s = \"%ls\"", config[i].name, config[i].value.w.actual->ptr);
 		}
 	}
 }
@@ -183,13 +184,13 @@ get_cfg_uint(size_t i)
 const struct string *
 get_cfg_string(size_t i)
 {
-	return config[i].value.s;
+	return config[i].value.s.actual;
 }
 
 const struct wstring *
 get_cfg_wstring(size_t i)
 {
-	return config[i].value.w;
+	return config[i].value.w.actual;
 }
 
 void
@@ -207,7 +208,7 @@ set_cfg_uint(size_t i, size_t value)
 bool
 set_cfg_string(size_t i, const struct string *value)
 {
-	return crtss_or_cpyss(&config[i].value.s, value);
+	return crtss_or_cpyss(&config[i].value.s.actual, value);
 }
 
 bool
@@ -217,14 +218,14 @@ set_cfg_wstring(size_t i, const struct string *value)
 	if (wstr == NULL) {
 		return false;
 	}
-	if (config[i].value.w == NULL) {
-		config[i].value.w = wstr;
-	} else {
-		if (wcpyss(config[i].value.w, wstr) == false) {
-			free_wstring(wstr);
-			return false;
-		}
-		free_wstring(wstr);
+	if (config[i].value.w.actual == NULL) {
+		config[i].value.w.actual = wstr;
+		return true;
 	}
+	if (wcpyss(config[i].value.w.actual, wstr) == false) {
+		free_wstring(wstr);
+		return false;
+	}
+	free_wstring(wstr);
 	return true;
 }

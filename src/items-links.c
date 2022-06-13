@@ -62,13 +62,6 @@ append_raw_link(struct link_list *links, sqlite3_stmt *res, enum item_column col
 	return true;
 }
 
-enum attachment_field_index {
-	ATTACHMENT_URL = 0,
-	ATTACHMENT_TYPE,
-	ATTACHMENT_SIZE,
-	ATTACHMENT_DURATION,
-};
-
 static inline bool
 append_attachments(struct link_list *links, sqlite3_stmt *res)
 {
@@ -76,52 +69,55 @@ append_attachments(struct link_list *links, sqlite3_stmt *res)
 	if (text == NULL) {
 		return true; // It is not an error because this item simply does not have attachments set.
 	}
-	struct string *word = crtes();
-	if (word == NULL) {
+	struct string_deserialize_stream *s = open_string_deserialize_stream(text);
+	if (s == NULL) {
 		return false;
 	}
-	int8_t field_num = ATTACHMENT_URL;
-	struct string **target;
-	int64_t link_index;
-	for (const char *iter = text; *iter != '\0'; ++iter) {
-		if ((*iter != ' ') && (*iter != '\n')) {
-			if (catcs(word, *iter) == false) {
-				goto error;
+	int64_t link_index = -1;
+	const struct string *entry = get_next_entry_from_deserialize_stream(s);
+	while (entry != NULL) {
+		if (strcmp(entry->ptr, "url") == 0) {
+			entry = get_next_entry_from_deserialize_stream(s);
+			if (entry != NULL) {
+				link_index = add_another_url_to_trim_link_list(links, entry->ptr, entry->len);
+				if (link_index < 0) {
+					goto error;
+				}
+			}
+		} else if (link_index != -1) {
+			if (strcmp(entry->ptr, "type") == 0) {
+				entry = get_next_entry_from_deserialize_stream(s);
+				if (entry != NULL) {
+					if (crtss_or_cpyss(&links->list[link_index].type, entry) == false) {
+						goto error;
+					}
+				}
+			} else if (strcmp(entry->ptr, "size") == 0) {
+				entry = get_next_entry_from_deserialize_stream(s);
+				if (entry != NULL) {
+					if (crtss_or_cpyss(&links->list[link_index].size, entry) == false) {
+						goto error;
+					}
+				}
+			} else if (strcmp(entry->ptr, "duration") == 0) {
+				entry = get_next_entry_from_deserialize_stream(s);
+				if (entry != NULL) {
+					if (crtss_or_cpyss(&links->list[link_index].duration, entry) == false) {
+						goto error;
+					}
+				}
+			} else {
+				entry = get_next_entry_from_deserialize_stream(s);
 			}
 		} else {
-			if (word->len != 0) {
-				target = NULL;
-				if (field_num == ATTACHMENT_URL) {
-					link_index = add_another_url_to_trim_link_list(links, word->ptr, word->len);
-					if (link_index < 0) {
-						goto error;
-					}
-				} else if (field_num == ATTACHMENT_TYPE) {
-					target = &links->list[link_index].type;
-				} else if (field_num == ATTACHMENT_SIZE) {
-					target = &links->list[link_index].size;
-				} else if (field_num == ATTACHMENT_DURATION) {
-					target = &links->list[link_index].duration;
-				}
-				if ((target != NULL) && (*target == NULL)) {
-					*target = crtss(word);
-					if (*target == NULL) {
-						goto error;
-					}
-				}
-				empty_string(word);
-			}
-			if (*iter == '\n') {
-				field_num = ATTACHMENT_URL;
-			} else {
-				++field_num;
-			}
+			entry = get_next_entry_from_deserialize_stream(s);
 		}
+		entry = get_next_entry_from_deserialize_stream(s);
 	}
-	free_string(word);
+	close_string_deserialize_stream(s);
 	return true;
 error:
-	free_string(word);
+	close_string_deserialize_stream(s);
 	return false;
 }
 

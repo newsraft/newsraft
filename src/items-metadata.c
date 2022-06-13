@@ -17,12 +17,13 @@ struct data_entry {
 static const struct data_entry entries[] = {
 	{"feed",       "Feed: ",       6,  ITEM_COLUMN_FEED_URL,     false},
 	{"title",      "Title: ",      7,  ITEM_COLUMN_TITLE,        true},
-	{"authors",    "Authors: ",    9,  ITEM_COLUMN_AUTHORS,      false},
-	{"categories", "Categories: ", 12, ITEM_COLUMN_CATEGORIES,   false},
+	/* {"authors",    "Authors: ",    9,  ITEM_COLUMN_AUTHORS,      false}, */
+	/* {"categories", "Categories: ", 12, ITEM_COLUMN_CATEGORIES,   false}, */
 	{"link",       "Link: ",       6,  ITEM_COLUMN_LINK,         false},
 	{"comments",   "Comments: ",   10, ITEM_COLUMN_COMMENTS_URL, false},
 	{"summary",    "\n\n",         2,  ITEM_COLUMN_SUMMARY,      true},
 	{"content",    "\n\n",         2,  ITEM_COLUMN_CONTENT,      true},
+	{NULL,         NULL,           0,  0,                        false},
 };
 
 // On success returns true.
@@ -168,7 +169,7 @@ process_specifier(const char *entry, struct render_block **list, sqlite3_stmt *r
 			return false;
 		}
 	} else {
-		for (size_t i = 0; i < COUNTOF(entries); ++i) {
+		for (size_t i = 0; entries[i].field != NULL; ++i) {
 			if (strcmp(entry, entries[i].field) == 0) {
 				if (append_meta_data_entry(list, res, i) == false) {
 					return false;

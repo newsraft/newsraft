@@ -6,7 +6,7 @@ static int8_t
 point_end(struct stream_callback_data *data)
 {
 	if (we_are_inside_item(data) == true) {
-		if (copy_string_to_string_list(&data->feed.item->location, data->text) == false) {
+		if (cat_string_to_serialization(&data->feed.item->locations, "coordinates", 11, data->text) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	}

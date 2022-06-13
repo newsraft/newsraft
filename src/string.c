@@ -195,6 +195,15 @@ empty_string(struct string *str)
 }
 
 void
+empty_string_safe(struct string *str)
+{
+	if (str != NULL) {
+		str->len = 0;
+		*(str->ptr + 0) = '\0';
+	}
+}
+
+void
 free_string(struct string *str)
 {
 	if (str == NULL) {
@@ -273,6 +282,20 @@ convert_string_to_size_t_or_zero(const char *src)
 		return bytes;
 	}
 	return 0;
+}
+
+void
+remove_character_from_string(struct string *str, char c)
+{
+	for (char *i = str->ptr; *i != '\0'; ++i) {
+		if (*i == c) {
+			for (char *j = i; *j != '\0'; ++j) {
+				*j = *(j + 1);
+			}
+			str->len -= 1;
+			i -= 1;
+		}
+	}
 }
 
 void

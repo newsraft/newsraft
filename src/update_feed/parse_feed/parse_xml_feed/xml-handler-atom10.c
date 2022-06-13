@@ -86,26 +86,25 @@ link_start(struct stream_callback_data *data, const XML_Char **attrs)
 			}
 		}
 	} else if (data->path[data->depth] == ATOM10_ENTRY) {
-		if (prepend_link(&data->feed.item->attachment) == false) {
-			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-		}
-		data->feed.item->attachment->url = crtas(attr, attr_len);
-		if (data->feed.item->attachment->url == NULL) {
+		empty_link(&data->feed.temp);
+		if (crtas_or_cpyas(&data->feed.temp.attachment.url, attr, attr_len) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 		attr = get_value_of_attribute_key(attrs, "type");
 		if (attr != NULL) {
 			attr_len = strlen(attr);
 			if (attr_len != 0) {
-				data->feed.item->attachment->type = crtas(attr, attr_len);
-				if (data->feed.item->attachment->type == NULL) {
+				if (crtas_or_cpyas(&data->feed.temp.attachment.type, attr, attr_len) == false) {
 					return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 				}
 			}
 		}
 		attr = get_value_of_attribute_key(attrs, "length");
 		if (attr != NULL) {
-			data->feed.item->attachment->size = convert_string_to_size_t_or_zero(attr);
+			data->feed.temp.attachment.size = convert_string_to_size_t_or_zero(attr);
+		}
+		if (serialize_link(&data->feed.temp, &data->feed.item->attachments) == false) {
+			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	}
 	return PARSE_OKAY;
@@ -180,11 +179,27 @@ author_start(struct stream_callback_data *data, const XML_Char **attrs)
 {
 	(void)attrs;
 	if (data->path[data->depth] == ATOM10_ENTRY) {
-		if (prepend_person(&data->feed.item->author) == false) {
+		if (cat_array_to_serialization(&data->feed.item->authors, "type", 4, "author", 6) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	} else if (data->path[data->depth] == ATOM10_FEED) {
-		if (prepend_person(&data->feed.author) == false) {
+		if (cat_array_to_serialization(&data->feed.authors, "type", 4, "author", 6) == false) {
+			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		}
+	}
+	return PARSE_OKAY;
+}
+
+static int8_t
+contributor_start(struct stream_callback_data *data, const XML_Char **attrs)
+{
+	(void)attrs;
+	if (data->path[data->depth] == ATOM10_ENTRY) {
+		if (cat_array_to_serialization(&data->feed.item->authors, "type", 4, "contributor", 11) == false) {
+			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		}
+	} else if (data->path[data->depth] == ATOM10_FEED) {
+		if (cat_array_to_serialization(&data->feed.authors, "type", 4, "contributor", 11) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	}
@@ -196,11 +211,11 @@ name_end(struct stream_callback_data *data)
 {
 	if (data->path[data->depth] == ATOM10_AUTHOR) {
 		if (data->path[data->depth - 1] == ATOM10_ENTRY) {
-			if (crtss_or_cpyss(&data->feed.item->author->name, data->text) == false) {
+			if (cat_string_to_serialization(&data->feed.item->authors, "name", 4, data->text) == false) {
 				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			}
 		} else if (data->path[data->depth - 1] == ATOM10_FEED) {
-			if (crtss_or_cpyss(&data->feed.author->name, data->text) == false) {
+			if (cat_string_to_serialization(&data->feed.authors, "name", 4, data->text) == false) {
 				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			}
 		}
@@ -213,11 +228,11 @@ uri_end(struct stream_callback_data *data)
 {
 	if (data->path[data->depth] == ATOM10_AUTHOR) {
 		if (data->path[data->depth - 1] == ATOM10_ENTRY) {
-			if (crtss_or_cpyss(&data->feed.item->author->url, data->text) == false) {
+			if (cat_string_to_serialization(&data->feed.item->authors, "url", 3, data->text) == false) {
 				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			}
 		} else if (data->path[data->depth - 1] == ATOM10_FEED) {
-			if (crtss_or_cpyss(&data->feed.author->url, data->text) == false) {
+			if (cat_string_to_serialization(&data->feed.authors, "url", 3, data->text) == false) {
 				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			}
 		}
@@ -230,11 +245,11 @@ email_end(struct stream_callback_data *data)
 {
 	if (data->path[data->depth] == ATOM10_AUTHOR) {
 		if (data->path[data->depth - 1] == ATOM10_ENTRY) {
-			if (crtss_or_cpyss(&data->feed.item->author->email, data->text) == false) {
+			if (cat_string_to_serialization(&data->feed.item->authors, "email", 5, data->text) == false) {
 				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			}
 		} else if (data->path[data->depth - 1] == ATOM10_FEED) {
-			if (crtss_or_cpyss(&data->feed.author->email, data->text) == false) {
+			if (cat_string_to_serialization(&data->feed.authors, "email", 5, data->text) == false) {
 				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			}
 		}
@@ -245,51 +260,35 @@ email_end(struct stream_callback_data *data)
 static int8_t
 category_start(struct stream_callback_data *data, const XML_Char **attrs)
 {
-	const char *term = get_value_of_attribute_key(attrs, "term");
-	if (term == NULL) {
+	struct string **target;
+	if (data->path[data->depth] == ATOM10_ENTRY) {
+		target = &data->feed.item->categories;
+	} else if (data->path[data->depth] == ATOM10_FEED) {
+		target = &data->feed.categories;
+	} else {
+		return PARSE_OKAY; // Ignore misplaced categories.
+	}
+	const char *attr = get_value_of_attribute_key(attrs, "term");
+	if (attr == NULL) {
 		return PARSE_OKAY; // Ignore empty categories.
 	}
-	const size_t term_len = strlen(term);
+	const size_t term_len = strlen(attr);
 	if (term_len == 0) {
 		return PARSE_OKAY; // Ignore empty categories.
 	}
-	const char *label = get_value_of_attribute_key(attrs, "label");
-	const char *scheme = get_value_of_attribute_key(attrs, "scheme");
-	if (data->path[data->depth] == ATOM10_ENTRY) {
-		if (prepend_category(&data->feed.item->category) == false) {
+	if (cat_array_to_serialization(target, "term", 4, attr, term_len) == false) {
+		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+	}
+	attr = get_value_of_attribute_key(attrs, "scheme");
+	if (attr != NULL) {
+		if (cat_array_to_serialization(target, "scheme", 6, attr, strlen(attr)) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
-		data->feed.item->category->term = crtas(term, term_len);
-		if (data->feed.item->category->term == NULL) {
+	}
+	attr = get_value_of_attribute_key(attrs, "label");
+	if (attr != NULL) {
+		if (cat_array_to_serialization(target, "label", 5, attr, strlen(attr)) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-		}
-		if (label != NULL) {
-			if (crtas_or_cpyas(&data->feed.item->category->label, label, strlen(label)) == false) {
-				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-			}
-		}
-		if (scheme != NULL) {
-			if (crtas_or_cpyas(&data->feed.item->category->scheme, scheme, strlen(scheme)) == false) {
-				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-			}
-		}
-	} else if (data->path[data->depth] == ATOM10_FEED) {
-		if (prepend_category(&data->feed.category) == false) {
-			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-		}
-		data->feed.category->term = crtas(term, term_len);
-		if (data->feed.category->term == NULL) {
-			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-		}
-		if (label != NULL) {
-			if (crtas_or_cpyas(&data->feed.category->label, label, strlen(label)) == false) {
-				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-			}
-		}
-		if (scheme != NULL) {
-			if (crtas_or_cpyas(&data->feed.category->scheme, scheme, strlen(scheme)) == false) {
-				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-			}
 		}
 	}
 	return PARSE_OKAY;
@@ -356,22 +355,22 @@ generator_end(struct stream_callback_data *data)
 }
 
 const struct xml_element_handler xml_atom10_handlers[] = {
-	{"entry",       ATOM10_ENTRY,     &entry_start,     NULL},
-	{"id",          ATOM10_ID,        NULL,             &id_end},
-	{"title",       ATOM10_TITLE,     &title_start,     &title_end},
-	{"link",        XML_UNKNOWN_POS,  &link_start,      NULL},
-	{"summary",     ATOM10_SUMMARY,   &summary_start,   &summary_end},
-	{"content",     ATOM10_CONTENT,   &content_start,   &content_end},
-	{"published",   ATOM10_PUBLISHED, NULL,             &published_end},
-	{"updated",     ATOM10_UPDATED,   NULL,             &updated_end},
-	{"author",      ATOM10_AUTHOR,    &author_start,    NULL},
-	{"contributor", ATOM10_AUTHOR,    &author_start,    NULL},
-	{"name",        ATOM10_NAME,      NULL,             &name_end},
-	{"uri",         ATOM10_URI,       NULL,             &uri_end},
-	{"email",       ATOM10_EMAIL,     NULL,             &email_end},
-	{"category",    XML_UNKNOWN_POS,  &category_start,  NULL},
-	{"subtitle",    ATOM10_SUBTITLE,  &subtitle_start,  &subtitle_end},
-	{"generator",   ATOM10_GENERATOR, &generator_start, &generator_end},
-	{"feed",        ATOM10_FEED,      NULL,             NULL},
-	{NULL,          XML_UNKNOWN_POS,  NULL,             NULL},
+	{"entry",       ATOM10_ENTRY,     &entry_start,       NULL},
+	{"id",          ATOM10_ID,        NULL,               &id_end},
+	{"title",       ATOM10_TITLE,     &title_start,       &title_end},
+	{"link",        XML_UNKNOWN_POS,  &link_start,        NULL},
+	{"summary",     ATOM10_SUMMARY,   &summary_start,     &summary_end},
+	{"content",     ATOM10_CONTENT,   &content_start,     &content_end},
+	{"published",   ATOM10_PUBLISHED, NULL,               &published_end},
+	{"updated",     ATOM10_UPDATED,   NULL,               &updated_end},
+	{"author",      ATOM10_AUTHOR,    &author_start,      NULL},
+	{"contributor", ATOM10_AUTHOR,    &contributor_start, NULL},
+	{"name",        ATOM10_NAME,      NULL,               &name_end},
+	{"uri",         ATOM10_URI,       NULL,               &uri_end},
+	{"email",       ATOM10_EMAIL,     NULL,               &email_end},
+	{"category",    XML_UNKNOWN_POS,  &category_start,    NULL},
+	{"subtitle",    ATOM10_SUBTITLE,  &subtitle_start,    &subtitle_end},
+	{"generator",   ATOM10_GENERATOR, &generator_start,   &generator_end},
+	{"feed",        ATOM10_FEED,      NULL,               NULL},
+	{NULL,          XML_UNKNOWN_POS,  NULL,               NULL},
 };

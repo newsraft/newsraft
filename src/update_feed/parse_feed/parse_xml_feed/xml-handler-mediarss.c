@@ -37,28 +37,29 @@ content_start(struct stream_callback_data *data, const XML_Char **attrs)
 	if (attr_len == 0) {
 		return PARSE_OKAY; // Ignore empty content entries.
 	}
-	if (prepend_link(&data->feed.item->attachment) == false) {
-		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-	}
-	if ((data->feed.item->attachment->url = crtas(attr, attr_len)) == NULL) {
+	empty_link(&data->feed.temp);
+	if (crtas_or_cpyas(&data->feed.temp.attachment.url, attr, attr_len) == false) {
 		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 	}
 	attr = get_value_of_attribute_key(attrs, "type");
 	if (attr != NULL) {
 		attr_len = strlen(attr);
 		if (attr_len != 0) {
-			if ((data->feed.item->attachment->type = crtas(attr, attr_len)) == NULL) {
+			if (crtas_or_cpyas(&data->feed.temp.attachment.type, attr, attr_len) == false) {
 				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			}
 		}
 	}
 	attr = get_value_of_attribute_key(attrs, "fileSize");
 	if (attr != NULL) {
-		data->feed.item->attachment->size = convert_string_to_size_t_or_zero(attr);
+		data->feed.temp.attachment.size = convert_string_to_size_t_or_zero(attr);
 	}
 	attr = get_value_of_attribute_key(attrs, "duration");
 	if (attr != NULL) {
-		data->feed.item->attachment->duration = convert_string_to_size_t_or_zero(attr);
+		data->feed.temp.attachment.duration = convert_string_to_size_t_or_zero(attr);
+	}
+	if (serialize_link(&data->feed.temp, &data->feed.item->attachments) == false) {
+		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 	}
 	return PARSE_OKAY;
 }
@@ -77,19 +78,20 @@ thumbnail_start(struct stream_callback_data *data, const XML_Char **attrs)
 	if (attr_len == 0) {
 		return PARSE_OKAY; // Ignore empty thumbnail entries.
 	}
-	if (prepend_empty_picture(&data->feed.item->thumbnail) == false) {
-		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-	}
-	if ((data->feed.item->thumbnail->url = crtas(attr, attr_len)) == NULL) {
+	empty_picture(&data->feed.temp);
+	if (crtas_or_cpyas(&data->feed.temp.picture.url, attr, attr_len) == false) {
 		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 	}
 	attr = get_value_of_attribute_key(attrs, "width");
 	if (attr != NULL) {
-		data->feed.item->thumbnail->width = convert_string_to_size_t_or_zero(attr);
+		data->feed.temp.picture.width = convert_string_to_size_t_or_zero(attr);
 	}
 	attr = get_value_of_attribute_key(attrs, "height");
 	if (attr != NULL) {
-		data->feed.item->thumbnail->height = convert_string_to_size_t_or_zero(attr);
+		data->feed.temp.picture.height = convert_string_to_size_t_or_zero(attr);
+	}
+	if (serialize_picture(&data->feed.temp, &data->feed.item->pictures) == false) {
+		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 	}
 	return PARSE_OKAY;
 }

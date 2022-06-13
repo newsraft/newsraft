@@ -22,7 +22,7 @@ newsraft_sources = [
 	'src/log.c',
 	'src/path.c',
 	'src/string.c',
-	'src/string-list.c',
+	'src/string-serialize.c',
 	'src/wstring.c',
 	'src/dates.c',
 	'src/db.c',

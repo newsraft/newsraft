@@ -36,6 +36,8 @@ struct string_list {
 	struct string_list *next;
 };
 
+struct string_deserialize_stream;
+
 struct wstring {
 	wchar_t *ptr;
 	size_t len;
@@ -164,12 +166,11 @@ enum feed_column {
 	FEED_COLUMN_LINK,
 	FEED_COLUMN_SUMMARY,
 	FEED_COLUMN_AUTHORS,
-	FEED_COLUMN_EDITORS,
-	FEED_COLUMN_WEBMASTERS,
 	FEED_COLUMN_CATEGORIES,
 	FEED_COLUMN_LANGUAGES,
 	FEED_COLUMN_RIGHTS,
 	FEED_COLUMN_RATING,
+	FEED_COLUMN_PICTURES,
 	FEED_COLUMN_GENERATORS,
 	FEED_COLUMN_DOWNLOAD_DATE,
 	FEED_COLUMN_UPDATE_DATE,
@@ -196,7 +197,7 @@ enum item_column {
 	ITEM_COLUMN_LANGUAGES,
 	ITEM_COLUMN_RIGHTS,
 	ITEM_COLUMN_RATING,
-	ITEM_COLUMN_THUMBNAILS,
+	ITEM_COLUMN_PICTURES,
 	ITEM_COLUMN_PUBLICATION_DATE,
 	ITEM_COLUMN_UPDATE_DATE,
 	ITEM_COLUMN_UNREAD,
@@ -352,19 +353,21 @@ bool crtss_or_cpyss(struct string **dest, const struct string *src);
 bool string_vprintf(struct string *dest, const char *format, va_list args);
 bool string_printf(struct string *dest, const char *format, ...);
 void empty_string(struct string *str);
+void empty_string_safe(struct string *str);
 void free_string(struct string *str);
 size_t convert_string_to_size_t_or_zero(const char *src);
+void remove_character_from_string(struct string *str, char c);
 void remove_trailing_slashes_from_string(struct string *str);
 void trim_whitespace_from_string(struct string *str);
 struct wstring *convert_string_to_wstring(const struct string *src);
 struct string *convert_bytes_to_human_readable_size_string(const char *value);
 
-// string-list.c
-bool prepend_empty_string_to_string_list(struct string_list **list);
-bool copy_string_to_string_list(struct string_list **list, const struct string *src);
-struct string *concatenate_strings_of_string_list_into_one_string(const struct string_list *list);
-void reverse_string_list(struct string_list **list);
-void free_string_list(struct string_list *list);
+// string-serialize.c
+bool cat_array_to_serialization(struct string **target, const char *key, size_t key_len, const char *value, size_t value_len);
+bool cat_string_to_serialization(struct string **target, const char *key, size_t key_len, struct string *value);
+struct string_deserialize_stream *open_string_deserialize_stream(const char *serialized_data);
+const struct string *get_next_entry_from_deserialize_stream(struct string_deserialize_stream *stream);
+void close_string_deserialize_stream(struct string_deserialize_stream *stream);
 
 // wstring
 struct wstring *wcrtas(const wchar_t *src_ptr, size_t src_len);

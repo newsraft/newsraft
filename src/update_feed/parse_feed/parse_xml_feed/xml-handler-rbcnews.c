@@ -21,11 +21,7 @@ static int8_t
 tag_end(struct stream_callback_data *data)
 {
 	if (we_are_inside_item(data) == true) {
-		if (prepend_category(&data->feed.item->category) == false) {
-			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-		}
-		data->feed.item->category->term = crtss(data->text);
-		if (data->feed.item->category->term == NULL) {
+		if (cat_string_to_serialization(&data->feed.item->categories, "term", 4, data->text) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	}

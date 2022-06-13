@@ -90,24 +90,23 @@ link_start(struct stream_callback_data *data, const XML_Char **attrs)
 			}
 		}
 	} else if (data->path[data->depth] == ATOM03_ENTRY) {
-		if (prepend_link(&data->feed.item->attachment) == false) {
-			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-		}
-		data->feed.item->attachment->url = crtas(attr, attr_len);
-		if (data->feed.item->attachment->url == NULL) {
+		empty_link(&data->feed.temp);
+		if (crtas_or_cpyas(&data->feed.temp.attachment.url, attr, attr_len) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 		attr = get_value_of_attribute_key(attrs, "type");
 		if (attr != NULL) {
 			attr_len = strlen(attr);
 			if (attr_len != 0) {
-				data->feed.item->attachment->type = crtas(attr, attr_len);
-				if (data->feed.item->attachment->type == NULL) {
+				if (crtas_or_cpyas(&data->feed.temp.attachment.type, attr, attr_len) == false) {
 					return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 				}
 			}
 		}
 		// Atom 0.3 link element doesn't have length and hreflang attributes.
+		if (serialize_link(&data->feed.temp, &data->feed.item->attachments) == false) {
+			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		}
 	}
 	return PARSE_OKAY;
 }
@@ -182,11 +181,27 @@ author_start(struct stream_callback_data *data, const XML_Char **attrs)
 {
 	(void)attrs;
 	if (data->path[data->depth] == ATOM03_ENTRY) {
-		if (prepend_person(&data->feed.item->author) == false) {
+		if (cat_array_to_serialization(&data->feed.item->authors, "type", 4, "author", 6) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	} else if (data->path[data->depth] == ATOM03_FEED) {
-		if (prepend_person(&data->feed.author) == false) {
+		if (cat_array_to_serialization(&data->feed.authors, "type", 4, "author", 6) == false) {
+			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		}
+	}
+	return PARSE_OKAY;
+}
+
+static int8_t
+contributor_start(struct stream_callback_data *data, const XML_Char **attrs)
+{
+	(void)attrs;
+	if (data->path[data->depth] == ATOM03_ENTRY) {
+		if (cat_array_to_serialization(&data->feed.item->authors, "type", 4, "contributor", 11) == false) {
+			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		}
+	} else if (data->path[data->depth] == ATOM03_FEED) {
+		if (cat_array_to_serialization(&data->feed.authors, "type", 4, "contributor", 11) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	}
@@ -198,11 +213,11 @@ name_end(struct stream_callback_data *data)
 {
 	if (data->path[data->depth] == ATOM03_AUTHOR) {
 		if (data->path[data->depth - 1] == ATOM03_ENTRY) {
-			if (crtss_or_cpyss(&data->feed.item->author->name, data->text) == false) {
+			if (cat_string_to_serialization(&data->feed.item->authors, "name", 4, data->text) == false) {
 				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			}
 		} else if (data->path[data->depth - 1] == ATOM03_FEED) {
-			if (crtss_or_cpyss(&data->feed.author->name, data->text) == false) {
+			if (cat_string_to_serialization(&data->feed.authors, "name", 4, data->text) == false) {
 				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			}
 		}
@@ -215,11 +230,11 @@ url_end(struct stream_callback_data *data)
 {
 	if (data->path[data->depth] == ATOM03_AUTHOR) {
 		if (data->path[data->depth - 1] == ATOM03_ENTRY) {
-			if (crtss_or_cpyss(&data->feed.item->author->url, data->text) == false) {
+			if (cat_string_to_serialization(&data->feed.item->authors, "url", 3, data->text) == false) {
 				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			}
 		} else if (data->path[data->depth - 1] == ATOM03_FEED) {
-			if (crtss_or_cpyss(&data->feed.author->url, data->text) == false) {
+			if (cat_string_to_serialization(&data->feed.authors, "url", 3, data->text) == false) {
 				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			}
 		}
@@ -232,11 +247,11 @@ email_end(struct stream_callback_data *data)
 {
 	if (data->path[data->depth] == ATOM03_AUTHOR) {
 		if (data->path[data->depth - 1] == ATOM03_ENTRY) {
-			if (crtss_or_cpyss(&data->feed.item->author->email, data->text) == false) {
+			if (cat_string_to_serialization(&data->feed.item->authors, "email", 5, data->text) == false) {
 				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			}
 		} else if (data->path[data->depth - 1] == ATOM03_FEED) {
-			if (crtss_or_cpyss(&data->feed.author->email, data->text) == false) {
+			if (cat_string_to_serialization(&data->feed.authors, "email", 5, data->text) == false) {
 				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			}
 		}
@@ -305,21 +320,21 @@ generator_end(struct stream_callback_data *data)
 }
 
 const struct xml_element_handler xml_atom03_handlers[] = {
-	{"entry",       ATOM03_ENTRY,     &entry_start,     NULL},
-	{"id",          ATOM03_ID,        NULL,             &id_end},
-	{"title",       ATOM03_TITLE,     &title_start,     &title_end},
-	{"link",        XML_UNKNOWN_POS,  &link_start,      NULL},
-	{"summary",     ATOM03_SUMMARY,   &summary_start,   &summary_end},
-	{"content",     ATOM03_CONTENT,   &content_start,   &content_end},
-	{"issued",      ATOM03_ISSUED,    NULL,             &issued_end},
-	{"modified",    ATOM03_MODIFIED,  NULL,             &modified_end},
-	{"author",      ATOM03_AUTHOR,    &author_start,    NULL},
-	{"contributor", ATOM03_AUTHOR,    &author_start,    NULL},
-	{"name",        ATOM03_NAME,      NULL,             &name_end},
-	{"url",         ATOM03_URL,       NULL,             &url_end},
-	{"email",       ATOM03_EMAIL,     NULL,             &email_end},
-	{"tagline",     ATOM03_TAGLINE,   &tagline_start,   &tagline_end},
-	{"generator",   ATOM03_GENERATOR, &generator_start, &generator_end},
-	{"feed",        ATOM03_FEED,      NULL,             NULL},
-	{NULL,          XML_UNKNOWN_POS,  NULL,             NULL},
+	{"entry",       ATOM03_ENTRY,     &entry_start,       NULL},
+	{"id",          ATOM03_ID,        NULL,               &id_end},
+	{"title",       ATOM03_TITLE,     &title_start,       &title_end},
+	{"link",        XML_UNKNOWN_POS,  &link_start,        NULL},
+	{"summary",     ATOM03_SUMMARY,   &summary_start,     &summary_end},
+	{"content",     ATOM03_CONTENT,   &content_start,     &content_end},
+	{"issued",      ATOM03_ISSUED,    NULL,               &issued_end},
+	{"modified",    ATOM03_MODIFIED,  NULL,               &modified_end},
+	{"author",      ATOM03_AUTHOR,    &author_start,      NULL},
+	{"contributor", ATOM03_AUTHOR,    &contributor_start, NULL},
+	{"name",        ATOM03_NAME,      NULL,               &name_end},
+	{"url",         ATOM03_URL,       NULL,               &url_end},
+	{"email",       ATOM03_EMAIL,     NULL,               &email_end},
+	{"tagline",     ATOM03_TAGLINE,   &tagline_start,     &tagline_end},
+	{"generator",   ATOM03_GENERATOR, &generator_start,   &generator_end},
+	{"feed",        ATOM03_FEED,      NULL,               NULL},
+	{NULL,          XML_UNKNOWN_POS,  NULL,               NULL},
 };

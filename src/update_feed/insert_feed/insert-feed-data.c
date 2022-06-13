@@ -1,63 +1,28 @@
 #include "update_feed/insert_feed/insert_feed.h"
 
-static inline void
-reverse_linked_list_structures_of_feed(struct getfeed_feed *feed)
-{
-	// Reverse linked lists to match the order in which the entries were added.
-	reverse_category_list(&feed->category);
-	reverse_person_list(&feed->author);
-	reverse_person_list(&feed->editor);
-	reverse_person_list(&feed->webmaster);
-}
-
 bool
 insert_feed_data(const struct string *feed_url, struct getfeed_feed *feed)
 {
-	reverse_linked_list_structures_of_feed(feed);
-
-	bool success = true;
-	struct string *authors_str = generate_person_list_string(feed->author);
-	if (authors_str == NULL) {
-		success = false;
-		goto undo0;
-	}
-	struct string *editors_str = generate_person_list_string(feed->editor);
-	if (editors_str == NULL) {
-		success = false;
-		goto undo1;
-	}
-	struct string *webmasters_str = generate_person_list_string(feed->webmaster);
-	if (webmasters_str == NULL) {
-		success = false;
-		goto undo2;
-	}
+	bool success = false;
 	struct string *generator_str = generate_generator_string(&feed->generator);
 	if (generator_str == NULL) {
-		success = false;
-		goto undo3;
-	}
-	struct string *categories_str = generate_category_list_string(feed->category);
-	if (categories_str == NULL) {
-		success = false;
-		goto undo4;
+		goto undo0;
 	}
 	sqlite3_stmt *s;
-	if (db_prepare("INSERT OR REPLACE INTO feeds VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", 94, &s) == false) {
-		success = false;
-		goto undo5;
+	if (db_prepare("INSERT OR REPLACE INTO feeds VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", 91, &s) == false) {
+		goto undo1;
 	}
 	db_bind_string(s,      1 + FEED_COLUMN_FEED_URL,                  feed_url);
 	db_bind_string(s,      1 + FEED_COLUMN_GUID,                      feed->guid);
 	db_bind_text_struct(s, 1 + FEED_COLUMN_TITLE,                     &feed->title);
 	db_bind_string(s,      1 + FEED_COLUMN_LINK,                      feed->url);
 	db_bind_text_struct(s, 1 + FEED_COLUMN_SUMMARY,                   &feed->summary);
-	db_bind_string(s,      1 + FEED_COLUMN_AUTHORS,                   authors_str);
-	db_bind_string(s,      1 + FEED_COLUMN_EDITORS,                   editors_str);
-	db_bind_string(s,      1 + FEED_COLUMN_WEBMASTERS,                webmasters_str);
-	db_bind_string(s,      1 + FEED_COLUMN_CATEGORIES,                categories_str);
+	db_bind_string(s,      1 + FEED_COLUMN_AUTHORS,                   feed->authors);
+	db_bind_string(s,      1 + FEED_COLUMN_CATEGORIES,                feed->categories);
 	db_bind_string(s,      1 + FEED_COLUMN_LANGUAGES,                 feed->language);
 	db_bind_text_struct(s, 1 + FEED_COLUMN_RIGHTS,                    &feed->rights);
 	db_bind_string(s,      1 + FEED_COLUMN_RATING,                    feed->rating);
+	db_bind_string(s,      1 + FEED_COLUMN_PICTURES,                  feed->pictures);
 	db_bind_string(s,      1 + FEED_COLUMN_GENERATORS,                generator_str);
 	sqlite3_bind_int64(s,  1 + FEED_COLUMN_DOWNLOAD_DATE,             (sqlite3_int64)(feed->download_date));
 	sqlite3_bind_int64(s,  1 + FEED_COLUMN_UPDATE_DATE,               (sqlite3_int64)(feed->update_date));
@@ -65,21 +30,14 @@ insert_feed_data(const struct string *feed_url, struct getfeed_feed *feed)
 	db_bind_string(s,      1 + FEED_COLUMN_HTTP_HEADER_ETAG,          feed->http_header_etag);
 	sqlite3_bind_int64(s,  1 + FEED_COLUMN_HTTP_HEADER_LAST_MODIFIED, (sqlite3_int64)(feed->http_header_last_modified));
 	sqlite3_bind_int64(s,  1 + FEED_COLUMN_HTTP_HEADER_EXPIRES,       (sqlite3_int64)(feed->http_header_expires));
-	if (sqlite3_step(s) != SQLITE_DONE) {
+	if (sqlite3_step(s) == SQLITE_DONE) {
+		success = true;
+	} else {
 		FAIL("Insertion of feed data failed: %s", db_error_string());
-		success = false;
 	}
 	sqlite3_finalize(s);
-undo5:
-	free_string(categories_str);
-undo4:
-	free_string(generator_str);
-undo3:
-	free_string(webmasters_str);
-undo2:
-	free_string(editors_str);
 undo1:
-	free_string(authors_str);
+	free_string(generator_str);
 undo0:
 	return success;
 }

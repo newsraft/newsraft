@@ -1,106 +1,48 @@
-#include <stdlib.h>
 #include "update_feed/update_feed.h"
 
-bool
-prepend_person(struct getfeed_person **head_person_ptr)
+void
+empty_person(struct getfeed_temp *temp)
 {
-	struct getfeed_person *person = calloc(1, sizeof(struct getfeed_person));
-	if (person == NULL) {
+	temp->author.involvement = PERSON_AUTHOR;
+	empty_string_safe(temp->author.name);
+	empty_string_safe(temp->author.email);
+	empty_string_safe(temp->author.url);
+}
+
+bool
+serialize_person(struct getfeed_temp *temp, struct string **str)
+{
+	if (((temp->author.name == NULL) || (temp->author.name->len == 0))
+			&& ((temp->author.email == NULL) || (temp->author.email->len == 0))
+			&& ((temp->author.url == NULL) || (temp->author.url->len == 0)))
+	{
+		return true;
+	}
+	if (temp->author.involvement == PERSON_AUTHOR) {
+		if (cat_array_to_serialization(str, "type", 4, "author", 6) == false) {
+			return false;
+		}
+	} else if (temp->author.involvement == PERSON_CONTRIBUTOR) {
+		if (cat_array_to_serialization(str, "type", 4, "contributor", 11) == false) {
+			return false;
+		}
+	} else if (temp->author.involvement == PERSON_EDITOR) {
+		if (cat_array_to_serialization(str, "type", 4, "editor", 6) == false) {
+			return false;
+		}
+	} else if (temp->author.involvement == PERSON_WEBMASTER) {
+		if (cat_array_to_serialization(str, "type", 4, "webmaster", 9) == false) {
+			return false;
+		}
+	}
+	if (cat_string_to_serialization(str, "name", 4, temp->author.name) == false) {
 		return false;
 	}
-	person->next = *head_person_ptr;
-	*head_person_ptr = person;
+	if (cat_string_to_serialization(str, "email", 5, temp->author.email) == false) {
+		return false;
+	}
+	if (cat_string_to_serialization(str, "url", 3, temp->author.url) == false) {
+		return false;
+	}
 	return true;
-}
-
-void
-reverse_person_list(struct getfeed_person **list)
-{
-	struct getfeed_person *prev = NULL;
-	struct getfeed_person *current = *list;
-	struct getfeed_person *next = NULL;
-	while (current != NULL) {
-		next = current->next;
-		current->next = prev;
-		prev = current;
-		current = next;
-	}
-	*list = prev;
-}
-
-void
-free_person(struct getfeed_person *person)
-{
-	struct getfeed_person *temp;
-	struct getfeed_person *p = person;
-	while (p != NULL) {
-		free_string(p->name);
-		free_string(p->email);
-		free_string(p->url);
-		temp = p;
-		p = p->next;
-		free(temp);
-	}
-}
-
-struct string *
-generate_person_list_string(const struct getfeed_person *person)
-{
-	struct string *str = crtes();
-	if (str == NULL) {
-		return NULL;
-	}
-	bool added_name, added_email;
-	const struct getfeed_person *p = person;
-	while (p != NULL) {
-		added_name = false;
-		if ((p->name != NULL) && (p->name->len != 0)) {
-			if (str->len != 0) {
-				if (catas(str, ", ", 2) == false) {
-					goto error;
-				}
-			}
-			if (catss(str, p->name) == false) {
-				goto error;
-			}
-			added_name = true;
-		}
-		added_email = false;
-		if ((p->email != NULL) && (p->email->len != 0)) {
-			if (added_name == true) {
-				if (catas(str, " <", 2) == false) {
-					goto error;
-				}
-			}
-			if (catss(str, p->email) == false) {
-				goto error;
-			}
-			if (added_name == true) {
-				if (catcs(str, '>') == false) {
-					goto error;
-				}
-			}
-			added_email = true;
-		}
-		if ((p->url != NULL) && (p->url->len != 0)) {
-			if (added_name == true || added_email == true) {
-				if (catas(str, " (", 2) == false) {
-					goto error;
-				}
-			}
-			if (catss(str, p->url) == false) {
-				goto error;
-			}
-			if (added_name == true || added_email == true) {
-				if (catcs(str, ')') == false) {
-					goto error;
-				}
-			}
-		}
-		p = p->next;
-	}
-	return str;
-error:
-	free_string(str);
-	return NULL;
 }

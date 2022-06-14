@@ -361,6 +361,7 @@ void remove_trailing_slashes_from_string(struct string *str);
 void trim_whitespace_from_string(struct string *str);
 struct wstring *convert_string_to_wstring(const struct string *src);
 struct string *convert_bytes_to_human_readable_size_string(const char *value);
+struct string *convert_seconds_to_human_readable_duration_string(const char *value);
 
 // string-serialize.c
 bool cat_array_to_serialization(struct string **target, const char *key, size_t key_len, const char *value, size_t value_len);

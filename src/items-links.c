@@ -150,7 +150,7 @@ generate_link_list_string_for_pager(const struct link_list *links)
 	size_t prefix_len;
 	bool is_first_link = true;
 	bool appended_type, appended_size, appended_duration;
-	struct string *readable_size;
+	struct string *readable_string = NULL;
 	for (size_t i = 0; i < links->len; ++i) {
 		if ((links->list[i].url == NULL) || (links->list[i].url->len == 0)) {
 			continue;
@@ -177,16 +177,18 @@ generate_link_list_string_for_pager(const struct link_list *links)
 		    (links->list[i].size->len != 0) &&
 		    (strcmp(links->list[i].size->ptr, "0") != 0))
 		{
-			if (appended_type == true) {
-				if (catas(str, ", size: ", 8) == false) { goto error; }
-			} else {
-				if (catas(str, " (size: ", 8) == false) { goto error; }
+			readable_string = convert_bytes_to_human_readable_size_string(links->list[i].size->ptr);
+			if (readable_string != NULL) {
+				if (appended_type == true) {
+					if (catas(str, ", size: ", 8) == false) { goto error; }
+				} else {
+					if (catas(str, " (size: ", 8) == false) { goto error; }
+				}
+				if (catss(str, readable_string) == false) { goto error; }
+				free_string(readable_string);
+				readable_string = NULL;
+				appended_size = true;
 			}
-			readable_size = convert_bytes_to_human_readable_size_string(links->list[i].size->ptr);
-			if (readable_size == NULL) { goto error; }
-			if (catss(str, readable_size) == false) { free_string(readable_size); goto error; }
-			free_string(readable_size);
-			appended_type = true;
 		}
 
 		appended_duration = false;
@@ -194,14 +196,18 @@ generate_link_list_string_for_pager(const struct link_list *links)
 		    (links->list[i].duration->len != 0) &&
 		    (strcmp(links->list[i].duration->ptr, "0") != 0))
 		{
-			if ((appended_type == true) || (appended_size == true)) {
-				if (catas(str, ", duration: ", 12) == false) { goto error; }
-			} else {
-				if (catas(str, " (duration: ", 12) == false) { goto error; }
+			readable_string = convert_seconds_to_human_readable_duration_string(links->list[i].duration->ptr);
+			if (readable_string != NULL) {
+				if ((appended_type == true) || (appended_size == true)) {
+					if (catas(str, ", duration: ", 12) == false) { goto error; }
+				} else {
+					if (catas(str, " (duration: ", 12) == false) { goto error; }
+				}
+				if (catss(str, readable_string) == false) { goto error; }
+				free_string(readable_string);
+				readable_string = NULL;
+				appended_duration = true;
 			}
-			// TODO make duration readable too
-			if (catss(str, links->list[i].duration) == false) { goto error; }
-			appended_duration = true;
 		}
 
 		if ((appended_type == true) ||
@@ -216,6 +222,7 @@ generate_link_list_string_for_pager(const struct link_list *links)
 	}
 	return str;
 error:
+	free_string(readable_string);
 	free_string(str);
 	return NULL;
 }

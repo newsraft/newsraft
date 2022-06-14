@@ -310,20 +310,23 @@ remove_trailing_slashes_from_string(struct string *str)
 struct string *
 convert_bytes_to_human_readable_size_string(const char *value)
 {
-	int bytes;
-	if (sscanf(value, "%d", &bytes) != 1) {
-		FAIL("Can not convert \"%s\" string from bytes to human readable format!", value);
+	float size;
+	if (sscanf(value, "%f", &size) != 1) {
+		FAIL("Can't convert \"%s\" string to float!", value);
 		return NULL;
 	}
-	float size = bytes;
-	int prefix = 0;
+	if (size < 0) {
+		FAIL("With some fright, the number of bytes turned out to be negative!");
+		return NULL;
+	}
+	uint8_t prefix = 0;
 	const size_t conversion_threshold = get_cfg_uint(CFG_SIZE_CONVERSION_THRESHOLD);
 	while ((size > conversion_threshold) && (prefix < 3)) {
 		size = size / 1000;
 		++prefix;
 	}
 	// longest float integral part (40) +
-	// dot (1) +
+	// point (1) +
 	// two digits after point (2) +
 	// space (1) +
 	// longest name of data measure (5) +
@@ -340,6 +343,47 @@ convert_bytes_to_human_readable_size_string(const char *value)
 		length = sprintf(human_readable, "%.2f bytes", size);
 	} else {
 		length = sprintf(human_readable, "%.2f GB", size);
+	}
+	return crtas(human_readable, length);
+}
+
+struct string *
+convert_seconds_to_human_readable_duration_string(const char *value)
+{
+	float duration;
+	if (sscanf(value, "%f", &duration) != 1) {
+		FAIL("Can't convert \"%s\" string to float!", value);
+		return NULL;
+	}
+	if (duration < 0) {
+		FAIL("With some fright, the number of seconds turned out to be negative!");
+		return NULL;
+	}
+	uint8_t prefix = 0;
+	if (duration > 90) {
+		duration = duration / 60;
+		prefix = 1;
+		if (duration > 90) {
+			duration = duration / 60;
+			prefix = 2;
+		}
+	}
+	// longest float integral part (40) +
+	// point (1) +
+	// one digit after point (1) +
+	// space (1) +
+	// longest name of data measure (7) +
+	// null terminator (1) +
+	// for luck lol (1) =
+	// 52
+	char human_readable[52];
+	int length;
+	if (prefix == 1) {
+		length = sprintf(human_readable, "%.1f minutes", duration);
+	} else if (prefix == 2) {
+		length = sprintf(human_readable, "%.1f hours", duration);
+	} else {
+		length = sprintf(human_readable, "%.0f seconds", duration);
 	}
 	return crtas(human_readable, length);
 }

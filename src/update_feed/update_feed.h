@@ -18,69 +18,9 @@ enum media_type {
 	MEDIA_TYPE_OTHER,
 };
 
-enum person_involvement {
-	PERSON_AUTHOR = 0,
-	PERSON_CONTRIBUTOR,
-	PERSON_EDITOR,
-	PERSON_WEBMASTER,
-	PERSON_ASSIGNEE,
-};
-
-struct getfeed_generator {
-	struct string *name;
-	struct string *version;
-	struct string *url;
-};
-
 struct getfeed_text {
 	struct string *value; // Text string.
 	struct string *type;  // Standard MIME type of value.
-};
-
-struct getfeed_category {
-	struct string *term;   // Identifies the category. If it's empty, then category is undefined.
-	struct string *scheme; // Identifies the categorization scheme (mostly via an URI).
-	struct string *label;  // Provides a human-readable label to display.
-};
-
-struct getfeed_link {
-	struct string *url;  // URL link to data.
-	struct string *type; // Standard MIME type of data.
-	size_t size;         // Size of data in bytes (0 means unset).
-	size_t duration;     // Duration of data in seconds (0 means unset).
-};
-
-struct getfeed_person {
-	// What kind of participation did the person take in the publication (possible
-	// values are presented in person_involvement enumeration.
-	uint8_t involvement;
-	struct string *name;
-	struct string *email;
-	struct string *url;
-};
-
-struct getfeed_source {
-	struct string *url;
-	struct string *title;
-	bool url_is_set;
-};
-
-struct getfeed_picture {
-	struct string *url;  // URL link to data.
-	struct string *type; // Standard MIME type of data.
-	size_t width;
-	size_t height;
-	size_t size;         // Size of data in bytes (0 means unset).
-};
-
-struct getfeed_temp {
-	char buf[256];
-	uint8_t buf_len;
-	struct getfeed_person author;
-	struct getfeed_link attachment;
-	struct getfeed_category category;
-	struct getfeed_source source;
-	struct getfeed_picture picture;
 };
 
 struct getfeed_item {
@@ -115,7 +55,7 @@ struct getfeed_feed {
 	struct getfeed_text rights;
 	struct string *rating;
 	struct string *pictures;
-	struct getfeed_generator generator;
+	struct string *generators;
 	time_t download_date;
 	time_t update_date;
 	time_t time_to_live;
@@ -123,7 +63,6 @@ struct getfeed_feed {
 	int64_t http_header_last_modified;
 	int64_t http_header_expires;
 	struct getfeed_item *item;
-	struct getfeed_temp temp;
 };
 
 struct stream_callback_data {
@@ -151,21 +90,4 @@ bool insert_feed(const struct string *url, struct getfeed_feed *feed);
 // item bucket functions
 bool prepend_item(struct getfeed_item **head_item_ptr);
 void free_item(struct getfeed_item *item);
-
-void empty_category(struct getfeed_temp *temp);
-bool serialize_category(struct getfeed_temp *temp, struct string **str);
-
-void empty_link(struct getfeed_temp *temp);
-bool serialize_link(struct getfeed_temp *temp, struct string **str);
-
-void empty_person(struct getfeed_temp *temp);
-bool serialize_person(struct getfeed_temp *temp, struct string **str);
-
-void empty_source(struct getfeed_temp *temp);
-bool serialize_source(struct getfeed_temp *temp, struct string **str);
-
-void empty_picture(struct getfeed_temp *temp);
-bool serialize_picture(struct getfeed_temp *temp, struct string **str);
-
-struct string *generate_generator_string(const struct getfeed_generator *generator);
 #endif // UPDATE_FEED_H

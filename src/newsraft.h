@@ -366,6 +366,7 @@ struct string *convert_seconds_to_human_readable_duration_string(const char *val
 // string-serialize.c
 bool cat_array_to_serialization(struct string **target, const char *key, size_t key_len, const char *value, size_t value_len);
 bool cat_string_to_serialization(struct string **target, const char *key, size_t key_len, struct string *value);
+bool cat_caret_to_serialization(struct string **target);
 struct string_deserialize_stream *open_string_deserialize_stream(const char *serialized_data);
 const struct string *get_next_entry_from_deserialize_stream(struct string_deserialize_stream *stream);
 void close_string_deserialize_stream(struct string_deserialize_stream *stream);

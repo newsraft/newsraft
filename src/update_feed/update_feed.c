@@ -16,23 +16,9 @@ free_feed(struct getfeed_feed *feed)
 	free_string(feed->rights.type);
 	free_string(feed->rating);
 	free_string(feed->pictures);
-	free_string(feed->generator.name);
-	free_string(feed->generator.version);
-	free_string(feed->generator.url);
+	free_string(feed->generators);
 	free_string(feed->http_header_etag);
 	free_item(feed->item);
-	free_string(feed->temp.author.name);
-	free_string(feed->temp.author.email);
-	free_string(feed->temp.author.url);
-	free_string(feed->temp.attachment.url);
-	free_string(feed->temp.attachment.type);
-	free_string(feed->temp.category.label);
-	free_string(feed->temp.category.term);
-	free_string(feed->temp.category.scheme);
-	free_string(feed->temp.source.url);
-	free_string(feed->temp.source.title);
-	free_string(feed->temp.picture.url);
-	free_string(feed->temp.picture.type);
 }
 
 bool

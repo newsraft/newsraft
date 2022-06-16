@@ -89,8 +89,9 @@ struct xml_element_handler {
 // Functions common to parsers of all formats.
 // See "xml-common.c" file for implementation.
 bool we_are_inside_item(const struct stream_callback_data *data);
-const char *get_value_of_attribute_key(const XML_Char **atts, const char *key);
+const char *get_value_of_attribute_key(const XML_Char **attrs, const char *key);
 bool copy_type_of_text_construct(struct string **dest, const XML_Char **atts);
+bool serialize_attribute(struct string **dest, const XML_Char **attrs, const char *attr_key, const char *prefix, size_t prefix_len);
 
 #ifdef NEWSRAFT_FORMAT_SUPPORT_ATOM10
 extern const struct xml_element_handler xml_atom10_handlers[];

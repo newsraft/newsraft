@@ -66,7 +66,7 @@ link_start(struct stream_callback_data *data, const XML_Char **attrs)
 	if (attr == NULL) {
 		return PARSE_OKAY; // Ignore empty links.
 	}
-	size_t attr_len = strlen(attr);
+	const size_t attr_len = strlen(attr);
 	if (attr_len == 0) {
 		return PARSE_OKAY; // Ignore empty links.
 	}
@@ -86,24 +86,16 @@ link_start(struct stream_callback_data *data, const XML_Char **attrs)
 			}
 		}
 	} else if (data->path[data->depth] == ATOM10_ENTRY) {
-		empty_link(&data->feed.temp);
-		if (crtas_or_cpyas(&data->feed.temp.attachment.url, attr, attr_len) == false) {
+		if (cat_caret_to_serialization(&data->feed.item->attachments) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
-		attr = get_value_of_attribute_key(attrs, "type");
-		if (attr != NULL) {
-			attr_len = strlen(attr);
-			if (attr_len != 0) {
-				if (crtas_or_cpyas(&data->feed.temp.attachment.type, attr, attr_len) == false) {
-					return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-				}
-			}
+		if (cat_array_to_serialization(&data->feed.item->attachments, "url", 3, attr, attr_len) == false) {
+			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
-		attr = get_value_of_attribute_key(attrs, "length");
-		if (attr != NULL) {
-			data->feed.temp.attachment.size = convert_string_to_size_t_or_zero(attr);
+		if (serialize_attribute(&data->feed.item->attachments, attrs, "type", "type", 4) == false) {
+			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
-		if (serialize_link(&data->feed.temp, &data->feed.item->attachments) == false) {
+		if (serialize_attribute(&data->feed.item->attachments, attrs, "length", "size", 4) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	}
@@ -179,10 +171,16 @@ author_start(struct stream_callback_data *data, const XML_Char **attrs)
 {
 	(void)attrs;
 	if (data->path[data->depth] == ATOM10_ENTRY) {
+		if (cat_caret_to_serialization(&data->feed.item->authors) == false) {
+			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		}
 		if (cat_array_to_serialization(&data->feed.item->authors, "type", 4, "author", 6) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	} else if (data->path[data->depth] == ATOM10_FEED) {
+		if (cat_caret_to_serialization(&data->feed.authors) == false) {
+			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		}
 		if (cat_array_to_serialization(&data->feed.authors, "type", 4, "author", 6) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
@@ -195,10 +193,16 @@ contributor_start(struct stream_callback_data *data, const XML_Char **attrs)
 {
 	(void)attrs;
 	if (data->path[data->depth] == ATOM10_ENTRY) {
+		if (cat_caret_to_serialization(&data->feed.item->authors) == false) {
+			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		}
 		if (cat_array_to_serialization(&data->feed.item->authors, "type", 4, "contributor", 11) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	} else if (data->path[data->depth] == ATOM10_FEED) {
+		if (cat_caret_to_serialization(&data->feed.authors) == false) {
+			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		}
 		if (cat_array_to_serialization(&data->feed.authors, "type", 4, "contributor", 11) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
@@ -272,24 +276,21 @@ category_start(struct stream_callback_data *data, const XML_Char **attrs)
 	if (attr == NULL) {
 		return PARSE_OKAY; // Ignore empty categories.
 	}
-	const size_t term_len = strlen(attr);
-	if (term_len == 0) {
+	const size_t attr_len = strlen(attr);
+	if (attr_len == 0) {
 		return PARSE_OKAY; // Ignore empty categories.
 	}
-	if (cat_array_to_serialization(target, "term", 4, attr, term_len) == false) {
+	if (cat_caret_to_serialization(target) == false) {
 		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 	}
-	attr = get_value_of_attribute_key(attrs, "scheme");
-	if (attr != NULL) {
-		if (cat_array_to_serialization(target, "scheme", 6, attr, strlen(attr)) == false) {
-			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-		}
+	if (cat_array_to_serialization(target, "term", 4, attr, attr_len) == false) {
+		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 	}
-	attr = get_value_of_attribute_key(attrs, "label");
-	if (attr != NULL) {
-		if (cat_array_to_serialization(target, "label", 5, attr, strlen(attr)) == false) {
-			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-		}
+	if (serialize_attribute(target, attrs, "scheme", "scheme", 6) == false) {
+		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+	}
+	if (serialize_attribute(target, attrs, "label", "label", 5) == false) {
+		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 	}
 	return PARSE_OKAY;
 }
@@ -320,24 +321,14 @@ static int8_t
 generator_start(struct stream_callback_data *data, const XML_Char **attrs)
 {
 	if (data->path[data->depth] == ATOM10_FEED) {
-		const char *attr = get_value_of_attribute_key(attrs, "version");
-		size_t attr_len;
-		if (attr != NULL) {
-			attr_len = strlen(attr);
-			if (attr_len != 0) {
-				if (crtas_or_cpyas(&data->feed.generator.version, attr, attr_len) == false) {
-					return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-				}
-			}
+		if (cat_caret_to_serialization(&data->feed.generators) == false) {
+			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
-		attr = get_value_of_attribute_key(attrs, "uri");
-		if (attr != NULL) {
-			attr_len = strlen(attr);
-			if (attr_len != 0) {
-				if (crtas_or_cpyas(&data->feed.generator.url, attr, attr_len) == false) {
-					return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-				}
-			}
+		if (serialize_attribute(&data->feed.generators, attrs, "version", "version", 7) == false) {
+			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		}
+		if (serialize_attribute(&data->feed.generators, attrs, "uri", "url", 3) == false) {
+			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	}
 	return PARSE_OKAY;
@@ -347,7 +338,7 @@ static int8_t
 generator_end(struct stream_callback_data *data)
 {
 	if (data->path[data->depth] == ATOM10_FEED) {
-		if (crtss_or_cpyss(&data->feed.generator.name, data->text) == false) {
+		if (cat_string_to_serialization(&data->feed.generators, "name", 4, data->text) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	}

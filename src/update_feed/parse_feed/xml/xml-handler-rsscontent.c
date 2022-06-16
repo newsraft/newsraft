@@ -6,6 +6,7 @@ static int8_t
 encoded_end(struct stream_callback_data *data)
 {
 	if (we_are_inside_item(data) == true) {
+		// Save this content only if it's longer than the content we currently have.
 		if ((data->feed.item->content.value == NULL) || (data->text->len > data->feed.item->content.value->len)) {
 			if (crtss_or_cpyss(&data->feed.item->content.value, data->text) == false) {
 				return PARSE_FAIL_NOT_ENOUGH_MEMORY;

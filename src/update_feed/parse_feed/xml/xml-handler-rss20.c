@@ -115,6 +115,9 @@ static int8_t
 author_end(struct stream_callback_data *data)
 {
 	if (data->path[data->depth] == RSS20_ITEM) {
+		if (cat_caret_to_serialization(&data->feed.item->authors) == false) {
+			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		}
 		if (cat_array_to_serialization(&data->feed.item->authors, "type", 4, "author", 6) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
@@ -122,6 +125,9 @@ author_end(struct stream_callback_data *data)
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	} else if (data->path[data->depth] == RSS20_CHANNEL) {
+		if (cat_caret_to_serialization(&data->feed.authors) == false) {
+			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		}
 		if (cat_array_to_serialization(&data->feed.authors, "type", 4, "author", 6) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
@@ -142,28 +148,20 @@ enclosure_start(struct stream_callback_data *data, const XML_Char **attrs)
 	if (attr == NULL) {
 		return PARSE_OKAY;
 	}
-	size_t attr_len = strlen(attr);
+	const size_t attr_len = strlen(attr);
 	if (attr_len == 0) {
 		return PARSE_OKAY;
 	}
-	empty_link(&data->feed.temp);
-	if (crtas_or_cpyas(&data->feed.temp.attachment.url, attr, attr_len) == false) {
+	if (cat_caret_to_serialization(&data->feed.item->attachments) == false) {
 		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 	}
-	attr = get_value_of_attribute_key(attrs, "type");
-	if (attr != NULL) {
-		attr_len = strlen(attr);
-		if (attr_len != 0) {
-			if (crtas_or_cpyas(&data->feed.temp.attachment.type, attr, attr_len) == false) {
-				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-			}
-		}
+	if (cat_array_to_serialization(&data->feed.item->attachments, "url", 3, attr, attr_len) == false) {
+		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 	}
-	attr = get_value_of_attribute_key(attrs, "length");
-	if (attr != NULL) {
-		data->feed.temp.attachment.size = convert_string_to_size_t_or_zero(attr);
+	if (serialize_attribute(&data->feed.item->attachments, attrs, "type", "type", 4) == false) {
+		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 	}
-	if (serialize_link(&data->feed.temp, &data->feed.item->attachments) == false) {
+	if (serialize_attribute(&data->feed.item->attachments, attrs, "length", "size", 4) == false) {
 		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 	}
 	return PARSE_OKAY;
@@ -173,10 +171,16 @@ static int8_t
 category_end(struct stream_callback_data *data)
 {
 	if (data->path[data->depth] == RSS20_ITEM) {
+		if (cat_caret_to_serialization(&data->feed.item->categories) == false) {
+			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		}
 		if (cat_string_to_serialization(&data->feed.item->categories, "term", 4, data->text) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	} else if (data->path[data->depth] == RSS20_CHANNEL) {
+		if (cat_caret_to_serialization(&data->feed.categories) == false) {
+			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		}
 		if (cat_string_to_serialization(&data->feed.categories, "term", 4, data->text) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
@@ -228,7 +232,10 @@ static int8_t
 generator_end(struct stream_callback_data *data)
 {
 	if (data->path[data->depth] == RSS20_CHANNEL) {
-		if (crtss_or_cpyss(&data->feed.generator.name, data->text) == false) {
+		if (cat_caret_to_serialization(&data->feed.generators) == false) {
+			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		}
+		if (cat_string_to_serialization(&data->feed.generators, "name", 4, data->text) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	}
@@ -239,6 +246,9 @@ static int8_t
 web_master_end(struct stream_callback_data *data)
 {
 	if (data->path[data->depth] == RSS20_CHANNEL) {
+		if (cat_caret_to_serialization(&data->feed.authors) == false) {
+			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		}
 		if (cat_array_to_serialization(&data->feed.authors, "type", 4, "webmaster", 9) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
@@ -253,6 +263,9 @@ static int8_t
 managing_editor_end(struct stream_callback_data *data)
 {
 	if (data->path[data->depth] == RSS20_CHANNEL) {
+		if (cat_caret_to_serialization(&data->feed.authors) == false) {
+			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		}
 		if (cat_array_to_serialization(&data->feed.authors, "type", 4, "editor", 6) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
@@ -266,7 +279,6 @@ managing_editor_end(struct stream_callback_data *data)
 static int8_t
 source_start(struct stream_callback_data *data, const XML_Char **attrs)
 {
-	data->feed.temp.source.url_is_set = false;
 	if (data->path[data->depth] != RSS20_ITEM) {
 		return PARSE_OKAY; // Ignore sources outside of item element.
 	}
@@ -278,19 +290,19 @@ source_start(struct stream_callback_data *data, const XML_Char **attrs)
 	if (attr_len == 0) {
 		return PARSE_OKAY;
 	}
+	if (cat_caret_to_serialization(&data->feed.item->sources) == false) {
+		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+	}
 	if (cat_array_to_serialization(&data->feed.item->sources, "url", 3, attr, attr_len) == false) {
 		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 	}
-	data->feed.temp.source.url_is_set = true;
 	return PARSE_OKAY;
 }
 
 static int8_t
 source_end(struct stream_callback_data *data)
 {
-	bool copy_title = data->feed.temp.source.url_is_set;
-	data->feed.temp.source.url_is_set = false;
-	if ((data->path[data->depth] == RSS20_ITEM) && (copy_title == true)) {
+	if (data->path[data->depth] == RSS20_ITEM) {
 		if (cat_string_to_serialization(&data->feed.item->sources, "title", 5, data->text) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}

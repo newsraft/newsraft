@@ -62,6 +62,43 @@ append_raw_link(struct link_list *links, sqlite3_stmt *res, enum item_column col
 	return true;
 }
 
+static void
+free_contents_of_link(const struct link *link)
+{
+	free_string(link->url);
+	free_string(link->type);
+	free_string(link->size);
+	free_string(link->duration);
+}
+
+static inline bool
+add_another_link_to_trim_link_list(struct link_list *links, const struct link *link)
+{
+	if ((link->url == NULL) || (link->url->len == 0)) {
+		free_contents_of_link(link);
+		return true; // Ignore empty links.
+	}
+	for (int64_t i = 0; i < (int64_t)links->len; ++i) {
+		if (strcmp(link->url->ptr, links->list[i].url->ptr) == 0) {
+			// Don't add duplicate.
+			free_contents_of_link(link);
+			return true;
+		}
+	}
+	struct link *temp = realloc(links->list, sizeof(struct link) * (links->len + 1));
+	if (temp == NULL) {
+		free_contents_of_link(link);
+		return false;
+	}
+	links->list = temp;
+	size_t index = (links->len)++;
+	links->list[index].url = link->url;
+	links->list[index].type = link->type;
+	links->list[index].size = link->size;
+	links->list[index].duration = link->duration;
+	return true;
+}
+
 static inline bool
 append_attachments(struct link_list *links, sqlite3_stmt *res)
 {
@@ -73,50 +110,36 @@ append_attachments(struct link_list *links, sqlite3_stmt *res)
 	if (s == NULL) {
 		return false;
 	}
-	int64_t link_index = -1;
+	struct link another_link = {0};
 	const struct string *entry = get_next_entry_from_deserialize_stream(s);
 	while (entry != NULL) {
-		if (strcmp(entry->ptr, "url") == 0) {
-			entry = get_next_entry_from_deserialize_stream(s);
-			if (entry != NULL) {
-				link_index = add_another_url_to_trim_link_list(links, entry->ptr, entry->len);
-				if (link_index < 0) {
-					goto error;
-				}
+		if (strcmp(entry->ptr, "^") == 0) {
+			add_another_link_to_trim_link_list(links, &another_link);
+			memset(&another_link, 0, sizeof(struct link));
+		} else if (strncmp(entry->ptr, "url=", 4) == 0) {
+			if (crtas_or_cpyas(&another_link.url, entry->ptr + 4, entry->len - 4) == false) {
+				goto error;
 			}
-		} else if (link_index != -1) {
-			if (strcmp(entry->ptr, "type") == 0) {
-				entry = get_next_entry_from_deserialize_stream(s);
-				if (entry != NULL) {
-					if (crtss_or_cpyss(&links->list[link_index].type, entry) == false) {
-						goto error;
-					}
-				}
-			} else if (strcmp(entry->ptr, "size") == 0) {
-				entry = get_next_entry_from_deserialize_stream(s);
-				if (entry != NULL) {
-					if (crtss_or_cpyss(&links->list[link_index].size, entry) == false) {
-						goto error;
-					}
-				}
-			} else if (strcmp(entry->ptr, "duration") == 0) {
-				entry = get_next_entry_from_deserialize_stream(s);
-				if (entry != NULL) {
-					if (crtss_or_cpyss(&links->list[link_index].duration, entry) == false) {
-						goto error;
-					}
-				}
-			} else {
-				entry = get_next_entry_from_deserialize_stream(s);
+		} else if (strncmp(entry->ptr, "type=", 5) == 0) {
+			if (crtas_or_cpyas(&another_link.type, entry->ptr + 5, entry->len - 5) == false) {
+				goto error;
 			}
-		} else {
-			entry = get_next_entry_from_deserialize_stream(s);
+		} else if (strncmp(entry->ptr, "size=", 5) == 0) {
+			if (crtas_or_cpyas(&another_link.size, entry->ptr + 5, entry->len - 5) == false) {
+				goto error;
+			}
+		} else if (strncmp(entry->ptr, "duration=", 9) == 0) {
+			if (crtas_or_cpyas(&another_link.duration, entry->ptr + 9, entry->len - 9) == false) {
+				goto error;
+			}
 		}
 		entry = get_next_entry_from_deserialize_stream(s);
 	}
+	add_another_link_to_trim_link_list(links, &another_link);
 	close_string_deserialize_stream(s);
 	return true;
 error:
+	free_contents_of_link(&another_link);
 	close_string_deserialize_stream(s);
 	return false;
 }

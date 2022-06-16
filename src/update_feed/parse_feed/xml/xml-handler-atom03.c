@@ -70,7 +70,7 @@ link_start(struct stream_callback_data *data, const XML_Char **attrs)
 	if (attr == NULL) {
 		return PARSE_OKAY; // Ignore empty links.
 	}
-	size_t attr_len = strlen(attr);
+	const size_t attr_len = strlen(attr);
 	if (attr_len == 0) {
 		return PARSE_OKAY; // Ignore empty links.
 	}
@@ -90,23 +90,16 @@ link_start(struct stream_callback_data *data, const XML_Char **attrs)
 			}
 		}
 	} else if (data->path[data->depth] == ATOM03_ENTRY) {
-		empty_link(&data->feed.temp);
-		if (crtas_or_cpyas(&data->feed.temp.attachment.url, attr, attr_len) == false) {
+		if (cat_caret_to_serialization(&data->feed.item->attachments) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
-		attr = get_value_of_attribute_key(attrs, "type");
-		if (attr != NULL) {
-			attr_len = strlen(attr);
-			if (attr_len != 0) {
-				if (crtas_or_cpyas(&data->feed.temp.attachment.type, attr, attr_len) == false) {
-					return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-				}
-			}
+		if (cat_array_to_serialization(&data->feed.item->attachments, "url", 3, attr, attr_len) == false) {
+			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		}
+		if (serialize_attribute(&data->feed.item->attachments, attrs, "type", "type", 4) == false) {
+			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 		// Atom 0.3 link element doesn't have length and hreflang attributes.
-		if (serialize_link(&data->feed.temp, &data->feed.item->attachments) == false) {
-			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-		}
 	}
 	return PARSE_OKAY;
 }
@@ -181,10 +174,16 @@ author_start(struct stream_callback_data *data, const XML_Char **attrs)
 {
 	(void)attrs;
 	if (data->path[data->depth] == ATOM03_ENTRY) {
+		if (cat_caret_to_serialization(&data->feed.item->authors) == false) {
+			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		}
 		if (cat_array_to_serialization(&data->feed.item->authors, "type", 4, "author", 6) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	} else if (data->path[data->depth] == ATOM03_FEED) {
+		if (cat_caret_to_serialization(&data->feed.authors) == false) {
+			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		}
 		if (cat_array_to_serialization(&data->feed.authors, "type", 4, "author", 6) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
@@ -197,10 +196,16 @@ contributor_start(struct stream_callback_data *data, const XML_Char **attrs)
 {
 	(void)attrs;
 	if (data->path[data->depth] == ATOM03_ENTRY) {
+		if (cat_caret_to_serialization(&data->feed.item->authors) == false) {
+			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		}
 		if (cat_array_to_serialization(&data->feed.item->authors, "type", 4, "contributor", 11) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	} else if (data->path[data->depth] == ATOM03_FEED) {
+		if (cat_caret_to_serialization(&data->feed.authors) == false) {
+			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		}
 		if (cat_array_to_serialization(&data->feed.authors, "type", 4, "contributor", 11) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
@@ -285,24 +290,14 @@ static int8_t
 generator_start(struct stream_callback_data *data, const XML_Char **attrs)
 {
 	if (data->path[data->depth] == ATOM03_FEED) {
-		const char *attr = get_value_of_attribute_key(attrs, "version");
-		size_t attr_len;
-		if (attr != NULL) {
-			attr_len = strlen(attr);
-			if (attr_len != 0) {
-				if (crtas_or_cpyas(&data->feed.generator.version, attr, attr_len) == false) {
-					return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-				}
-			}
+		if (cat_caret_to_serialization(&data->feed.generators) == false) {
+			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
-		attr = get_value_of_attribute_key(attrs, "url");
-		if (attr != NULL) {
-			attr_len = strlen(attr);
-			if (attr_len != 0) {
-				if (crtas_or_cpyas(&data->feed.generator.url, attr, attr_len) == false) {
-					return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-				}
-			}
+		if (serialize_attribute(&data->feed.generators, attrs, "version", "version", 7) == false) {
+			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		}
+		if (serialize_attribute(&data->feed.generators, attrs, "url", "url", 3) == false) {
+			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	}
 	return PARSE_OKAY;
@@ -312,7 +307,7 @@ static int8_t
 generator_end(struct stream_callback_data *data)
 {
 	if (data->path[data->depth] == ATOM03_FEED) {
-		if (crtss_or_cpyss(&data->feed.generator.name, data->text) == false) {
+		if (cat_string_to_serialization(&data->feed.generators, "name", 4, data->text) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	}

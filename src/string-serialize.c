@@ -12,8 +12,11 @@ struct string_deserialize_stream {
 // You can change it without breaking compatibility with existing databases,
 // because first character of serialized data is always a DELIMITER. And it
 // is easy for the stream handler (see below) to figure out which character
-// to take as a separator.
+// to take as a delimiter.
 #define DELIMITER 31 // ASCII Unit Separator (control character)
+
+// However, this constant must never be changed. Or wicked times will come!
+#define SEPARATOR '='
 
 bool
 cat_array_to_serialization(struct string **target, const char *key, size_t key_len, const char *value, size_t value_len)
@@ -33,7 +36,7 @@ cat_array_to_serialization(struct string **target, const char *key, size_t key_l
 	if (catas(*target, key, key_len) == false) {
 		return false;
 	}
-	if (catcs(*target, DELIMITER) == false) {
+	if (catcs(*target, SEPARATOR) == false) {
 		return false;
 	}
 	struct string *str = crtas(value, value_len);
@@ -67,7 +70,7 @@ cat_string_to_serialization(struct string **target, const char *key, size_t key_
 	if (catas(*target, key, key_len) == false) {
 		return false;
 	}
-	if (catcs(*target, DELIMITER) == false) {
+	if (catcs(*target, SEPARATOR) == false) {
 		return false;
 	}
 	remove_character_from_string(value, DELIMITER);
@@ -75,6 +78,21 @@ cat_string_to_serialization(struct string **target, const char *key, size_t key_
 		return false;
 	}
 	return true;
+}
+
+bool
+cat_caret_to_serialization(struct string **target)
+{
+	if (*target == NULL) {
+		*target = crtes();
+		if (*target == NULL) {
+			return false;
+		}
+	}
+	if (catcs(*target, DELIMITER) == false) {
+		return false;
+	}
+	return catcs(*target, '^');
 }
 
 struct string_deserialize_stream *

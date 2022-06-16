@@ -85,6 +85,9 @@ item_string_handler(struct stream_callback_data *data, const char *val, size_t l
 	} else if (strcmp(data->text->ptr, "date_modified") == 0) {
 		data->feed.item->upddate = parse_date_rfc3339(val, len);
 	} else if (strcmp(data->text->ptr, "external_url") == 0) {
+		if (cat_caret_to_serialization(&data->feed.item->attachments) == false) {
+			return false;
+		}
 		if (cat_array_to_serialization(&data->feed.item->attachments, "url", 3, val, len) == false) {
 			return false;
 		}
@@ -97,31 +100,18 @@ item_string_handler(struct stream_callback_data *data, const char *val, size_t l
 }
 
 static inline bool
-person_string_handler(struct getfeed_person *person, const struct string *key, const char *val, size_t len)
+person_string_handler(struct string **dest, const struct string *key, const char *val, size_t len)
 {
 	if (strcmp(key->ptr, "name") == 0) {
-		if (crtas_or_cpyas(&person->name, val, len) == false) {
+		if (cat_array_to_serialization(dest, "name", 4, val, len) == false) {
 			return false;
 		}
 	} else if (strcmp(key->ptr, "url") == 0) {
-		if (crtas_or_cpyas(&person->url, val, len) == false) {
+		if (cat_array_to_serialization(dest, "url", 3, val, len) == false) {
 			return false;
 		}
 	} else if (strcmp(key->ptr, "avatar") == 0) {
-		// avatar...
-	}
-	return true;
-}
-
-static inline bool
-attachment_string_handler(struct getfeed_link *link, const struct string *key, const char *val, size_t len)
-{
-	if (strcmp(key->ptr, "url") == 0) {
-		if (crtas_or_cpyas(&link->url, val, len) == false) {
-			return false;
-		}
-	} else if (strcmp(key->ptr, "mime_type") == 0) {
-		if (crtas_or_cpyas(&link->type, val, len) == false) {
+		if (cat_array_to_serialization(dest, "avatar", 6, val, len) == false) {
 			return false;
 		}
 	}
@@ -129,30 +119,31 @@ attachment_string_handler(struct getfeed_link *link, const struct string *key, c
 }
 
 static inline bool
-attachment_number_handler(struct getfeed_link *link, const struct string *key, const char *val, size_t len)
+item_attachment_string_handler(struct stream_callback_data *data, const char *val, size_t len)
 {
-	if (strcmp(key->ptr, "size_in_bytes") == 0) {
-		// To convert a string to a number, it must be null-terminated;
-		// which val is not - so we have to create a null-terminated copy
-		// of this string.
-		char *tmp = malloc(sizeof(char) * (len + 1));
-		if (tmp == NULL) {
+	if (strcmp(data->text->ptr, "url") == 0) {
+		if (cat_array_to_serialization(&data->feed.item->attachments, "url", 3, val, len) == false) {
 			return false;
 		}
-		memcpy(tmp, val, sizeof(char) * len);
-		tmp[len] = '\0';
-		link->size = convert_string_to_size_t_or_zero(tmp);
-		free(tmp);
-	} else if (strcmp(key->ptr, "duration_in_seconds") == 0) {
-		// We explained these tricks above.
-		char *tmp = malloc(sizeof(char) * (len + 1));
-		if (tmp == NULL) {
+	} else if (strcmp(data->text->ptr, "mime_type") == 0) {
+		if (cat_array_to_serialization(&data->feed.item->attachments, "type", 4, val, len) == false) {
 			return false;
 		}
-		memcpy(tmp, val, sizeof(char) * len);
-		tmp[len] = '\0';
-		link->duration = convert_string_to_size_t_or_zero(tmp);
-		free(tmp);
+	}
+	return true;
+}
+
+static inline bool
+item_attachment_number_handler(struct stream_callback_data *data, const char *val, size_t len)
+{
+	if (strcmp(data->text->ptr, "size_in_bytes") == 0) {
+		if (cat_array_to_serialization(&data->feed.item->attachments, "size", 4, val, len) == false) {
+			return false;
+		}
+	} else if (strcmp(data->text->ptr, "duration_in_seconds") == 0) {
+		if (cat_array_to_serialization(&data->feed.item->attachments, "duration", 8, val, len) == false) {
+			return false;
+		}
 	}
 	return true;
 }
@@ -162,7 +153,7 @@ null_handler(void *ctx)
 {
 	(void)ctx;
 	// JSON Feed doesn't have any NULL.
-	WARN("Stumbled upon NULL.");
+	WARN("Stumbled upon null.");
 	return 1;
 }
 
@@ -203,7 +194,7 @@ number_handler(void *ctx, const char *val, size_t len)
 			&& (data->path[1] == JSON_ARRAY_ATTACHMENTS)
 			&& (data->feed.item != NULL))
 	{
-		if (attachment_number_handler(&data->feed.temp.attachment, data->text, val, len) == false) {
+		if (item_attachment_number_handler(data, val, len) == false) {
 			return 0;
 		}
 	}
@@ -221,7 +212,7 @@ string_handler(void *ctx, const unsigned char *val, size_t len)
 				return 0;
 			}
 		} else if (data->path[0] == JSON_ARRAY_AUTHORS) {
-			if (person_string_handler(&data->feed.temp.author, data->text, (const char *)val, len) == false) {
+			if (person_string_handler(&data->feed.authors, data->text, (const char *)val, len) == false) {
 				return 0;
 			}
 		}
@@ -232,14 +223,17 @@ string_handler(void *ctx, const unsigned char *val, size_t len)
 	} else if (data->depth == 2) {
 		if ((data->path[0] == JSON_ARRAY_ITEMS) && (data->feed.item != NULL)) {
 			if (data->path[1] == JSON_ARRAY_AUTHORS) {
-				if (person_string_handler(&data->feed.temp.author, data->text, (const char *)val, len) == false) {
+				if (person_string_handler(&data->feed.item->authors, data->text, (const char *)val, len) == false) {
 					return 0;
 				}
 			} else if (data->path[1] == JSON_ARRAY_ATTACHMENTS) {
-				if (attachment_string_handler(&data->feed.temp.attachment, data->text, (const char *)val, len) == false) {
+				if (item_attachment_string_handler(data, (const char *)val, len) == false) {
 					return 0;
 				}
 			} else if (data->path[1] == JSON_ARRAY_TAGS) {
+				if (cat_caret_to_serialization(&data->feed.item->categories) == false) {
+					return 0;
+				}
 				if (cat_array_to_serialization(&data->feed.item->categories, "term", 4, (const char *)val, len) == false) {
 					return 0;
 				}
@@ -253,19 +247,31 @@ static int
 start_map_handler(void *ctx)
 {
 	struct stream_callback_data *data = ctx;
-	INFO("Stumbled upon object start.");
+	INFO("Stumbled upon the beginning of an object.");
 	if (data->depth == 1) {
 		if (data->path[0] == JSON_ARRAY_ITEMS) {
 			prepend_item(&data->feed.item);
 		} else if (data->path[0] == JSON_ARRAY_AUTHORS) {
-			empty_person(&data->feed.temp);
+			if (cat_caret_to_serialization(&data->feed.authors) == false) {
+				return 0;
+			}
+			if (cat_array_to_serialization(&data->feed.authors, "type", 4, "author", 6) == false) {
+				return 0;
+			}
 		}
 	} else if (data->depth == 2) {
 		if ((data->path[0] == JSON_ARRAY_ITEMS) && (data->feed.item != NULL)) {
 			if (data->path[1] == JSON_ARRAY_AUTHORS) {
-				empty_person(&data->feed.temp);
+				if (cat_caret_to_serialization(&data->feed.item->authors) == false) {
+					return 0;
+				}
+				if (cat_array_to_serialization(&data->feed.item->authors, "type", 4, "author", 6) == false) {
+					return 0;
+				}
 			} else if (data->path[1] == JSON_ARRAY_ATTACHMENTS) {
-				empty_link(&data->feed.temp);
+				if (cat_caret_to_serialization(&data->feed.item->attachments) == false) {
+					return 0;
+				}
 			}
 		}
 	}
@@ -284,27 +290,8 @@ map_key_handler(void *ctx, const unsigned char *key, size_t key_len)
 static int
 end_map_handler(void *ctx)
 {
-	struct stream_callback_data *data = ctx;
-	INFO("Stumbled upon object end.");
-	if (data->depth == 1) {
-		if (data->path[0] == JSON_ARRAY_AUTHORS) {
-			if (serialize_person(&data->feed.temp, &data->feed.authors) == false) {
-				return 0;
-			}
-		}
-	} else if (data->depth == 2) {
-		if ((data->path[0] == JSON_ARRAY_ITEMS) && (data->feed.item != NULL)) {
-			if (data->path[1] == JSON_ARRAY_AUTHORS) {
-				if (serialize_person(&data->feed.temp, &data->feed.item->authors) == false) {
-					return 0;
-				}
-			} else if (data->path[1] == JSON_ARRAY_ATTACHMENTS) {
-				if (serialize_link(&data->feed.temp, &data->feed.item->attachments) == false) {
-					return 0;
-				}
-			}
-		}
-	}
+	(void)ctx;
+	INFO("Stumbled upon the end of an object.");
 	return 1;
 }
 
@@ -312,7 +299,7 @@ static int
 start_array_handler(void *ctx)
 {
 	struct stream_callback_data *data = ctx;
-	INFO("Stumbled upon array start.");
+	INFO("Stumbled upon the beginning of an array.");
 	if (strcmp(data->text->ptr, "items") == 0) {
 		data->path[data->depth] = JSON_ARRAY_ITEMS;
 	} else if (strcmp(data->text->ptr, "attachments") == 0) {
@@ -332,7 +319,7 @@ static int
 end_array_handler(void *ctx)
 {
 	struct stream_callback_data *data = ctx;
-	INFO("Stumbled upon array end.");
+	INFO("Stumbled upon the end of an array.");
 	if (data->depth > 0) {
 		data->depth -= 1;
 	}

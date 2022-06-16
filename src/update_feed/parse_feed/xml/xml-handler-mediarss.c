@@ -33,32 +33,23 @@ content_start(struct stream_callback_data *data, const XML_Char **attrs)
 	if (attr == NULL) {
 		return PARSE_OKAY; // Ignore empty content entries.
 	}
-	size_t attr_len = strlen(attr);
+	const size_t attr_len = strlen(attr);
 	if (attr_len == 0) {
 		return PARSE_OKAY; // Ignore empty content entries.
 	}
-	empty_link(&data->feed.temp);
-	if (crtas_or_cpyas(&data->feed.temp.attachment.url, attr, attr_len) == false) {
+	if (cat_caret_to_serialization(&data->feed.item->attachments) == false) {
 		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 	}
-	attr = get_value_of_attribute_key(attrs, "type");
-	if (attr != NULL) {
-		attr_len = strlen(attr);
-		if (attr_len != 0) {
-			if (crtas_or_cpyas(&data->feed.temp.attachment.type, attr, attr_len) == false) {
-				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-			}
-		}
+	if (cat_array_to_serialization(&data->feed.item->attachments, "url", 3, attr, attr_len) == false) {
+		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 	}
-	attr = get_value_of_attribute_key(attrs, "fileSize");
-	if (attr != NULL) {
-		data->feed.temp.attachment.size = convert_string_to_size_t_or_zero(attr);
+	if (serialize_attribute(&data->feed.item->attachments, attrs, "type", "type", 4) == false) {
+		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 	}
-	attr = get_value_of_attribute_key(attrs, "duration");
-	if (attr != NULL) {
-		data->feed.temp.attachment.duration = convert_string_to_size_t_or_zero(attr);
+	if (serialize_attribute(&data->feed.item->attachments, attrs, "fileSize", "size", 4) == false) {
+		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 	}
-	if (serialize_link(&data->feed.temp, &data->feed.item->attachments) == false) {
+	if (serialize_attribute(&data->feed.item->attachments, attrs, "duration", "duration", 8) == false) {
 		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 	}
 	return PARSE_OKAY;
@@ -78,19 +69,16 @@ thumbnail_start(struct stream_callback_data *data, const XML_Char **attrs)
 	if (attr_len == 0) {
 		return PARSE_OKAY; // Ignore empty thumbnail entries.
 	}
-	empty_picture(&data->feed.temp);
-	if (crtas_or_cpyas(&data->feed.temp.picture.url, attr, attr_len) == false) {
+	if (cat_caret_to_serialization(&data->feed.item->pictures) == false) {
 		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 	}
-	attr = get_value_of_attribute_key(attrs, "width");
-	if (attr != NULL) {
-		data->feed.temp.picture.width = convert_string_to_size_t_or_zero(attr);
+	if (cat_array_to_serialization(&data->feed.item->pictures, "url", 3, attr, attr_len) == false) {
+		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 	}
-	attr = get_value_of_attribute_key(attrs, "height");
-	if (attr != NULL) {
-		data->feed.temp.picture.height = convert_string_to_size_t_or_zero(attr);
+	if (serialize_attribute(&data->feed.item->pictures, attrs, "width", "width", 5) == false) {
+		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 	}
-	if (serialize_picture(&data->feed.temp, &data->feed.item->pictures) == false) {
+	if (serialize_attribute(&data->feed.item->pictures, attrs, "height", "height", 6) == false) {
 		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 	}
 	return PARSE_OKAY;

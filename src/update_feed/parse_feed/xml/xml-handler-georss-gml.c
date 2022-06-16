@@ -7,6 +7,9 @@ static int8_t
 pos_end(struct stream_callback_data *data)
 {
 	if (we_are_inside_item(data) == true) {
+		if (cat_caret_to_serialization(&data->feed.item->locations) == false) {
+			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		}
 		if (cat_string_to_serialization(&data->feed.item->locations, "coordinates", 11, data->text) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}

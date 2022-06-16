@@ -39,8 +39,18 @@ Check out man page (or you can try to read it in scdoc format at [doc/newsraft.s
 
 # Contributing
 
-See [doc/contributing.md](https://codeberg.org/grisha/newsraft/src/branch/main/doc/contributing.md).
+## Reporting bugs
+
+Follow instructions in [doc/contributing-report.md](https://codeberg.org/grisha/newsraft/src/branch/main/doc/contributing-report.md).
+
+## Making changes
+
+Consider reading [doc/contributing-change.md](https://codeberg.org/grisha/newsraft/src/branch/main/doc/contributing-change.md).
+
+## Sending donation
+
+Check out [doc/contributing-donation.md](https://codeberg.org/grisha/newsraft/src/branch/main/doc/contributing-donation.md).
 
 # Copying
 
-See [doc/license.txt](https://codeberg.org/grisha/newsraft/src/branch/main/doc/license.txt).
+Newsraft is distributed under the terms of the [MIT License](https://codeberg.org/grisha/newsraft/src/branch/main/doc/license.txt).

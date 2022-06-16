@@ -27,7 +27,7 @@ db_insert_item(const struct string *feed_url, struct getfeed_item *item, int row
 			return false;
 		}
 	} else {
-		if (db_prepare("UPDATE items SET feed_url = ?, guid = ?, title = ?, link = ?, summary = ?, content = ?, attachments = ?, sources = ?, authors = ?, comments_url = ?, locations = ?, categories = ?, languages = ?, rights = ?, rating = ?, pictures = ?, publication_date = ?, update_date = ?, unread = ? WHERE rowid = ?;", 300, &s) == false)
+		if (db_prepare("UPDATE items SET feed_url = ?, guid = ?, title = ?, link = ?, summary = ?, content = ?, attachments = ?, sources = ?, comments_url = ?, locations = ?, persons = ?, categories = ?, languages = ?, rights = ?, rating = ?, pictures = ?, publication_date = ?, update_date = ?, unread = ? WHERE rowid = ?;", 300, &s) == false)
 		{
 			FAIL("Failed to prepare item update statement!");
 			return false;
@@ -42,9 +42,9 @@ db_insert_item(const struct string *feed_url, struct getfeed_item *item, int row
 	db_bind_text_struct(s, 1 + ITEM_COLUMN_CONTENT,          &item->content);
 	db_bind_string(s,      1 + ITEM_COLUMN_ATTACHMENTS,      item->attachments);
 	db_bind_string(s,      1 + ITEM_COLUMN_SOURCES,          item->sources);
-	db_bind_string(s,      1 + ITEM_COLUMN_AUTHORS,          item->authors);
 	db_bind_string(s,      1 + ITEM_COLUMN_COMMENTS_URL,     item->comments_url);
 	db_bind_string(s,      1 + ITEM_COLUMN_LOCATIONS,        item->locations);
+	db_bind_string(s,      1 + ITEM_COLUMN_PERSONS,          item->persons);
 	db_bind_string(s,      1 + ITEM_COLUMN_CATEGORIES,       item->categories);
 	db_bind_string(s,      1 + ITEM_COLUMN_LANGUAGES,        item->language);
 	db_bind_text_struct(s, 1 + ITEM_COLUMN_RIGHTS,           &item->rights);

@@ -17,7 +17,7 @@ struct data_entry {
 static const struct data_entry entries[] = {
 	{"feed",       "Feed: ",       6,  ITEM_COLUMN_FEED_URL,     false},
 	{"title",      "Title: ",      7,  ITEM_COLUMN_TITLE,        true},
-	/* {"authors",    "Authors: ",    9,  ITEM_COLUMN_AUTHORS,      false}, */
+	/* {"persons",    "Authors: ",    9,  ITEM_COLUMN_PERSONS,      false}, */
 	/* {"categories", "Categories: ", 12, ITEM_COLUMN_CATEGORIES,   false}, */
 	{"link",       "Link: ",       6,  ITEM_COLUMN_LINK,         false},
 	{"comments",   "Comments: ",   10, ITEM_COLUMN_COMMENTS_URL, false},

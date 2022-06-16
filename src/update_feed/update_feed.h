@@ -31,9 +31,9 @@ struct getfeed_item {
 	struct getfeed_text content;
 	struct string *attachments;
 	struct string *sources;
-	struct string *authors;
 	struct string *comments_url;
 	struct string *locations;
+	struct string *persons;
 	struct string *categories;
 	struct string *language;
 	struct getfeed_text rights;
@@ -49,7 +49,7 @@ struct getfeed_feed {
 	struct getfeed_text title;
 	struct string *url;
 	struct getfeed_text summary;
-	struct string *authors;
+	struct string *persons;
 	struct string *categories;
 	struct string *language;
 	struct getfeed_text rights;

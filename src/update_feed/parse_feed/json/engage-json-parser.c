@@ -212,7 +212,7 @@ string_handler(void *ctx, const unsigned char *val, size_t len)
 				return 0;
 			}
 		} else if (data->path[0] == JSON_ARRAY_AUTHORS) {
-			if (person_string_handler(&data->feed.authors, data->text, (const char *)val, len) == false) {
+			if (person_string_handler(&data->feed.persons, data->text, (const char *)val, len) == false) {
 				return 0;
 			}
 		}
@@ -223,7 +223,7 @@ string_handler(void *ctx, const unsigned char *val, size_t len)
 	} else if (data->depth == 2) {
 		if ((data->path[0] == JSON_ARRAY_ITEMS) && (data->feed.item != NULL)) {
 			if (data->path[1] == JSON_ARRAY_AUTHORS) {
-				if (person_string_handler(&data->feed.item->authors, data->text, (const char *)val, len) == false) {
+				if (person_string_handler(&data->feed.item->persons, data->text, (const char *)val, len) == false) {
 					return 0;
 				}
 			} else if (data->path[1] == JSON_ARRAY_ATTACHMENTS) {
@@ -252,20 +252,20 @@ start_map_handler(void *ctx)
 		if (data->path[0] == JSON_ARRAY_ITEMS) {
 			prepend_item(&data->feed.item);
 		} else if (data->path[0] == JSON_ARRAY_AUTHORS) {
-			if (cat_caret_to_serialization(&data->feed.authors) == false) {
+			if (cat_caret_to_serialization(&data->feed.persons) == false) {
 				return 0;
 			}
-			if (cat_array_to_serialization(&data->feed.authors, "type", 4, "author", 6) == false) {
+			if (cat_array_to_serialization(&data->feed.persons, "type", 4, "author", 6) == false) {
 				return 0;
 			}
 		}
 	} else if (data->depth == 2) {
 		if ((data->path[0] == JSON_ARRAY_ITEMS) && (data->feed.item != NULL)) {
 			if (data->path[1] == JSON_ARRAY_AUTHORS) {
-				if (cat_caret_to_serialization(&data->feed.item->authors) == false) {
+				if (cat_caret_to_serialization(&data->feed.item->persons) == false) {
 					return 0;
 				}
-				if (cat_array_to_serialization(&data->feed.item->authors, "type", 4, "author", 6) == false) {
+				if (cat_array_to_serialization(&data->feed.item->persons, "type", 4, "author", 6) == false) {
 					return 0;
 				}
 			} else if (data->path[1] == JSON_ARRAY_ATTACHMENTS) {

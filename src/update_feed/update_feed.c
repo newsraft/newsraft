@@ -9,7 +9,7 @@ free_feed(struct getfeed_feed *feed)
 	free_string(feed->url);
 	free_string(feed->summary.value);
 	free_string(feed->summary.type);
-	free_string(feed->authors);
+	free_string(feed->persons);
 	free_string(feed->categories);
 	free_string(feed->language);
 	free_string(feed->rights.value);

@@ -174,17 +174,17 @@ author_start(struct stream_callback_data *data, const XML_Char **attrs)
 {
 	(void)attrs;
 	if (data->path[data->depth] == ATOM03_ENTRY) {
-		if (cat_caret_to_serialization(&data->feed.item->authors) == false) {
+		if (cat_caret_to_serialization(&data->feed.item->persons) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
-		if (cat_array_to_serialization(&data->feed.item->authors, "type", 4, "author", 6) == false) {
+		if (cat_array_to_serialization(&data->feed.item->persons, "type", 4, "author", 6) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	} else if (data->path[data->depth] == ATOM03_FEED) {
-		if (cat_caret_to_serialization(&data->feed.authors) == false) {
+		if (cat_caret_to_serialization(&data->feed.persons) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
-		if (cat_array_to_serialization(&data->feed.authors, "type", 4, "author", 6) == false) {
+		if (cat_array_to_serialization(&data->feed.persons, "type", 4, "author", 6) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	}
@@ -196,17 +196,17 @@ contributor_start(struct stream_callback_data *data, const XML_Char **attrs)
 {
 	(void)attrs;
 	if (data->path[data->depth] == ATOM03_ENTRY) {
-		if (cat_caret_to_serialization(&data->feed.item->authors) == false) {
+		if (cat_caret_to_serialization(&data->feed.item->persons) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
-		if (cat_array_to_serialization(&data->feed.item->authors, "type", 4, "contributor", 11) == false) {
+		if (cat_array_to_serialization(&data->feed.item->persons, "type", 4, "contributor", 11) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	} else if (data->path[data->depth] == ATOM03_FEED) {
-		if (cat_caret_to_serialization(&data->feed.authors) == false) {
+		if (cat_caret_to_serialization(&data->feed.persons) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
-		if (cat_array_to_serialization(&data->feed.authors, "type", 4, "contributor", 11) == false) {
+		if (cat_array_to_serialization(&data->feed.persons, "type", 4, "contributor", 11) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	}
@@ -218,11 +218,11 @@ name_end(struct stream_callback_data *data)
 {
 	if (data->path[data->depth] == ATOM03_AUTHOR) {
 		if (data->path[data->depth - 1] == ATOM03_ENTRY) {
-			if (cat_string_to_serialization(&data->feed.item->authors, "name", 4, data->text) == false) {
+			if (cat_string_to_serialization(&data->feed.item->persons, "name", 4, data->text) == false) {
 				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			}
 		} else if (data->path[data->depth - 1] == ATOM03_FEED) {
-			if (cat_string_to_serialization(&data->feed.authors, "name", 4, data->text) == false) {
+			if (cat_string_to_serialization(&data->feed.persons, "name", 4, data->text) == false) {
 				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			}
 		}
@@ -235,11 +235,11 @@ url_end(struct stream_callback_data *data)
 {
 	if (data->path[data->depth] == ATOM03_AUTHOR) {
 		if (data->path[data->depth - 1] == ATOM03_ENTRY) {
-			if (cat_string_to_serialization(&data->feed.item->authors, "url", 3, data->text) == false) {
+			if (cat_string_to_serialization(&data->feed.item->persons, "url", 3, data->text) == false) {
 				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			}
 		} else if (data->path[data->depth - 1] == ATOM03_FEED) {
-			if (cat_string_to_serialization(&data->feed.authors, "url", 3, data->text) == false) {
+			if (cat_string_to_serialization(&data->feed.persons, "url", 3, data->text) == false) {
 				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			}
 		}
@@ -252,11 +252,11 @@ email_end(struct stream_callback_data *data)
 {
 	if (data->path[data->depth] == ATOM03_AUTHOR) {
 		if (data->path[data->depth - 1] == ATOM03_ENTRY) {
-			if (cat_string_to_serialization(&data->feed.item->authors, "email", 5, data->text) == false) {
+			if (cat_string_to_serialization(&data->feed.item->persons, "email", 5, data->text) == false) {
 				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			}
 		} else if (data->path[data->depth - 1] == ATOM03_FEED) {
-			if (cat_string_to_serialization(&data->feed.authors, "email", 5, data->text) == false) {
+			if (cat_string_to_serialization(&data->feed.persons, "email", 5, data->text) == false) {
 				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			}
 		}

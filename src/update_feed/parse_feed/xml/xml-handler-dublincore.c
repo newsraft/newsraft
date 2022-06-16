@@ -54,17 +54,17 @@ static int8_t
 creator_end(struct stream_callback_data *data)
 {
 	if (we_are_inside_item(data) == true) {
-		if (cat_array_to_serialization(&data->feed.item->authors, "type", 4, "author", 6) == false) {
+		if (cat_array_to_serialization(&data->feed.item->persons, "type", 4, "author", 6) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
-		if (cat_string_to_serialization(&data->feed.item->authors, "name", 4, data->text) == false) {
+		if (cat_string_to_serialization(&data->feed.item->persons, "name", 4, data->text) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	} else {
-		if (cat_array_to_serialization(&data->feed.authors, "type", 4, "author", 6) == false) {
+		if (cat_array_to_serialization(&data->feed.persons, "type", 4, "author", 6) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
-		if (cat_string_to_serialization(&data->feed.authors, "name", 4, data->text) == false) {
+		if (cat_string_to_serialization(&data->feed.persons, "name", 4, data->text) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	}
@@ -75,17 +75,17 @@ static int8_t
 contributor_end(struct stream_callback_data *data)
 {
 	if (we_are_inside_item(data) == true) {
-		if (cat_array_to_serialization(&data->feed.item->authors, "type", 4, "contributor", 11) == false) {
+		if (cat_array_to_serialization(&data->feed.item->persons, "type", 4, "contributor", 11) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
-		if (cat_string_to_serialization(&data->feed.item->authors, "name", 4, data->text) == false) {
+		if (cat_string_to_serialization(&data->feed.item->persons, "name", 4, data->text) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	} else {
-		if (cat_array_to_serialization(&data->feed.authors, "type", 4, "contributor", 11) == false) {
+		if (cat_array_to_serialization(&data->feed.persons, "type", 4, "contributor", 11) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
-		if (cat_string_to_serialization(&data->feed.authors, "name", 4, data->text) == false) {
+		if (cat_string_to_serialization(&data->feed.persons, "name", 4, data->text) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	}

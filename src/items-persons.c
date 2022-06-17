@@ -1,0 +1,173 @@
+#include <stdlib.h>
+#include <string.h>
+#include "newsraft.h"
+
+struct person {
+	struct string *type;
+	struct string *name;
+	struct string *email;
+	struct string *url;
+};
+
+static struct person *
+create_person(void)
+{
+	struct person *person = malloc(sizeof(struct person));
+	if (person == NULL) {
+		goto undo0;
+	}
+	person->type = crtes();
+	if (person->type == NULL) {
+		goto undo1;
+	}
+	person->name = crtes();
+	if (person->name == NULL) {
+		goto undo2;
+	}
+	person->email = crtes();
+	if (person->email == NULL) {
+		goto undo3;
+	}
+	person->url = crtes();
+	if (person->url == NULL) {
+		goto undo4;
+	}
+	return person;
+undo4:
+	free_string(person->email);
+undo3:
+	free_string(person->name);
+undo2:
+	free_string(person->type);
+undo1:
+	free(person);
+undo0:
+	return NULL;
+}
+
+static void
+empty_person(struct person *person)
+{
+	empty_string(person->type);
+	empty_string(person->name);
+	empty_string(person->email);
+	empty_string(person->url);
+}
+
+static void
+free_person(struct person *person)
+{
+	if (person != NULL) {
+		free_string(person->type);
+		free_string(person->name);
+		free_string(person->email);
+		free_string(person->url);
+		free(person);
+	}
+}
+
+static bool
+write_person_to_result(struct string *result, struct person *person)
+{
+	if ((person->name->len == 0)
+			&& (person->email->len == 0)
+			&& (person->url->len == 0))
+	{
+		return true; // Ignore empty persons >,<
+	}
+	bool name = false;
+	bool email = false;
+	if (result->len != 0) {
+		if (catas(result, ", ", 2) == false) {
+			return false;
+		}
+	}
+	if (person->name->len != 0) {
+		if (catss(result, person->name) == false) {
+			return false;
+		}
+		name = true;
+	}
+	if (person->email->len != 0) {
+		if (name == true) {
+			if (catas(result, " <", 2) == false) {
+				return false;
+			}
+		}
+		if (catss(result, person->email) == false) {
+			return false;
+		}
+		if (name == true) {
+			if (catcs(result, '>') == false) {
+				return false;
+			}
+		}
+		email = true;
+	}
+	if (person->url->len != 0) {
+		if ((name == true) || (email == true)) {
+			if (catas(result, " (", 2) == false) {
+				return false;
+			}
+		}
+		if (catss(result, person->url) == false) {
+			return false;
+		}
+		if ((name == true) || (email == true)) {
+			if (catcs(result, ')') == false) {
+				return false;
+			}
+		}
+	}
+	return true;
+}
+
+struct string *
+deserialize_persons_string(const char *src, const char *person_type)
+{
+	struct string *result = crtes();
+	struct person *person = create_person();
+	struct string_deserialize_stream *stream = open_string_deserialize_stream(src);
+	if ((person == NULL) || (result == NULL) || (stream == NULL)) {
+		goto error;
+	}
+	const struct string *field = get_next_entry_from_deserialize_stream(stream);
+	while (field != NULL) {
+		if (strcmp(field->ptr, "^") == 0) {
+			if (strcmp(person_type, person->type->ptr) == 0) {
+				if (write_person_to_result(result, person) == false) {
+					goto error;
+				}
+			}
+			empty_person(person);
+		} else if (strncmp(field->ptr, "type=", 5) == 0) {
+			if (cpyas(person->type, field->ptr + 5, field->len - 5) == false) {
+				goto error;
+			}
+		} else if (strncmp(field->ptr, "name=", 5) == 0) {
+			if (cpyas(person->name, field->ptr + 5, field->len - 5) == false) {
+				goto error;
+			}
+		} else if (strncmp(field->ptr, "email=", 6) == 0) {
+			if (cpyas(person->email, field->ptr + 6, field->len - 6) == false) {
+				goto error;
+			}
+		} else if (strncmp(field->ptr, "url=", 4) == 0) {
+			if (cpyas(person->url, field->ptr + 4, field->len - 4) == false) {
+				goto error;
+			}
+		}
+		field = get_next_entry_from_deserialize_stream(stream);
+	}
+	if (write_person_to_result(result, person) == false) {
+		goto error;
+	}
+	close_string_deserialize_stream(stream);
+	free_person(person);
+	return result;
+error:
+	close_string_deserialize_stream(stream);
+	free_person(person);
+	free_string(result);
+	return NULL;
+}

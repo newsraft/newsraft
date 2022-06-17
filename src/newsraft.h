@@ -261,6 +261,7 @@ bool join_render_blocks_of_item_data(struct render_block **data_list, sqlite3_st
 void free_render_blocks(struct render_block *first_block);
 
 // contents
+struct string *deserialize_persons_string(const char *src, const char *person_type);
 bool populate_link_list_with_links_of_item(struct link_list *links, sqlite3_stmt *res);
 bool complete_urls_of_links(struct link_list *links, sqlite3_stmt *res);
 struct string *generate_link_list_string_for_pager(const struct link_list *links);

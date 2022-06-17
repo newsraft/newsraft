@@ -17,7 +17,6 @@ struct data_entry {
 static const struct data_entry entries[] = {
 	{"feed",       "Feed: ",       6,  ITEM_COLUMN_FEED_URL,     false},
 	{"title",      "Title: ",      7,  ITEM_COLUMN_TITLE,        true},
-	/* {"persons",    "Authors: ",    9,  ITEM_COLUMN_PERSONS,      false}, */
 	/* {"categories", "Categories: ", 12, ITEM_COLUMN_CATEGORIES,   false}, */
 	{"link",       "Link: ",       6,  ITEM_COLUMN_LINK,         false},
 	{"comments",   "Comments: ",   10, ITEM_COLUMN_COMMENTS_URL, false},
@@ -154,6 +153,40 @@ append_max_summary_content(struct render_block **list, sqlite3_stmt *res)
 }
 
 static inline bool
+append_persons(struct render_block **list, sqlite3_stmt *res, const char *person_type, const char *prefix, size_t prefix_len)
+{
+	const char *serialized_persons = (char *)sqlite3_column_text(res, ITEM_COLUMN_PERSONS);
+	if (serialized_persons == NULL) {
+		return true; // Ignore empty persons.
+	}
+	struct string *persons = deserialize_persons_string(serialized_persons, person_type);
+	if ((persons == NULL) || (persons->len == 0)) {
+		free_string(persons);
+		return true; // There is nothing here that we were looking for.
+	}
+	struct string *block_text = crtas(prefix, prefix_len);
+	if (block_text == NULL) {
+		free_string(persons);
+		return false;
+	}
+	if (catss(block_text, persons) == false) {
+		free_string(persons);
+		free_string(block_text);
+		return false;
+	}
+	free_string(persons);
+	if (join_render_block(list, block_text->ptr, block_text->len, "text/plain", 10) == false) {
+		free_string(block_text);
+		return false;
+	}
+	free_string(block_text);
+	if (join_render_separator(list) == false) {
+		return false;
+	}
+	return true;
+}
+
+static inline bool
 process_specifier(const char *entry, struct render_block **list, sqlite3_stmt *res)
 {
 	if (strcmp(entry, "published") == 0) {
@@ -166,6 +199,10 @@ process_specifier(const char *entry, struct render_block **list, sqlite3_stmt *r
 		}
 	} else if (strcmp(entry, "max-summary-content") == 0) {
 		if (append_max_summary_content(list, res) == false) {
+			return false;
+		}
+	} else if (strcmp(entry, "authors") == 0) {
+		if (append_persons(list, res, "author", "Authors: ", 9) == false) {
 			return false;
 		}
 	} else {

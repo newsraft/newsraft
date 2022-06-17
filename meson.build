@@ -45,6 +45,7 @@ newsraft_sources = [
 	'src/items.c',
 	'src/items-list.c',
 	'src/items-links.c',
+	'src/items-persons.c',
 	'src/items-metadata.c',
 	'src/load_config/load_config.c',
 	'src/load_config/config.c',

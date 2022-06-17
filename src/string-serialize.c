@@ -142,6 +142,8 @@ get_next_entry_from_deserialize_stream(struct string_deserialize_stream *stream)
 void
 close_string_deserialize_stream(struct string_deserialize_stream *stream)
 {
-	free_string(stream->entry);
-	free(stream);
+	if (stream != NULL) {
+		free_string(stream->entry);
+		free(stream);
+	}
 }

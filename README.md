@@ -20,50 +20,36 @@ Newsraft is a piece of software that aggregates syndicated web content like blog
 
 # Building
 
-## Compilation
+Compile:
 
 ```
 meson setup builddir
 meson compile -C builddir
 ```
 
-## Installation
+Install:
 
 ```
 meson install -C builddir
 ```
 
-# Configuration
+# Learning more
 
-Check out man page (or you can try to read it in scdoc format at [doc/newsraft.scd](https://codeberg.org/grisha/newsraft/src/branch/main/doc/newsraft.scd)).
+The main source of information about Newsraft is its man page. If you built Newsraft from source with `scdoc` dependency, man page must be located in the build directory. Alternatively you can try to read it in the raw scdoc format at [doc/newsraft.scd](https://codeberg.org/grisha/newsraft/src/branch/main/doc/newsraft.scd).
 
-# Getting help
+If you still have any questions, follow [this tidy guide](https://man.sr.ht/lists.sr.ht/etiquette.md) and address them to **users** *{ATT]* **newsraft** *{POINTT]* **space**
 
-## Mailing list
-
-Follow [this very informative guide](https://man.sr.ht/lists.sr.ht/etiquette.md) and address your question to **users** *{ATT]* **newsraft** *{POINTT]* **space**
-
-## IRC channel
-
-Our IRC channel **#newsraft** is hosted on [OFTC](https://www.oftc.net) network, come on in :)
+Also feel free to ask your questions in IRC channel **#newsraft** which is hosted on [OFTC](https://www.oftc.net) network.
 
 # Contributing
 
-## Helping others
+Helping others: [doc/contributing-support.md](https://codeberg.org/grisha/newsraft/src/branch/main/doc/contributing-support.md)
 
-Read [doc/contributing-support.md](https://codeberg.org/grisha/newsraft/src/branch/main/doc/contributing-support.md).
+Reporting bugs: [doc/contributing-report.md](https://codeberg.org/grisha/newsraft/src/branch/main/doc/contributing-report.md)
 
-## Reporting bugs
+Making changes: [doc/contributing-change.md](https://codeberg.org/grisha/newsraft/src/branch/main/doc/contributing-change.md)
 
-Follow instructions in [doc/contributing-report.md](https://codeberg.org/grisha/newsraft/src/branch/main/doc/contributing-report.md).
-
-## Making changes
-
-Consider reading [doc/contributing-change.md](https://codeberg.org/grisha/newsraft/src/branch/main/doc/contributing-change.md).
-
-## Sending donation
-
-Check out [doc/contributing-donation.md](https://codeberg.org/grisha/newsraft/src/branch/main/doc/contributing-donation.md).
+Sending donation: [doc/contributing-donation.md](https://codeberg.org/grisha/newsraft/src/branch/main/doc/contributing-donation.md)
 
 # Copying
 

@@ -51,7 +51,7 @@ Our IRC channel **#newsraft** is hosted on [OFTC](https://www.oftc.net) network,
 
 ## Helping others
 
-Subscribe to support mailing list by sending an email to **users+subscribe** *{ATT]* **newsraft** *{POINTT]* **space** and politely answer questions you know the answer to. To unsubscribe from it, send an email to **users+unsubscribe** *{ATT]* **newsraft** *{POINTT]* **space**
+Read [doc/contributing-support.md](https://codeberg.org/grisha/newsraft/src/branch/main/doc/contributing-support.md).
 
 ## Reporting bugs
 

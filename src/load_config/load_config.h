@@ -6,6 +6,7 @@ typedef uint8_t config_type_id;
 enum config_type {
 	CFG_BOOL,
 	CFG_UINT,
+	CFG_COLOR,
 	CFG_STRING,
 	CFG_WSTRING,
 };
@@ -23,6 +24,7 @@ bool assign_calculated_values_to_auto_config_strings(void);
 config_type_id get_cfg_type(size_t i);
 void set_cfg_bool(size_t i, bool value);
 void set_cfg_uint(size_t i, size_t value);
+void set_cfg_color(size_t i, int value);
 bool set_cfg_string(size_t i, const struct string *value);
 bool set_cfg_wstring(size_t i, const struct string *value);
 

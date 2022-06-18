@@ -185,12 +185,22 @@ free_sections(void)
 }
 
 static const wchar_t *
-paint_section_entry(size_t index)
+write_section_entry(size_t index)
 {
 	fmt_args[0].value.i = index + 1;
 	fmt_args[1].value.i = sections[index].unread_count;
 	fmt_args[2].value.s = sections[index].name->ptr;
 	return do_format(CFG_MENU_SECTION_ENTRY_FORMAT, fmt_args, COUNTOF(fmt_args));
+}
+
+static int
+paint_section_entry(size_t index)
+{
+	if (sections[index].unread_count > 0) {
+		return CFG_COLOR_LIST_SECTION_UNREAD_FG;
+	} else {
+		return CFG_COLOR_LIST_SECTION_FG;
+	}
 }
 
 static inline void
@@ -211,6 +221,7 @@ enter_sections_menu_loop(struct feed_line ***feeds_ptr, size_t *feeds_count_ptr)
 	}
 
 	if (is_the_sections_menu_being_opened_for_the_first_time == true) {
+		sections_menu.write_action = &write_section_entry;
 		sections_menu.paint_action = &paint_section_entry;
 		reset_menu_list_settings();
 		is_the_sections_menu_being_opened_for_the_first_time = false;

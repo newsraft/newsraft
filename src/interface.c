@@ -34,15 +34,23 @@ bool
 curses_init(void)
 {
 	if (initscr() == NULL) {
-		fprintf(stderr, "Initialization of curses data structures failed!\n");
+		fputs("Initialization of curses data structures failed!\n", stderr);
+		return false;
+	}
+	if (start_color() == ERR) {
+		fputs("Initialization of curses color structures failed!\n", stderr);
 		return false;
 	}
 	if (cbreak() == ERR) {
-		fprintf(stderr, "Can not disable line buffering and erase/kill character-processing!\n");
+		fputs("Can not disable line buffering and erase/kill character-processing!\n", stderr);
 		return false;
 	}
 	if (obtain_terminal_size() == false) {
-		fprintf(stderr, "Invalid terminal size obtained!\n");
+		fputs("Invalid terminal size obtained!\n", stderr);
+		return false;
+	}
+	if (create_color_pairs() == false) {
+		fputs("Can not create color pairs!\n", stderr);
 		return false;
 	}
 	if (curs_set(0) == ERR) {
@@ -61,7 +69,7 @@ resize_counter_action(void)
 		// Some really crazy resize happend. It is either a glitch or user
 		// deliberately trying to break something. This state is really
 		// dangerous anyways.
-		fprintf(stderr, "Don't flex around with me, okay?\n");
+		fputs("Don't flex around with me, okay?\n", stderr);
 		return false;
 	}
 	if (adjust_list_menu() == false) {

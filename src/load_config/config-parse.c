@@ -39,10 +39,7 @@ process_set_line(char *line)
 		return false;
 	}
 	free_string(setting_name);
-	if (*i == '\0') {
-		fputs("Incorrect line notation! Lines must specify some value after the setting name!\n", stderr);
-		return false;
-	} else if (*i == '"') {
+	if (*i == '"') {
 		char *next_double_quote = strchr(i + 1, '"');
 		if (next_double_quote != NULL) {
 			*next_double_quote = '\0';
@@ -57,7 +54,7 @@ process_set_line(char *line)
 	}
 	config_type_id type = get_cfg_type(id);
 	if (type == CFG_BOOL) {
-		if (strcmp(i, "true") == 0) {
+		if ((strlen(i) == 0) || (strcmp(i, "true") == 0)) {
 			set_cfg_bool(id, true);
 		} else if (strcmp(i, "false") == 0) {
 			set_cfg_bool(id, false);
@@ -67,11 +64,32 @@ process_set_line(char *line)
 		}
 	} else if (type == CFG_UINT) {
 		size_t val;
-		if (sscanf(i, "%zu", &val) != 1) {
+		if ((strlen(i) == 0) || (sscanf(i, "%zu", &val) != 1)) {
 			fputs("Numeric settings can only take non-negative integer values!\n", stderr);
 			return false;
 		}
 		set_cfg_uint(id, val);
+	} else if (type == CFG_COLOR) {
+		if (strcmp(i, "black") == 0) {
+			set_cfg_color(id, COLOR_BLACK);
+		} else if (strcmp(i, "red") == 0) {
+			set_cfg_color(id, COLOR_RED);
+		} else if (strcmp(i, "green") == 0) {
+			set_cfg_color(id, COLOR_GREEN);
+		} else if (strcmp(i, "yellow") == 0) {
+			set_cfg_color(id, COLOR_YELLOW);
+		} else if (strcmp(i, "blue") == 0) {
+			set_cfg_color(id, COLOR_BLUE);
+		} else if (strcmp(i, "magenta") == 0) {
+			set_cfg_color(id, COLOR_MAGENTA);
+		} else if (strcmp(i, "cyan") == 0) {
+			set_cfg_color(id, COLOR_CYAN);
+		} else if (strcmp(i, "white") == 0) {
+			set_cfg_color(id, COLOR_WHITE);
+		} else {
+			fputs("Color settings can only take lower-case ASCII color names!\n", stderr);
+			return false;
+		}
 	} else if ((type == CFG_STRING) || (type == CFG_WSTRING)) {
 		struct string *str = crtas(i, strlen(i));
 		if (str == NULL) {
@@ -118,8 +136,7 @@ process_config_file_line(char *line)
 	uint8_t line_type_len = 0;
 	do {
 		if (line_type_len == 4) {
-			fputs("Incorrect line notation! Lines can only start with either \"set\" or \"bind\"!\n", stderr);
-			return false;
+			goto badline;
 		}
 		line_type[line_type_len++] = *i;
 		i += 1;
@@ -131,8 +148,8 @@ process_config_file_line(char *line)
 		i += 1;
 	}
 	if (*i == '\0') {
-		fputs("Incorrect line notation! Lines must specify something other than the type of setting!\n", stderr);
-		return false;
+		INFO("This line is useless!");
+		return true; // Ignore lines that don't do anything.
 	}
 	line_type[line_type_len] = '\0';
 	if (strcmp(line_type, "set") == 0) {
@@ -144,10 +161,12 @@ process_config_file_line(char *line)
 			return false;
 		}
 	} else {
-		fputs("Incorrect line notation! Lines can only start with either \"set\" or \"bind\"!\n", stderr);
-		return false;
+		goto badline;
 	}
 	return true;
+badline:
+	fputs("Incorrect line notation! Lines can only start with either \"set\" or \"bind\"!\n", stderr);
+	return false;
 }
 
 bool

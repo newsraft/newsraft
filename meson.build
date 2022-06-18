@@ -35,6 +35,7 @@ newsraft_sources = [
 	'src/input-binds-default.c',
 	'src/render-block.c',
 	'src/interface.c',
+	'src/interface-colors.c',
 	'src/interface-status.c',
 	'src/interface-counter.c',
 	'src/interface-list.c',

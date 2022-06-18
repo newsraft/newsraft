@@ -57,8 +57,12 @@ expose_entry_of_the_menu_list(struct menu_list_settings *settings, size_t index)
 	}
 	size_t target_window = (index - settings->view_min) % list_menu_height;
 	werase(windows[target_window]);
-	mvwaddnwstr(windows[target_window], 0, 0, settings->paint_action(index), list_menu_width);
-	mvwchgat(windows[target_window], 0, 0, -1, (index == settings->view_sel) ? A_REVERSE : A_NORMAL, 0, NULL);
+	mvwaddnwstr(windows[target_window], 0, 0, settings->write_action(index), list_menu_width);
+	if (index == settings->view_sel) {
+		wbkgd(windows[target_window], get_reversed_color_pair(settings->paint_action(index)));
+	} else {
+		wbkgd(windows[target_window], get_color_pair(settings->paint_action(index)));
+	}
 	wrefresh(windows[target_window]);
 }
 
@@ -120,11 +124,11 @@ list_menu_change_view(struct menu_list_settings *s, size_t i)
 		expose_all_visible_entries_of_the_menu_list(s);
 	} else {
 		size_t target_window = (s->view_sel - s->view_min) % list_menu_height;
-		mvwchgat(windows[target_window], 0, 0, -1, A_NORMAL, 0, NULL);
+		wbkgd(windows[target_window], get_color_pair(s->paint_action(s->view_sel)));
 		wrefresh(windows[target_window]);
 		s->view_sel = new_sel;
 		target_window = (s->view_sel - s->view_min) % list_menu_height;
-		mvwchgat(windows[target_window], 0, 0, -1, A_REVERSE, 0, NULL);
+		wbkgd(windows[target_window], get_reversed_color_pair(s->paint_action(s->view_sel)));
 		wrefresh(windows[target_window]);
 	}
 }

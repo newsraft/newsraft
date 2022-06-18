@@ -15,6 +15,7 @@ struct config_wstring {
 union config_value {
 	bool b;
 	size_t u;
+	int c;
 	struct config_string s;
 	struct config_wstring w;
 };
@@ -26,6 +27,20 @@ struct config_entry {
 };
 
 static struct config_entry config[] = {
+	{"color-status-fg",                 CFG_COLOR,   {.c = COLOR_CYAN   }},
+	{"color-status-bg",                 CFG_COLOR,   {.c = COLOR_BLACK  }},
+	{"color-list-item-fg",              CFG_COLOR,   {.c = COLOR_WHITE  }},
+	{"color-list-item-bg",              CFG_COLOR,   {.c = COLOR_BLACK  }},
+	{"color-list-item-unread-fg",       CFG_COLOR,   {.c = COLOR_YELLOW }},
+	{"color-list-item-unread-bg",       CFG_COLOR,   {.c = COLOR_BLACK  }},
+	{"color-list-feed-fg",              CFG_COLOR,   {.c = COLOR_WHITE  }},
+	{"color-list-feed-bg",              CFG_COLOR,   {.c = COLOR_BLACK  }},
+	{"color-list-feed-unread-fg",       CFG_COLOR,   {.c = COLOR_YELLOW }},
+	{"color-list-feed-unread-bg",       CFG_COLOR,   {.c = COLOR_BLACK  }},
+	{"color-list-section-fg",           CFG_COLOR,   {.c = COLOR_WHITE  }},
+	{"color-list-section-bg",           CFG_COLOR,   {.c = COLOR_BLACK  }},
+	{"color-list-section-unread-fg",    CFG_COLOR,   {.c = COLOR_YELLOW }},
+	{"color-list-section-unread-bg",    CFG_COLOR,   {.c = COLOR_BLACK  }},
 	{"items-count-limit",               CFG_UINT,    {.u = 0    }},
 	{"download-timeout",                CFG_UINT,    {.u = 20   }},
 	{"download-speed-limit",            CFG_UINT,    {.u = 0    }},
@@ -181,6 +196,12 @@ get_cfg_uint(size_t i)
 	return config[i].value.u;
 }
 
+int
+get_cfg_color(size_t i)
+{
+	return config[i].value.c;
+}
+
 const struct string *
 get_cfg_string(size_t i)
 {
@@ -203,6 +224,12 @@ void
 set_cfg_uint(size_t i, size_t value)
 {
 	config[i].value.u = value;
+}
+
+void
+set_cfg_color(size_t i, int value)
+{
+	config[i].value.c = value;
 }
 
 bool

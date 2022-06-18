@@ -14,7 +14,7 @@ static struct format_arg fmt_args[] = {
 };
 
 static const wchar_t *
-paint_item_entry(size_t index)
+write_item_entry(size_t index)
 {
 	fmt_args[0].value.i = index + 1;
 	fmt_args[1].value.c = items->list[index].is_unread == true ? 'N' : ' ';
@@ -22,6 +22,16 @@ paint_item_entry(size_t index)
 	fmt_args[3].value.s = items->list[index].date_str->ptr;
 	fmt_args[4].value.s = items->list[index].title->ptr;
 	return do_format(entry_format, fmt_args, COUNTOF(fmt_args));
+}
+
+static int
+paint_item_entry(size_t index)
+{
+	if (items->list[index].is_unread == true) {
+		return CFG_COLOR_LIST_ITEM_UNREAD_FG;
+	} else {
+		return CFG_COLOR_LIST_ITEM_FG;
+	}
 }
 
 static void
@@ -89,6 +99,7 @@ initialize_menu_list_settings(struct menu_list_settings *menu)
 	menu->view_sel = 0;
 	menu->view_min = 0;
 	menu->view_max = list_menu_height - 1;
+	menu->write_action = &write_item_entry;
 	menu->paint_action = &paint_item_entry;
 }
 

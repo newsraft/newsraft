@@ -65,12 +65,22 @@ feed_image(const struct feed_line *feed)
 }
 
 static const wchar_t *
-paint_feed_entry(size_t index)
+write_feed_entry(size_t index)
 {
 	fmt_args[0].value.i = index + 1;
 	fmt_args[1].value.i = feeds[index]->unread_count;
 	fmt_args[2].value.s = feed_image(feeds[index]);
 	return do_format(CFG_MENU_FEED_ENTRY_FORMAT, fmt_args, COUNTOF(fmt_args));
+}
+
+static int
+paint_feed_entry(size_t index)
+{
+	if (feeds[index]->unread_count > 0) {
+		return CFG_COLOR_LIST_FEED_UNREAD_FG;
+	} else {
+		return CFG_COLOR_LIST_FEED_FG;
+	}
 }
 
 static void
@@ -176,6 +186,7 @@ reset_menu_list_settings(void)
 void
 enter_feeds_menu_loop(void)
 {
+	feeds_menu.write_action = &write_feed_entry;
 	feeds_menu.paint_action = &paint_feed_entry;
 	reset_menu_list_settings();
 

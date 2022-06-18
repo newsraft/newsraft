@@ -21,6 +21,7 @@ create_status_window(void)
 		if (keypad(win, TRUE) == ERR) {
 			WARN("Can't enable keypad and function keys for status window!");
 		}
+		wbkgd(win, get_color_pair(CFG_COLOR_STATUS_FG));
 	} else {
 		FAIL("Failed to create new status window!");
 	}

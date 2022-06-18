@@ -49,7 +49,8 @@ struct menu_list_settings {
 	size_t view_sel;
 	size_t view_min;
 	size_t view_max;
-	const wchar_t *(*paint_action)(size_t index);
+	const wchar_t *(*write_action)(size_t index);
+	int (*paint_action)(size_t index);
 };
 
 struct feed_line {
@@ -101,8 +102,24 @@ struct link_list {
 	size_t len;        // Shows how many items is in list.
 };
 
+#define NEWSRAFT_COLORS_COUNT 14
+#define NEWSRAFT_COLOR_PAIRS_COUNT 7
 typedef uint8_t config_entry_id;
 enum config_entry_index {
+	CFG_COLOR_STATUS_FG,
+	CFG_COLOR_STATUS_BG,
+	CFG_COLOR_LIST_ITEM_FG,
+	CFG_COLOR_LIST_ITEM_BG,
+	CFG_COLOR_LIST_ITEM_UNREAD_FG,
+	CFG_COLOR_LIST_ITEM_UNREAD_BG,
+	CFG_COLOR_LIST_FEED_FG,
+	CFG_COLOR_LIST_FEED_BG,
+	CFG_COLOR_LIST_FEED_UNREAD_FG,
+	CFG_COLOR_LIST_FEED_UNREAD_BG,
+	CFG_COLOR_LIST_SECTION_FG,
+	CFG_COLOR_LIST_SECTION_BG,
+	CFG_COLOR_LIST_SECTION_UNREAD_FG,
+	CFG_COLOR_LIST_SECTION_UNREAD_BG,
 	CFG_ITEMS_COUNT_LIMIT,
 	CFG_DOWNLOAD_TIMEOUT,
 	CFG_DOWNLOAD_SPEED_LIMIT,
@@ -315,6 +332,11 @@ bool db_mark_all_items_in_feeds_as_unread(const struct feed_line **feeds, size_t
 bool curses_init(void);
 bool resize_counter_action(void);
 
+// See "interface-colors.c" file for implementation.
+bool create_color_pairs(void);
+int get_color_pair(config_entry_id id);
+int get_reversed_color_pair(config_entry_id id);
+
 // Functions responsible for handling input.
 // See "interface-input.c" file for implementation.
 int get_input_command(uint32_t *count);
@@ -396,6 +418,7 @@ bool load_config(void);
 const char *get_cfg_name(size_t i);
 bool get_cfg_bool(size_t i);
 size_t get_cfg_uint(size_t i);
+int get_cfg_color(size_t i);
 const struct string *get_cfg_string(size_t i);
 const struct wstring *get_cfg_wstring(size_t i);
 void free_config(void);

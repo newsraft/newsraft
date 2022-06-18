@@ -104,7 +104,7 @@ _status-messages-limit_ (default: *10000*)
 _size-conversion-threshold_ (default: *1200*)
 	TODO
 
-_copy-to-clipboard-command_ (default: *"auto"*)
+_copy-to-clipboard-command_ (default: *auto*)
 	Shell command for copying text to clipboard. All copied information is sent
 	to the standard input of the command. If it is set to "auto", then newsraft
 	will set the setting value depending on the environment variables: "wl-copy"
@@ -118,13 +118,13 @@ _proxy_ (default: *""*)
 _proxy-auth_ (default: *""*)
 	TODO
 
-_global-section-name_ (default: *"Global"*)
+_global-section-name_ (default: *Global*)
 	Name of the section that contains all feeds.
 
 _send-user-agent-header_ (default: *true*)
 	Attach user-agent header to download requests. See _user-agent_ setting.
 
-_user-agent_ (default: *"auto"*)
+_user-agent_ (default: *auto*)
 	User-agent string to attach to download requests. If it is set to "auto",
 	newsraft will generate it in the following form:
 
@@ -134,24 +134,24 @@ _user-agent_ (default: *"auto"*)
 	contains nothing more like "Linux" or "Darwin". If you want to be sure of
 	this, check newsraft log to see which _user-agent_ is set at startup.
 
-_item-formation-order_ (default: *"feed-url,title,authors,published,updated,max-content"*)
+_item-formation-order_ (default: *feed-url,title,authors,published,updated,max-content*)
 	Sets the order in which the data of item entry is formed for viewing in a
 	pager. Possible fields are: *feed-url*, *title*, *link*, *published*,
 	*updated*, *authors*, *contributors*, *editors*, *comments*, *summary*,
 	*content* and *max-content*.
 
-_content-date-format_ (default: *"%a, %d %b %Y %H:%M:%S %z"*)
+_content-date-format_ (default: *%a, %d %b %Y %H:%M:%S %z*)
 	Date format in the content view. Specifier values correspond to the
 	*strftime*(3) format.
 
-_list-entry-date-format_ (default: *"%b %d"*)
+_list-entry-date-format_ (default: *%b %d*)
 	Date format of the list entries. Specifier values correspond to the
 	*strftime*(3) format.
 
-_menu-section-entry-format_ (default: *"%4.0u │ %t"*)
+_menu-section-entry-format_ (default: *%4.0u │ %t*)
 	TODO
 
-_menu-feed-entry-format_ (default: *"%4.0u │ %t"*)
+_menu-feed-entry-format_ (default: *%4.0u │ %t*)
 	TODO
 
 _menu-item-entry-format_ (default: *" %u │ %d │ %t"*)
@@ -203,6 +203,48 @@ _ssl-verify-host_ (default: *true*)
 _ssl-verify-peer_ (default: *true*)
 	TODO
 	Disabling it is strongly discouraged.
+
+_color-status-fg_ (default: *cyan*)
+	Text color of status area.
+
+_color-status-bg_ (default: *black*)
+	Background color of status area.
+
+_color-list-item-fg_ (default: *white*)
+	Text color of item list entry.
+
+_color-list-item-bg_ (default: *black*)
+	Background color of item list entry.
+
+_color-list-item-unread-fg_ (default: *yellow*)
+	Text color of unread item list entry.
+
+_color-list-item-unread-bg_ (default: *black*)
+	Background color of unread item list entry.
+
+_color-list-feed-fg_ (default: *white*)
+	Text color of feed list entry.
+
+_color-list-feed-bg_ (default: *black*)
+	Background color of feed list entry.
+
+_color-list-feed-unread-fg_ (default: *yellow*)
+	Text color of unread feed list entry.
+
+_color-list-feed-unread-bg_ (default: *black*)
+	Background color of unread feed list entry.
+
+_color-list-section-fg_ (default: *white*)
+	Text color of section list entry.
+
+_color-list-section-bg_ (default: *black*)
+	Background color of section list entry.
+
+_color-list-section-unread-fg_ (default: *yellow*)
+	Text color of unread section list entry.
+
+_color-list-section-unread-bg_ (default: *black*)
+	Background color of unread section list entry.
 
 # ENVIRONMENT
 

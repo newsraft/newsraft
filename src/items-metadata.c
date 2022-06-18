@@ -1,69 +1,32 @@
-#include <stdlib.h>
 #include <string.h>
 #include "newsraft.h"
 
-#define MAX_METADATA_ENTRY_NAME_LENGTH 19
-// Currently it is "max-summary-content".
+#define MAX_METADATA_ENTRY_NAME_LENGTH 12
+// Currently it is "contributors".
+
+typedef int8_t entry_extra_id;
+enum {
+	NO_EXTRA_DATA = 0,
+	TYPE_HEADER = 1,
+	PREPEND_SEPARATOR = 2,
+	PERSON_AUTHOR = 4,
+	PERSON_CONTRIBUTOR = 8,
+	PERSON_EDITOR = 16,
+};
 
 struct data_entry {
-	const char *const field;            // Name of field to match in config_contents_meta_data.
-	const char *const prefix;           // String to write before entry data.
-	const size_t prefix_len;
-	const enum item_column data_column; // Column index from which to take data.
-	const bool does_it_have_type_header_at_the_beginning;
+	const char *const field;      // Name of field to match in config_contents_meta_data.
+	const char *const tooltip;    // String to write before entry data.
+	const size_t tooltip_len;
+	const items_column_id column; // Column index from which to take data.
+	const entry_extra_id feature_mask;
+	bool (*append_handler)(struct render_block **list, sqlite3_stmt *res, const struct data_entry *entry);
 };
 
-// ATTENTION! Maximal length of meta data entry name has to be reflected in MAX_METADATA_ENTRY_NAME_LENGTH.
-static const struct data_entry entries[] = {
-	{"feed",       "Feed: ",       6,  ITEM_COLUMN_FEED_URL,     false},
-	{"title",      "Title: ",      7,  ITEM_COLUMN_TITLE,        true},
-	/* {"categories", "Categories: ", 12, ITEM_COLUMN_CATEGORIES,   false}, */
-	{"link",       "Link: ",       6,  ITEM_COLUMN_LINK,         false},
-	{"comments",   "Comments: ",   10, ITEM_COLUMN_COMMENTS_URL, false},
-	{"summary",    "\n\n",         2,  ITEM_COLUMN_SUMMARY,      true},
-	{"content",    "\n\n",         2,  ITEM_COLUMN_CONTENT,      true},
-	{NULL,         NULL,           0,  0,                        false},
-};
-
-// On success returns true.
-// On failure returns false.
-static inline bool
-append_date(struct render_block **list, sqlite3_stmt *res, intmax_t column, const char *prefix, size_t prefix_len)
+static bool
+append_text(struct render_block **list, sqlite3_stmt *res, const struct data_entry *entry)
 {
-	time_t date = (time_t)sqlite3_column_int64(res, column);
-	if (date == 0) {
-		return true; // It is not an error because this item simply does not have pubdate set.
-	}
-	struct string *date_entry = crtas(prefix, prefix_len);
-	if (date_entry == NULL) {
-		return false;
-	}
-	struct string *date_str = get_config_date_str(date, CFG_CONTENT_DATE_FORMAT);
-	if (date_str == NULL) {
-		free_string(date_entry);
-		return false;
-	}
-	if (catss(date_entry, date_str) == false) {
-		free_string(date_str);
-		free_string(date_entry);
-		return false;
-	}
-	free_string(date_str);
-	if (join_render_block(list, date_entry->ptr, date_entry->len, "text/plain", 10) == false) {
-		free_string(date_entry);
-		return false;
-	}
-	free_string(date_entry);
-	if (join_render_separator(list) == false) {
-		return false;
-	}
-	return true;
-}
-
-static inline bool
-append_meta_data_entry(struct render_block **list, sqlite3_stmt *res, int index)
-{
-	const char *text = (const char *)sqlite3_column_text(res, entries[index].data_column);
+	const char *text = (const char *)sqlite3_column_text(res, entry->column);
 	if (text == NULL) {
 		return true; // It is not an error because this item simply does not have value set.
 	}
@@ -71,12 +34,17 @@ append_meta_data_entry(struct render_block **list, sqlite3_stmt *res, int index)
 	if (text_len == 0) {
 		return true; // It is not an error because this item simply does not have value set.
 	}
-
-	if (join_render_block(list, entries[index].prefix, entries[index].prefix_len, "text/plain", 10) == false){
-		return false;
+	if ((entry->feature_mask & PREPEND_SEPARATOR) != 0) {
+		if (join_render_separator(list) == false) {
+			return false;
+		}
 	}
-
-	if (entries[index].does_it_have_type_header_at_the_beginning == true) {
+	if ((entry->tooltip != NULL) && (entry->tooltip_len != 0)) {
+		if (join_render_block(list, entry->tooltip, entry->tooltip_len, "text/plain", 10) == false) {
+			return false;
+		}
+	}
+	if ((entry->feature_mask & TYPE_HEADER) != 0) {
 		const char *type_separator = strchr(text, ';');
 		if (type_separator == NULL) {
 			return false;
@@ -98,17 +66,16 @@ append_meta_data_entry(struct render_block **list, sqlite3_stmt *res, int index)
 			return false;
 		}
 	}
-
 	if (join_render_separator(list) == false) {
 		return false;
 	}
-
 	return true;
 }
 
-static inline bool
-append_max_summary_content(struct render_block **list, sqlite3_stmt *res)
+static bool
+append_max_content(struct render_block **list, sqlite3_stmt *res, const struct data_entry *entry)
 {
+	(void)entry;
 	const char *summary = (char *)sqlite3_column_text(res, ITEM_COLUMN_SUMMARY);
 	size_t summary_len;
 	if (summary == NULL) {
@@ -152,19 +119,63 @@ append_max_summary_content(struct render_block **list, sqlite3_stmt *res)
 	return true;
 }
 
-static inline bool
-append_persons(struct render_block **list, sqlite3_stmt *res, const char *person_type, const char *prefix, size_t prefix_len)
+
+static bool
+append_date(struct render_block **list, sqlite3_stmt *res, const struct data_entry *entry)
+{
+	time_t date = (time_t)sqlite3_column_int64(res, entry->column);
+	if (date == 0) {
+		return true; // It is not an error because this item simply does not have this date set.
+	}
+	struct string *date_str = get_config_date_str(date, CFG_CONTENT_DATE_FORMAT);
+	if (date_str == NULL) {
+		return false;
+	}
+	struct string *date_entry = crtas(entry->tooltip, entry->tooltip_len);
+	if (date_entry == NULL) {
+		free_string(date_str);
+		return false;
+	}
+	if (catss(date_entry, date_str) == false) {
+		free_string(date_str);
+		free_string(date_entry);
+		return false;
+	}
+	free_string(date_str);
+	if (join_render_block(list, date_entry->ptr, date_entry->len, "text/plain", 10) == false) {
+		free_string(date_entry);
+		return false;
+	}
+	free_string(date_entry);
+	if (join_render_separator(list) == false) {
+		return false;
+	}
+	return true;
+}
+
+static bool
+append_persons(struct render_block **list, sqlite3_stmt *res, const struct data_entry *entry)
 {
 	const char *serialized_persons = (char *)sqlite3_column_text(res, ITEM_COLUMN_PERSONS);
 	if (serialized_persons == NULL) {
-		return true; // Ignore empty persons.
+		return true; // Ignore empty persons >:-D
+	}
+	const char *person_type;
+	if (entry->feature_mask == PERSON_AUTHOR) {
+		person_type = "author";
+	} else if (entry->feature_mask == PERSON_CONTRIBUTOR) {
+		person_type = "contributor";
+	} else if (entry->feature_mask == PERSON_EDITOR) {
+		person_type = "editor";
+	} else {
+		return true; // Ignore unknown type of persons >:-D
 	}
 	struct string *persons = deserialize_persons_string(serialized_persons, person_type);
 	if ((persons == NULL) || (persons->len == 0)) {
 		free_string(persons);
 		return true; // There is nothing here that we were looking for.
 	}
-	struct string *block_text = crtas(prefix, prefix_len);
+	struct string *block_text = crtas(entry->tooltip, entry->tooltip_len);
 	if (block_text == NULL) {
 		free_string(persons);
 		return false;
@@ -186,37 +197,23 @@ append_persons(struct render_block **list, sqlite3_stmt *res, const char *person
 	return true;
 }
 
-static inline bool
-process_specifier(const char *entry, struct render_block **list, sqlite3_stmt *res)
-{
-	if (strcmp(entry, "published") == 0) {
-		if (append_date(list, res, ITEM_COLUMN_PUBLICATION_DATE, "Published: ", 11) == false) {
-			return false;
-		}
-	} else if (strcmp(entry, "updated") == 0) {
-		if (append_date(list, res, ITEM_COLUMN_UPDATE_DATE, "Updated: ", 9) == false) {
-			return false;
-		}
-	} else if (strcmp(entry, "max-summary-content") == 0) {
-		if (append_max_summary_content(list, res) == false) {
-			return false;
-		}
-	} else if (strcmp(entry, "authors") == 0) {
-		if (append_persons(list, res, "author", "Authors: ", 9) == false) {
-			return false;
-		}
-	} else {
-		for (size_t i = 0; entries[i].field != NULL; ++i) {
-			if (strcmp(entry, entries[i].field) == 0) {
-				if (append_meta_data_entry(list, res, i) == false) {
-					return false;
-				}
-				break;
-			}
-		}
-	}
-	return true;
-}
+// ATTENTION! Maximal length of meta data entry name has to be reflected in MAX_METADATA_ENTRY_NAME_LENGTH.
+static const struct data_entry entries[] = {
+	{"feed",         "Feed: ",          6, ITEM_COLUMN_FEED_URL,         NO_EXTRA_DATA,                 &append_text},
+	{"title",        "Title: ",         7, ITEM_COLUMN_TITLE,            TYPE_HEADER,                   &append_text},
+	/* {"categories",   "Categories: ",   12, ITEM_COLUMN_CATEGORIES,   false}, */
+	{"link",         "Link: ",          6, ITEM_COLUMN_LINK,             NO_EXTRA_DATA,                 &append_text},
+	{"published",    "Published: ",    11, ITEM_COLUMN_PUBLICATION_DATE, 0,                             &append_date},
+	{"updated",      "Updated: ",       9, ITEM_COLUMN_UPDATE_DATE,      0,                             &append_date},
+	{"authors",      "Authors: ",       9, 0,                            PERSON_AUTHOR,                 &append_persons},
+	{"contributors", "Contributors: ", 14, 0,                            PERSON_CONTRIBUTOR,            &append_persons},
+	{"editors",      "Editors: ",       9, 0,                            PERSON_EDITOR,                 &append_persons},
+	{"comments",     "Comments: ",     10, ITEM_COLUMN_COMMENTS_URL,     NO_EXTRA_DATA,                 &append_text},
+	{"summary",      NULL,              0, ITEM_COLUMN_SUMMARY,          TYPE_HEADER|PREPEND_SEPARATOR, &append_text},
+	{"content",      NULL,              0, ITEM_COLUMN_CONTENT,          TYPE_HEADER|PREPEND_SEPARATOR, &append_text},
+	{"max-content",  NULL,              0, 0,                            0,                             &append_max_content},
+	{NULL,           NULL,              0, 0,                            0,                             NULL},
+};
 
 bool
 join_render_blocks_of_item_data(struct render_block **list, sqlite3_stmt *res)
@@ -227,17 +224,19 @@ join_render_blocks_of_item_data(struct render_block **list, sqlite3_stmt *res)
 	const char *i = content_order->ptr;
 	while (true) {
 		if ((*i == ',') || (*i == '\0')) {
-			entry[entry_len] = '\0';
-			entry_len = 0;
-			if (process_specifier(entry, list, res) == false) {
-				return false;
+			for (size_t j = 0; entries[j].field != NULL; ++j) {
+				if (strncmp(entry, entries[j].field, entry_len) == 0) {
+					if (entries[j].append_handler(list, res, entries + j) == false) {
+						return false;
+					}
+					break;
+				}
 			}
 			if (*i == '\0') {
 				break;
 			}
-		} else if (entry_len == MAX_METADATA_ENTRY_NAME_LENGTH) {
-			entry[entry_len] = '\0';
-		} else {
+			entry_len = 0;
+		} else if (entry_len != MAX_METADATA_ENTRY_NAME_LENGTH) {
 			entry[entry_len++] = *i;
 		}
 		++i;

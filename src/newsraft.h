@@ -159,6 +159,7 @@ enum input_cmd {
 	INPUTS_COUNT,
 };
 
+typedef int8_t feeds_column_id;
 enum feed_column {
 	FEED_COLUMN_FEED_URL,
 	FEED_COLUMN_GUID,
@@ -181,6 +182,7 @@ enum feed_column {
 	FEED_COLUMN_NONE,
 };
 
+typedef int8_t items_column_id;
 enum item_column {
 	ITEM_COLUMN_FEED_URL,
 	ITEM_COLUMN_GUID,

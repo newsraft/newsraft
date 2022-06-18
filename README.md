@@ -37,9 +37,9 @@ meson install -C builddir
 
 The main source of information about Newsraft is its man page. If you built Newsraft from source with `scdoc` dependency, man page must be located in the build directory. Alternatively you can try to read it in the raw scdoc format at [doc/newsraft.scd](https://codeberg.org/grisha/newsraft/src/branch/main/doc/newsraft.scd).
 
-If you still have any questions, follow [this tidy guide](https://man.sr.ht/lists.sr.ht/etiquette.md) and address them to **users** *{ATT]* **newsraft** *{POINTT]* **space**
+If you still have any questions, follow [this tidy guide](https://man.sr.ht/lists.sr.ht/etiquette.md) and address them to **users@newsraft.space**
 
-Also feel free to ask your questions in IRC channel **#newsraft** which is hosted on [OFTC](https://www.oftc.net) network.
+Also feel free to ask your questions in the **#newsraft** IRC channel which is hosted on the [OFTC](https://www.oftc.net) network.
 
 # Contributing
 

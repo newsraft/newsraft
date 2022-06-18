@@ -37,7 +37,21 @@ meson install -C builddir
 
 Check out man page (or you can try to read it in scdoc format at [doc/newsraft.scd](https://codeberg.org/grisha/newsraft/src/branch/main/doc/newsraft.scd)).
 
+# Getting help
+
+## Mailing list
+
+Follow [this very informative guide](https://man.sr.ht/lists.sr.ht/etiquette.md) and address your question to **users** *<ATT>* **newsraft** *<POINTT>* **space**
+
+## IRC channel
+
+Our IRC channel **#newsraft** is hosted on [OFTC](https://www.oftc.net) network, come on in :)
+
 # Contributing
+
+## Helping others
+
+Subscribe to support mailing list by sending an email to **users+subscribe** *<ATT>* **newsraft** *<POINTT>* **space** and politely answer questions you know the answer to. To unsubscribe from it, send an email to **users+unsubscribe** *<ATT>* **newsraft** *<POINTT>* **space**
 
 ## Reporting bugs
 

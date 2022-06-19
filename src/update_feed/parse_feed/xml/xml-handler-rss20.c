@@ -224,17 +224,6 @@ ttl_end(struct stream_callback_data *data)
 }
 
 static int8_t
-language_end(struct stream_callback_data *data)
-{
-	if (data->path[data->depth] == RSS20_CHANNEL) {
-		if (crtss_or_cpyss(&data->feed.language, data->text) == false) {
-			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-		}
-	}
-	return PARSE_OKAY;
-}
-
-static int8_t
 web_master_end(struct stream_callback_data *data)
 {
 	if (data->path[data->depth] == RSS20_CHANNEL) {
@@ -318,7 +307,6 @@ const struct xml_element_handler xml_rss20_handlers[] = {
 	{"category",       RSS20_CATEGORY,       NULL,             &category_end},
 	{"comments",       RSS20_COMMENTS,       NULL,             &comments_end},
 	{"ttl",            RSS20_TTL,            NULL,             &ttl_end},
-	{"language",       RSS20_LANGUAGE,       NULL,             &language_end},
 	{"generator",      RSS20_GENERATOR,      NULL,             &generator_end},
 	{"webMaster",      RSS20_WEBMASTER,      NULL,             &web_master_end},
 	{"managingEditor", RSS20_MANAGINGEDITOR, NULL,             &managing_editor_end},

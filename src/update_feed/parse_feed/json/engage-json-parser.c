@@ -30,10 +30,6 @@ feed_string_handler(struct stream_callback_data *data, const char *val, size_t l
 		if (crtas_or_cpyas(&data->feed.summary.type, "text/plain", 10) == false) {
 			return false;
 		}
-	} else if (strcmp(data->text->ptr, "language") == 0) {
-		if (crtas_or_cpyas(&data->feed.language, val, len) == false) {
-			return false;
-		}
 	}
 	return true;
 }
@@ -89,10 +85,6 @@ item_string_handler(struct stream_callback_data *data, const char *val, size_t l
 			return false;
 		}
 		if (cat_array_to_serialization(&data->feed.item->attachments, "url", 3, val, len) == false) {
-			return false;
-		}
-	} else if (strcmp(data->text->ptr, "language") == 0) {
-		if (crtas_or_cpyas(&data->feed.item->language, val, len) == false) {
 			return false;
 		}
 	}

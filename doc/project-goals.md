@@ -2,7 +2,7 @@
 
 Main objective of Newsraft project is to do almost everything [Newsboat](https://newsboat.org) does, but:
 
-* with 3 times smaller codebase;
+* with 4 times smaller codebase;
 
 * with faster feed updates;
 

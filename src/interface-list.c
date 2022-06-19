@@ -79,6 +79,7 @@ erase_all_visible_entries_not_in_the_menu_list(struct menu_list_settings *settin
 {
 	for (size_t i = settings->entries_count; i <= settings->view_max; ++i) {
 		werase(windows[i]);
+		wbkgd(windows[i], COLOR_PAIR(0));
 		wnoutrefresh(windows[i]);
 	}
 	doupdate();

@@ -317,34 +317,6 @@ subtitle_end(struct stream_callback_data *data)
 	return PARSE_OKAY;
 }
 
-static int8_t
-generator_start(struct stream_callback_data *data, const XML_Char **attrs)
-{
-	if (data->path[data->depth] == ATOM10_FEED) {
-		if (cat_caret_to_serialization(&data->feed.generators) == false) {
-			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-		}
-		if (serialize_attribute(&data->feed.generators, attrs, "version", "version", 7) == false) {
-			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-		}
-		if (serialize_attribute(&data->feed.generators, attrs, "uri", "url", 3) == false) {
-			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-		}
-	}
-	return PARSE_OKAY;
-}
-
-static int8_t
-generator_end(struct stream_callback_data *data)
-{
-	if (data->path[data->depth] == ATOM10_FEED) {
-		if (cat_string_to_serialization(&data->feed.generators, "name", 4, data->text) == false) {
-			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-		}
-	}
-	return PARSE_OKAY;
-}
-
 const struct xml_element_handler xml_atom10_handlers[] = {
 	{"entry",       ATOM10_ENTRY,     &entry_start,       NULL},
 	{"id",          ATOM10_ID,        NULL,               &id_end},

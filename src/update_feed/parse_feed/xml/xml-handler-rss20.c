@@ -235,20 +235,6 @@ language_end(struct stream_callback_data *data)
 }
 
 static int8_t
-generator_end(struct stream_callback_data *data)
-{
-	if (data->path[data->depth] == RSS20_CHANNEL) {
-		if (cat_caret_to_serialization(&data->feed.generators) == false) {
-			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-		}
-		if (cat_string_to_serialization(&data->feed.generators, "name", 4, data->text) == false) {
-			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-		}
-	}
-	return PARSE_OKAY;
-}
-
-static int8_t
 web_master_end(struct stream_callback_data *data)
 {
 	if (data->path[data->depth] == RSS20_CHANNEL) {
@@ -286,7 +272,7 @@ static int8_t
 source_start(struct stream_callback_data *data, const XML_Char **attrs)
 {
 	if (data->path[data->depth] != RSS20_ITEM) {
-		return PARSE_OKAY; // Ignore sources outside of item element.
+		return PARSE_OKAY;
 	}
 	const char *attr = get_value_of_attribute_key(attrs, "url");
 	if (attr == NULL) {
@@ -296,10 +282,13 @@ source_start(struct stream_callback_data *data, const XML_Char **attrs)
 	if (attr_len == 0) {
 		return PARSE_OKAY;
 	}
-	if (cat_caret_to_serialization(&data->feed.item->sources) == false) {
+	if (cat_caret_to_serialization(&data->feed.item->attachments) == false) {
 		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 	}
-	if (cat_array_to_serialization(&data->feed.item->sources, "url", 3, attr, attr_len) == false) {
+	if (cat_array_to_serialization(&data->feed.item->attachments, "url", 3, attr, attr_len) == false) {
+		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+	}
+	if (cat_array_to_serialization(&data->feed.item->attachments, "content", 7, "source", 6) == false) {
 		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 	}
 	return PARSE_OKAY;
@@ -309,7 +298,7 @@ static int8_t
 source_end(struct stream_callback_data *data)
 {
 	if (data->path[data->depth] == RSS20_ITEM) {
-		if (cat_string_to_serialization(&data->feed.item->sources, "title", 5, data->text) == false) {
+		if (cat_string_to_serialization(&data->feed.item->attachments, "title", 5, data->text) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	}

@@ -43,12 +43,12 @@ db_insert_item(const struct string *feed_url, struct getfeed_item *item, int64_t
 	sqlite3_stmt *s;
 
 	if (rowid == -1) {
-		if (db_prepare("INSERT INTO items VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", 81, &s) == false) {
+		if (db_prepare("INSERT INTO items VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", 75, &s) == false) {
 			FAIL("Failed to prepare item insertion statement!");
 			return false;
 		}
 	} else {
-		if (db_prepare("UPDATE items SET feed_url = ?, guid = ?, title = ?, link = ?, summary = ?, content = ?, attachments = ?, sources = ?, locations = ?, persons = ?, categories = ?, languages = ?, rights = ?, rating = ?, pictures = ?, publication_date = ?, update_date = ?, unread = ? WHERE rowid = ?;", 282, &s) == false)
+		if (db_prepare("UPDATE items SET feed_url = ?, guid = ?, title = ?, link = ?, summary = ?, content = ?, attachments = ?, persons = ?, categories = ?, locations = ?, languages = ?, rights = ?, pictures = ?, publication_date = ?, update_date = ?, unread = ? WHERE rowid = ?;", 257, &s) == false)
 		{
 			FAIL("Failed to prepare item update statement!");
 			return false;
@@ -62,13 +62,11 @@ db_insert_item(const struct string *feed_url, struct getfeed_item *item, int64_t
 	db_bind_text_struct(s, 1 + ITEM_COLUMN_SUMMARY,          &item->summary);
 	db_bind_text_struct(s, 1 + ITEM_COLUMN_CONTENT,          &item->content);
 	db_bind_string(s,      1 + ITEM_COLUMN_ATTACHMENTS,      item->attachments);
-	db_bind_string(s,      1 + ITEM_COLUMN_SOURCES,          item->sources);
-	db_bind_string(s,      1 + ITEM_COLUMN_LOCATIONS,        item->locations);
 	db_bind_string(s,      1 + ITEM_COLUMN_PERSONS,          item->persons);
 	db_bind_string(s,      1 + ITEM_COLUMN_CATEGORIES,       item->categories);
+	db_bind_string(s,      1 + ITEM_COLUMN_LOCATIONS,        item->locations);
 	db_bind_string(s,      1 + ITEM_COLUMN_LANGUAGES,        item->language);
 	db_bind_text_struct(s, 1 + ITEM_COLUMN_RIGHTS,           &item->rights);
-	db_bind_string(s,      1 + ITEM_COLUMN_RATING,           item->rating);
 	db_bind_string(s,      1 + ITEM_COLUMN_PICTURES,         item->pictures);
 	sqlite3_bind_int64(s,  1 + ITEM_COLUMN_PUBLICATION_DATE, (sqlite3_int64)(item->pubdate));
 	sqlite3_bind_int64(s,  1 + ITEM_COLUMN_UPDATE_DATE,      (sqlite3_int64)(item->upddate));

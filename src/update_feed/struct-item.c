@@ -28,14 +28,12 @@ free_item(struct getfeed_item *item)
 		free_string(i->content.value);
 		free_string(i->content.type);
 		free_string(i->attachments);
-		free_string(i->sources);
-		free_string(i->locations);
 		free_string(i->persons);
 		free_string(i->categories);
+		free_string(i->locations);
 		free_string(i->language);
 		free_string(i->rights.value);
 		free_string(i->rights.type);
-		free_string(i->rating);
 		free_string(i->pictures);
 		temp = i;
 		i = i->next;

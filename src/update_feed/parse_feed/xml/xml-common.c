@@ -74,3 +74,29 @@ serialize_attribute(struct string **dest, const XML_Char **attrs, const char *at
 	}
 	return true;
 }
+
+int8_t
+generator_start(struct stream_callback_data *data, const XML_Char **attrs)
+{
+	(void)data;
+	const char *attr = get_value_of_attribute_key(attrs, "uri");
+	if (attr != NULL) {
+		INFO("Feed generator link (URI): %s", attr);
+	}
+	attr = get_value_of_attribute_key(attrs, "url");
+	if (attr != NULL) {
+		INFO("Feed generator link (URL): %s", attr);
+	}
+	attr = get_value_of_attribute_key(attrs, "version");
+	if (attr != NULL) {
+		INFO("Feed generator version: %s", attr);
+	}
+	return PARSE_OKAY;
+}
+
+int8_t
+generator_end(struct stream_callback_data *data)
+{
+	INFO("Feed generator name: %s", data->text->ptr);
+	return PARSE_OKAY;
+}

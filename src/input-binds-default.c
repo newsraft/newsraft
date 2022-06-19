@@ -24,6 +24,7 @@ assign_default_binds(void)
 	if (assign_action_to_key('e',       INPUT_OVERVIEW_MENU)       == false) { goto error; }
 	if (assign_action_to_key('y',       INPUT_SECTIONS_MENU)       == false) { goto error; }
 	if (assign_action_to_key('p',       INPUT_STATUS_HISTORY_MENU) == false) { goto error; }
+	if (assign_action_to_key('o',       INPUT_OPEN_IN_BROWSER)     == false) { goto error; }
 	if (assign_action_to_key('c',       INPUT_COPY_TO_CLIPBOARD)   == false) { goto error; }
 	if (assign_action_to_key('q',       INPUT_QUIT_SOFT)           == false) { goto error; }
 	if (assign_action_to_key('Q',       INPUT_QUIT_HARD)           == false) { goto error; }

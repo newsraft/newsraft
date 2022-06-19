@@ -127,7 +127,7 @@ scroll_to_the_end(struct pager_menu *menu)
 // On success - exit by user - returns INPUT_QUIT_SOFT or INPUT_QUIT_HARD.
 // On failure returns INPUTS_COUNT.
 int
-pager_view(const struct render_block *first_block, void (*custom_input_handler)(void *data, input_cmd_id cmd, uint32_t count), void *data)
+pager_view(const struct render_block *first_block, bool (*custom_input_handler)(void *data, input_cmd_id cmd, uint32_t count), void *data)
 {
 	status_clean();
 
@@ -161,7 +161,12 @@ pager_view(const struct render_block *first_block, void (*custom_input_handler)(
 		} else if ((cmd == INPUT_QUIT_SOFT) || (cmd == INPUT_QUIT_HARD)) {
 			break;
 		} else if (custom_input_handler != NULL) {
-			custom_input_handler(data, cmd, count);
+			if (custom_input_handler(data, cmd, count) == true) {
+				if (update_pager_menu(&menu, first_block) == false) {
+					// Error message written by update_pager_menu.
+					return INPUTS_COUNT;
+				}
+			}
 		}
 	}
 

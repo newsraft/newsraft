@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include "newsraft.h"
 
 static inline bool
@@ -62,30 +61,22 @@ number_suffix(uint32_t n)
 	}
 }
 
-static inline bool
-copy_string_to_clipboard(const struct string *src)
-{
-	const struct string *copy_cmd = get_cfg_string(CFG_COPY_TO_CLIPBOARD_COMMAND);
-	FILE *p = popen(copy_cmd->ptr, "w");
-	if (p == NULL) {
-		return false;
-	}
-	fwrite(src->ptr, sizeof(char), src->len, p);
-	pclose(p);
-	return true;
-}
-
-static void
+static bool
 custom_input_handler(void *data, input_cmd_id cmd, uint32_t count)
 {
-	if (cmd == INPUT_COPY_TO_CLIPBOARD) {
-		const struct link_list *links = data;
-		if ((count != 0) && (links->len >= count) && (links->list[count - 1].url != NULL)) {
+	const struct link_list *links = data;
+	if ((count != 0) && (links->len >= count) && (links->list[count - 1].url != NULL)) {
+		if (cmd == INPUT_OPEN_IN_BROWSER) {
+			open_url_in_browser(links->list[count - 1].url);
+			return true;
+		} else if (cmd == INPUT_COPY_TO_CLIPBOARD) {
 			if (copy_string_to_clipboard(links->list[count - 1].url) == true) {
 				good_status("Copied %" PRIu32 "%s link to clipboard.", count, number_suffix(count));
 			}
+			return false;
 		}
 	}
+	return false;
 }
 
 int

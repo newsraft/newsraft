@@ -51,6 +51,7 @@ static struct config_entry config[] = {
 	{"download-speed-limit",            CFG_UINT,    {.u = 0    }},
 	{"status-messages-limit",           CFG_UINT,    {.u = 10000}},
 	{"size-conversion-threshold",       CFG_UINT,    {.u = 1200 }},
+	{"open-in-browser-command",         CFG_STRING,  {.s = {NULL, "auto",   4}}},
 	{"copy-to-clipboard-command",       CFG_STRING,  {.s = {NULL, "auto",   4}}},
 	{"proxy",                           CFG_STRING,  {.s = {NULL, "",       0}}},
 	{"proxy-auth",                      CFG_STRING,  {.s = {NULL, "",       0}}},
@@ -136,6 +137,11 @@ assign_calculated_values_to_auto_config_strings(void)
 	INFO("Assigning calculated values to auto config strings.");
 	if (strcmp(config[CFG_USER_AGENT].value.s.actual->ptr, "auto") == 0) {
 		if (generate_useragent_string(config[CFG_USER_AGENT].value.s.actual) == false) {
+			return false;
+		}
+	}
+	if (strcmp(config[CFG_OPEN_IN_BROWSER_COMMAND].value.s.actual->ptr, "auto") == 0) {
+		if (generate_open_in_browser_command_string(config[CFG_OPEN_IN_BROWSER_COMMAND].value.s.actual) == false) {
 			return false;
 		}
 	}

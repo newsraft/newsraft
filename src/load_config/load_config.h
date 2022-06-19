@@ -16,6 +16,7 @@ config_entry_id find_config_entry_by_name(const char *name);
 bool parse_config_file(const char *path);
 
 bool generate_useragent_string(struct string *target);
+bool generate_open_in_browser_command_string(struct string *cmd);
 bool generate_copy_to_clipboard_command_string(struct string *cmd);
 
 bool assign_default_values_to_null_config_strings(void);

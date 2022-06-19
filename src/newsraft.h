@@ -128,6 +128,7 @@ enum config_entry_index {
 	CFG_DOWNLOAD_SPEED_LIMIT,
 	CFG_STATUS_MESSAGES_LIMIT,
 	CFG_SIZE_CONVERSION_THRESHOLD,
+	CFG_OPEN_IN_BROWSER_COMMAND,
 	CFG_COPY_TO_CLIPBOARD_COMMAND,
 	CFG_PROXY,
 	CFG_PROXY_AUTH,
@@ -174,6 +175,7 @@ enum input_cmd {
 	INPUT_OVERVIEW_MENU,
 	INPUT_SECTIONS_MENU,
 	INPUT_STATUS_HISTORY_MENU,
+	INPUT_OPEN_IN_BROWSER,
 	INPUT_COPY_TO_CLIPBOARD,
 	INPUT_RESIZE,
 	INPUTS_COUNT,
@@ -282,7 +284,7 @@ int64_t add_another_url_to_trim_link_list(struct link_list *links, const char *u
 void free_trim_link_list(const struct link_list *links);
 
 // pager
-int pager_view(const struct render_block *first_block, void (*custom_input_handler)(void *data, input_cmd_id cmd, uint32_t count), void *data);
+int pager_view(const struct render_block *first_block, bool (*custom_input_handler)(void *data, input_cmd_id cmd, uint32_t count), void *data);
 int enter_item_pager_view_loop(int rowid);
 int enter_status_pager_view_loop(void);
 
@@ -356,6 +358,11 @@ uint32_t counter_extract_count(void);
 void counter_clean(void);
 bool counter_resize(void);
 void counter_delete(void);
+
+// Functions related to executing system commands.
+// See "commands.c" file for implementation.
+bool open_url_in_browser(const struct string *src);
+bool copy_string_to_clipboard(const struct string *src);
 
 // string.c
 struct string *crtas(const char *src_ptr, size_t src_len);

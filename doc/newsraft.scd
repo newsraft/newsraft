@@ -148,7 +148,7 @@ _list-entry-date-format_ (default: *%b %d*)
 	Date format of the list entries. Specifier values correspond to the
 	*strftime*(3) format.
 
-_menu-section-entry-format_ (default: *%4.0u │ %t*)
+_menu-section-entry-format_ (default: *%4.0u @ %t*)
 	TODO
 
 _menu-feed-entry-format_ (default: *%4.0u │ %t*)

@@ -6,7 +6,7 @@ parse_feeds_file(const char *path)
 {
 	FILE *f = fopen(path, "r");
 	if (f == NULL) {
-		fprintf(stderr, "Couldn't open feeds file!\n");
+		fputs("Couldn't open feeds file!\n", stderr);
 		return false;
 	}
 	const struct string *global_section_name = get_cfg_string(CFG_GLOBAL_SECTION_NAME);

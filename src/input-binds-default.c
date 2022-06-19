@@ -29,7 +29,7 @@ assign_default_binds(void)
 	if (assign_action_to_key('Q',       INPUT_QUIT_HARD)           == false) { goto error; }
 	return true;
 error:
-	fprintf(stderr, "Failed to assign default bindings!\n");
+	fputs("Failed to assign default bindings!\n", stderr);
 	free_binds();
 	return false;
 }

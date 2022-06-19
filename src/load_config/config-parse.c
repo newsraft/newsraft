@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include "load_config/load_config.h"
 
 static inline void
@@ -174,7 +175,7 @@ parse_config_file(const char *path)
 {
 	FILE *f = fopen(path, "r");
 	if (f == NULL) {
-		fprintf(stderr, "Couldn't open config file!\n");
+		fputs("Couldn't open config file!\n", stderr);
 		return false;
 	}
 

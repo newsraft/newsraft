@@ -64,7 +64,7 @@ assign_action_to_key(int bind_key, enum input_cmd bind_cmd)
 	size_t bind_index = binds_count++;
 	struct input_binding *temp = realloc(binds, sizeof(struct input_binding) * binds_count);
 	if (temp == NULL) {
-		fprintf(stderr, "Not enough memory for assigning a command to a new key!\n");
+		fputs("Not enough memory for assigning a command to a new key!\n", stderr);
 		return false;
 	}
 	binds = temp;

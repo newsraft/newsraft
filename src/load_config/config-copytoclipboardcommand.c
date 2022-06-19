@@ -20,6 +20,6 @@ generate_copy_to_clipboard_command_string(struct string *cmd)
 	}
 	return true;
 error:
-	fprintf(stderr, "Not enough memory for copy-to-clipboard-command setting string!\n");
+	fputs("Not enough memory for copy-to-clipboard-command setting string!\n", stderr);
 	return false;
 }

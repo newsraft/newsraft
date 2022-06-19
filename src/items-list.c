@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 #include "newsraft.h"
 
 static inline bool

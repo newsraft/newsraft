@@ -39,13 +39,13 @@ create_new_section(const struct string *section_name)
 	size_t section_index = sections_count++;
 	struct feed_section *temp = realloc(sections, sizeof(struct feed_section) * sections_count);
 	if (temp == NULL) {
-		fprintf(stderr, "Not enough memory for another section structure!\n");
+		fputs("Not enough memory for another section structure!\n", stderr);
 		return false;
 	}
 	sections = temp;
 	sections[section_index].name = crtss(section_name);
 	if (sections[section_index].name == NULL) {
-		fprintf(stderr, "Not enough memory for name string of the section!\n");
+		fputs("Not enough memory for name string of the section!\n", stderr);
 		return false;
 	}
 	sections[section_index].feeds = NULL;
@@ -126,13 +126,9 @@ attach_feed_to_section(struct feed_line *feed, struct feed_section *section)
 bool
 copy_feed_to_section(const struct feed_line *feed, const struct string *section_name)
 {
-	if (feed->link == NULL) {
-		fprintf(stderr, "Encountered a NULL feed link while adding a new feed to the section!\n");
-		return false;
-	}
 	struct feed_line *attached_feed = copy_feed_to_global_section(feed);
 	if (attached_feed == NULL) {
-		fprintf(stderr, "Not enough memory for new feed in global section!\n");
+		fputs("Not enough memory for new feed in global section!\n", stderr);
 		return false;
 	}
 	if (strcmp(section_name->ptr, sections[0].name->ptr) == 0) {

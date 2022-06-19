@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <dirent.h>
 #include <string.h>
+#include <limits.h>
 #include <sys/stat.h>
 #include "newsraft.h"
 
@@ -9,20 +10,21 @@
 // Do not read newsraft-specific file pathes from environment variables (like NEWSRAFT_CONFIG_DIR),
 // because environment is intended for settings that are valueable to many programs, not just a single one.
 
-#define MAXPATH 4096 // maximum length of path
+#ifndef PATH_MAX
+#define PATH_MAX 4096
+#endif
 
-static char *feeds_file_path = NULL;
-static char *config_file_path = NULL;
-static char *db_file_path = NULL;
+static char feeds_file_path[PATH_MAX] = "";
+static char config_file_path[PATH_MAX] = "";
+static char db_file_path[PATH_MAX] = "";
 
 bool
 set_feeds_path(const char *path)
 {
-	char *temp = realloc(feeds_file_path, sizeof(char) * (strlen(path) + 1));
-	if (temp == NULL) {
+	if (strlen(path) >= PATH_MAX) {
+		fputs("Too long path to the feeds file!\n", stderr);
 		return false;
 	}
-	feeds_file_path = temp;
 	strcpy(feeds_file_path, path);
 	return true;
 }
@@ -30,11 +32,10 @@ set_feeds_path(const char *path)
 bool
 set_config_path(const char *path)
 {
-	char *temp = realloc(config_file_path, sizeof(char) * (strlen(path) + 1));
-	if (temp == NULL) {
+	if (strlen(path) >= PATH_MAX) {
+		fputs("Too long path to the config file!\n", stderr);
 		return false;
 	}
-	config_file_path = temp;
 	strcpy(config_file_path, path);
 	return true;
 }
@@ -42,11 +43,10 @@ set_config_path(const char *path)
 bool
 set_db_path(const char *path)
 {
-	char *temp = realloc(db_file_path, sizeof(char) * (strlen(path) + 1));
-	if (temp == NULL) {
+	if (strlen(path) >= PATH_MAX) {
+		fputs("Too long path to the database file!\n", stderr);
 		return false;
 	}
-	db_file_path = temp;
 	strcpy(db_file_path, path);
 	return true;
 }
@@ -54,14 +54,8 @@ set_db_path(const char *path)
 const char *
 get_feeds_path(void)
 {
-	if (feeds_file_path != NULL) {
+	if (strlen(feeds_file_path) != 0) {
 		return (const char *)feeds_file_path;
-	}
-
-	char *new_path = malloc(sizeof(char) * (MAXPATH + 1));
-	if (new_path == NULL) {
-		fprintf(stderr, "Not enough memory for feeds path!\n");
-		return NULL;
 	}
 
 	FILE *f;
@@ -76,12 +70,11 @@ get_feeds_path(void)
 	if (env_var != NULL) {
 		env_var_len = strlen(env_var);
 		if (env_var_len != 0) {
-			strcpy(new_path, env_var);
-			strcat(new_path, "/newsraft/feeds");
-			f = fopen(new_path, "r");
+			strcpy(feeds_file_path, env_var);
+			strcat(feeds_file_path, "/newsraft/feeds");
+			f = fopen(feeds_file_path, "r");
 			if (f != NULL) {
 				fclose(f);
-				feeds_file_path = new_path;
 				return (const char *)feeds_file_path; // 1
 			}
 		}
@@ -91,43 +84,32 @@ get_feeds_path(void)
 	if (env_var != NULL) {
 		env_var_len = strlen(env_var);
 		if (env_var_len != 0) {
-			strcpy(new_path, env_var);
-			strcat(new_path, "/.config/newsraft/feeds");
-			f = fopen(new_path, "r");
+			strcpy(feeds_file_path, env_var);
+			strcat(feeds_file_path, "/.config/newsraft/feeds");
+			f = fopen(feeds_file_path, "r");
 			if (f != NULL) {
 				fclose(f);
-				feeds_file_path = new_path;
 				return (const char *)feeds_file_path; // 2
 			}
-			strcpy(new_path, env_var);
-			strcat(new_path, "/.newsraft/feeds");
-			f = fopen(new_path, "r");
+			strcpy(feeds_file_path, env_var);
+			strcat(feeds_file_path, "/.newsraft/feeds");
+			f = fopen(feeds_file_path, "r");
 			if (f != NULL) {
 				fclose(f);
-				feeds_file_path = new_path;
 				return (const char *)feeds_file_path; // 3
 			}
 		}
 	}
 
-	fprintf(stderr, "Can not find feeds file!\n");
-
-	free(new_path);
-
+	fputs("Can't find feeds file!\n", stderr);
 	return NULL;
 }
 
 const char *
 get_config_path(void)
 {
-	if (config_file_path != NULL) {
+	if (strlen(config_file_path) != 0) {
 		return (const char *)config_file_path;
-	}
-
-	char *new_path = malloc(sizeof(char) * (MAXPATH + 1));
-	if (new_path == NULL) {
-		fprintf(stderr, "Not enough memory for config path!\n");
-		return NULL;
 	}
 
 	FILE *f;
@@ -142,12 +124,11 @@ get_config_path(void)
 	if (env_var != NULL) {
 		env_var_len = strlen(env_var);
 		if (env_var_len != 0) {
-			strcpy(new_path, env_var);
-			strcat(new_path, "/newsraft/config");
-			f = fopen(new_path, "r");
+			strcpy(config_file_path, env_var);
+			strcat(config_file_path, "/newsraft/config");
+			f = fopen(config_file_path, "r");
 			if (f != NULL) {
 				fclose(f);
-				config_file_path = new_path;
 				return (const char *)config_file_path; // 1
 			}
 		}
@@ -157,43 +138,32 @@ get_config_path(void)
 	if (env_var != NULL) {
 		env_var_len = strlen(env_var);
 		if (env_var_len != 0) {
-			strcpy(new_path, env_var);
-			strcat(new_path, "/.config/newsraft/config");
-			f = fopen(new_path, "r");
+			strcpy(config_file_path, env_var);
+			strcat(config_file_path, "/.config/newsraft/config");
+			f = fopen(config_file_path, "r");
 			if (f != NULL) {
 				fclose(f);
-				config_file_path = new_path;
 				return (const char *)config_file_path; // 2
 			}
-			strcpy(new_path, env_var);
-			strcat(new_path, "/.newsraft/config");
-			f = fopen(new_path, "r");
+			strcpy(config_file_path, env_var);
+			strcat(config_file_path, "/.newsraft/config");
+			f = fopen(config_file_path, "r");
 			if (f != NULL) {
 				fclose(f);
-				config_file_path = new_path;
 				return (const char *)config_file_path; // 3
 			}
 		}
 	}
 
 	// Do not write error message because config file is optional.
-
-	free(new_path);
-
 	return NULL;
 }
 
 const char *
 get_db_path(void)
 {
-	if (db_file_path != NULL) {
+	if (strlen(db_file_path) != 0) {
 		return (const char *)db_file_path;
-	}
-
-	char *new_path = malloc(sizeof(char) * (MAXPATH + 1));
-	if (new_path == NULL) {
-		fprintf(stderr, "Not enough memory for database path!\n");
-		return NULL;
 	}
 
 	FILE *f;
@@ -210,12 +180,11 @@ get_db_path(void)
 		env_var_len = strlen(env_var);
 		if (env_var_len != 0) {
 			xdg_dir_is_set = true;
-			strcpy(new_path, env_var);
-			strcat(new_path, "/newsraft/newsraft.sqlite3");
-			f = fopen(new_path, "r");
+			strcpy(db_file_path, env_var);
+			strcat(db_file_path, "/newsraft/newsraft.sqlite3");
+			f = fopen(db_file_path, "r");
 			if (f != NULL) {
 				fclose(f);
-				db_file_path = new_path;
 				return (const char *)db_file_path; // 1
 			}
 		}
@@ -226,12 +195,11 @@ get_db_path(void)
 		env_var_len = strlen(env_var);
 		if (env_var_len != 0) {
 			home_dir_is_set = true;
-			strcpy(new_path, env_var);
-			strcat(new_path, "/.local/share/newsraft/newsraft.sqlite3");
-			f = fopen(new_path, "r");
+			strcpy(db_file_path, env_var);
+			strcat(db_file_path, "/.local/share/newsraft/newsraft.sqlite3");
+			f = fopen(db_file_path, "r");
 			if (f != NULL) {
 				fclose(f);
-				db_file_path = new_path;
 				return (const char *)db_file_path; // 2
 			}
 		}
@@ -244,63 +212,40 @@ get_db_path(void)
 
 	if (xdg_dir_is_set == true) {
 		env_var = getenv("XDG_DATA_HOME");
-		strcpy(new_path, env_var);
-		mkdir(new_path, 0777);
-		strcat(new_path, "/newsraft");
-		mkdir(new_path, 0777);
-		d = opendir(new_path);
+		strcpy(db_file_path, env_var);
+		mkdir(db_file_path, 0777);
+		strcat(db_file_path, "/newsraft");
+		mkdir(db_file_path, 0777);
+		d = opendir(db_file_path);
 		if (d != NULL) {
 			closedir(d);
-			strcat(new_path, "/newsraft.sqlite3");
-			db_file_path = new_path;
+			strcat(db_file_path, "/newsraft.sqlite3");
 			return (const char *)db_file_path; // 1
 		} else {
-			fprintf(stderr, "Creation of \"%s\" directory has failed!\n", new_path);
+			fprintf(stderr, "Failed to create \"%s\" directory!\n", db_file_path);
 		}
 	} else if (home_dir_is_set == true) {
 		env_var = getenv("HOME");
-		strcpy(new_path, env_var);
-		mkdir(new_path, 0777);
-		strcat(new_path, "/.local");
-		mkdir(new_path, 0777);
-		strcat(new_path, "/share");
-		mkdir(new_path, 0777);
-		strcat(new_path, "/newsraft");
-		mkdir(new_path, 0777);
-		d = opendir(new_path);
+		strcpy(db_file_path, env_var);
+		mkdir(db_file_path, 0777);
+		strcat(db_file_path, "/.local");
+		mkdir(db_file_path, 0777);
+		strcat(db_file_path, "/share");
+		mkdir(db_file_path, 0777);
+		strcat(db_file_path, "/newsraft");
+		mkdir(db_file_path, 0777);
+		d = opendir(db_file_path);
 		if (d != NULL) {
 			closedir(d);
-			strcat(new_path, "/newsraft.sqlite3");
-			db_file_path = new_path;
+			strcat(db_file_path, "/newsraft.sqlite3");
 			return (const char *)db_file_path; // 2
 		} else {
-			fprintf(stderr, "Creation of \"%s\" directory has failed!\n", new_path);
+			fprintf(stderr, "Failed to create \"%s\" directory!\n", db_file_path);
 		}
 	} else {
-		fprintf(stderr, "Neither XDG_DATA_HOME or HOME is set!\n");
+		fputs("Neither XDG_DATA_HOME or HOME is set!\n", stderr);
 	}
 
-	fprintf(stderr, "Creation of data directories failed!\n");
-
-	free(new_path);
-
+	fputs("Failed to get database file path!\n", stderr);
 	return NULL;
-}
-
-void
-free_feeds_path(void)
-{
-	free(feeds_file_path);
-}
-
-void
-free_config_path(void)
-{
-	free(config_file_path);
-}
-
-void
-free_db_path(void)
-{
-	free(db_file_path);
 }

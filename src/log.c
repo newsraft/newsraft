@@ -53,7 +53,7 @@ bool
 log_init(const char *path)
 {
 	if (path == NULL) {
-		fprintf(stderr, "Path to the log file is not set!\n");
+		fputs("Path to the log file is not set!\n", stderr);
 		return false;
 	}
 	log_stream = fopen(path, "w");

@@ -1,3 +1,4 @@
+#include <string.h>
 #include "update_feed/insert_feed/insert_feed.h"
 
 bool

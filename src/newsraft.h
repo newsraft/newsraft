@@ -299,9 +299,6 @@ bool set_db_path(const char *path);
 const char *get_feeds_path(void);
 const char *get_config_path(void);
 const char *get_db_path(void);
-void free_feeds_path(void);
-void free_config_path(void);
-void free_db_path(void);
 
 // date parsing
 struct string *get_config_date_str(time_t date, enum config_entry_index format_index);

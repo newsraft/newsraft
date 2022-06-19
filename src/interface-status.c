@@ -43,7 +43,7 @@ status_create(void)
 {
 	status_window = create_status_window();
 	if (status_window == NULL) {
-		fprintf(stderr, "Failed to create status line window!\n");
+		fputs("Failed to create status line window!\n", stderr);
 		return false;
 	}
 	status_window_is_clean = true;

@@ -13,7 +13,7 @@ db_init(void)
 	}
 
 	if (sqlite3_open(path, &db) != SQLITE_OK) {
-		fprintf(stderr, "Failed to open database!\n");
+		fputs("Failed to open database!\n", stderr);
 		sqlite3_close(db);
 		return false;
 	}

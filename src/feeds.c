@@ -22,11 +22,11 @@ load_feeds(void)
 		return false;
 	}
 	if (create_global_section() == false) {
-		fprintf(stderr, "Not enough memory for global section structure!\n");
+		fputs("Not enough memory for global section structure!\n", stderr);
 		return false;
 	}
 	if (parse_feeds_file(feeds_file_path) == false) {
-		fprintf(stderr, "Failed to load feeds from file!\n");
+		fputs("Failed to load feeds from file!\n", stderr);
 		return false;
 	}
 
@@ -34,7 +34,7 @@ load_feeds(void)
 	obtain_feeds_of_global_section(&feeds, &feeds_count);
 
 	if (feeds_count == 0) {
-		fprintf(stderr, "Not a single feed was loaded!\n");
+		fputs("Not a single feed was loaded!\n", stderr);
 		return false;
 	}
 

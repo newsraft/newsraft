@@ -93,8 +93,5 @@ undo2:
 undo1:
 	log_stop();
 undo0:
-	free_feeds_path();
-	free_config_path();
-	free_db_path();
 	return error;
 }

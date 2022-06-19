@@ -21,10 +21,6 @@ id_end(struct stream_callback_data *data)
 		if (crtss_or_cpyss(&data->feed.item->guid, data->text) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
-	} else if (data->path[data->depth] == ATOM10_FEED) {
-		if (crtss_or_cpyss(&data->feed.guid, data->text) == false) {
-			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-		}
 	}
 	return PARSE_OKAY;
 }

@@ -3,7 +3,6 @@
 static inline void
 free_feed(struct getfeed_feed *feed)
 {
-	free_string(feed->guid);
 	free_string(feed->title.value);
 	free_string(feed->title.type);
 	free_string(feed->url);

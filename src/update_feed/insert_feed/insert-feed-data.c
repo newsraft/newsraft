@@ -4,11 +4,10 @@ bool
 insert_feed_data(const struct string *feed_url, struct getfeed_feed *feed)
 {
 	sqlite3_stmt *s;
-	if (db_prepare("INSERT OR REPLACE INTO feeds VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", 82, &s) == false) {
+	if (db_prepare("INSERT OR REPLACE INTO feeds VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", 79, &s) == false) {
 		return false;
 	}
 	db_bind_string(s,      1 + FEED_COLUMN_FEED_URL,                  feed_url);
-	db_bind_string(s,      1 + FEED_COLUMN_GUID,                      feed->guid);
 	db_bind_text_struct(s, 1 + FEED_COLUMN_TITLE,                     &feed->title);
 	db_bind_string(s,      1 + FEED_COLUMN_LINK,                      feed->url);
 	db_bind_text_struct(s, 1 + FEED_COLUMN_SUMMARY,                   &feed->summary);

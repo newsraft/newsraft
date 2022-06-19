@@ -40,7 +40,6 @@ struct getfeed_item {
 };
 
 struct getfeed_feed {
-	struct string *guid;
 	struct getfeed_text title;
 	struct string *url;
 	struct getfeed_text summary;

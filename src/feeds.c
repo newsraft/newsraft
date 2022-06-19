@@ -133,17 +133,32 @@ mark_all_feeds_unread(void)
 	expose_all_visible_entries_of_the_menu_list(&feeds_menu);
 }
 
+bool
+update_and_refresh_feed(struct feed_line *feed)
+{
+	// TODO return integer showing that feed update was canceled
+	// to avoid redundant check for unread items count.
+	if (update_feed(feed->link) == false) {
+		return false;
+	}
+	int64_t new_unread_count = get_unread_items_count_of_the_feed(feed->link);
+	if (new_unread_count < 0) {
+		return false;
+	}
+	feed->unread_count = new_unread_count;
+	return true;
+}
+
 static void
 reload_current_feed(void)
 {
 	info_status("Loading %s", feeds[feeds_menu.view_sel]->link->ptr);
 
-	if (update_feed(feeds[feeds_menu.view_sel]->link) == false) {
+	if (update_and_refresh_feed(feeds[feeds_menu.view_sel]) == false) {
 		fail_status("Failed to update %s", feeds[feeds_menu.view_sel]->link->ptr);
 		return;
 	}
 
-	update_unread_items_count(feeds_menu.view_sel);
 	expose_entry_of_the_menu_list(&feeds_menu, feeds_menu.view_sel);
 	status_clean();
 }
@@ -151,26 +166,26 @@ reload_current_feed(void)
 static void
 reload_all_feeds(void)
 {
+	const char *failed_url;
 	size_t errors = 0;
 
 	for (size_t i = 0; i < feeds_count; ++i) {
-		if (feeds[i]->link == NULL) {
-			continue;
-		}
 		info_status("(%zu/%zu) Loading %s", i + 1, feeds_count, feeds[i]->link->ptr);
-		if (update_feed(feeds[i]->link) == true) {
-			update_unread_items_count(i);
+		if (update_and_refresh_feed(feeds[i]) == true) {
 			expose_entry_of_the_menu_list(&feeds_menu, i);
 		} else {
-			fail_status("Failed to update %s", feeds[i]->link->ptr);
+			failed_url = feeds[i]->link->ptr;
+			fail_status("Failed to update %s", failed_url);
 			++errors;
 		}
 	}
 
 	if (errors == 0) {
 		status_clean();
-	} else if (errors != 1) {
-		fail_status("Failed to update %zu feeds (check out status history for more details).", errors);
+	} else if (errors == 1) {
+		fail_status("Failed to update %s", failed_url);
+	} else {
+		fail_status("Failed to update %zu feeds (check out status history for more details)", errors);
 	}
 }
 

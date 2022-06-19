@@ -167,6 +167,33 @@ update_unread_count_of_sections(void)
 	}
 }
 
+static void
+reload_section(struct feed_line **feeds, size_t feeds_count)
+{
+	const char *failed_url;
+	size_t errors = 0;
+
+	for (size_t i = 0; i < feeds_count; ++i) {
+		info_status("(%zu/%zu) Loading %s", i + 1, feeds_count, feeds[i]->link->ptr);
+		if (update_and_refresh_feed(feeds[i]) == false) {
+			failed_url = feeds[i]->link->ptr;
+			fail_status("Failed to update %s", failed_url);
+			++errors;
+		}
+	}
+
+	if (errors == 0) {
+		status_clean();
+	} else if (errors == 1) {
+		fail_status("Failed to update %s", failed_url);
+	} else {
+		fail_status("Failed to update %zu feeds (check out status history for more details)", errors);
+	}
+
+	update_unread_count_of_sections();
+	expose_all_visible_entries_of_the_menu_list(&sections_menu);
+}
+
 void
 free_sections(void)
 {
@@ -252,6 +279,10 @@ enter_sections_menu_loop(struct feed_line ***feeds_ptr, size_t *feeds_count_ptr)
 			// TODO
 		} else if (cmd == INPUT_MARK_UNREAD_ALL) {
 			// TODO
+		} else if (cmd == INPUT_RELOAD) {
+			reload_section(sections[sections_menu.view_sel].feeds, sections[sections_menu.view_sel].feeds_count);
+		} else if (cmd == INPUT_RELOAD_ALL) {
+			reload_section(sections[0].feeds, sections[0].feeds_count);
 		} else if (cmd == INPUT_ENTER) {
 			*feeds_ptr = sections[sections_menu.view_sel].feeds;
 			*feeds_count_ptr = sections[sections_menu.view_sel].feeds_count;

@@ -234,6 +234,13 @@ void obtain_feeds_of_global_section(struct feed_line ***feeds_ptr, size_t *feeds
 void free_sections(void);
 input_cmd_id enter_sections_menu_loop(struct feed_line ***feeds_ptr, size_t *feeds_count_ptr);
 
+// feeds
+bool parse_feeds_file(const char *path);
+void enter_feeds_menu_loop(void);
+bool load_feeds(void);
+bool check_url_for_validity(const struct string *str);
+bool update_and_refresh_feed(struct feed_line *feed);
+
 // list interface
 bool adjust_list_menu(void);
 WINDOW *get_list_entry_by_index(size_t i);
@@ -252,12 +259,6 @@ void list_menu_select_last(struct menu_list_settings *s);
 
 // format
 const wchar_t *do_format(int format_setting, const struct format_arg *args, size_t args_count);
-
-// feeds
-bool parse_feeds_file(const char *path);
-void enter_feeds_menu_loop(void);
-bool load_feeds(void);
-bool check_url_for_validity(const struct string *str);
 
 // items
 struct items_list *generate_items_list(const struct feed_line **feeds, size_t feeds_count, enum sorting_order order);

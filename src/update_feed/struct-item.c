@@ -29,7 +29,6 @@ free_item(struct getfeed_item *item)
 		free_string(i->content.type);
 		free_string(i->attachments);
 		free_string(i->sources);
-		free_string(i->comments_url);
 		free_string(i->locations);
 		free_string(i->persons);
 		free_string(i->categories);

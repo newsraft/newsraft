@@ -137,8 +137,8 @@ _user-agent_ (default: *auto*)
 _item-formation-order_ (default: *feed-url,title,authors,published,updated,max-content*)
 	Sets the order in which the data of item entry is formed for viewing in a
 	pager. Possible fields are: *feed-url*, *title*, *link*, *published*,
-	*updated*, *authors*, *contributors*, *editors*, *comments*, *summary*,
-	*content* and *max-content*.
+	*updated*, *authors*, *contributors*, *editors*, *summary*, *content* and
+	*max-content*.
 
 _content-date-format_ (default: *%a, %d %b %Y %H:%M:%S %z*)
 	Date format in the content view. Specifier values correspond to the

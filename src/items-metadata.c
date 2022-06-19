@@ -208,7 +208,6 @@ static const struct data_entry entries[] = {
 	{"authors",      "Authors: ",       9, 0,                            PERSON_AUTHOR,                 &append_persons},
 	{"contributors", "Contributors: ", 14, 0,                            PERSON_CONTRIBUTOR,            &append_persons},
 	{"editors",      "Editors: ",       9, 0,                            PERSON_EDITOR,                 &append_persons},
-	{"comments",     "Comments: ",     10, ITEM_COLUMN_COMMENTS_URL,     NO_EXTRA_DATA,                 &append_text},
 	{"summary",      NULL,              0, ITEM_COLUMN_SUMMARY,          TYPE_HEADER|PREPEND_SEPARATOR, &append_text},
 	{"content",      NULL,              0, ITEM_COLUMN_CONTENT,          TYPE_HEADER|PREPEND_SEPARATOR, &append_text},
 	{"max-content",  NULL,              0, 0,                            0,                             &append_max_content},

@@ -192,7 +192,13 @@ static int8_t
 comments_end(struct stream_callback_data *data)
 {
 	if (data->path[data->depth] == RSS20_ITEM) {
-		if (crtss_or_cpyss(&data->feed.item->comments_url, data->text) == false) {
+		if (cat_caret_to_serialization(&data->feed.item->attachments) == false) {
+			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		}
+		if (cat_string_to_serialization(&data->feed.item->attachments, "url", 3, data->text) == false) {
+			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		}
+		if (cat_array_to_serialization(&data->feed.item->attachments, "content", 7, "comments", 8) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	}

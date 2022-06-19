@@ -52,7 +52,6 @@ db_init(void)
 			"content TEXT,"
 			"attachments TEXT,"
 			"sources TEXT,"
-			"comments_url TEXT,"
 			"locations TEXT,"
 			"persons TEXT,"
 			"categories TEXT,"

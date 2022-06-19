@@ -150,9 +150,6 @@ populate_link_list_with_links_of_item(struct link_list *links, sqlite3_stmt *res
 	if (append_raw_link(links, res, ITEM_COLUMN_LINK) == false) {
 		return false;
 	}
-	if (append_raw_link(links, res, ITEM_COLUMN_COMMENTS_URL) == false) {
-		return false;
-	}
 	if (append_attachments(links, res) == false) {
 		return false;
 	}

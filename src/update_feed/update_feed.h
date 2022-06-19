@@ -31,7 +31,6 @@ struct getfeed_item {
 	struct getfeed_text content;
 	struct string *attachments;
 	struct string *sources;
-	struct string *comments_url;
 	struct string *locations;
 	struct string *persons;
 	struct string *categories;

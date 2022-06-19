@@ -204,11 +204,23 @@ _ssl-verify-peer_ (default: *true*)
 	TODO
 	Disabling it is strongly discouraged.
 
-_color-status-fg_ (default: *cyan*)
-	Text color of status area.
+_color-status-good-fg_ (default: *green*)
+	Text color of status area when reporting success.
 
-_color-status-bg_ (default: *black*)
-	Background color of status area.
+_color-status-good-bg_ (default: *black*)
+	Background color of status area when reporting success.
+
+_color-status-info-fg_ (default: *cyan*)
+	Text color of status area when reporting information.
+
+_color-status-info-bg_ (default: *black*)
+	Background color of status area when reporting information.
+
+_color-status-fail-fg_ (default: *red*)
+	Text color of status area when reporting failure.
+
+_color-status-fail-bg_ (default: *black*)
+	Background color of status area when reporting failure.
 
 _color-list-item-fg_ (default: *white*)
 	Text color of item list entry.

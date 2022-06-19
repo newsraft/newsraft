@@ -28,12 +28,12 @@ update_pager_menu(struct pager_menu *menu, const struct render_block *data_list)
 	struct wstring *text = render_data(data_list);
 	if (text == NULL) {
 		FAIL("Failed to render content!");
-		status_write("Can't render content!");
+		fail_status("Can't render content!");
 		return false;
 	}
 	if (text->len == 0) {
 		WARN("Rendered content is empty!");
-		status_write("Content is empty!");
+		fail_status("Content is empty!");
 		free_wstring(text);
 		return false;
 	}

@@ -136,10 +136,10 @@ mark_all_feeds_unread(void)
 static void
 reload_current_feed(void)
 {
-	status_write("Loading %s", feeds[feeds_menu.view_sel]->link->ptr);
+	info_status("Loading %s", feeds[feeds_menu.view_sel]->link->ptr);
 
 	if (update_feed(feeds[feeds_menu.view_sel]->link) == false) {
-		status_write("Failed to update %s", feeds[feeds_menu.view_sel]->link->ptr);
+		fail_status("Failed to update %s", feeds[feeds_menu.view_sel]->link->ptr);
 		return;
 	}
 
@@ -157,12 +157,12 @@ reload_all_feeds(void)
 		if (feeds[i]->link == NULL) {
 			continue;
 		}
-		status_write("(%zu/%zu) Loading %s", i + 1, feeds_count, feeds[i]->link->ptr);
+		info_status("(%zu/%zu) Loading %s", i + 1, feeds_count, feeds[i]->link->ptr);
 		if (update_feed(feeds[i]->link) == true) {
 			update_unread_items_count(i);
 			expose_entry_of_the_menu_list(&feeds_menu, i);
 		} else {
-			status_write("Failed to update %s", feeds[i]->link->ptr);
+			fail_status("Failed to update %s", feeds[i]->link->ptr);
 			++errors;
 		}
 	}
@@ -170,7 +170,7 @@ reload_all_feeds(void)
 	if (errors == 0) {
 		status_clean();
 	} else if (errors != 1) {
-		status_write("Failed to update %zu feeds (check out status history for more details).", errors);
+		fail_status("Failed to update %zu feeds (check out status history for more details).", errors);
 	}
 }
 

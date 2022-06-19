@@ -82,7 +82,7 @@ custom_input_handler(void *data, input_cmd_id cmd, uint32_t count)
 		const struct link_list *links = data;
 		if ((count != 0) && (links->len >= count) && (links->list[count - 1].url != NULL)) {
 			if (copy_string_to_clipboard(links->list[count - 1].url) == true) {
-				status_write("Copied %" PRIu32 "%s link to clipboard.", count, number_suffix(count));
+				good_status("Copied %" PRIu32 "%s link to clipboard.", count, number_suffix(count));
 			}
 		}
 	}

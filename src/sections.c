@@ -212,7 +212,7 @@ input_cmd_id
 enter_sections_menu_loop(struct feed_line ***feeds_ptr, size_t *feeds_count_ptr)
 {
 	if (sections_count == 1) {
-		status_write("There is no sections except for global one!");
+		info_status("There is no sections except for global one!");
 		return INPUTS_COUNT;
 	}
 

@@ -91,12 +91,12 @@ generate_items_list(const struct feed_line **feeds, size_t feeds_count, enum sor
 	}
 	struct string *query = generate_search_query_string(feeds_count, order);
 	if (query == NULL) {
-		status_write("Can't generate search query string!");
+		fail_status("Can't generate search query string!");
 		return NULL;
 	}
 	sqlite3_stmt *res;
 	if (db_prepare(query->ptr, query->len + 1, &res) == false) {
-		status_write("Can't prepare search query for action!");
+		fail_status("Can't prepare search query for action!");
 		free_string(query);
 		return NULL;
 	}
@@ -143,7 +143,7 @@ generate_items_list(const struct feed_line **feeds, size_t feeds_count, enum sor
 	sqlite3_finalize(res);
 	if ((items->list == NULL) || (items->count == 0)) {
 		free_items_list(items);
-		status_write("Couldn't find any items!");
+		fail_status("Couldn't find any items!");
 		return NULL;
 	}
 	return items;

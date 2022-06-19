@@ -102,12 +102,15 @@ struct link_list {
 	size_t len;        // Shows how many items is in list.
 };
 
-#define NEWSRAFT_COLORS_COUNT 14
-#define NEWSRAFT_COLOR_PAIRS_COUNT 7
+#define NEWSRAFT_COLOR_PAIRS_COUNT 9
 typedef uint8_t config_entry_id;
 enum config_entry_index {
-	CFG_COLOR_STATUS_FG,
-	CFG_COLOR_STATUS_BG,
+	CFG_COLOR_STATUS_GOOD_FG,
+	CFG_COLOR_STATUS_GOOD_BG,
+	CFG_COLOR_STATUS_INFO_FG,
+	CFG_COLOR_STATUS_INFO_BG,
+	CFG_COLOR_STATUS_FAIL_FG,
+	CFG_COLOR_STATUS_FAIL_BG,
 	CFG_COLOR_LIST_ITEM_FG,
 	CFG_COLOR_LIST_ITEM_BG,
 	CFG_COLOR_LIST_ITEM_UNREAD_FG,
@@ -345,7 +348,9 @@ void free_binds(void);
 // See "interface-status.c" file for implementation.
 bool status_create(void);
 void status_update(void);
-void status_write(const char *format, ...);
+void good_status(const char *format, ...);
+void info_status(const char *format, ...);
+void fail_status(const char *format, ...);
 void status_clean(void);
 bool status_resize(void);
 void status_delete(void);

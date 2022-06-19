@@ -28,8 +28,12 @@ struct config_entry {
 };
 
 static struct config_entry config[] = {
-	{"color-status-fg",                 CFG_COLOR,   {.c = COLOR_CYAN   }},
-	{"color-status-bg",                 CFG_COLOR,   {.c = COLOR_BLACK  }},
+	{"color-status-good-fg",            CFG_COLOR,   {.c = COLOR_GREEN  }},
+	{"color-status-good-bg",            CFG_COLOR,   {.c = COLOR_BLACK  }},
+	{"color-status-info-fg",            CFG_COLOR,   {.c = COLOR_CYAN   }},
+	{"color-status-info-bg",            CFG_COLOR,   {.c = COLOR_BLACK  }},
+	{"color-status-fail-fg",            CFG_COLOR,   {.c = COLOR_RED    }},
+	{"color-status-fail-bg",            CFG_COLOR,   {.c = COLOR_BLACK  }},
 	{"color-list-item-fg",              CFG_COLOR,   {.c = COLOR_WHITE  }},
 	{"color-list-item-bg",              CFG_COLOR,   {.c = COLOR_BLACK  }},
 	{"color-list-item-unread-fg",       CFG_COLOR,   {.c = COLOR_YELLOW }},

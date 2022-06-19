@@ -1,11 +1,22 @@
 #include <stdlib.h>
 #include "newsraft.h"
 
+enum {
+	STATUS_GOOD,
+	STATUS_INFO,
+	STATUS_FAIL,
+};
+
+struct status_message {
+	struct string *text;
+	int8_t condition;
+};
+
 static WINDOW *status_window;
 static bool status_window_is_clean;
-static struct string **status_messages;
-static size_t status_messages_count;
-static size_t status_messages_limit;
+static struct status_message *messages;
+static size_t messages_count;
+static size_t messages_limit;
 
 static inline WINDOW *
 create_status_window(void)
@@ -21,21 +32,10 @@ create_status_window(void)
 		if (keypad(win, TRUE) == ERR) {
 			WARN("Can't enable keypad and function keys for status window!");
 		}
-		wbkgd(win, get_color_pair(CFG_COLOR_STATUS_FG));
 	} else {
 		FAIL("Failed to create new status window!");
 	}
 	return win;
-}
-
-static inline void
-write_to_status_window(const char *src)
-{
-	if (list_menu_width > 9) {
-		mvwaddnstr(status_window, 0, 0, src, list_menu_width - 9);
-	} else {
-		mvwaddnstr(status_window, 0, 0, src, list_menu_width);
-	}
 }
 
 bool
@@ -47,22 +47,35 @@ status_create(void)
 		return false;
 	}
 	status_window_is_clean = true;
-	status_messages = NULL;
-	status_messages_count = 0;
-	status_messages_limit = get_cfg_uint(CFG_STATUS_MESSAGES_LIMIT);
+	messages = NULL;
+	messages_count = 0;
+	messages_limit = get_cfg_uint(CFG_STATUS_MESSAGES_LIMIT);
 	return true;
 }
 
-static inline const struct string *
-get_last_status_message(void)
+static inline void
+write_last_status_message_to_status_window(void)
 {
-	if (status_messages_count == 0) {
-		return NULL;
+	if ((messages != NULL) && (messages_count != 0)) {
+		struct status_message *m;
+		if (messages_limit == 0) {
+			m = messages + messages_count - 1;
+		} else {
+			m = messages + ((messages_count - 1) % messages_limit);
+		}
+		if (list_menu_width > 9) {
+			mvwaddnstr(status_window, 0, 0, m->text->ptr, list_menu_width - 9);
+		} else {
+			mvwaddnstr(status_window, 0, 0, m->text->ptr, list_menu_width);
+		}
+		if (m->condition == STATUS_GOOD) {
+			wbkgd(status_window, get_color_pair(CFG_COLOR_STATUS_GOOD_FG));
+		} else if (m->condition == STATUS_INFO) {
+			wbkgd(status_window, get_color_pair(CFG_COLOR_STATUS_INFO_FG));
+		} else {
+			wbkgd(status_window, get_color_pair(CFG_COLOR_STATUS_FAIL_FG));
+		}
 	}
-	if (status_messages_limit == 0) {
-		return status_messages[status_messages_count - 1];
-	}
-	return status_messages[(status_messages_count - 1) % status_messages_limit];
 }
 
 void
@@ -70,63 +83,76 @@ status_update(void)
 {
 	werase(status_window);
 	if (status_window_is_clean == false) {
-		const struct string *last_status_message = get_last_status_message();
-		if (last_status_message != NULL) {
-			write_to_status_window(last_status_message->ptr);
-		}
+		write_last_status_message_to_status_window();
 	}
 	wrefresh(status_window);
 }
 
 static inline bool
-append_new_message_to_status_messages(struct string *new_message)
+append_new_message_to_status_messages(int8_t new_condition, struct string *new_message)
 {
-	status_messages_count += 1;
-	if (status_messages_limit == 0) {
-		struct string **temp = realloc(status_messages, sizeof(struct string *) * status_messages_count);
+	messages_count += 1;
+	if ((messages_limit == 0) || (messages_count <= messages_limit)) {
+		struct status_message *temp = realloc(messages, sizeof(struct status_message) * messages_count);
 		if (temp == NULL) {
 			return false;
 		}
-		status_messages = temp;
-		status_messages[status_messages_count - 1] = new_message;
+		messages = temp;
+		messages[messages_count - 1].text = new_message;
+		messages[messages_count - 1].condition = new_condition;
 	} else {
-		if (status_messages_count <= status_messages_limit) {
-			struct string **temp = realloc(status_messages, sizeof(struct string *) * status_messages_count);
-			if (temp == NULL) {
-				return false;
-			}
-			status_messages = temp;
-			status_messages[(status_messages_count - 1) % status_messages_limit] = new_message;
-		} else {
-			free_string(status_messages[(status_messages_count - 1) % status_messages_limit]);
-			status_messages[(status_messages_count - 1) % status_messages_limit] = new_message;
-		}
+		free_string(messages[(messages_count - 1) % messages_limit].text);
+		messages[(messages_count - 1) % messages_limit].text = new_message;
+		messages[(messages_count - 1) % messages_limit].condition = new_condition;
 	}
 	return true;
 }
 
-void
-status_write(const char *format, ...)
+static inline void
+status_write(int8_t condition, const char *format, va_list args)
 {
 	struct string *new_message = crtes();
 	if (new_message == NULL) {
 		return;
 	}
-	va_list args;
-	va_start(args, format);
 	if (string_vprintf(new_message, format, args) == false) {
-		va_end(args);
 		free_string(new_message);
 		return;
 	}
-	va_end(args);
-	if (append_new_message_to_status_messages(new_message) == false) {
+	if (append_new_message_to_status_messages(condition, new_message) == false) {
 		free_string(new_message);
 		return;
 	}
+	INFO("Last status message: %s", new_message->ptr);
 	status_window_is_clean = false;
 	status_update();
-	INFO("Last status message: %s", new_message->ptr);
+}
+
+void
+good_status(const char *format, ...)
+{
+	va_list args;
+	va_start(args, format);
+	status_write(STATUS_GOOD, format, args);
+	va_end(args);
+}
+
+void
+info_status(const char *format, ...)
+{
+	va_list args;
+	va_start(args, format);
+	status_write(STATUS_INFO, format, args);
+	va_end(args);
+}
+
+void
+fail_status(const char *format, ...)
+{
+	va_list args;
+	va_start(args, format);
+	status_write(STATUS_FAIL, format, args);
+	va_end(args);
 }
 
 void
@@ -170,20 +196,18 @@ generate_string_with_status_messages_for_pager(void)
 		FAIL("Not enough memory for string with status messages for pager!");
 		return NULL;
 	}
-	if ((status_messages_limit == 0) || (status_messages_count <= status_messages_limit)) {
-		size_t i = status_messages_count;
-		while (i > 0) {
-			i = i - 1;
-			catss(str, status_messages[i]);
+	if ((messages_limit == 0) || (messages_count <= messages_limit)) {
+		for (size_t i = messages_count; i != 0; --i) {
+			catss(str, messages[i - 1].text);
 			catcs(str, '\n');
 		}
 	} else {
-		size_t i = (status_messages_count - 1) % status_messages_limit;
-		for (size_t messages_count = status_messages_limit; messages_count != 0; messages_count--) {
-			catss(str, status_messages[i]);
+		size_t i = (messages_count - 1) % messages_limit;
+		for (size_t count = messages_limit; count != 0; --count) {
+			catss(str, messages[i].text);
 			catcs(str, '\n');
 			if (i == 0) {
-				i = status_messages_limit - 1;
+				i = messages_limit - 1;
 			} else {
 				i = i - 1;
 			}
@@ -193,24 +217,25 @@ generate_string_with_status_messages_for_pager(void)
 }
 
 static inline void
-free_status_messages(void)
+free_messages(void)
 {
-	if ((status_messages_limit == 0) || (status_messages_count < status_messages_limit)) {
-		for (size_t i = 0; i < status_messages_count; ++i) {
-			free_string(status_messages[i]);
+	if ((messages_limit == 0) || (messages_count <= messages_limit)) {
+		for (size_t i = 0; i < messages_count; ++i) {
+			free_string(messages[i].text);
 		}
 	} else {
-		for (size_t i = 0; i < status_messages_limit; ++i) {
-			free_string(status_messages[i]);
+		for (size_t i = 0; i < messages_limit; ++i) {
+			free_string(messages[i].text);
 		}
 	}
-	free(status_messages);
+	free(messages);
 }
 
 void
 status_delete(void)
 {
-	INFO("Freeing status window and status messages.");
+	INFO("Freeing status messages.");
+	free_messages();
+	INFO("Freeing status window.");
 	delwin(status_window);
-	free_status_messages();
 }

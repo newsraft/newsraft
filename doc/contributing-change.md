@@ -38,7 +38,7 @@ Note that it is forbidden to use assignment operator within conditions of `if`, 
 
 ## Function definitions
 
-Every function name in a function definition must start on a new line, and the curly braces that enclose the body of the function must be on their own lines.
+Every function name in a function definition must start on a new line, and the curly braces that enclose the body of the function must be on their own lines. By the way, this makes it very easy to search for functions throughout the codebase with `grep -oR '^[a-z].*(.*)'` command.
 
 For example:
 

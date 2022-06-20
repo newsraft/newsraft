@@ -4,8 +4,8 @@
 #include "newsraft.h"
 
 struct input_binding {
-	int key;
-	enum input_cmd cmd;
+	char *key;
+	input_cmd_id cmd;
 };
 
 static struct input_binding *binds = NULL;
@@ -15,7 +15,6 @@ int
 get_input_command(uint32_t *count)
 {
 	int c = read_key_from_status();
-
 	while (isdigit(c) != 0) {
 		counter_send_character(c);
 		c = read_key_from_status();
@@ -26,36 +25,32 @@ get_input_command(uint32_t *count)
 		if (resize_counter_action() == true) {
 			return INPUT_RESIZE;
 		} else {
-			return INPUT_QUIT_HARD;
+			return INPUT_QUIT_HARD; // Achtung!
 		}
 	}
 
 	*count = counter_extract_count();
 	counter_clean();
 
+	const char *key = keyname(c);
 	for (size_t i = 0; i < binds_count; ++i) {
-		if (c == binds[i].key) {
+		if (strcmp(key, binds[i].key) == 0) {
 			return binds[i].cmd;
 		}
 	}
 
-	return INPUTS_COUNT; // no command matched with this key
+	return INPUTS_COUNT; // No command matched with this key.
 }
 
 bool
-assign_action_to_key(int bind_key, enum input_cmd bind_cmd)
+assign_action_to_key(const char *bind_key, size_t bind_key_len, input_cmd_id bind_cmd)
 {
-	INFO("Binding %u action to %d key.", bind_cmd, bind_key);
-
-	if (bind_key == KEY_RESIZE) {
-		WARN("Key with the code KEY_RESIZE must not be bound!");
-		return false;
-	}
+	INFO("Binding %u action to \"%s\" key.", bind_cmd, bind_key);
 
 	// Check if bind_key is bound already.
 	for (size_t i = 0; i < binds_count; ++i) {
-		if (bind_key == binds[i].key) {
-			INFO("Key with the code %d is already bound. Reassigning a command.", bind_key);
+		if (strcmp(bind_key, binds[i].key) == 0) {
+			INFO("Key with name \"%s\" is already bound. Reassigning the command.", bind_key);
 			binds[i].cmd = bind_cmd;
 			return true;
 		}
@@ -64,20 +59,30 @@ assign_action_to_key(int bind_key, enum input_cmd bind_cmd)
 	size_t bind_index = binds_count++;
 	struct input_binding *temp = realloc(binds, sizeof(struct input_binding) * binds_count);
 	if (temp == NULL) {
-		fputs("Not enough memory for assigning a command to a new key!\n", stderr);
-		return false;
+		goto error;
 	}
-	binds = temp;
 
-	binds[bind_index].key = bind_key;
+	binds = temp;
+	binds[bind_index].key = malloc(sizeof(char) * (bind_key_len + 1));
+	if (binds[bind_index].key == NULL) {
+		goto error;
+	}
+	strncpy(binds[bind_index].key, bind_key, bind_key_len);
+	binds[bind_index].key[bind_key_len] = '\0';
 	binds[bind_index].cmd = bind_cmd;
 
 	return true;
+error:
+	fputs("Not enough memory for assigning a command to a new key!\n", stderr);
+	return false;
 }
 
 void
 free_binds(void)
 {
 	INFO("Freeing key binds.");
+	for (size_t i = 0; i < binds_count; ++i) {
+		free(binds[i].key);
+	}
 	free(binds);
 }

@@ -335,7 +335,7 @@ int get_reversed_color_pair(config_entry_id id);
 // See "interface-input.c" file for implementation.
 int get_input_command(uint32_t *count);
 bool assign_default_binds(void);
-bool assign_action_to_key(int bind_key, enum input_cmd bind_cmd);
+bool assign_action_to_key(const char *bind_key, size_t bind_key_len, input_cmd_id bind_cmd);
 void free_binds(void);
 
 // Functions related to window which displays status messages.

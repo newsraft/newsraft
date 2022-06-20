@@ -16,10 +16,10 @@ free_feed(struct getfeed_feed *feed)
 	free_item(feed->item);
 }
 
-bool
+int8_t
 update_feed(const struct string *url)
 {
-	bool success = false;
+	int8_t status = DOWNLOAD_FAILED;
 	struct stream_callback_data data = {0};
 
 	if (time(&data.feed.download_date) == (time_t) -1) {
@@ -33,7 +33,7 @@ update_feed(const struct string *url)
 		}
 		if ((expires_date != 0) && (data.feed.download_date < expires_date)) {
 			INFO("Content hasn't expired yet - aborting update without error.");
-			success = true;
+			status = DOWNLOAD_CANCELED;
 			goto undo0;
 		}
 	}
@@ -46,7 +46,7 @@ update_feed(const struct string *url)
 		}
 		if ((ttl != 0) && (prev_download_date != 0) && ((prev_download_date + ttl) > data.feed.download_date)) {
 			INFO("Content isn't dead yet - aborting update without error.");
-			success = true;
+			status = DOWNLOAD_CANCELED;
 			goto undo0;
 		}
 	}
@@ -63,21 +63,22 @@ update_feed(const struct string *url)
 		goto undo0;
 	}
 
-	enum download_status status = download_feed(url->ptr, &data);
+	status = download_feed(url->ptr, &data);
 
 	if (status == DOWNLOAD_CANCELED) {
 		INFO("Download canceled.");
-		success = true;
 		goto undo1;
 	} else if (status == DOWNLOAD_FAILED) {
 		WARN("Download failed.");
 		goto undo1;
 	}
 
-	success = insert_feed(url, &data.feed);
+	if (insert_feed(url, &data.feed) == false) {
+		status = DOWNLOAD_FAILED;
+	}
 
 undo1:
 	free_feed(&data.feed);
 undo0:
-	return success;
+	return status;
 }

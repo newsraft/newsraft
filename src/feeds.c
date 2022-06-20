@@ -136,17 +136,18 @@ mark_all_feeds_unread(void)
 bool
 update_and_refresh_feed(struct feed_line *feed)
 {
-	// TODO return integer showing that feed update was canceled
-	// to avoid redundant check for unread items count.
-	if (update_feed(feed->link) == false) {
-		return false;
+	int8_t status = update_feed(feed->link);
+	if (status == DOWNLOAD_SUCCEEDED) {
+		int64_t new_unread_count = get_unread_items_count_of_the_feed(feed->link);
+		if (new_unread_count < 0) {
+			return false;
+		}
+		feed->unread_count = new_unread_count;
+		return true;
+	} else if (status == DOWNLOAD_CANCELED) {
+		return true;
 	}
-	int64_t new_unread_count = get_unread_items_count_of_the_feed(feed->link);
-	if (new_unread_count < 0) {
-		return false;
-	}
-	feed->unread_count = new_unread_count;
-	return true;
+	return false;
 }
 
 static void

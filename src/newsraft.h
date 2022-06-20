@@ -227,6 +227,12 @@ enum sorting_order {
 	SORT_BY_NAME_ASC,
 };
 
+enum download_status {
+	DOWNLOAD_SUCCEEDED,
+	DOWNLOAD_CANCELED,
+	DOWNLOAD_FAILED,
+};
+
 // sections
 bool create_global_section(void);
 bool copy_feed_to_section(const struct feed_line *feed, const struct string *section_name);
@@ -426,7 +432,7 @@ void free_config(void);
 
 // Download, process and store new items of feed.
 // See "update_feed" directory for implementation.
-bool update_feed(const struct string *url);
+int8_t update_feed(const struct string *url);
 
 // Here we append links of HTML elements like <img> or <a> to link_list.
 // Also, do some screen-independent processing of data that render blocks have

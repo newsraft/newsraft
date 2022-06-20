@@ -4,12 +4,6 @@
 #include <yajl/yajl_parse.h>
 #include "newsraft.h"
 
-enum download_status {
-	DOWNLOAD_SUCCEEDED,
-	DOWNLOAD_CANCELED,
-	DOWNLOAD_FAILED,
-};
-
 // Unknown type must have 0 value!
 enum media_type {
 	MEDIA_TYPE_UNKNOWN = 0,

@@ -97,6 +97,15 @@ redraw_menu_list(struct menu_list_settings *settings)
 	erase_all_visible_entries_not_in_the_menu_list(settings);
 }
 
+void
+reset_menu_list_settings(struct menu_list_settings *settings, size_t new_entries_count)
+{
+	settings->entries_count = new_entries_count;
+	settings->view_sel = 0;
+	settings->view_min = 0;
+	settings->view_max = list_menu_height - 1;
+}
+
 static void
 list_menu_change_view(struct menu_list_settings *s, size_t i)
 {

@@ -314,8 +314,6 @@ _mark-unread-all_ (default: not set)
 
 _overview-menu_ (default: *e*)
 
-_sections-menu_ (default: *y*)
-
 _status-history-menu_ (default: *p*)
 
 _open-in-browser_ (default: *o*)

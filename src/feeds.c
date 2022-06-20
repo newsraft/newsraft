@@ -190,21 +190,14 @@ reload_all_feeds(void)
 	}
 }
 
-static inline void
-reset_menu_list_settings(void)
+input_cmd_id
+enter_feeds_menu_loop(struct feed_line **new_feeds, size_t new_feeds_count)
 {
-	feeds_menu.entries_count = feeds_count;
-	feeds_menu.view_sel = 0;
-	feeds_menu.view_min = 0;
-	feeds_menu.view_max = list_menu_height - 1;
-}
-
-void
-enter_feeds_menu_loop(void)
-{
+	feeds = new_feeds;
+	feeds_count = new_feeds_count;
 	feeds_menu.write_action = &write_feed_entry;
 	feeds_menu.paint_action = &paint_feed_entry;
-	reset_menu_list_settings();
+	reset_menu_list_settings(&feeds_menu, feeds_count);
 
 	redraw_menu_list(&feeds_menu);
 
@@ -254,17 +247,6 @@ enter_feeds_menu_loop(void)
 			} else if (cmd == INPUT_QUIT_HARD) {
 				break;
 			}
-		} else if (cmd == INPUT_SECTIONS_MENU) {
-			cmd = enter_sections_menu_loop(&feeds, &feeds_count);
-			if (cmd == INPUT_QUIT_HARD) {
-				break;
-			} else if (cmd != INPUTS_COUNT) {
-				status_clean();
-				if (cmd == INPUT_ENTER) {
-					reset_menu_list_settings();
-				}
-				redraw_menu_list(&feeds_menu);
-			}
 		} else if (cmd == INPUT_STATUS_HISTORY_MENU) {
 			cmd = enter_status_pager_view_loop();
 			if (cmd == INPUT_QUIT_SOFT) {
@@ -278,4 +260,6 @@ enter_feeds_menu_loop(void)
 			break;
 		}
 	}
+
+	return cmd;
 }

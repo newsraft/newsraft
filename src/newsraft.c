@@ -69,7 +69,7 @@ main(int argc, char **argv)
 	if (counter_create()                  == false) { error = 14; goto undo9;  }
 	if (curl_global_init(CURL_GLOBAL_DEFAULT) != 0) { error = 15; goto undo10; }
 
-	enter_feeds_menu_loop();
+	enter_sections_menu_loop();
 
 	curl_global_cleanup();
 undo10:

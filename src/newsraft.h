@@ -173,7 +173,6 @@ enum input_cmd {
 	INPUT_MARK_UNREAD,
 	INPUT_MARK_UNREAD_ALL,
 	INPUT_OVERVIEW_MENU,
-	INPUT_SECTIONS_MENU,
 	INPUT_STATUS_HISTORY_MENU,
 	INPUT_OPEN_IN_BROWSER,
 	INPUT_COPY_TO_CLIPBOARD,
@@ -237,12 +236,12 @@ enum download_status {
 bool create_global_section(void);
 bool copy_feed_to_section(const struct feed_line *feed, const struct string *section_name);
 void obtain_feeds_of_global_section(struct feed_line ***feeds_ptr, size_t *feeds_count_ptr);
+void enter_sections_menu_loop(void);
 void free_sections(void);
-input_cmd_id enter_sections_menu_loop(struct feed_line ***feeds_ptr, size_t *feeds_count_ptr);
 
 // feeds
 bool parse_feeds_file(const char *path);
-void enter_feeds_menu_loop(void);
+input_cmd_id enter_feeds_menu_loop(struct feed_line **new_feeds, size_t new_feeds_count);
 bool load_feeds(void);
 bool check_url_for_validity(const struct string *str);
 bool update_and_refresh_feed(struct feed_line *feed);
@@ -256,6 +255,7 @@ void free_list_menu_format_buffer(void);
 void expose_entry_of_the_menu_list(struct menu_list_settings *settings, size_t index);
 void expose_all_visible_entries_of_the_menu_list(struct menu_list_settings *settings);
 void redraw_menu_list(struct menu_list_settings *settings);
+void reset_menu_list_settings(struct menu_list_settings *settings, size_t new_entries_count);
 void list_menu_select_next(struct menu_list_settings *s);
 void list_menu_select_prev(struct menu_list_settings *s);
 void list_menu_select_next_page(struct menu_list_settings *s);

@@ -21,7 +21,6 @@ assign_default_binds(void)
 	if (assign_action_to_key("^D",        2, INPUT_MARK_READ_ALL)       == false) { goto error; }
 	if (assign_action_to_key("D",         1, INPUT_MARK_UNREAD)         == false) { goto error; }
 	if (assign_action_to_key("e",         1, INPUT_OVERVIEW_MENU)       == false) { goto error; }
-	if (assign_action_to_key("y",         1, INPUT_SECTIONS_MENU)       == false) { goto error; }
 	if (assign_action_to_key("p",         1, INPUT_STATUS_HISTORY_MENU) == false) { goto error; }
 	if (assign_action_to_key("o",         1, INPUT_OPEN_IN_BROWSER)     == false) { goto error; }
 	if (assign_action_to_key("c",         1, INPUT_COPY_TO_CLIPBOARD)   == false) { goto error; }

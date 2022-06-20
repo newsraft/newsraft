@@ -14,8 +14,6 @@ static size_t sections_count = 0;
 
 static struct menu_list_settings sections_menu;
 
-static bool is_the_sections_menu_being_opened_for_the_first_time = true;
-
 static struct format_arg fmt_args[] = {
 	{L'n', L"d", {.i = 0}},
 	{L'u', L"d", {.i = 0}},
@@ -226,33 +224,20 @@ paint_section_entry(size_t index)
 	}
 }
 
-static inline void
-reset_menu_list_settings(void)
-{
-	sections_menu.entries_count = sections_count;
-	sections_menu.view_sel = 0;
-	sections_menu.view_min = 0;
-	sections_menu.view_max = list_menu_height - 1;
-}
-
-input_cmd_id
-enter_sections_menu_loop(struct feed_line ***feeds_ptr, size_t *feeds_count_ptr)
+void
+enter_sections_menu_loop(void)
 {
 	if (sections_count == 1) {
-		info_status("There is no sections except for global one!");
-		return INPUTS_COUNT;
+		INFO("There is no sections except for global one.");
+		enter_feeds_menu_loop(sections[0].feeds, sections[0].feeds_count);
+		return;
 	}
 
-	if (is_the_sections_menu_being_opened_for_the_first_time == true) {
-		sections_menu.write_action = &write_section_entry;
-		sections_menu.paint_action = &paint_section_entry;
-		reset_menu_list_settings();
-		is_the_sections_menu_being_opened_for_the_first_time = false;
-	}
+	sections_menu.write_action = &write_section_entry;
+	sections_menu.paint_action = &paint_section_entry;
+	reset_menu_list_settings(&sections_menu, sections_count);
 
 	update_unread_count_of_sections();
-
-	status_clean();
 	redraw_menu_list(&sections_menu);
 
 	uint32_t count;
@@ -284,9 +269,14 @@ enter_sections_menu_loop(struct feed_line ***feeds_ptr, size_t *feeds_count_ptr)
 		} else if (cmd == INPUT_RELOAD_ALL) {
 			reload_section(sections[0].feeds, sections[0].feeds_count);
 		} else if (cmd == INPUT_ENTER) {
-			*feeds_ptr = sections[sections_menu.view_sel].feeds;
-			*feeds_count_ptr = sections[sections_menu.view_sel].feeds_count;
-			break;
+			cmd = enter_feeds_menu_loop(sections[sections_menu.view_sel].feeds, sections[sections_menu.view_sel].feeds_count);
+			if (cmd == INPUT_QUIT_SOFT) {
+				status_clean();
+				update_unread_count_of_sections();
+				redraw_menu_list(&sections_menu);
+			} else if (cmd == INPUT_QUIT_HARD) {
+				break;
+			}
 		} else if (cmd == INPUT_STATUS_HISTORY_MENU) {
 			cmd = enter_status_pager_view_loop();
 			if (cmd == INPUT_QUIT_SOFT) {
@@ -296,10 +286,8 @@ enter_sections_menu_loop(struct feed_line ***feeds_ptr, size_t *feeds_count_ptr)
 			}
 		} else if (cmd == INPUT_RESIZE) {
 			redraw_menu_list(&sections_menu);
-		} else if ((cmd == INPUT_SECTIONS_MENU) || (cmd == INPUT_QUIT_SOFT) || (cmd == INPUT_QUIT_HARD)) {
+		} else if ((cmd == INPUT_QUIT_SOFT) || (cmd == INPUT_QUIT_HARD)) {
 			break;
 		}
 	}
-
-	return cmd;
 }

@@ -22,7 +22,7 @@ append_sorting_order_expression_to_query(struct string *query, enum sorting_orde
 static inline struct string *
 generate_search_query_string(size_t feeds_count, enum sorting_order order)
 {
-	struct string *query = crtas("SELECT rowid, title, unread, feed_url, publication_date, update_date FROM items WHERE feed_url=?", 96);
+	struct string *query = crtas("SELECT rowid,feed_url,title,link,publication_date,update_date,unread,important FROM items WHERE feed_url=?", 106);
 	if (query == NULL) {
 		FAIL("Not enough memory for query string!");
 		return NULL;
@@ -34,10 +34,6 @@ generate_search_query_string(size_t feeds_count, enum sorting_order order)
 		}
 	}
 	if (append_sorting_order_expression_to_query(query, order) == false) {
-		free_string(query);
-		return NULL;
-	}
-	if (catcs(query, ';') == false) {
 		free_string(query);
 		return NULL;
 	}
@@ -59,15 +55,15 @@ create_items_list(void)
 void
 free_items_list(struct items_list *items)
 {
-	if (items == NULL) {
-		return;
+	if (items != NULL) {
+		for (size_t i = 0; i < items->count; ++i) {
+			free_string(items->list[i].title);
+			free_string(items->list[i].url);
+			free_string(items->list[i].date_str);
+		}
+		free(items->list);
+		free(items);
 	}
-	for (size_t i = 0; i < items->count; ++i) {
-		free_string(items->list[i].title);
-		free_string(items->list[i].date_str);
-	}
-	free(items->list);
-	free(items);
 }
 
 static inline const struct string *
@@ -87,64 +83,76 @@ generate_items_list(const struct feed_line **feeds, size_t feeds_count, enum sor
 	INFO("Generating items list.");
 	if (feeds_count == 0) {
 		FAIL("For some mysterious reason feeds_count is zero!");
-		return NULL;
+		goto undo0;
 	}
 	struct string *query = generate_search_query_string(feeds_count, order);
 	if (query == NULL) {
 		fail_status("Can't generate search query string!");
-		return NULL;
+		goto undo0;
 	}
 	sqlite3_stmt *res;
 	if (db_prepare(query->ptr, query->len + 1, &res) == false) {
 		fail_status("Can't prepare search query for action!");
-		free_string(query);
-		return NULL;
+		goto undo1;
 	}
 	for (size_t i = 0; i < feeds_count; ++i) {
 		sqlite3_bind_text(res, i + 1, feeds[i]->link->ptr, feeds[i]->link->len, NULL);
 	}
 	struct items_list *items = create_items_list();
 	if (items == NULL) {
-		free_string(query);
-		sqlite3_finalize(res);
-		return NULL;
+		goto undo2;
 	}
 	void *tmp;
-	const char *feed_url;
+	const char *text;
 	while (sqlite3_step(res) == SQLITE_ROW) {
 		tmp = realloc(items->list, sizeof(struct item_entry) * (items->count + 1));
 		if (tmp == NULL) {
-			free_string(query);
-			sqlite3_finalize(res);
-			free_items_list(items);
-			return NULL;
+			goto undo3;
 		}
 		items->list = tmp;
-		items->list[items->count].rowid = sqlite3_column_int(res, 0);
-		items->list[items->count].title = db_get_plain_text_from_column(res, 1);
+
+		items->list[items->count].rowid = sqlite3_column_int64(res, 0); // rowid
+
+		text = (const char *)sqlite3_column_text(res, 1); // feed_url
+		items->list[items->count].feed_name = find_feed_name_for_given_feed(feeds, feeds_count, text);
+
+		items->list[items->count].title = db_get_plain_text_from_column(res, 2); // title
 		if (items->list[items->count].title == NULL) {
-			free_string(query);
-			sqlite3_finalize(res);
-			free_items_list(items);
-			return NULL;
+			goto undo3;
 		}
-		items->list[items->count].is_unread = sqlite3_column_int(res, 2);
-		feed_url = (const char *)sqlite3_column_text(res, 3);
-		items->list[items->count].feed_name = find_feed_name_for_given_feed(feeds, feeds_count, feed_url);
-		int64_t item_date = sqlite3_column_int(res, 4);
-		int64_t tmp_date = sqlite3_column_int(res, 5);
+
+		text = (const char *)sqlite3_column_text(res, 3); // link
+		if (text == NULL) {
+			items->list[items->count].url = NULL;
+		} else {
+			items->list[items->count].url = crtas(text, strlen(text));
+		}
+
+		int64_t item_date = sqlite3_column_int64(res, 4); // publication_date
+		int64_t tmp_date = sqlite3_column_int64(res, 5); // update_date
 		if (tmp_date > item_date) {
 			item_date = tmp_date;
 		}
 		items->list[items->count].date_str = get_config_date_str(item_date, CFG_LIST_ENTRY_DATE_FORMAT);
+
+		items->list[items->count].is_unread = sqlite3_column_int(res, 6); // unread
+		items->list[items->count].is_important = sqlite3_column_int(res, 7); // important
+
 		items->count += 1;
 	}
-	free_string(query);
-	sqlite3_finalize(res);
-	if ((items->list == NULL) || (items->count == 0)) {
-		free_items_list(items);
-		fail_status("Couldn't find any items!");
-		return NULL;
+	if (items->count == 0) {
+		info_status("Couldn't find any items in this feed.");
+		goto undo3;
 	}
+	sqlite3_finalize(res);
+	free_string(query);
 	return items;
+undo3:
+	free_items_list(items);
+undo2:
+	sqlite3_finalize(res);
+undo1:
+	free_string(query);
+undo0:
+	return NULL;
 }

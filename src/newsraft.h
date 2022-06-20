@@ -61,9 +61,11 @@ struct feed_line {
 
 struct item_entry {
 	struct string *title;
+	struct string *url;
 	const struct string *feed_name; // name of the feed to which this item belongs
-	int rowid;                      // id of row in sqlite table related to this item
+	int64_t rowid;                  // id of row in sqlite table related to this item
 	bool is_unread;
+	bool is_important;
 	struct string *date_str;
 };
 
@@ -325,8 +327,8 @@ struct string *db_get_string_from_feed_table(const struct string *url, const cha
 
 // db-items.c
 sqlite3_stmt *db_find_item_by_rowid(int rowid);
-bool db_mark_item_read(int rowid);
-bool db_mark_item_unread(int rowid);
+bool db_mark_item_read(int64_t rowid);
+bool db_mark_item_unread(int64_t rowid);
 int64_t get_unread_items_count_of_the_feed(const struct string *url);
 bool db_mark_all_items_in_feeds_as_read(const struct feed_line **feeds, size_t feeds_count);
 bool db_mark_all_items_in_feeds_as_unread(const struct feed_line **feeds, size_t feeds_count);

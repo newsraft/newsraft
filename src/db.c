@@ -56,9 +56,22 @@ db_init(void)
 			"unread INTEGER(1) NOT NULL DEFAULT 0,"
 			"important INTEGER(1) NOT NULL DEFAULT 0"
 		");"
-		"CREATE INDEX IF NOT EXISTS idx_items ON items(feed_url);"
-		"CREATE INDEX IF NOT EXISTS idx_items_guid ON items(feed_url, guid);"
-		"CREATE INDEX IF NOT EXISTS idx_items_unread_important ON items(feed_url, unread, important);",
+		"CREATE INDEX IF NOT EXISTS idx_items ON items("
+			"feed_url"
+		");"
+		"CREATE INDEX IF NOT EXISTS idx_items_guid ON items("
+			"feed_url,"
+			"guid"
+		");"
+		"CREATE INDEX IF NOT EXISTS idx_items_essentials ON items("
+			"feed_url,"
+			"title,"
+			"link,"
+			"publication_date,"
+			"update_date,"
+			"unread,"
+			"important"
+		");",
 		NULL,
 		NULL,
 		&errmsg

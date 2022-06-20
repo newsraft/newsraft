@@ -22,13 +22,13 @@ db_find_item_by_rowid(int rowid)
 	return res;
 }
 
-static bool
-db_update_item_int(int rowid, const char *column, int value)
+static inline bool
+db_update_item_int(int64_t rowid, const char *column, int value)
 {
-	INFO("Updating column \"%s\" with integer value \"%d\" of item with rowid \"%d\".", column, value, rowid);
+	INFO("Updating column \"%s\" with integer value \"%d\" of item with rowid \"%" PRId64 "\".", column, value, rowid);
 
 	// Size of this buffer depends on the size of strings below.
-	size_t cmd_size = sizeof(char) * (17 + strlen(column) + 20 + 1);
+	size_t cmd_size = sizeof(char) * (17 + strlen(column) + 16 + 1);
 	char *cmd = malloc(cmd_size);
 	if (cmd == NULL) {
 		FAIL("Not enough memory for updating that column!");
@@ -36,16 +36,16 @@ db_update_item_int(int rowid, const char *column, int value)
 	}
 	strcpy(cmd, "UPDATE items SET ");
 	strcat(cmd, column);
-	strcat(cmd, " = ? WHERE rowid = ?");
+	strcat(cmd, "=? WHERE rowid=?");
 
 	bool success = true;
 
 	sqlite3_stmt *res;
 	if (db_prepare(cmd, cmd_size, &res) == true) {
 		sqlite3_bind_int(res, 1, value);
-		sqlite3_bind_int(res, 2, rowid);
+		sqlite3_bind_int64(res, 2, rowid);
 		if (sqlite3_step(res) != SQLITE_DONE) {
-			WARN("Column wasn't updated for some reason!");
+			FAIL("Column wasn't updated for some reason!");
 			success = false;
 		}
 		sqlite3_finalize(res);
@@ -57,13 +57,13 @@ db_update_item_int(int rowid, const char *column, int value)
 }
 
 bool
-db_mark_item_read(int rowid)
+db_mark_item_read(int64_t rowid)
 {
 	return db_update_item_int(rowid, "unread", 0);
 }
 
 bool
-db_mark_item_unread(int rowid)
+db_mark_item_unread(int64_t rowid)
 {
 	return db_update_item_int(rowid, "unread", 1);
 }

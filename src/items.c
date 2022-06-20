@@ -27,7 +27,9 @@ write_item_entry(size_t index)
 static int
 paint_item_entry(size_t index)
 {
-	if (items->list[index].is_unread == true) {
+	if (items->list[index].is_important == true) {
+		return CFG_COLOR_LIST_ITEM_IMPORTANT_FG;
+	} else if (items->list[index].is_unread == true) {
 		return CFG_COLOR_LIST_ITEM_UNREAD_FG;
 	} else {
 		return CFG_COLOR_LIST_ITEM_FG;
@@ -37,27 +39,23 @@ paint_item_entry(size_t index)
 static void
 mark_item_read(size_t index)
 {
-	if (items->list[index].is_unread == false) {
-		return; // success, item is already read
+	if (items->list[index].is_unread == true) {
+		if (db_mark_item_read(items->list[index].rowid) == true) {
+			items->list[index].is_unread = false;
+			expose_entry_of_the_menu_list(&items_menu, index);
+		}
 	}
-	if (db_mark_item_read(items->list[index].rowid) == false) {
-		return; // failure
-	}
-	items->list[index].is_unread = false;
-	expose_entry_of_the_menu_list(&items_menu, index);
 }
 
 static void
 mark_item_unread(size_t index)
 {
-	if (items->list[index].is_unread == true) {
-		return; // success, item is already unread
+	if (items->list[index].is_unread == false) {
+		if (db_mark_item_unread(items->list[index].rowid) == true) {
+			items->list[index].is_unread = true;
+			expose_entry_of_the_menu_list(&items_menu, index);
+		}
 	}
-	if (db_mark_item_unread(items->list[index].rowid) == false) {
-		return; // failure
-	}
-	items->list[index].is_unread = true;
-	expose_entry_of_the_menu_list(&items_menu, index);
 }
 
 static void

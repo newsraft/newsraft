@@ -260,6 +260,12 @@ _color-list-item-unread-fg_ (default: *yellow*)
 _color-list-item-unread-bg_ (default: *black*)
 	Background color of unread item list entry.
 
+_color-list-item-important-fg_ (default: *magenta*)
+	Text color of important item list entry.
+
+_color-list-item-important-bg_ (default: *black*)
+	Background color of important item list entry.
+
 _color-list-feed-fg_ (default: *white*)
 	Text color of feed list entry.
 

@@ -102,7 +102,7 @@ struct link_list {
 	size_t len;        // Shows how many items is in list.
 };
 
-#define NEWSRAFT_COLOR_PAIRS_COUNT 9
+#define NEWSRAFT_COLOR_PAIRS_COUNT 10
 typedef uint8_t config_entry_id;
 enum config_entry_index {
 	CFG_COLOR_STATUS_GOOD_FG,
@@ -115,6 +115,8 @@ enum config_entry_index {
 	CFG_COLOR_LIST_ITEM_BG,
 	CFG_COLOR_LIST_ITEM_UNREAD_FG,
 	CFG_COLOR_LIST_ITEM_UNREAD_BG,
+	CFG_COLOR_LIST_ITEM_IMPORTANT_FG,
+	CFG_COLOR_LIST_ITEM_IMPORTANT_BG,
 	CFG_COLOR_LIST_FEED_FG,
 	CFG_COLOR_LIST_FEED_BG,
 	CFG_COLOR_LIST_FEED_UNREAD_FG,

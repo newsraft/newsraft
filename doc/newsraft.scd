@@ -68,9 +68,25 @@ Search precedence:
 
 ## CONFIG FILE
 
-Config file is used to override default settings of newsraft. Complete list of
-configurable options can be found in *SETTINGS* section. Presence of config file
-is totally optional and newsraft will work without it just fine.
+Config file is used to override default settings and bindings of newsraft.
+Presence of config file is totally optional and newsraft will work without it
+just fine. There are 3 types of lines in config file.
+
+Setting lines start with the *set* word. Complete list of configurable settings
+can be found in the *SETTINGS* section. Format of these lines is as follows,
+where _value_ can be enclosed in single or double quotes:
+
+	*set* setting _value_
+
+Binding lines start with the *bind* word. Complete list of assigned actions can
+be found in the *ACTIONS* section. Format of these lines is as follows:
+
+	*bind* key _action_
+
+Comment lines start with # character. These lines are completely ignored. For
+example:
+
+	_# a little bit left below_
 
 Search precedence:
 . _$XDG_CONFIG_HOME_/newsraft/config

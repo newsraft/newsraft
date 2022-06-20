@@ -4,42 +4,50 @@
 #include "load_config/load_config.h"
 
 static inline void
-replace_newline_with_terminator(char *line)
+remove_trailing_whitespace(char *line)
 {
-	char *newline_pos = strchr(line, '\n');
-	if (newline_pos != NULL) {
-		*newline_pos = '\0';
+	char *i = line;
+	while (*i != '\0') {
+		i += 1;
+	}
+	if (i != line) {
+		i -= 1;
+	}
+	while (ISWHITESPACE(*i)) {
+		*i = '\0';
+		if (i == line) {
+			break;
+		}
+		i -= 1;
 	}
 }
 
 static inline bool
 process_set_line(char *line)
 {
-	struct string *setting_name = crtes();
-	if (setting_name == NULL) {
-		goto error;
-	}
+	char setting_name[100];
+	uint8_t setting_name_len = 0;
 	char *i = line;
-	do {
-		if (catcs(setting_name, *i) == false) {
-			free_string(setting_name);
-			goto error;
-		}
-		i += 1;
+	while (*i != '\0') {
 		if (ISWHITESPACE(*i)) {
 			break;
 		}
-	} while (*i != '\0');
+		if (setting_name_len > 90) {
+			fputs("This setting name exceeds the maximum possible length of valid setting!\n", stderr);
+			return false;
+		}
+		setting_name[setting_name_len++] = *i;
+		i += 1;
+	}
+	setting_name[setting_name_len] = '\0';
+	config_entry_id id = find_config_entry_by_name(setting_name);
+	if (id == CFG_ENTRIES_COUNT) {
+		fprintf(stderr, "Setting \"%s\" doesn't exist!\n", setting_name);
+		return false;
+	}
 	while (ISWHITESPACE(*i)) {
 		i += 1;
 	}
-	config_entry_id id = find_config_entry_by_name(setting_name->ptr);
-	if (id == CFG_ENTRIES_COUNT) {
-		fprintf(stderr, "Setting \"%s\" doesn't exist!\n", setting_name->ptr);
-		free_string(setting_name);
-		return false;
-	}
-	free_string(setting_name);
 	if (*i == '"') {
 		char *next_double_quote = strchr(i + 1, '"');
 		if (next_double_quote != NULL) {
@@ -65,7 +73,7 @@ process_set_line(char *line)
 		}
 	} else if (type == CFG_UINT) {
 		size_t val;
-		if ((strlen(i) == 0) || (sscanf(i, "%zu", &val) != 1)) {
+		if ((strlen(i) == 0) || (*i == '-') || (sscanf(i, "%zu", &val) != 1)) {
 			fputs("Numeric settings can only take non-negative integer values!\n", stderr);
 			return false;
 		}
@@ -129,8 +137,8 @@ process_config_file_line(char *line)
 	while (ISWHITESPACE(*i)) {
 		i += 1;
 	}
-	if (*i == '\0') {
-		return true; // Ignore empty lines.
+	if ((*i == '#') || (*i == '\0')) {
+		return true; // Ignore comments and empty lines.
 	}
 	// Just 5 characters because there are only 2 line types: "set" and "bind".
 	char line_type[5];
@@ -148,23 +156,12 @@ process_config_file_line(char *line)
 	while (ISWHITESPACE(*i)) {
 		i += 1;
 	}
-	if (*i == '\0') {
-		INFO("This line is useless!");
-		return true; // Ignore lines that don't do anything.
-	}
 	line_type[line_type_len] = '\0';
 	if (strcmp(line_type, "set") == 0) {
-		if (process_set_line(i) == false) {
-			return false;
-		}
+		return process_set_line(i);
 	} else if (strcmp(line_type, "bind") == 0) {
-		if (process_bind_line(i) == false) {
-			return false;
-		}
-	} else {
-		goto badline;
+		return process_bind_line(i);
 	}
-	return true;
 badline:
 	fputs("Incorrect line notation! Lines can only start with either \"set\" or \"bind\"!\n", stderr);
 	return false;
@@ -184,7 +181,7 @@ parse_config_file(const char *path)
 	size_t lines_count = 0;
 	while (getline(&line, &line_size, f) != -1) {
 		lines_count += 1;
-		replace_newline_with_terminator(line);
+		remove_trailing_whitespace(line);
 		if (process_config_file_line(line) == false) {
 			fprintf(stderr, "The error was detected on line %zu of config file.\n", lines_count);
 			free(line);

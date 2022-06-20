@@ -342,6 +342,7 @@ int get_reversed_color_pair(config_entry_id id);
 int get_input_command(uint32_t *count);
 bool assign_default_binds(void);
 bool assign_action_to_key(const char *bind_key, size_t bind_key_len, input_cmd_id bind_cmd);
+input_cmd_id get_input_id_by_name(const char *name);
 void free_binds(void);
 
 // Functions related to window which displays status messages.

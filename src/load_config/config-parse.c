@@ -124,9 +124,34 @@ error:
 static inline bool
 process_bind_line(char *line)
 {
-	(void)line;
-	fputs("\"bind\" lines are under construction!\n", stderr);
-	return false;
+	char key_name[20];
+	uint8_t key_name_len = 0;
+	char *i = line;
+	while (*i != '\0') {
+		if (ISWHITESPACE(*i)) {
+			break;
+		}
+		if (key_name_len > 15) {
+			fputs("This key name exceeds the maximum possible length of valid key!\n", stderr);
+			return false;
+		}
+		key_name[key_name_len++] = *i;
+		i += 1;
+	}
+	key_name[key_name_len] = '\0';
+	while (ISWHITESPACE(*i)) {
+		i += 1;
+	}
+	input_cmd_id cmd = get_input_id_by_name(i);
+	if (cmd == INPUTS_COUNT) {
+		fprintf(stderr, "Action \"%s\" doesn't exist!\n", i);
+		return false;
+	}
+	if (assign_action_to_key(key_name, key_name_len, cmd) == false) {
+		// Error message written by assign_action_to_key.
+		return false;
+	}
+	return true;
 }
 
 static inline bool

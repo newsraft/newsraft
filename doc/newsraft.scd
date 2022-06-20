@@ -59,7 +59,7 @@ the name of the section must be specified. For example:
 Comment lines start with # character. These lines are completely ignored. For
 example:
 
-	_# haha i'm being ignored_
+	_# you will gain from using it, for sure_
 
 Search precedence:
 . _$XDG_CONFIG_HOME_/newsraft/feeds
@@ -86,7 +86,7 @@ be found in the *ACTIONS* section. Format of these lines is as follows:
 Comment lines start with # character. These lines are completely ignored. For
 example:
 
-	_# a little bit left below_
+	_# look closely, the beautiful may be small_
 
 Search precedence:
 . _$XDG_CONFIG_HOME_/newsraft/config
@@ -96,6 +96,9 @@ Search precedence:
 ## DATABASE FILE
 
 Database file stores everything you download from feeds in *sqlite3*(1) format.
+Although you now know the format in which the data is stored, it is highly
+recommended to avoid modifying the database manually - things will break and
+it will be very sad.
 
 Search precedence:
 . _$XDG_DATA_HOME_/newsraft/newsraft.sqlite3
@@ -281,6 +284,48 @@ _color-list-section-unread-fg_ (default: *yellow*)
 _color-list-section-unread-bg_ (default: *black*)
 	Background color of unread section list entry.
 
+# ACTIONS
+
+_select-next_ (default: *j*, *KEY_DOWN*)
+
+_select-next-page_ (default: *KEY_NPAGE*)
+
+_select-prev_ (default: *k*, *KEY_UP*)
+
+_select-prev-page_ (default: *KEY_PPAGE*)
+
+_select-first_ (default: *g*, *KEY_HOME*)
+
+_select-last_ (default: *G*, *KEY_END*)
+
+_enter_ (default: *^J*, *KEY_ENTER*)
+
+_reload_ (default: *r*)
+
+_reload-all_ (default: *^R*)
+
+_mark-read_ (default: *d*)
+
+_mark-read-all_ (default: *^D*)
+
+_mark-unread_ (default: *D*)
+
+_mark-unread-all_ (default: not set)
+
+_overview-menu_ (default: *e*)
+
+_sections-menu_ (default: *y*)
+
+_status-history-menu_ (default: *p*)
+
+_open-in-browser_ (default: *o*)
+
+_copy-to-clipboard_ (default: *c*)
+
+_quit_ (default: *q*)
+
+_quit-hard_ (default: *Q*)
+
 # ENVIRONMENT
 
 Since all newsraft's interactions with the network occur through the
@@ -299,6 +344,18 @@ Directory for applications to store their data.
 ## HOME
 
 Home directory of your user.
+
+## BROWSER
+
+Web browser of your user.
+
+## WAYLAND_DISPLAY
+
+Identifier of the Wayland graphics display.
+
+## DISPLAY
+
+Identifier of the X graphics display.
 
 # SEE ALSO
 

@@ -43,12 +43,12 @@ db_insert_item(const struct string *feed_url, struct getfeed_item *item, int64_t
 	sqlite3_stmt *s;
 
 	if (rowid == -1) {
-		if (db_prepare("INSERT INTO items VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", 69, &s) == false) {
+		if (db_prepare("INSERT INTO items(feed_url,guid,title,link,summary,content,attachments,persons,categories,locations,pictures,publication_date,update_date,unread) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)", 182, &s) == false) {
 			FAIL("Failed to prepare item insertion statement!");
 			return false;
 		}
 	} else {
-		if (db_prepare("UPDATE items SET feed_url = ?, guid = ?, title = ?, link = ?, summary = ?, content = ?, attachments = ?, persons = ?, categories = ?, locations = ?, pictures = ?, publication_date = ?, update_date = ?, unread = ? WHERE rowid = ?;", 230, &s) == false)
+		if (db_prepare("UPDATE items SET feed_url=?,guid=?,title=?,link=?,summary=?,content=?,attachments=?,persons=?,categories=?,locations=?,pictures=?,publication_date=?,update_date=?,unread=? WHERE rowid=?", 186, &s) == false)
 		{
 			FAIL("Failed to prepare item update statement!");
 			return false;
@@ -70,7 +70,7 @@ db_insert_item(const struct string *feed_url, struct getfeed_item *item, int64_t
 	sqlite3_bind_int64(s,  1 + ITEM_COLUMN_UPDATE_DATE,      (sqlite3_int64)(item->upddate));
 	sqlite3_bind_int(s,    1 + ITEM_COLUMN_UNREAD,           1);
 	if (rowid != -1) {
-		sqlite3_bind_int64(s, 1 + ITEM_COLUMN_NONE, rowid);
+		sqlite3_bind_int64(s, 2 + ITEM_COLUMN_UNREAD, rowid);
 	}
 
 	if (sqlite3_step(s) != SQLITE_DONE) {

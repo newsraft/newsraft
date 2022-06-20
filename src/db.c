@@ -53,11 +53,12 @@ db_init(void)
 			"pictures TEXT,"
 			"publication_date INTEGER(8) NOT NULL DEFAULT 0,"
 			"update_date INTEGER(8) NOT NULL DEFAULT 0,"
-			"unread INTEGER(1) NOT NULL DEFAULT 0"
+			"unread INTEGER(1) NOT NULL DEFAULT 0,"
+			"important INTEGER(1) NOT NULL DEFAULT 0"
 		");"
-		"CREATE INDEX IF NOT EXISTS idx_feed_items ON items(feed_url);"
-		"CREATE INDEX IF NOT EXISTS idx_feed_items_guid ON items(feed_url, guid);"
-		"CREATE INDEX IF NOT EXISTS idx_feed_items_unread ON items(feed_url, unread);",
+		"CREATE INDEX IF NOT EXISTS idx_items ON items(feed_url);"
+		"CREATE INDEX IF NOT EXISTS idx_items_guid ON items(feed_url, guid);"
+		"CREATE INDEX IF NOT EXISTS idx_items_unread_important ON items(feed_url, unread, important);",
 		NULL,
 		NULL,
 		&errmsg

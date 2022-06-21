@@ -21,7 +21,7 @@ static const struct input_entry_match entries[] = {
 	{"mark-read-all",       INPUT_MARK_READ_ALL      },
 	{"mark-unread",         INPUT_MARK_UNREAD        },
 	{"mark-unread-all",     INPUT_MARK_UNREAD_ALL    },
-	{"overview-menu",       INPUT_OVERVIEW_MENU      },
+	{"explore-menu",        INPUT_EXPLORE_MENU       },
 	{"status-history-menu", INPUT_STATUS_HISTORY_MENU},
 	{"open-in-browser",     INPUT_OPEN_IN_BROWSER    },
 	{"copy-to-clipboard",   INPUT_COPY_TO_CLIPBOARD  },

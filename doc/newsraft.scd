@@ -183,7 +183,7 @@ _menu-feed-entry-format_ (default: *%4.0u │ %t*)
 _menu-item-entry-format_ (default: *" %u │ %d │ %t"*)
 	TODO
 
-_menu-overview-item-entry-format_ (default: *" %u │ %d │ %-28.28f │ %t"*)
+_menu-explore-item-entry-format_ (default: *" %u │ %d │ %-28.28f │ %t"*)
 	TODO
 
 _mark-item-read-on-hover_ (default: *false*)
@@ -318,7 +318,7 @@ _mark-unread_ (default: *D*)
 
 _mark-unread-all_ (default: not set)
 
-_overview-menu_ (default: *e*)
+_explore-menu_ (default: *e*)
 
 _status-history-menu_ (default: *p*)
 

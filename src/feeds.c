@@ -236,8 +236,8 @@ enter_feeds_menu_loop(struct feed_line **new_feeds, size_t new_feeds_count)
 			} else if (cmd == INPUT_QUIT_HARD) {
 				break;
 			}
-		} else if (cmd == INPUT_OVERVIEW_MENU) {
-			cmd = enter_items_menu_loop(feeds, feeds_count, CFG_MENU_OVERVIEW_ITEM_ENTRY_FORMAT);
+		} else if (cmd == INPUT_EXPLORE_MENU) {
+			cmd = enter_items_menu_loop(feeds, feeds_count, CFG_MENU_EXPLORE_ITEM_ENTRY_FORMAT);
 			if (cmd == INPUT_QUIT_SOFT) {
 				redraw_menu_list(&feeds_menu);
 			} else if (cmd == INPUT_QUIT_HARD) {

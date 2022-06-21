@@ -1,9 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <dirent.h>
+#include <dirent.h> // opendir
 #include <string.h>
-#include <limits.h>
-#include <sys/stat.h>
+#include <limits.h> // PATH_MAX
+#include <sys/stat.h> // mkdir
 #include "newsraft.h"
 
 // Note to the future.

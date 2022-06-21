@@ -90,17 +90,6 @@ mark_all_items_unread(struct feed_line **feeds, size_t feeds_count, struct menu_
 	}
 }
 
-static inline void
-initialize_menu_list_settings(struct menu_list_settings *menu)
-{
-	menu->entries_count = items->count;
-	menu->view_sel = 0;
-	menu->view_min = 0;
-	menu->view_max = list_menu_height - 1;
-	menu->write_action = &write_item_entry;
-	menu->paint_action = &paint_item_entry;
-}
-
 input_cmd_id
 enter_items_menu_loop(struct feed_line **feeds, size_t feeds_count, int format)
 {
@@ -111,8 +100,9 @@ enter_items_menu_loop(struct feed_line **feeds, size_t feeds_count, int format)
 	}
 
 	entry_format = format;
-
-	initialize_menu_list_settings(&items_menu);
+	items_menu.write_action = &write_item_entry;
+	items_menu.paint_action = &paint_item_entry;
+	reset_menu_list_settings(&items_menu, items->count);
 
 	status_clean();
 	redraw_menu_list(&items_menu);

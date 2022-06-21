@@ -2,7 +2,7 @@
 #include <string.h>
 #include "newsraft.h"
 
-struct string_deserialize_stream {
+struct deserialize_stream {
 	struct string *entry;
 	char delimiter;
 	const char *prev_delimiter_pos;
@@ -95,10 +95,10 @@ cat_caret_to_serialization(struct string **target)
 	return catcs(*target, '^');
 }
 
-struct string_deserialize_stream *
-open_string_deserialize_stream(const char *serialized_data)
+struct deserialize_stream *
+open_deserialize_stream(const char *serialized_data)
 {
-	struct string_deserialize_stream *stream = malloc(sizeof(struct string_deserialize_stream));
+	struct deserialize_stream *stream = malloc(sizeof(struct deserialize_stream));
 	if (stream == NULL) {
 		return NULL;
 	}
@@ -119,7 +119,7 @@ open_string_deserialize_stream(const char *serialized_data)
 }
 
 const struct string *
-get_next_entry_from_deserialize_stream(struct string_deserialize_stream *stream)
+get_next_entry_from_deserialize_stream(struct deserialize_stream *stream)
 {
 	if ((stream->delimiter_pos == NULL) && (stream->prev_delimiter_pos == NULL)) {
 		return NULL;
@@ -140,7 +140,7 @@ get_next_entry_from_deserialize_stream(struct string_deserialize_stream *stream)
 }
 
 void
-close_string_deserialize_stream(struct string_deserialize_stream *stream)
+close_deserialize_stream(struct deserialize_stream *stream)
 {
 	if (stream != NULL) {
 		free_string(stream->entry);

@@ -127,7 +127,7 @@ deserialize_persons_string(const char *src, const char *person_type)
 {
 	struct string *result = crtes();
 	struct person *person = create_person();
-	struct string_deserialize_stream *stream = open_string_deserialize_stream(src);
+	struct deserialize_stream *stream = open_deserialize_stream(src);
 	if ((person == NULL) || (result == NULL) || (stream == NULL)) {
 		goto error;
 	}
@@ -162,11 +162,11 @@ deserialize_persons_string(const char *src, const char *person_type)
 	if (write_person_to_result(result, person) == false) {
 		goto error;
 	}
-	close_string_deserialize_stream(stream);
+	close_deserialize_stream(stream);
 	free_person(person);
 	return result;
 error:
-	close_string_deserialize_stream(stream);
+	close_deserialize_stream(stream);
 	free_person(person);
 	free_string(result);
 	return NULL;

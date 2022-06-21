@@ -106,7 +106,7 @@ append_attachments(struct link_list *links, sqlite3_stmt *res)
 	if (text == NULL) {
 		return true; // It is not an error because this item simply does not have attachments set.
 	}
-	struct string_deserialize_stream *s = open_string_deserialize_stream(text);
+	struct deserialize_stream *s = open_deserialize_stream(text);
 	if (s == NULL) {
 		return false;
 	}
@@ -136,11 +136,11 @@ append_attachments(struct link_list *links, sqlite3_stmt *res)
 		entry = get_next_entry_from_deserialize_stream(s);
 	}
 	add_another_link_to_trim_link_list(links, &another_link);
-	close_string_deserialize_stream(s);
+	close_deserialize_stream(s);
 	return true;
 error:
 	free_contents_of_link(&another_link);
-	close_string_deserialize_stream(s);
+	close_deserialize_stream(s);
 	return false;
 }
 

@@ -36,7 +36,7 @@ struct string_list {
 	struct string_list *next;
 };
 
-struct string_deserialize_stream;
+struct deserialize_stream;
 
 struct wstring {
 	wchar_t *ptr;
@@ -405,9 +405,9 @@ struct string *convert_seconds_to_human_readable_duration_string(const char *val
 bool cat_array_to_serialization(struct string **target, const char *key, size_t key_len, const char *value, size_t value_len);
 bool cat_string_to_serialization(struct string **target, const char *key, size_t key_len, struct string *value);
 bool cat_caret_to_serialization(struct string **target);
-struct string_deserialize_stream *open_string_deserialize_stream(const char *serialized_data);
-const struct string *get_next_entry_from_deserialize_stream(struct string_deserialize_stream *stream);
-void close_string_deserialize_stream(struct string_deserialize_stream *stream);
+struct deserialize_stream *open_deserialize_stream(const char *serialized_data);
+const struct string *get_next_entry_from_deserialize_stream(struct deserialize_stream *stream);
+void close_deserialize_stream(struct deserialize_stream *stream);
 
 // wstring
 struct wstring *wcrtas(const wchar_t *src_ptr, size_t src_len);
@@ -454,5 +454,4 @@ struct wstring *render_data(const struct render_block *first_block);
 extern FILE *log_stream;
 extern size_t list_menu_height;
 extern size_t list_menu_width;
-
 #endif // NEWSRAFT_H

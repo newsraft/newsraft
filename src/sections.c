@@ -277,6 +277,14 @@ enter_sections_menu_loop(void)
 			} else if (cmd == INPUT_QUIT_HARD) {
 				break;
 			}
+		} else if (cmd == INPUT_OVERVIEW_MENU) {
+			cmd = enter_items_menu_loop(sections[0].feeds, sections[0].feeds_count, CFG_MENU_OVERVIEW_ITEM_ENTRY_FORMAT);
+			if (cmd == INPUT_QUIT_SOFT) {
+				update_unread_count_of_sections();
+				redraw_menu_list(&sections_menu);
+			} else if (cmd == INPUT_QUIT_HARD) {
+				break;
+			}
 		} else if (cmd == INPUT_STATUS_HISTORY_MENU) {
 			cmd = enter_status_pager_view_loop();
 			if (cmd == INPUT_QUIT_SOFT) {

@@ -78,7 +78,7 @@ get_unread_items_count_of_the_feed(const struct string *url)
 	int64_t unread_count = -1;
 
 	sqlite3_stmt *res;
-	if (db_prepare("SELECT COUNT(*) FROM items WHERE feed_url=? AND unread=1;", 58, &res) == true) {
+	if (db_prepare("SELECT COUNT(*) FROM items WHERE feed_url=? AND unread=1", 57, &res) == true) {
 		sqlite3_bind_text(res, 1, url->ptr, url->len, NULL);
 		if (sqlite3_step(res) == SQLITE_ROW) {
 			unread_count = sqlite3_column_int64(res, 0);
@@ -90,7 +90,7 @@ get_unread_items_count_of_the_feed(const struct string *url)
 }
 
 static bool
-change_unread_status_of_all_items_in_feeds(const struct feed_line **feeds, size_t feeds_count, bool unread)
+change_unread_status_of_all_items_in_feeds(struct feed_line **feeds, size_t feeds_count, bool unread)
 {
 	if (feeds_count == 0) {
 		return true;
@@ -105,7 +105,7 @@ change_unread_status_of_all_items_in_feeds(const struct feed_line **feeds, size_
 			return false;
 		}
 	}
-	if (catas(query, ");", 2) == false) {
+	if (catcs(query, ')') == false) {
 		free_string(query);
 		return false;
 	}
@@ -129,13 +129,13 @@ change_unread_status_of_all_items_in_feeds(const struct feed_line **feeds, size_
 }
 
 bool
-db_mark_all_items_in_feeds_as_read(const struct feed_line **feeds, size_t feeds_count)
+db_mark_all_items_in_feeds_as_read(struct feed_line **feeds, size_t feeds_count)
 {
 	return change_unread_status_of_all_items_in_feeds(feeds, feeds_count, false);
 }
 
 bool
-db_mark_all_items_in_feeds_as_unread(const struct feed_line **feeds, size_t feeds_count)
+db_mark_all_items_in_feeds_as_unread(struct feed_line **feeds, size_t feeds_count)
 {
 	return change_unread_status_of_all_items_in_feeds(feeds, feeds_count, true);
 }

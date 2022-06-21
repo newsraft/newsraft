@@ -59,7 +59,7 @@ mark_item_unread(size_t index)
 }
 
 static void
-mark_all_items_read(const struct feed_line **feeds, size_t feeds_count, struct menu_list_settings *menu)
+mark_all_items_read(struct feed_line **feeds, size_t feeds_count, struct menu_list_settings *menu)
 {
 	if (db_mark_all_items_in_feeds_as_read(feeds, feeds_count) == false) {
 		return;
@@ -75,7 +75,7 @@ mark_all_items_read(const struct feed_line **feeds, size_t feeds_count, struct m
 }
 
 static void
-mark_all_items_unread(const struct feed_line **feeds, size_t feeds_count, struct menu_list_settings *menu)
+mark_all_items_unread(struct feed_line **feeds, size_t feeds_count, struct menu_list_settings *menu)
 {
 	if (db_mark_all_items_in_feeds_as_unread(feeds, feeds_count) == false) {
 		return;
@@ -102,7 +102,7 @@ initialize_menu_list_settings(struct menu_list_settings *menu)
 }
 
 input_cmd_id
-enter_items_menu_loop(const struct feed_line **feeds, size_t feeds_count, int format)
+enter_items_menu_loop(struct feed_line **feeds, size_t feeds_count, int format)
 {
 	items = generate_items_list(feeds, feeds_count, SORT_BY_TIME_DESC);
 	if (items == NULL) {
@@ -183,6 +183,16 @@ enter_items_menu_loop(const struct feed_line **feeds, size_t feeds_count, int fo
 	}
 
 	free_items_list(items);
+
+	int64_t new_unread_count;
+	for (size_t i = 0; i < feeds_count; ++i) {
+		new_unread_count = get_unread_items_count_of_the_feed(feeds[i]->link);
+		if (new_unread_count >= 0) {
+			feeds[i]->unread_count = new_unread_count;
+		}
+	}
+
+	status_clean();
 
 	return cmd;
 }

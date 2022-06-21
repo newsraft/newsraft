@@ -67,7 +67,7 @@ free_items_list(struct items_list *items)
 }
 
 static inline const struct string *
-find_feed_name_for_given_feed(const struct feed_line **feeds, size_t feeds_count, const char *feed_url)
+find_feed_name_for_given_feed(struct feed_line **feeds, size_t feeds_count, const char *feed_url)
 {
 	for (size_t i = 0; i < feeds_count; ++i) {
 		if (strcmp(feed_url, feeds[i]->link->ptr) == 0) {
@@ -78,7 +78,7 @@ find_feed_name_for_given_feed(const struct feed_line **feeds, size_t feeds_count
 }
 
 struct items_list *
-generate_items_list(const struct feed_line **feeds, size_t feeds_count, enum sorting_order order)
+generate_items_list(struct feed_line **feeds, size_t feeds_count, enum sorting_order order)
 {
 	INFO("Generating items list.");
 	if (feeds_count == 0) {

@@ -272,9 +272,9 @@ void list_menu_select_last(struct menu_list_settings *s);
 const wchar_t *do_format(int format_setting, const struct format_arg *args, size_t args_count);
 
 // items
-struct items_list *generate_items_list(const struct feed_line **feeds, size_t feeds_count, enum sorting_order order);
+struct items_list *generate_items_list(struct feed_line **feeds, size_t feeds_count, enum sorting_order order);
 void free_items_list(struct items_list *items);
-input_cmd_id enter_items_menu_loop(const struct feed_line **feeds, size_t feeds_count, int format);
+input_cmd_id enter_items_menu_loop(struct feed_line **feeds, size_t feeds_count, int format);
 
 // Functions responsible for managing render blocks.
 // Render block is a piece of text in a single format. They are stored as linked
@@ -330,8 +330,8 @@ sqlite3_stmt *db_find_item_by_rowid(int rowid);
 bool db_mark_item_read(int64_t rowid);
 bool db_mark_item_unread(int64_t rowid);
 int64_t get_unread_items_count_of_the_feed(const struct string *url);
-bool db_mark_all_items_in_feeds_as_read(const struct feed_line **feeds, size_t feeds_count);
-bool db_mark_all_items_in_feeds_as_unread(const struct feed_line **feeds, size_t feeds_count);
+bool db_mark_all_items_in_feeds_as_read(struct feed_line **feeds, size_t feeds_count);
+bool db_mark_all_items_in_feeds_as_unread(struct feed_line **feeds, size_t feeds_count);
 
 // interface
 bool curses_init(void);

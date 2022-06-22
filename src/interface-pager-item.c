@@ -80,9 +80,9 @@ custom_input_handler(void *data, input_cmd_id cmd, uint32_t count)
 }
 
 int
-enter_item_pager_view_loop(int rowid)
+enter_item_pager_view_loop(int64_t rowid)
 {
-	INFO("Trying to view an item with rowid %d...", rowid);
+	INFO("Trying to view an item with rowid %" PRId64 "...", rowid);
 	sqlite3_stmt *res = db_find_item_by_rowid(rowid);
 	if (res == NULL) {
 		return INPUTS_COUNT;

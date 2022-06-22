@@ -90,8 +90,8 @@ generate_items_list(struct feed_line **feeds, size_t feeds_count, enum sorting_o
 		fail_status("Can't generate search query string!");
 		goto undo0;
 	}
-	sqlite3_stmt *res;
-	if (db_prepare(query->ptr, query->len + 1, &res) == false) {
+	sqlite3_stmt *res = db_prepare(query->ptr, query->len + 1);
+	if (res == NULL) {
 		fail_status("Can't prepare search query for action!");
 		goto undo1;
 	}

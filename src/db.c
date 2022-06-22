@@ -154,18 +154,19 @@ db_stop(void)
 	sqlite3_close(db);
 }
 
-bool
-db_prepare(const char *zSql, int nByte, sqlite3_stmt **ppStmt)
+sqlite3_stmt *
+db_prepare(const char *zSql, int nByte)
 {
+	sqlite3_stmt *pStmt;
 	// Last argument to sqlite3_prepare_v2 is pointer to unused portion of zSql
 	// (sqlite3_prepare_v2 will prepare only first statement). But given that we
 	// always pass one statement to the function, this parameter is useless.
-	INFO("Preparing \"%s\" statement...", zSql);
-	if (sqlite3_prepare_v2(db, zSql, nByte, ppStmt, NULL) != SQLITE_OK) {
+	if (sqlite3_prepare_v2(db, zSql, nByte, &pStmt, NULL) != SQLITE_OK) {
 		FAIL("Failed to prepare \"%s\" statement: %s", zSql, sqlite3_errmsg(db));
-		return false;
+		return NULL;
 	}
-	return true;
+	INFO("Prepared \"%s\" statement.", zSql);
+	return pStmt;
 }
 
 const char *
@@ -226,16 +227,12 @@ error:
 int64_t
 db_get_date_from_feeds_table(const struct string *url, const char *column, size_t column_len)
 {
-	struct string *query = crtas("SELECT ", 7);
-	if (query == NULL) {
-		FAIL("Not enough memory for query string to get date from feeds table!");
-		return -1;
-	}
-	catas(query, column, column_len);
-	catas(query, " FROM feeds WHERE feed_url=?;", 29);
-	sqlite3_stmt *res;
-	if (db_prepare(query->ptr, query->len + 1, &res) == false) {
-		free_string(query);
+	char query[100]; // Longest column name (25) + rest of query (36) + terminator (1) = 100 x)
+	memcpy(query, "SELECT ", 7);
+	memcpy(query + 7, column, column_len);
+	memcpy(query + 7 + column_len, " FROM feeds WHERE feed_url=?", 29);
+	sqlite3_stmt *res = db_prepare(query, 7 + column_len + 29);
+	if (res == NULL) {
 		return -1;
 	}
 	sqlite3_bind_text(res, 1, url->ptr, url->len, NULL);
@@ -243,11 +240,9 @@ db_get_date_from_feeds_table(const struct string *url, const char *column, size_
 	if (sqlite3_step(res) == SQLITE_ROW) {
 		date = sqlite3_column_int64(res, 0);
 	} else {
-		// This is probably the first reloading of the feed.
-		date = 0;
+		date = 0; // This is the first reloading of the feed.
 	}
 	sqlite3_finalize(res);
-	free_string(query);
 	return date;
 }
 
@@ -259,15 +254,12 @@ db_get_string_from_feed_table(const struct string *url, const char *column, size
 		FAIL("Not enough memory for string from feed table!");
 		return NULL;
 	}
-	struct string *query = crtas("SELECT ", 7);
-	if (query == NULL) {
-		free_string(str);
-		return NULL;
-	}
-	catas(query, column, column_len);
-	catas(query, " FROM feeds WHERE feed_url=?;", 29);
-	sqlite3_stmt *res;
-	if (db_prepare(query->ptr, query->len + 1, &res) == true) {
+	char query[100];
+	memcpy(query, "SELECT ", 7);
+	memcpy(query + 7, column, column_len);
+	memcpy(query + 7 + column_len, " FROM feeds WHERE feed_url=?", 29);
+	sqlite3_stmt *res = db_prepare(query, 7 + column_len + 29);
+	if (res != NULL) {
 		sqlite3_bind_text(res, 1, url->ptr, url->len, NULL);
 		if (sqlite3_step(res) == SQLITE_ROW) {
 			const char *str_value = (char *)sqlite3_column_text(res, 0);
@@ -277,6 +269,5 @@ db_get_string_from_feed_table(const struct string *url, const char *column, size
 		}
 		sqlite3_finalize(res);
 	}
-	free_string(query);
 	return str;
 }

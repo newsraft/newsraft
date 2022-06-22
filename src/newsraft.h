@@ -297,7 +297,7 @@ void free_trim_link_list(const struct link_list *links);
 
 // pager
 int pager_view(const struct render_block *first_block, bool (*custom_input_handler)(void *data, input_cmd_id cmd, uint32_t count), void *data);
-int enter_item_pager_view_loop(int rowid);
+int enter_item_pager_view_loop(int64_t rowid);
 int enter_status_pager_view_loop(void);
 
 // path
@@ -315,7 +315,7 @@ struct string *get_http_date_str(time_t date);
 // db
 bool db_init(void);
 void db_stop(void);
-bool db_prepare(const char *zSql, int nByte, sqlite3_stmt **ppStmt);
+sqlite3_stmt *db_prepare(const char *zSql, int nByte);
 bool db_begin_transaction(void);
 bool db_commit_transaction(void);
 bool db_rollback_transaction(void);
@@ -326,7 +326,7 @@ int64_t db_get_date_from_feeds_table(const struct string *url, const char *colum
 struct string *db_get_string_from_feed_table(const struct string *url, const char *column, size_t column_len);
 
 // db-items.c
-sqlite3_stmt *db_find_item_by_rowid(int rowid);
+sqlite3_stmt *db_find_item_by_rowid(int64_t rowid);
 bool db_mark_item_read(int64_t rowid);
 bool db_mark_item_unread(int64_t rowid);
 int64_t get_unread_items_count_of_the_feed(const struct string *url);

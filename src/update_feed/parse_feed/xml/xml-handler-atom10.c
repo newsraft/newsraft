@@ -99,32 +99,13 @@ link_start(struct stream_callback_data *data, const XML_Char **attrs)
 }
 
 static int8_t
-summary_start(struct stream_callback_data *data, const XML_Char **attrs)
-{
-	if (data->path[data->depth] == ATOM10_ENTRY) {
-		if (copy_type_of_text_construct(&data->feed.item->summary.type, attrs) == false) {
-			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-		}
-	}
-	return PARSE_OKAY;
-}
-
-static int8_t
-summary_end(struct stream_callback_data *data)
-{
-	if (data->path[data->depth] == ATOM10_ENTRY) {
-		if (crtss_or_cpyss(&data->feed.item->summary.value, data->text) == false) {
-			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-		}
-	}
-	return PARSE_OKAY;
-}
-
-static int8_t
 content_start(struct stream_callback_data *data, const XML_Char **attrs)
 {
 	if (data->path[data->depth] == ATOM10_ENTRY) {
-		if (copy_type_of_text_construct(&data->feed.item->content.type, attrs) == false) {
+		if (cat_caret_to_serialization(&data->feed.item->content) == false) {
+			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		}
+		if (serialize_attribute(&data->feed.item->content, attrs, "type", "type", 4) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	}
@@ -135,7 +116,7 @@ static int8_t
 content_end(struct stream_callback_data *data)
 {
 	if (data->path[data->depth] == ATOM10_ENTRY) {
-		if (crtss_or_cpyss(&data->feed.item->content.value, data->text) == false) {
+		if (cat_string_to_serialization(&data->feed.item->content, "text", 4, data->text) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	}
@@ -295,7 +276,10 @@ static int8_t
 subtitle_start(struct stream_callback_data *data, const XML_Char **attrs)
 {
 	if (data->path[data->depth] == ATOM10_FEED) {
-		if (copy_type_of_text_construct(&data->feed.summary.type, attrs) == false) {
+		if (cat_caret_to_serialization(&data->feed.content) == false) {
+			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		}
+		if (serialize_attribute(&data->feed.content, attrs, "type", "type", 4) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	}
@@ -306,7 +290,7 @@ static int8_t
 subtitle_end(struct stream_callback_data *data)
 {
 	if (data->path[data->depth] == ATOM10_FEED) {
-		if (crtss_or_cpyss(&data->feed.summary.value, data->text) == false) {
+		if (cat_string_to_serialization(&data->feed.content, "text", 4, data->text) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	}
@@ -318,7 +302,7 @@ const struct xml_element_handler xml_atom10_handlers[] = {
 	{"id",          ATOM10_ID,        NULL,               &id_end},
 	{"title",       ATOM10_TITLE,     &title_start,       &title_end},
 	{"link",        XML_UNKNOWN_POS,  &link_start,        NULL},
-	{"summary",     ATOM10_SUMMARY,   &summary_start,     &summary_end},
+	{"summary",     ATOM10_SUMMARY,   &content_start,     &content_end},
 	{"content",     ATOM10_CONTENT,   &content_start,     &content_end},
 	{"published",   ATOM10_PUBLISHED, NULL,               &published_end},
 	{"updated",     ATOM10_UPDATED,   NULL,               &updated_end},

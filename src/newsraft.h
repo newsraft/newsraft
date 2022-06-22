@@ -189,7 +189,7 @@ enum feed_column {
 	FEED_COLUMN_FEED_URL,
 	FEED_COLUMN_TITLE,
 	FEED_COLUMN_LINK,
-	FEED_COLUMN_SUMMARY,
+	FEED_COLUMN_CONTENT,
 	FEED_COLUMN_PERSONS,
 	FEED_COLUMN_CATEGORIES,
 	FEED_COLUMN_LOCATIONS,
@@ -209,7 +209,6 @@ enum item_column {
 	ITEM_COLUMN_GUID,
 	ITEM_COLUMN_TITLE,
 	ITEM_COLUMN_LINK,
-	ITEM_COLUMN_SUMMARY,
 	ITEM_COLUMN_CONTENT,
 	ITEM_COLUMN_ATTACHMENTS,
 	ITEM_COLUMN_PERSONS,
@@ -284,8 +283,11 @@ input_cmd_id enter_items_menu_loop(struct feed_line **feeds, size_t feeds_count,
 bool join_render_block(struct render_block **list, const char *content, size_t content_len, const char *content_type, size_t content_type_len);
 void reverse_render_blocks(struct render_block **list);
 bool join_render_separator(struct render_block **list);
-bool join_render_blocks_of_item_data(struct render_block **data_list, sqlite3_stmt *res);
 void free_render_blocks(struct render_block *first_block);
+
+bool get_largest_piece_from_item_content(const char *content, struct string *text, struct string *type);
+bool get_largest_piece_from_item_attachments(const char *attachments, struct string *text, struct string *type);
+bool join_render_blocks_of_item_data(struct render_block **data_list, sqlite3_stmt *res);
 
 // contents
 struct string *deserialize_persons_string(const char *src, const char *person_type);

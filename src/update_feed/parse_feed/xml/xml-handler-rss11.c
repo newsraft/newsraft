@@ -1,11 +1,5 @@
 #include "update_feed/parse_feed/xml/parse_xml_feed.h"
 
-// Some useful notes:
-//
-// All of these formats do support image attachments with the <image> tag
-// but the flaw is that you can't include image elements in items.
-// They are only for channel overall...
-//
 // https://web.archive.org/web/20210411040907/http://inamidst.com/rss1.1/
 
 static int8_t
@@ -57,20 +51,19 @@ link_end(struct stream_callback_data *data)
 static int8_t
 description_end(struct stream_callback_data *data)
 {
+	// Specification explicitly says that this is a plain text.
 	if (data->path[data->depth] == RSS11_ITEM) {
-		if (crtss_or_cpyss(&data->feed.item->content.value, data->text) == false) {
+		if (cat_caret_to_serialization(&data->feed.item->content) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
-		// Specification explicitly says that this is plain text.
-		if (crtas_or_cpyas(&data->feed.item->content.type, "text/plain", 10) == false) {
+		if (cat_string_to_serialization(&data->feed.item->content, "text", 4, data->text) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	} else if (data->path[data->depth] == RSS11_CHANNEL) {
-		if (crtss_or_cpyss(&data->feed.summary.value, data->text) == false) {
+		if (cat_caret_to_serialization(&data->feed.content) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
-		// Specification explicitly says that this is plain text.
-		if (crtas_or_cpyas(&data->feed.summary.type, "text/plain", 10) == false) {
+		if (cat_string_to_serialization(&data->feed.content, "text", 4, data->text) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	}

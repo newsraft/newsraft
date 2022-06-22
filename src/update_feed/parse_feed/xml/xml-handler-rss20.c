@@ -65,17 +65,23 @@ static int8_t
 description_end(struct stream_callback_data *data)
 {
 	if (data->path[data->depth] == RSS20_ITEM) {
-		if (crtss_or_cpyss(&data->feed.item->content.value, data->text) == false) {
+		if (cat_caret_to_serialization(&data->feed.item->content) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
-		if (crtas_or_cpyas(&data->feed.item->content.type, "text/html", 9) == false) {
+		if (cat_array_to_serialization(&data->feed.item->content, "type", 4, "text/html", 9) == false) {
+			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		}
+		if (cat_string_to_serialization(&data->feed.item->content, "text", 4, data->text) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	} else if (data->path[data->depth] == RSS20_CHANNEL) {
-		if (crtss_or_cpyss(&data->feed.summary.value, data->text) == false) {
+		if (cat_caret_to_serialization(&data->feed.content) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
-		if (crtas_or_cpyas(&data->feed.summary.type, "text/html", 9) == false) {
+		if (cat_array_to_serialization(&data->feed.content, "type", 4, "text/html", 9) == false) {
+			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		}
+		if (cat_string_to_serialization(&data->feed.content, "text", 4, data->text) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	}

@@ -76,47 +76,43 @@ static bool
 append_max_content(struct render_block **list, sqlite3_stmt *res, const struct data_entry *entry)
 {
 	(void)entry;
-	const char *summary = (char *)sqlite3_column_text(res, ITEM_COLUMN_SUMMARY);
-	size_t summary_len;
-	if (summary == NULL) {
-		summary_len = 0;
-	} else {
-		summary_len = strlen(summary);
-	}
 	const char *content = (char *)sqlite3_column_text(res, ITEM_COLUMN_CONTENT);
-	size_t content_len;
-	if (content == NULL) {
-		content_len = 0;
-	} else {
-		content_len = strlen(content);
+	struct string *text = crtes();
+	if (text == NULL) {
+		goto undo0;
 	}
-	if (summary_len > content_len) {
-		content = summary;
-		content_len = summary_len;
+	struct string *type = crtas("text/plain", 10);
+	if (type == NULL) {
+		goto undo1;
 	}
-	if ((content == NULL) || (content_len == 0)) {
-		return true;
+	if (get_largest_piece_from_item_content(content, text, type) == false) {
+		goto undo2;
 	}
-	const char *type_separator = strchr(content, ';');
-	if (type_separator == NULL) {
-		return false;
+	if (text->len == 0) {
+		// There were no texts in the content, let's try to search in
+		// the descriptions for item's attachments.
+		const char *attachments = (char *)sqlite3_column_text(res, ITEM_COLUMN_ATTACHMENTS);
+		if (get_largest_piece_from_item_attachments(attachments, text, type) == false) {
+			goto undo2;
+		}
 	}
-	const size_t type_len = type_separator - content;
-	if (type_len > MIME_TYPE_LENGTH_LIMIT) {
-		return false;
+	if (text->len != 0) {
+		if (join_render_separator(list) == false) {
+			goto undo2;
+		}
+		if (join_render_block(list, text->ptr, text->len, type->ptr, type->len) == false) {
+			goto undo2;
+		}
 	}
-	const char *real_content = content + (type_len + 1);
-	const size_t real_content_len = content_len - (type_len + 1);
-	char type[MIME_TYPE_LENGTH_LIMIT + 1];
-	memcpy(type, content, type_len);
-	type[type_len] = '\0';
-	if (join_render_separator(list) == false) {
-		return false;
-	}
-	if (join_render_block(list, real_content, real_content_len, type, type_len) == false) {
-		return false;
-	}
+	free_string(text);
+	free_string(type);
 	return true;
+undo2:
+	free_string(type);
+undo1:
+	free_string(text);
+undo0:
+	return false;
 }
 
 
@@ -208,8 +204,6 @@ static const struct data_entry entries[] = {
 	{"authors",      "Authors: ",       9, 0,                            PERSON_AUTHOR,                 &append_persons},
 	{"contributors", "Contributors: ", 14, 0,                            PERSON_CONTRIBUTOR,            &append_persons},
 	{"editors",      "Editors: ",       9, 0,                            PERSON_EDITOR,                 &append_persons},
-	{"summary",      NULL,              0, ITEM_COLUMN_SUMMARY,          TYPE_HEADER|PREPEND_SEPARATOR, &append_text},
-	{"content",      NULL,              0, ITEM_COLUMN_CONTENT,          TYPE_HEADER|PREPEND_SEPARATOR, &append_text},
 	{"max-content",  NULL,              0, 0,                            0,                             &append_max_content},
 	{NULL,           NULL,              0, 0,                            0,                             NULL},
 };

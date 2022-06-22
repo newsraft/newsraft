@@ -21,8 +21,7 @@ struct getfeed_item {
 	struct string *guid;
 	struct getfeed_text title;
 	struct string *url;
-	struct getfeed_text summary;
-	struct getfeed_text content;
+	struct string *content;
 	struct string *attachments;
 	struct string *persons;
 	struct string *categories;
@@ -36,7 +35,7 @@ struct getfeed_item {
 struct getfeed_feed {
 	struct getfeed_text title;
 	struct string *url;
-	struct getfeed_text summary;
+	struct string *content;
 	struct string *persons;
 	struct string *categories;
 	struct string *locations;

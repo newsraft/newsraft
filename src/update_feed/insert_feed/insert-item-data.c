@@ -43,9 +43,9 @@ db_insert_item(const struct string *feed_url, struct getfeed_item *item, int64_t
 	sqlite3_stmt *s;
 
 	if (rowid == -1) {
-		s = db_prepare("INSERT INTO items(feed_url,guid,title,link,summary,content,attachments,persons,categories,locations,pictures,publication_date,update_date,unread) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)", 182);
+		s = db_prepare("INSERT INTO items(feed_url,guid,title,link,content,attachments,persons,categories,locations,pictures,publication_date,update_date,unread) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)", 172);
 	} else {
-		s = db_prepare("UPDATE items SET feed_url=?,guid=?,title=?,link=?,summary=?,content=?,attachments=?,persons=?,categories=?,locations=?,pictures=?,publication_date=?,update_date=?,unread=? WHERE rowid=?", 186);
+		s = db_prepare("UPDATE items SET feed_url=?,guid=?,title=?,link=?,content=?,attachments=?,persons=?,categories=?,locations=?,pictures=?,publication_date=?,update_date=?,unread=? WHERE rowid=?", 176);
 	}
 	if (s == NULL) {
 		FAIL("Failed to prepare item insertion/update statement!");
@@ -56,8 +56,7 @@ db_insert_item(const struct string *feed_url, struct getfeed_item *item, int64_t
 	db_bind_string(s,      1 + ITEM_COLUMN_GUID,             item->guid);
 	db_bind_text_struct(s, 1 + ITEM_COLUMN_TITLE,            &item->title);
 	db_bind_string(s,      1 + ITEM_COLUMN_LINK,             item->url);
-	db_bind_text_struct(s, 1 + ITEM_COLUMN_SUMMARY,          &item->summary);
-	db_bind_text_struct(s, 1 + ITEM_COLUMN_CONTENT,          &item->content);
+	db_bind_string(s,      1 + ITEM_COLUMN_CONTENT,          item->content);
 	db_bind_string(s,      1 + ITEM_COLUMN_ATTACHMENTS,      item->attachments);
 	db_bind_string(s,      1 + ITEM_COLUMN_PERSONS,          item->persons);
 	db_bind_string(s,      1 + ITEM_COLUMN_CATEGORIES,       item->categories);
@@ -99,18 +98,8 @@ insert_item_data(const struct string *feed_url, struct getfeed_item *item)
 			if (crtss_or_cpyss(&item->guid, item->title.value) == false) {
 				return false;
 			}
-		} else if ((item->summary.value != NULL) && (item->summary.value->len != 0)) {
-			hash = fnv_1a_string(item->summary.value->ptr);
-			if (hash == NULL) {
-				return false;
-			}
-			if (crtss_or_cpyss(&item->guid, hash) == false) {
-				free_string(hash);
-				return false;
-			}
-			free_string(hash);
-		} else if ((item->content.value != NULL) && (item->content.value->len != 0)) {
-			hash = fnv_1a_string(item->content.value->ptr);
+		} else if ((item->content != NULL) && (item->content->len != 0)) {
+			hash = fnv_1a_string(item->content->ptr);
 			if (hash == NULL) {
 				return false;
 			}
@@ -127,7 +116,7 @@ insert_item_data(const struct string *feed_url, struct getfeed_item *item)
 
 	// Before trying to write some item to the database we have to check if this
 	// item is duplicate or not.
-	sqlite3_stmt *s = db_prepare("SELECT rowid,summary,content FROM items WHERE feed_url=? AND guid=? LIMIT 1", 76);
+	sqlite3_stmt *s = db_prepare("SELECT rowid,content FROM items WHERE feed_url=? AND guid=? LIMIT 1", 68);
 	if (s == NULL) {
 		FAIL("Failed to prepare SELECT statement for searching item duplicate by guid!");
 		return false;
@@ -137,29 +126,10 @@ insert_item_data(const struct string *feed_url, struct getfeed_item *item)
 
 	int64_t item_rowid;
 	if (sqlite3_step(s) == SQLITE_ROW) {
-		const char *typesep;
-		const char *summary = (const char *)sqlite3_column_text(s, 1);
-		const char *content = (const char *)sqlite3_column_text(s, 2);
-		if (summary != NULL) {
-			typesep = strchr(summary, ';');
-			if (typesep != NULL) {
-				summary = typesep + 1;
-			}
-		}
-		if (content != NULL) {
-			typesep = strchr(content, ';');
-			if (typesep != NULL) {
-				content = typesep + 1;
-			}
-		}
-		// Fast explanation: item's summary and content are equal to
-		// summary and content of the entry in the database.
-		if ((((content == NULL) && (item->content.value == NULL))
-				|| ((content != NULL) && (item->content.value != NULL)
-					&& (strcmp(content, item->content.value->ptr) == 0)))
-			&& (((summary == NULL) && (item->summary.value == NULL))
-				|| ((summary != NULL) && (item->summary.value != NULL)
-					&& (strcmp(summary, item->summary.value->ptr) == 0))))
+		const char *content = (char *)sqlite3_column_text(s, 2);
+		if (((content == NULL) && (item->content == NULL))
+			|| ((content != NULL) && (item->content != NULL)
+				&& (strcmp(content, item->content->ptr) == 0)))
 		{
 			sqlite3_finalize(s);
 			return true;

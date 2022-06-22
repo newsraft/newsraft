@@ -10,7 +10,7 @@ insert_feed_data(const struct string *feed_url, struct getfeed_feed *feed)
 	db_bind_string(s,      1 + FEED_COLUMN_FEED_URL,                  feed_url);
 	db_bind_text_struct(s, 1 + FEED_COLUMN_TITLE,                     &feed->title);
 	db_bind_string(s,      1 + FEED_COLUMN_LINK,                      feed->url);
-	db_bind_text_struct(s, 1 + FEED_COLUMN_SUMMARY,                   &feed->summary);
+	db_bind_string(s,      1 + FEED_COLUMN_CONTENT,                   feed->content);
 	db_bind_string(s,      1 + FEED_COLUMN_PERSONS,                   feed->persons);
 	db_bind_string(s,      1 + FEED_COLUMN_CATEGORIES,                feed->categories);
 	db_bind_string(s,      1 + FEED_COLUMN_LOCATIONS,                 feed->locations);

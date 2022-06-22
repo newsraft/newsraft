@@ -23,10 +23,7 @@ free_item(struct getfeed_item *item)
 		free_string(i->title.value);
 		free_string(i->title.type);
 		free_string(i->url);
-		free_string(i->summary.value);
-		free_string(i->summary.type);
-		free_string(i->content.value);
-		free_string(i->content.type);
+		free_string(i->content);
 		free_string(i->attachments);
 		free_string(i->persons);
 		free_string(i->categories);

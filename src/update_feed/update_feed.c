@@ -6,8 +6,7 @@ free_feed(struct getfeed_feed *feed)
 	free_string(feed->title.value);
 	free_string(feed->title.type);
 	free_string(feed->url);
-	free_string(feed->summary.value);
-	free_string(feed->summary.type);
+	free_string(feed->content);
 	free_string(feed->persons);
 	free_string(feed->categories);
 	free_string(feed->locations);

@@ -4,23 +4,16 @@
 // Useful links:
 // https://www.rssboard.org/media-rss
 
-static inline bool
-copy_type_of_mediarss_text(struct string **dest, const XML_Char **attrs)
+static int8_t
+group_start(struct stream_callback_data *data, const XML_Char **attrs)
 {
-	const char *type = get_value_of_attribute_key(attrs, "type");
-	if (type == NULL) {
-		return true; // Attribute is not set.
-	}
-	if (strcmp(type, "plain") == 0) {
-		if (crtas_or_cpyas(dest, "text/plain", 10) == false) {
-			return false;
-		}
-	} else if (strcmp(type, "html") == 0) {
-		if (crtas_or_cpyas(dest, "text/html", 9) == false) {
-			return false;
+	(void)attrs;
+	if (we_are_inside_item(data) == true) {
+		if (cat_caret_to_serialization(&data->feed.item->attachments) == false) {
+			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	}
-	return true; // Attribute doesn't meet the specification. Ignore it.
+	return PARSE_OKAY;
 }
 
 static int8_t
@@ -37,8 +30,10 @@ content_start(struct stream_callback_data *data, const XML_Char **attrs)
 	if (attr_len == 0) {
 		return PARSE_OKAY; // Ignore empty content entries.
 	}
-	if (cat_caret_to_serialization(&data->feed.item->attachments) == false) {
-		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+	if (data->path[data->depth] != MRSS_GROUP) {
+		if (cat_caret_to_serialization(&data->feed.item->attachments) == false) {
+			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		}
 	}
 	if (cat_array_to_serialization(&data->feed.item->attachments, "url", 3, attr, attr_len) == false) {
 		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
@@ -88,12 +83,15 @@ static int8_t
 description_start(struct stream_callback_data *data, const XML_Char **attrs)
 {
 	if (we_are_inside_item(data) == true) {
-		if ((data->feed.item->content.value == NULL) || (data->feed.item->content.value->len == 0)) {
-			if (copy_type_of_mediarss_text(&data->feed.item->content.type, attrs) == false) {
+		if (data->path[data->depth] == MRSS_GROUP) {
+			if (serialize_attribute(&data->feed.item->attachments, attrs, "type", "description_type", 16) == false) {
 				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			}
-		} else if ((data->feed.item->summary.value == NULL) || (data->feed.item->summary.value->len == 0)) {
-			if (copy_type_of_mediarss_text(&data->feed.item->summary.type, attrs) == false) {
+		} else {
+			if (cat_caret_to_serialization(&data->feed.item->content) == false) {
+				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+			}
+			if (serialize_attribute(&data->feed.item->content, attrs, "type", "type", 4) == false) {
 				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			}
 		}
@@ -105,12 +103,12 @@ static int8_t
 description_end(struct stream_callback_data *data)
 {
 	if (we_are_inside_item(data) == true) {
-		if ((data->feed.item->content.value == NULL) || (data->feed.item->content.value->len == 0)) {
-			if (crtss_or_cpyss(&data->feed.item->content.value, data->text) == false) {
+		if (data->path[data->depth] == MRSS_GROUP) {
+			if (cat_string_to_serialization(&data->feed.item->attachments, "description", 11, data->text) == false) {
 				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			}
-		} else if ((data->feed.item->summary.value == NULL) || (data->feed.item->summary.value->len == 0)) {
-			if (crtss_or_cpyss(&data->feed.item->summary.value, data->text) == false) {
+		} else {
+			if (cat_string_to_serialization(&data->feed.item->content, "text", 4, data->text) == false) {
 				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			}
 		}
@@ -122,5 +120,6 @@ const struct xml_element_handler xml_mediarss_handlers[] = {
 	{"content",     MRSS_CONTENT,     &content_start,     NULL},
 	{"thumbnail",   MRSS_THUMBNAIL,   &thumbnail_start,   NULL},
 	{"description", MRSS_DESCRIPTION, &description_start, &description_end},
+	{"group",       MRSS_GROUP,       &group_start,       NULL},
 	{NULL,          XML_UNKNOWN_POS,  NULL,               NULL},
 };

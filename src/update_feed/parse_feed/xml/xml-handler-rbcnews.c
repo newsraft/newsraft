@@ -4,14 +4,11 @@ static int8_t
 full_text_end(struct stream_callback_data *data)
 {
 	if (we_are_inside_item(data) == true) {
-		// Save content only if it's longer than the content we currently have.
-		if ((data->feed.item->content.value == NULL) || (data->text->len > data->feed.item->content.value->len)) {
-			if (crtss_or_cpyss(&data->feed.item->content.value, data->text) == false) {
-				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-			}
-			if (crtas_or_cpyas(&data->feed.item->content.type, "text/plain", 10) == false) {
-				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-			}
+		if (cat_caret_to_serialization(&data->feed.item->content) == false) {
+			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		}
+		if (cat_string_to_serialization(&data->feed.item->content, "text", 4, data->text) == false) {
+			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	}
 	return PARSE_OKAY;

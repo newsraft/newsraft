@@ -24,10 +24,10 @@ feed_string_handler(struct stream_callback_data *data, const char *val, size_t l
 			return false;
 		}
 	} else if (strcmp(data->text->ptr, "description") == 0) {
-		if (crtas_or_cpyas(&data->feed.summary.value, val, len) == false) {
+		if (cat_caret_to_serialization(&data->feed.content) == false) {
 			return false;
 		}
-		if (crtas_or_cpyas(&data->feed.summary.type, "text/plain", 10) == false) {
+		if (cat_array_to_serialization(&data->feed.content, "text", 4, val, len) == false) {
 			return false;
 		}
 	}
@@ -56,24 +56,27 @@ item_string_handler(struct stream_callback_data *data, const char *val, size_t l
 			return false;
 		}
 	} else if (strcmp(data->text->ptr, "content_html") == 0) {
-		if (crtas_or_cpyas(&data->feed.item->content.value, val, len) == false) {
+		if (cat_caret_to_serialization(&data->feed.item->content) == false) {
 			return false;
 		}
-		if (crtas_or_cpyas(&data->feed.item->content.type, "text/html", 9) == false) {
+		if (cat_array_to_serialization(&data->feed.item->content, "type", 4, "text/html", 9) == false) {
+			return false;
+		}
+		if (cat_array_to_serialization(&data->feed.item->content, "text", 4, val, len) == false) {
 			return false;
 		}
 	} else if (strcmp(data->text->ptr, "content_text") == 0) {
-		if (crtas_or_cpyas(&data->feed.item->content.value, val, len) == false) {
+		if (cat_caret_to_serialization(&data->feed.item->content) == false) {
 			return false;
 		}
-		if (crtas_or_cpyas(&data->feed.item->content.type, "text/plain", 10) == false) {
+		if (cat_array_to_serialization(&data->feed.item->content, "text", 4, val, len) == false) {
 			return false;
 		}
 	} else if (strcmp(data->text->ptr, "summary") == 0) {
-		if (crtas_or_cpyas(&data->feed.item->summary.value, val, len) == false) {
+		if (cat_caret_to_serialization(&data->feed.item->content) == false) {
 			return false;
 		}
-		if (crtas_or_cpyas(&data->feed.item->summary.type, "text/plain", 10) == false) {
+		if (cat_array_to_serialization(&data->feed.item->content, "text", 4, val, len) == false) {
 			return false;
 		}
 	} else if (strcmp(data->text->ptr, "date_published") == 0) {

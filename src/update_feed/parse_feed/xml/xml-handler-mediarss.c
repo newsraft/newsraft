@@ -64,16 +64,19 @@ thumbnail_start(struct stream_callback_data *data, const XML_Char **attrs)
 	if (attr_len == 0) {
 		return PARSE_OKAY; // Ignore empty thumbnail entries.
 	}
-	if (cat_caret_to_serialization(&data->feed.item->pictures) == false) {
+	if (cat_caret_to_serialization(&data->feed.item->attachments) == false) {
 		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 	}
-	if (cat_array_to_serialization(&data->feed.item->pictures, "url", 3, attr, attr_len) == false) {
+	if (cat_array_to_serialization(&data->feed.item->attachments, "content", 7, "thumbnail", 9) == false) {
 		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 	}
-	if (serialize_attribute(&data->feed.item->pictures, attrs, "width", "width", 5) == false) {
+	if (cat_array_to_serialization(&data->feed.item->attachments, "url", 3, attr, attr_len) == false) {
 		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 	}
-	if (serialize_attribute(&data->feed.item->pictures, attrs, "height", "height", 6) == false) {
+	if (serialize_attribute(&data->feed.item->attachments, attrs, "width", "width", 5) == false) {
+		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+	}
+	if (serialize_attribute(&data->feed.item->attachments, attrs, "height", "height", 6) == false) {
 		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 	}
 	return PARSE_OKAY;

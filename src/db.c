@@ -28,6 +28,7 @@ db_init(void)
 			"title TEXT,"
 			"link TEXT,"
 			"content TEXT,"
+			"attachments TEXT,"
 			"persons TEXT,"
 			"categories TEXT,"
 			"locations TEXT,"

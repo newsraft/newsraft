@@ -35,6 +35,7 @@ struct getfeed_feed {
 	struct getfeed_text title;
 	struct string *url;
 	struct string *content;
+	struct string *attachments;
 	struct string *persons;
 	struct string *categories;
 	struct string *locations;

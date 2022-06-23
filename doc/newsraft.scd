@@ -147,6 +147,9 @@ _proxy-auth_ (default: *""*)
 _global-section-name_ (default: *Global*)
 	Name of the section that contains all feeds.
 
+_empty-title-placeholder_ (default: *(untitled)*)
+	Text that is displayed in place of empty titles.
+
 _send-user-agent-header_ (default: *true*)
 	Attach user-agent header to download requests. See _user-agent_ setting.
 

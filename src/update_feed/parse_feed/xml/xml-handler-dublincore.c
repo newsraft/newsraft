@@ -4,20 +4,14 @@ static int8_t
 title_end(struct stream_callback_data *data)
 {
 	if (we_are_inside_item(data) == true) {
-		if ((data->feed.item->title.value == NULL) || (data->feed.item->title.value->len == 0)) {
-			if (crtss_or_cpyss(&data->feed.item->title.value, data->text) == false) {
-				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-			}
-			if (crtas_or_cpyas(&data->feed.item->title.type, "text/plain", 10) == false) {
+		if ((data->feed.item->title == NULL) || (data->feed.item->title->len == 0)) {
+			if (crtss_or_cpyss(&data->feed.item->title, data->text) == false) {
 				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			}
 		}
 	} else {
-		if ((data->feed.title.value == NULL) || (data->feed.title.value->len == 0)) {
-			if (crtss_or_cpyss(&data->feed.title.value, data->text) == false) {
-				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-			}
-			if (crtas_or_cpyas(&data->feed.title.type, "text/plain", 10) == false) {
+		if ((data->feed.title == NULL) || (data->feed.title->len == 0)) {
+			if (crtss_or_cpyss(&data->feed.title, data->text) == false) {
 				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			}
 		}

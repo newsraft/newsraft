@@ -196,7 +196,7 @@ append_persons(struct render_block **list, sqlite3_stmt *res, const struct data_
 // ATTENTION! Maximal length of meta data entry name has to be reflected in MAX_METADATA_ENTRY_NAME_LENGTH.
 static const struct data_entry entries[] = {
 	{"feed-url",     "Feed: ",          6, ITEM_COLUMN_FEED_URL,         NO_EXTRA_DATA,                 &append_text},
-	{"title",        "Title: ",         7, ITEM_COLUMN_TITLE,            TYPE_HEADER,                   &append_text},
+	{"title",        "Title: ",         7, ITEM_COLUMN_TITLE,            NO_EXTRA_DATA,                 &append_text},
 	/* {"categories",   "Categories: ",   12, ITEM_COLUMN_CATEGORIES,   false}, */
 	{"link",         "Link: ",          6, ITEM_COLUMN_LINK,             NO_EXTRA_DATA,                 &append_text},
 	{"published",    "Published: ",    11, ITEM_COLUMN_PUBLICATION_DATE, 0,                             &append_date},

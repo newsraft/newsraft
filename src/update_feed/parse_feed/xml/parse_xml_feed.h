@@ -90,7 +90,6 @@ struct xml_element_handler {
 // See "xml-common.c" file for implementation.
 bool we_are_inside_item(const struct stream_callback_data *data);
 const char *get_value_of_attribute_key(const XML_Char **attrs, const char *key);
-bool copy_type_of_text_construct(struct string **dest, const XML_Char **atts);
 bool serialize_attribute(struct string **dest, const XML_Char **attrs, const char *attr_key, const char *prefix, size_t prefix_len);
 int8_t generator_start(struct stream_callback_data *data, const XML_Char **attrs);
 int8_t generator_end(struct stream_callback_data *data);

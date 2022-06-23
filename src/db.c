@@ -183,45 +183,6 @@ db_bind_string(sqlite3_stmt *stmt, int pos, const struct string *str)
 	}
 }
 
-struct string *
-db_get_plain_text_from_column(sqlite3_stmt *res, int column)
-{
-	struct string *str = crtes();
-	if (str == NULL) {
-		return NULL;
-	}
-
-	const char *full_text = (const char *)sqlite3_column_text(res, column);
-	if (full_text == NULL) {
-		return str;
-	}
-
-	const size_t full_text_len = strlen(full_text);
-	if (full_text_len == 0) {
-		return str;
-	}
-
-	const char *type_separator = strchr(full_text, ';');
-	if (type_separator == NULL) {
-		FAIL("Text column value does not have separator character!");
-		goto error;
-	}
-	const size_t type_len = type_separator - full_text;
-
-	const char *real_text = type_separator + 1;
-	const size_t real_text_len = full_text_len - (type_len + 1);
-
-	if (cpyas(str, real_text, real_text_len) == false) {
-		FAIL("Not enough memory for getting plain text out of column text value!");
-		goto error;
-	}
-
-	return str;
-error:
-	free_string(str);
-	return NULL;
-}
-
 int64_t
 db_get_date_from_feeds_table(const struct string *url, const char *column, size_t column_len)
 {

@@ -28,13 +28,14 @@ id_end(struct stream_callback_data *data)
 static int8_t
 title_start(struct stream_callback_data *data, const XML_Char **attrs)
 {
-	if (data->path[data->depth] == ATOM10_ENTRY) {
-		if (copy_type_of_text_construct(&data->feed.item->title.type, attrs) == false) {
-			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-		}
-	} else if (data->path[data->depth] == ATOM10_FEED) {
-		if (copy_type_of_text_construct(&data->feed.title.type, attrs) == false) {
-			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+	const char *type = get_value_of_attribute_key(attrs, "type");
+	if (type != NULL) {
+		if (strcmp(type, "html") == 0) {
+			if (data->path[data->depth] == ATOM10_ENTRY) {
+				data->feed.item->title_type = TEXT_HTML;
+			} else if (data->path[data->depth] == ATOM10_FEED) {
+				data->feed.title_type = TEXT_HTML;
+			}
 		}
 	}
 	return PARSE_OKAY;
@@ -44,11 +45,11 @@ static int8_t
 title_end(struct stream_callback_data *data)
 {
 	if (data->path[data->depth] == ATOM10_ENTRY) {
-		if (crtss_or_cpyss(&data->feed.item->title.value, data->text) == false) {
+		if (crtss_or_cpyss(&data->feed.item->title, data->text) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	} else if (data->path[data->depth] == ATOM10_FEED) {
-		if (crtss_or_cpyss(&data->feed.title.value, data->text) == false) {
+		if (crtss_or_cpyss(&data->feed.title, data->text) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	}

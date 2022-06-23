@@ -54,7 +54,7 @@ db_insert_item(const struct string *feed_url, struct getfeed_item *item, int64_t
 
 	db_bind_string(s,      1 + ITEM_COLUMN_FEED_URL,         feed_url);
 	db_bind_string(s,      1 + ITEM_COLUMN_GUID,             item->guid);
-	db_bind_text_struct(s, 1 + ITEM_COLUMN_TITLE,            &item->title);
+	db_bind_string(s,      1 + ITEM_COLUMN_TITLE,            item->title);
 	db_bind_string(s,      1 + ITEM_COLUMN_LINK,             item->url);
 	db_bind_string(s,      1 + ITEM_COLUMN_CONTENT,          item->content);
 	db_bind_string(s,      1 + ITEM_COLUMN_ATTACHMENTS,      item->attachments);
@@ -93,8 +93,8 @@ insert_item_data(const struct string *feed_url, struct getfeed_item *item)
 			if (crtss_or_cpyss(&item->guid, item->url) == false) {
 				return false;
 			}
-		} else if ((item->title.value != NULL) && (item->title.value->len != 0)) {
-			if (crtss_or_cpyss(&item->guid, item->title.value) == false) {
+		} else if ((item->title != NULL) && (item->title->len != 0)) {
+			if (crtss_or_cpyss(&item->guid, item->title) == false) {
 				return false;
 			}
 		} else if ((item->content != NULL) && (item->content->len != 0)) {

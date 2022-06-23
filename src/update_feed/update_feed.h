@@ -12,14 +12,16 @@ enum media_type {
 	MEDIA_TYPE_OTHER,
 };
 
-struct getfeed_text {
-	struct string *value; // Text string.
-	struct string *type;  // Standard MIME type of value.
+// Plain text must have 0 value!
+enum text_type {
+	TEXT_PLAIN = 0,
+	TEXT_HTML,
 };
 
 struct getfeed_item {
 	struct string *guid;
-	struct getfeed_text title;
+	struct string *title;
+	int8_t title_type;
 	struct string *url;
 	struct string *content;
 	struct string *attachments;
@@ -32,7 +34,8 @@ struct getfeed_item {
 };
 
 struct getfeed_feed {
-	struct getfeed_text title;
+	struct string *title;
+	int8_t title_type;
 	struct string *url;
 	struct string *content;
 	struct string *attachments;

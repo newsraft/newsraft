@@ -17,10 +17,7 @@ feed_string_handler(struct stream_callback_data *data, const char *val, size_t l
 			return false;
 		}
 	} else if (strcmp(data->text->ptr, "title") == 0) {
-		if (crtas_or_cpyas(&data->feed.title.value, val, len) == false) {
-			return false;
-		}
-		if (crtas_or_cpyas(&data->feed.title.type, "text/plain", 10) == false) {
+		if (crtas_or_cpyas(&data->feed.title, val, len) == false) {
 			return false;
 		}
 	} else if (strcmp(data->text->ptr, "description") == 0) {
@@ -49,10 +46,7 @@ item_string_handler(struct stream_callback_data *data, const char *val, size_t l
 			return false;
 		}
 	} else if (strcmp(data->text->ptr, "title") == 0) {
-		if (crtas_or_cpyas(&data->feed.item->title.value, val, len) == false) {
-			return false;
-		}
-		if (crtas_or_cpyas(&data->feed.item->title.type, "text/plain", 10) == false) {
+		if (crtas_or_cpyas(&data->feed.item->title, val, len) == false) {
 			return false;
 		}
 	} else if (strcmp(data->text->ptr, "content_html") == 0) {

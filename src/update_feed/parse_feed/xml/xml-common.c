@@ -41,24 +41,6 @@ get_value_of_attribute_key(const XML_Char **attrs, const char *key)
 }
 
 bool
-copy_type_of_text_construct(struct string **dest, const XML_Char **atts)
-{
-	const char *type = get_value_of_attribute_key(atts, "type");
-	if (type != NULL) {
-		if ((strcmp(type, "html") == 0) || (strcmp(type, "xhtml") == 0)) {
-			if (crtas_or_cpyas(dest, "text/html", 9) == false) {
-				return false;
-			}
-			return true;
-		}
-	}
-	if (crtas_or_cpyas(dest, "text/plain", 10) == false) {
-		return false;
-	}
-	return true;
-}
-
-bool
 serialize_attribute(struct string **dest, const XML_Char **attrs, const char *attr_key, const char *prefix, size_t prefix_len)
 {
 	const char *attr_value = get_value_of_attribute_key(attrs, attr_key);

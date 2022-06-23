@@ -20,8 +20,7 @@ free_item(struct getfeed_item *item)
 	struct getfeed_item *i = item;
 	while (i != NULL) {
 		free_string(i->guid);
-		free_string(i->title.value);
-		free_string(i->title.type);
+		free_string(i->title);
 		free_string(i->url);
 		free_string(i->content);
 		free_string(i->attachments);

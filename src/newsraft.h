@@ -137,6 +137,7 @@ enum config_entry_index {
 	CFG_PROXY,
 	CFG_PROXY_AUTH,
 	CFG_GLOBAL_SECTION_NAME,
+	CFG_EMPTY_TITLE_PLACEHOLDER,
 	CFG_USER_AGENT,
 	CFG_ITEM_FORMATION_ORDER,
 	CFG_CONTENT_DATE_FORMAT,
@@ -324,7 +325,6 @@ bool db_commit_transaction(void);
 bool db_rollback_transaction(void);
 const char *db_error_string(void);
 int db_bind_string(sqlite3_stmt *stmt, int pos, const struct string *str);
-struct string *db_get_plain_text_from_column(sqlite3_stmt *res, int column);
 int64_t db_get_date_from_feeds_table(const struct string *url, const char *column, size_t column_len);
 struct string *db_get_string_from_feed_table(const struct string *url, const char *column, size_t column_len);
 

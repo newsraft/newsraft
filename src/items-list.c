@@ -113,12 +113,14 @@ generate_items_list(struct feed_line **feeds, size_t feeds_count, enum sorting_o
 
 		items->list[items->count].rowid = sqlite3_column_int64(res, 0); // rowid
 
-		text = (const char *)sqlite3_column_text(res, 1); // feed_url
+		text = (char *)sqlite3_column_text(res, 1); // feed_url
 		items->list[items->count].feed_name = find_feed_name_for_given_feed(feeds, feeds_count, text);
 
-		items->list[items->count].title = db_get_plain_text_from_column(res, 2); // title
-		if (items->list[items->count].title == NULL) {
-			goto undo3;
+		text = (char *)sqlite3_column_text(res, 2); // title
+		if (text == NULL) {
+			items->list[items->count].title = crtss(get_cfg_string(CFG_EMPTY_TITLE_PLACEHOLDER));
+		} else {
+			items->list[items->count].title = crtas(text, strlen(text));
 		}
 
 		text = (const char *)sqlite3_column_text(res, 3); // link

@@ -29,17 +29,11 @@ static int8_t
 title_end(struct stream_callback_data *data)
 {
 	if (data->path[data->depth] == RSS20_ITEM) {
-		if (crtss_or_cpyss(&data->feed.item->title.value, data->text) == false) {
-			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-		}
-		if (crtas_or_cpyas(&data->feed.item->title.type, "text/plain", 10) == false) {
+		if (crtss_or_cpyss(&data->feed.item->title, data->text) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	} else if (data->path[data->depth] == RSS20_CHANNEL) {
-		if (crtss_or_cpyss(&data->feed.title.value, data->text) == false) {
-			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-		}
-		if (crtas_or_cpyas(&data->feed.title.type, "text/plain", 10) == false) {
+		if (crtss_or_cpyss(&data->feed.title, data->text) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	}

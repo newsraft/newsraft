@@ -10,7 +10,9 @@ static struct menu_list_settings feeds_menu;
 static struct format_arg fmt_args[] = {
 	{L'n', L"d", {.i = 0}},
 	{L'u', L"d", {.i = 0}},
+	{L'l', L"s", {.s = NULL}},
 	{L't', L"s", {.s = NULL}},
+	{L'o', L"s", {.s = NULL}},
 };
 
 bool
@@ -49,27 +51,22 @@ load_feeds(void)
 	return true;
 }
 
-// Returns most sensible string for feed entry.
-static inline char *
-feed_image(const struct feed_line *feed)
-{
-	if (feed->name != NULL) {
-		return feed->name->ptr;
-	} else {
-		if (feed->link != NULL) {
-			return feed->link->ptr;
-		} else {
-			return "";
-		}
-	}
-}
-
 static const wchar_t *
 write_feed_entry(size_t index)
 {
 	fmt_args[0].value.i = index + 1;
 	fmt_args[1].value.i = feeds[index]->unread_count;
-	fmt_args[2].value.s = feed_image(feeds[index]);
+	fmt_args[2].value.s = feeds[index]->link ? feeds[index]->link->ptr : "";
+	fmt_args[3].value.s = feeds[index]->name ? feeds[index]->name->ptr : "";
+	if (feeds[index]->name != NULL) {
+		fmt_args[4].value.s = feeds[index]->name->ptr;
+	} else {
+		if (feeds[index]->link != NULL) {
+			fmt_args[4].value.s = feeds[index]->link->ptr;
+		} else {
+			fmt_args[4].value.s = "";
+		}
+	}
 	return do_format(CFG_MENU_FEED_ENTRY_FORMAT, fmt_args, COUNTOF(fmt_args));
 }
 

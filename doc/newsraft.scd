@@ -179,8 +179,13 @@ _list-entry-date-format_ (default: *%b %d*)
 _menu-section-entry-format_ (default: *%4.0u @ %t*)
 	TODO
 
-_menu-feed-entry-format_ (default: *%4.0u │ %t*)
-	TODO
+_menu-feed-entry-format_ (default: *%4.0u │ %o*)
+	Format of the feed list entries. Specifiers are as follows:
+	- *o* - title if set otherwise URL;
+	- *t* - title;
+	- *l* - URL;
+	- *u* - unread items count;
+	- *n* - index number.
 
 _menu-item-entry-format_ (default: *" %u │ %d │ %t"*)
 	TODO

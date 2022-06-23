@@ -1,27 +1,5 @@
 #include <stdlib.h>
-#include <string.h>
 #include "render_data.h"
-
-struct data_handler {
-	const char *const type;
-	bool (*handle)(const struct wstring *, struct line *, struct wstring *, bool);
-};
-
-// Besides formatting according to the content type, these handlers must
-// split whole character data into pieces N characters long (at maximum)
-// divided by newlines, where N is the current width of the terminal.
-// Last character of the resulting wstring must be a newline too.
-// It is made that way so that we can quickly count number of lines needed
-// for pager pad window to store content.
-static const struct data_handler handlers[] = {
-	{"", &render_text_html}, // In many cases empty type means that
-	                         // text is HTML formatted.
-	{"text/plain", &render_text_plain},
-	{"text/html", &render_text_html},
-	{"html", &render_text_html},
-	//{"text/markdown"} TODO
-	//{"text/x-rst"} TODO
-};
 
 struct wstring *
 render_data(const struct render_block *first_block)
@@ -41,25 +19,21 @@ render_data(const struct render_block *first_block)
 	line.len = 0;
 	line.lim = list_menu_width + 1;
 	line.pin = SIZE_MAX;
-	line.indent = 0;
-	bool found_handler;
 	const struct render_block *block = first_block;
 	while (block != NULL) {
-		found_handler = false;
-		for (size_t i = 0; i < COUNTOF(handlers); ++i) {
-			if (strcmp(block->content_type, handlers[i].type) == 0) {
-				found_handler = true;
-				handlers[i].handle(block->content, &line, text, true);
-				if (line.len == 0) {
-					trim_whitespace_from_wstring(text);
-				}
-				line.indent = 0;
-				break;
+		line.indent = 0;
+		if (block->content_type == TEXT_PLAIN) {
+			render_text_plain(block->content, &line, text, true);
+			if (line.len == 0) {
+				trim_whitespace_from_wstring(text);
 			}
-		}
-		if (found_handler == false) {
-			// This is probably a separator, so don't trim whitespace!
-			line_string(&line, block->content->ptr, text);
+		} else if (block->content_type == TEXT_HTML) {
+			render_text_html(block->content, &line, text, true);
+			if (line.len == 0) {
+				trim_whitespace_from_wstring(text);
+			}
+		} else if (block->content_type == TEXT_SEPARATOR) {
+			line_char(&line, L'\n', text);
 		}
 		block = block->next;
 	}

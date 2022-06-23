@@ -88,7 +88,7 @@ struct format_arg {
 // Linked list
 struct render_block {
 	struct wstring *content;
-	char *content_type;
+	int8_t content_type;
 	struct render_block *next;
 };
 
@@ -238,6 +238,13 @@ enum download_status {
 	DOWNLOAD_FAILED,
 };
 
+// Plain text must have 0 value!
+enum text_type {
+	TEXT_PLAIN = 0,
+	TEXT_HTML,
+	TEXT_SEPARATOR,
+};
+
 // sections
 bool create_global_section(void);
 bool copy_feed_to_section(const struct feed_line *feed, const struct string *section_name);
@@ -282,7 +289,8 @@ input_cmd_id enter_items_menu_loop(struct feed_line **feeds, size_t feeds_count,
 // list and sent to pager_view function so it can generate a single text buffer
 // out of texts with different types (plain, html, markdown).
 // See "render-block.c" file for implementation.
-bool join_render_block(struct render_block **list, const char *content, size_t content_len, const char *content_type, size_t content_type_len);
+int8_t get_content_type_by_string(const char *type);
+bool join_render_block(struct render_block **list, const char *content, size_t content_len, int8_t content_type);
 void reverse_render_blocks(struct render_block **list);
 bool join_render_separator(struct render_block **list);
 void free_render_blocks(struct render_block *first_block);
@@ -398,7 +406,6 @@ bool string_printf(struct string *dest, const char *format, ...);
 void empty_string(struct string *str);
 void empty_string_safe(struct string *str);
 void free_string(struct string *str);
-size_t convert_string_to_size_t_or_zero(const char *src);
 void remove_character_from_string(struct string *str, char c);
 void remove_trailing_slashes_from_string(struct string *str);
 void trim_whitespace_from_string(struct string *str);

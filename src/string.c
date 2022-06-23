@@ -106,21 +106,8 @@ catss(struct string *dest, const struct string *src)
 bool
 catcs(struct string *dest, char c)
 {
-	size_t new_len = dest->len + 1;
-	if (new_len > dest->lim) {
-		size_t new_lim = new_len * 2; // Multiply by 2 to decrease number of further realloc calls.
-		char *temp = realloc(dest->ptr, sizeof(char) * (new_lim + 1));
-		if (temp == NULL) {
-			FAIL("Not enough memory for concatenating character to string!");
-			return false;
-		}
-		dest->ptr = temp;
-		dest->lim = new_lim;
-	}
-	*(dest->ptr + dest->len) = c;
-	dest->len = new_len;
-	*(dest->ptr + dest->len) = '\0';
-	return true;
+	char src[1] = {c};
+	return catas(dest, src, 1);
 }
 
 bool
@@ -206,11 +193,10 @@ empty_string_safe(struct string *str)
 void
 free_string(struct string *str)
 {
-	if (str == NULL) {
-		return;
+	if (str != NULL) {
+		free(str->ptr);
+		free(str);
 	}
-	free(str->ptr);
-	free(str);
 }
 
 void
@@ -272,16 +258,6 @@ convert_string_to_wstring(const struct string *src)
 	wstr->ptr[wstr->len] = L'\0';
 	wstr->lim = wstr->len;
 	return wstr;
-}
-
-size_t
-convert_string_to_size_t_or_zero(const char *src)
-{
-	size_t bytes;
-	if (sscanf(src, "%zu", &bytes) == 1) {
-		return bytes;
-	}
-	return 0;
 }
 
 void

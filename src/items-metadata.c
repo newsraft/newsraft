@@ -7,7 +7,6 @@
 typedef int8_t entry_extra_id;
 enum {
 	NO_EXTRA_DATA = 0,
-	TYPE_HEADER = 1,
 	PREPEND_SEPARATOR = 2,
 	PERSON_AUTHOR = 4,
 	PERSON_CONTRIBUTOR = 8,
@@ -24,9 +23,9 @@ struct data_entry {
 };
 
 static bool
-append_text(struct render_block **list, sqlite3_stmt *res, const struct data_entry *entry)
+append_plain_text(struct render_block **list, sqlite3_stmt *res, const struct data_entry *entry)
 {
-	const char *text = (const char *)sqlite3_column_text(res, entry->column);
+	const char *text = (char *)sqlite3_column_text(res, entry->column);
 	if (text == NULL) {
 		return true; // It is not an error because this item simply does not have value set.
 	}
@@ -34,37 +33,11 @@ append_text(struct render_block **list, sqlite3_stmt *res, const struct data_ent
 	if (text_len == 0) {
 		return true; // It is not an error because this item simply does not have value set.
 	}
-	if ((entry->feature_mask & PREPEND_SEPARATOR) != 0) {
-		if (join_render_separator(list) == false) {
-			return false;
-		}
+	if (join_render_block(list, entry->tooltip, entry->tooltip_len, TEXT_PLAIN) == false) {
+		return false;
 	}
-	if ((entry->tooltip != NULL) && (entry->tooltip_len != 0)) {
-		if (join_render_block(list, entry->tooltip, entry->tooltip_len, "text/plain", 10) == false) {
-			return false;
-		}
-	}
-	if ((entry->feature_mask & TYPE_HEADER) != 0) {
-		const char *type_separator = strchr(text, ';');
-		if (type_separator == NULL) {
-			return false;
-		}
-		const size_t type_len = type_separator - text;
-		if (type_len > MIME_TYPE_LENGTH_LIMIT) {
-			return false;
-		}
-		const char *real_text = type_separator + 1;
-		const size_t real_text_len = text_len - (type_len + 1);
-		char type[MIME_TYPE_LENGTH_LIMIT + 1];
-		memcpy(type, text, type_len);
-		type[type_len] = '\0';
-		if (join_render_block(list, real_text, real_text_len, type, type_len) == false) {
-			return false;
-		}
-	} else {
-		if (join_render_block(list, text, text_len, "text/plain", 10) == false) {
-			return false;
-		}
+	if (join_render_block(list, text, text_len, TEXT_PLAIN) == false) {
+		return false;
 	}
 	if (join_render_separator(list) == false) {
 		return false;
@@ -100,7 +73,7 @@ append_max_content(struct render_block **list, sqlite3_stmt *res, const struct d
 		if (join_render_separator(list) == false) {
 			goto undo2;
 		}
-		if (join_render_block(list, text->ptr, text->len, type->ptr, type->len) == false) {
+		if (join_render_block(list, text->ptr, text->len, get_content_type_by_string(type->ptr)) == false) {
 			goto undo2;
 		}
 	}
@@ -138,7 +111,7 @@ append_date(struct render_block **list, sqlite3_stmt *res, const struct data_ent
 		return false;
 	}
 	free_string(date_str);
-	if (join_render_block(list, date_entry->ptr, date_entry->len, "text/plain", 10) == false) {
+	if (join_render_block(list, date_entry->ptr, date_entry->len, TEXT_PLAIN) == false) {
 		free_string(date_entry);
 		return false;
 	}
@@ -182,7 +155,7 @@ append_persons(struct render_block **list, sqlite3_stmt *res, const struct data_
 		return false;
 	}
 	free_string(persons);
-	if (join_render_block(list, block_text->ptr, block_text->len, "text/plain", 10) == false) {
+	if (join_render_block(list, block_text->ptr, block_text->len, TEXT_PLAIN) == false) {
 		free_string(block_text);
 		return false;
 	}
@@ -195,10 +168,10 @@ append_persons(struct render_block **list, sqlite3_stmt *res, const struct data_
 
 // ATTENTION! Maximal length of meta data entry name has to be reflected in MAX_METADATA_ENTRY_NAME_LENGTH.
 static const struct data_entry entries[] = {
-	{"feed-url",     "Feed: ",          6, ITEM_COLUMN_FEED_URL,         NO_EXTRA_DATA,                 &append_text},
-	{"title",        "Title: ",         7, ITEM_COLUMN_TITLE,            NO_EXTRA_DATA,                 &append_text},
+	{"feed-url",     "Feed: ",          6, ITEM_COLUMN_FEED_URL,         NO_EXTRA_DATA,                 &append_plain_text},
+	{"title",        "Title: ",         7, ITEM_COLUMN_TITLE,            NO_EXTRA_DATA,                 &append_plain_text},
 	/* {"categories",   "Categories: ",   12, ITEM_COLUMN_CATEGORIES,   false}, */
-	{"link",         "Link: ",          6, ITEM_COLUMN_LINK,             NO_EXTRA_DATA,                 &append_text},
+	{"link",         "Link: ",          6, ITEM_COLUMN_LINK,             NO_EXTRA_DATA,                 &append_plain_text},
 	{"published",    "Published: ",    11, ITEM_COLUMN_PUBLICATION_DATE, 0,                             &append_date},
 	{"updated",      "Updated: ",       9, ITEM_COLUMN_UPDATE_DATE,      0,                             &append_date},
 	{"authors",      "Authors: ",       9, 0,                            PERSON_AUTHOR,                 &append_persons},

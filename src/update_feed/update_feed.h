@@ -12,12 +12,6 @@ enum media_type {
 	MEDIA_TYPE_OTHER,
 };
 
-// Plain text must have 0 value!
-enum text_type {
-	TEXT_PLAIN = 0,
-	TEXT_HTML,
-};
-
 struct getfeed_item {
 	struct string *guid;
 	struct string *title;

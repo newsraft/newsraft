@@ -9,7 +9,7 @@ join_links_render_block(struct render_block **contents, struct link_list *links)
 	}
 	join_render_separator(contents);
 	join_render_separator(contents);
-	join_render_block(contents, str->ptr, str->len, "text/plain", 10);
+	join_render_block(contents, str->ptr, str->len, TEXT_PLAIN);
 	join_render_separator(contents);
 	free_string(str);
 	return true;

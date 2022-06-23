@@ -54,6 +54,18 @@ db_mark_item_unread(int64_t rowid)
 	return db_update_item_int(rowid, "unread", 6, 1);
 }
 
+bool
+db_mark_item_important(int64_t rowid)
+{
+	return db_update_item_int(rowid, "important", 9, 1);
+}
+
+bool
+db_mark_item_unimportant(int64_t rowid)
+{
+	return db_update_item_int(rowid, "important", 9, 0);
+}
+
 int64_t
 get_unread_items_count_of_the_feed(const struct string *url)
 {

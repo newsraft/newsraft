@@ -37,23 +37,45 @@ paint_item_entry(size_t index)
 }
 
 static void
-mark_item_read(size_t index)
+mark_selected_item_read(void)
 {
-	if (items->list[index].is_unread == true) {
-		if (db_mark_item_read(items->list[index].rowid) == true) {
-			items->list[index].is_unread = false;
-			expose_entry_of_the_menu_list(&items_menu, index);
+	if (items->list[items_menu.view_sel].is_unread == true) {
+		if (db_mark_item_read(items->list[items_menu.view_sel].rowid) == true) {
+			items->list[items_menu.view_sel].is_unread = false;
+			expose_entry_of_the_menu_list(&items_menu, items_menu.view_sel);
 		}
 	}
 }
 
 static void
-mark_item_unread(size_t index)
+mark_selected_item_unread(void)
 {
-	if (items->list[index].is_unread == false) {
-		if (db_mark_item_unread(items->list[index].rowid) == true) {
-			items->list[index].is_unread = true;
-			expose_entry_of_the_menu_list(&items_menu, index);
+	if (items->list[items_menu.view_sel].is_unread == false) {
+		if (db_mark_item_unread(items->list[items_menu.view_sel].rowid) == true) {
+			items->list[items_menu.view_sel].is_unread = true;
+			expose_entry_of_the_menu_list(&items_menu, items_menu.view_sel);
+		}
+	}
+}
+
+static void
+mark_selected_item_important(void)
+{
+	if (items->list[items_menu.view_sel].is_important == false) {
+		if (db_mark_item_important(items->list[items_menu.view_sel].rowid) == true) {
+			items->list[items_menu.view_sel].is_important = true;
+			expose_entry_of_the_menu_list(&items_menu, items_menu.view_sel);
+		}
+	}
+}
+
+static void
+mark_selected_item_unimportant(void)
+{
+	if (items->list[items_menu.view_sel].is_important == true) {
+		if (db_mark_item_unimportant(items->list[items_menu.view_sel].rowid) == true) {
+			items->list[items_menu.view_sel].is_important = false;
+			expose_entry_of_the_menu_list(&items_menu, items_menu.view_sel);
 		}
 	}
 }
@@ -114,41 +136,45 @@ enter_items_menu_loop(struct feed_line **feeds, size_t feeds_count, int format)
 		if (cmd == INPUT_SELECT_NEXT) {
 			list_menu_select_next(&items_menu);
 			if (get_cfg_bool(CFG_MARK_ITEM_READ_ON_HOVER) == true) {
-				mark_item_read(items_menu.view_sel);
+				mark_selected_item_read();
 			}
 		} else if (cmd == INPUT_SELECT_PREV) {
 			list_menu_select_prev(&items_menu);
 			if (get_cfg_bool(CFG_MARK_ITEM_READ_ON_HOVER) == true) {
-				mark_item_read(items_menu.view_sel);
+				mark_selected_item_read();
 			}
 		} else if (cmd == INPUT_SELECT_NEXT_PAGE) {
 			list_menu_select_next_page(&items_menu);
 			if (get_cfg_bool(CFG_MARK_ITEM_READ_ON_HOVER) == true) {
-				mark_item_read(items_menu.view_sel);
+				mark_selected_item_read();
 			}
 		} else if (cmd == INPUT_SELECT_PREV_PAGE) {
 			list_menu_select_prev_page(&items_menu);
 			if (get_cfg_bool(CFG_MARK_ITEM_READ_ON_HOVER) == true) {
-				mark_item_read(items_menu.view_sel);
+				mark_selected_item_read();
 			}
 		} else if (cmd == INPUT_SELECT_FIRST) {
 			list_menu_select_first(&items_menu);
 			if (get_cfg_bool(CFG_MARK_ITEM_READ_ON_HOVER) == true) {
-				mark_item_read(items_menu.view_sel);
+				mark_selected_item_read();
 			}
 		} else if (cmd == INPUT_SELECT_LAST) {
 			list_menu_select_last(&items_menu);
 			if (get_cfg_bool(CFG_MARK_ITEM_READ_ON_HOVER) == true) {
-				mark_item_read(items_menu.view_sel);
+				mark_selected_item_read();
 			}
 		} else if (cmd == INPUT_MARK_READ) {
-			mark_item_read(items_menu.view_sel);
+			mark_selected_item_read();
 		} else if (cmd == INPUT_MARK_UNREAD) {
-			mark_item_unread(items_menu.view_sel);
+			mark_selected_item_unread();
 		} else if (cmd == INPUT_MARK_READ_ALL) {
 			mark_all_items_read(feeds, feeds_count, &items_menu);
 		} else if (cmd == INPUT_MARK_UNREAD_ALL) {
 			mark_all_items_unread(feeds, feeds_count, &items_menu);
+		} else if (cmd == INPUT_MARK_IMPORTANT) {
+			mark_selected_item_important();
+		} else if (cmd == INPUT_MARK_UNIMPORTANT) {
+			mark_selected_item_unimportant();
 		} else if (cmd == INPUT_ENTER) {
 			cmd = enter_item_pager_view_loop(items->list[items_menu.view_sel].rowid);
 			if (cmd == INPUT_QUIT_SOFT) {

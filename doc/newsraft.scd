@@ -317,6 +317,10 @@ _mark-unread_ (default: *D*)
 
 _mark-unread-all_ (default: not set)
 
+_mark-important_ (default: *i*)
+
+_mark-unimportant_ (default: *I*)
+
 _explore-menu_ (default: *e*)
 
 _status-history-menu_ (default: *p*)

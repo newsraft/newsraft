@@ -20,6 +20,8 @@ assign_default_binds(void)
 	if (assign_action_to_key("d",         1, INPUT_MARK_READ)           == false) { goto error; }
 	if (assign_action_to_key("^D",        2, INPUT_MARK_READ_ALL)       == false) { goto error; }
 	if (assign_action_to_key("D",         1, INPUT_MARK_UNREAD)         == false) { goto error; }
+	if (assign_action_to_key("i",         1, INPUT_MARK_IMPORTANT)      == false) { goto error; }
+	if (assign_action_to_key("I",         1, INPUT_MARK_UNIMPORTANT)    == false) { goto error; }
 	if (assign_action_to_key("e",         1, INPUT_EXPLORE_MENU)        == false) { goto error; }
 	if (assign_action_to_key("p",         1, INPUT_STATUS_HISTORY_MENU) == false) { goto error; }
 	if (assign_action_to_key("o",         1, INPUT_OPEN_IN_BROWSER)     == false) { goto error; }

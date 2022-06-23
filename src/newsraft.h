@@ -176,6 +176,8 @@ enum input_cmd {
 	INPUT_MARK_READ_ALL,
 	INPUT_MARK_UNREAD,
 	INPUT_MARK_UNREAD_ALL,
+	INPUT_MARK_IMPORTANT,
+	INPUT_MARK_UNIMPORTANT,
 	INPUT_EXPLORE_MENU,
 	INPUT_STATUS_HISTORY_MENU,
 	INPUT_OPEN_IN_BROWSER,
@@ -330,6 +332,8 @@ struct string *db_get_string_from_feed_table(const struct string *url, const cha
 sqlite3_stmt *db_find_item_by_rowid(int64_t rowid);
 bool db_mark_item_read(int64_t rowid);
 bool db_mark_item_unread(int64_t rowid);
+bool db_mark_item_important(int64_t rowid);
+bool db_mark_item_unimportant(int64_t rowid);
 int64_t get_unread_items_count_of_the_feed(const struct string *url);
 bool db_mark_all_items_in_feeds_as_read(struct feed_line **feeds, size_t feeds_count);
 bool db_mark_all_items_in_feeds_as_unread(struct feed_line **feeds, size_t feeds_count);

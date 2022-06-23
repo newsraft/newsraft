@@ -125,7 +125,7 @@ insert_item_data(const struct string *feed_url, struct getfeed_item *item)
 
 	int64_t item_rowid;
 	if (sqlite3_step(s) == SQLITE_ROW) {
-		const char *content = (char *)sqlite3_column_text(s, 2);
+		const char *content = (char *)sqlite3_column_text(s, 1);
 		if (((content == NULL) && (item->content == NULL))
 			|| ((content != NULL) && (item->content != NULL)
 				&& (strcmp(content, item->content->ptr) == 0)))

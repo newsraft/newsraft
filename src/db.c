@@ -21,6 +21,8 @@ db_init(void)
 	char *errmsg;
 
 	// All dates are stored as the number of seconds since 1970.
+	// Note that numeric arguments in parentheses that following the type name
+	// are ignored by SQLite - there's no need to impose any length limits.
 	sqlite3_exec(
 		db,
 		"CREATE TABLE IF NOT EXISTS feeds("
@@ -32,12 +34,12 @@ db_init(void)
 			"persons TEXT,"
 			"categories TEXT,"
 			"locations TEXT,"
-			"download_date INTEGER(8) NOT NULL DEFAULT 0,"
-			"update_date INTEGER(8) NOT NULL DEFAULT 0,"
-			"time_to_live INTEGER(8) NOT NULL DEFAULT 0,"
+			"download_date INTEGER NOT NULL DEFAULT 0,"
+			"update_date INTEGER NOT NULL DEFAULT 0,"
+			"time_to_live INTEGER NOT NULL DEFAULT 0,"
 			"http_header_etag TEXT,"
-			"http_header_last_modified INTEGER(8) NOT NULL DEFAULT 0,"
-			"http_header_expires INTEGER(8) NOT NULL DEFAULT 0"
+			"http_header_last_modified INTEGER NOT NULL DEFAULT 0,"
+			"http_header_expires INTEGER NOT NULL DEFAULT 0"
 		");"
 		"CREATE TABLE IF NOT EXISTS items("
 			"feed_url TEXT NOT NULL,"
@@ -49,10 +51,10 @@ db_init(void)
 			"persons TEXT,"
 			"categories TEXT,"
 			"locations TEXT,"
-			"publication_date INTEGER(8) NOT NULL DEFAULT 0,"
-			"update_date INTEGER(8) NOT NULL DEFAULT 0,"
-			"unread INTEGER(1) NOT NULL DEFAULT 0,"
-			"important INTEGER(1) NOT NULL DEFAULT 0"
+			"publication_date INTEGER NOT NULL DEFAULT 0,"
+			"update_date INTEGER NOT NULL DEFAULT 0,"
+			"unread INTEGER NOT NULL DEFAULT 0,"
+			"important INTEGER NOT NULL DEFAULT 0"
 		");"
 		"CREATE INDEX IF NOT EXISTS idx_items ON items("
 			"feed_url"

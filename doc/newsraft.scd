@@ -177,7 +177,10 @@ _list-entry-date-format_ (default: *%b %d*)
 	*strftime*(3) format.
 
 _menu-section-entry-format_ (default: *%4.0u @ %t*)
-	TODO
+	Format of the section list entries. Specifiers are as follows:
+	- *t* - title;
+	- *u* - unread items count;
+	- *n* - index number.
 
 _menu-feed-entry-format_ (default: *%4.0u │ %o*)
 	Format of the feed list entries. Specifiers are as follows:
@@ -193,7 +196,7 @@ _menu-item-entry-format_ (default: *" %u │ %d │ %t"*)
 	- *d* - update date formatted according _list-entry-date-format_;
 	- *o* - feed title if set otherwise feed URL;
 	- *l* - URL;
-	- *u* - "N" if item is unread " " otherwise
+	- *u* - "N" if item is unread " " otherwise;
 	- *n* - index number.
 
 _menu-explore-item-entry-format_ (default: *" %u │ %d │ %-28.28o │ %t"*)
@@ -202,7 +205,7 @@ _menu-explore-item-entry-format_ (default: *" %u │ %d │ %-28.28o │ %t"*)
 	- *d* - update date formatted according _list-entry-date-format_;
 	- *o* - feed title if set otherwise feed URL;
 	- *l* - URL;
-	- *u* - "N" if item is unread " " otherwise
+	- *u* - "N" if item is unread " " otherwise;
 	- *n* - index number.
 
 _mark-item-read-on-hover_ (default: *false*)
@@ -238,16 +241,21 @@ _send-if-none-match-header_ (default: *true*)
 	the download request. Disabling it is strongly discouraged.
 
 _send-if-modified-since-header_ (default: *true*)
-	TODO
-	Disabling it is strongly discouraged.
+	Sends a date corresponding to the last modification of previously downloaded
+	information. If the server from which the feed is downloaded contains
+	information with the same modification date, then in order to save traffic
+	and resources, it will reject the download request. Disabling it is strongly
+	discouraged.
 
 _ssl-verify-host_ (default: *true*)
-	TODO
-	Disabling it is strongly discouraged.
+	Verifies that the server certificate corresponds to its identity when a
+	secure connection is established. Connections with an invalid certificate
+	will fail. Disabling it is strongly discouraged.
 
 _ssl-verify-peer_ (default: *true*)
-	TODO
-	Disabling it is strongly discouraged.
+	Verifies that the peer certificate corresponds to its identity when a
+	secure connection is established. Connections with an invalid certificate
+	will fail. Disabling it is strongly discouraged.
 
 _color-status-good-fg_ (default: *green*)
 	Text color of status area when reporting success.

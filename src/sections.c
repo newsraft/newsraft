@@ -20,15 +20,23 @@ static struct format_arg fmt_args[] = {
 	{L't', L"s", {.s = NULL}},
 };
 
-static inline void
-free_feed(struct feed_line *feed)
+static const wchar_t *
+write_section_entry(size_t index)
 {
-	if (feed == NULL) {
-		return;
+	fmt_args[0].value.i = index + 1;
+	fmt_args[1].value.i = sections[index].unread_count;
+	fmt_args[2].value.s = sections[index].name->ptr;
+	return do_format(CFG_MENU_SECTION_ENTRY_FORMAT, fmt_args, COUNTOF(fmt_args));
+}
+
+static int
+paint_section_entry(size_t index)
+{
+	if (sections[index].unread_count > 0) {
+		return CFG_COLOR_LIST_SECTION_UNREAD_FG;
+	} else {
+		return CFG_COLOR_LIST_SECTION_FG;
 	}
-	free_string(feed->name);
-	free_string(feed->link);
-	free(feed);
 }
 
 static bool
@@ -43,7 +51,7 @@ create_new_section(const struct string *section_name)
 	sections = temp;
 	sections[section_index].name = crtss(section_name);
 	if (sections[section_index].name == NULL) {
-		fputs("Not enough memory for name string of the section!\n", stderr);
+		fputs("Not enough memory for section name string!\n", stderr);
 		return false;
 	}
 	sections[section_index].feeds = NULL;
@@ -56,8 +64,7 @@ create_new_section(const struct string *section_name)
 bool
 create_global_section(void)
 {
-	const struct string *global_section_name = get_cfg_string(CFG_GLOBAL_SECTION_NAME);
-	return create_new_section(global_section_name);
+	return create_new_section(get_cfg_string(CFG_GLOBAL_SECTION_NAME));
 }
 
 static inline struct feed_line *
@@ -155,7 +162,7 @@ obtain_feeds_of_global_section(struct feed_line ***feeds_ptr, size_t *feeds_coun
 }
 
 static inline void
-update_unread_count_of_sections(void)
+refresh_unread_items_count_of_all_sections(void)
 {
 	for (size_t i = 0; i < sections_count; ++i) {
 		sections[i].unread_count = 0;
@@ -188,8 +195,18 @@ reload_section(struct feed_line **feeds, size_t feeds_count)
 		fail_status("Failed to update %zu feeds (check out status history for more details)", errors);
 	}
 
-	update_unread_count_of_sections();
+	refresh_unread_items_count_of_all_sections();
 	expose_all_visible_entries_of_the_menu_list(&sections_menu);
+}
+
+static inline void
+free_feed(struct feed_line *feed)
+{
+	if (feed != NULL) {
+		free_string(feed->name);
+		free_string(feed->link);
+		free(feed);
+	}
 }
 
 void
@@ -205,25 +222,6 @@ free_sections(void)
 	free(sections);
 }
 
-static const wchar_t *
-write_section_entry(size_t index)
-{
-	fmt_args[0].value.i = index + 1;
-	fmt_args[1].value.i = sections[index].unread_count;
-	fmt_args[2].value.s = sections[index].name->ptr;
-	return do_format(CFG_MENU_SECTION_ENTRY_FORMAT, fmt_args, COUNTOF(fmt_args));
-}
-
-static int
-paint_section_entry(size_t index)
-{
-	if (sections[index].unread_count > 0) {
-		return CFG_COLOR_LIST_SECTION_UNREAD_FG;
-	} else {
-		return CFG_COLOR_LIST_SECTION_FG;
-	}
-}
-
 void
 enter_sections_menu_loop(void)
 {
@@ -237,7 +235,7 @@ enter_sections_menu_loop(void)
 	sections_menu.paint_action = &paint_section_entry;
 	reset_menu_list_settings(&sections_menu, sections_count);
 
-	update_unread_count_of_sections();
+	refresh_unread_items_count_of_all_sections();
 	redraw_menu_list(&sections_menu);
 
 	uint32_t count;
@@ -272,7 +270,7 @@ enter_sections_menu_loop(void)
 			cmd = enter_feeds_menu_loop(sections[sections_menu.view_sel].feeds, sections[sections_menu.view_sel].feeds_count);
 			if (cmd == INPUT_QUIT_SOFT) {
 				status_clean();
-				update_unread_count_of_sections();
+				refresh_unread_items_count_of_all_sections();
 				redraw_menu_list(&sections_menu);
 			} else if (cmd == INPUT_QUIT_HARD) {
 				break;
@@ -280,7 +278,7 @@ enter_sections_menu_loop(void)
 		} else if (cmd == INPUT_EXPLORE_MENU) {
 			cmd = enter_items_menu_loop(sections[0].feeds, sections[0].feeds_count, CFG_MENU_EXPLORE_ITEM_ENTRY_FORMAT);
 			if (cmd == INPUT_QUIT_SOFT) {
-				update_unread_count_of_sections();
+				refresh_unread_items_count_of_all_sections();
 				redraw_menu_list(&sections_menu);
 			} else if (cmd == INPUT_QUIT_HARD) {
 				break;

@@ -8,7 +8,8 @@ static enum config_entry_index entry_format;
 static struct format_arg fmt_args[] = {
 	{L'n', L"d", {.i = 0}},
 	{L'u', L"c", {.c = '\0'}},
-	{L'f', L"s", {.s = NULL}},
+	{L'l', L"s", {.s = NULL}},
+	{L'o', L"s", {.s = NULL}},
 	{L'd', L"s", {.s = NULL}},
 	{L't', L"s", {.s = NULL}},
 };
@@ -18,9 +19,10 @@ write_item_entry(size_t index)
 {
 	fmt_args[0].value.i = index + 1;
 	fmt_args[1].value.c = items->list[index].is_unread == true ? 'N' : ' ';
-	fmt_args[2].value.s = items->list[index].feed_name->ptr;
-	fmt_args[3].value.s = items->list[index].date_str->ptr;
-	fmt_args[4].value.s = items->list[index].title->ptr;
+	fmt_args[2].value.s = items->list[index].url ? items->list[index].url->ptr : "";
+	fmt_args[3].value.s = items->list[index].feed_name->ptr;
+	fmt_args[4].value.s = items->list[index].date_str->ptr;
+	fmt_args[5].value.s = items->list[index].title->ptr;
 	return do_format(entry_format, fmt_args, COUNTOF(fmt_args));
 }
 

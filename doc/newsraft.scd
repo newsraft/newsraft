@@ -188,10 +188,22 @@ _menu-feed-entry-format_ (default: *%4.0u │ %o*)
 	- *n* - index number.
 
 _menu-item-entry-format_ (default: *" %u │ %d │ %t"*)
-	TODO
+	Format of the item list entries. Specifiers are as follows:
+	- *t* - title if set _empty-title-placeholder_ otherwise;
+	- *d* - update date formatted according _list-entry-date-format_;
+	- *o* - feed title if set otherwise feed URL;
+	- *l* - URL;
+	- *u* - "N" if item is unread " " otherwise
+	- *n* - index number.
 
-_menu-explore-item-entry-format_ (default: *" %u │ %d │ %-28.28f │ %t"*)
-	TODO
+_menu-explore-item-entry-format_ (default: *" %u │ %d │ %-28.28o │ %t"*)
+	Format of the item list entries in explore mode. Specifiers are as follows:
+	- *t* - title if set _empty-title-placeholder_ otherwise;
+	- *d* - update date formatted according _list-entry-date-format_;
+	- *o* - feed title if set otherwise feed URL;
+	- *l* - URL;
+	- *u* - "N" if item is unread " " otherwise
+	- *n* - index number.
 
 _mark-item-read-on-hover_ (default: *false*)
 	Mark every item that gets selected as read.

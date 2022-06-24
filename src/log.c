@@ -2,7 +2,6 @@
 #include <curl/curl.h>
 #include <expat.h>
 #include <yajl/yajl_version.h>
-#include <tidy.h>
 #include "newsraft.h"
 
 FILE *log_stream = NULL;
@@ -26,7 +25,6 @@ log_init(const char *path)
 	INFO("curl version: %s", curl_version());
 	INFO("expat version: %s", XML_ExpatVersion());
 	INFO("yajl version: %d.%d.%d", YAJL_MAJOR, YAJL_MINOR, YAJL_MICRO);
-	INFO("LibTidy version: %s (%s) for %s", tidyLibraryVersion(), tidyReleaseDate(), tidyPlatform());
 	return true;
 }
 

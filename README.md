@@ -13,7 +13,7 @@ Newsraft is a piece of software that aggregates syndicated web content like blog
 | [curl](https://curl.se)                          | >= 7.80.0 | required             |
 | [expat](https://github.com/libexpat/libexpat)    | >= 2.4.8  | required             |
 | [yajl](https://github.com/lloyd/yajl)            | >= 2.1.0  | required             |
-| [tidy](http://www.html-tidy.org)                 | >= 5.8.0  | required             |
+| [gumbo](https://github.com/google/gumbo-parser)  | >= 0.10.1 | required             |
 | [gcc](https://gcc.gnu.org)                       | >= 8.1.0  | required, build-time |
 | [meson](https://github.com/mesonbuild/meson)     | >= 0.58.1 | required, build-time |
 | [scdoc](https://git.sr.ht/~sircmpwn/scdoc)       | >= 1.11.2 | optional, build-time |

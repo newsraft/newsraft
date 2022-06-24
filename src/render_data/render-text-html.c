@@ -1,11 +1,10 @@
 #include <stdlib.h>
 #include <string.h>
-#include <tidy.h>
-#include <tidybuffio.h>
+#include <gumbo.h>
 #include "render_data.h"
 
 struct html_element_handler {
-	const TidyTagId tag_id;
+	const GumboTag tag_id;
 	void (*start_handler)(struct wstring *, struct line *);
 	void (*end_handler)(struct wstring *, struct line *);
 };
@@ -175,87 +174,84 @@ figure_end_handler(struct wstring *text, struct line *line)
 }
 
 static const struct html_element_handler handlers[] = {
-	{TidyTag_P,          &provide_two_newlines,     &provide_two_newlines},
-	{TidyTag_BR,         &br_handler,               NULL},
-	{TidyTag_LI,         &li_handler,               &provide_one_newline},
-	{TidyTag_UL,         &ul_start_handler,         &ul_end_handler},
-	{TidyTag_OL,         &ol_start_handler,         &ul_end_handler},
-	{TidyTag_PRE,        &provide_two_newlines,     &provide_two_newlines},
-	{TidyTag_H1,         &provide_three_newlines,   &provide_two_newlines},
-	{TidyTag_H2,         &provide_three_newlines,   &provide_two_newlines},
-	{TidyTag_H3,         &provide_three_newlines,   &provide_two_newlines},
-	{TidyTag_H4,         &provide_three_newlines,   &provide_two_newlines},
-	{TidyTag_H5,         &provide_three_newlines,   &provide_two_newlines},
-	{TidyTag_H6,         &provide_three_newlines,   &provide_two_newlines},
-	{TidyTag_HR,         &hr_handler,               NULL},
-	{TidyTag_FIGURE,     &figure_start_handler,     &figure_end_handler},
-	{TidyTag_BLOCKQUOTE, &blockquote_start_handler, &blockquote_end_handler},
-	{TidyTag_DIV,        &provide_one_newline,      &provide_one_newline},
-	{TidyTag_SUMMARY,    &provide_one_newline,      &provide_one_newline},
-	{TidyTag_DETAILS,    &provide_two_newlines,     &provide_two_newlines},
-	{TidyTag_FIGCAPTION, &provide_one_newline,      &provide_one_newline},
-	{TidyTag_SECTION,    &provide_one_newline,      &provide_one_newline},
-	{TidyTag_FOOTER,     &provide_one_newline,      &provide_one_newline},
-	{TidyTag_OPTION,     &provide_one_newline,      &provide_one_newline},
-	{TidyTag_FORM,       &provide_one_newline,      &provide_one_newline},
-	{TidyTag_UNKNOWN,    NULL,                      NULL},
+	{GUMBO_TAG_P,          &provide_two_newlines,     &provide_two_newlines},
+	{GUMBO_TAG_BR,         &br_handler,               NULL},
+	{GUMBO_TAG_LI,         &li_handler,               &provide_one_newline},
+	{GUMBO_TAG_UL,         &ul_start_handler,         &ul_end_handler},
+	{GUMBO_TAG_OL,         &ol_start_handler,         &ul_end_handler},
+	{GUMBO_TAG_PRE,        &provide_two_newlines,     &provide_two_newlines},
+	{GUMBO_TAG_H1,         &provide_three_newlines,   &provide_two_newlines},
+	{GUMBO_TAG_H2,         &provide_three_newlines,   &provide_two_newlines},
+	{GUMBO_TAG_H3,         &provide_three_newlines,   &provide_two_newlines},
+	{GUMBO_TAG_H4,         &provide_three_newlines,   &provide_two_newlines},
+	{GUMBO_TAG_H5,         &provide_three_newlines,   &provide_two_newlines},
+	{GUMBO_TAG_H6,         &provide_three_newlines,   &provide_two_newlines},
+	{GUMBO_TAG_HR,         &hr_handler,               NULL},
+	{GUMBO_TAG_FIGURE,     &figure_start_handler,     &figure_end_handler},
+	{GUMBO_TAG_BLOCKQUOTE, &blockquote_start_handler, &blockquote_end_handler},
+	{GUMBO_TAG_DIV,        &provide_one_newline,      &provide_one_newline},
+	{GUMBO_TAG_SUMMARY,    &provide_one_newline,      &provide_one_newline},
+	{GUMBO_TAG_DETAILS,    &provide_two_newlines,     &provide_two_newlines},
+	{GUMBO_TAG_FIGCAPTION, &provide_one_newline,      &provide_one_newline},
+	{GUMBO_TAG_SECTION,    &provide_one_newline,      &provide_one_newline},
+	{GUMBO_TAG_FOOTER,     &provide_one_newline,      &provide_one_newline},
+	{GUMBO_TAG_OPTION,     &provide_one_newline,      &provide_one_newline},
+	{GUMBO_TAG_FORM,       &provide_one_newline,      &provide_one_newline},
+	{GUMBO_TAG_UNKNOWN,    NULL,                      NULL},
 };
 
 static void
-cat_tag_to_line(struct line *line, const char *tag_name, TidyAttr *atts, bool is_start)
+dump_html(GumboNode *node, struct wstring *text, struct line *line, enum html_position *pos)
 {
-	(void)line;
-	(void)tag_name;
-	(void)atts;
-	(void)is_start;
-	return;
-}
-
-static void
-dumpNode(TidyDoc *tdoc, TidyNode tnod, TidyBuffer *buf, struct line *line, struct wstring *text, enum html_position *pos)
-{
-	const char *child_name;
-	TidyTagId child_id;
-	TidyNodeType child_type;
-	TidyAttr child_atts;
-	size_t i;
-	for (TidyNode child = tidyGetChild(tnod); child; child = tidyGetNext(child)) {
-		child_type = tidyNodeGetType(child);
-		if ((child_type == TidyNode_Text) || (child_type == TidyNode_CDATA)) {
-			tidyBufClear(buf);
-			tidyNodeGetValue(*tdoc, child, buf);
-			if (buf->bp != NULL) {
-				struct string *str = crtas((char *)buf->bp, buf->size);
-				if (str != NULL) {
-					struct wstring *wstr = convert_string_to_wstring(str);
-					free_string(str);
-					if (wstr != NULL) {
-						line_string(line, wstr->ptr, text);
-						free_wstring(wstr);
-					}
+	if (node->type == GUMBO_NODE_ELEMENT) {
+		size_t i;
+		for (i = 0; handlers[i].tag_id != GUMBO_TAG_UNKNOWN; ++i) {
+			if (node->v.element.tag == handlers[i].tag_id) {
+				break;
+			}
+		}
+		if (handlers[i].tag_id == GUMBO_TAG_UNKNOWN) {
+			struct string *tag = crtas(node->v.element.original_tag.data, node->v.element.original_tag.length);
+			struct wstring *wtag;
+			if (tag != NULL) {
+				wtag = convert_string_to_wstring(tag);
+				free_string(tag);
+				if (wtag != NULL) {
+					line_string(line, wtag->ptr, text);
+					free_wstring(wtag);
 				}
 			}
-		} else if ((child_type == TidyNode_Start) || (child_type == TidyNode_StartEnd)) {
-			child_id = tidyNodeGetId(child);
-			for (i = 0; handlers[i].tag_id != TidyTag_UNKNOWN; ++i) {
-				if (child_id == handlers[i].tag_id) {
-					break;
+			for (size_t j = 0; j < node->v.element.children.length; ++j) {
+				dump_html(node->v.element.children.data[j], text, line, pos);
+			}
+			tag = crtas(node->v.element.original_end_tag.data, node->v.element.original_end_tag.length);
+			if (tag != NULL) {
+				wtag = convert_string_to_wstring(tag);
+				free_string(tag);
+				if (wtag != NULL) {
+					line_string(line, wtag->ptr, text);
+					free_wstring(wtag);
 				}
 			}
-			if (handlers[i].tag_id == TidyTag_UNKNOWN) {
-				child_name = tidyNodeGetName(child);
-				child_atts = tidyAttrFirst(child);
-				cat_tag_to_line(line, child_name, &child_atts, true);
-				dumpNode(tdoc, child, buf, line, text, pos);
-				cat_tag_to_line(line, child_name, &child_atts, false);
-			} else {
-				if (handlers[i].start_handler != NULL) {
-					handlers[i].start_handler(text, line);
-				}
-				dumpNode(tdoc, child, buf, line, text, pos);
-				if (handlers[i].end_handler != NULL) {
-					handlers[i].end_handler(text, line);
-				}
+		} else {
+			if (handlers[i].start_handler != NULL) {
+				handlers[i].start_handler(text, line);
+			}
+			for (size_t j = 0; j < node->v.element.children.length; ++j) {
+				dump_html(node->v.element.children.data[j], text, line, pos);
+			}
+			if (handlers[i].end_handler != NULL) {
+				handlers[i].end_handler(text, line);
+			}
+		}
+	} else if ((node->type == GUMBO_NODE_TEXT) || (node->type == GUMBO_NODE_CDATA)) {
+		struct string *str = crtas(node->v.text.text, strlen(node->v.text.text));
+		if (str != NULL) {
+			struct wstring *wstr = convert_string_to_wstring(str);
+			free_string(str);
+			if (wstr != NULL) {
+				line_string(line, wstr->ptr, text);
+				free_wstring(wstr);
 			}
 		}
 	}
@@ -268,42 +264,18 @@ render_text_html(const struct wstring *wstr, struct line *text_line, struct wstr
 	if (is_first_call == true) {
 		list_depth = 0;
 	}
-
-	TidyDoc tdoc = tidyCreate();
-	TidyBuffer tempbuf = {0};
-	TidyBuffer tidy_errbuf = {0};
-
-	tidyBufInit(&tempbuf);
-
-	tidySetErrorBuffer(tdoc, &tidy_errbuf);
-	tidyOptSetInt(tdoc, TidyWrapLen, 0); // disable wrapping
-	tidyOptSetBool(tdoc, TidyMakeBare, true); // use plain quotes instead fancy ones
-	tidyOptSetBool(tdoc, TidyOmitOptionalTags, false);
-	tidyOptSetBool(tdoc, TidyCoerceEndTags, true);
-
-	// Convert entities to characters.
-	tidyOptSetBool(tdoc, TidyAsciiChars, true);
-	tidyOptSetBool(tdoc, TidyQuoteNbsp, false);
-	tidyOptSetBool(tdoc, TidyQuoteMarks, false);
-	tidyOptSetBool(tdoc, TidyQuoteAmpersand, false);
-	tidyOptSetBool(tdoc, TidyPreserveEntities, false);
-
 	struct string *str = convert_wstring_to_string(wstr);
-	tidyParseString(tdoc, str->ptr);
-	tidyCleanAndRepair(tdoc);
-	tidyRunDiagnostics(tdoc);
-
-	dumpNode(&tdoc, tidyGetBody(tdoc), &tempbuf, text_line, text, &html_pos);
-
-	if (tidy_errbuf.bp != NULL) {
-		INFO("Tidy report:\n%s", tidy_errbuf.bp);
-	} else {
-		INFO("Tidy run silently.");
+	if (str == NULL) {
+		return false;
 	}
-
-	tidyBufFree(&tempbuf);
-	tidyBufFree(&tidy_errbuf);
-	tidyRelease(tdoc);
+	GumboOutput *output = gumbo_parse(str->ptr);
+	if (output == NULL) {
+		FAIL("Couldn't parse HTML successfully!");
+		free_string(str);
+		return false;
+	}
+	dump_html(output->root, text, text_line, &html_pos);
+	gumbo_destroy_output(&kGumboDefaultOptions, output);
 	free_string(str);
 	return true;
 }

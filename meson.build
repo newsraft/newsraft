@@ -147,7 +147,7 @@ executable(
 		dependency('sqlite3'),
 		dependency('expat'),
 		dependency('yajl'),
-		dependency('tidy'),
+		dependency('gumbo'),
 	],
 	#link_args: ['-static'],
 	install: true,

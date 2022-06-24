@@ -1,26 +1,24 @@
-#include <tidy.h>
-#include <tidybuffio.h>
+#include <gumbo.h>
 #include "prepare_to_render_data/prepare_to_render_data.h"
 
 struct html_element_handler {
-	const TidyTagId tag_id;
-	void (*start_handler)(struct string *, struct link_list *, const TidyAttr *);
-	void (*end_handler)(struct string *, struct link_list *, const TidyAttr *);
+	const GumboTag tag_id;
+	void (*start_handler)(struct string *, struct link_list *, GumboVector *);
+	void (*end_handler)(struct string *, struct link_list *, GumboVector *);
 };
 
 static const char *
-get_value_of_xml_attribute(const TidyAttr *attrs, const char *attr_name)
+get_value_of_xml_attribute(GumboVector *attrs, const char *attr_name)
 {
-	for (TidyAttr attr = *attrs; attr != NULL; attr = tidyAttrNext(attr)) {
-		if (strcmp(attr_name, tidyAttrName(attr)) == 0) {
-			return tidyAttrValue(attr);
-		}
+	GumboAttribute *attr = gumbo_get_attribute(attrs, attr_name);
+	if (attr != NULL) {
+		return attr->value;
 	}
 	return NULL;
 }
 
 static void
-sup_handler(struct string *text, struct link_list *links, const TidyAttr *attrs)
+sup_handler(struct string *text, struct link_list *links, GumboVector *attrs)
 {
 	(void)links;
 	(void)attrs;
@@ -28,7 +26,7 @@ sup_handler(struct string *text, struct link_list *links, const TidyAttr *attrs)
 }
 
 static void
-q_handler(struct string *text, struct link_list *links, const TidyAttr *attrs)
+q_handler(struct string *text, struct link_list *links, GumboVector *attrs)
 {
 	(void)links;
 	(void)attrs;
@@ -36,7 +34,7 @@ q_handler(struct string *text, struct link_list *links, const TidyAttr *attrs)
 }
 
 static void
-button_start_handler(struct string *text, struct link_list *links, const TidyAttr *attrs)
+button_start_handler(struct string *text, struct link_list *links, GumboVector *attrs)
 {
 	(void)links;
 	(void)attrs;
@@ -44,7 +42,7 @@ button_start_handler(struct string *text, struct link_list *links, const TidyAtt
 }
 
 static void
-button_end_handler(struct string *text, struct link_list *links, const TidyAttr *attrs)
+button_end_handler(struct string *text, struct link_list *links, GumboVector *attrs)
 {
 	(void)links;
 	(void)attrs;
@@ -98,7 +96,7 @@ add_url_mark(struct string *text, const char *url, const char *title, size_t tit
 }
 
 static void
-a_handler(struct string *text, struct link_list *links, const TidyAttr *attrs)
+a_handler(struct string *text, struct link_list *links, GumboVector *attrs)
 {
 	const char *url = get_value_of_xml_attribute(attrs, "href");
 	const char *type = get_value_of_xml_attribute(attrs, "type");
@@ -111,7 +109,7 @@ a_handler(struct string *text, struct link_list *links, const TidyAttr *attrs)
 }
 
 static void
-img_handler(struct string *text, struct link_list *links, const TidyAttr *attrs)
+img_handler(struct string *text, struct link_list *links, GumboVector *attrs)
 {
 	const char *url = get_value_of_xml_attribute(attrs, "src");
 	const char *title = get_value_of_xml_attribute(attrs, "title");
@@ -129,7 +127,7 @@ img_handler(struct string *text, struct link_list *links, const TidyAttr *attrs)
 }
 
 static void
-iframe_handler(struct string *text, struct link_list *links, const TidyAttr *attrs)
+iframe_handler(struct string *text, struct link_list *links, GumboVector *attrs)
 {
 	const char *url = get_value_of_xml_attribute(attrs, "src");
 	const char *title = get_value_of_xml_attribute(attrs, "title");
@@ -147,7 +145,7 @@ iframe_handler(struct string *text, struct link_list *links, const TidyAttr *att
 }
 
 static void
-embed_handler(struct string *text, struct link_list *links, const TidyAttr *attrs)
+embed_handler(struct string *text, struct link_list *links, GumboVector *attrs)
 {
 	const char *url = get_value_of_xml_attribute(attrs, "src");
 	const char *type = get_value_of_xml_attribute(attrs, "type");
@@ -158,14 +156,14 @@ embed_handler(struct string *text, struct link_list *links, const TidyAttr *attr
 }
 
 static void
-video_handler(struct string *text, struct link_list *links, const TidyAttr *attrs)
+video_handler(struct string *text, struct link_list *links, GumboVector *attrs)
 {
 	const char *url = get_value_of_xml_attribute(attrs, "src");
 	add_url_mark(text, url, NULL, 0, links, "video");
 }
 
 static void
-source_handler(struct string *text, struct link_list *links, const TidyAttr *attrs)
+source_handler(struct string *text, struct link_list *links, GumboVector *attrs)
 {
 	const char *url = get_value_of_xml_attribute(attrs, "src");
 	const char *type = get_value_of_xml_attribute(attrs, "type");
@@ -173,146 +171,75 @@ source_handler(struct string *text, struct link_list *links, const TidyAttr *att
 }
 
 static const struct html_element_handler handlers[] = {
-	{TidyTag_SPAN,     NULL,                  NULL},
-	{TidyTag_A,        NULL,                  &a_handler},
-	{TidyTag_SUP,      &sup_handler,          NULL},
-	{TidyTag_IMG,      &img_handler,          NULL},
-	{TidyTag_IFRAME,   &iframe_handler,       NULL},
-	{TidyTag_EMBED,    &embed_handler,        NULL},
-	{TidyTag_SOURCE,   &source_handler,       NULL},
-	{TidyTag_Q,        &q_handler,            &q_handler},
-	{TidyTag_CODE,     NULL,                  NULL},
-	{TidyTag_B,        NULL,                  NULL},
-	{TidyTag_I,        NULL,                  NULL},
-	{TidyTag_EM,       NULL,                  NULL},
-	{TidyTag_MARK,     NULL,                  NULL},
-	{TidyTag_SMALL,    NULL,                  NULL},
-	{TidyTag_TIME,     NULL,                  NULL},
-	{TidyTag_STRONG,   NULL,                  NULL},
-	{TidyTag_VIDEO,    &video_handler,        NULL},
-	{TidyTag_LABEL,    NULL,                  NULL},
-	{TidyTag_TEXTAREA, NULL,                  NULL},
-	{TidyTag_THEAD,    NULL,                  NULL},
-	{TidyTag_TBODY,    NULL,                  NULL},
-	{TidyTag_TFOOT,    NULL,                  NULL},
-	{TidyTag_NOSCRIPT, NULL,                  NULL},
-	{TidyTag_BUTTON,   &button_start_handler, &button_end_handler},
+	{GUMBO_TAG_SPAN,     NULL,                  NULL},
+	{GUMBO_TAG_A,        NULL,                  &a_handler},
+	{GUMBO_TAG_SUP,      &sup_handler,          NULL},
+	{GUMBO_TAG_IMG,      &img_handler,          NULL},
+	{GUMBO_TAG_IFRAME,   &iframe_handler,       NULL},
+	{GUMBO_TAG_EMBED,    &embed_handler,        NULL},
+	{GUMBO_TAG_SOURCE,   &source_handler,       NULL},
+	{GUMBO_TAG_Q,        &q_handler,            &q_handler},
+	{GUMBO_TAG_CODE,     NULL,                  NULL},
+	{GUMBO_TAG_I,        NULL,                  NULL},
+	{GUMBO_TAG_B,        NULL,                  NULL},
+	{GUMBO_TAG_U,        NULL,                  NULL},
+	{GUMBO_TAG_EM,       NULL,                  NULL},
+	{GUMBO_TAG_MARK,     NULL,                  NULL},
+	{GUMBO_TAG_SMALL,    NULL,                  NULL},
+	{GUMBO_TAG_TIME,     NULL,                  NULL},
+	{GUMBO_TAG_STRONG,   NULL,                  NULL},
+	{GUMBO_TAG_VIDEO,    &video_handler,        NULL},
+	{GUMBO_TAG_LABEL,    NULL,                  NULL},
+	{GUMBO_TAG_TEXTAREA, NULL,                  NULL},
+	{GUMBO_TAG_THEAD,    NULL,                  NULL},
+	{GUMBO_TAG_TBODY,    NULL,                  NULL},
+	{GUMBO_TAG_TFOOT,    NULL,                  NULL},
+	{GUMBO_TAG_NOSCRIPT, NULL,                  NULL},
+	{GUMBO_TAG_BUTTON,   &button_start_handler, &button_end_handler},
 	// These are ignored by parsing function.
-	//{TidyTag_STYLE,  NULL,                  NULL},
-	//{TidyTag_SCRIPT, NULL,                  NULL},
-	{TidyTag_UNKNOWN,  NULL,                  NULL},
+	//{GUMBO_TAG_STYLE,  NULL,                  NULL},
+	//{GUMBO_TAG_SCRIPT, NULL,                  NULL},
+	{GUMBO_TAG_UNKNOWN,  NULL,                  NULL},
 };
 
-static inline void
-cat_opening_tag_to_string(struct string *target, const char *tag_name, const TidyAttr *attrs)
-{
-	if (tag_name == NULL) {
-		return;
-	}
-	size_t tag_name_len = strlen(tag_name);
-	if (tag_name_len == 0) {
-		return;
-	}
-
-	catcs(target, '<');
-	catas(target, tag_name, tag_name_len);
-
-	// Add tag attributes.
-	const char *attr_name;
-	size_t attr_name_len;
-	const char *attr_value;
-	size_t attr_value_len;
-	for (TidyAttr attr = *attrs; attr != NULL; attr = tidyAttrNext(attr)) {
-		attr_name = tidyAttrName(attr);
-		if (attr_name == NULL) {
-			continue;
-		}
-		attr_name_len = strlen(attr_name);
-		if (attr_name_len == 0) {
-			continue;
-		}
-		catcs(target, ' ');
-		catas(target, attr_name, attr_name_len);
-		attr_value = tidyAttrValue(attr);
-		if (attr_value == NULL) {
-			continue;
-		}
-		attr_value_len = strlen(attr_value);
-		if (attr_value_len == 0) {
-			continue;
-		}
-		if (strchr(attr_value, '"') == NULL) {
-			catas(target, "=\"", 2);
-			catas(target, attr_value, attr_value_len);
-			catcs(target, '"');
-		} else if (strchr(attr_value, '\'') == NULL) {
-			catas(target, "='", 2);
-			catas(target, attr_value, attr_value_len);
-			catcs(target, '\'');
-		} else {
-			catas(target, "=ERROR", 6);
-		}
-	}
-
-	catcs(target, '>');
-}
-
-static inline void
-cat_closing_tag_to_string(struct string *target, const char *tag_name)
-{
-	if (tag_name == NULL) {
-		return;
-	}
-	size_t tag_name_len = strlen(tag_name);
-	if (tag_name_len == 0) {
-		return;
-	}
-	catas(target, "</", 2);
-	catas(target, tag_name, tag_name_len);
-	catcs(target, '>');
-}
-
 static void
-dumpNode(TidyDoc *tdoc, TidyNode tnod, TidyBuffer *buf, struct string *text, struct link_list *links)
+dump_html(GumboNode *node, struct string *text, struct link_list *links)
 {
-	const char *child_name;
-	TidyTagId child_id;
-	TidyNodeType child_type;
-	TidyAttr child_attrs;
-	size_t i;
-	for (TidyNode child = tidyGetChild(tnod); child != NULL; child = tidyGetNext(child)) {
-		child_type = tidyNodeGetType(child);
-		if ((child_type == TidyNode_Text) || (child_type == TidyNode_CDATA)) {
-			tidyBufClear(buf);
-			tidyNodeGetValue(*tdoc, child, buf);
-			if (buf->bp != NULL) {
-				catas(text, (char *)buf->bp, buf->size);
+	if (node->type == GUMBO_NODE_ELEMENT) {
+		size_t i;
+		for (i = 0; handlers[i].tag_id != GUMBO_TAG_UNKNOWN; ++i) {
+			if (node->v.element.tag == handlers[i].tag_id) {
+				break;
 			}
-		} else if ((child_type == TidyNode_Start) || (child_type == TidyNode_StartEnd)) {
-			child_id = tidyNodeGetId(child);
-			if ((child_id == TidyTag_STYLE) || (child_id == TidyTag_SCRIPT)) {
-				// Completely ignore <style> and <script> elements.
+		}
+		if (handlers[i].tag_id == GUMBO_TAG_UNKNOWN) {
+			catas(text, node->v.element.original_tag.data, node->v.element.original_tag.length);
+			for (size_t j = 0; j < node->v.element.children.length; ++j) {
+				dump_html(node->v.element.children.data[j], text, links);
+			}
+			catas(text, node->v.element.original_end_tag.data, node->v.element.original_end_tag.length);
+		} else {
+			if (handlers[i].start_handler != NULL) {
+				handlers[i].start_handler(text, links, &node->v.element.attributes);
+			}
+			for (size_t j = 0; j < node->v.element.children.length; ++j) {
+				dump_html(node->v.element.children.data[j], text, links);
+			}
+			if (handlers[i].end_handler != NULL) {
+				handlers[i].end_handler(text, links, &node->v.element.attributes);
+			}
+		}
+	} else if ((node->type == GUMBO_NODE_TEXT) || (node->type == GUMBO_NODE_CDATA)) {
+		for (size_t j = 0; j < node->v.text.original_text.length; ++j) {
+			if ((text->len > 0)
+				&& (ISWHITESPACE(text->ptr[text->len - 1]))
+				&& (ISWHITESPACE(node->v.text.original_text.data[j]))) {
 				continue;
 			}
-			for (i = 0; handlers[i].tag_id != TidyTag_UNKNOWN; ++i) {
-				if (child_id == handlers[i].tag_id) {
-					break;
-				}
-			}
-			child_attrs = tidyAttrFirst(child);
-			if (handlers[i].tag_id == TidyTag_UNKNOWN) {
-				child_name = tidyNodeGetName(child);
-				cat_opening_tag_to_string(text, child_name, &child_attrs);
-				dumpNode(tdoc, child, buf, text, links);
-				cat_closing_tag_to_string(text, child_name);
+			if (ISWHITESPACE(node->v.text.original_text.data[j])) {
+				catcs(text, ' ');
 			} else {
-				if (handlers[i].start_handler != NULL) {
-					handlers[i].start_handler(text, links, &child_attrs);
-				}
-				dumpNode(tdoc, child, buf, text, links);
-				if (handlers[i].end_handler != NULL) {
-					handlers[i].end_handler(text, links, &child_attrs);
-				}
+				catcs(text, node->v.text.original_text.data[j]);
 			}
 		}
 	}
@@ -332,41 +259,15 @@ prepare_to_render_text_html(const struct wstring *wide_src, struct link_list *li
 		free_string(text);
 		return NULL;
 	}
-
-	TidyDoc tdoc = tidyCreate();
-	TidyBuffer tempbuf = {0};
-	TidyBuffer tidy_errbuf = {0};
-
-	tidyBufInit(&tempbuf);
-
-	tidySetErrorBuffer(tdoc, &tidy_errbuf);
-	tidyOptSetInt(tdoc, TidyWrapLen, 0); // disable wrapping
-	tidyOptSetBool(tdoc, TidyMakeBare, true); // use plain quotes instead fancy ones
-	tidyOptSetBool(tdoc, TidyOmitOptionalTags, false);
-	tidyOptSetBool(tdoc, TidyCoerceEndTags, true);
-
-	// Don't convert entities to characters.
-	tidyOptSetBool(tdoc, TidyAsciiChars, false);
-	tidyOptSetBool(tdoc, TidyQuoteNbsp, true);
-	tidyOptSetBool(tdoc, TidyQuoteMarks, true);
-	tidyOptSetBool(tdoc, TidyQuoteAmpersand, true);
-	tidyOptSetBool(tdoc, TidyPreserveEntities, true);
-
-	tidyParseString(tdoc, src->ptr);
-	tidyCleanAndRepair(tdoc);
-	tidyRunDiagnostics(tdoc);
-
-	dumpNode(&tdoc, tidyGetBody(tdoc), &tempbuf, text, links);
-
-	if (tidy_errbuf.bp != NULL) {
-		INFO("Tidy report:\n%s", tidy_errbuf.bp);
-	} else {
-		INFO("Tidy run silently.");
+	GumboOutput *output = gumbo_parse(src->ptr);
+	if (output == NULL) {
+		FAIL("Couldn't parse HTML successfully!");
+		free_string(text);
+		free_string(src);
+		return NULL;
 	}
-
-	tidyBufFree(&tempbuf);
-	tidyBufFree(&tidy_errbuf);
-	tidyRelease(tdoc);
+	dump_html(output->root, text, links);
+	gumbo_destroy_output(&kGumboDefaultOptions, output);
 	free_string(src);
 	struct wstring *wtext = convert_string_to_wstring(text);
 	free_string(text);

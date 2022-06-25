@@ -1,6 +1,5 @@
 #include <stdlib.h>
 #include <string.h>
-#include <gumbo.h>
 #include "render_data.h"
 
 struct html_element_handler {
@@ -33,7 +32,6 @@ struct list_level {
 
 static uint8_t list_depth;
 static struct list_level list_levels[MAX_NESTED_LISTS_DEPTH];
-static struct html_table *table = NULL;
 
 static inline void
 provide_newlines(struct wstring *text, struct line *line, int8_t count)
@@ -197,6 +195,7 @@ static const struct html_element_handler handlers[] = {
 	{GUMBO_TAG_FOOTER,     &provide_one_newline,      &provide_one_newline},
 	{GUMBO_TAG_OPTION,     &provide_one_newline,      &provide_one_newline},
 	{GUMBO_TAG_FORM,       &provide_one_newline,      &provide_one_newline},
+	{GUMBO_TAG_TABLE,      NULL,                      NULL},
 	{GUMBO_TAG_UNKNOWN,    NULL,                      NULL},
 };
 
@@ -232,6 +231,14 @@ dump_html(GumboNode *node, struct wstring *text, struct line *line, enum html_po
 					line_string(line, wtag->ptr, text);
 					free_wstring(wtag);
 				}
+			}
+		} else if (handlers[i].tag_id == GUMBO_TAG_TABLE) {
+			struct html_table *table = create_html_table();
+			if (table != NULL) {
+				for (size_t j = 0; j < node->v.element.children.length; ++j) {
+					dump_html_table(node->v.element.children.data[j], table);
+				}
+				print_html_table_and_free_it(table, text, line);
 			}
 		} else {
 			if (handlers[i].start_handler != NULL) {

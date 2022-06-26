@@ -9,6 +9,7 @@ struct html_abbr {
 struct html_data {
 	struct link_list *links;
 	struct html_abbr *abbrs;
+	bool in_pre;
 };
 
 struct html_element_handler {
@@ -213,6 +214,22 @@ abbr_handler(struct string *text, struct html_data *data, GumboVector *attrs)
 	}
 }
 
+static void
+pre_start(struct string *text, struct html_data *data, GumboVector *attrs)
+{
+	(void)text;
+	(void)attrs;
+	data->in_pre = true;
+}
+
+static void
+pre_end(struct string *text, struct html_data *data, GumboVector *attrs)
+{
+	(void)text;
+	(void)attrs;
+	data->in_pre = false;
+}
+
 static const struct html_element_handler handlers[] = {
 	{GUMBO_TAG_SPAN,     NULL,                  NULL},
 	{GUMBO_TAG_A,        NULL,                  &a_handler},
@@ -223,6 +240,7 @@ static const struct html_element_handler handlers[] = {
 	{GUMBO_TAG_SOURCE,   &source_handler,       NULL},
 	{GUMBO_TAG_ABBR,     NULL,                  &abbr_handler},
 	{GUMBO_TAG_Q,        &q_handler,            &q_handler},
+	{GUMBO_TAG_PRE,      &pre_start,            &pre_end},
 	{GUMBO_TAG_CODE,     NULL,                  NULL},
 	{GUMBO_TAG_I,        NULL,                  NULL},
 	{GUMBO_TAG_B,        NULL,                  NULL},
@@ -275,17 +293,25 @@ dump_html(GumboNode *node, struct string *text, struct html_data *data)
 				handlers[i].end_handler(text, data, &node->v.element.attributes);
 			}
 		}
-	} else if ((node->type == GUMBO_NODE_TEXT) || (node->type == GUMBO_NODE_CDATA)) {
-		for (size_t j = 0; j < node->v.text.original_text.length; ++j) {
-			if ((text->len > 0)
-				&& (ISWHITESPACE(text->ptr[text->len - 1]))
-				&& (ISWHITESPACE(node->v.text.original_text.data[j]))) {
-				continue;
-			}
-			if (ISWHITESPACE(node->v.text.original_text.data[j])) {
-				catcs(text, ' ');
-			} else {
-				catcs(text, node->v.text.original_text.data[j]);
+	} else if ((node->type == GUMBO_NODE_TEXT)
+			|| (node->type == GUMBO_NODE_CDATA)
+			|| (node->type == GUMBO_NODE_WHITESPACE))
+	{
+		if (data->in_pre == true) {
+			catas(text, node->v.text.original_text.data, node->v.text.original_text.length);
+		} else {
+			for (size_t j = 0; j < node->v.text.original_text.length; ++j) {
+				if ((text->len > 0)
+					&& (ISWHITESPACE(text->ptr[text->len - 1]))
+					&& (ISWHITESPACE(node->v.text.original_text.data[j])))
+				{
+					continue;
+				}
+				if (ISWHITESPACE(node->v.text.original_text.data[j])) {
+					catcs(text, ' ');
+				} else {
+					catcs(text, node->v.text.original_text.data[j]);
+				}
 			}
 		}
 	}
@@ -325,7 +351,7 @@ prepare_to_render_text_html(const struct wstring *wide_src, struct link_list *li
 		free_string(src);
 		return NULL;
 	}
-	struct html_data data = {links, NULL};
+	struct html_data data = {links, NULL, false};
 	dump_html(output->root, text, &data);
 	free_abbrs(data.abbrs);
 	gumbo_destroy_output(&kGumboDefaultOptions, output);

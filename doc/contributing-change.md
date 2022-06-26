@@ -1,6 +1,27 @@
-# Dependency description
+# Introduction
 
-Newsraft uses [ncurses](https://invisible-island.net/ncurses) to draw user interface, [SQLite](https://www.sqlite.org) to store data, [curl](https://curl.se) to download feeds, [Expat](https://github.com/libexpat/libexpat) to parse XML, [YAJL](https://github.com/lloyd/yajl) to parse JSON and [Gumbo](https://github.com/google/gumbo-parser) to parse HTML.
+First of all, thank you for your desire to contribute some code! But before
+you start, there are a few things that need to be clarified.
+
+Since this project is designed to be very stable and maintainable over a long
+time, every decision will be annoyingly thought out and meticulously tested.
+So in order to not waste our precious time, make sure that the proposed
+functionality doesn't conflict with the goals of the project (see
+[doc/project-goals.md](https://codeberg.org/grisha/newsraft/src/branch/main/doc/project-goals.md))
+and its source code conforms to the Code guidelines (see below).
+
+In terms of dependencies, Newsraft is very unpretentious - it uses
+[ncurses](https://invisible-island.net/ncurses) to draw user interface,
+[SQLite](https://www.sqlite.org) to store data,
+[curl](https://curl.se) to download feeds,
+[Expat](https://github.com/libexpat/libexpat) to parse XML,
+[YAJL](https://github.com/lloyd/yajl) to parse JSON and
+[Gumbo](https://github.com/google/gumbo-parser) to parse HTML.
+To build the project you will also need [GCC](https://gcc.gnu.org),
+[Meson](https://github.com/mesonbuild/meson) and, in case you want to generate
+a man page (of course you do), [scdoc](https://git.sr.ht/~sircmpwn/scdoc).
+If your contribution involves the introduction of a new dependency in
+the project, then there must be a very very very good reason for this.
 
 # Code guidelines
 

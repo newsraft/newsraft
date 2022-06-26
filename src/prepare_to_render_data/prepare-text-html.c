@@ -219,6 +219,9 @@ pre_start(struct string *text, struct html_data *data, GumboVector *attrs)
 {
 	(void)text;
 	(void)attrs;
+	// Since pre is block element, we still need to pass its tag to renderer
+	// to allow it to add required lines.
+	catas(text, "<pre>", 5);
 	data->in_pre = true;
 }
 
@@ -227,6 +230,7 @@ pre_end(struct string *text, struct html_data *data, GumboVector *attrs)
 {
 	(void)text;
 	(void)attrs;
+	catas(text, "</pre>", 6);
 	data->in_pre = false;
 }
 

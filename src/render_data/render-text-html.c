@@ -12,6 +12,7 @@ struct html_element_handler {
 #define SPACES_PER_INDENTATION_LEVEL 4
 #define SPACES_PER_BLOCKQUOTE_LEVEL 4
 #define SPACES_PER_FIGURE_LEVEL 4
+#define SPACES_PER_DESCRIPTION_LEVEL 4
 
 enum html_position {
 	HTML_NONE = 0,
@@ -112,7 +113,11 @@ ul_start_handler(struct wstring *text, struct line *line)
 	if (list_depth == MAX_NESTED_LISTS_DEPTH) {
 		return;
 	}
-	provide_two_newlines(text, line);
+	if (list_depth == 0) {
+		provide_two_newlines(text, line);
+	} else {
+		provide_one_newline(text, line);
+	}
 	++list_depth;
 	list_levels[list_depth - 1].type = UNORDERED_LIST;
 }
@@ -120,10 +125,14 @@ ul_start_handler(struct wstring *text, struct line *line)
 static void
 ul_end_handler(struct wstring *text, struct line *line)
 {
-	provide_two_newlines(text, line);
 	if (list_depth > 0) {
 		--list_depth;
 		line->indent = list_depth * SPACES_PER_INDENTATION_LEVEL;
+	}
+	if (list_depth == 0) {
+		provide_two_newlines(text, line);
+	} else {
+		provide_one_newline(text, line);
 	}
 }
 
@@ -133,7 +142,11 @@ ol_start_handler(struct wstring *text, struct line *line)
 	if (list_depth == MAX_NESTED_LISTS_DEPTH) {
 		return;
 	}
-	provide_two_newlines(text, line);
+	if (list_depth == 0) {
+		provide_two_newlines(text, line);
+	} else {
+		provide_one_newline(text, line);
+	}
 	++list_depth;
 	list_levels[list_depth - 1].type = ORDERED_LIST;
 	list_levels[list_depth - 1].length = 0;
@@ -171,8 +184,25 @@ figure_end_handler(struct wstring *text, struct line *line)
 	}
 }
 
+static void
+dd_start_handler(struct wstring *text, struct line *line)
+{
+	provide_one_newline(text, line);
+	line->indent += SPACES_PER_DESCRIPTION_LEVEL;
+}
+
+static void
+dd_end_handler(struct wstring *text, struct line *line)
+{
+	provide_one_newline(text, line);
+	if (line->indent >= SPACES_PER_DESCRIPTION_LEVEL) {
+		line->indent -= SPACES_PER_DESCRIPTION_LEVEL;
+	}
+}
+
 static const struct html_element_handler handlers[] = {
 	{GUMBO_TAG_P,          &provide_two_newlines,     &provide_two_newlines},
+	{GUMBO_TAG_DL,         &provide_two_newlines,     &provide_two_newlines},
 	{GUMBO_TAG_BR,         &br_handler,               NULL},
 	{GUMBO_TAG_LI,         &li_handler,               &provide_one_newline},
 	{GUMBO_TAG_UL,         &ul_start_handler,         &ul_end_handler},
@@ -187,6 +217,8 @@ static const struct html_element_handler handlers[] = {
 	{GUMBO_TAG_HR,         &hr_handler,               NULL},
 	{GUMBO_TAG_FIGURE,     &figure_start_handler,     &figure_end_handler},
 	{GUMBO_TAG_BLOCKQUOTE, &blockquote_start_handler, &blockquote_end_handler},
+	{GUMBO_TAG_DD,         &dd_start_handler,         &dd_end_handler},
+	{GUMBO_TAG_DT,         &provide_one_newline,      &provide_one_newline},
 	{GUMBO_TAG_DIV,        &provide_one_newline,      &provide_one_newline},
 	{GUMBO_TAG_SUMMARY,    &provide_one_newline,      &provide_one_newline},
 	{GUMBO_TAG_DETAILS,    &provide_two_newlines,     &provide_two_newlines},
@@ -195,6 +227,7 @@ static const struct html_element_handler handlers[] = {
 	{GUMBO_TAG_FOOTER,     &provide_one_newline,      &provide_one_newline},
 	{GUMBO_TAG_OPTION,     &provide_one_newline,      &provide_one_newline},
 	{GUMBO_TAG_FORM,       &provide_one_newline,      &provide_one_newline},
+	{GUMBO_TAG_NAV,        &provide_one_newline,      &provide_one_newline},
 	{GUMBO_TAG_TABLE,      NULL,                      NULL},
 	{GUMBO_TAG_UNKNOWN,    NULL,                      NULL},
 };

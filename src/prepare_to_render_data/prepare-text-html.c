@@ -1,10 +1,20 @@
 #include <gumbo.h>
 #include "prepare_to_render_data/prepare_to_render_data.h"
 
+struct html_abbr {
+	struct string *title;
+	struct html_abbr *next;
+};
+
+struct html_data {
+	struct link_list *links;
+	struct html_abbr *abbrs;
+};
+
 struct html_element_handler {
 	const GumboTag tag_id;
-	void (*start_handler)(struct string *, struct link_list *, GumboVector *);
-	void (*end_handler)(struct string *, struct link_list *, GumboVector *);
+	void (*start_handler)(struct string *, struct html_data *, GumboVector *);
+	void (*end_handler)(struct string *, struct html_data *, GumboVector *);
 };
 
 static const char *
@@ -18,33 +28,33 @@ get_value_of_xml_attribute(GumboVector *attrs, const char *attr_name)
 }
 
 static void
-sup_handler(struct string *text, struct link_list *links, GumboVector *attrs)
+sup_handler(struct string *text, struct html_data *data, GumboVector *attrs)
 {
-	(void)links;
+	(void)data;
 	(void)attrs;
 	catcs(text, '^');
 }
 
 static void
-q_handler(struct string *text, struct link_list *links, GumboVector *attrs)
+q_handler(struct string *text, struct html_data *data, GumboVector *attrs)
 {
-	(void)links;
+	(void)data;
 	(void)attrs;
 	catcs(text, '"');
 }
 
 static void
-button_start_handler(struct string *text, struct link_list *links, GumboVector *attrs)
+button_start_handler(struct string *text, struct html_data *data, GumboVector *attrs)
 {
-	(void)links;
+	(void)data;
 	(void)attrs;
 	catcs(text, '[');
 }
 
 static void
-button_end_handler(struct string *text, struct link_list *links, GumboVector *attrs)
+button_end_handler(struct string *text, struct html_data *data, GumboVector *attrs)
 {
-	(void)links;
+	(void)data;
 	(void)attrs;
 	catcs(text, ']');
 }
@@ -96,7 +106,7 @@ add_url_mark(struct string *text, const char *url, const char *title, size_t tit
 }
 
 static void
-a_handler(struct string *text, struct link_list *links, GumboVector *attrs)
+a_handler(struct string *text, struct html_data *data, GumboVector *attrs)
 {
 	const char *url = get_value_of_xml_attribute(attrs, "href");
 	const char *type = get_value_of_xml_attribute(attrs, "type");
@@ -105,11 +115,11 @@ a_handler(struct string *text, struct link_list *links, GumboVector *attrs)
 	if (title != NULL) {
 		title_len = strlen(title);
 	}
-	add_url_mark(text, url, title, title_len, links, type);
+	add_url_mark(text, url, title, title_len, data->links, type);
 }
 
 static void
-img_handler(struct string *text, struct link_list *links, GumboVector *attrs)
+img_handler(struct string *text, struct html_data *data, GumboVector *attrs)
 {
 	const char *url = get_value_of_xml_attribute(attrs, "src");
 	const char *title = get_value_of_xml_attribute(attrs, "title");
@@ -123,11 +133,11 @@ img_handler(struct string *text, struct link_list *links, GumboVector *attrs)
 			title_len = strlen(title);
 		}
 	}
-	add_url_mark(text, url, title, title_len, links, "image");
+	add_url_mark(text, url, title, title_len, data->links, "image");
 }
 
 static void
-iframe_handler(struct string *text, struct link_list *links, GumboVector *attrs)
+iframe_handler(struct string *text, struct html_data *data, GumboVector *attrs)
 {
 	const char *url = get_value_of_xml_attribute(attrs, "src");
 	const char *title = get_value_of_xml_attribute(attrs, "title");
@@ -141,33 +151,66 @@ iframe_handler(struct string *text, struct link_list *links, GumboVector *attrs)
 			title_len = strlen(title);
 		}
 	}
-	add_url_mark(text, url, title, title_len, links, "iframe");
+	add_url_mark(text, url, title, title_len, data->links, "iframe");
 }
 
 static void
-embed_handler(struct string *text, struct link_list *links, GumboVector *attrs)
+embed_handler(struct string *text, struct html_data *data, GumboVector *attrs)
 {
 	const char *url = get_value_of_xml_attribute(attrs, "src");
 	const char *type = get_value_of_xml_attribute(attrs, "type");
 	if (type == NULL) {
 		type = "embed";
 	}
-	add_url_mark(text, url, NULL, 0, links, type);
+	add_url_mark(text, url, NULL, 0, data->links, type);
 }
 
 static void
-video_handler(struct string *text, struct link_list *links, GumboVector *attrs)
+video_handler(struct string *text, struct html_data *data, GumboVector *attrs)
 {
 	const char *url = get_value_of_xml_attribute(attrs, "src");
-	add_url_mark(text, url, NULL, 0, links, "video");
+	add_url_mark(text, url, NULL, 0, data->links, "video");
 }
 
 static void
-source_handler(struct string *text, struct link_list *links, GumboVector *attrs)
+source_handler(struct string *text, struct html_data *data, GumboVector *attrs)
 {
 	const char *url = get_value_of_xml_attribute(attrs, "src");
 	const char *type = get_value_of_xml_attribute(attrs, "type");
-	add_url_mark(text, url, NULL, 0, links, type);
+	add_url_mark(text, url, NULL, 0, data->links, type);
+}
+
+static void
+abbr_handler(struct string *text, struct html_data *data, GumboVector *attrs)
+{
+	const char *title = get_value_of_xml_attribute(attrs, "title");
+	if (title == NULL) {
+		return;
+	}
+	const size_t title_len = strlen(title);
+	if (title_len == 0) {
+		return;
+	}
+	struct html_abbr *abbr = data->abbrs;
+	while (abbr != NULL) {
+		if (strcasecmp(title, abbr->title->ptr) == 0) {
+			return; // Is duplicate.
+		}
+		abbr = abbr->next;
+	}
+	catas(text, " (", 2);
+	catas(text, title, title_len);
+	catcs(text, ')');
+	abbr = malloc(sizeof(struct html_abbr));
+	if (abbr != NULL) {
+		abbr->title = crtas(title, title_len);
+		if (abbr->title == NULL) {
+			free(abbr);
+		} else {
+			abbr->next = data->abbrs;
+			data->abbrs = abbr;
+		}
+	}
 }
 
 static const struct html_element_handler handlers[] = {
@@ -178,6 +221,7 @@ static const struct html_element_handler handlers[] = {
 	{GUMBO_TAG_IFRAME,   &iframe_handler,       NULL},
 	{GUMBO_TAG_EMBED,    &embed_handler,        NULL},
 	{GUMBO_TAG_SOURCE,   &source_handler,       NULL},
+	{GUMBO_TAG_ABBR,     NULL,                  &abbr_handler},
 	{GUMBO_TAG_Q,        &q_handler,            &q_handler},
 	{GUMBO_TAG_CODE,     NULL,                  NULL},
 	{GUMBO_TAG_I,        NULL,                  NULL},
@@ -186,6 +230,8 @@ static const struct html_element_handler handlers[] = {
 	{GUMBO_TAG_EM,       NULL,                  NULL},
 	{GUMBO_TAG_MARK,     NULL,                  NULL},
 	{GUMBO_TAG_SMALL,    NULL,                  NULL},
+	{GUMBO_TAG_CITE,     NULL,                  NULL},
+	{GUMBO_TAG_DFN,      NULL,                  NULL},
 	{GUMBO_TAG_TIME,     NULL,                  NULL},
 	{GUMBO_TAG_STRONG,   NULL,                  NULL},
 	{GUMBO_TAG_VIDEO,    &video_handler,        NULL},
@@ -203,7 +249,7 @@ static const struct html_element_handler handlers[] = {
 };
 
 static void
-dump_html(GumboNode *node, struct string *text, struct link_list *links)
+dump_html(GumboNode *node, struct string *text, struct html_data *data)
 {
 	if (node->type == GUMBO_NODE_ELEMENT) {
 		size_t i;
@@ -215,18 +261,18 @@ dump_html(GumboNode *node, struct string *text, struct link_list *links)
 		if (handlers[i].tag_id == GUMBO_TAG_UNKNOWN) {
 			catas(text, node->v.element.original_tag.data, node->v.element.original_tag.length);
 			for (size_t j = 0; j < node->v.element.children.length; ++j) {
-				dump_html(node->v.element.children.data[j], text, links);
+				dump_html(node->v.element.children.data[j], text, data);
 			}
 			catas(text, node->v.element.original_end_tag.data, node->v.element.original_end_tag.length);
 		} else {
 			if (handlers[i].start_handler != NULL) {
-				handlers[i].start_handler(text, links, &node->v.element.attributes);
+				handlers[i].start_handler(text, data, &node->v.element.attributes);
 			}
 			for (size_t j = 0; j < node->v.element.children.length; ++j) {
-				dump_html(node->v.element.children.data[j], text, links);
+				dump_html(node->v.element.children.data[j], text, data);
 			}
 			if (handlers[i].end_handler != NULL) {
-				handlers[i].end_handler(text, links, &node->v.element.attributes);
+				handlers[i].end_handler(text, data, &node->v.element.attributes);
 			}
 		}
 	} else if ((node->type == GUMBO_NODE_TEXT) || (node->type == GUMBO_NODE_CDATA)) {
@@ -242,6 +288,19 @@ dump_html(GumboNode *node, struct string *text, struct link_list *links)
 				catcs(text, node->v.text.original_text.data[j]);
 			}
 		}
+	}
+}
+
+static void
+free_abbrs(struct html_abbr *abbr)
+{
+	struct html_abbr *temp;
+	struct html_abbr *a = abbr;
+	while (a != NULL) {
+		free_string(a->title);
+		temp = a;
+		a = a->next;
+		free(temp);
 	}
 }
 
@@ -266,7 +325,9 @@ prepare_to_render_text_html(const struct wstring *wide_src, struct link_list *li
 		free_string(src);
 		return NULL;
 	}
-	dump_html(output->root, text, links);
+	struct html_data data = {links, NULL};
+	dump_html(output->root, text, &data);
+	free_abbrs(data.abbrs);
 	gumbo_destroy_output(&kGumboDefaultOptions, output);
 	free_string(src);
 	struct wstring *wtext = convert_string_to_wstring(text);

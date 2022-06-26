@@ -5,26 +5,9 @@ bool
 we_are_inside_item(const struct stream_callback_data *data)
 {
 	for (size_t i = 0; i <= data->depth; ++i) {
-#ifdef NEWSRAFT_FORMAT_SUPPORT_ATOM10
-		if (data->path[i] == ATOM10_ENTRY) {
+		if (data->path[i] == GENERIC_ITEM) {
 			return true;
 		}
-#endif
-#ifdef NEWSRAFT_FORMAT_SUPPORT_RSS20
-		if (data->path[i] == RSS20_ITEM) {
-			return true;
-		}
-#endif
-#ifdef NEWSRAFT_FORMAT_SUPPORT_RSS11
-		if (data->path[i] == RSS11_ITEM) {
-			return true;
-		}
-#endif
-#ifdef NEWSRAFT_FORMAT_SUPPORT_ATOM03
-		if (data->path[i] == ATOM03_ENTRY) {
-			return true;
-		}
-#endif
 	}
 	return false;
 }
@@ -51,10 +34,118 @@ serialize_attribute(struct string **dest, const XML_Char **attrs, const char *at
 	if (attr_value_len == 0) {
 		return true; // Ignore empty attribute values.
 	}
-	if (cat_array_to_serialization(dest, prefix, prefix_len, attr_value, attr_value_len) == false) {
-		return false;
+	return serialize_array(dest, prefix, prefix_len, attr_value, attr_value_len);
+}
+
+int8_t
+generic_item_starter(struct stream_callback_data *data, const XML_Char **attrs)
+{
+	(void)attrs;
+	if (prepend_item(&data->feed.item) == false) {
+		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 	}
-	return true;
+	return PARSE_OKAY;
+}
+
+int8_t
+generic_guid_end(struct stream_callback_data *data)
+{
+	if (data->path[data->depth] == GENERIC_ITEM) {
+		if (crtss_or_cpyss(&data->feed.item->guid, data->text) == false) {
+			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		}
+	}
+	return PARSE_OKAY;
+}
+
+int8_t
+generic_title_end(struct stream_callback_data *data)
+{
+	if (data->path[data->depth] == GENERIC_ITEM) {
+		if (crtss_or_cpyss(&data->feed.item->title, data->text) == false) {
+			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		}
+	} else if (data->path[data->depth] == GENERIC_FEED) {
+		if (crtss_or_cpyss(&data->feed.title, data->text) == false) {
+			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		}
+	}
+	return PARSE_OKAY;
+}
+
+int8_t
+generic_plain_content_end(struct stream_callback_data *data)
+{
+	if (we_are_inside_item(data) == true) {
+		if (serialize_caret(&data->feed.item->content) == false) {
+			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		}
+		if (serialize_array(&data->feed.item->content, "type", 4, "text/plain", 10) == false) {
+			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		}
+		if (serialize_string(&data->feed.item->content, "text", 4, data->text) == false) {
+			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		}
+	} else {
+		if (serialize_caret(&data->feed.content) == false) {
+			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		}
+		if (serialize_array(&data->feed.content, "type", 4, "text/plain", 10) == false) {
+			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		}
+		if (serialize_string(&data->feed.content, "text", 4, data->text) == false) {
+			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		}
+	}
+	return PARSE_OKAY;
+}
+
+int8_t
+generic_html_content_end(struct stream_callback_data *data)
+{
+	if (we_are_inside_item(data) == true) {
+		if (serialize_caret(&data->feed.item->content) == false) {
+			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		}
+		if (serialize_array(&data->feed.item->content, "type", 4, "text/html", 9) == false) {
+			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		}
+		if (serialize_string(&data->feed.item->content, "text", 4, data->text) == false) {
+			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		}
+	} else {
+		if (serialize_caret(&data->feed.content) == false) {
+			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		}
+		if (serialize_array(&data->feed.content, "type", 4, "text/html", 9) == false) {
+			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		}
+		if (serialize_string(&data->feed.content, "text", 4, data->text) == false) {
+			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		}
+	}
+	return PARSE_OKAY;
+}
+
+int8_t
+generic_category_end(struct stream_callback_data *data)
+{
+	if (we_are_inside_item(data) == true) {
+		if (serialize_caret(&data->feed.item->categories) == false) {
+			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		}
+		if (serialize_string(&data->feed.item->categories, "name", 4, data->text) == false) {
+			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		}
+	} else {
+		if (serialize_caret(&data->feed.categories) == false) {
+			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		}
+		if (serialize_string(&data->feed.categories, "name", 4, data->text) == false) {
+			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		}
+	}
+	return PARSE_OKAY;
 }
 
 int8_t
@@ -63,11 +154,11 @@ generator_start(struct stream_callback_data *data, const XML_Char **attrs)
 	(void)data;
 	const char *attr = get_value_of_attribute_key(attrs, "uri");
 	if (attr != NULL) {
-		INFO("Feed generator link (URI): %s", attr);
+		INFO("Feed generator URI: %s", attr);
 	}
 	attr = get_value_of_attribute_key(attrs, "url");
 	if (attr != NULL) {
-		INFO("Feed generator link (URL): %s", attr);
+		INFO("Feed generator URL: %s", attr);
 	}
 	attr = get_value_of_attribute_key(attrs, "version");
 	if (attr != NULL) {

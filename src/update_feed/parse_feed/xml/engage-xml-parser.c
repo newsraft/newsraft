@@ -163,10 +163,10 @@ static void
 end_element_handler(void *userData, const XML_Char *name)
 {
 	struct stream_callback_data *data = userData;
+	trim_whitespace_from_string(data->text);
 	if (data->depth > 0) {
 		data->depth -= 1;
 	}
-	trim_whitespace_from_string(data->text);
 	const char *tag;
 	size_t handler_index;
 	const char *sep_pos = strchr(name, XML_NAMESPACE_SEPARATOR);

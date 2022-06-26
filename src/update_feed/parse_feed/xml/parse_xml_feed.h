@@ -10,9 +10,8 @@ enum parsing_error {
 // Unknown position must have 0 value!
 enum xml_position {
 	XML_UNKNOWN_POS = 0,
-	ATOM10_FEED,
-	ATOM10_ENTRY,
-	ATOM10_ID,
+	GENERIC_FEED,
+	GENERIC_ITEM,
 	ATOM10_TITLE,
 	ATOM10_SUMMARY,
 	ATOM10_CONTENT,
@@ -24,10 +23,6 @@ enum xml_position {
 	ATOM10_EMAIL,
 	ATOM10_SUBTITLE,
 	ATOM10_GENERATOR,
-	RSS20_CHANNEL,
-	RSS20_ITEM,
-	RSS20_GUID,
-	RSS20_TITLE,
 	RSS20_LINK,
 	RSS20_DESCRIPTION,
 	RSS20_PUBDATE,
@@ -40,30 +35,13 @@ enum xml_position {
 	RSS20_WEBMASTER,
 	RSS20_MANAGINGEDITOR,
 	RSS20_SOURCE,
-	RSSCONTENT_ENCODED,
 	DC_TITLE,
-	DC_DESCRIPTION,
 	DC_CREATOR,
 	DC_CONTRIBUTOR,
-	DC_SUBJECT,
 	MRSS_GROUP,
 	MRSS_CONTENT,
-	MRSS_THUMBNAIL,
 	MRSS_DESCRIPTION,
-	YANDEX_FULL_TEXT,
-	YANDEX_COMMENT_TEXT,
-	YANDEX_GENRE,
-	YANDEX_BIND_TO,
-	RSS11_CHANNEL,
-	RSS11_ITEM,
-	RSS11_TITLE,
-	RSS11_LINK,
-	RSS11_DESCRIPTION,
 	RSS11_IMAGE,
-	RSS11_URL,
-	ATOM03_FEED,
-	ATOM03_ENTRY,
-	ATOM03_ID,
 	ATOM03_TITLE,
 	ATOM03_SUMMARY,
 	ATOM03_CONTENT,
@@ -75,8 +53,6 @@ enum xml_position {
 	ATOM03_EMAIL,
 	ATOM03_TAGLINE,
 	ATOM03_GENERATOR,
-	GEORSS_POINT,
-	GEORSS_GML_POS,
 };
 
 struct xml_element_handler {
@@ -91,6 +67,12 @@ struct xml_element_handler {
 bool we_are_inside_item(const struct stream_callback_data *data);
 const char *get_value_of_attribute_key(const XML_Char **attrs, const char *key);
 bool serialize_attribute(struct string **dest, const XML_Char **attrs, const char *attr_key, const char *prefix, size_t prefix_len);
+int8_t generic_item_starter(struct stream_callback_data *data, const XML_Char **attrs);
+int8_t generic_guid_end(struct stream_callback_data *data);
+int8_t generic_title_end(struct stream_callback_data *data);
+int8_t generic_plain_content_end(struct stream_callback_data *data);
+int8_t generic_html_content_end(struct stream_callback_data *data);
+int8_t generic_category_end(struct stream_callback_data *data);
 int8_t generator_start(struct stream_callback_data *data, const XML_Char **attrs);
 int8_t generator_end(struct stream_callback_data *data);
 

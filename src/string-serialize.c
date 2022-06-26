@@ -19,7 +19,21 @@ struct deserialize_stream {
 #define SEPARATOR '='
 
 bool
-cat_array_to_serialization(struct string **target, const char *key, size_t key_len, const char *value, size_t value_len)
+serialize_caret(struct string **target)
+{
+	if (*target == NULL) {
+		*target = crtes();
+	}
+	if (*target != NULL) {
+		if (catcs(*target, DELIMITER) == true) {
+			return catcs(*target, '^');
+		}
+	}
+	return false;
+}
+
+bool
+serialize_array(struct string **target, const char *key, size_t key_len, const char *value, size_t value_len)
 {
 	if ((value == NULL) || (value_len == 0)) {
 		return true; // Ignore empty entries.
@@ -53,7 +67,7 @@ cat_array_to_serialization(struct string **target, const char *key, size_t key_l
 }
 
 bool
-cat_string_to_serialization(struct string **target, const char *key, size_t key_len, struct string *value)
+serialize_string(struct string **target, const char *key, size_t key_len, struct string *value)
 {
 	if ((value == NULL) || (value->len == 0)) {
 		return true; // Ignore empty entries.
@@ -78,21 +92,6 @@ cat_string_to_serialization(struct string **target, const char *key, size_t key_
 		return false;
 	}
 	return true;
-}
-
-bool
-cat_caret_to_serialization(struct string **target)
-{
-	if (*target == NULL) {
-		*target = crtes();
-		if (*target == NULL) {
-			return false;
-		}
-	}
-	if (catcs(*target, DELIMITER) == false) {
-		return false;
-	}
-	return catcs(*target, '^');
 }
 
 struct deserialize_stream *

@@ -414,9 +414,9 @@ struct string *convert_bytes_to_human_readable_size_string(const char *value);
 struct string *convert_seconds_to_human_readable_duration_string(const char *value);
 
 // string-serialize.c
-bool cat_array_to_serialization(struct string **target, const char *key, size_t key_len, const char *value, size_t value_len);
-bool cat_string_to_serialization(struct string **target, const char *key, size_t key_len, struct string *value);
-bool cat_caret_to_serialization(struct string **target);
+bool serialize_caret(struct string **target);
+bool serialize_array(struct string **target, const char *key, size_t key_len, const char *value, size_t value_len);
+bool serialize_string(struct string **target, const char *key, size_t key_len, struct string *value);
 struct deserialize_stream *open_deserialize_stream(const char *serialized_data);
 const struct string *get_next_entry_from_deserialize_stream(struct deserialize_stream *stream);
 void close_deserialize_stream(struct deserialize_stream *stream);

@@ -8,8 +8,8 @@ static int8_t
 group_start(struct stream_callback_data *data, const XML_Char **attrs)
 {
 	(void)attrs;
-	if (we_are_inside_item(data) == true) {
-		if (cat_caret_to_serialization(&data->feed.item->attachments) == false) {
+	if (data->path[data->depth] == GENERIC_ITEM) {
+		if (serialize_caret(&data->feed.item->attachments) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	}
@@ -31,11 +31,11 @@ content_start(struct stream_callback_data *data, const XML_Char **attrs)
 		return PARSE_OKAY; // Ignore empty content entries.
 	}
 	if (data->path[data->depth] != MRSS_GROUP) {
-		if (cat_caret_to_serialization(&data->feed.item->attachments) == false) {
+		if (serialize_caret(&data->feed.item->attachments) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	}
-	if (cat_array_to_serialization(&data->feed.item->attachments, "url", 3, attr, attr_len) == false) {
+	if (serialize_array(&data->feed.item->attachments, "url", 3, attr, attr_len) == false) {
 		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 	}
 	if (serialize_attribute(&data->feed.item->attachments, attrs, "type", "type", 4) == false) {
@@ -51,38 +51,6 @@ content_start(struct stream_callback_data *data, const XML_Char **attrs)
 }
 
 static int8_t
-thumbnail_start(struct stream_callback_data *data, const XML_Char **attrs)
-{
-	if (we_are_inside_item(data) == false) {
-		return PARSE_OKAY;
-	}
-	const char *attr = get_value_of_attribute_key(attrs, "url");
-	if (attr == NULL) {
-		return PARSE_OKAY; // Ignore empty thumbnail entries.
-	}
-	const size_t attr_len = strlen(attr);
-	if (attr_len == 0) {
-		return PARSE_OKAY; // Ignore empty thumbnail entries.
-	}
-	if (cat_caret_to_serialization(&data->feed.item->attachments) == false) {
-		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-	}
-	if (cat_array_to_serialization(&data->feed.item->attachments, "content", 7, "thumbnail", 9) == false) {
-		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-	}
-	if (cat_array_to_serialization(&data->feed.item->attachments, "url", 3, attr, attr_len) == false) {
-		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-	}
-	if (serialize_attribute(&data->feed.item->attachments, attrs, "width", "width", 5) == false) {
-		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-	}
-	if (serialize_attribute(&data->feed.item->attachments, attrs, "height", "height", 6) == false) {
-		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-	}
-	return PARSE_OKAY;
-}
-
-static int8_t
 description_start(struct stream_callback_data *data, const XML_Char **attrs)
 {
 	if (we_are_inside_item(data) == true) {
@@ -91,7 +59,7 @@ description_start(struct stream_callback_data *data, const XML_Char **attrs)
 				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			}
 		} else {
-			if (cat_caret_to_serialization(&data->feed.item->content) == false) {
+			if (serialize_caret(&data->feed.item->content) == false) {
 				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			}
 			if (serialize_attribute(&data->feed.item->content, attrs, "type", "type", 4) == false) {
@@ -107,11 +75,11 @@ description_end(struct stream_callback_data *data)
 {
 	if (we_are_inside_item(data) == true) {
 		if (data->path[data->depth] == MRSS_GROUP) {
-			if (cat_string_to_serialization(&data->feed.item->attachments, "description", 11, data->text) == false) {
+			if (serialize_string(&data->feed.item->attachments, "description", 11, data->text) == false) {
 				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			}
 		} else {
-			if (cat_string_to_serialization(&data->feed.item->content, "text", 4, data->text) == false) {
+			if (serialize_string(&data->feed.item->content, "text", 4, data->text) == false) {
 				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			}
 		}
@@ -119,9 +87,12 @@ description_end(struct stream_callback_data *data)
 	return PARSE_OKAY;
 }
 
+// Note to the future: there is no need to parse thumbnail elements, because
+// storing information about decorating pictures defeats the whole purpose of
+// project being a console application with as few distractions as possible.
+
 const struct xml_element_handler xml_mediarss_handlers[] = {
 	{"content",     MRSS_CONTENT,     &content_start,     NULL},
-	{"thumbnail",   MRSS_THUMBNAIL,   &thumbnail_start,   NULL},
 	{"description", MRSS_DESCRIPTION, &description_start, &description_end},
 	{"group",       MRSS_GROUP,       &group_start,       NULL},
 	{NULL,          XML_UNKNOWN_POS,  NULL,               NULL},

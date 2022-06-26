@@ -22,8 +22,8 @@ struct getfeed_item {
 	struct string *persons;
 	struct string *categories;
 	struct string *locations;
-	time_t pubdate; // Publication date in seconds since the Epoch (0 means unset).
-	time_t upddate; // Update date in seconds since the Epoch (0 means unset).
+	time_t publication_date; // Publication date in seconds since the Epoch (0 means unset).
+	time_t update_date; // Update date in seconds since the Epoch (0 means unset).
 	struct getfeed_item *next;
 };
 

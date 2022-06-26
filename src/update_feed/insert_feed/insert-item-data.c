@@ -61,8 +61,8 @@ db_insert_item(const struct string *feed_url, struct getfeed_item *item, int64_t
 	db_bind_string(s,      1 + ITEM_COLUMN_PERSONS,          item->persons);
 	db_bind_string(s,      1 + ITEM_COLUMN_CATEGORIES,       item->categories);
 	db_bind_string(s,      1 + ITEM_COLUMN_LOCATIONS,        item->locations);
-	sqlite3_bind_int64(s,  1 + ITEM_COLUMN_PUBLICATION_DATE, (sqlite3_int64)(item->pubdate));
-	sqlite3_bind_int64(s,  1 + ITEM_COLUMN_UPDATE_DATE,      (sqlite3_int64)(item->upddate));
+	sqlite3_bind_int64(s,  1 + ITEM_COLUMN_PUBLICATION_DATE, (sqlite3_int64)(item->publication_date));
+	sqlite3_bind_int64(s,  1 + ITEM_COLUMN_UPDATE_DATE,      (sqlite3_int64)(item->update_date));
 	sqlite3_bind_int(s,    1 + ITEM_COLUMN_UNREAD,           1);
 	if (rowid != -1) {
 		sqlite3_bind_int64(s, 2 + ITEM_COLUMN_UNREAD, rowid);

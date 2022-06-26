@@ -331,7 +331,7 @@ _select-first_ (default: *g*, *KEY_HOME*)
 
 _select-last_ (default: *G*, *KEY_END*)
 
-_enter_ (default: *^J*, *KEY_ENTER*)
+_enter_ (default: *l*, *^J*, *KEY_RIGHT*, *KEY_ENTER*)
 
 _reload_ (default: *r*)
 
@@ -357,7 +357,7 @@ _open-in-browser_ (default: *o*)
 
 _copy-to-clipboard_ (default: *c*)
 
-_quit_ (default: *q*)
+_quit_ (default: *h*, *q*, *KEY_LEFT*, *KEY_BACKSPACE*)
 
 _quit-hard_ (default: *Q*)
 

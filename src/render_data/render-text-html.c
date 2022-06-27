@@ -230,6 +230,7 @@ static const struct html_element_handler handlers[] = {
 	{GUMBO_TAG_FOOTER,     &provide_one_newline,      &provide_one_newline},
 	{GUMBO_TAG_OPTION,     &provide_one_newline,      &provide_one_newline},
 	{GUMBO_TAG_FORM,       &provide_one_newline,      &provide_one_newline},
+	{GUMBO_TAG_ASIDE,      &provide_one_newline,      &provide_one_newline},
 	{GUMBO_TAG_NAV,        &provide_one_newline,      &provide_one_newline},
 	{GUMBO_TAG_TABLE,      NULL,                      NULL},
 	{GUMBO_TAG_UNKNOWN,    NULL,                      NULL},

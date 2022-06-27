@@ -234,6 +234,8 @@ pre_end(struct string *text, struct html_data *data, GumboVector *attrs)
 	data->in_pre = false;
 }
 
+// Elements without handlers (both handlers are set to NULL), will simply
+// be ignored and the text in them will be displayed without any changes.
 static const struct html_element_handler handlers[] = {
 	{GUMBO_TAG_SPAN,     NULL,                  NULL},
 	{GUMBO_TAG_A,        NULL,                  &a_handler},
@@ -245,13 +247,16 @@ static const struct html_element_handler handlers[] = {
 	{GUMBO_TAG_ABBR,     NULL,                  &abbr_handler},
 	{GUMBO_TAG_Q,        &q_handler,            &q_handler},
 	{GUMBO_TAG_PRE,      &pre_start,            &pre_end},
-	{GUMBO_TAG_CODE,     NULL,                  NULL},
 	{GUMBO_TAG_I,        NULL,                  NULL},
 	{GUMBO_TAG_B,        NULL,                  NULL},
 	{GUMBO_TAG_U,        NULL,                  NULL},
 	{GUMBO_TAG_EM,       NULL,                  NULL},
 	{GUMBO_TAG_MARK,     NULL,                  NULL},
 	{GUMBO_TAG_SMALL,    NULL,                  NULL},
+	{GUMBO_TAG_CODE,     NULL,                  NULL},
+	{GUMBO_TAG_VAR,      NULL,                  NULL},
+	{GUMBO_TAG_SAMP,     NULL,                  NULL},
+	{GUMBO_TAG_KBD,      NULL,                  NULL},
 	{GUMBO_TAG_CITE,     NULL,                  NULL},
 	{GUMBO_TAG_DFN,      NULL,                  NULL},
 	{GUMBO_TAG_TIME,     NULL,                  NULL},
@@ -262,11 +267,11 @@ static const struct html_element_handler handlers[] = {
 	{GUMBO_TAG_THEAD,    NULL,                  NULL},
 	{GUMBO_TAG_TBODY,    NULL,                  NULL},
 	{GUMBO_TAG_TFOOT,    NULL,                  NULL},
+	{GUMBO_TAG_WBR,      NULL,                  NULL},
 	{GUMBO_TAG_NOSCRIPT, NULL,                  NULL},
 	{GUMBO_TAG_BUTTON,   &button_start_handler, &button_end_handler},
-	// These are ignored by parsing function.
-	//{GUMBO_TAG_STYLE,  NULL,                  NULL},
-	//{GUMBO_TAG_SCRIPT, NULL,                  NULL},
+	{GUMBO_TAG_STYLE,    NULL,                  NULL},
+	{GUMBO_TAG_SCRIPT,   NULL,                  NULL},
 	{GUMBO_TAG_UNKNOWN,  NULL,                  NULL},
 };
 
@@ -290,8 +295,11 @@ dump_html(GumboNode *node, struct string *text, struct html_data *data)
 			if (handlers[i].start_handler != NULL) {
 				handlers[i].start_handler(text, data, &node->v.element.attributes);
 			}
-			for (size_t j = 0; j < node->v.element.children.length; ++j) {
-				dump_html(node->v.element.children.data[j], text, data);
+			// We don't descent into style and script elements at all.
+			if ((handlers[i].tag_id != GUMBO_TAG_STYLE) && (handlers[i].tag_id != GUMBO_TAG_SCRIPT)) {
+				for (size_t j = 0; j < node->v.element.children.length; ++j) {
+					dump_html(node->v.element.children.data[j], text, data);
+				}
 			}
 			if (handlers[i].end_handler != NULL) {
 				handlers[i].end_handler(text, data, &node->v.element.attributes);

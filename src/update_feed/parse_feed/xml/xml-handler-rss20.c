@@ -220,7 +220,7 @@ const struct xml_element_handler xml_rss20_handlers[] = {
 	{"lastBuildDate",  RSS20_LASTBUILDDATE,  NULL,                  &last_build_date_end},
 	{"author",         RSS20_AUTHOR,         NULL,                  &author_end},
 	{"enclosure",      XML_UNKNOWN_POS,      &enclosure_start,      NULL},
-	{"category",       RSS20_CATEGORY,       NULL,                  &generic_category_end},
+	{"category",       XML_UNKNOWN_POS,      NULL,                  &generic_category_end},
 	{"comments",       RSS20_COMMENTS,       NULL,                  &comments_end},
 	{"ttl",            RSS20_TTL,            NULL,                  &ttl_end},
 	{"generator",      RSS20_GENERATOR,      NULL,                  &generator_end},

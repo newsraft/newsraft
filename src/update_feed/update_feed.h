@@ -20,8 +20,7 @@ struct getfeed_item {
 	struct string *content;
 	struct string *attachments;
 	struct string *persons;
-	struct string *categories;
-	struct string *locations;
+	struct string *extras;
 	time_t publication_date; // Publication date in seconds since the Epoch (0 means unset).
 	time_t update_date; // Update date in seconds since the Epoch (0 means unset).
 	struct getfeed_item *next;
@@ -34,8 +33,7 @@ struct getfeed_feed {
 	struct string *content;
 	struct string *attachments;
 	struct string *persons;
-	struct string *categories;
-	struct string *locations;
+	struct string *extras;
 	time_t download_date;
 	time_t update_date;
 	time_t time_to_live;

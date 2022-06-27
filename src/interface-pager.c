@@ -70,8 +70,8 @@ update_pager_menu(struct pager_menu *menu, const struct render_block *data_list)
 	// the pad is no longer there, the text of previous buffer may remain.
 	clear();
 	// Redraw status message since we cleared the whole screen.
-	status_update();
 	refresh();
+	status_update();
 
 	prefresh(menu->window, menu->view_min, 0, 0, 0, list_menu_height - 1, list_menu_width - 1);
 

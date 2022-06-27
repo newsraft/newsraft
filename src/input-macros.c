@@ -46,6 +46,7 @@ find_macro(const char *key)
 {
 	for (size_t i = 0; i < macros_count; ++i) {
 		if (strcmp(key, macros[i].key) == 0) {
+			INFO("Matched \"%s\" key with \"%ls\" command.", key, macros[i].cmd->ptr);
 			return macros[i].cmd;
 		}
 	}
@@ -55,6 +56,7 @@ find_macro(const char *key)
 void
 free_macros(void)
 {
+	INFO("Freeing command binds.");
 	while (macros_count > 0) {
 		free(macros[macros_count - 1].key);
 		free_wstring(macros[macros_count - 1].cmd);

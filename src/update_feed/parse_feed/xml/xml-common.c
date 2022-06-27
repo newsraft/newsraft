@@ -131,17 +131,17 @@ int8_t
 generic_category_end(struct stream_callback_data *data)
 {
 	if (we_are_inside_item(data) == true) {
-		if (serialize_caret(&data->feed.item->categories) == false) {
+		if (serialize_caret(&data->feed.item->extras) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
-		if (serialize_string(&data->feed.item->categories, "name", 4, data->text) == false) {
+		if (serialize_string(&data->feed.item->extras, "category", 8, data->text) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	} else {
-		if (serialize_caret(&data->feed.categories) == false) {
+		if (serialize_caret(&data->feed.extras) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
-		if (serialize_string(&data->feed.categories, "name", 4, data->text) == false) {
+		if (serialize_string(&data->feed.extras, "category", 8, data->text) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	}

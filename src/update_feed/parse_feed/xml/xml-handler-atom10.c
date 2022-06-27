@@ -223,31 +223,27 @@ category_start(struct stream_callback_data *data, const XML_Char **attrs)
 {
 	struct string **target;
 	if (data->path[data->depth] == GENERIC_ITEM) {
-		target = &data->feed.item->categories;
+		target = &data->feed.item->extras;
 	} else if (data->path[data->depth] == GENERIC_FEED) {
-		target = &data->feed.categories;
+		target = &data->feed.extras;
 	} else {
 		return PARSE_OKAY; // Ignore misplaced categories.
 	}
-	const char *attr = get_value_of_attribute_key(attrs, "term");
+	const char *attr = get_value_of_attribute_key(attrs, "label");
 	if (attr == NULL) {
-		return PARSE_OKAY; // Ignore empty categories.
+		attr = get_value_of_attribute_key(attrs, "term");
+		if (attr == NULL) {
+			return PARSE_OKAY; // Ignore empty categories.
+		}
 	}
 	const size_t attr_len = strlen(attr);
-	if (attr_len == 0) {
-		return PARSE_OKAY; // Ignore empty categories.
-	}
-	if (serialize_caret(target) == false) {
-		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-	}
-	if (serialize_array(target, "name", 4, attr, attr_len) == false) {
-		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-	}
-	if (serialize_attribute(target, attrs, "scheme", "scheme", 6) == false) {
-		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-	}
-	if (serialize_attribute(target, attrs, "label", "label", 5) == false) {
-		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+	if (attr_len != 0) {
+		if (serialize_caret(target) == false) {
+			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		}
+		if (serialize_array(target, "category", 8, attr, attr_len) == false) {
+			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+		}
 	}
 	return PARSE_OKAY;
 }

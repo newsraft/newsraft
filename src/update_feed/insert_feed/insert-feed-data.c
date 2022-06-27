@@ -3,7 +3,7 @@
 bool
 insert_feed_data(const struct string *feed_url, struct getfeed_feed *feed)
 {
-	sqlite3_stmt *s = db_prepare("INSERT OR REPLACE INTO feeds VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)", 65);
+	sqlite3_stmt *s = db_prepare("INSERT OR REPLACE INTO feeds VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)", 63);
 	if (s == NULL) {
 		return false;
 	}
@@ -13,8 +13,7 @@ insert_feed_data(const struct string *feed_url, struct getfeed_feed *feed)
 	db_bind_string(s,      1 + FEED_COLUMN_CONTENT,                   feed->content);
 	db_bind_string(s,      1 + FEED_COLUMN_ATTACHMENTS,               feed->attachments);
 	db_bind_string(s,      1 + FEED_COLUMN_PERSONS,                   feed->persons);
-	db_bind_string(s,      1 + FEED_COLUMN_CATEGORIES,                feed->categories);
-	db_bind_string(s,      1 + FEED_COLUMN_LOCATIONS,                 feed->locations);
+	db_bind_string(s,      1 + FEED_COLUMN_EXTRAS,                    feed->extras);
 	sqlite3_bind_int64(s,  1 + FEED_COLUMN_DOWNLOAD_DATE,             (sqlite3_int64)(feed->download_date));
 	sqlite3_bind_int64(s,  1 + FEED_COLUMN_UPDATE_DATE,               (sqlite3_int64)(feed->update_date));
 	sqlite3_bind_int64(s,  1 + FEED_COLUMN_TIME_TO_LIVE,              (sqlite3_int64)(feed->time_to_live));

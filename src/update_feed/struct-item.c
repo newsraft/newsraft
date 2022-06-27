@@ -25,8 +25,7 @@ free_item(struct getfeed_item *item)
 		free_string(i->content);
 		free_string(i->attachments);
 		free_string(i->persons);
-		free_string(i->categories);
-		free_string(i->locations);
+		free_string(i->extras);
 		temp = i;
 		i = i->next;
 		free(temp);

@@ -8,8 +8,7 @@ free_feed(struct getfeed_feed *feed)
 	free_string(feed->content);
 	free_string(feed->attachments);
 	free_string(feed->persons);
-	free_string(feed->categories);
-	free_string(feed->locations);
+	free_string(feed->extras);
 	free_string(feed->http_header_etag);
 	free_item(feed->item);
 }

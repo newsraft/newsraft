@@ -197,33 +197,33 @@ string_handler(void *ctx, const unsigned char *val, size_t len)
 	INFO("Stumbled upon string.");
 	if (data->depth == 1) {
 		if (data->path[0] == JSON_ARRAY_ITEMS) {
-			if (item_string_handler(data, (const char *)val, len) == false) {
+			if (item_string_handler(data, (char *)val, len) == false) {
 				return 0;
 			}
 		} else if (data->path[0] == JSON_ARRAY_AUTHORS) {
-			if (person_string_handler(&data->feed.persons, data->text, (const char *)val, len) == false) {
+			if (person_string_handler(&data->feed.persons, data->text, (char *)val, len) == false) {
 				return 0;
 			}
 		}
 	} else if (data->depth == 0) {
-		if (feed_string_handler(data, (const char *)val, len) == false) {
+		if (feed_string_handler(data, (char *)val, len) == false) {
 			return 0;
 		}
 	} else if (data->depth == 2) {
 		if ((data->path[0] == JSON_ARRAY_ITEMS) && (data->feed.item != NULL)) {
 			if (data->path[1] == JSON_ARRAY_AUTHORS) {
-				if (person_string_handler(&data->feed.item->persons, data->text, (const char *)val, len) == false) {
+				if (person_string_handler(&data->feed.item->persons, data->text, (char *)val, len) == false) {
 					return 0;
 				}
 			} else if (data->path[1] == JSON_ARRAY_ATTACHMENTS) {
-				if (item_attachment_string_handler(data, (const char *)val, len) == false) {
+				if (item_attachment_string_handler(data, (char *)val, len) == false) {
 					return 0;
 				}
 			} else if (data->path[1] == JSON_ARRAY_TAGS) {
-				if (serialize_caret(&data->feed.item->categories) == false) {
+				if (serialize_caret(&data->feed.item->extras) == false) {
 					return 0;
 				}
-				if (serialize_array(&data->feed.item->categories, "name", 4, (const char *)val, len) == false) {
+				if (serialize_array(&data->feed.item->extras, "category", 8, (char *)val, len) == false) {
 					return 0;
 				}
 			}
@@ -271,7 +271,7 @@ static int
 map_key_handler(void *ctx, const unsigned char *key, size_t key_len)
 {
 	struct stream_callback_data *data = ctx;
-	cpyas(data->text, (const char *)key, key_len);
+	cpyas(data->text, (char *)key, key_len);
 	INFO("Stumbled upon key: %s", data->text->ptr);
 	return 1;
 }

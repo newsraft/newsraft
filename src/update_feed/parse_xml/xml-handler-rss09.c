@@ -1,4 +1,4 @@
-#include "update_feed/parse_feed/xml/parse_xml_feed.h"
+#include "update_feed/parse_xml/parse_xml_feed.h"
 
 // https://web.archive.org/web/20211011074123/https://www.rssboard.org/rss-0-9-0
 

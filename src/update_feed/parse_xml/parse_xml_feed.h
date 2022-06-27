@@ -1,6 +1,6 @@
 #ifndef PARSE_XML_FEED_H
 #define PARSE_XML_FEED_H
-#include "update_feed/parse_feed/parse_feed.h"
+#include "update_feed/update_feed.h"
 
 enum parsing_error {
 	PARSE_OKAY = 0,

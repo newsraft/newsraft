@@ -1,5 +1,5 @@
 #include <string.h>
-#include "update_feed/parse_feed/xml/parse_xml_feed.h"
+#include "update_feed/parse_xml/parse_xml_feed.h"
 
 // Useful links:
 // https://www.rssboard.org/media-rss

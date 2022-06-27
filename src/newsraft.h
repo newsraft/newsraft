@@ -318,6 +318,8 @@ const char *get_config_path(void);
 const char *get_db_path(void);
 
 // date parsing
+time_t parse_date_rfc822(const struct string *value);
+time_t parse_date_rfc3339(const char *src, size_t src_len);
 struct string *get_config_date_str(time_t date, enum config_entry_index format_index);
 struct string *get_http_date_str(time_t date);
 
@@ -405,7 +407,6 @@ bool crtss_or_cpyss(struct string **dest, const struct string *src);
 bool string_vprintf(struct string *dest, const char *format, va_list args);
 bool string_printf(struct string *dest, const char *format, ...);
 void empty_string(struct string *str);
-void empty_string_safe(struct string *str);
 void free_string(struct string *str);
 void remove_character_from_string(struct string *str, char c);
 void remove_trailing_slashes_from_string(struct string *str);

@@ -1,5 +1,5 @@
 #include <string.h>
-#include "update_feed/parse_feed/json/parse_json_feed.h"
+#include "update_feed/parse_json/parse_json_feed.h"
 
 enum json_array {
 	JSON_ARRAY_UNKNOWN,

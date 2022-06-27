@@ -1,4 +1,4 @@
-#include "update_feed/parse_feed/xml/parse_xml_feed.h"
+#include "update_feed/parse_xml/parse_xml_feed.h"
 
 static int8_t
 title_end(struct stream_callback_data *data)

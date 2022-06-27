@@ -1,4 +1,4 @@
-#include "update_feed/parse_feed/xml/parse_xml_feed.h"
+#include "update_feed/parse_xml/parse_xml_feed.h"
 
 // https://web.archive.org/web/20210411040907/http://inamidst.com/rss1.1/
 

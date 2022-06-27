@@ -182,15 +182,6 @@ empty_string(struct string *str)
 }
 
 void
-empty_string_safe(struct string *str)
-{
-	if (str != NULL) {
-		str->len = 0;
-		*(str->ptr + 0) = '\0';
-	}
-}
-
-void
 free_string(struct string *str)
 {
 	if (str != NULL) {

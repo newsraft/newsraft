@@ -43,37 +43,15 @@ error:
 	return NULL;
 }
 
-static inline const char *
-number_suffix(uint32_t n)
-{
-	if ((n > 3) && (n < 21)) {
-		return "th";
-	}
-	uint32_t mod = n % 10;
-	if (mod == 1) {
-		return "st";
-	} else if (mod == 2) {
-		return "nd";
-	} else if (mod == 3) {
-		return "rd";
-	} else {
-		return "th";
-	}
-}
-
 static bool
 custom_input_handler(void *data, input_cmd_id cmd, uint32_t count)
 {
 	const struct link_list *links = data;
-	if ((count != 0) && (links->len >= count) && (links->list[count - 1].url != NULL)) {
+	if ((count != 0) && (links->len >= count)) {
 		if (cmd == INPUT_OPEN_IN_BROWSER) {
-			open_url_in_browser(links->list[count - 1].url);
-			return true;
+			return open_url_in_browser(links->list[count - 1].url);
 		} else if (cmd == INPUT_COPY_TO_CLIPBOARD) {
-			if (copy_string_to_clipboard(links->list[count - 1].url) == true) {
-				good_status("Copied %" PRIu32 "%s link to clipboard.", count, number_suffix(count));
-			}
-			return false;
+			return copy_string_to_clipboard(links->list[count - 1].url);
 		}
 	}
 	return false;

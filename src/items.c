@@ -193,6 +193,10 @@ enter_items_menu_loop(struct feed_line **feeds, size_t feeds_count, int format)
 			} else if (cmd == INPUT_QUIT_HARD) {
 				break;
 			}
+		} else if (cmd == INPUT_OPEN_IN_BROWSER) {
+			open_url_in_browser(items->list[items_menu.view_sel].url);
+		} else if (cmd == INPUT_COPY_TO_CLIPBOARD) {
+			copy_string_to_clipboard(items->list[items_menu.view_sel].url);
 		} else if (cmd == INPUT_RESIZE) {
 			redraw_menu_list(&items_menu);
 		} else if ((cmd == INPUT_QUIT_SOFT) || (cmd == INPUT_QUIT_HARD)) {

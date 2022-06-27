@@ -1,15 +1,16 @@
-TODO
+0. Check if a similar issue has already been reported
+[here](https://codeberg.org/grisha/newsraft/issues). If a similar issue has
+already been reported, you do not need to create a new one.
 
-Check if a similar issue has already been reported [here](https://codeberg.org/grisha/newsraft/issues). If a similar issue has already been reported, you do not need to create a new one.
+1. Run the program with `-l mylog.txt` in the arguments and reproduce the bug
+you found.
 
-1. Reproduce your bug with `-l my-log.txt` in arguments
+2. Describe what happened in detail.
 
-2. Explain what you think should happen
+3. Explain what you think should happen exactly.
 
-3. Describe what actually happened
+4. If you are using some kind of network authentication, replace your passwords
+in the `mylog.txt` with fake ones.
 
-4. Attach `my-log.txt` to your report
-
-5. Create issue for your report
-
-6. Wait for response
+5. [Create issue](https://codeberg.org/grisha/newsraft/issues) for your report
+with attached `mylog.txt`.

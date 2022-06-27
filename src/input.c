@@ -12,7 +12,7 @@ static struct input_binding *binds = NULL;
 static size_t binds_count = 0;
 
 int
-get_input_command(uint32_t *count)
+get_input_command(uint32_t *count, const struct wstring **macro_ptr)
 {
 	int c = read_key_from_status();
 	while (isdigit(c) != 0) {
@@ -38,6 +38,8 @@ get_input_command(uint32_t *count)
 			return binds[i].cmd;
 		}
 	}
+
+	*macro_ptr = find_macro(key);
 
 	return INPUTS_COUNT; // No command matched with this key.
 }

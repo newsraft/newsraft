@@ -32,6 +32,7 @@ newsraft_sources = [
 	'src/feeds-verifier.c',
 	'src/sections.c',
 	'src/input.c',
+	'src/input-macros.c',
 	'src/input-binds-default.c',
 	'src/render-block.c',
 	'src/commands.c',

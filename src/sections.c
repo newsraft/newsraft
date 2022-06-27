@@ -15,9 +15,10 @@ static size_t sections_count = 0;
 static struct menu_list_settings sections_menu;
 
 static struct format_arg fmt_args[] = {
-	{L'n', L"d", {.i = 0}},
-	{L'u', L"d", {.i = 0}},
-	{L't', L"s", {.s = NULL}},
+	{L'n',  L"d", {.i = 0}},
+	{L'u',  L"d", {.i = 0}},
+	{L't',  L"s", {.s = NULL}},
+	{L'\0', NULL, {.i = 0}}, // terminator
 };
 
 static const wchar_t *
@@ -26,7 +27,7 @@ write_section_entry(size_t index)
 	fmt_args[0].value.i = index + 1;
 	fmt_args[1].value.i = sections[index].unread_count;
 	fmt_args[2].value.s = sections[index].name->ptr;
-	return do_format(CFG_MENU_SECTION_ENTRY_FORMAT, fmt_args, COUNTOF(fmt_args));
+	return do_format(get_cfg_wstring(CFG_MENU_SECTION_ENTRY_FORMAT), fmt_args);
 }
 
 static int
@@ -238,10 +239,11 @@ enter_sections_menu_loop(void)
 	refresh_unread_items_count_of_all_sections();
 	redraw_menu_list(&sections_menu);
 
-	uint32_t count;
 	input_cmd_id cmd;
+	uint32_t count;
+	const struct wstring *macro;
 	while (true) {
-		cmd = get_input_command(&count);
+		cmd = get_input_command(&count, &macro);
 		if (cmd == INPUT_SELECT_NEXT) {
 			list_menu_select_next(&sections_menu);
 		} else if (cmd == INPUT_SELECT_PREV) {

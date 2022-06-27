@@ -167,6 +167,7 @@ free_config(void)
 			free_wstring(config[i].value.w.actual);
 		}
 	}
+	free_macros();
 }
 
 void

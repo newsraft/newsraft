@@ -12,7 +12,6 @@
 #define NEWSRAFT_VERSION "custom"
 #endif
 
-#define COUNTOF(A) (sizeof(A) / sizeof(*A))
 #define ISWHITESPACE(A) (((A)==' ')||((A)=='\n')||((A)=='\t')||((A)=='\v')||((A)=='\f')||((A)=='\r'))
 #define ISWHITESPACEEXCEPTNEWLINE(A) (((A)==' ')||((A)=='\t')||((A)=='\v')||((A)=='\f')||((A)=='\r'))
 #define ISWIDEWHITESPACE(A) (((A)==L' ')||((A)==L'\n')||((A)==L'\t')||((A)==L'\v')||((A)==L'\f')||((A)==L'\r'))
@@ -277,7 +276,7 @@ void list_menu_select_first(struct menu_list_settings *s);
 void list_menu_select_last(struct menu_list_settings *s);
 
 // format
-const wchar_t *do_format(int format_setting, const struct format_arg *args, size_t args_count);
+const wchar_t *do_format(const struct wstring *fmt, const struct format_arg *args);
 
 // items
 struct items_list *generate_items_list(struct feed_line **feeds, size_t feeds_count, enum sorting_order order);
@@ -308,7 +307,7 @@ int64_t add_another_url_to_trim_link_list(struct link_list *links, const char *u
 void free_trim_link_list(const struct link_list *links);
 
 // pager
-int pager_view(const struct render_block *first_block, bool (*custom_input_handler)(void *data, input_cmd_id cmd, uint32_t count), void *data);
+int pager_view(const struct render_block *first_block, bool (*custom_input_handler)(void *, input_cmd_id, uint32_t, const struct wstring *), void *data);
 int enter_item_pager_view_loop(int64_t rowid);
 int enter_status_pager_view_loop(void);
 
@@ -357,11 +356,15 @@ int get_reversed_color_pair(config_entry_id id);
 
 // Functions responsible for handling input.
 // See "interface-input.c" file for implementation.
-int get_input_command(uint32_t *count);
+int get_input_command(uint32_t *count, const struct wstring **macro_ptr);
 bool assign_default_binds(void);
 bool assign_action_to_key(const char *bind_key, size_t bind_key_len, input_cmd_id bind_cmd);
 input_cmd_id get_input_id_by_name(const char *name);
 void free_binds(void);
+
+bool create_macro(const char *key, size_t key_len, const char *cmd, size_t cmd_len);
+const struct wstring *find_macro(const char *key);
+void free_macros(void);
 
 // Functions related to window which displays status messages.
 // See "interface-status.c" file for implementation.

@@ -3,15 +3,16 @@
 
 static struct items_list *items;
 static struct menu_list_settings items_menu;
-static enum config_entry_index entry_format;
+static config_entry_id entry_format;
 
 static struct format_arg fmt_args[] = {
-	{L'n', L"d", {.i = 0}},
-	{L'u', L"c", {.c = '\0'}},
-	{L'l', L"s", {.s = NULL}},
-	{L'o', L"s", {.s = NULL}},
-	{L'd', L"s", {.s = NULL}},
-	{L't', L"s", {.s = NULL}},
+	{L'n',  L"d", {.i = 0}},
+	{L'u',  L"c", {.c = '\0'}},
+	{L'l',  L"s", {.s = NULL}},
+	{L'o',  L"s", {.s = NULL}},
+	{L'd',  L"s", {.s = NULL}},
+	{L't',  L"s", {.s = NULL}},
+	{L'\0', NULL, {.i = 0}}, // terminator
 };
 
 static const wchar_t *
@@ -23,7 +24,7 @@ write_item_entry(size_t index)
 	fmt_args[3].value.s = items->list[index].feed_name->ptr;
 	fmt_args[4].value.s = items->list[index].date_str->ptr;
 	fmt_args[5].value.s = items->list[index].title->ptr;
-	return do_format(entry_format, fmt_args, COUNTOF(fmt_args));
+	return do_format(get_cfg_wstring(entry_format), fmt_args);
 }
 
 static int
@@ -131,10 +132,11 @@ enter_items_menu_loop(struct feed_line **feeds, size_t feeds_count, int format)
 	status_clean();
 	redraw_menu_list(&items_menu);
 
-	uint32_t count;
 	input_cmd_id cmd;
+	uint32_t count;
+	const struct wstring *macro;
 	while (true) {
-		cmd = get_input_command(&count);
+		cmd = get_input_command(&count, &macro);
 		if (cmd == INPUT_SELECT_NEXT) {
 			list_menu_select_next(&items_menu);
 			if (get_cfg_bool(CFG_MARK_ITEM_READ_ON_HOVER) == true) {

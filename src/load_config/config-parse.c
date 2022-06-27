@@ -142,14 +142,24 @@ process_bind_line(char *line)
 	while (ISWHITESPACE(*i)) {
 		i += 1;
 	}
-	input_cmd_id cmd = get_input_id_by_name(i);
-	if (cmd == INPUTS_COUNT) {
-		fprintf(stderr, "Action \"%s\" doesn't exist!\n", i);
-		return false;
-	}
-	if (assign_action_to_key(key_name, key_name_len, cmd) == false) {
-		// Error message written by assign_action_to_key.
-		return false;
+	if ((strncmp(i, "exec", 4) == 0) && (ISWHITESPACE(i[4]))) {
+		i += 5;
+		while (ISWHITESPACE(*i)) {
+			i += 1;
+		}
+		if (create_macro(key_name, key_name_len, i, strlen(i)) == false) {
+			return false;
+		}
+	} else {
+		input_cmd_id cmd = get_input_id_by_name(i);
+		if (cmd == INPUTS_COUNT) {
+			fprintf(stderr, "Action \"%s\" doesn't exist!\n", i);
+			return false;
+		}
+		if (assign_action_to_key(key_name, key_name_len, cmd) == false) {
+			// Error message written by assign_action_to_key.
+			return false;
+		}
 	}
 	return true;
 }

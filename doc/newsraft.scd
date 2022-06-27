@@ -42,7 +42,7 @@ curses interface.
 
 ## FEEDS FILE
 
-Feeds file contains feed entries that newsraft will display and process. There
+Feeds file contains feed entries that Newsraft will display and process. There
 are 3 types of lines in feeds file.
 
 Feed lines start with a URL. After at least one whitespace character, the name
@@ -68,8 +68,8 @@ Search precedence:
 
 ## CONFIG FILE
 
-Config file is used to override default settings and bindings of newsraft.
-Presence of config file is totally optional and newsraft will work without it
+Config file is used to override default settings and bindings of Newsraft.
+Presence of config file is totally optional and Newsraft will work without it
 just fine. There are 3 types of lines in config file.
 
 Setting lines start with the *set* word. Complete list of configurable settings
@@ -78,10 +78,18 @@ where _value_ can be enclosed in single or double quotes:
 
 	*set* setting _value_
 
-Binding lines start with the *bind* word. Complete list of assigned actions can
-be found in the *ACTIONS* section. Format of these lines is as follows:
+Binding lines start with the *bind* word. They define actions that are performed
+when certain keys are pressed. Complete list of assigned actions can be found in
+the *ACTIONS* section. Format of these lines is as follows:
 
 	*bind* key _action_
+
+There is also a way to assign command bindings. When the key to which the
+command binding is assigned is pressed, the specifiers in the _command_ are
+replaced with the corresponding values and the command is executed. Available
+specifiers are: *%l* for URL. Format of these lines is as follows:
+
+	*bind* key *exec* _command_
 
 Comment lines start with # character. These lines are completely ignored. For
 example:
@@ -110,7 +118,7 @@ _items-count-limit_ (default: *0*)
 	Maximum number of items stored in one feed. Zero disables the limit.
 
 _download-timeout_ (default: *20*)
-	Maximum time in seconds that you allow newsraft to download one feed. Zero
+	Maximum time in seconds that you allow Newsraft to download one feed. Zero
 	disables the limit.
 
 _download-speed-limit_ (default: *0*)
@@ -126,13 +134,13 @@ _size-conversion-threshold_ (default: *1200*)
 _open-in-browser-command_ (default: *auto*)
 	Shell command for opening URL in web browser. The URL to be opened is
 	appended to the end of the setting value as the last command argument.
-	If it is set to "auto", then newsraft will try to obtain setting value
+	If it is set to "auto", then Newsraft will try to obtain setting value
 	from the BROWSER environment variable. If environment variable BROWSER
 	is not set, then its value is taken as "w3m".
 
 _copy-to-clipboard-command_ (default: *auto*)
 	Shell command for copying text to clipboard. All copied information is sent
-	to the standard input of the command. If it is set to "auto", then newsraft
+	to the standard input of the command. If it is set to "auto", then Newsraft
 	will set the setting value depending on the environment variables: "wl-copy"
 	command will be set if environment variable WAYLAND_DISPLAY is present and
 	"xclip -selection clipboard" command will be set if environment variable
@@ -155,13 +163,13 @@ _send-user-agent-header_ (default: *true*)
 
 _user-agent_ (default: *auto*)
 	User-agent string to attach to download requests. If it is set to "auto",
-	newsraft will generate it in the following form:
+	Newsraft will generate it in the following form:
 
 		*"newsraft/"* + NEWSRAFT_VERSION + *" ("* + OS_NAME + *")"*
 
 	OS_NAME shouldn't be a matter of privacy concern, because on most systems it
 	contains nothing more like "Linux" or "Darwin". If you want to be sure of
-	this, check newsraft log to see which _user-agent_ is set at startup.
+	this, check Newsraft log to see which _user-agent_ is set at startup.
 
 _item-formation-order_ (default: *feed-url,title,authors,published,updated,max-content*)
 	Sets the order in which the data of item entry is formed for viewing in a
@@ -215,12 +223,12 @@ _content-append-links_ (default: *true*)
 	Whether or not append links section to content view.
 
 _clean-database-on-startup_ (default: *true*)
-	Run "VACUUM" SQLite command on the database every time you start newsraft.
+	Run "VACUUM" SQLite command on the database every time you start Newsraft.
 	It rebuilds the database file, repacking it into a minimal amount of disk space.
 	This can significantly increase startup time.
 
 _analyze-database-on-startup_ (default: *true*)
-	Run "ANALYZE" SQLite command on the database every time you start newsraft.
+	Run "ANALYZE" SQLite command on the database every time you start Newsraft.
 	It gathers statistics about database and uses it to optimize some queries.
 	This can significantly increase startup time.
 
@@ -363,9 +371,9 @@ _quit-hard_ (default: *Q*)
 
 # ENVIRONMENT
 
-Since all newsraft's interactions with the network occur through the
+Since all Newsraft's interactions with the network occur through the
 *libcurl*(3) library, all environment variables taken into account by
-*libcurl*(3) can be set for newsraft as well. You can learn more about the
+*libcurl*(3) can be set for Newsraft as well. You can learn more about the
 environment variables that *libcurl*(3) understands on *libcurl-env*(3).
 
 ## XDG_CONFIG_HOME

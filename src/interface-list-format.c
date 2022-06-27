@@ -29,15 +29,13 @@ free_list_menu_format_buffer(void)
 // On success returns formatted string.
 // On failure returns empty string.
 const wchar_t *
-do_format(int format_setting, const struct format_arg *args, size_t args_count)
+do_format(const struct wstring *fmt, const struct format_arg *args)
 {
-	const struct wstring *fmt = get_cfg_wstring(format_setting);
-	const wchar_t *iter = fmt->ptr;
 	const wchar_t *next_percent;
 	const wchar_t *specifier;
 	int tmp_int;
 	size_t fmt_buf_len = 0;
-	while ((iter[0] != L'\0') && (fmt_buf_len < list_menu_width)) {
+	for (const wchar_t *iter = fmt->ptr; (*iter != '\0') && (fmt_buf_len < list_menu_width);) {
 		if (iter[0] != L'%') {
 			fmt_buf[fmt_buf_len++] = iter[0];
 			++iter;
@@ -61,7 +59,7 @@ do_format(int format_setting, const struct format_arg *args, size_t args_count)
 			++next_percent;
 		}
 		if (specifier != NULL) {
-			for (size_t j = 0; j < args_count; ++j) {
+			for (size_t j = 0; args[j].specifier != L'\0'; ++j) {
 				if (specifier[0] != args[j].specifier) {
 					continue;
 				}
@@ -96,5 +94,5 @@ do_format(int format_setting, const struct format_arg *args, size_t args_count)
 		fmt_buf[list_menu_width] = L'\0';
 	}
 
-	return (const wchar_t *)fmt_buf;
+	return fmt_buf;
 }

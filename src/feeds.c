@@ -8,11 +8,12 @@ static size_t feeds_count = 0;
 static struct menu_list_settings feeds_menu;
 
 static struct format_arg fmt_args[] = {
-	{L'n', L"d", {.i = 0}},
-	{L'u', L"d", {.i = 0}},
-	{L'l', L"s", {.s = NULL}},
-	{L't', L"s", {.s = NULL}},
-	{L'o', L"s", {.s = NULL}},
+	{L'n',  L"d", {.i = 0}},
+	{L'u',  L"d", {.i = 0}},
+	{L'l',  L"s", {.s = NULL}},
+	{L't',  L"s", {.s = NULL}},
+	{L'o',  L"s", {.s = NULL}},
+	{L'\0', NULL, {.i = 0}}, // terminator
 };
 
 bool
@@ -67,7 +68,7 @@ write_feed_entry(size_t index)
 			fmt_args[4].value.s = "";
 		}
 	}
-	return do_format(CFG_MENU_FEED_ENTRY_FORMAT, fmt_args, COUNTOF(fmt_args));
+	return do_format(get_cfg_wstring(CFG_MENU_FEED_ENTRY_FORMAT), fmt_args);
 }
 
 static int
@@ -198,10 +199,11 @@ enter_feeds_menu_loop(struct feed_line **new_feeds, size_t new_feeds_count)
 
 	redraw_menu_list(&feeds_menu);
 
-	uint32_t count;
 	input_cmd_id cmd;
+	uint32_t count;
+	const struct wstring *macro;
 	while (true) {
-		cmd = get_input_command(&count);
+		cmd = get_input_command(&count, &macro);
 		if (cmd == INPUT_SELECT_NEXT) {
 			list_menu_select_next(&feeds_menu);
 		} else if (cmd == INPUT_SELECT_PREV) {

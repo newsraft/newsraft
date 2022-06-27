@@ -1,4 +1,10 @@
+#include <stdlib.h>
 #include "newsraft.h"
+
+static struct format_arg cmd_args[] = {
+	{L'l',  L"s", {.s = NULL}},
+	{L'\0', NULL, {.i = 0}}, // terminator
+};
 
 static inline bool
 join_links_render_block(struct render_block **contents, struct link_list *links)
@@ -44,7 +50,7 @@ error:
 }
 
 static bool
-custom_input_handler(void *data, input_cmd_id cmd, uint32_t count)
+custom_input_handler(void *data, input_cmd_id cmd, uint32_t count, const struct wstring *macro)
 {
 	const struct link_list *links = data;
 	if ((count != 0) && (links->len >= count)) {
@@ -52,6 +58,25 @@ custom_input_handler(void *data, input_cmd_id cmd, uint32_t count)
 			return open_url_in_browser(links->list[count - 1].url);
 		} else if (cmd == INPUT_COPY_TO_CLIPBOARD) {
 			return copy_string_to_clipboard(links->list[count - 1].url);
+		} else if ((cmd == INPUTS_COUNT) && (macro != NULL)) {
+			cmd_args[0].value.s = links->list[count - 1].url->ptr;
+			const wchar_t *wcmd_ptr = do_format(macro, cmd_args);
+			struct wstring *wcmd = wcrtas(wcmd_ptr, wcslen(wcmd_ptr));
+			struct string *cmd = convert_wstring_to_string(wcmd);
+			info_status("Executing %s", cmd->ptr);
+			free_wstring(wcmd);
+			// https://stackoverflow.com/questions/18678943/ncurses-shell-escape-drops-parent-process-output
+			reset_shell_mode();
+			int status = system(cmd->ptr);
+			fflush(stdout);
+			reset_prog_mode();
+			free_string(cmd);
+			if (status == 0) {
+				status_clean();
+				return true;
+			}
+			fail_status("Failed to execute %s", cmd->ptr);
+			return false;
 		}
 	}
 	return false;

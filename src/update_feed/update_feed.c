@@ -55,10 +55,6 @@ update_feed(const struct string *url)
 	}
 
 	data.feed.http_header_etag = db_get_string_from_feed_table(url, "http_header_etag", 16);
-	if (data.feed.http_header_etag == NULL) {
-		// Error message written by db_get_string_from_feed_table.
-		goto undo0;
-	}
 
 	status = download_feed(url->ptr, &data);
 

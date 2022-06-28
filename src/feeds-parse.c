@@ -29,6 +29,7 @@ parse_feeds_file(const char *path)
 		fclose(f);
 		return false;
 	}
+	struct string *tmp;
 
 	char c;
 	// This is line-by-line file processing loop:
@@ -80,6 +81,13 @@ parse_feeds_file(const char *path)
 				c = fgetc(f);
 				if (c == '"' || c == '\n' || c == EOF) { break; }
 				if (catcs(feed.name, c) == false) { goto error; }
+			}
+		}
+		if (feed.name->len == 0) {
+			tmp = db_get_string_from_feed_table(feed.link, "title", 5);
+			if (tmp != NULL) {
+				cpyss(feed.name, tmp);
+				free_string(tmp);
 			}
 		}
 		if (copy_feed_to_section(&feed, section_name) == false) {

@@ -141,6 +141,13 @@ update_and_refresh_feed(struct feed_line *feed)
 			return false;
 		}
 		feed->unread_count = new_unread_count;
+		if ((feed->name == NULL) || (feed->name->len == 0)) {
+			struct string *title = db_get_string_from_feed_table(feed->link, "title", 5);
+			if (title != NULL) {
+				crtss_or_cpyss(&feed->name, title);
+				free_string(title);
+			}
+		}
 		return true;
 	} else if (status == DOWNLOAD_CANCELED) {
 		return true;

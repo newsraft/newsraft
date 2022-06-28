@@ -5,37 +5,32 @@
 static struct curl_slist *
 create_list_of_headers(const struct getfeed_feed *feed)
 {
-	struct curl_slist *headers = NULL;
-
-	// A-IM
-	headers = curl_slist_append(headers, "A-IM: feed");
-	INFO("Attached header: A-IM: feed");
-
-	// If-None-Match
-	if ((get_cfg_bool(CFG_SEND_IF_NONE_MATCH_HEADER) == true) && (feed->http_header_etag->len != 0)) {
-		struct string *if_none_match_header = crtas("If-None-Match: \"", 16);
-		// TODO null check
-		catss(if_none_match_header, feed->http_header_etag);
-		catcs(if_none_match_header, '"');
-		headers = curl_slist_append(headers, if_none_match_header->ptr);
-		INFO("Attached header: %s", if_none_match_header->ptr);
+	struct curl_slist *headers = curl_slist_append(NULL, "A-IM: feed");
+	if (headers == NULL) {
+		return NULL;
+	}
+	INFO("Attached header - A-IM: feed");
+	if ((get_cfg_bool(CFG_SEND_IF_NONE_MATCH_HEADER) == true) && (feed->http_header_etag != NULL)) {
+		struct string *if_none_match_header = crtas("If-None-Match: ", 15);
+		if (if_none_match_header == NULL) {
+			goto error;
+		}
+		if (catss(if_none_match_header, feed->http_header_etag) == false) {
+			free_string(if_none_match_header);
+			goto error;
+		}
+		struct curl_slist *tmp = curl_slist_append(headers, if_none_match_header->ptr);
 		free_string(if_none_match_header);
+		if (tmp == NULL) {
+			goto error;
+		}
+		headers = tmp;
+		INFO("Attached header - %s", if_none_match_header->ptr);
 	}
-
-	// If-Modified-Since
-	if ((get_cfg_bool(CFG_SEND_IF_MODIFIED_SINCE_HEADER) == true) && (feed->http_header_last_modified > 0)) {
-		struct string *if_modified_since_header = crtas("If-Modified-Since: ", 19);
-		// TODO null check
-		struct string *http_date = get_http_date_str(feed->http_header_last_modified);
-		// TODO null check
-		catss(if_modified_since_header, http_date);
-		headers = curl_slist_append(headers, if_modified_since_header->ptr);
-		INFO("Attached header: %s", if_modified_since_header->ptr);
-		free_string(if_modified_since_header);
-		free_string(http_date);
-	}
-
 	return headers;
+error:
+	curl_slist_free_all(headers);
+	return NULL;
 }
 
 static size_t
@@ -65,12 +60,13 @@ parse_stream_callback(char *contents, size_t length, size_t nmemb, struct stream
 	}
 	if (data->media_type == MEDIA_TYPE_XML) {
 		if (XML_Parse(data->xml_parser, contents, real_size, false) == XML_STATUS_ERROR) {
-			FAIL("Expat failed to parse: \"%s\"!", XML_ErrorString(XML_GetErrorCode(data->xml_parser)));
+			fail_status("XML parser ran into an error: %s", XML_ErrorString(XML_GetErrorCode(data->xml_parser)));
 			return 0;
 		}
 	} else if (data->media_type == MEDIA_TYPE_JSON) {
-		if (yajl_parse(data->json_parser, (const unsigned char *)contents, real_size) != yajl_status_ok) {
-			FAIL("YAJL failed to parse.");
+		yajl_status status = yajl_parse(data->json_parser, (const unsigned char *)contents, real_size);
+		if (status != yajl_status_ok) {
+			fail_status("JSON parser ran into an error: %s", yajl_status_to_string(status));
 			return 0;
 		}
 	}
@@ -86,32 +82,25 @@ header_callback(char *contents, size_t length, size_t nmemb, struct getfeed_feed
 		return 0;
 	}
 	trim_whitespace_from_string(header);
-	INFO("Found a header during loading - \"%s\".", header->ptr);
-	if (strncasecmp(header->ptr, "ETag: ", 6) == 0) {
-		char *first_quote_pos = strchr(header->ptr, '"');
-		if (first_quote_pos != NULL) {
-			char *second_quote_pos = strchr(first_quote_pos + 1, '"');
-			if (second_quote_pos != NULL) {
-				size_t new_etag_value_len = second_quote_pos - first_quote_pos - 1;
-				cpyas(feed->http_header_etag, first_quote_pos + 1, new_etag_value_len);
-			}
-		} else {
-			cpyas(feed->http_header_etag, header->ptr + 6, header->len - 6);
-			trim_whitespace_from_string(feed->http_header_etag);
+	INFO("Found a header during download - %s", header->ptr);
+	if (strncasecmp(header->ptr, "ETag:", 5) == 0) {
+		struct string *etag = crtas(header->ptr + 5, header->len - 5);
+		if (etag != NULL) {
+			trim_whitespace_from_string(etag);
+			crtss_or_cpyss(&feed->http_header_etag, etag);
+			free_string(etag);
 		}
 	} else if (strncasecmp(header->ptr, "Last-Modified: ", 15) == 0) {
-		time_t date = curl_getdate(header->ptr + 15, NULL);
-		if (date > 0) {
-			feed->http_header_last_modified = date;
-		} else {
+		feed->http_header_last_modified = curl_getdate(header->ptr + 15, NULL);
+		if (feed->http_header_last_modified < 0) {
 			FAIL("Curl failed to parse date string!");
+			feed->http_header_last_modified = 0;
 		}
 	} else if (strncasecmp(header->ptr, "Expires: ", 9) == 0) {
-		time_t expire_date = curl_getdate(header->ptr + 9, NULL);
-		if (expire_date > 0) {
-			feed->http_header_expires = expire_date;
-		} else {
+		feed->http_header_expires = curl_getdate(header->ptr + 9, NULL);
+		if (feed->http_header_expires < 0) {
 			FAIL("Curl failed to parse date string!");
+			feed->http_header_expires = 0;
 		}
 	}
 	free_string(header);
@@ -124,8 +113,13 @@ prepare_curl_for_performance(CURL *curl, const char *url, struct curl_slist *hea
 	curl_easy_setopt(curl, CURLOPT_URL, url);
 	if (get_cfg_bool(CFG_SEND_USER_AGENT_HEADER) == true) {
 		const struct string *useragent = get_cfg_string(CFG_USER_AGENT);
-		INFO("Attached user-agent: %s", useragent->ptr);
+		INFO("Attached header - User-Agent: %s", useragent->ptr);
 		curl_easy_setopt(curl, CURLOPT_USERAGENT, useragent->ptr);
+	}
+	if ((get_cfg_bool(CFG_SEND_IF_MODIFIED_SINCE_HEADER) == true) && (data->feed.http_header_last_modified > 0)) {
+		curl_easy_setopt(curl, CURLOPT_TIMEVALUE, data->feed.http_header_last_modified);
+		curl_easy_setopt(curl, CURLOPT_TIMECONDITION, CURL_TIMECOND_IFMODSINCE);
+		INFO("Attached header - If-Modified-Since: %ld (it was converted to date string).", data->feed.http_header_last_modified);
 	}
 	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &parse_stream_callback);
@@ -164,22 +158,22 @@ download_feed(const char *url, struct stream_callback_data *data)
 		FAIL("Failed to create curl handle!");
 		return DOWNLOAD_FAILED;
 	}
-
-	char curl_errbuf[CURL_ERROR_SIZE];
-	curl_errbuf[0] = '\0';
-
 	struct curl_slist *headers = create_list_of_headers(&data->feed);
+	if (headers == NULL) {
+		FAIL("Failed to create headers list!");
+		curl_easy_cleanup(curl);
+		return DOWNLOAD_FAILED;
+	}
+	char curl_errbuf[CURL_ERROR_SIZE] = "";
 
 	prepare_curl_for_performance(curl, url, headers, data, curl_errbuf);
 
 	CURLcode res = curl_easy_perform(curl);
-
 	if (data->media_type == MEDIA_TYPE_XML) {
 		free_xml_parser(data);
 	} else if (data->media_type == MEDIA_TYPE_JSON) {
 		free_json_parser(data);
 	}
-
 	if (res != CURLE_OK) {
 		// These are just warnings because perform can fail due to lack of network connection.
 		WARN("Feed update has stopped due to fail in curl request!");

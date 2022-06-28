@@ -205,11 +205,6 @@ db_get_date_from_feeds_table(const struct string *url, const char *column, size_
 struct string *
 db_get_string_from_feed_table(const struct string *url, const char *column, size_t column_len)
 {
-	struct string *str = crtes();
-	if (str == NULL) {
-		FAIL("Not enough memory for string from feed table!");
-		return NULL;
-	}
 	char query[100];
 	memcpy(query, "SELECT ", 7);
 	memcpy(query + 7, column, column_len);
@@ -218,12 +213,17 @@ db_get_string_from_feed_table(const struct string *url, const char *column, size
 	if (res != NULL) {
 		sqlite3_bind_text(res, 1, url->ptr, url->len, NULL);
 		if (sqlite3_step(res) == SQLITE_ROW) {
-			const char *str_value = (char *)sqlite3_column_text(res, 0);
-			if (str_value != NULL) {
-				cpyas(str, str_value, strlen(str_value));
+			const char *str_ptr = (char *)sqlite3_column_text(res, 0);
+			if (str_ptr != NULL) {
+				const size_t str_len = strlen(str_ptr);
+				if (str_len != 0) {
+					struct string *str = crtas(str_ptr, str_len);
+					sqlite3_finalize(res);
+					return str;
+				}
 			}
 		}
 		sqlite3_finalize(res);
 	}
-	return str;
+	return NULL;
 }

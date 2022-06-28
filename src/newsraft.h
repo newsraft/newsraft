@@ -321,7 +321,6 @@ const char *get_db_path(void);
 time_t parse_date_rfc822(const struct string *value);
 time_t parse_date_rfc3339(const char *src, size_t src_len);
 struct string *get_config_date_str(time_t date, enum config_entry_index format_index);
-struct string *get_http_date_str(time_t date);
 
 // db
 bool db_init(void);

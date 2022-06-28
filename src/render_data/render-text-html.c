@@ -2,10 +2,15 @@
 #include <string.h>
 #include "render_data.h"
 
+enum html_position {
+	HTML_NONE = 0,
+	HTML_PRE = 1,
+};
+
 struct html_element_handler {
 	const GumboTag tag_id;
-	void (*start_handler)(struct wstring *, struct line *);
-	void (*end_handler)(struct wstring *, struct line *);
+	void (*start_handler)(struct wstring *, struct line *, enum html_position *);
+	void (*end_handler)(struct wstring *, struct line *, enum html_position *);
 };
 
 #define MAX_NESTED_LISTS_DEPTH 10
@@ -13,13 +18,6 @@ struct html_element_handler {
 #define SPACES_PER_BLOCKQUOTE_LEVEL 4
 #define SPACES_PER_FIGURE_LEVEL 4
 #define SPACES_PER_DESCRIPTION_LEVEL 4
-
-enum html_position {
-	HTML_NONE = 0,
-	HTML_TABLE = 1,
-	HTML_TABLE_ROW = 2,
-	HTML_TABLE_CELL = 4,
-};
 
 enum list_type {
 	UNORDERED_LIST,
@@ -53,35 +51,39 @@ provide_newlines(struct wstring *text, struct line *line, int8_t count)
 }
 
 static void
-provide_one_newline(struct wstring *text, struct line *line)
+provide_one_newline(struct wstring *text, struct line *line, enum html_position *pos)
 {
+	(void)pos;
 	provide_newlines(text, line, 1);
 }
 
 static void
-provide_two_newlines(struct wstring *text, struct line *line)
+provide_two_newlines(struct wstring *text, struct line *line, enum html_position *pos)
 {
+	(void)pos;
 	provide_newlines(text, line, 2);
 }
 
 static void
-provide_three_newlines(struct wstring *text, struct line *line)
+provide_three_newlines(struct wstring *text, struct line *line, enum html_position *pos)
 {
+	(void)pos;
 	provide_newlines(text, line, 3);
 }
 
 static void
-br_handler(struct wstring *text, struct line *line)
+br_handler(struct wstring *text, struct line *line, enum html_position *pos)
 {
+	(void)pos;
 	line_char(line, L'\n', text);
 }
 
 static void
-hr_handler(struct wstring *text, struct line *line)
+hr_handler(struct wstring *text, struct line *line, enum html_position *pos)
 {
 	size_t temp_indent = line->indent;
 	line->indent = 0;
-	provide_one_newline(text, line);
+	provide_one_newline(text, line, pos);
 	for (size_t i = 1; i < line->lim; ++i) {
 		line_char(line, L'─', text);
 	}
@@ -90,12 +92,12 @@ hr_handler(struct wstring *text, struct line *line)
 }
 
 static void
-li_handler(struct wstring *text, struct line *line)
+li_handler(struct wstring *text, struct line *line, enum html_position *pos)
 {
-	provide_one_newline(text, line);
+	provide_one_newline(text, line, pos);
 	line->indent = list_depth * SPACES_PER_INDENTATION_LEVEL;
 	if (list_levels[list_depth - 1].type == UNORDERED_LIST) {
-		line_string(line, L"*  ", text);;
+		line_string(line, L"*  ", text);
 		line->indent += 3;
 	} else {
 		++(list_levels[list_depth - 1].length);
@@ -108,44 +110,44 @@ li_handler(struct wstring *text, struct line *line)
 }
 
 static void
-ul_start_handler(struct wstring *text, struct line *line)
+ul_start_handler(struct wstring *text, struct line *line, enum html_position *pos)
 {
 	if (list_depth == MAX_NESTED_LISTS_DEPTH) {
 		return;
 	}
 	if (list_depth == 0) {
-		provide_two_newlines(text, line);
+		provide_two_newlines(text, line, pos);
 	} else {
-		provide_one_newline(text, line);
+		provide_one_newline(text, line, pos);
 	}
 	++list_depth;
 	list_levels[list_depth - 1].type = UNORDERED_LIST;
 }
 
 static void
-ul_end_handler(struct wstring *text, struct line *line)
+ul_end_handler(struct wstring *text, struct line *line, enum html_position *pos)
 {
 	if (list_depth > 0) {
 		--list_depth;
 		line->indent = list_depth * SPACES_PER_INDENTATION_LEVEL;
 	}
 	if (list_depth == 0) {
-		provide_two_newlines(text, line);
+		provide_two_newlines(text, line, pos);
 	} else {
-		provide_one_newline(text, line);
+		provide_one_newline(text, line, pos);
 	}
 }
 
 static void
-ol_start_handler(struct wstring *text, struct line *line)
+ol_start_handler(struct wstring *text, struct line *line, enum html_position *pos)
 {
 	if (list_depth == MAX_NESTED_LISTS_DEPTH) {
 		return;
 	}
 	if (list_depth == 0) {
-		provide_two_newlines(text, line);
+		provide_two_newlines(text, line, pos);
 	} else {
-		provide_one_newline(text, line);
+		provide_one_newline(text, line, pos);
 	}
 	++list_depth;
 	list_levels[list_depth - 1].type = ORDERED_LIST;
@@ -153,51 +155,65 @@ ol_start_handler(struct wstring *text, struct line *line)
 }
 
 static void
-blockquote_start_handler(struct wstring *text, struct line *line)
+blockquote_start_handler(struct wstring *text, struct line *line, enum html_position *pos)
 {
-	provide_two_newlines(text, line);
+	provide_two_newlines(text, line, pos);
 	line->indent += SPACES_PER_BLOCKQUOTE_LEVEL;
 }
 
 static void
-blockquote_end_handler(struct wstring *text, struct line *line)
+blockquote_end_handler(struct wstring *text, struct line *line, enum html_position *pos)
 {
-	provide_two_newlines(text, line);
+	provide_two_newlines(text, line, pos);
 	if (line->indent >= SPACES_PER_BLOCKQUOTE_LEVEL) {
 		line->indent -= SPACES_PER_BLOCKQUOTE_LEVEL;
 	}
 }
 
 static void
-figure_start_handler(struct wstring *text, struct line *line)
+figure_start_handler(struct wstring *text, struct line *line, enum html_position *pos)
 {
-	provide_two_newlines(text, line);
+	provide_two_newlines(text, line, pos);
 	line->indent += SPACES_PER_FIGURE_LEVEL;
 }
 
 static void
-figure_end_handler(struct wstring *text, struct line *line)
+figure_end_handler(struct wstring *text, struct line *line, enum html_position *pos)
 {
-	provide_two_newlines(text, line);
+	provide_two_newlines(text, line, pos);
 	if (line->indent >= SPACES_PER_FIGURE_LEVEL) {
 		line->indent -= SPACES_PER_FIGURE_LEVEL;
 	}
 }
 
 static void
-dd_start_handler(struct wstring *text, struct line *line)
+dd_start_handler(struct wstring *text, struct line *line, enum html_position *pos)
 {
-	provide_one_newline(text, line);
+	provide_one_newline(text, line, pos);
 	line->indent += SPACES_PER_DESCRIPTION_LEVEL;
 }
 
 static void
-dd_end_handler(struct wstring *text, struct line *line)
+dd_end_handler(struct wstring *text, struct line *line, enum html_position *pos)
 {
-	provide_one_newline(text, line);
+	provide_one_newline(text, line, pos);
 	if (line->indent >= SPACES_PER_DESCRIPTION_LEVEL) {
 		line->indent -= SPACES_PER_DESCRIPTION_LEVEL;
 	}
+}
+
+static void
+pre_start_handler(struct wstring *text, struct line *line, enum html_position *pos)
+{
+	provide_two_newlines(text, line, pos);
+	*pos |= HTML_PRE;
+}
+
+static void
+pre_end_handler(struct wstring *text, struct line *line, enum html_position *pos)
+{
+	provide_two_newlines(text, line, pos);
+	*pos &= ~HTML_PRE;
 }
 
 static const struct html_element_handler handlers[] = {
@@ -207,7 +223,7 @@ static const struct html_element_handler handlers[] = {
 	{GUMBO_TAG_LI,         &li_handler,               &provide_one_newline},
 	{GUMBO_TAG_UL,         &ul_start_handler,         &ul_end_handler},
 	{GUMBO_TAG_OL,         &ol_start_handler,         &ul_end_handler},
-	{GUMBO_TAG_PRE,        &provide_two_newlines,     &provide_two_newlines},
+	{GUMBO_TAG_PRE,        &pre_start_handler,        &pre_end_handler},
 	{GUMBO_TAG_H1,         &provide_three_newlines,   &provide_two_newlines},
 	{GUMBO_TAG_H2,         &provide_three_newlines,   &provide_two_newlines},
 	{GUMBO_TAG_H3,         &provide_three_newlines,   &provide_two_newlines},
@@ -279,22 +295,45 @@ dump_html(GumboNode *node, struct wstring *text, struct line *line, enum html_po
 			}
 		} else {
 			if (handlers[i].start_handler != NULL) {
-				handlers[i].start_handler(text, line);
+				handlers[i].start_handler(text, line, pos);
 			}
 			for (size_t j = 0; j < node->v.element.children.length; ++j) {
 				dump_html(node->v.element.children.data[j], text, line, pos);
 			}
 			if (handlers[i].end_handler != NULL) {
-				handlers[i].end_handler(text, line);
+				handlers[i].end_handler(text, line, pos);
 			}
 		}
-	} else if ((node->type == GUMBO_NODE_TEXT) || (node->type == GUMBO_NODE_CDATA)) {
+	} else if ((node->type == GUMBO_NODE_TEXT)
+		|| (node->type == GUMBO_NODE_CDATA)
+		|| (node->type == GUMBO_NODE_WHITESPACE))
+	{
 		struct string *str = crtas(node->v.text.text, strlen(node->v.text.text));
 		if (str != NULL) {
 			struct wstring *wstr = convert_string_to_wstring(str);
 			free_string(str);
 			if (wstr != NULL) {
-				line_string(line, wstr->ptr, text);
+				for (const wchar_t *i = wstr->ptr; *i != L'\0'; ++i) {
+					if (!ISWIDEWHITESPACE(*i)) {
+						line_char(line, *i, text);
+					} else if ((*pos & HTML_PRE) != 0) {
+						if (*i == '\n') {
+							line_char(line, L'\n', text);
+						} else if (*i == '\t') {
+							line_string(line, L"    ", text);
+						} else {
+							line_char(line, L' ', text);
+						}
+					} else if (line->len > 0) {
+						if (!ISWIDEWHITESPACE(line->ptr[line->len - 1])) {
+							line_char(line, L' ', text);
+						}
+					} else if (text->len > 0) {
+						if (!ISWIDEWHITESPACE(text->ptr[text->len - 1])) {
+							line_char(line, L' ', text);
+						}
+					}
+				}
 				free_wstring(wstr);
 			}
 		}

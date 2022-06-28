@@ -34,8 +34,9 @@ error:
 }
 
 static size_t
-parse_stream_callback(char *contents, size_t length, size_t nmemb, struct stream_callback_data *data)
+parse_stream_callback(char *contents, size_t length, size_t nmemb, void *userdata)
 {
+	struct stream_callback_data *data = userdata;
 	const size_t real_size = length * nmemb;
 	if (data->media_type == MEDIA_TYPE_UNKNOWN) {
 		for (size_t i = 0; i < real_size; ++i) {
@@ -74,8 +75,9 @@ parse_stream_callback(char *contents, size_t length, size_t nmemb, struct stream
 }
 
 static size_t
-header_callback(char *contents, size_t length, size_t nmemb, struct getfeed_feed *feed)
+header_callback(char *contents, size_t length, size_t nmemb, void *userdata)
 {
+	struct getfeed_feed *feed = userdata;
 	const size_t real_size = nmemb * length;
 	struct string *header = crtas(contents, real_size);
 	if (header == NULL) {
@@ -127,7 +129,7 @@ prepare_curl_for_performance(CURL *curl, const char *url, struct curl_slist *hea
 	curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, &header_callback);
 	curl_easy_setopt(curl, CURLOPT_HEADERDATA, &data->feed);
 	curl_easy_setopt(curl, CURLOPT_TIMEOUT, get_cfg_uint(CFG_DOWNLOAD_TIMEOUT));
-	curl_easy_setopt(curl, CURLOPT_MAX_RECV_SPEED_LARGE, get_cfg_uint(CFG_DOWNLOAD_SPEED_LIMIT) * 1024);
+	curl_easy_setopt(curl, CURLOPT_MAX_RECV_SPEED_LARGE, (curl_off_t)get_cfg_uint(CFG_DOWNLOAD_SPEED_LIMIT) * 1024);
 	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, get_cfg_bool(CFG_SSL_VERIFY_HOST) ? 2 : 0);
 	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, get_cfg_bool(CFG_SSL_VERIFY_PEER) ? 1 : 0);
 	curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, errbuf);

@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include "render_data/render_data.h"
 
 // This HTML table renderer needs to be rewritten because it's kind of creepy :|

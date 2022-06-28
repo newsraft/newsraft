@@ -1,3 +1,4 @@
+#include <string.h>
 #include "load_config/load_config.h"
 
 struct input_entry_match {

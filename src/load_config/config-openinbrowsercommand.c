@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include "load_config/load_config.h"
 
 bool
@@ -15,7 +16,7 @@ generate_open_in_browser_command_string(struct string *cmd)
 			return true;
 		}
 	}
-	if (cpyas(cmd, "w3m", 3) == false) {
+	if (cpyas(cmd, "xdg-open", 8) == false) {
 		goto error;
 	}
 	return true;

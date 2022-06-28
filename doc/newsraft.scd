@@ -136,7 +136,7 @@ _open-in-browser-command_ (default: *auto*)
 	appended to the end of the setting value as the last command argument.
 	If it is set to "auto", then Newsraft will try to obtain setting value
 	from the BROWSER environment variable. If environment variable BROWSER
-	is not set, then its value is taken as "w3m".
+	is not set, then its value is taken as "xdg-open".
 
 _copy-to-clipboard-command_ (default: *auto*)
 	Shell command for copying text to clipboard. All copied information is sent

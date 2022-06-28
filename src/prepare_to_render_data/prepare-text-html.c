@@ -1,3 +1,5 @@
+#include <stdlib.h>
+#include <string.h>
 #include <gumbo.h>
 #include "prepare_to_render_data/prepare_to_render_data.h"
 

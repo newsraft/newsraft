@@ -147,10 +147,17 @@ _copy-to-clipboard-command_ (default: *auto*)
 	DISPLAY is present, otherwise "false" command will be set.
 
 _proxy_ (default: *""*)
-	TODO
+	Sets the proxy to use for the network requests. It must be either a hostname
+	or dotted numerical IPv4 address. To specify IPv6 address you have to enclose
+	it within square brackets. Port number can be set by appending :PORT to the
+	end of setting value. By default proxy protocol is considered HTTP, but you
+	can set a different one by prepending SCHEME:// to the setting value.
 
-_proxy-auth_ (default: *""*)
-	TODO
+_proxy-user_ (default: *""*)
+	User for authentication with the proxy server.
+
+_proxy-password_ (default: *""*)
+	Password for authentication with the proxy server.
 
 _global-section-name_ (default: *Global*)
 	Name of the section that contains all feeds.
@@ -406,4 +413,4 @@ Identifier of the X graphics display.
 
 # AUTHOR
 
-Grigory Kirillov
+Grigory Kirillov <txgk@bk.ru>

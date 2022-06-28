@@ -109,7 +109,24 @@ header_callback(char *contents, size_t length, size_t nmemb, void *userdata)
 	return real_size;
 }
 
-static inline void
+static inline struct string *
+get_proxy_auth_info_encoded(const char *user, const char *password)
+{
+	if ((user != NULL) && (password != NULL)) {
+		struct string *result = crtas(user, strlen(user));
+		if (result != NULL) {
+			if (catcs(result, ':') == true) {
+				if (catas(result, password, strlen(password)) == true) {
+					return result;
+				}
+			}
+			free_string(result);
+		}
+	}
+	return NULL;
+}
+
+static inline bool
 prepare_curl_for_performance(CURL *curl, const char *url, struct curl_slist *headers, struct stream_callback_data *data, char *errbuf)
 {
 	curl_easy_setopt(curl, CURLOPT_URL, url);
@@ -145,11 +162,22 @@ prepare_curl_for_performance(CURL *curl, const char *url, struct curl_slist *hea
 	const struct string *proxy = get_cfg_string(CFG_PROXY);
 	if (proxy->len != 0) {
 		curl_easy_setopt(curl, CURLOPT_PROXY, proxy->ptr);
-		const struct string *proxy_auth = get_cfg_string(CFG_PROXY_AUTH);
-		if (proxy_auth->len != 0) {
-			curl_easy_setopt(curl, CURLOPT_PROXYUSERPWD, proxy_auth->ptr);
+		const struct string *user_str = get_cfg_string(CFG_PROXY_USER);
+		const struct string *password_str = get_cfg_string(CFG_PROXY_PASSWORD);
+		if ((user_str->len != 0) && (password_str->len != 0)) {
+			char *user = curl_easy_escape(curl, user_str->ptr, user_str->len);
+			char *password = curl_easy_escape(curl, password_str->ptr, password_str->len);
+			struct string *auth = get_proxy_auth_info_encoded(user, password);
+			curl_free(user);
+			curl_free(password);
+			if (auth == NULL) {
+				return false;
+			}
+			curl_easy_setopt(curl, CURLOPT_PROXYUSERPWD, auth->ptr);
+			free_string(auth);
 		}
 	}
+	return true;
 }
 
 enum download_status
@@ -167,8 +195,11 @@ download_feed(const char *url, struct stream_callback_data *data)
 		return DOWNLOAD_FAILED;
 	}
 	char curl_errbuf[CURL_ERROR_SIZE] = "";
-
-	prepare_curl_for_performance(curl, url, headers, data, curl_errbuf);
+	if (prepare_curl_for_performance(curl, url, headers, data, curl_errbuf) == false) {
+		curl_slist_free_all(headers);
+		curl_easy_cleanup(curl);
+		return DOWNLOAD_FAILED;
+	}
 
 	CURLcode res = curl_easy_perform(curl);
 	if (data->media_type == MEDIA_TYPE_XML) {

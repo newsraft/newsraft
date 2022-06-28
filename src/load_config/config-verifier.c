@@ -32,11 +32,6 @@ verify_config_values(void)
 		success = false;
 		fputs("Size conversion threshold must be greater than or equal to 1000!\n", stderr);
 	}
-	const struct string *str = get_cfg_string(CFG_PROXY);
-	if ((str->len != 0) && (strstr(str->ptr, "://") == NULL)) {
-		success = false;
-		fputs("The proxy string must be prefixed with scheme:// to specify which kind of proxy is used!\n", stderr);
-	}
 	if (verify_format_string_lengths() == false) {
 		success = false;
 		fprintf(stderr, "Format string length must not exceed %d!\n", FORMAT_STRING_LENGTH_LIMIT);

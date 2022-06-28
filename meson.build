@@ -81,9 +81,9 @@ if get_option('support-format-atom10').enabled()
 	add_project_arguments(['-DNEWSRAFT_FORMAT_SUPPORT_ATOM10'], language: 'c')
 	newsraft_sources += ['src/update_feed/parse_xml/xml-handler-atom10.c']
 endif
-if get_option('support-format-rss20').enabled()
-	add_project_arguments(['-DNEWSRAFT_FORMAT_SUPPORT_RSS20'], language: 'c')
-	newsraft_sources += ['src/update_feed/parse_xml/xml-handler-rss20.c']
+if get_option('support-format-rss').enabled()
+	add_project_arguments(['-DNEWSRAFT_FORMAT_SUPPORT_RSS'], language: 'c')
+	newsraft_sources += ['src/update_feed/parse_xml/xml-handler-rss.c']
 endif
 if get_option('support-format-rsscontent').enabled()
 	add_project_arguments(['-DNEWSRAFT_FORMAT_SUPPORT_RSSCONTENT'], language: 'c')
@@ -104,18 +104,6 @@ endif
 if get_option('support-format-rbcnews').enabled()
 	add_project_arguments(['-DNEWSRAFT_FORMAT_SUPPORT_RBCNEWS'], language: 'c')
 	newsraft_sources += ['src/update_feed/parse_xml/xml-handler-rbcnews.c']
-endif
-if get_option('support-format-rss11').enabled()
-	add_project_arguments(['-DNEWSRAFT_FORMAT_SUPPORT_RSS11'], language: 'c')
-	newsraft_sources += ['src/update_feed/parse_xml/xml-handler-rss11.c']
-endif
-if get_option('support-format-rss10').enabled()
-	add_project_arguments(['-DNEWSRAFT_FORMAT_SUPPORT_RSS10'], language: 'c')
-	newsraft_sources += ['src/update_feed/parse_xml/xml-handler-rss10.c']
-endif
-if get_option('support-format-rss09').enabled()
-	add_project_arguments(['-DNEWSRAFT_FORMAT_SUPPORT_RSS09'], language: 'c')
-	newsraft_sources += ['src/update_feed/parse_xml/xml-handler-rss09.c']
 endif
 if get_option('support-format-atom03').enabled()
 	add_project_arguments(['-DNEWSRAFT_FORMAT_SUPPORT_ATOM03'], language: 'c')

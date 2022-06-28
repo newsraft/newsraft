@@ -87,9 +87,10 @@ description_end(struct stream_callback_data *data)
 	return PARSE_OKAY;
 }
 
-// Note to the future: there is no need to parse thumbnail elements, because
-// storing information about decorating pictures defeats the whole purpose of
-// project being a console application with as few distractions as possible.
+// Note to the future.
+// There is no need to parse thumbnail elements, because storing information
+// about decorating pictures defeats the whole purpose of project being a
+// console application with as few distractions as possible.
 
 const struct xml_element_handler xml_mediarss_handlers[] = {
 	{"content",     MRSS_CONTENT,     &content_start,     NULL},

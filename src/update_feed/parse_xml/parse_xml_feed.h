@@ -40,7 +40,6 @@ enum xml_position {
 	MRSS_GROUP,
 	MRSS_CONTENT,
 	MRSS_DESCRIPTION,
-	RSS11_IMAGE,
 	ATOM03_TITLE,
 	ATOM03_SUMMARY,
 	ATOM03_CONTENT,
@@ -78,8 +77,8 @@ int8_t generator_end(struct stream_callback_data *data);
 #ifdef NEWSRAFT_FORMAT_SUPPORT_ATOM10
 extern const struct xml_element_handler xml_atom10_handlers[];
 #endif
-#ifdef NEWSRAFT_FORMAT_SUPPORT_RSS20
-extern const struct xml_element_handler xml_rss20_handlers[];
+#ifdef NEWSRAFT_FORMAT_SUPPORT_RSS
+extern const struct xml_element_handler xml_rss_handlers[];
 #endif
 #ifdef NEWSRAFT_FORMAT_SUPPORT_RSSCONTENT
 extern const struct xml_element_handler xml_rsscontent_handlers[];
@@ -95,15 +94,6 @@ extern const struct xml_element_handler xml_yandex_handlers[];
 #endif
 #ifdef NEWSRAFT_FORMAT_SUPPORT_RBCNEWS
 extern const struct xml_element_handler xml_rbcnews_handlers[];
-#endif
-#ifdef NEWSRAFT_FORMAT_SUPPORT_RSS11
-extern const struct xml_element_handler xml_rss11_handlers[];
-#endif
-#ifdef NEWSRAFT_FORMAT_SUPPORT_RSS10
-extern const struct xml_element_handler xml_rss10_handlers[];
-#endif
-#ifdef NEWSRAFT_FORMAT_SUPPORT_RSS09
-extern const struct xml_element_handler xml_rss09_handlers[];
 #endif
 #ifdef NEWSRAFT_FORMAT_SUPPORT_ATOM03
 extern const struct xml_element_handler xml_atom03_handlers[];

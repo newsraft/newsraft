@@ -7,7 +7,7 @@ enum xml_format_index {
 #ifdef NEWSRAFT_FORMAT_SUPPORT_ATOM10
 	ATOM10_FORMAT = 0,
 #endif
-#ifdef NEWSRAFT_FORMAT_SUPPORT_RSS20
+#ifdef NEWSRAFT_FORMAT_SUPPORT_RSS
 	RSS20_FORMAT,
 #endif
 #ifdef NEWSRAFT_FORMAT_SUPPORT_RSSCONTENT
@@ -25,15 +25,6 @@ enum xml_format_index {
 #ifdef NEWSRAFT_FORMAT_SUPPORT_RBCNEWS
 	RBCNEWS_FORMAT,
 #endif
-#ifdef NEWSRAFT_FORMAT_SUPPORT_RSS11
-	RSS11_FORMAT,
-#endif
-#ifdef NEWSRAFT_FORMAT_SUPPORT_RSS10
-	RSS10_FORMAT,
-#endif
-#ifdef NEWSRAFT_FORMAT_SUPPORT_RSS09
-	RSS09_FORMAT,
-#endif
 #ifdef NEWSRAFT_FORMAT_SUPPORT_ATOM03
 	ATOM03_FORMAT,
 #endif
@@ -42,6 +33,11 @@ enum xml_format_index {
 #endif
 #ifdef NEWSRAFT_FORMAT_SUPPORT_GEORSS_GML
 	GEORSS_GML_FORMAT,
+#endif
+#ifdef NEWSRAFT_FORMAT_SUPPORT_RSS
+	RSS11_FORMAT,
+	RSS10_FORMAT,
+	RSS09_FORMAT,
 #endif
 	XML_FORMATS_COUNT,
 };
@@ -56,8 +52,8 @@ static const struct namespace_handler namespace_handlers[] = {
 #ifdef NEWSRAFT_FORMAT_SUPPORT_ATOM10
 	{"http://www.w3.org/2005/Atom", 27, xml_atom10_handlers},
 #endif
-#ifdef NEWSRAFT_FORMAT_SUPPORT_RSS20
-	{"http://backend.userland.com/rss2", 32, xml_rss20_handlers},
+#ifdef NEWSRAFT_FORMAT_SUPPORT_RSS
+	{"http://backend.userland.com/rss2", 32, xml_rss_handlers},
 #endif
 #ifdef NEWSRAFT_FORMAT_SUPPORT_RSSCONTENT
 	{"http://purl.org/rss/1.0/modules/content/", 40, xml_rsscontent_handlers},
@@ -74,15 +70,6 @@ static const struct namespace_handler namespace_handlers[] = {
 #ifdef NEWSRAFT_FORMAT_SUPPORT_RBCNEWS
 	{"http://www.rbc.ru", 17, xml_rbcnews_handlers},
 #endif
-#ifdef NEWSRAFT_FORMAT_SUPPORT_RSS11
-	{"http://purl.org/net/rss1.1#", 27, xml_rss11_handlers},
-#endif
-#ifdef NEWSRAFT_FORMAT_SUPPORT_RSS10
-	{"http://purl.org/rss/1.0/", 24, xml_rss10_handlers},
-#endif
-#ifdef NEWSRAFT_FORMAT_SUPPORT_RSS09
-	{"http://channel.netscape.com/rdf/simple/0.9/", 43, xml_rss09_handlers},
-#endif
 #ifdef NEWSRAFT_FORMAT_SUPPORT_ATOM03
 	{"http://purl.org/atom/ns#", 24, xml_atom03_handlers},
 #endif
@@ -91,6 +78,11 @@ static const struct namespace_handler namespace_handlers[] = {
 #endif
 #ifdef NEWSRAFT_FORMAT_SUPPORT_GEORSS_GML
 	{"http://www.opengis.net/gml", 26, xml_georss_gml_handlers},
+#endif
+#ifdef NEWSRAFT_FORMAT_SUPPORT_RSS
+	{"http://purl.org/net/rss1.1#", 27, xml_rss_handlers},
+	{"http://purl.org/rss/1.0/", 24, xml_rss_handlers},
+	{"http://channel.netscape.com/rdf/simple/0.9/", 43, xml_rss_handlers},
 #endif
 	{NULL, 0, NULL}
 };
@@ -143,7 +135,7 @@ start_element_handler(void *userData, const XML_Char *name, const XML_Char **att
 	if (data->xml_format != XML_FORMATS_COUNT) {
 		return;
 	}
-#ifdef NEWSRAFT_FORMAT_SUPPORT_RSS20
+#ifdef NEWSRAFT_FORMAT_SUPPORT_RSS
 	if ((data->depth == 1) && (strcmp(name, "rss") == 0)) {
 		const char *version = get_value_of_attribute_key(atts, "version");
 		if ((version != NULL) &&

@@ -4,6 +4,11 @@
 
 // https://web.archive.org/web/20211208135333/https://validator.w3.org/feed/docs/rss2.html
 
+// Some ancient stuff:
+// https://web.archive.org/web/20211011074123/https://www.rssboard.org/rss-0-9-0
+// https://web.archive.org/web/20211106023928/https://web.resource.org/rss/1.0/spec
+// https://web.archive.org/web/20210411040907/http://inamidst.com/rss1.1/
+
 static int8_t
 link_end(struct stream_callback_data *data)
 {
@@ -210,11 +215,11 @@ source_end(struct stream_callback_data *data)
 	return PARSE_OKAY;
 }
 
-const struct xml_element_handler xml_rss20_handlers[] = {
+const struct xml_element_handler xml_rss_handlers[] = {
 	{"item",           GENERIC_ITEM,         &generic_item_starter, NULL},
 	{"guid",           XML_UNKNOWN_POS,      NULL,                  &generic_guid_end},
 	{"title",          XML_UNKNOWN_POS,      NULL,                  &generic_title_end},
-	{"link",           RSS20_LINK,           NULL,                  &link_end},
+	{"link",           XML_UNKNOWN_POS,      NULL,                  &link_end},
 	{"description",    RSS20_DESCRIPTION,    NULL,                  &generic_html_content_end},
 	{"pubDate",        RSS20_PUBDATE,        NULL,                  &pub_date_end},
 	{"lastBuildDate",  RSS20_LASTBUILDDATE,  NULL,                  &last_build_date_end},
@@ -228,5 +233,7 @@ const struct xml_element_handler xml_rss20_handlers[] = {
 	{"managingEditor", RSS20_MANAGINGEDITOR, NULL,                  &managing_editor_end},
 	{"source",         RSS20_SOURCE,         &source_start,         &source_end},
 	{"channel",        GENERIC_FEED,         NULL,                  NULL},
+	// Channel with capital C is used in RSS 1.1
+	{"Channel",        GENERIC_FEED,         NULL,                  NULL},
 	{NULL,             XML_UNKNOWN_POS,      NULL,                  NULL},
 };

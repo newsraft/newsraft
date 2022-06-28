@@ -87,7 +87,6 @@ insert_item_data(const struct string *feed_url, struct getfeed_item *item)
 {
 	// Create guid if it was not set.
 	if ((item->guid == NULL) || (item->guid->len == 0)) {
-		struct string *hash;
 		if ((item->url != NULL) && (item->url->len != 0)) {
 			if (crtss_or_cpyss(&item->guid, item->url) == false) {
 				return false;
@@ -97,7 +96,7 @@ insert_item_data(const struct string *feed_url, struct getfeed_item *item)
 				return false;
 			}
 		} else if ((item->content != NULL) && (item->content->len != 0)) {
-			hash = fnv_1a_string(item->content->ptr);
+			struct string *hash = fnv_1a_string(item->content->ptr);
 			if (hash == NULL) {
 				return false;
 			}

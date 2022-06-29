@@ -48,3 +48,33 @@ copy_string_to_clipboard(const struct string *src)
 	good_status("Copied %s", src->ptr);
 	return true;
 }
+
+bool
+execute_command_with_specifiers_in_it(const struct wstring *wcmd_fmt, const struct format_arg *args)
+{
+	const wchar_t *wcmd_ptr = do_format(wcmd_fmt, args);
+	struct wstring *wcmd = wcrtas(wcmd_ptr, wcslen(wcmd_ptr));
+	if (wcmd == NULL) {
+		return false;
+	}
+	struct string *cmd = convert_wstring_to_string(wcmd);
+	free_wstring(wcmd);
+	if (cmd == NULL) {
+		return false;
+	}
+	info_status("Executing %s", cmd->ptr);
+	// https://stackoverflow.com/questions/18678943/ncurses-shell-escape-drops-parent-process-output
+	reset_shell_mode();
+	int status = system(cmd->ptr);
+	fflush(stdout);
+	reset_prog_mode();
+	clear();
+	refresh();
+	if (status == 0) {
+		status_clean();
+	} else {
+		fail_status("Failed to execute %s", cmd->ptr);
+	}
+	free_string(cmd);
+	return true;
+}

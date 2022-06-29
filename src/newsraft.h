@@ -392,6 +392,7 @@ void counter_delete(void);
 // See "commands.c" file for implementation.
 bool open_url_in_browser(const struct string *src);
 bool copy_string_to_clipboard(const struct string *src);
+bool execute_command_with_specifiers_in_it(const struct wstring *wcmd_fmt, const struct format_arg *args);
 
 // string.c
 struct string *crtas(const char *src_ptr, size_t src_len);

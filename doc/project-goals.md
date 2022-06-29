@@ -5,10 +5,6 @@ Main objective of Newsraft program is to do almost everything
 
 ## Differences from Newsboat
 
-Basically Newsraft is lightweight version of Newsboat, and it's well suited
-for those who don't feel like using complex feed operations, podcasts management
-and third-party services integration.
-
 #### Grouping of feeds into updatable sections instead of meta-feeds
 
 In Newsraft you can update multiple feeds grouped in one section, while in

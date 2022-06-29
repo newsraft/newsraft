@@ -139,7 +139,12 @@ crtss_or_cpyss(struct string **dest, const struct string *src)
 bool
 string_vprintf(struct string *dest, const char *format, va_list args)
 {
-	int required_length = vsnprintf(dest->ptr, 0, format, args);
+	// We need a copy of args because first call to vsnprintf screws original
+	// argument list and we need to call vsnprintf after that.
+	va_list args_copy;
+	va_copy(args_copy, args);
+	int required_length = vsnprintf(dest->ptr, 0, format, args_copy);
+	va_end(args_copy);
 	if (required_length < 0) {
 		return false;
 	}

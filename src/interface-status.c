@@ -49,7 +49,7 @@ status_create(void)
 	status_window_is_clean = true;
 	messages = NULL;
 	messages_count = 0;
-	messages_limit = get_cfg_uint(CFG_STATUS_MESSAGES_LIMIT);
+	messages_limit = get_cfg_uint(CFG_STATUS_MESSAGES_COUNT_LIMIT);
 	return true;
 }
 

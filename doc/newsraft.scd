@@ -125,11 +125,12 @@ _download-speed-limit_ (default: *0*)
 	Maximum download speed in kilobytes per second (kB/s). Zero disables the
 	limit.
 
-_status-messages-limit_ (default: *10000*)
+_status-messages-count-limit_ (default: *10000*)
 	Maximum number of status messages stored in memory. Zero disables the limit.
 
 _size-conversion-threshold_ (default: *1200*)
-	TODO
+	Number of data units after which the size will be converted to a larger
+	unit of measure. Must be greater than 999.
 
 _open-in-browser-command_ (default: *auto*)
 	Shell command for opening URL in web browser. The URL to be opened is

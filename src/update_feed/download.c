@@ -224,12 +224,18 @@ download_feed(const char *url, struct stream_callback_data *data)
 	curl_easy_cleanup(curl);
 
 	if (http_code == 304) {
-		// This 304 (Not Modified) response code indicates that
+		// 304 (Not Modified) response code indicates that
 		// there is no need to retransmit the requested resources.
 		// There may be two reasons for this:
 		// 1) server's ETag header is equal to our If-None-Match header;
 		// 2) server's Last-Modified header is equal to our If-Modified-Since header.
 		return DOWNLOAD_CANCELED;
+	} else if (http_code == 429) {
+		info_status("The server rejected the download because updates are too frequent.");
+		return DOWNLOAD_CANCELED;
+	} else if (http_code != 200) {
+		fail_status("The server which keeps the feed returned %ld status code!", http_code);
+		return DOWNLOAD_FAILED;
 	}
 
 	return DOWNLOAD_SUCCEEDED;

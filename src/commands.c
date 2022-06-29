@@ -6,6 +6,24 @@
 // happened, because we need the boolean result of thesse functions as an
 // indication whether the screen has to be redrawn or not.
 
+static inline void
+execute_system_command(const char *cmd)
+{
+	// https://stackoverflow.com/questions/18678943/ncurses-shell-escape-drops-parent-process-output
+	info_status("Executing %s", cmd);
+	reset_shell_mode();
+	int status = system(cmd);
+	fflush(stdout);
+	reset_prog_mode();
+	clear();
+	refresh();
+	if (status == 0) {
+		status_clean();
+	} else {
+		fail_status("Failed to execute %s", cmd);
+	}
+}
+
 bool
 open_url_in_browser(const struct string *src)
 {
@@ -23,7 +41,7 @@ open_url_in_browser(const struct string *src)
 	if (catss(cmd, src) == false) {
 		goto error;
 	}
-	system(cmd->ptr);
+	execute_system_command(cmd->ptr);
 	free_string(cmd);
 	return true;
 error:
@@ -62,19 +80,7 @@ execute_command_with_specifiers_in_it(const struct wstring *wcmd_fmt, const stru
 	if (cmd == NULL) {
 		return false;
 	}
-	info_status("Executing %s", cmd->ptr);
-	// https://stackoverflow.com/questions/18678943/ncurses-shell-escape-drops-parent-process-output
-	reset_shell_mode();
-	int status = system(cmd->ptr);
-	fflush(stdout);
-	reset_prog_mode();
-	clear();
-	refresh();
-	if (status == 0) {
-		status_clean();
-	} else {
-		fail_status("Failed to execute %s", cmd->ptr);
-	}
+	execute_system_command(cmd->ptr);
 	free_string(cmd);
 	return true;
 }

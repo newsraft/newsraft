@@ -207,35 +207,35 @@ download_feed(const char *url, struct stream_callback_data *data)
 	} else if (data->media_type == MEDIA_TYPE_JSON) {
 		free_json_parser(data);
 	}
+
+	long response = 0;
+	curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response);
+	INFO("Curl response code: %ld", response);
+
 	if (res != CURLE_OK) {
-		// These are just warnings because perform can fail due to lack of network connection.
-		WARN("Feed update has stopped due to fail in curl request!");
-		WARN("Detailed error explanation: %s", *curl_errbuf == '\0' ? curl_easy_strerror(res) : curl_errbuf);
+		WARN("Curl error from error code: %s", curl_easy_strerror(res));
+		WARN("Curl error from error buffer: %s", curl_errbuf);
 		curl_slist_free_all(headers);
 		curl_easy_cleanup(curl);
+		if (response == 429) {
+			info_status("The server rejected the download because updates are too frequent.");
+			return DOWNLOAD_CANCELED;
+		} else {
+			fail_status("The server which keeps the feed returned %ld status code!", response);
+		}
 		return DOWNLOAD_FAILED;
 	}
-
-	long http_code = 0;
-	curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
-	INFO("Server returned %ld HTTP response code.", http_code);
 
 	curl_slist_free_all(headers);
 	curl_easy_cleanup(curl);
 
-	if (http_code == 304) {
+	if (response == 304) {
 		// 304 (Not Modified) response code indicates that
 		// there is no need to retransmit the requested resources.
 		// There may be two reasons for this:
 		// 1) server's ETag header is equal to our If-None-Match header;
 		// 2) server's Last-Modified header is equal to our If-Modified-Since header.
 		return DOWNLOAD_CANCELED;
-	} else if (http_code == 429) {
-		info_status("The server rejected the download because updates are too frequent.");
-		return DOWNLOAD_CANCELED;
-	} else if (http_code != 200) {
-		fail_status("The server which keeps the feed returned %ld status code!", http_code);
-		return DOWNLOAD_FAILED;
 	}
 
 	return DOWNLOAD_SUCCEEDED;

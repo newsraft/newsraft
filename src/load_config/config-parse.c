@@ -167,7 +167,7 @@ process_bind_line(char *line)
 static inline bool
 process_config_file_line(char *line)
 {
-	INFO("Processing config line: \"%s\".", line);
+	INFO("Processing config line: %s", line);
 	char *i = line;
 	while (ISWHITESPACE(*i)) {
 		i += 1;
@@ -175,11 +175,11 @@ process_config_file_line(char *line)
 	if ((*i == '#') || (*i == '\0')) {
 		return true; // Ignore comments and empty lines.
 	}
-	// Just 5 characters because there are only 2 line types: "set" and "bind".
-	char line_type[5];
+	// Length of the longest line type "unbind" is 6 + 1 characters.
+	char line_type[7];
 	uint8_t line_type_len = 0;
 	do {
-		if (line_type_len == 4) {
+		if (line_type_len == 6) {
 			goto badline;
 		}
 		line_type[line_type_len++] = *i;
@@ -196,9 +196,15 @@ process_config_file_line(char *line)
 		return process_set_line(i);
 	} else if (strcmp(line_type, "bind") == 0) {
 		return process_bind_line(i);
+	} else if (strcmp(line_type, "unbind") == 0) {
+		// Since we deleted trailing whitespace from the line, we can pass its
+		// remainings as a key to delete an action from.
+		delete_action_from_key(i);
+		return true;
 	}
 badline:
-	fputs("Incorrect line notation! Lines can only start with either \"set\" or \"bind\"!\n", stderr);
+	fputs("Incorrect line notation! ", stderr);
+	fputs("Lines can only start with either \"set\", \"bind\" or \"unbind\"!\n", stderr);
 	return false;
 }
 

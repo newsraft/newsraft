@@ -81,6 +81,24 @@ error:
 }
 
 void
+delete_action_from_key(const char *bind_key)
+{
+	for (size_t i = 0; i < binds_count; ++i) {
+		if (strcmp(bind_key, binds[i].key) == 0) {
+			binds_count -= 1;
+			free(binds[i].key);
+			for (size_t j = i; j < binds_count; ++j) {
+				binds[j].key = binds[j + 1].key;
+				binds[j].cmd = binds[j + 1].cmd;
+			}
+			return;
+		}
+	}
+	// If none action keys matched, try to delete command key.
+	delete_command_from_key(bind_key);
+}
+
+void
 free_binds(void)
 {
 	INFO("Freeing key binds.");

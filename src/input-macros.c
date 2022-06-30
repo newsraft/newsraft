@@ -54,6 +54,23 @@ find_macro(const char *key)
 }
 
 void
+delete_command_from_key(const char *bind_key)
+{
+	for (size_t i = 0; i < macros_count; ++i) {
+		if (strcmp(bind_key, macros[i].key) == 0) {
+			macros_count -= 1;
+			free(macros[i].key);
+			free_wstring(macros[i].cmd);
+			for (size_t j = i; j < macros_count; ++j) {
+				macros[j].key = macros[j + 1].key;
+				macros[j].cmd = macros[j + 1].cmd;
+			}
+			return;
+		}
+	}
+}
+
+void
 free_macros(void)
 {
 	INFO("Freeing command binds.");

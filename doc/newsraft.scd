@@ -91,6 +91,11 @@ specifiers are: *%l* for URL. Format of these lines is as follows:
 
 	*bind* key *exec* _command_
 
+In case you want to disable some binding which was set in Newsraft by default,
+you can use a line according to this format:
+
+	*unbind* key
+
 Comment lines start with # character. These lines are completely ignored. For
 example:
 

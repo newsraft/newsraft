@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 #include <gumbo.h>
 #include "prepare_to_render_data/prepare_to_render_data.h"
 
@@ -113,7 +114,8 @@ a_handler(struct string *text, struct html_data *data, GumboVector *attrs)
 	const char *url = get_value_of_xml_attribute(attrs, "href");
 	const char *type = get_value_of_xml_attribute(attrs, "type");
 	const char *title = get_value_of_xml_attribute(attrs, "title");
-	size_t title_len;
+	// GCC complains about uninitialized variable that is not being read.
+	size_t title_len = 0;
 	if (title != NULL) {
 		title_len = strlen(title);
 	}
@@ -125,7 +127,8 @@ img_handler(struct string *text, struct html_data *data, GumboVector *attrs)
 {
 	const char *url = get_value_of_xml_attribute(attrs, "src");
 	const char *title = get_value_of_xml_attribute(attrs, "title");
-	size_t title_len;
+	// GCC complains about uninitialized variable that is not being read.
+	size_t title_len = 0;
 	if (title != NULL) {
 		title_len = strlen(title);
 	}
@@ -143,7 +146,8 @@ iframe_handler(struct string *text, struct html_data *data, GumboVector *attrs)
 {
 	const char *url = get_value_of_xml_attribute(attrs, "src");
 	const char *title = get_value_of_xml_attribute(attrs, "title");
-	size_t title_len;
+	// GCC complains about uninitialized variable that is not being read.
+	size_t title_len = 0;
 	if (title != NULL) {
 		title_len = strlen(title);
 	}

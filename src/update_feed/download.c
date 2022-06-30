@@ -1,4 +1,5 @@
 #include <string.h>
+#include <strings.h>
 #include <curl/curl.h>
 #include "update_feed/update_feed.h"
 

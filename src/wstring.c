@@ -133,11 +133,10 @@ empty_wstring(struct wstring *wstr)
 void
 free_wstring(struct wstring *wstr)
 {
-	if (wstr == NULL) {
-		return;
+	if (wstr != NULL) {
+		free(wstr->ptr);
+		free(wstr);
 	}
-	free(wstr->ptr);
-	free(wstr);
 }
 
 void
@@ -162,15 +161,14 @@ trim_whitespace_from_wstring(struct wstring *wstr)
 	if (right_edge < left_edge) {
 		*(wstr->ptr + 0) = L'\0';
 		wstr->len = 0;
-		return;
+	} else {
+		size_t trimmed_wstring_len = right_edge - left_edge + 1;
+		for (size_t i = 0; i < trimmed_wstring_len; ++i) {
+			*(wstr->ptr + i) = *(wstr->ptr + i + left_edge);
+		}
+		wstr->len = trimmed_wstring_len;
+		*(wstr->ptr + trimmed_wstring_len) = L'\0';
 	}
-
-	size_t trimmed_wstring_len = right_edge - left_edge + 1;
-	for (size_t i = 0; i < trimmed_wstring_len; ++i) {
-		*(wstr->ptr + i) = *(wstr->ptr + i + left_edge);
-	}
-	wstr->len = trimmed_wstring_len;
-	*(wstr->ptr + trimmed_wstring_len) = L'\0';
 }
 
 // On failure retruns NULL.

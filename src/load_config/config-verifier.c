@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <string.h>
 #include "load_config/load_config.h"
 
 static inline bool
@@ -21,20 +20,14 @@ verify_format_string_lengths(void)
 		success = false;
 		fprintf(stderr, "%s is too long!\n", get_cfg_name(CFG_MENU_ITEM_ENTRY_FORMAT));
 	}
+	if (success == false) {
+		fprintf(stderr, "Format string length must not exceed %d!\n", FORMAT_STRING_LENGTH_LIMIT);
+	}
 	return success;
 }
 
 bool
 verify_config_values(void)
 {
-	bool success = true;
-	if (get_cfg_uint(CFG_SIZE_CONVERSION_THRESHOLD) < 1000U) {
-		success = false;
-		fputs("Size conversion threshold must be greater than or equal to 1000!\n", stderr);
-	}
-	if (verify_format_string_lengths() == false) {
-		success = false;
-		fprintf(stderr, "Format string length must not exceed %d!\n", FORMAT_STRING_LENGTH_LIMIT);
-	}
-	return success;
+	return verify_format_string_lengths();
 }

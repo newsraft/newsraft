@@ -116,16 +116,15 @@ static bool
 attach_feed_to_section(struct feed_line *feed, struct feed_section *section)
 {
 	const struct feed_line *potential_duplicate = find_feed_in_section(feed->link, section);
-	if (potential_duplicate != NULL) {
-		return true;
+	if (potential_duplicate == NULL) {
+		size_t feed_index = (section->feeds_count)++;
+		struct feed_line **temp = realloc(section->feeds, sizeof(struct feed_line *) * section->feeds_count);
+		if (temp == NULL) {
+			return false;
+		}
+		section->feeds = temp;
+		section->feeds[feed_index] = feed;
 	}
-	size_t feed_index = (section->feeds_count)++;
-	struct feed_line **temp = realloc(section->feeds, sizeof(struct feed_line *) * section->feeds_count);
-	if (temp == NULL) {
-		return false;
-	}
-	section->feeds = temp;
-	section->feeds[feed_index] = feed;
 	return true;
 }
 
@@ -213,10 +212,11 @@ free_feed(struct feed_line *feed)
 void
 free_sections(void)
 {
-	for (size_t i = 0; i < sections[0].feeds_count; ++i) {
+	size_t i;
+	for (i = 0; i < sections[0].feeds_count; ++i) {
 		free_feed(sections[0].feeds[i]);
 	}
-	for (size_t i = 0; i < sections_count; ++i) {
+	for (i = 0; i < sections_count; ++i) {
 		free_string(sections[i].name);
 		free(sections[i].feeds);
 	}

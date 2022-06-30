@@ -217,15 +217,14 @@ trim_whitespace_from_string(struct string *str)
 	if (right_edge < left_edge) {
 		*(str->ptr + 0) = '\0';
 		str->len = 0;
-		return;
+	} else {
+		size_t trimmed_string_len = right_edge - left_edge + 1;
+		for (size_t i = 0; i < trimmed_string_len; ++i) {
+			*(str->ptr + i) = *(str->ptr + i + left_edge);
+		}
+		str->len = trimmed_string_len;
+		*(str->ptr + trimmed_string_len) = '\0';
 	}
-
-	size_t trimmed_string_len = right_edge - left_edge + 1;
-	for (size_t i = 0; i < trimmed_string_len; ++i) {
-		*(str->ptr + i) = *(str->ptr + i + left_edge);
-	}
-	str->len = trimmed_string_len;
-	*(str->ptr + trimmed_string_len) = '\0';
 }
 
 // On failure retruns NULL.
@@ -288,14 +287,8 @@ convert_bytes_to_human_readable_size_string(const char *value)
 		return NULL;
 	}
 	if (size < 0) {
-		FAIL("With some fright, the number of bytes turned out to be negative!");
+		FAIL("Number of bytes turned out to be negative!");
 		return NULL;
-	}
-	uint8_t prefix = 0;
-	const size_t conversion_threshold = get_cfg_uint(CFG_SIZE_CONVERSION_THRESHOLD);
-	while ((size > conversion_threshold) && (prefix < 3)) {
-		size = size / 1000;
-		++prefix;
 	}
 	// longest float integral part (40) +
 	// point (1) +
@@ -303,18 +296,21 @@ convert_bytes_to_human_readable_size_string(const char *value)
 	// space (1) +
 	// longest name of data measure (5) +
 	// null terminator (1) +
-	// for luck lol (1) =
-	// 51
-	char human_readable[51];
+	// for luck (30) = 80
+	char human_readable[80];
 	int length;
-	if (prefix == 1) {
-		length = sprintf(human_readable, "%.2f KB", size);
-	} else if (prefix == 2) {
-		length = sprintf(human_readable, "%.2f MB", size);
-	} else if (prefix == 0) {
-		length = sprintf(human_readable, "%.2f bytes", size);
+	if (size < 1100) {
+		length = sprintf(human_readable, "%.0f bytes", size);
+	} else if (size < 1100000) {
+		length = sprintf(human_readable, "%.1f KB", size / 1000);
+	} else if (size < 1100000000) {
+		length = sprintf(human_readable, "%.1f MB", size / 1000000);
 	} else {
-		length = sprintf(human_readable, "%.2f GB", size);
+		length = sprintf(human_readable, "%.2f GB", size / 1000000000);
+	}
+	if (length < 0) {
+		FAIL("Failed to write size string to buffer!");
+		return NULL;
 	}
 	return crtas(human_readable, length);
 }
@@ -328,17 +324,8 @@ convert_seconds_to_human_readable_duration_string(const char *value)
 		return NULL;
 	}
 	if (duration < 0) {
-		FAIL("With some fright, the number of seconds turned out to be negative!");
+		FAIL("Number of seconds turned out to be negative!");
 		return NULL;
-	}
-	uint8_t prefix = 0;
-	if (duration > 90) {
-		duration = duration / 60;
-		prefix = 1;
-		if (duration > 90) {
-			duration = duration / 60;
-			prefix = 2;
-		}
 	}
 	// longest float integral part (40) +
 	// point (1) +
@@ -346,16 +333,19 @@ convert_seconds_to_human_readable_duration_string(const char *value)
 	// space (1) +
 	// longest name of data measure (7) +
 	// null terminator (1) +
-	// for luck lol (1) =
-	// 52
-	char human_readable[52];
+	// for luck (30) = 81
+	char human_readable[81];
 	int length;
-	if (prefix == 1) {
-		length = sprintf(human_readable, "%.1f minutes", duration);
-	} else if (prefix == 2) {
-		length = sprintf(human_readable, "%.1f hours", duration);
-	} else {
+	if (duration < 90) {
 		length = sprintf(human_readable, "%.0f seconds", duration);
+	} else if (duration < 4000) {
+		length = sprintf(human_readable, "%.1f minutes", duration / 60);
+	} else {
+		length = sprintf(human_readable, "%.1f hours", duration / 3600);
+	}
+	if (length < 0) {
+		FAIL("Failed to write duration string to buffer!");
+		return NULL;
 	}
 	return crtas(human_readable, length);
 }

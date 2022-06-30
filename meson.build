@@ -7,14 +7,15 @@ project(
 		'buildtype=release',
 	],
 	license: 'MIT',
-	version: '0.2',
+	version: '0.3',
 )
 if get_option('buildtype') == 'release'
 	add_project_arguments(['-fdiagnostics-color=never'], language: 'c')
 else
 	add_project_arguments(['-fdiagnostics-color=auto'], language: 'c')
-	# run "ninja cppcheck" to run code analysis
-	run_target('cppcheck', command: ['cppcheck', '--project=' + join_paths(meson.build_root(), 'compile_commands.json')])
+	# cppcheck analysis is so trivial, but sometimes it is worth checking
+	# you can execute "ninja cppcheck" to run code analysis
+	# run_target('cppcheck', command: ['cppcheck', '--project=' + join_paths(meson.build_root(), 'compile_commands.json')])
 endif
 
 newsraft_sources = [

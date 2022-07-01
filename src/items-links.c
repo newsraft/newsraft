@@ -1,7 +1,80 @@
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 #include <curl/curl.h>
 #include "newsraft.h"
+
+static inline struct string *
+convert_bytes_to_human_readable_size_string(const char *value)
+{
+	float size;
+	if (sscanf(value, "%f", &size) != 1) {
+		FAIL("Can't convert \"%s\" string to float!", value);
+		return NULL;
+	}
+	if (size < 0) {
+		FAIL("Number of bytes turned out to be negative!");
+		return NULL;
+	}
+	// longest float integral part (40) +
+	// point (1) +
+	// two digits after point (2) +
+	// space (1) +
+	// longest name of data measure (5) +
+	// null terminator (1) +
+	// for luck (50) = 100
+	char human_readable[100];
+	int length;
+	if (size < 1100) {
+		length = sprintf(human_readable, "%.0f bytes", size);
+	} else if (size < 1100000) {
+		length = sprintf(human_readable, "%.1f KB", size / 1000);
+	} else if (size < 1100000000) {
+		length = sprintf(human_readable, "%.1f MB", size / 1000000);
+	} else {
+		length = sprintf(human_readable, "%.2f GB", size / 1000000000);
+	}
+	if (length < 0) {
+		FAIL("Failed to write size string to buffer!");
+		return NULL;
+	}
+	return crtas(human_readable, length);
+}
+
+static inline struct string *
+convert_seconds_to_human_readable_duration_string(const char *value)
+{
+	float duration;
+	if (sscanf(value, "%f", &duration) != 1) {
+		FAIL("Can't convert \"%s\" string to float!", value);
+		return NULL;
+	}
+	if (duration < 0) {
+		FAIL("Number of seconds turned out to be negative!");
+		return NULL;
+	}
+	// longest float integral part (40) +
+	// point (1) +
+	// one digit after point (1) +
+	// space (1) +
+	// longest name of data measure (7) +
+	// null terminator (1) +
+	// for luck (50) = 101
+	char human_readable[101];
+	int length;
+	if (duration < 90) {
+		length = sprintf(human_readable, "%.0f seconds", duration);
+	} else if (duration < 4000) {
+		length = sprintf(human_readable, "%.1f minutes", duration / 60);
+	} else {
+		length = sprintf(human_readable, "%.1f hours", duration / 3600);
+	}
+	if (length < 0) {
+		FAIL("Failed to write duration string to buffer!");
+		return NULL;
+	}
+	return crtas(human_readable, length);
+}
 
 // Return codes correspond to:
 // [0; +inf] link was added successfully with that index

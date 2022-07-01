@@ -9,37 +9,6 @@
 // Atom 0.3 does not have category element.
 
 static int8_t
-title_start(struct stream_callback_data *data, const XML_Char **attrs)
-{
-	const char *type = get_value_of_attribute_key(attrs, "type");
-	if (type != NULL) {
-		if (strcmp(type, "html") == 0) {
-			if (data->path[data->depth] == GENERIC_ITEM) {
-				data->feed.item->title_type = TEXT_HTML;
-			} else if (data->path[data->depth] == GENERIC_FEED) {
-				data->feed.title_type = TEXT_HTML;
-			}
-		}
-	}
-	return PARSE_OKAY;
-}
-
-static int8_t
-title_end(struct stream_callback_data *data)
-{
-	if (data->path[data->depth] == GENERIC_ITEM) {
-		if (crtss_or_cpyss(&data->feed.item->title, data->text) == false) {
-			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-		}
-	} else if (data->path[data->depth] == GENERIC_FEED) {
-		if (crtss_or_cpyss(&data->feed.title, data->text) == false) {
-			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-		}
-	}
-	return PARSE_OKAY;
-}
-
-static int8_t
 link_start(struct stream_callback_data *data, const XML_Char **attrs)
 {
 	const char *attr = get_value_of_attribute_key(attrs, "href");
@@ -249,7 +218,7 @@ tagline_end(struct stream_callback_data *data)
 const struct xml_element_handler xml_atom03_handlers[] = {
 	{"entry",       GENERIC_ITEM,     &generic_item_starter, NULL},
 	{"id",          XML_UNKNOWN_POS,  NULL,                  &generic_guid_end},
-	{"title",       ATOM03_TITLE,     &title_start,          &title_end},
+	{"title",       XML_UNKNOWN_POS,  NULL,                  &generic_title_end},
 	{"link",        XML_UNKNOWN_POS,  &link_start,           NULL},
 	{"summary",     ATOM03_SUMMARY,   &content_start,        &content_end},
 	{"content",     ATOM03_CONTENT,   &content_start,        &content_end},

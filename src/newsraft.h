@@ -410,12 +410,9 @@ bool string_vprintf(struct string *dest, const char *format, va_list args);
 bool string_printf(struct string *dest, const char *format, ...);
 void empty_string(struct string *str);
 void free_string(struct string *str);
-void remove_character_from_string(struct string *str, char c);
-void remove_trailing_slashes_from_string(struct string *str);
 void trim_whitespace_from_string(struct string *str);
 struct wstring *convert_string_to_wstring(const struct string *src);
-struct string *convert_bytes_to_human_readable_size_string(const char *value);
-struct string *convert_seconds_to_human_readable_duration_string(const char *value);
+void inline_string(struct string *title);
 
 // string-serialize.c
 bool serialize_caret(struct string **target);

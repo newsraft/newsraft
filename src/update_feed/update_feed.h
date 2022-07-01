@@ -15,7 +15,6 @@ enum media_type {
 struct getfeed_item {
 	struct string *guid;
 	struct string *title;
-	int8_t title_type;
 	struct string *url;
 	struct string *content;
 	struct string *attachments;
@@ -28,7 +27,6 @@ struct getfeed_item {
 
 struct getfeed_feed {
 	struct string *title;
-	int8_t title_type;
 	struct string *url;
 	struct string *content;
 	struct string *attachments;

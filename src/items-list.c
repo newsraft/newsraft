@@ -121,6 +121,7 @@ generate_items_list(struct feed_line **feeds, size_t feeds_count, enum sorting_o
 			items->list[items->count].title = crtss(get_cfg_string(CFG_EMPTY_TITLE_PLACEHOLDER));
 		} else {
 			items->list[items->count].title = crtas(text, strlen(text));
+			inline_string(items->list[items->count].title);
 		}
 
 		text = (const char *)sqlite3_column_text(res, 3); // link

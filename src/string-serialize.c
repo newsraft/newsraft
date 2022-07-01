@@ -18,6 +18,20 @@ struct deserialize_stream {
 // However, this constant must never be changed. Or wicked times will come!
 #define SEPARATOR '='
 
+static inline void
+remove_character_from_string(struct string *str, char c)
+{
+	for (char *i = str->ptr; *i != '\0'; ++i) {
+		if (*i == c) {
+			for (char *j = i; *j != '\0'; ++j) {
+				*j = *(j + 1);
+			}
+			str->len -= 1;
+			i -= 1;
+		}
+	}
+}
+
 bool
 serialize_caret(struct string **target)
 {

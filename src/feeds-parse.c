@@ -1,6 +1,15 @@
 #include <stdio.h>
 #include "newsraft.h"
 
+static inline void
+remove_trailing_slashes_from_string(struct string *str)
+{
+	while ((str->len > 0) && (str->ptr[str->len - 1] == '/')) {
+		str->len -= 1;
+	}
+	str->ptr[str->len] = '\0';
+}
+
 bool
 parse_feeds_file(const char *path)
 {
@@ -86,6 +95,7 @@ parse_feeds_file(const char *path)
 		if (feed.name->len == 0) {
 			tmp = db_get_string_from_feed_table(feed.link, "title", 5);
 			if (tmp != NULL) {
+				inline_string(tmp);
 				cpyss(feed.name, tmp);
 				free_string(tmp);
 			}

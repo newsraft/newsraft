@@ -144,7 +144,7 @@ update_and_refresh_feed(struct feed_line *feed)
 		if ((feed->name == NULL) || (feed->name->len == 0)) {
 			struct string *title = db_get_string_from_feed_table(feed->link, "title", 5);
 			if (title != NULL) {
-				inline_string(title);
+				inlinify_string(title);
 				crtss_or_cpyss(&feed->name, title);
 				free_string(title);
 			}

@@ -95,7 +95,7 @@ parse_feeds_file(const char *path)
 		if (feed.name->len == 0) {
 			tmp = db_get_string_from_feed_table(feed.link, "title", 5);
 			if (tmp != NULL) {
-				inline_string(tmp);
+				inlinify_string(tmp);
 				cpyss(feed.name, tmp);
 				free_string(tmp);
 			}

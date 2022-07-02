@@ -19,51 +19,44 @@ bool
 adjust_list_menu(void)
 {
 	INFO("Adjusting list menu.");
+	// Delete old windows to create new windows with the new size because
+	// useful in this case resizing is a non-standard curses extension.
 	for (size_t i = 0; i < windows_count; ++i) {
 		delwin(windows[i]);
 	}
 	WINDOW **temp = realloc(windows, sizeof(WINDOW *) * list_menu_height);
 	if (temp == NULL) {
-		FAIL("Not enough memory for reallocating list menu windows!");
-		return false;
+		goto error;
 	}
 	windows = temp;
 	for (size_t i = 0; i < list_menu_height; ++i) {
 		windows[i] = newwin(1, list_menu_width, i, 0);
 		if (windows[i] == NULL) {
-			FAIL("Not enough memory for window to adjust list menu!");
 			windows_count = i;
-			return false;
+			goto error;
 		}
 	}
 	windows_count = list_menu_height;
 	return true;
-}
-
-WINDOW *
-get_list_entry_by_index(size_t index)
-{
-	if (index < windows_count) {
-		return windows[index];
-	}
-	return NULL;
+error:
+	FAIL("Not enough memory for adjusting list menu!");
+	return false;
 }
 
 void
 expose_entry_of_the_menu_list(struct menu_list_settings *settings, size_t index)
 {
-	if ((index < settings->view_min) || (index > settings->view_max)) {
-		return;
+	if ((index >= settings->view_min) && (index <= settings->view_max)) {
+		WINDOW *w = windows[index - settings->view_min];
+		werase(w);
+		mvwaddnwstr(w, 0, 0, settings->write_action(index), list_menu_width);
+		if (index == settings->view_sel) {
+			wbkgd(w, get_reversed_color_pair(settings->paint_action(index)));
+		} else {
+			wbkgd(w, get_color_pair(settings->paint_action(index)));
+		}
+		wrefresh(w);
 	}
-	size_t target_window = (index - settings->view_min) % list_menu_height;
-	werase(windows[target_window]);
-	mvwaddnwstr(windows[target_window], 0, 0, settings->write_action(index), list_menu_width);
-	if (index == settings->view_sel) {
-		wbkgd(windows[target_window], get_reversed_color_pair(settings->paint_action(index)));
-	} else {
-		wbkgd(windows[target_window], get_color_pair(settings->paint_action(index)));
-	}
-	wrefresh(windows[target_window]);
 }
 
 void
@@ -89,7 +82,7 @@ void
 redraw_menu_list(struct menu_list_settings *settings)
 {
 	settings->view_max = settings->view_min + (list_menu_height - 1);
-	if (settings->view_max < settings->view_sel) {
+	if (settings->view_sel > settings->view_max) {
 		settings->view_max = settings->view_sel;
 		settings->view_min = settings->view_max - (list_menu_height - 1);
 	}
@@ -118,10 +111,6 @@ list_menu_change_view(struct menu_list_settings *s, size_t i)
 		new_sel = s->entries_count - 1;
 	}
 
-	if (new_sel == s->view_sel) {
-		return;
-	}
-
 	if (new_sel > s->view_max) {
 		s->view_min = new_sel - (list_menu_height - 1);
 		s->view_max = new_sel;
@@ -132,14 +121,14 @@ list_menu_change_view(struct menu_list_settings *s, size_t i)
 		s->view_max = new_sel + (list_menu_height - 1);
 		s->view_sel = new_sel;
 		expose_all_visible_entries_of_the_menu_list(s);
-	} else {
-		size_t target_window = (s->view_sel - s->view_min) % list_menu_height;
-		wbkgd(windows[target_window], get_color_pair(s->paint_action(s->view_sel)));
-		wrefresh(windows[target_window]);
+	} else if (new_sel != s->view_sel) {
+		WINDOW *w = windows[s->view_sel - s->view_min];
+		wbkgd(w, get_color_pair(s->paint_action(s->view_sel)));
+		wrefresh(w);
 		s->view_sel = new_sel;
-		target_window = (s->view_sel - s->view_min) % list_menu_height;
-		wbkgd(windows[target_window], get_reversed_color_pair(s->paint_action(s->view_sel)));
-		wrefresh(windows[target_window]);
+		w = windows[s->view_sel - s->view_min];
+		wbkgd(w, get_reversed_color_pair(s->paint_action(s->view_sel)));
+		wrefresh(w);
 	}
 }
 

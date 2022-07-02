@@ -258,7 +258,6 @@ bool update_and_refresh_feed(struct feed_line *feed);
 
 // list interface
 bool adjust_list_menu(void);
-WINDOW *get_list_entry_by_index(size_t i);
 void free_list_menu(void);
 bool adjust_list_menu_format_buffer(void);
 void free_list_menu_format_buffer(void);

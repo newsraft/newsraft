@@ -7,6 +7,7 @@
 struct input_binding {
 	char *key;
 	input_cmd_id cmd;
+	struct wstring *cmdcmd;
 };
 
 static struct input_binding *binds = NULL;
@@ -36,44 +37,74 @@ get_input_command(uint32_t *count, const struct wstring **macro_ptr)
 	const char *key = keyname(c);
 	for (size_t i = 0; i < binds_count; ++i) {
 		if (strcmp(key, binds[i].key) == 0) {
+			*macro_ptr = binds[i].cmdcmd;
 			return binds[i].cmd;
 		}
 	}
 
-	*macro_ptr = find_macro(key);
-
 	return INPUTS_COUNT; // No command matched with this key.
+}
+
+static inline int64_t
+find_bind_by_its_key_name_or_create_it(const char *key_name, size_t key_name_len)
+{
+	int64_t i;
+	for (i = 0; (size_t)i < binds_count; ++i) {
+		if (strcmp(key_name, binds[i].key) == 0) {
+			return i;
+		}
+	}
+	struct input_binding *tmp = realloc(binds, sizeof(struct input_binding) * (binds_count + 1));
+	if (tmp == NULL) {
+		return -1;
+	}
+	binds_count += 1;
+	binds = tmp;
+	binds[i].key = malloc(sizeof(char) * (key_name_len + 1));
+	if (binds[i].key == NULL) {
+		return -1;
+	}
+	memcpy(binds[i].key, key_name, sizeof(char) * key_name_len);
+	binds[i].key[key_name_len] = '\0';
+	binds[i].cmdcmd = NULL; // Set to NULL to avoid freeing garbage below.
+	return i;
 }
 
 bool
 assign_action_to_key(const char *bind_key, size_t bind_key_len, input_cmd_id bind_cmd)
 {
 	INFO("Binding %u action to \"%s\" key.", bind_cmd, bind_key);
-
-	// Check if bind_key is bound already.
-	for (size_t i = 0; i < binds_count; ++i) {
-		if (strcmp(bind_key, binds[i].key) == 0) {
-			INFO("Key with name \"%s\" is already bound. Reassigning the command.", bind_key);
-			binds[i].cmd = bind_cmd;
-			return true;
-		}
+	int64_t index = find_bind_by_its_key_name_or_create_it(bind_key, bind_key_len);
+	if (index == -1) {
+		fputs("Not enough memory for assigning an action to a new key!\n", stderr);
+		return false;
 	}
+	free_wstring(binds[index].cmdcmd);
+	binds[index].cmd = bind_cmd;
+	binds[index].cmdcmd = NULL;
+	return true;
+}
 
-	size_t bind_index = binds_count++;
-	struct input_binding *temp = realloc(binds, sizeof(struct input_binding) * binds_count);
-	if (temp == NULL) {
+bool
+create_macro(const char *bind_key, size_t bind_key_len, const char *cmd, size_t cmd_len)
+{
+	INFO("Binding \"%s\" command to \"%s\" key.", cmd, bind_key);
+	int64_t index = find_bind_by_its_key_name_or_create_it(bind_key, bind_key_len);
+	if (index == -1) {
 		goto error;
 	}
-
-	binds = temp;
-	binds[bind_index].key = malloc(sizeof(char) * (bind_key_len + 1));
-	if (binds[bind_index].key == NULL) {
+	free_wstring(binds[index].cmdcmd);
+	binds[index].cmd = INPUT_SYSTEM_COMMAND;
+	binds[index].cmdcmd = NULL; // Set to NULL because stuff below can fail.
+	struct string *cmd_str = crtas(cmd, cmd_len);
+	if (cmd_str == NULL) {
 		goto error;
 	}
-	strncpy(binds[bind_index].key, bind_key, bind_key_len);
-	binds[bind_index].key[bind_key_len] = '\0';
-	binds[bind_index].cmd = bind_cmd;
-
+	binds[index].cmdcmd = convert_string_to_wstring(cmd_str);
+	free_string(cmd_str);
+	if (binds[index].cmdcmd == NULL) {
+		goto error;
+	}
 	return true;
 error:
 	fputs("Not enough memory for assigning a command to a new key!\n", stderr);
@@ -87,15 +118,15 @@ delete_action_from_key(const char *bind_key)
 		if (strcmp(bind_key, binds[i].key) == 0) {
 			binds_count -= 1;
 			free(binds[i].key);
+			free_wstring(binds[i].cmdcmd);
 			for (size_t j = i; j < binds_count; ++j) {
 				binds[j].key = binds[j + 1].key;
 				binds[j].cmd = binds[j + 1].cmd;
+				binds[j].cmdcmd = binds[j + 1].cmdcmd;
 			}
 			return;
 		}
 	}
-	// If none action keys matched, try to delete command key.
-	delete_command_from_key(bind_key);
 }
 
 void
@@ -104,6 +135,7 @@ free_binds(void)
 	INFO("Freeing key binds.");
 	for (size_t i = 0; i < binds_count; ++i) {
 		free(binds[i].key);
+		free_wstring(binds[i].cmdcmd);
 	}
 	free(binds);
 }

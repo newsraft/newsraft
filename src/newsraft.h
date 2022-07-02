@@ -184,6 +184,7 @@ enum input_cmd {
 	INPUT_COPY_TO_CLIPBOARD,
 	INPUT_RESIZE,
 	INPUTS_COUNT,
+	INPUT_SYSTEM_COMMAND,
 };
 
 typedef int8_t feeds_column_id;
@@ -357,14 +358,10 @@ int get_reversed_color_pair(config_entry_id id);
 int get_input_command(uint32_t *count, const struct wstring **macro_ptr);
 bool assign_default_binds(void);
 bool assign_action_to_key(const char *bind_key, size_t bind_key_len, input_cmd_id bind_cmd);
+bool create_macro(const char *bind_key, size_t bind_key_len, const char *cmd, size_t cmd_len);
 void delete_action_from_key(const char *bind_key);
 input_cmd_id get_input_id_by_name(const char *name);
 void free_binds(void);
-
-bool create_macro(const char *key, size_t key_len, const char *cmd, size_t cmd_len);
-const struct wstring *find_macro(const char *key);
-void delete_command_from_key(const char *bind_key);
-void free_macros(void);
 
 // Functions related to window which displays status messages.
 // See "interface-status.c" file for implementation.

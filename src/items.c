@@ -207,7 +207,7 @@ enter_items_menu_loop(struct feed_line **feeds, size_t feeds_count, int format)
 			redraw_menu_list(&items_menu);
 		} else if ((cmd == INPUT_QUIT_SOFT) || (cmd == INPUT_QUIT_HARD)) {
 			break;
-		} else if ((cmd == INPUTS_COUNT) && (macro != NULL)) {
+		} else if ((cmd == INPUT_SYSTEM_COMMAND) && (macro != NULL)) {
 			fmt_args[2].value.s = items->list[items_menu.view_sel].url ? items->list[items_menu.view_sel].url->ptr : "";
 			if (execute_command_with_specifiers_in_it(macro, fmt_args) == true) {
 				redraw_menu_list(&items_menu);

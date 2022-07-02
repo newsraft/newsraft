@@ -30,7 +30,9 @@ struct list_level {
 };
 
 static uint8_t list_depth;
-static struct list_level list_levels[MAX_NESTED_LISTS_DEPTH];
+// We are keeping first element of the list_levels for the list items
+// which were placed without the beginning of the listing (ul, ol).
+static struct list_level list_levels[MAX_NESTED_LISTS_DEPTH + 1];
 
 static inline void
 provide_newlines(struct wstring *text, struct line *line, int8_t count)
@@ -96,14 +98,14 @@ li_handler(struct wstring *text, struct line *line, enum html_position *pos)
 {
 	provide_one_newline(text, line, pos);
 	line->indent = list_depth * SPACES_PER_INDENTATION_LEVEL;
-	if (list_levels[list_depth - 1].type == UNORDERED_LIST) {
+	if (list_levels[list_depth].type == UNORDERED_LIST) {
 		line_string(line, L"*  ", text);
 		line->indent += 3;
 	} else {
-		++(list_levels[list_depth - 1].length);
+		++(list_levels[list_depth].length);
 		// 9 = 5 (for longest uint16_t) + 2 (for dot and space) + 1 (for terminator) + 1 (for luck lol)
 		wchar_t number_str[9];
-		size_t number_str_len = swprintf(number_str, 9, L"%d. ", list_levels[list_depth - 1].length);
+		size_t number_str_len = swprintf(number_str, 9, L"%d. ", list_levels[list_depth].length);
 		line_string(line, number_str, text);
 		line->indent += number_str_len;
 	}
@@ -121,7 +123,7 @@ ul_start_handler(struct wstring *text, struct line *line, enum html_position *po
 		provide_one_newline(text, line, pos);
 	}
 	++list_depth;
-	list_levels[list_depth - 1].type = UNORDERED_LIST;
+	list_levels[list_depth].type = UNORDERED_LIST;
 }
 
 static void
@@ -150,8 +152,8 @@ ol_start_handler(struct wstring *text, struct line *line, enum html_position *po
 		provide_one_newline(text, line, pos);
 	}
 	++list_depth;
-	list_levels[list_depth - 1].type = ORDERED_LIST;
-	list_levels[list_depth - 1].length = 0;
+	list_levels[list_depth].type = ORDERED_LIST;
+	list_levels[list_depth].length = 0;
 }
 
 static void
@@ -346,6 +348,8 @@ render_text_html(const struct wstring *wstr, struct line *text_line, struct wstr
 	enum html_position html_pos = HTML_NONE;
 	if (is_first_call == true) {
 		list_depth = 0;
+		list_levels[0].type = UNORDERED_LIST;
+		list_levels[0].length = 0;
 	}
 	struct string *str = convert_wstring_to_string(wstr);
 	if (str == NULL) {

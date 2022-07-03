@@ -104,38 +104,6 @@ add_another_url_to_trim_link_list(struct link_list *links, const char *url, size
 	return index;
 }
 
-void
-free_trim_link_list(const struct link_list *links)
-{
-	if (links->list == NULL) {
-		return;
-	}
-	for (size_t i = 0; i < links->len; ++i) {
-		free_string(links->list[i].url);
-		free_string(links->list[i].type);
-		free_string(links->list[i].size);
-		free_string(links->list[i].duration);
-	}
-	free(links->list);
-}
-
-static inline bool
-append_raw_link(struct link_list *links, sqlite3_stmt *res, enum item_column column)
-{
-	char *text = (char *)sqlite3_column_text(res, column);
-	if (text == NULL) {
-		return true; // It is not an error because this item simply does not have link set.
-	}
-	size_t text_len = strlen(text);
-	if (text_len == 0) {
-		return true; // It is not an error because this item simply does not have link set.
-	}
-	if (add_another_url_to_trim_link_list(links, text, text_len) < 0) {
-		return false;
-	}
-	return true;
-}
-
 static void
 free_contents_of_link(const struct link *link)
 {
@@ -143,6 +111,32 @@ free_contents_of_link(const struct link *link)
 	free_string(link->type);
 	free_string(link->size);
 	free_string(link->duration);
+}
+
+void
+free_trim_link_list(const struct link_list *links)
+{
+	if (links->list != NULL) {
+		for (size_t i = 0; i < links->len; ++i) {
+			free_contents_of_link(&(links->list[i]));
+		}
+		free(links->list);
+	}
+}
+
+static inline bool
+append_raw_link(struct link_list *links, sqlite3_stmt *res, enum item_column column)
+{
+	const char *text = (char *)sqlite3_column_text(res, column);
+	if (text != NULL) {
+		size_t text_len = strlen(text);
+		if (text_len != 0) {
+			if (add_another_url_to_trim_link_list(links, text, text_len) < 0) {
+				return false;
+			}
+		}
+	}
+	return true; // It's not an error because this item simply doesn't have link set.
 }
 
 static inline bool
@@ -221,14 +215,12 @@ error:
 bool
 populate_link_list_with_links_of_item(struct link_list *links, sqlite3_stmt *res)
 {
-	if (append_raw_link(links, res, ITEM_COLUMN_LINK) == false) {
-		return false;
+	if (append_raw_link(links, res, ITEM_COLUMN_LINK) == true) {
+		if (append_attachments(links, res) == true) {
+			return true;
+		}
 	}
-	if (append_attachments(links, res) == false) {
-		return false;
-	}
-	return true;
-
+	return false;
 }
 
 struct string *
@@ -332,21 +324,23 @@ complete_urls_of_links(struct link_list *links, sqlite3_stmt *res)
 {
 	INFO("Completing URLs of link list.");
 	const char *feed_url = (char *)sqlite3_column_text(res, ITEM_COLUMN_FEED_URL);
-	if (feed_url == NULL) {
-		FAIL("Feed URL of the item is unset!");
-		goto undo0;
-	}
-	if (strlen(feed_url) == 0) {
+	if ((feed_url == NULL) || (strlen(feed_url) == 0)) {
 		FAIL("Feed URL of the item is empty!");
-		goto undo0;
+		return false;
 	}
 	CURLU *h = curl_url();
 	if (h == NULL) {
-		FAIL("Not enough memory for URL parsing handle!");
-		goto undo0;
+		FAIL("Not enough memory for parsing URL!");
+		return false;
 	}
 	char *url;
 	for (size_t i = 0; i < links->len; ++i) {
+		if (strncmp(links->list[i].url->ptr, "mailto:", 7) == 0) {
+			continue; // This is an email URL, leave it as is.
+		}
+		if (strncmp(links->list[i].url->ptr, "tel:", 4) == 0) {
+			continue; // This is a telephone URL, leave it as is.
+		}
 		if (curl_url_set(h, CURLUPART_URL, feed_url, 0) != CURLUE_OK) {
 			continue; // This URL is broken, leave it alone.
 		}
@@ -358,14 +352,11 @@ complete_urls_of_links(struct link_list *links, sqlite3_stmt *res)
 		}
 		if (cpyas(links->list[i].url, url, strlen(url)) == false) {
 			curl_free(url);
-			goto undo1;
+			curl_url_cleanup(h);
+			return false;
 		}
 		curl_free(url);
 	}
 	curl_url_cleanup(h);
 	return true;
-undo1:
-	curl_url_cleanup(h);
-undo0:
-	return false;
 }

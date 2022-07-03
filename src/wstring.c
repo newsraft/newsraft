@@ -2,6 +2,10 @@
 #include <string.h>
 #include "newsraft.h"
 
+// Note to the future.
+// When allocating memory, we request more resources than necessary to reduce
+// the number of further realloc calls to expand string string buffer.
+
 // Create wstring out of array.
 // On success returns pointer to wstring.
 // On memory shortage returns NULL.
@@ -13,7 +17,7 @@ wcrtas(const wchar_t *src_ptr, size_t src_len)
 		FAIL("Not enough memory for wstring structure!");
 		return NULL;
 	}
-	size_t new_lim = src_len * 2; // Multiply by 2 to decrease number of further realloc calls.
+	size_t new_lim = src_len * 2 + 67;
 	wstr->ptr = malloc(sizeof(wchar_t) * (new_lim + 1));
 	if (wstr->ptr == NULL) {
 		FAIL("Not enough memory for wstring pointer!");
@@ -48,14 +52,14 @@ bool
 wcpyas(struct wstring *dest, const wchar_t *src_ptr, size_t src_len)
 {
 	if (src_len > dest->lim) {
-		// Multiply by 2 to decrease number of further realloc calls.
-		wchar_t *temp = realloc(dest->ptr, sizeof(wchar_t) * (src_len * 2 + 1));
+		size_t new_lim = src_len * 2 + 67;
+		wchar_t *temp = realloc(dest->ptr, sizeof(wchar_t) * (new_lim + 1));
 		if (temp == NULL) {
 			FAIL("Not enough memory for copying array to wstring!");
 			return false;
 		}
 		dest->ptr = temp;
-		dest->lim = src_len * 2;
+		dest->lim = new_lim;
 	}
 	memcpy(dest->ptr, src_ptr, sizeof(wchar_t) * src_len);
 	*(dest->ptr + src_len) = L'\0';
@@ -78,14 +82,14 @@ wcatas(struct wstring *dest, const wchar_t *src_ptr, size_t src_len)
 {
 	size_t new_len = dest->len + src_len;
 	if (new_len > dest->lim) {
-		// Multiply by 2 to decrease number of further realloc calls.
-		wchar_t *temp = realloc(dest->ptr, sizeof(wchar_t) * (new_len * 2 + 1));
+		size_t new_lim = new_len * 2 + 67;
+		wchar_t *temp = realloc(dest->ptr, sizeof(wchar_t) * (new_lim + 1));
 		if (temp == NULL) {
 			FAIL("Not enough memory for concatenating array to wstring!");
 			return false;
 		}
 		dest->ptr = temp;
-		dest->lim = new_len * 2;
+		dest->lim = new_lim;
 	}
 	memcpy(dest->ptr + dest->len, src_ptr, sizeof(wchar_t) * src_len);
 	*(dest->ptr + new_len) = L'\0';
@@ -106,21 +110,8 @@ wcatss(struct wstring *dest, const struct wstring *src)
 bool
 wcatcs(struct wstring *dest, wchar_t c)
 {
-	size_t new_len = dest->len + 1;
-	if (new_len > dest->lim) {
-		// Multiply by 2 to decrease number of further realloc calls.
-		wchar_t *temp = realloc(dest->ptr, sizeof(wchar_t) * (new_len * 2 + 1));
-		if (temp == NULL) {
-			FAIL("Not enough memory for concatenating character to wstring!");
-			return false;
-		}
-		dest->ptr = temp;
-		dest->lim = new_len * 2;
-	}
-	*(dest->ptr + dest->len) = c;
-	dest->len = new_len;
-	*(dest->ptr + dest->len) = L'\0';
-	return true;
+	wchar_t src[1] = {c};
+	return wcatas(dest, src, 1);
 }
 
 void
@@ -154,20 +145,18 @@ trim_whitespace_from_wstring(struct wstring *wstr)
 		--right_edge;
 	}
 
-	if ((left_edge == 0) && (right_edge == (wstr->len - 1))) {
-		return;
-	}
-
-	if (right_edge < left_edge) {
-		*(wstr->ptr + 0) = L'\0';
-		wstr->len = 0;
-	} else {
-		size_t trimmed_wstring_len = right_edge - left_edge + 1;
-		for (size_t i = 0; i < trimmed_wstring_len; ++i) {
-			*(wstr->ptr + i) = *(wstr->ptr + i + left_edge);
+	if ((left_edge != 0) || (right_edge != (wstr->len - 1))) {
+		if (right_edge < left_edge) {
+			*(wstr->ptr + 0) = L'\0';
+			wstr->len = 0;
+		} else {
+			size_t trimmed_wstring_len = right_edge - left_edge + 1;
+			for (size_t i = 0; i < trimmed_wstring_len; ++i) {
+				*(wstr->ptr + i) = *(wstr->ptr + i + left_edge);
+			}
+			wstr->len = trimmed_wstring_len;
+			*(wstr->ptr + trimmed_wstring_len) = L'\0';
 		}
-		wstr->len = trimmed_wstring_len;
-		*(wstr->ptr + trimmed_wstring_len) = L'\0';
 	}
 }
 

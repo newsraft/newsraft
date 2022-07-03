@@ -2,6 +2,10 @@
 #include <string.h>
 #include "newsraft.h"
 
+// Note to the future.
+// When allocating memory, we request more resources than necessary to reduce
+// the number of further realloc calls to expand string buffer.
+
 // Create string out of array.
 // On success returns pointer to string.
 // On memory shortage returns NULL.
@@ -13,7 +17,7 @@ crtas(const char *src_ptr, size_t src_len)
 		FAIL("Not enough memory for string structure!");
 		return NULL;
 	}
-	size_t new_lim = src_len * 2; // Multiply by 2 to decrease number of further realloc calls.
+	size_t new_lim = src_len * 2 + 67;
 	str->ptr = malloc(sizeof(char) * (new_lim + 1));
 	if (str->ptr == NULL) {
 		FAIL("Not enough memory for string pointer!");
@@ -48,7 +52,7 @@ bool
 cpyas(struct string *dest, const char *src_ptr, size_t src_len)
 {
 	if (src_len > dest->lim) {
-		size_t new_lim = src_len * 2; // Multiply by 2 to decrease number of further realloc calls.
+		size_t new_lim = src_len * 2 + 67;
 		char *temp = realloc(dest->ptr, sizeof(char) * (new_lim + 1));
 		if (temp == NULL) {
 			FAIL("Not enough memory for copying array to string!");
@@ -78,7 +82,7 @@ catas(struct string *dest, const char *src_ptr, size_t src_len)
 {
 	size_t new_len = dest->len + src_len;
 	if (new_len > dest->lim) {
-		size_t new_lim = new_len * 2; // Multiply by 2 to decrease number of further realloc calls.
+		size_t new_lim = new_len * 2 + 67;
 		char *temp = realloc(dest->ptr, sizeof(char) * (new_lim + 1));
 		if (temp == NULL) {
 			FAIL("Not enough memory for concatenating array to string!");
@@ -150,7 +154,7 @@ string_vprintf(struct string *dest, const char *format, va_list args)
 	}
 	// We already know that integer is positive, so it is safe to cast it to unsigned integer.
 	if ((size_t)required_length > dest->lim) {
-		size_t new_lim = (size_t)required_length * 2; // Multiply by 2 to decrease number of further realloc calls.
+		size_t new_lim = (size_t)required_length * 2 + 67;
 		char *temp = realloc(dest->ptr, sizeof(char) * (new_lim + 1));
 		if (temp == NULL) {
 			FAIL("Not enough memory for printing to string!");
@@ -210,20 +214,18 @@ trim_whitespace_from_string(struct string *str)
 		--right_edge;
 	}
 
-	if ((left_edge == 0) && (right_edge == (str->len - 1))) {
-		return;
-	}
-
-	if (right_edge < left_edge) {
-		*(str->ptr + 0) = '\0';
-		str->len = 0;
-	} else {
-		size_t trimmed_string_len = right_edge - left_edge + 1;
-		for (size_t i = 0; i < trimmed_string_len; ++i) {
-			*(str->ptr + i) = *(str->ptr + i + left_edge);
+	if ((left_edge != 0) || (right_edge != (str->len - 1))) {
+		if (right_edge < left_edge) {
+			*(str->ptr + 0) = '\0';
+			str->len = 0;
+		} else {
+			size_t trimmed_string_len = right_edge - left_edge + 1;
+			for (size_t i = 0; i < trimmed_string_len; ++i) {
+				*(str->ptr + i) = *(str->ptr + i + left_edge);
+			}
+			str->len = trimmed_string_len;
+			*(str->ptr + trimmed_string_len) = '\0';
 		}
-		str->len = trimmed_string_len;
-		*(str->ptr + trimmed_string_len) = '\0';
 	}
 }
 

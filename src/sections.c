@@ -258,6 +258,7 @@ enter_sections_menu_loop(void)
 
 	sections_menu.write_action = &write_section_entry;
 	sections_menu.paint_action = &paint_section_entry;
+	sections_menu.hover_action = NULL;
 	reset_menu_list_settings(&sections_menu, sections_count);
 
 	refresh_unread_items_count_of_all_sections();

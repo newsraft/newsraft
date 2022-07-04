@@ -50,6 +50,7 @@ struct menu_list_settings {
 	size_t view_max;
 	const wchar_t *(*write_action)(size_t index);
 	int (*paint_action)(size_t index);
+	void (*hover_action)(void);
 };
 
 struct feed_line {

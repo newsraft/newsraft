@@ -225,6 +225,7 @@ enter_feeds_menu_loop(struct feed_line **new_feeds, size_t new_feeds_count)
 	feeds_count = new_feeds_count;
 	feeds_menu.write_action = &write_feed_entry;
 	feeds_menu.paint_action = &paint_feed_entry;
+	feeds_menu.hover_action = NULL;
 	reset_menu_list_settings(&feeds_menu, feeds_count);
 
 	redraw_menu_list(&feeds_menu);

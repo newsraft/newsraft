@@ -130,6 +130,10 @@ list_menu_change_view(struct menu_list_settings *s, size_t i)
 		wbkgd(w, get_reversed_color_pair(s->paint_action(s->view_sel)));
 		wrefresh(w);
 	}
+
+	if (s->hover_action != NULL) {
+		s->hover_action();
+	}
 }
 
 void

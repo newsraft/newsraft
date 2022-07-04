@@ -151,6 +151,11 @@ enter_items_menu_loop(struct feed_line **feeds, size_t feeds_count, int format)
 	entry_format = format;
 	items_menu.write_action = &write_item_entry;
 	items_menu.paint_action = &paint_item_entry;
+	if (get_cfg_bool(CFG_MARK_ITEM_READ_ON_HOVER) == true) {
+		items_menu.hover_action = &mark_selected_item_read;
+	} else {
+		items_menu.hover_action = NULL;
+	}
 	reset_menu_list_settings(&items_menu, items->count);
 
 	status_clean();
@@ -163,44 +168,20 @@ enter_items_menu_loop(struct feed_line **feeds, size_t feeds_count, int format)
 		cmd = get_input_command(&count, &macro);
 		if (cmd == INPUT_SELECT_NEXT) {
 			list_menu_select_next(&items_menu);
-			if (get_cfg_bool(CFG_MARK_ITEM_READ_ON_HOVER) == true) {
-				mark_selected_item_read();
-			}
 		} else if (cmd == INPUT_SELECT_PREV) {
 			list_menu_select_prev(&items_menu);
-			if (get_cfg_bool(CFG_MARK_ITEM_READ_ON_HOVER) == true) {
-				mark_selected_item_read();
-			}
 		} else if (cmd == INPUT_SELECT_NEXT_UNREAD) {
 			select_next_unread_item();
-			if (get_cfg_bool(CFG_MARK_ITEM_READ_ON_HOVER) == true) {
-				mark_selected_item_read();
-			}
 		} else if (cmd == INPUT_SELECT_PREV_UNREAD) {
 			select_prev_unread_item();
-			if (get_cfg_bool(CFG_MARK_ITEM_READ_ON_HOVER) == true) {
-				mark_selected_item_read();
-			}
 		} else if (cmd == INPUT_SELECT_NEXT_PAGE) {
 			list_menu_select_next_page(&items_menu);
-			if (get_cfg_bool(CFG_MARK_ITEM_READ_ON_HOVER) == true) {
-				mark_selected_item_read();
-			}
 		} else if (cmd == INPUT_SELECT_PREV_PAGE) {
 			list_menu_select_prev_page(&items_menu);
-			if (get_cfg_bool(CFG_MARK_ITEM_READ_ON_HOVER) == true) {
-				mark_selected_item_read();
-			}
 		} else if (cmd == INPUT_SELECT_FIRST) {
 			list_menu_select_first(&items_menu);
-			if (get_cfg_bool(CFG_MARK_ITEM_READ_ON_HOVER) == true) {
-				mark_selected_item_read();
-			}
 		} else if (cmd == INPUT_SELECT_LAST) {
 			list_menu_select_last(&items_menu);
-			if (get_cfg_bool(CFG_MARK_ITEM_READ_ON_HOVER) == true) {
-				mark_selected_item_read();
-			}
 		} else if (cmd == INPUT_MARK_READ) {
 			mark_selected_item_read();
 		} else if (cmd == INPUT_MARK_UNREAD) {

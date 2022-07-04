@@ -44,12 +44,9 @@ build directory. Alternatively you can try to read it in the raw scdoc format at
 Examples on how to configure Newsraft are located in the
 [examples](https://codeberg.org/grisha/newsraft/src/branch/main/examples) directory.
 
-If you still have any questions, read through
-[this well written guide](https://curl.se/mail/etiquette.html) and address them
-to users@newsraft.space
-
-Also feel free to ask your questions in the #newsraft IRC channel which is
-hosted on the [OFTC](https://www.oftc.net) network.
+If you still have any questions, feel free to ask them in the #newsraft IRC
+channel which is hosted on the [OFTC](https://www.oftc.net) network. Waiting for
+the response may take some time, stay connected!
 
 ## Contributing
 

@@ -417,6 +417,10 @@ Identifier of the X graphics display.
 
 *sqlite3*(1), *strftime*(3), *libcurl*(3), *libcurl-env*(3)
 
+# BUGS
+
+Don't be ridiculous...
+
 # AUTHOR
 
 Grigory Kirillov <txgk@bk.ru>

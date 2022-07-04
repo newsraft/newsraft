@@ -223,6 +223,30 @@ free_sections(void)
 	free(sections);
 }
 
+static void
+select_next_unread_section(void)
+{
+	for (size_t i = sections_menu.view_sel + 1; i < sections_count; ++i) {
+		if (sections[i].unread_count > 0) {
+			list_menu_change_view(&sections_menu, i);
+			return;
+		}
+	}
+}
+
+static void
+select_prev_unread_section(void)
+{
+	if (sections_menu.view_sel > 0) {
+		for (int64_t i = sections_menu.view_sel - 1; i >= 0; --i) {
+			if (sections[i].unread_count > 0) {
+				list_menu_change_view(&sections_menu, i);
+				return;
+			}
+		}
+	}
+}
+
 void
 enter_sections_menu_loop(void)
 {
@@ -248,6 +272,10 @@ enter_sections_menu_loop(void)
 			list_menu_select_next(&sections_menu);
 		} else if (cmd == INPUT_SELECT_PREV) {
 			list_menu_select_prev(&sections_menu);
+		} else if (cmd == INPUT_SELECT_NEXT_UNREAD) {
+			select_next_unread_section();
+		} else if (cmd == INPUT_SELECT_PREV_UNREAD) {
+			select_prev_unread_section();
 		} else if (cmd == INPUT_SELECT_NEXT_PAGE) {
 			list_menu_select_next_page(&sections_menu);
 		} else if (cmd == INPUT_SELECT_PREV_PAGE) {

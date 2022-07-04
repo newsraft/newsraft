@@ -8,8 +8,10 @@ struct input_entry_match {
 
 static const struct input_entry_match entries[] = {
 	{"select-next",         INPUT_SELECT_NEXT        },
+	{"select-next-unread",  INPUT_SELECT_NEXT_UNREAD },
 	{"select-next-page",    INPUT_SELECT_NEXT_PAGE   },
 	{"select-prev",         INPUT_SELECT_PREV        },
+	{"select-prev-unread",  INPUT_SELECT_PREV_UNREAD },
 	{"select-prev-page",    INPUT_SELECT_PREV_PAGE   },
 	{"select-first",        INPUT_SELECT_FIRST       },
 	{"select-last",         INPUT_SELECT_LAST        },

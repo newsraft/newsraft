@@ -115,6 +115,30 @@ mark_all_items_unread(struct feed_line **feeds, size_t feeds_count, struct menu_
 	}
 }
 
+static void
+select_next_unread_item(void)
+{
+	for (size_t i = items_menu.view_sel + 1; i < items->count; ++i) {
+		if (items->list[i].is_unread == true) {
+			list_menu_change_view(&items_menu, i);
+			return;
+		}
+	}
+}
+
+static void
+select_prev_unread_item(void)
+{
+	if (items_menu.view_sel > 0) {
+		for (int64_t i = items_menu.view_sel - 1; i >= 0; --i) {
+			if (items->list[i].is_unread == true) {
+				list_menu_change_view(&items_menu, i);
+				return;
+			}
+		}
+	}
+}
+
 input_cmd_id
 enter_items_menu_loop(struct feed_line **feeds, size_t feeds_count, int format)
 {
@@ -144,6 +168,16 @@ enter_items_menu_loop(struct feed_line **feeds, size_t feeds_count, int format)
 			}
 		} else if (cmd == INPUT_SELECT_PREV) {
 			list_menu_select_prev(&items_menu);
+			if (get_cfg_bool(CFG_MARK_ITEM_READ_ON_HOVER) == true) {
+				mark_selected_item_read();
+			}
+		} else if (cmd == INPUT_SELECT_NEXT_UNREAD) {
+			select_next_unread_item();
+			if (get_cfg_bool(CFG_MARK_ITEM_READ_ON_HOVER) == true) {
+				mark_selected_item_read();
+			}
+		} else if (cmd == INPUT_SELECT_PREV_UNREAD) {
+			select_prev_unread_item();
 			if (get_cfg_bool(CFG_MARK_ITEM_READ_ON_HOVER) == true) {
 				mark_selected_item_read();
 			}

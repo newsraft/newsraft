@@ -162,8 +162,10 @@ enum config_entry_index {
 typedef uint8_t input_cmd_id;
 enum input_cmd {
 	INPUT_SELECT_NEXT = 0,
+	INPUT_SELECT_NEXT_UNREAD,
 	INPUT_SELECT_NEXT_PAGE,
 	INPUT_SELECT_PREV,
+	INPUT_SELECT_PREV_UNREAD,
 	INPUT_SELECT_PREV_PAGE,
 	INPUT_SELECT_FIRST,
 	INPUT_SELECT_LAST,
@@ -266,6 +268,7 @@ void expose_entry_of_the_menu_list(struct menu_list_settings *settings, size_t i
 void expose_all_visible_entries_of_the_menu_list(struct menu_list_settings *settings);
 void redraw_menu_list(struct menu_list_settings *settings);
 void reset_menu_list_settings(struct menu_list_settings *settings, size_t new_entries_count);
+void list_menu_change_view(struct menu_list_settings *s, size_t i);
 void list_menu_select_next(struct menu_list_settings *s);
 void list_menu_select_prev(struct menu_list_settings *s);
 void list_menu_select_next_page(struct menu_list_settings *s);

@@ -99,7 +99,7 @@ reset_menu_list_settings(struct menu_list_settings *settings, size_t new_entries
 	settings->view_max = list_menu_height - 1;
 }
 
-static void
+void
 list_menu_change_view(struct menu_list_settings *s, size_t i)
 {
 	size_t new_sel = i;

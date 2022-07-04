@@ -338,9 +338,13 @@ _color-list-section-unread-bg_ (default: *black*)
 
 _select-next_ (default: *j*, *KEY_DOWN*)
 
+_select-next-unread_ (default: *n*)
+
 _select-next-page_ (default: *KEY_NPAGE*)
 
 _select-prev_ (default: *k*, *KEY_UP*)
+
+_select-prev-unread_ (default: *p*)
 
 _select-prev-page_ (default: *KEY_PPAGE*)
 
@@ -368,7 +372,7 @@ _mark-unimportant_ (default: *I*)
 
 _explore-menu_ (default: *e*)
 
-_status-history-menu_ (default: *p*)
+_status-history-menu_ (default: *v*)
 
 _open-in-browser_ (default: *o*)
 

@@ -88,6 +88,11 @@ item_string_handler(struct stream_callback_data *data, const char *val, size_t l
 	return true;
 }
 
+// Note to the future.
+// Person structure in the JSON Feed have an avatar object. We ignore it just
+// like we ignore thumbnails, icons and other cosmetic stuff. Also, JSON Feed
+// doesn't provide email objects. Gosh...
+
 static inline bool
 person_string_handler(struct string **dest, const struct string *key, const char *val, size_t len)
 {
@@ -97,10 +102,6 @@ person_string_handler(struct string **dest, const struct string *key, const char
 		}
 	} else if (strcmp(key->ptr, "url") == 0) {
 		if (serialize_array(dest, "url", 3, val, len) == false) {
-			return false;
-		}
-	} else if (strcmp(key->ptr, "avatar") == 0) {
-		if (serialize_array(dest, "avatar", 6, val, len) == false) {
 			return false;
 		}
 	}

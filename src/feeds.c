@@ -85,10 +85,9 @@ static void
 update_unread_items_count(size_t index)
 {
 	int64_t new_unread_count = get_unread_items_count_of_the_feed(feeds[index]->link);
-	if (new_unread_count < 0) {
-		return;
+	if (new_unread_count >= 0) {
+		feeds[index]->unread_count = new_unread_count;
 	}
-	feeds[index]->unread_count = new_unread_count;
 }
 
 static inline void
@@ -149,11 +148,10 @@ update_and_refresh_feed(struct feed_line *feed)
 				free_string(title);
 			}
 		}
-		return true;
-	} else if (status == DOWNLOAD_CANCELED) {
-		return true;
+	} else if (status == DOWNLOAD_FAILED) {
+		return false;
 	}
-	return false;
+	return true;
 }
 
 static void

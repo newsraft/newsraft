@@ -160,7 +160,6 @@ trim_whitespace_from_wstring(struct wstring *wstr)
 	}
 }
 
-// On failure retruns NULL.
 struct string *
 convert_wstring_to_string(const struct wstring *src)
 {

@@ -32,5 +32,4 @@ bool set_cfg_wstring(size_t i, const struct string *value);
 void log_config_settings(void);
 
 bool verify_config_values(void);
-
 #endif // LOAD_CONFIG_H

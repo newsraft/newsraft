@@ -4,14 +4,6 @@
 #include <yajl/yajl_parse.h>
 #include "newsraft.h"
 
-// Unknown type must have 0 value!
-enum media_type {
-	MEDIA_TYPE_UNKNOWN = 0,
-	MEDIA_TYPE_XML,
-	MEDIA_TYPE_JSON,
-	MEDIA_TYPE_OTHER,
-};
-
 struct getfeed_item {
 	struct string *guid;
 	struct string *title;

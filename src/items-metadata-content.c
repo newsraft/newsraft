@@ -83,5 +83,5 @@ get_largest_piece_from_item_content(const char *content, struct string *text, st
 bool
 get_largest_piece_from_item_attachments(const char *attachments, struct string *text, struct string *type)
 {
-	return get_largest_text_piece_from_item_serialized_data(attachments, text, type, "description=", 12, "description_type=", 17);
+	return get_largest_text_piece_from_item_serialized_data(attachments, text, type, "description_text=", 17, "description_type=", 17);
 }

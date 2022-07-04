@@ -1,20 +1,20 @@
 #include <string.h>
 #include "update_feed/parse_xml/parse_xml_feed.h"
 
-// Useful links:
+// References:
 // https://www.rssboard.org/media-rss
-
-static int8_t
-group_start(struct stream_callback_data *data, const XML_Char **attrs)
-{
-	(void)attrs;
-	if (data->path[data->depth] == GENERIC_ITEM) {
-		if (serialize_caret(&data->feed.item->attachments) == false) {
-			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-		}
-	}
-	return PARSE_OKAY;
-}
+//
+// Notes to the future.
+//
+// There is no need to parse thumbnail elements, because storing information
+// about decorating pictures defeats the whole purpose of project being a
+// console application with as few distractions as possible.
+//
+// Purpose of media:group element is to group content elements that are
+// effectively the same content, but from the user's perspective, all
+// attachments are just links with some metadata. Therefore, such grouping does
+// not make sense and is ignored by the parser. Also, this grouping is difficult
+// to reflect in the database and requires various sophistications.
 
 static int8_t
 content_start(struct stream_callback_data *data, const XML_Char **attrs)
@@ -30,10 +30,8 @@ content_start(struct stream_callback_data *data, const XML_Char **attrs)
 	if (attr_len == 0) {
 		return PARSE_OKAY; // Ignore empty content entries.
 	}
-	if (data->path[data->depth] != MRSS_GROUP) {
-		if (serialize_caret(&data->feed.item->attachments) == false) {
-			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-		}
+	if (serialize_caret(&data->feed.item->attachments) == false) {
+		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 	}
 	if (serialize_array(&data->feed.item->attachments, "url", 3, attr, attr_len) == false) {
 		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
@@ -47,6 +45,12 @@ content_start(struct stream_callback_data *data, const XML_Char **attrs)
 	if (serialize_attribute(&data->feed.item->attachments, attrs, "duration", "duration", 8) == false) {
 		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 	}
+	if (serialize_attribute(&data->feed.item->attachments, attrs, "width", "width", 5) == false) {
+		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+	}
+	if (serialize_attribute(&data->feed.item->attachments, attrs, "height", "height", 6) == false) {
+		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+	}
 	return PARSE_OKAY;
 }
 
@@ -54,7 +58,7 @@ static int8_t
 description_start(struct stream_callback_data *data, const XML_Char **attrs)
 {
 	if (we_are_inside_item(data) == true) {
-		if (data->path[data->depth] == MRSS_GROUP) {
+		if (data->path[data->depth] == MEDIARSS_CONTENT) {
 			if (serialize_attribute(&data->feed.item->attachments, attrs, "type", "description_type", 16) == false) {
 				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			}
@@ -74,8 +78,8 @@ static int8_t
 description_end(struct stream_callback_data *data)
 {
 	if (we_are_inside_item(data) == true) {
-		if (data->path[data->depth] == MRSS_GROUP) {
-			if (serialize_string(&data->feed.item->attachments, "description", 11, data->text) == false) {
+		if (data->path[data->depth] == MEDIARSS_CONTENT) {
+			if (serialize_string(&data->feed.item->attachments, "description_text", 16, data->text) == false) {
 				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			}
 		} else {
@@ -87,14 +91,8 @@ description_end(struct stream_callback_data *data)
 	return PARSE_OKAY;
 }
 
-// Note to the future.
-// There is no need to parse thumbnail elements, because storing information
-// about decorating pictures defeats the whole purpose of project being a
-// console application with as few distractions as possible.
-
 const struct xml_element_handler xml_mediarss_handlers[] = {
-	{"content",     MRSS_CONTENT,     &content_start,     NULL},
-	{"description", MRSS_DESCRIPTION, &description_start, &description_end},
-	{"group",       MRSS_GROUP,       &group_start,       NULL},
+	{"content",     MEDIARSS_CONTENT, &content_start,     NULL},
+	{"description", XML_UNKNOWN_POS,  &description_start, &description_end},
 	{NULL,          XML_UNKNOWN_POS,  NULL,               NULL},
 };

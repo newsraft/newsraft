@@ -45,11 +45,9 @@ do_format(const struct wstring *fmt, const struct format_arg *args)
 			fmt_buf[fmt_buf_len++] = L'%';
 			iter += 2;
 			continue;
-		} else if (iter[1] == L'\0') {
-			break;
 		}
-		// At this point iter[0] is percent sign and iter[1] is some character
-		// other than a percent sign and a null terminator.
+		// At this point iter[0] is a percent sign and iter[1] is some
+		// character other than a percent sign (it may be null character).
 		next_percent = iter + 1;
 		specifier = NULL;
 		while ((specifier == NULL) && (next_percent[0] != L'%') && (next_percent[0] != L'\0')) {

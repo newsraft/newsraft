@@ -247,25 +247,23 @@ enum text_type {
 	TEXT_SEPARATOR,
 };
 
-// sections
+// See "sections.c" file for implementation.
 bool create_global_section(void);
 bool copy_feed_to_section(const struct feed_line *feed, const struct string *section_name);
 void obtain_feeds_of_global_section(struct feed_line ***feeds_ptr, size_t *feeds_count_ptr);
 void enter_sections_menu_loop(void);
 void free_sections(void);
 
-// feeds
+// See "feeds.c" file for implementation.
 bool parse_feeds_file(const char *path);
 input_cmd_id enter_feeds_menu_loop(struct feed_line **new_feeds, size_t new_feeds_count);
 bool load_feeds(void);
 bool check_url_for_validity(const struct string *str);
 bool update_and_refresh_feed(struct feed_line *feed);
 
-// list interface
+// See "interface-list.c" file for implementation.
 bool adjust_list_menu(void);
 void free_list_menu(void);
-bool adjust_list_menu_format_buffer(void);
-void free_list_menu_format_buffer(void);
 void expose_entry_of_the_menu_list(struct menu_list_settings *settings, size_t index);
 void expose_all_visible_entries_of_the_menu_list(struct menu_list_settings *settings);
 void redraw_menu_list(struct menu_list_settings *settings);
@@ -279,8 +277,10 @@ void list_menu_select_prev_page(struct menu_list_settings *s);
 void list_menu_select_first(struct menu_list_settings *s);
 void list_menu_select_last(struct menu_list_settings *s);
 
-// format
+// See "interface-list-format.c" file for implementation.
 const wchar_t *do_format(const struct wstring *fmt, const struct format_arg *args);
+bool adjust_list_menu_format_buffer(void);
+void free_list_menu_format_buffer(void);
 
 // items
 struct items_list *generate_items_list(struct feed_line **feeds, size_t feeds_count, enum sorting_order order);
@@ -315,7 +315,7 @@ int pager_view(const struct render_block *first_block, bool (*custom_input_handl
 int enter_item_pager_view_loop(int64_t rowid);
 int enter_status_pager_view_loop(void);
 
-// path
+// See "path.c" file for implementation.
 bool set_feeds_path(const char *path);
 bool set_config_path(const char *path);
 bool set_db_path(const char *path);
@@ -323,12 +323,12 @@ const char *get_feeds_path(void);
 const char *get_config_path(void);
 const char *get_db_path(void);
 
-// date parsing
+// See "dates.c" file for implementation.
 time_t parse_date_rfc822(const struct string *value);
 time_t parse_date_rfc3339(const char *src, size_t src_len);
 struct string *get_config_date_str(time_t date, enum config_entry_index format_index);
 
-// db
+// See "db.c" file for implementation.
 bool db_init(void);
 void db_stop(void);
 sqlite3_stmt *db_prepare(const char *zSql, int nByte);
@@ -340,7 +340,7 @@ int db_bind_string(sqlite3_stmt *stmt, int pos, const struct string *str);
 int64_t db_get_date_from_feeds_table(const struct string *url, const char *column, size_t column_len);
 struct string *db_get_string_from_feed_table(const struct string *url, const char *column, size_t column_len);
 
-// db-items.c
+// See "db-items.c" file for implementation.
 sqlite3_stmt *db_find_item_by_rowid(int64_t rowid);
 bool db_mark_item_read(int64_t rowid);
 bool db_mark_item_unread(int64_t rowid);
@@ -350,24 +350,24 @@ int64_t get_unread_items_count_of_the_feed(const struct string *url);
 bool db_mark_all_items_in_feeds_as_read(struct feed_line **feeds, size_t feeds_count);
 bool db_mark_all_items_in_feeds_as_unread(struct feed_line **feeds, size_t feeds_count);
 
-// interface
+// See "interface.c" file for implementation.
 bool curses_init(void);
 bool resize_counter_action(void);
 
+// Functions responsible for curses color pairs.
 // See "interface-colors.c" file for implementation.
 bool create_color_pairs(void);
 int get_color_pair(config_entry_id id);
 int get_reversed_color_pair(config_entry_id id);
 
-// Functions responsible for handling input.
-// See "interface-input.c" file for implementation.
+// Functions responsible for handling input and bindings.
+// See "input.c" file for implementation.
 int get_input_command(uint32_t *count, const struct wstring **macro_ptr);
-bool assign_default_binds(void);
 bool assign_action_to_key(const char *bind_key, size_t bind_key_len, input_cmd_id bind_cmd);
 bool create_macro(const char *bind_key, size_t bind_key_len, const char *cmd, size_t cmd_len);
 void delete_action_from_key(const char *bind_key);
-input_cmd_id get_input_id_by_name(const char *name);
 void free_binds(void);
+bool assign_default_binds(void);
 
 // Functions related to window which displays status messages.
 // See "interface-status.c" file for implementation.
@@ -397,7 +397,7 @@ bool open_url_in_browser(const struct string *src);
 bool copy_string_to_clipboard(const struct string *src);
 bool execute_command_with_specifiers_in_it(const struct wstring *wcmd_fmt, const struct format_arg *args);
 
-// string.c
+// See "string.c" file for implementation.
 struct string *crtas(const char *src_ptr, size_t src_len);
 struct string *crtss(const struct string *src);
 struct string *crtes(void);
@@ -416,7 +416,7 @@ void trim_whitespace_from_string(struct string *str);
 struct wstring *convert_string_to_wstring(const struct string *src);
 void inlinify_string(struct string *title);
 
-// string-serialize.c
+// See "string-serialize.c" file for implementation.
 bool serialize_caret(struct string **target);
 bool serialize_array(struct string **target, const char *key, size_t key_len, const char *value, size_t value_len);
 bool serialize_string(struct string **target, const char *key, size_t key_len, struct string *value);
@@ -424,7 +424,7 @@ struct deserialize_stream *open_deserialize_stream(const char *serialized_data);
 const struct string *get_next_entry_from_deserialize_stream(struct deserialize_stream *stream);
 void close_deserialize_stream(struct deserialize_stream *stream);
 
-// wstring
+// See "wstring.c" file for implementation.
 struct wstring *wcrtas(const wchar_t *src_ptr, size_t src_len);
 struct wstring *wcrtss(const struct wstring *src);
 struct wstring *wcrtes(void);
@@ -437,6 +437,9 @@ void free_wstring(struct wstring *wstr);
 void trim_whitespace_from_wstring(struct wstring *wstr);
 struct string *convert_wstring_to_string(const struct wstring *src);
 
+// Functions for opening and closing the log stream.
+// To write to the log stream use macros INFO, WARN or FAIL.
+// See "log.c" file for implementation.
 bool log_init(const char *path);
 void log_stop(void);
 

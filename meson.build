@@ -7,8 +7,9 @@ project(
 		'buildtype=release',
 	],
 	license: 'MIT',
-	version: '0.5',
+	version: '0.6',
 )
+
 if get_option('buildtype') == 'release'
 	add_project_arguments(['-fdiagnostics-color=never'], language: 'c')
 else

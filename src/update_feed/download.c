@@ -29,12 +29,13 @@ create_list_of_headers(const struct getfeed_feed *feed)
 			goto error;
 		}
 		struct curl_slist *tmp = curl_slist_append(headers, if_none_match_header->ptr);
-		free_string(if_none_match_header);
 		if (tmp == NULL) {
+			free_string(if_none_match_header);
 			goto error;
 		}
 		headers = tmp;
 		INFO("Attached header - %s", if_none_match_header->ptr);
+		free_string(if_none_match_header);
 	}
 	return headers;
 error:

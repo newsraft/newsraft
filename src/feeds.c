@@ -194,28 +194,10 @@ reload_all_feeds(void)
 	}
 }
 
-static void
-select_next_unread_feed(void)
+static bool
+unread_feed_condition(size_t index)
 {
-	for (size_t i = feeds_menu.view_sel + 1; i < feeds_count; ++i) {
-		if (feeds[i]->unread_count > 0) {
-			list_menu_change_view(&feeds_menu, i);
-			return;
-		}
-	}
-}
-
-static void
-select_prev_unread_feed(void)
-{
-	if (feeds_menu.view_sel > 0) {
-		for (int64_t i = feeds_menu.view_sel - 1; i >= 0; --i) {
-			if (feeds[i]->unread_count > 0) {
-				list_menu_change_view(&feeds_menu, i);
-				return;
-			}
-		}
-	}
+	return (feeds[index]->unread_count > 0) ? true : false;
 }
 
 input_cmd_id
@@ -226,6 +208,7 @@ enter_feeds_menu_loop(struct feed_line **new_feeds, size_t new_feeds_count)
 	feeds_menu.write_action = &write_feed_entry;
 	feeds_menu.paint_action = &paint_feed_entry;
 	feeds_menu.hover_action = NULL;
+	feeds_menu.unread_condition = &unread_feed_condition;
 	reset_menu_list_settings(&feeds_menu, feeds_count);
 
 	redraw_menu_list(&feeds_menu);
@@ -240,9 +223,9 @@ enter_feeds_menu_loop(struct feed_line **new_feeds, size_t new_feeds_count)
 		} else if (cmd == INPUT_SELECT_PREV) {
 			list_menu_select_prev(&feeds_menu);
 		} else if (cmd == INPUT_SELECT_NEXT_UNREAD) {
-			select_next_unread_feed();
+			list_menu_select_next_unread(&feeds_menu);
 		} else if (cmd == INPUT_SELECT_PREV_UNREAD) {
-			select_prev_unread_feed();
+			list_menu_select_prev_unread(&feeds_menu);
 		} else if (cmd == INPUT_SELECT_NEXT_PAGE) {
 			list_menu_select_next_page(&feeds_menu);
 		} else if (cmd == INPUT_SELECT_PREV_PAGE) {

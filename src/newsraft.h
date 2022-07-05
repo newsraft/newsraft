@@ -51,6 +51,7 @@ struct menu_list_settings {
 	const wchar_t *(*write_action)(size_t index);
 	int (*paint_action)(size_t index);
 	void (*hover_action)(void);
+	bool (*unread_condition)(size_t index);
 };
 
 struct feed_line {
@@ -269,9 +270,10 @@ void expose_entry_of_the_menu_list(struct menu_list_settings *settings, size_t i
 void expose_all_visible_entries_of_the_menu_list(struct menu_list_settings *settings);
 void redraw_menu_list(struct menu_list_settings *settings);
 void reset_menu_list_settings(struct menu_list_settings *settings, size_t new_entries_count);
-void list_menu_change_view(struct menu_list_settings *s, size_t i);
 void list_menu_select_next(struct menu_list_settings *s);
 void list_menu_select_prev(struct menu_list_settings *s);
+void list_menu_select_next_unread(struct menu_list_settings *s);
+void list_menu_select_prev_unread(struct menu_list_settings *s);
 void list_menu_select_next_page(struct menu_list_settings *s);
 void list_menu_select_prev_page(struct menu_list_settings *s);
 void list_menu_select_first(struct menu_list_settings *s);

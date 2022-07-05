@@ -122,23 +122,43 @@ endif
 
 add_project_arguments(['-DNEWSRAFT_VERSION="@0@"'.format(meson.project_version())], language: 'c')
 
-executable(
-	'newsraft',
-	include_directories: [
-		include_directories('src'),
-	],
-	sources: newsraft_sources,
-	dependencies: [
-		dependency('ncursesw'),
-		dependency('libcurl'),
-		dependency('sqlite3'),
-		dependency('expat'),
-		dependency('yajl'),
-		dependency('gumbo'),
-	],
-	#link_args: ['-static'],
-	install: true,
-)
+if get_option('static-build').enabled()
+	executable(
+		'newsraft',
+		include_directories: [
+			include_directories('src'),
+		],
+		sources: newsraft_sources,
+		dependencies: [
+			dependency('ncursesw', static: true),
+			dependency('libcurl', static: true),
+			dependency('sqlite3', static: true),
+			dependency('expat', static: true),
+			dependency('yajl', static: true),
+			dependency('gumbo', static: true),
+			dependency('libbrotlicommon', static: true),
+		],
+		link_args: ['-static'],
+		install: true,
+	)
+else
+	executable(
+		'newsraft',
+		include_directories: [
+			include_directories('src'),
+		],
+		sources: newsraft_sources,
+		dependencies: [
+			dependency('ncursesw'),
+			dependency('libcurl'),
+			dependency('sqlite3'),
+			dependency('expat'),
+			dependency('yajl'),
+			dependency('gumbo'),
+		],
+		install: true,
+	)
+endif
 
 scdoc = dependency('scdoc', version: '>=1.11.2', native: true, required: get_option('man-page'))
 if scdoc.found()

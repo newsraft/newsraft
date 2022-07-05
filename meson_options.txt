@@ -1,3 +1,4 @@
+option('static-build', type: 'feature', value: 'disabled', description: 'Build Newsraft as a statically linked binary')
 option('man-page', type: 'feature', value: 'auto', description: 'Generate and install man page')
 option('support-format-atom10', type: 'feature', value: 'enabled', description: 'Support for Atom 1.0 format')
 option('support-format-rss', type: 'feature', value: 'enabled', description: 'Support for various RSS formats')

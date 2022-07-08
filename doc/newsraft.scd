@@ -252,7 +252,7 @@ _respect-expires-header_ (default: *true*)
 	discouraged.
 
 _send-if-none-match-header_ (default: *true*)
-	Sends a entity tag corresponding to the previously downloaded information.
+	Sends an entity tag corresponding to the previously downloaded information.
 	If the server from which the feed is downloaded contains information with
 	the same tag, then in order to save traffic and resources, it will reject
 	the download request. Disabling it is strongly discouraged.

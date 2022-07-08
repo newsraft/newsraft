@@ -1,8 +1,8 @@
 #include <string.h>
 #include "update_feed/insert_feed/insert_feed.h"
 
-static struct string *
-fnv_1a_string(const char *src)
+static inline bool
+fnv_1a_string(struct string **target, const char *src)
 {
 	// https://en.wikipedia.org/wiki/Fowler%E2%80%93Noll%E2%80%93Vo_hash_function
 	// http://isthe.com/chongo/tech/comp/fnv
@@ -18,7 +18,7 @@ fnv_1a_string(const char *src)
 		hash = (hash ^ str[k++]) * 109951183333LLU;
 	}
 	str[str_len] = '\0';
-	return crtas(str, str_len);
+	return crtas_or_cpyas(target, str, str_len);
 }
 
 bool
@@ -52,17 +52,17 @@ db_insert_item(const struct string *feed_url, struct getfeed_item *item, int64_t
 		return false;
 	}
 
-	db_bind_string(s,      1 + ITEM_COLUMN_FEED_URL,         feed_url);
-	db_bind_string(s,      1 + ITEM_COLUMN_GUID,             item->guid);
-	db_bind_string(s,      1 + ITEM_COLUMN_TITLE,            item->title);
-	db_bind_string(s,      1 + ITEM_COLUMN_LINK,             item->url);
-	db_bind_string(s,      1 + ITEM_COLUMN_CONTENT,          item->content);
-	db_bind_string(s,      1 + ITEM_COLUMN_ATTACHMENTS,      item->attachments);
-	db_bind_string(s,      1 + ITEM_COLUMN_PERSONS,          item->persons);
-	db_bind_string(s,      1 + ITEM_COLUMN_EXTRAS,           item->extras);
-	sqlite3_bind_int64(s,  1 + ITEM_COLUMN_PUBLICATION_DATE, (sqlite3_int64)(item->publication_date));
-	sqlite3_bind_int64(s,  1 + ITEM_COLUMN_UPDATE_DATE,      (sqlite3_int64)(item->update_date));
-	sqlite3_bind_int(s,    1 + ITEM_COLUMN_UNREAD,           1);
+	db_bind_string(s,     1 + ITEM_COLUMN_FEED_URL,         feed_url);
+	db_bind_string(s,     1 + ITEM_COLUMN_GUID,             item->guid);
+	db_bind_string(s,     1 + ITEM_COLUMN_TITLE,            item->title);
+	db_bind_string(s,     1 + ITEM_COLUMN_LINK,             item->url);
+	db_bind_string(s,     1 + ITEM_COLUMN_CONTENT,          item->content);
+	db_bind_string(s,     1 + ITEM_COLUMN_ATTACHMENTS,      item->attachments);
+	db_bind_string(s,     1 + ITEM_COLUMN_PERSONS,          item->persons);
+	db_bind_string(s,     1 + ITEM_COLUMN_EXTRAS,           item->extras);
+	sqlite3_bind_int64(s, 1 + ITEM_COLUMN_PUBLICATION_DATE, (sqlite3_int64)(item->publication_date));
+	sqlite3_bind_int64(s, 1 + ITEM_COLUMN_UPDATE_DATE,      (sqlite3_int64)(item->update_date));
+	sqlite3_bind_int(s,   1 + ITEM_COLUMN_UNREAD,           1);
 	if (rowid != -1) {
 		sqlite3_bind_int64(s, 2 + ITEM_COLUMN_UNREAD, rowid);
 	}
@@ -96,15 +96,9 @@ insert_item_data(const struct string *feed_url, struct getfeed_item *item)
 				return false;
 			}
 		} else if ((item->content != NULL) && (item->content->len != 0)) {
-			struct string *hash = fnv_1a_string(item->content->ptr);
-			if (hash == NULL) {
+			if (fnv_1a_string(&item->guid, item->content->ptr) == false) {
 				return false;
 			}
-			if (crtss_or_cpyss(&item->guid, hash) == false) {
-				free_string(hash);
-				return false;
-			}
-			free_string(hash);
 		} else {
 			WARN("Couldn't generate GUID for the item!");
 			return true; // Probably this item is just empty. Ignore it.

@@ -9,7 +9,7 @@ enum {
 
 struct status_message {
 	struct string *text;
-	int8_t condition;
+	int8_t condition; // What condition my condition was in?
 };
 
 static WINDOW *status_window;

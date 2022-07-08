@@ -130,14 +130,7 @@ crtas_or_cpyas(struct string **dest, const char *src_ptr, size_t src_len)
 bool
 crtss_or_cpyss(struct string **dest, const struct string *src)
 {
-	if (*dest != NULL) {
-		return cpyss(*dest, src);
-	}
-	*dest = crtss(src);
-	if (*dest == NULL) {
-		return false;
-	}
-	return true;
+	return crtas_or_cpyas(dest, src->ptr, src->len);
 }
 
 bool

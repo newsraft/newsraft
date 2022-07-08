@@ -151,9 +151,9 @@ list_menu_select_prev(struct menu_list_settings *s)
 void
 list_menu_select_next_unread(struct menu_list_settings *s)
 {
-	if (s->unread_condition != NULL) {
+	if (s->unread_state != NULL) {
 		for (size_t i = s->view_sel + 1; i < s->entries_count; ++i) {
-			if (s->unread_condition(i) == true) {
+			if (s->unread_state(i) == true) {
 				list_menu_change_view(s, i);
 				return;
 			}
@@ -164,9 +164,9 @@ list_menu_select_next_unread(struct menu_list_settings *s)
 void
 list_menu_select_prev_unread(struct menu_list_settings *s)
 {
-	if ((s->view_sel > 0) && (s->unread_condition != NULL)) {
+	if ((s->view_sel > 0) && (s->unread_state != NULL)) {
 		for (int64_t i = s->view_sel - 1; i >= 0; --i) {
-			if (s->unread_condition(i) == true) {
+			if (s->unread_state(i) == true) {
 				list_menu_change_view(s, i);
 				return;
 			}

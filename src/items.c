@@ -138,7 +138,7 @@ enter_items_menu_loop(struct feed_line **feeds, size_t feeds_count, int format)
 	} else {
 		items_menu.hover_action = NULL;
 	}
-	items_menu.unread_condition = &unread_item_condition;
+	items_menu.unread_state = &unread_item_condition;
 	reset_menu_list_settings(&items_menu, items->count);
 
 	status_clean();

@@ -30,13 +30,6 @@ struct string {
 	size_t lim;
 };
 
-struct string_list {
-	struct string *str;
-	struct string_list *next;
-};
-
-struct deserialize_stream;
-
 struct wstring {
 	wchar_t *ptr;
 	size_t len;
@@ -51,7 +44,7 @@ struct menu_list_settings {
 	const wchar_t *(*write_action)(size_t index);
 	int (*paint_action)(size_t index);
 	void (*hover_action)(void);
-	bool (*unread_condition)(size_t index);
+	bool (*unread_state)(size_t index);
 };
 
 struct feed_line {
@@ -104,6 +97,8 @@ struct link_list {
 	struct link *list; // Dynamic array of links.
 	size_t len;        // Shows how many items is in list.
 };
+
+struct deserialize_stream;
 
 #define NEWSRAFT_COLOR_PAIRS_COUNT 10
 typedef uint8_t config_entry_id;

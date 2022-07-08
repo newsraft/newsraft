@@ -63,7 +63,7 @@ button_end_handler(struct string *text, struct html_data *data, GumboVector *att
 }
 
 static void
-add_url_mark(struct string *text, const char *url, const char *title, size_t title_len, struct link_list *links, const char *data_type)
+add_url_mark(struct link_list *links, struct string *text, const char *url, const char *type, const char *title)
 {
 	if (url == NULL) {
 		return;
@@ -90,17 +90,17 @@ add_url_mark(struct string *text, const char *url, const char *title, size_t tit
 		return;
 	}
 
-	if (data_type == NULL) {
-		if ((title != NULL) && (title_len != 0)) {
+	if (type == NULL) {
+		if (title != NULL) {
 			string_printf(url_mark, " [%" PRId64 ", \"%s\"]", url_index + 1, title);
 		} else {
 			string_printf(url_mark, " [%" PRId64 "]", url_index + 1);
 		}
 	} else {
-		if ((title != NULL) && (title_len != 0)) {
-			string_printf(url_mark, " [%" PRId64 ", %s \"%s\"]", url_index + 1, data_type, title);
+		if (title != NULL) {
+			string_printf(url_mark, " [%" PRId64 ", %s \"%s\"]", url_index + 1, type, title);
 		} else {
-			string_printf(url_mark, " [%" PRId64 ", %s]", url_index + 1, data_type);
+			string_printf(url_mark, " [%" PRId64 ", %s]", url_index + 1, type);
 		}
 	}
 
@@ -114,12 +114,10 @@ a_handler(struct string *text, struct html_data *data, GumboVector *attrs)
 	const char *url = get_value_of_xml_attribute(attrs, "href");
 	const char *type = get_value_of_xml_attribute(attrs, "type");
 	const char *title = get_value_of_xml_attribute(attrs, "title");
-	// GCC complains about uninitialized variable that is not being read.
-	size_t title_len = 0;
-	if (title != NULL) {
-		title_len = strlen(title);
+	if ((title != NULL) && (strlen(title) == 0)) {
+		title = NULL;
 	}
-	add_url_mark(text, url, title, title_len, data->links, type);
+	add_url_mark(data->links, text, url, type, title);
 }
 
 static void
@@ -127,18 +125,13 @@ img_handler(struct string *text, struct html_data *data, GumboVector *attrs)
 {
 	const char *url = get_value_of_xml_attribute(attrs, "src");
 	const char *title = get_value_of_xml_attribute(attrs, "title");
-	// GCC complains about uninitialized variable that is not being read.
-	size_t title_len = 0;
-	if (title != NULL) {
-		title_len = strlen(title);
-	}
-	if ((title == NULL) || (title_len == 0)) {
+	if ((title == NULL) || (strlen(title) == 0)) {
 		title = get_value_of_xml_attribute(attrs, "alt");
-		if (title != NULL) {
-			title_len = strlen(title);
+		if ((title != NULL) && (strlen(title) == 0)) {
+			title = NULL;
 		}
 	}
-	add_url_mark(text, url, title, title_len, data->links, "image");
+	add_url_mark(data->links, text, url, "image", title);
 }
 
 static void
@@ -146,18 +139,13 @@ iframe_handler(struct string *text, struct html_data *data, GumboVector *attrs)
 {
 	const char *url = get_value_of_xml_attribute(attrs, "src");
 	const char *title = get_value_of_xml_attribute(attrs, "title");
-	// GCC complains about uninitialized variable that is not being read.
-	size_t title_len = 0;
-	if (title != NULL) {
-		title_len = strlen(title);
-	}
-	if ((title == NULL) || (title_len == 0)) {
+	if ((title == NULL) || (strlen(title) == 0)) {
 		title = get_value_of_xml_attribute(attrs, "name");
-		if (title != NULL) {
-			title_len = strlen(title);
+		if ((title != NULL) && (strlen(title) == 0)) {
+			title = NULL;
 		}
 	}
-	add_url_mark(text, url, title, title_len, data->links, "iframe");
+	add_url_mark(data->links, text, url, "iframe", title);
 }
 
 static void
@@ -168,14 +156,14 @@ embed_handler(struct string *text, struct html_data *data, GumboVector *attrs)
 	if (type == NULL) {
 		type = "embed";
 	}
-	add_url_mark(text, url, NULL, 0, data->links, type);
+	add_url_mark(data->links, text, url, type, NULL);
 }
 
 static void
 video_handler(struct string *text, struct html_data *data, GumboVector *attrs)
 {
 	const char *url = get_value_of_xml_attribute(attrs, "src");
-	add_url_mark(text, url, NULL, 0, data->links, "video");
+	add_url_mark(data->links, text, url, "video", NULL);
 }
 
 static void
@@ -183,7 +171,7 @@ source_handler(struct string *text, struct html_data *data, GumboVector *attrs)
 {
 	const char *url = get_value_of_xml_attribute(attrs, "src");
 	const char *type = get_value_of_xml_attribute(attrs, "type");
-	add_url_mark(text, url, NULL, 0, data->links, type);
+	add_url_mark(data->links, text, url, type, NULL);
 }
 
 static void
@@ -245,6 +233,8 @@ static const struct html_element_handler handlers[] = {
 	{GUMBO_TAG_DFN,      NULL,                  NULL},
 	{GUMBO_TAG_TIME,     NULL,                  NULL},
 	{GUMBO_TAG_STRONG,   NULL,                  NULL},
+	// As of 2022.07.08, Gumbo doesn't support <picture> tags.
+	//{GUMBO_TAG_PICTURE,  NULL,                  NULL},
 	{GUMBO_TAG_VIDEO,    &video_handler,        NULL},
 	{GUMBO_TAG_LABEL,    NULL,                  NULL},
 	{GUMBO_TAG_TEXTAREA, NULL,                  NULL},

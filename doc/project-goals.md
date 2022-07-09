@@ -24,6 +24,14 @@ No more stuff like:
 macro m set browser mpv; open-in-browser; set browser w3m
 ```
 
+#### Vim-like bindings by default
+
+You don't need to configure anything related to bindings if you are familiar
+with the Vim text editor. Also Newsraft borrows from Vim the ability to specify
+index for an entry on which you want to perform an action. So, for example, to
+open the link with the index 9 in the browser, you need to press 9 followed by
+the key of the command to open the browser ("o" by default).
+
 #### Faster feed updates
 
 Newsraft uses streaming parsers to process feeds, while Newsboat uses DOM

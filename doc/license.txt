@@ -19,3 +19,10 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+The project as it is right now would not be possible without the use of such
+wonderful pieces of software as curl, expat, gcc, gumbo, meson, ncurses, scdoc,
+sqlite and yajl. The licenses under which these projects are distributed are
+provided in files license-curl.txt, license-expat.txt, license-gcc.txt,
+license-gumbo.txt, license-meson.txt, license-ncurses.txt, license-scdoc.txt,
+license-sqlite.txt and license-yajl.txt respectively.

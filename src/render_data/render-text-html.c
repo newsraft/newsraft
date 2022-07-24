@@ -238,6 +238,7 @@ static const struct html_element_handler handlers[] = {
 	{GUMBO_TAG_DD,         &dd_start_handler,         &dd_end_handler},
 	{GUMBO_TAG_DT,         &provide_one_newline,      &provide_one_newline},
 	{GUMBO_TAG_DIV,        &provide_one_newline,      &provide_one_newline},
+	{GUMBO_TAG_CENTER,     &provide_one_newline,      &provide_one_newline},
 	{GUMBO_TAG_MAIN,       &provide_one_newline,      &provide_one_newline},
 	{GUMBO_TAG_ARTICLE,    &provide_one_newline,      &provide_one_newline},
 	{GUMBO_TAG_SUMMARY,    &provide_one_newline,      &provide_one_newline},

@@ -15,9 +15,9 @@
 #define ISWHITESPACE(A) (((A)==' ')||((A)=='\n')||((A)=='\t')||((A)=='\v')||((A)=='\f')||((A)=='\r'))
 #define ISWHITESPACEEXCEPTNEWLINE(A) (((A)==' ')||((A)=='\t')||((A)=='\v')||((A)=='\f')||((A)=='\r'))
 #define ISWIDEWHITESPACE(A) (((A)==L' ')||((A)==L'\n')||((A)==L'\t')||((A)==L'\v')||((A)==L'\f')||((A)==L'\r'))
-#define INFO(A, ...) do { if (log_stream != NULL) { fprintf(log_stream, "[INFO] " A "\n", ##__VA_ARGS__); } } while (0)
-#define WARN(A, ...) do { if (log_stream != NULL) { fprintf(log_stream, "[WARN] " A "\n", ##__VA_ARGS__); } } while (0)
-#define FAIL(A, ...) do { if (log_stream != NULL) { fprintf(log_stream, "[FAIL] " A "\n", ##__VA_ARGS__); } } while (0)
+#define INFO(...) do { if (log_stream) { fputs("[INFO] ", log_stream); fprintf(log_stream, __VA_ARGS__); fputc('\n', log_stream); } } while (0)
+#define WARN(...) do { if (log_stream) { fputs("[WARN] ", log_stream); fprintf(log_stream, __VA_ARGS__); fputc('\n', log_stream); } } while (0)
+#define FAIL(...) do { if (log_stream) { fputs("[FAIL] ", log_stream); fprintf(log_stream, __VA_ARGS__); fputc('\n', log_stream); } } while (0)
 
 // Limits that will most likely never be reached, but are needed to avoid
 // unexpected crashes.

@@ -2,13 +2,15 @@ project(
 	'newsraft',
 	'c',
 	default_options: [
-		'c_std=gnu18',
+		'c_std=c99',
 		'warning_level=3',
 		'buildtype=release',
 	],
 	license: 'MIT',
 	version: '0.6',
 )
+
+add_project_arguments(['-D_XOPEN_SOURCE=9000'], language: 'c')
 
 if get_option('buildtype') == 'release'
 	add_project_arguments(['-fdiagnostics-color=never'], language: 'c')

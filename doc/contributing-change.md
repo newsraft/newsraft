@@ -8,7 +8,8 @@ time, every decision will be annoyingly thought out and meticulously tested.
 So in order to not waste our precious time, make sure that the proposed
 functionality doesn't conflict with the goals of the project (see
 [doc/project-goals.md](https://codeberg.org/grisha/newsraft/src/branch/main/doc/project-goals.md))
-and its source code conforms to the Code guidelines (see below).
+and its source code conforms to C99 language standard and project's code
+guidelines (see below).
 
 In terms of dependencies, Newsraft is very unpretentious - it uses
 [ncurses](https://invisible-island.net/ncurses) to draw user interface,

@@ -1,0 +1,5 @@
+**/*.o
+newsraft
+newsraft.1
+flog
+vlog

@@ -8,31 +8,30 @@ counterpart. The design differences betwen these projects are mentioned in the
 
 ## Dependencies
 
-| Name                                             | Version   | Necessity            |
-|--------------------------------------------------|-----------|----------------------|
-| [ncursesw](https://invisible-island.net/ncurses) | >= 6.2    | required             |
-| [sqlite](https://www.sqlite.org)                 | >= 3.35.4 | required             |
-| [curl](https://curl.se)                          | >= 7.80.0 | required             |
-| [expat](https://github.com/libexpat/libexpat)    | >= 2.4.8  | required             |
-| [yajl](https://github.com/lloyd/yajl)            | >= 2.1.0  | required             |
-| [gumbo](https://github.com/google/gumbo-parser)  | >= 0.10.1 | required             |
-| [gcc](https://gcc.gnu.org)                       | >= 4.5    | required, build-time |
-| [meson](https://github.com/mesonbuild/meson)     | >= 0.58.1 | required, build-time |
-| [scdoc](https://git.sr.ht/~sircmpwn/scdoc)       | >= 1.11.2 | optional, build-time |
+| Name                                             | Version   | Necessity              |
+|--------------------------------------------------|-----------|------------------------|
+| [ncursesw](https://invisible-island.net/ncurses) | >= 6.2    | required               |
+| [sqlite](https://www.sqlite.org)                 | >= 3.35.4 | required               |
+| [curl](https://curl.se)                          | >= 7.80.0 | required               |
+| [expat](https://github.com/libexpat/libexpat)    | >= 2.4.8  | required               |
+| [yajl](https://github.com/lloyd/yajl)            | >= 2.1.0  | required               |
+| [gumbo](https://github.com/google/gumbo-parser)  | >= 0.10.1 | required               |
+| C compiler                                       | Any C99   | required at build-time |
+| make                                             | Any POSIX | required at build-time |
+| [scdoc](https://git.sr.ht/~sircmpwn/scdoc)       | >= 1.11.2 | optional at build-time |
 
 ## Building
 
 Compile:
 
 ```
-meson setup builddir
-meson compile -C builddir
+make
 ```
 
-Install:
+Install (run as root):
 
 ```
-meson install -C builddir
+make install
 ```
 
 ## Learning more
@@ -55,8 +54,6 @@ Helping others: [doc/contributing-support.md](https://codeberg.org/grisha/newsra
 Reporting bugs: [doc/contributing-report.md](https://codeberg.org/grisha/newsraft/src/branch/main/doc/contributing-report.md)
 
 Making changes: [doc/contributing-change.md](https://codeberg.org/grisha/newsraft/src/branch/main/doc/contributing-change.md)
-
-Sending donation: [doc/contributing-donation.md](https://codeberg.org/grisha/newsraft/src/branch/main/doc/contributing-donation.md)
 
 ## Copying
 

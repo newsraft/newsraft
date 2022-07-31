@@ -18,11 +18,11 @@ In terms of dependencies, Newsraft is very unpretentious - it uses
 [Expat](https://github.com/libexpat/libexpat) to parse XML,
 [YAJL](https://github.com/lloyd/yajl) to parse JSON and
 [Gumbo](https://github.com/google/gumbo-parser) to parse HTML.
-To build the project you will also need [GCC](https://gcc.gnu.org),
-[Meson](https://github.com/mesonbuild/meson) and, in case you want to generate
-a man page (of course you do), [scdoc](https://git.sr.ht/~sircmpwn/scdoc).
-If your contribution involves the introduction of a new dependency in
-the project, then there must be a very very very good reason for this.
+To build the project you will also need any C compiler that supports the C99
+standard, any POSIX-compliant Make and, in case you want to generate a man page
+(of course you do), [scdoc](https://git.sr.ht/~sircmpwn/scdoc). If your
+contribution involves the introduction of a new dependency in the project, then
+there must be a very very very good reason for this.
 
 # Code guidelines
 

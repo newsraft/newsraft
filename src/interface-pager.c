@@ -174,6 +174,7 @@ pager_view(const struct render_block *first_block, bool (*custom_input_handler)(
 	}
 
 	delwin(menu.window);
+	redraw_list_menu();
 	status_clean();
 
 	return cmd;

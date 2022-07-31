@@ -12,8 +12,6 @@ struct feed_section {
 static struct feed_section *sections = NULL;
 static size_t sections_count = 0;
 
-static struct menu_list_settings sections_menu;
-
 static struct format_arg fmt_args[] = {
 	{L'n',  L"d", {.i = 0}},
 	{L'u',  L"d", {.i = 0}},
@@ -21,7 +19,7 @@ static struct format_arg fmt_args[] = {
 	{L'\0', NULL, {.i = 0}}, // terminator
 };
 
-static const wchar_t *
+const wchar_t *
 write_section_entry(size_t index)
 {
 	fmt_args[0].value.i = index + 1;
@@ -30,7 +28,7 @@ write_section_entry(size_t index)
 	return do_format(get_cfg_wstring(CFG_MENU_SECTION_ENTRY_FORMAT), fmt_args);
 }
 
-static int
+int
 paint_section_entry(size_t index)
 {
 	if (sections[index].unread_count > 0) {
@@ -38,6 +36,12 @@ paint_section_entry(size_t index)
 	} else {
 		return CFG_COLOR_LIST_SECTION_FG;
 	}
+}
+
+bool
+unread_section_condition(size_t index)
+{
+	return sections[index].unread_count > 0 ? true : false;
 }
 
 static bool
@@ -108,7 +112,8 @@ copy_feed_to_global_section(const struct feed_line *feed)
 	if (sections[0].feeds[feed_index]->link == NULL) {
 		return NULL;
 	}
-	sections[0].feeds[feed_index]->unread_count = 0;
+	// TODO check error of get_unread_items_count_of_the_feed
+	sections[0].feeds[feed_index]->unread_count = get_unread_items_count_of_the_feed(sections[0].feeds[feed_index]->link);
 	return sections[0].feeds[feed_index];
 }
 
@@ -155,13 +160,6 @@ copy_feed_to_section(const struct feed_line *feed, const struct string *section_
 }
 
 void
-obtain_feeds_of_global_section(struct feed_line ***feeds_ptr, size_t *feeds_count_ptr)
-{
-	*feeds_ptr = sections[0].feeds;
-	*feeds_count_ptr = sections[0].feeds_count;
-}
-
-static inline void
 refresh_unread_items_count_of_all_sections(void)
 {
 	for (size_t i = 0; i < sections_count; ++i) {
@@ -196,7 +194,7 @@ reload_section(struct feed_line **feeds, size_t feeds_count)
 	}
 
 	refresh_unread_items_count_of_all_sections();
-	expose_all_visible_entries_of_the_menu_list(&sections_menu);
+	expose_all_visible_entries_of_the_list_menu();
 }
 
 static inline void
@@ -223,29 +221,18 @@ free_sections(void)
 	free(sections);
 }
 
-static bool
-unread_section_condition(size_t index)
-{
-	return (sections[index].unread_count > 0) ? true : false;
-}
-
 void
 enter_sections_menu_loop(void)
 {
+	initialize_settings_of_list_menus();
+
 	if (sections_count == 1) {
-		INFO("There is no sections except for global one.");
 		enter_feeds_menu_loop(sections[0].feeds, sections[0].feeds_count);
 		return;
 	}
 
-	sections_menu.write_action = &write_section_entry;
-	sections_menu.paint_action = &paint_section_entry;
-	sections_menu.hover_action = NULL;
-	sections_menu.unread_state = &unread_section_condition;
-	reset_menu_list_settings(&sections_menu, sections_count);
-
 	refresh_unread_items_count_of_all_sections();
-	redraw_menu_list(&sections_menu);
+	size_t *view_sel = enter_list_menu(SECTIONS_MENU, sections_count);
 
 	input_cmd_id cmd;
 	uint32_t count;
@@ -253,21 +240,21 @@ enter_sections_menu_loop(void)
 	while (true) {
 		cmd = get_input_command(&count, &macro);
 		if (cmd == INPUT_SELECT_NEXT) {
-			list_menu_select_next(&sections_menu);
+			list_menu_select_next();
 		} else if (cmd == INPUT_SELECT_PREV) {
-			list_menu_select_prev(&sections_menu);
+			list_menu_select_prev();
 		} else if (cmd == INPUT_SELECT_NEXT_UNREAD) {
-			list_menu_select_next_unread(&sections_menu);
+			list_menu_select_next_unread();
 		} else if (cmd == INPUT_SELECT_PREV_UNREAD) {
-			list_menu_select_prev_unread(&sections_menu);
+			list_menu_select_prev_unread();
 		} else if (cmd == INPUT_SELECT_NEXT_PAGE) {
-			list_menu_select_next_page(&sections_menu);
+			list_menu_select_next_page();
 		} else if (cmd == INPUT_SELECT_PREV_PAGE) {
-			list_menu_select_prev_page(&sections_menu);
+			list_menu_select_prev_page();
 		} else if (cmd == INPUT_SELECT_FIRST) {
-			list_menu_select_first(&sections_menu);
+			list_menu_select_first();
 		} else if (cmd == INPUT_SELECT_LAST) {
-			list_menu_select_last(&sections_menu);
+			list_menu_select_last();
 		} else if (cmd == INPUT_MARK_READ) {
 			// TODO
 		} else if (cmd == INPUT_MARK_UNREAD) {
@@ -277,35 +264,26 @@ enter_sections_menu_loop(void)
 		} else if (cmd == INPUT_MARK_UNREAD_ALL) {
 			// TODO
 		} else if (cmd == INPUT_RELOAD) {
-			reload_section(sections[sections_menu.view_sel].feeds, sections[sections_menu.view_sel].feeds_count);
+			reload_section(sections[*view_sel].feeds, sections[*view_sel].feeds_count);
 		} else if (cmd == INPUT_RELOAD_ALL) {
 			reload_section(sections[0].feeds, sections[0].feeds_count);
 		} else if (cmd == INPUT_ENTER) {
-			cmd = enter_feeds_menu_loop(sections[sections_menu.view_sel].feeds, sections[sections_menu.view_sel].feeds_count);
-			if (cmd == INPUT_QUIT_SOFT) {
-				status_clean();
-				refresh_unread_items_count_of_all_sections();
-				redraw_menu_list(&sections_menu);
-			} else if (cmd == INPUT_QUIT_HARD) {
+			cmd = enter_feeds_menu_loop(sections[*view_sel].feeds, sections[*view_sel].feeds_count);
+			if (cmd == INPUT_QUIT_HARD) {
 				break;
 			}
 		} else if (cmd == INPUT_EXPLORE_MENU) {
 			cmd = enter_items_menu_loop(sections[0].feeds, sections[0].feeds_count, CFG_MENU_EXPLORE_ITEM_ENTRY_FORMAT);
-			if (cmd == INPUT_QUIT_SOFT) {
-				refresh_unread_items_count_of_all_sections();
-				redraw_menu_list(&sections_menu);
-			} else if (cmd == INPUT_QUIT_HARD) {
+			if (cmd == INPUT_QUIT_HARD) {
 				break;
 			}
 		} else if (cmd == INPUT_STATUS_HISTORY_MENU) {
 			cmd = enter_status_pager_view_loop();
-			if (cmd == INPUT_QUIT_SOFT) {
-				redraw_menu_list(&sections_menu);
-			} else if (cmd == INPUT_QUIT_HARD) {
+			if (cmd == INPUT_QUIT_HARD) {
 				break;
 			}
 		} else if (cmd == INPUT_RESIZE) {
-			redraw_menu_list(&sections_menu);
+			redraw_list_menu();
 		} else if ((cmd == INPUT_QUIT_SOFT) || (cmd == INPUT_QUIT_HARD)) {
 			break;
 		}

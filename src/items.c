@@ -2,8 +2,8 @@
 #include "newsraft.h"
 
 static struct items_list *items;
-static struct menu_list_settings items_menu;
 static config_entry_id entry_format;
+static size_t *view_sel;
 
 static struct format_arg fmt_args[] = {
 	{L'n',  L"d", {.i = 0}},
@@ -15,7 +15,7 @@ static struct format_arg fmt_args[] = {
 	{L'\0', NULL, {.i = 0}}, // terminator
 };
 
-static const wchar_t *
+const wchar_t *
 write_item_entry(size_t index)
 {
 	fmt_args[0].value.i = index + 1;
@@ -27,7 +27,7 @@ write_item_entry(size_t index)
 	return do_format(get_cfg_wstring(entry_format), fmt_args);
 }
 
-static int
+int
 paint_item_entry(size_t index)
 {
 	if (items->list[index].is_important == true) {
@@ -39,13 +39,19 @@ paint_item_entry(size_t index)
 	}
 }
 
-static void
+bool
+unread_item_condition(size_t index)
+{
+	return items->list[index].is_unread;
+}
+
+void
 mark_selected_item_read(void)
 {
-	if (items->list[items_menu.view_sel].is_unread == true) {
-		if (db_mark_item_read(items->list[items_menu.view_sel].rowid) == true) {
-			items->list[items_menu.view_sel].is_unread = false;
-			expose_entry_of_the_menu_list(&items_menu, items_menu.view_sel);
+	if (items->list[*view_sel].is_unread == true) {
+		if (db_mark_item_read(items->list[*view_sel].rowid) == true) {
+			items->list[*view_sel].is_unread = false;
+			expose_entry_of_the_list_menu(*view_sel);
 		}
 	}
 }
@@ -53,10 +59,10 @@ mark_selected_item_read(void)
 static void
 mark_selected_item_unread(void)
 {
-	if (items->list[items_menu.view_sel].is_unread == false) {
-		if (db_mark_item_unread(items->list[items_menu.view_sel].rowid) == true) {
-			items->list[items_menu.view_sel].is_unread = true;
-			expose_entry_of_the_menu_list(&items_menu, items_menu.view_sel);
+	if (items->list[*view_sel].is_unread == false) {
+		if (db_mark_item_unread(items->list[*view_sel].rowid) == true) {
+			items->list[*view_sel].is_unread = true;
+			expose_entry_of_the_list_menu(*view_sel);
 		}
 	}
 }
@@ -64,10 +70,10 @@ mark_selected_item_unread(void)
 static void
 mark_selected_item_important(void)
 {
-	if (items->list[items_menu.view_sel].is_important == false) {
-		if (db_mark_item_important(items->list[items_menu.view_sel].rowid) == true) {
-			items->list[items_menu.view_sel].is_important = true;
-			expose_entry_of_the_menu_list(&items_menu, items_menu.view_sel);
+	if (items->list[*view_sel].is_important == false) {
+		if (db_mark_item_important(items->list[*view_sel].rowid) == true) {
+			items->list[*view_sel].is_important = true;
+			expose_entry_of_the_list_menu(*view_sel);
 		}
 	}
 }
@@ -75,50 +81,34 @@ mark_selected_item_important(void)
 static void
 mark_selected_item_unimportant(void)
 {
-	if (items->list[items_menu.view_sel].is_important == true) {
-		if (db_mark_item_unimportant(items->list[items_menu.view_sel].rowid) == true) {
-			items->list[items_menu.view_sel].is_important = false;
-			expose_entry_of_the_menu_list(&items_menu, items_menu.view_sel);
+	if (items->list[*view_sel].is_important == true) {
+		if (db_mark_item_unimportant(items->list[*view_sel].rowid) == true) {
+			items->list[*view_sel].is_important = false;
+			expose_entry_of_the_list_menu(*view_sel);
 		}
 	}
 }
 
 static void
-mark_all_items_read(struct feed_line **feeds, size_t feeds_count, struct menu_list_settings *menu)
+mark_all_items_read(struct feed_line **feeds, size_t feeds_count)
 {
-	if (db_mark_all_items_in_feeds_as_read(feeds, feeds_count) == false) {
-		return;
-	}
-	for (size_t i = 0; i < items->count; ++i) {
-		if ((items->list[i].is_unread == true) && (i >= menu->view_min) && (i <= menu->view_max)) {
-			items->list[i].is_unread = false;
-			expose_entry_of_the_menu_list(menu, i);
-		} else {
+	if (db_mark_all_items_in_feeds_as_read(feeds, feeds_count) == true) {
+		for (size_t i = 0; i < items->count; ++i) {
 			items->list[i].is_unread = false;
 		}
+		expose_all_visible_entries_of_the_list_menu();
 	}
 }
 
 static void
-mark_all_items_unread(struct feed_line **feeds, size_t feeds_count, struct menu_list_settings *menu)
+mark_all_items_unread(struct feed_line **feeds, size_t feeds_count)
 {
-	if (db_mark_all_items_in_feeds_as_unread(feeds, feeds_count) == false) {
-		return;
-	}
-	for (size_t i = 0; i < items->count; ++i) {
-		if ((items->list[i].is_unread == false) && (i >= menu->view_min) && (i <= menu->view_max)) {
-			items->list[i].is_unread = true;
-			expose_entry_of_the_menu_list(menu, i);
-		} else {
+	if (db_mark_all_items_in_feeds_as_unread(feeds, feeds_count) == true) {
+		for (size_t i = 0; i < items->count; ++i) {
 			items->list[i].is_unread = true;
 		}
+		expose_all_visible_entries_of_the_list_menu();
 	}
-}
-
-static bool
-unread_item_condition(size_t index)
-{
-	return items->list[index].is_unread;
 }
 
 input_cmd_id
@@ -131,18 +121,8 @@ enter_items_menu_loop(struct feed_line **feeds, size_t feeds_count, int format)
 	}
 
 	entry_format = format;
-	items_menu.write_action = &write_item_entry;
-	items_menu.paint_action = &paint_item_entry;
-	if (get_cfg_bool(CFG_MARK_ITEM_READ_ON_HOVER) == true) {
-		items_menu.hover_action = &mark_selected_item_read;
-	} else {
-		items_menu.hover_action = NULL;
-	}
-	items_menu.unread_state = &unread_item_condition;
-	reset_menu_list_settings(&items_menu, items->count);
 
-	status_clean();
-	redraw_menu_list(&items_menu);
+	view_sel = enter_list_menu(ITEMS_MENU, items->count);
 
 	input_cmd_id cmd;
 	uint32_t count;
@@ -150,65 +130,65 @@ enter_items_menu_loop(struct feed_line **feeds, size_t feeds_count, int format)
 	while (true) {
 		cmd = get_input_command(&count, &macro);
 		if (cmd == INPUT_SELECT_NEXT) {
-			list_menu_select_next(&items_menu);
+			list_menu_select_next();
 		} else if (cmd == INPUT_SELECT_PREV) {
-			list_menu_select_prev(&items_menu);
+			list_menu_select_prev();
 		} else if (cmd == INPUT_SELECT_NEXT_UNREAD) {
-			list_menu_select_next_unread(&items_menu);
+			list_menu_select_next_unread();
 		} else if (cmd == INPUT_SELECT_PREV_UNREAD) {
-			list_menu_select_prev_unread(&items_menu);
+			list_menu_select_prev_unread();
 		} else if (cmd == INPUT_SELECT_NEXT_PAGE) {
-			list_menu_select_next_page(&items_menu);
+			list_menu_select_next_page();
 		} else if (cmd == INPUT_SELECT_PREV_PAGE) {
-			list_menu_select_prev_page(&items_menu);
+			list_menu_select_prev_page();
 		} else if (cmd == INPUT_SELECT_FIRST) {
-			list_menu_select_first(&items_menu);
+			list_menu_select_first();
 		} else if (cmd == INPUT_SELECT_LAST) {
-			list_menu_select_last(&items_menu);
+			list_menu_select_last();
 		} else if (cmd == INPUT_MARK_READ) {
 			mark_selected_item_read();
 		} else if (cmd == INPUT_MARK_UNREAD) {
 			mark_selected_item_unread();
 		} else if (cmd == INPUT_MARK_READ_ALL) {
-			mark_all_items_read(feeds, feeds_count, &items_menu);
+			mark_all_items_read(feeds, feeds_count);
 		} else if (cmd == INPUT_MARK_UNREAD_ALL) {
-			mark_all_items_unread(feeds, feeds_count, &items_menu);
+			mark_all_items_unread(feeds, feeds_count);
 		} else if (cmd == INPUT_MARK_IMPORTANT) {
 			mark_selected_item_important();
 		} else if (cmd == INPUT_MARK_UNIMPORTANT) {
 			mark_selected_item_unimportant();
 		} else if (cmd == INPUT_ENTER) {
-			cmd = enter_item_pager_view_loop(items->list[items_menu.view_sel].rowid);
-			if (cmd == INPUT_QUIT_SOFT) {
-				items->list[items_menu.view_sel].is_unread = 0;
-				db_mark_item_read(items->list[items_menu.view_sel].rowid);
-				redraw_menu_list(&items_menu);
-			} else if (cmd == INPUT_QUIT_HARD) {
+			db_mark_item_read(items->list[*view_sel].rowid);
+			items->list[*view_sel].is_unread = false;
+			cmd = enter_item_pager_view_loop(items->list[*view_sel].rowid);
+			if (cmd == INPUT_QUIT_HARD) {
 				break;
 			}
 		} else if (cmd == INPUT_STATUS_HISTORY_MENU) {
 			cmd = enter_status_pager_view_loop();
-			if (cmd == INPUT_QUIT_SOFT) {
-				redraw_menu_list(&items_menu);
-			} else if (cmd == INPUT_QUIT_HARD) {
+			if (cmd == INPUT_QUIT_HARD) {
 				break;
 			}
 		} else if (cmd == INPUT_OPEN_IN_BROWSER) {
-			if (open_url_in_browser(items->list[items_menu.view_sel].url) == true) {
-				redraw_menu_list(&items_menu);
+			if (open_url_in_browser(items->list[*view_sel].url) == true) {
+				redraw_list_menu();
 			}
 		} else if (cmd == INPUT_COPY_TO_CLIPBOARD) {
-			if (copy_string_to_clipboard(items->list[items_menu.view_sel].url) == true) {
-				redraw_menu_list(&items_menu);
+			if (copy_string_to_clipboard(items->list[*view_sel].url) == true) {
+				redraw_list_menu();
 			}
 		} else if (cmd == INPUT_RESIZE) {
-			redraw_menu_list(&items_menu);
+			redraw_list_menu();
 		} else if ((cmd == INPUT_QUIT_SOFT) || (cmd == INPUT_QUIT_HARD)) {
 			break;
 		} else if ((cmd == INPUT_SYSTEM_COMMAND) && (macro != NULL)) {
-			fmt_args[2].value.s = items->list[items_menu.view_sel].url ? items->list[items_menu.view_sel].url->ptr : "";
+			if (items->list[*view_sel].url == NULL) {
+				fmt_args[2].value.s = "";
+			} else {
+				fmt_args[2].value.s = items->list[*view_sel].url->ptr;
+			}
 			if (execute_command_with_specifiers_in_it(macro, fmt_args) == true) {
-				redraw_menu_list(&items_menu);
+				redraw_list_menu();
 			}
 		}
 	}
@@ -223,7 +203,7 @@ enter_items_menu_loop(struct feed_line **feeds, size_t feeds_count, int format)
 		}
 	}
 
-	status_clean();
+	leave_list_menu();
 
 	return cmd;
 }

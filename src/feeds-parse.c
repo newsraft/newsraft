@@ -38,6 +38,7 @@ parse_feeds_file(const char *path)
 		fclose(f);
 		return false;
 	}
+	size_t feeds_count = 0;
 	struct string *tmp;
 
 	char c;
@@ -100,7 +101,9 @@ parse_feeds_file(const char *path)
 				free_string(tmp);
 			}
 		}
-		if (copy_feed_to_section(&feed, section_name) == false) {
+		if (copy_feed_to_section(&feed, section_name) == true) {
+			feeds_count += 1;
+		} else {
 			fprintf(stderr, "Failed to add feed \"%s\" to section \"%s\"!\n", feed.link->ptr, section_name->ptr);
 			goto error;
 		}
@@ -116,6 +119,11 @@ parse_feeds_file(const char *path)
 			}
 		}
 
+	}
+
+	if (feeds_count == 0) {
+		fputs("Not a single feed was loaded!\n", stderr);
+		goto error;
 	}
 
 	free_string(feed.link);

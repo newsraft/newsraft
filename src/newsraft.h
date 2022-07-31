@@ -36,17 +36,6 @@ struct wstring {
 	size_t lim;
 };
 
-struct menu_list_settings {
-	size_t entries_count;
-	size_t view_sel;
-	size_t view_min;
-	size_t view_max;
-	const wchar_t *(*write_action)(size_t index);
-	int (*paint_action)(size_t index);
-	void (*hover_action)(void);
-	bool (*unread_state)(size_t index);
-};
-
 struct feed_line {
 	struct string *name; // what is displayed in menu
 	struct string *link; // url of the feed
@@ -156,6 +145,13 @@ enum config_entry_index {
 	CFG_ENTRIES_COUNT,
 };
 
+enum {
+	SECTIONS_MENU,
+	FEEDS_MENU,
+	ITEMS_MENU,
+	MENUS_COUNT
+};
+
 typedef uint8_t input_cmd_id;
 enum input_cmd {
 	INPUT_SELECT_NEXT = 0,
@@ -245,9 +241,12 @@ enum text_type {
 // See "sections.c" file for implementation.
 bool create_global_section(void);
 bool copy_feed_to_section(const struct feed_line *feed, const struct string *section_name);
-void obtain_feeds_of_global_section(struct feed_line ***feeds_ptr, size_t *feeds_count_ptr);
+void refresh_unread_items_count_of_all_sections(void);
 void enter_sections_menu_loop(void);
 void free_sections(void);
+const wchar_t *write_section_entry(size_t index);
+int paint_section_entry(size_t index);
+bool unread_section_condition(size_t index);
 
 // See "feeds.c" file for implementation.
 bool parse_feeds_file(const char *path);
@@ -255,22 +254,27 @@ input_cmd_id enter_feeds_menu_loop(struct feed_line **new_feeds, size_t new_feed
 bool load_feeds(void);
 bool check_url_for_validity(const struct string *str);
 bool update_and_refresh_feed(struct feed_line *feed);
+const wchar_t *write_feed_entry(size_t index);
+int paint_feed_entry(size_t index);
+bool unread_feed_condition(size_t index);
 
 // See "interface-list.c" file for implementation.
 bool adjust_list_menu(void);
 void free_list_menu(void);
-void expose_entry_of_the_menu_list(struct menu_list_settings *settings, size_t index);
-void expose_all_visible_entries_of_the_menu_list(struct menu_list_settings *settings);
-void redraw_menu_list(struct menu_list_settings *settings);
-void reset_menu_list_settings(struct menu_list_settings *settings, size_t new_entries_count);
-void list_menu_select_next(struct menu_list_settings *s);
-void list_menu_select_prev(struct menu_list_settings *s);
-void list_menu_select_next_unread(struct menu_list_settings *s);
-void list_menu_select_prev_unread(struct menu_list_settings *s);
-void list_menu_select_next_page(struct menu_list_settings *s);
-void list_menu_select_prev_page(struct menu_list_settings *s);
-void list_menu_select_first(struct menu_list_settings *s);
-void list_menu_select_last(struct menu_list_settings *s);
+void initialize_settings_of_list_menus(void);
+void expose_entry_of_the_list_menu(size_t index);
+void expose_all_visible_entries_of_the_list_menu(void);
+void redraw_list_menu(void);
+size_t *enter_list_menu(int8_t menu_index, size_t new_entries_count);
+void leave_list_menu(void);
+void list_menu_select_next(void);
+void list_menu_select_prev(void);
+void list_menu_select_next_unread(void);
+void list_menu_select_prev_unread(void);
+void list_menu_select_next_page(void);
+void list_menu_select_prev_page(void);
+void list_menu_select_first(void);
+void list_menu_select_last(void);
 
 // See "interface-list-format.c" file for implementation.
 const wchar_t *do_format(const struct wstring *fmt, const struct format_arg *args);
@@ -281,6 +285,10 @@ void free_list_menu_format_buffer(void);
 struct items_list *generate_items_list(struct feed_line **feeds, size_t feeds_count, enum sorting_order order);
 void free_items_list(struct items_list *items);
 input_cmd_id enter_items_menu_loop(struct feed_line **feeds, size_t feeds_count, int format);
+const wchar_t * write_item_entry(size_t index);
+int paint_item_entry(size_t index);
+bool unread_item_condition(size_t index);
+void mark_selected_item_read(void);
 
 // Functions responsible for managing render blocks.
 // Render block is a piece of text in a single format. They are stored as linked

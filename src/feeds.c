@@ -4,8 +4,7 @@
 
 static struct feed_line **feeds = NULL;
 static size_t feeds_count = 0;
-
-static struct menu_list_settings feeds_menu;
+static size_t *view_sel;
 
 static struct format_arg fmt_args[] = {
 	{L'n',  L"d", {.i = 0}},
@@ -32,27 +31,10 @@ load_feeds(void)
 		fputs("Failed to load feeds from file!\n", stderr);
 		return false;
 	}
-
-	// Display feeds of global section (that is all feeds) by default.
-	obtain_feeds_of_global_section(&feeds, &feeds_count);
-
-	if (feeds_count == 0) {
-		fputs("Not a single feed was loaded!\n", stderr);
-		return false;
-	}
-
-	for (size_t i = 0; i < feeds_count; ++i) {
-		feeds[i]->unread_count = get_unread_items_count_of_the_feed(feeds[i]->link);
-		if (feeds[i]->unread_count < 0) {
-			fprintf(stderr, "Failed to get unread items count of the \"%s\" feed!\n", feeds[i]->link->ptr);
-			return false;
-		}
-	}
-
 	return true;
 }
 
-static const wchar_t *
+const wchar_t *
 write_feed_entry(size_t index)
 {
 	fmt_args[0].value.i = index + 1;
@@ -71,7 +53,7 @@ write_feed_entry(size_t index)
 	return do_format(get_cfg_wstring(CFG_MENU_FEED_ENTRY_FORMAT), fmt_args);
 }
 
-static int
+int
 paint_feed_entry(size_t index)
 {
 	if (feeds[index]->unread_count > 0) {
@@ -79,6 +61,12 @@ paint_feed_entry(size_t index)
 	} else {
 		return CFG_COLOR_LIST_FEED_FG;
 	}
+}
+
+bool
+unread_feed_condition(size_t index)
+{
+	return feeds[index]->unread_count > 0 ? true : false;
 }
 
 static void
@@ -101,17 +89,17 @@ update_unread_items_count_of_all_feeds(void)
 static inline void
 mark_selected_feed_read(void)
 {
-	db_mark_all_items_in_feeds_as_read(&feeds[feeds_menu.view_sel], 1);
-	update_unread_items_count(feeds_menu.view_sel);
-	expose_entry_of_the_menu_list(&feeds_menu, feeds_menu.view_sel);
+	db_mark_all_items_in_feeds_as_read(&feeds[*view_sel], 1);
+	update_unread_items_count(*view_sel);
+	expose_entry_of_the_list_menu(*view_sel);
 }
 
 static inline void
 mark_selected_feed_unread(void)
 {
-	db_mark_all_items_in_feeds_as_unread(&feeds[feeds_menu.view_sel], 1);
-	update_unread_items_count(feeds_menu.view_sel);
-	expose_entry_of_the_menu_list(&feeds_menu, feeds_menu.view_sel);
+	db_mark_all_items_in_feeds_as_unread(&feeds[*view_sel], 1);
+	update_unread_items_count(*view_sel);
+	expose_entry_of_the_list_menu(*view_sel);
 }
 
 static inline void
@@ -119,7 +107,7 @@ mark_all_feeds_read(void)
 {
 	db_mark_all_items_in_feeds_as_read(feeds, feeds_count);
 	update_unread_items_count_of_all_feeds();
-	expose_all_visible_entries_of_the_menu_list(&feeds_menu);
+	expose_all_visible_entries_of_the_list_menu();
 }
 
 static inline void
@@ -127,7 +115,7 @@ mark_all_feeds_unread(void)
 {
 	db_mark_all_items_in_feeds_as_unread(feeds, feeds_count);
 	update_unread_items_count_of_all_feeds();
-	expose_all_visible_entries_of_the_menu_list(&feeds_menu);
+	expose_all_visible_entries_of_the_list_menu();
 }
 
 bool
@@ -157,15 +145,14 @@ update_and_refresh_feed(struct feed_line *feed)
 static void
 reload_current_feed(void)
 {
-	info_status("Loading %s", feeds[feeds_menu.view_sel]->link->ptr);
+	info_status("Loading %s", feeds[*view_sel]->link->ptr);
 
-	if (update_and_refresh_feed(feeds[feeds_menu.view_sel]) == false) {
-		fail_status("Failed to update %s", feeds[feeds_menu.view_sel]->link->ptr);
-		return;
+	if (update_and_refresh_feed(feeds[*view_sel]) == true) {
+		expose_entry_of_the_list_menu(*view_sel);
+		status_clean();
+	} else {
+		fail_status("Failed to update %s", feeds[*view_sel]->link->ptr);
 	}
-
-	expose_entry_of_the_menu_list(&feeds_menu, feeds_menu.view_sel);
-	status_clean();
 }
 
 static void
@@ -177,7 +164,7 @@ reload_all_feeds(void)
 	for (size_t i = 0; i < feeds_count; ++i) {
 		info_status("(%zu/%zu) Loading %s", i + 1, feeds_count, feeds[i]->link->ptr);
 		if (update_and_refresh_feed(feeds[i]) == true) {
-			expose_entry_of_the_menu_list(&feeds_menu, i);
+			expose_entry_of_the_list_menu(i);
 		} else {
 			failed_url = feeds[i]->link->ptr;
 			fail_status("Failed to update %s", failed_url);
@@ -194,24 +181,13 @@ reload_all_feeds(void)
 	}
 }
 
-static bool
-unread_feed_condition(size_t index)
-{
-	return (feeds[index]->unread_count > 0) ? true : false;
-}
-
 input_cmd_id
 enter_feeds_menu_loop(struct feed_line **new_feeds, size_t new_feeds_count)
 {
 	feeds = new_feeds;
 	feeds_count = new_feeds_count;
-	feeds_menu.write_action = &write_feed_entry;
-	feeds_menu.paint_action = &paint_feed_entry;
-	feeds_menu.hover_action = NULL;
-	feeds_menu.unread_state = &unread_feed_condition;
-	reset_menu_list_settings(&feeds_menu, feeds_count);
 
-	redraw_menu_list(&feeds_menu);
+	view_sel = enter_list_menu(FEEDS_MENU, feeds_count);
 
 	input_cmd_id cmd;
 	uint32_t count;
@@ -219,21 +195,21 @@ enter_feeds_menu_loop(struct feed_line **new_feeds, size_t new_feeds_count)
 	while (true) {
 		cmd = get_input_command(&count, &macro);
 		if (cmd == INPUT_SELECT_NEXT) {
-			list_menu_select_next(&feeds_menu);
+			list_menu_select_next();
 		} else if (cmd == INPUT_SELECT_PREV) {
-			list_menu_select_prev(&feeds_menu);
+			list_menu_select_prev();
 		} else if (cmd == INPUT_SELECT_NEXT_UNREAD) {
-			list_menu_select_next_unread(&feeds_menu);
+			list_menu_select_next_unread();
 		} else if (cmd == INPUT_SELECT_PREV_UNREAD) {
-			list_menu_select_prev_unread(&feeds_menu);
+			list_menu_select_prev_unread();
 		} else if (cmd == INPUT_SELECT_NEXT_PAGE) {
-			list_menu_select_next_page(&feeds_menu);
+			list_menu_select_next_page();
 		} else if (cmd == INPUT_SELECT_PREV_PAGE) {
-			list_menu_select_prev_page(&feeds_menu);
+			list_menu_select_prev_page();
 		} else if (cmd == INPUT_SELECT_FIRST) {
-			list_menu_select_first(&feeds_menu);
+			list_menu_select_first();
 		} else if (cmd == INPUT_SELECT_LAST) {
-			list_menu_select_last(&feeds_menu);
+			list_menu_select_last();
 		} else if (cmd == INPUT_MARK_READ) {
 			mark_selected_feed_read();
 		} else if (cmd == INPUT_MARK_UNREAD) {
@@ -247,32 +223,28 @@ enter_feeds_menu_loop(struct feed_line **new_feeds, size_t new_feeds_count)
 		} else if (cmd == INPUT_RELOAD_ALL) {
 			reload_all_feeds();
 		} else if (cmd == INPUT_ENTER) {
-			cmd = enter_items_menu_loop(&feeds[feeds_menu.view_sel], 1, CFG_MENU_ITEM_ENTRY_FORMAT);
-			if (cmd == INPUT_QUIT_SOFT) {
-				redraw_menu_list(&feeds_menu);
-			} else if (cmd == INPUT_QUIT_HARD) {
+			cmd = enter_items_menu_loop(&feeds[*view_sel], 1, CFG_MENU_ITEM_ENTRY_FORMAT);
+			if (cmd == INPUT_QUIT_HARD) {
 				break;
 			}
 		} else if (cmd == INPUT_EXPLORE_MENU) {
 			cmd = enter_items_menu_loop(feeds, feeds_count, CFG_MENU_EXPLORE_ITEM_ENTRY_FORMAT);
-			if (cmd == INPUT_QUIT_SOFT) {
-				redraw_menu_list(&feeds_menu);
-			} else if (cmd == INPUT_QUIT_HARD) {
+			if (cmd == INPUT_QUIT_HARD) {
 				break;
 			}
 		} else if (cmd == INPUT_STATUS_HISTORY_MENU) {
 			cmd = enter_status_pager_view_loop();
-			if (cmd == INPUT_QUIT_SOFT) {
-				redraw_menu_list(&feeds_menu);
-			} else if (cmd == INPUT_QUIT_HARD) {
+			if (cmd == INPUT_QUIT_HARD) {
 				break;
 			}
 		} else if (cmd == INPUT_RESIZE) {
-			redraw_menu_list(&feeds_menu);
+			redraw_list_menu();
 		} else if ((cmd == INPUT_QUIT_SOFT) || (cmd == INPUT_QUIT_HARD)) {
 			break;
 		}
 	}
+
+	leave_list_menu();
 
 	return cmd;
 }

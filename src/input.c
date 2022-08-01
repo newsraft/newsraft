@@ -169,6 +169,7 @@ assign_default_binds(void)
 	if (assign_action_to_key("e",              1, INPUT_EXPLORE_MENU)        == false) { goto error; }
 	if (assign_action_to_key("v",              1, INPUT_STATUS_HISTORY_MENU) == false) { goto error; }
 	if (assign_action_to_key("o",              1, INPUT_OPEN_IN_BROWSER)     == false) { goto error; }
+	if (assign_action_to_key("y",              1, INPUT_COPY_TO_CLIPBOARD)   == false) { goto error; }
 	if (assign_action_to_key("c",              1, INPUT_COPY_TO_CLIPBOARD)   == false) { goto error; }
 	if (assign_action_to_key("h",              1, INPUT_QUIT_SOFT)           == false) { goto error; }
 	if (assign_action_to_key("q",              1, INPUT_QUIT_SOFT)           == false) { goto error; }

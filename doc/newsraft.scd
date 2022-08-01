@@ -376,7 +376,7 @@ _status-history-menu_ (default: *v*)
 
 _open-in-browser_ (default: *o*)
 
-_copy-to-clipboard_ (default: *c*)
+_copy-to-clipboard_ (default: *y*, *c*)
 
 _quit_ (default: *h*, *q*, *KEY_LEFT*, *KEY_BACKSPACE*)
 

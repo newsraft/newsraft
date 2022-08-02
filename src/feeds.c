@@ -118,69 +118,6 @@ mark_all_feeds_unread(void)
 	expose_all_visible_entries_of_the_list_menu();
 }
 
-bool
-update_and_refresh_feed(struct feed_line *feed)
-{
-	int8_t status = update_feed(feed->link);
-	if (status == DOWNLOAD_SUCCEEDED) {
-		int64_t new_unread_count = get_unread_items_count_of_the_feed(feed->link);
-		if (new_unread_count < 0) {
-			return false;
-		}
-		feed->unread_count = new_unread_count;
-		if ((feed->name == NULL) || (feed->name->len == 0)) {
-			struct string *title = db_get_string_from_feed_table(feed->link, "title", 5);
-			if (title != NULL) {
-				inlinify_string(title);
-				crtss_or_cpyss(&feed->name, title);
-				free_string(title);
-			}
-		}
-	} else if (status == DOWNLOAD_FAILED) {
-		return false;
-	}
-	return true;
-}
-
-static void
-reload_current_feed(void)
-{
-	info_status("Loading %s", feeds[*view_sel]->link->ptr);
-
-	if (update_and_refresh_feed(feeds[*view_sel]) == true) {
-		expose_entry_of_the_list_menu(*view_sel);
-		status_clean();
-	} else {
-		fail_status("Failed to update %s", feeds[*view_sel]->link->ptr);
-	}
-}
-
-static void
-reload_all_feeds(void)
-{
-	const char *failed_url;
-	size_t errors = 0;
-
-	for (size_t i = 0; i < feeds_count; ++i) {
-		info_status("(%zu/%zu) Loading %s", i + 1, feeds_count, feeds[i]->link->ptr);
-		if (update_and_refresh_feed(feeds[i]) == true) {
-			expose_entry_of_the_list_menu(i);
-		} else {
-			failed_url = feeds[i]->link->ptr;
-			fail_status("Failed to update %s", failed_url);
-			++errors;
-		}
-	}
-
-	if (errors == 0) {
-		status_clean();
-	} else if (errors == 1) {
-		fail_status("Failed to update %s", failed_url);
-	} else {
-		fail_status("Failed to update %zu feeds (check out status history for more details)", errors);
-	}
-}
-
 input_cmd_id
 enter_feeds_menu_loop(struct feed_line **new_feeds, size_t new_feeds_count)
 {
@@ -219,9 +156,9 @@ enter_feeds_menu_loop(struct feed_line **new_feeds, size_t new_feeds_count)
 		} else if (cmd == INPUT_MARK_UNREAD_ALL) {
 			mark_all_feeds_unread();
 		} else if (cmd == INPUT_RELOAD) {
-			reload_current_feed();
+			update_feeds(feeds + *view_sel, 1);
 		} else if (cmd == INPUT_RELOAD_ALL) {
-			reload_all_feeds();
+			update_feeds(feeds, feeds_count);
 		} else if (cmd == INPUT_ENTER) {
 			cmd = enter_items_menu_loop(&feeds[*view_sel], 1, CFG_MENU_ITEM_ENTRY_FORMAT);
 			if (cmd == INPUT_QUIT_HARD) {

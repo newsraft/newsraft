@@ -22,6 +22,7 @@ static struct list_menu_settings menus[MENUS_COUNT];
 static struct list_menu_settings *menu = menus; // selected menu
 static int8_t menus_immersion[10];
 static int8_t menus_immersion_depth = 0;
+static bool list_menu_is_paused = false;
 
 bool
 adjust_list_menu(void)
@@ -84,7 +85,7 @@ initialize_settings_of_list_menus(void)
 void
 expose_entry_of_the_list_menu(size_t index)
 {
-	if ((index >= menu->view_min) && (index <= menu->view_max)) {
+	if ((list_menu_is_paused == false) && (index >= menu->view_min) && (index <= menu->view_max)) {
 		WINDOW *w = windows[index - menu->view_min];
 		werase(w);
 		mvwaddnwstr(w, 0, 0, menu->write_action(index), list_menu_width);
@@ -119,13 +120,15 @@ erase_all_visible_entries_not_in_the_list_menu(void)
 void
 redraw_list_menu(void)
 {
-	menu->view_max = menu->view_min + (list_menu_height - 1);
-	if (menu->view_sel > menu->view_max) {
-		menu->view_max = menu->view_sel;
-		menu->view_min = menu->view_max - (list_menu_height - 1);
+	if (list_menu_is_paused == false) {
+		menu->view_max = menu->view_min + (list_menu_height - 1);
+		if (menu->view_sel > menu->view_max) {
+			menu->view_max = menu->view_sel;
+			menu->view_min = menu->view_max - (list_menu_height - 1);
+		}
+		expose_all_visible_entries_of_the_list_menu();
+		erase_all_visible_entries_not_in_the_list_menu();
 	}
-	expose_all_visible_entries_of_the_list_menu();
-	erase_all_visible_entries_not_in_the_list_menu();
 }
 
 size_t *
@@ -148,6 +151,21 @@ leave_list_menu(void)
 	if (menus_immersion[menus_immersion_depth] == SECTIONS_MENU) {
 		refresh_unread_items_count_of_all_sections();
 	}
+	redraw_list_menu();
+	status_clean();
+}
+
+void
+pause_list_menu(void)
+{
+	list_menu_is_paused = true;
+	status_clean();
+}
+
+void
+resume_list_menu(void)
+{
+	list_menu_is_paused = false;
 	redraw_list_menu();
 	status_clean();
 }

@@ -11,6 +11,7 @@ struct feed_section {
 
 static struct feed_section *sections = NULL;
 static size_t sections_count = 0;
+static size_t *view_sel;
 
 static struct format_arg fmt_args[] = {
 	{L'n',  L"d", {.i = 0}},
@@ -170,33 +171,6 @@ refresh_unread_items_count_of_all_sections(void)
 	}
 }
 
-static void
-reload_section(struct feed_line **feeds, size_t feeds_count)
-{
-	const char *failed_url;
-	size_t errors = 0;
-
-	for (size_t i = 0; i < feeds_count; ++i) {
-		info_status("(%zu/%zu) Loading %s", i + 1, feeds_count, feeds[i]->link->ptr);
-		if (update_and_refresh_feed(feeds[i]) == false) {
-			failed_url = feeds[i]->link->ptr;
-			fail_status("Failed to update %s", failed_url);
-			++errors;
-		}
-	}
-
-	if (errors == 0) {
-		status_clean();
-	} else if (errors == 1) {
-		fail_status("Failed to update %s", failed_url);
-	} else {
-		fail_status("Failed to update %zu feeds (check out status history for more details)", errors);
-	}
-
-	refresh_unread_items_count_of_all_sections();
-	expose_all_visible_entries_of_the_list_menu();
-}
-
 static inline void
 free_feed(struct feed_line *feed)
 {
@@ -232,7 +206,7 @@ enter_sections_menu_loop(void)
 	}
 
 	refresh_unread_items_count_of_all_sections();
-	size_t *view_sel = enter_list_menu(SECTIONS_MENU, sections_count);
+	view_sel = enter_list_menu(SECTIONS_MENU, sections_count);
 
 	input_cmd_id cmd;
 	uint32_t count;
@@ -264,9 +238,9 @@ enter_sections_menu_loop(void)
 		} else if (cmd == INPUT_MARK_UNREAD_ALL) {
 			// TODO
 		} else if (cmd == INPUT_RELOAD) {
-			reload_section(sections[*view_sel].feeds, sections[*view_sel].feeds_count);
+			update_feeds(sections[*view_sel].feeds, sections[*view_sel].feeds_count);
 		} else if (cmd == INPUT_RELOAD_ALL) {
-			reload_section(sections[0].feeds, sections[0].feeds_count);
+			update_feeds(sections[0].feeds, sections[0].feeds_count);
 		} else if (cmd == INPUT_ENTER) {
 			cmd = enter_feeds_menu_loop(sections[*view_sel].feeds, sections[*view_sel].feeds_count);
 			if (cmd == INPUT_QUIT_HARD) {

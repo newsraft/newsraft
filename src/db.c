@@ -12,6 +12,12 @@ db_init(void)
 		return false;
 	}
 
+	if (sqlite3_config(SQLITE_CONFIG_SERIALIZED) != SQLITE_OK) {
+		// Probably SQLite was compiled without multithreading functionality.
+		fputs("Failed to set threading mode of database to serialized!\n", stderr);
+		return false;
+	}
+
 	if (sqlite3_open(path, &db) != SQLITE_OK) {
 		fputs("Failed to open database!\n", stderr);
 		sqlite3_close(db);

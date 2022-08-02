@@ -18,6 +18,7 @@
 #define INFO(...) do { if (log_stream) { fputs("[INFO] ", log_stream); fprintf(log_stream, __VA_ARGS__); fputc('\n', log_stream); } } while (0)
 #define WARN(...) do { if (log_stream) { fputs("[WARN] ", log_stream); fprintf(log_stream, __VA_ARGS__); fputc('\n', log_stream); } } while (0)
 #define FAIL(...) do { if (log_stream) { fputs("[FAIL] ", log_stream); fprintf(log_stream, __VA_ARGS__); fputc('\n', log_stream); } } while (0)
+#define MIN(A, B) ((A) < (B) ? (A) : (B))
 
 // Limits that will most likely never be reached, but are needed to avoid
 // unexpected crashes.
@@ -115,6 +116,7 @@ enum config_entry_index {
 	CFG_ITEMS_COUNT_LIMIT,
 	CFG_DOWNLOAD_TIMEOUT,
 	CFG_DOWNLOAD_SPEED_LIMIT,
+	CFG_UPDATE_THREADS_COUNT,
 	CFG_STATUS_MESSAGES_COUNT_LIMIT,
 	CFG_OPEN_IN_BROWSER_COMMAND,
 	CFG_COPY_TO_CLIPBOARD_COMMAND,
@@ -225,12 +227,6 @@ enum sorting_order {
 	SORT_BY_NAME_ASC,
 };
 
-enum download_status {
-	DOWNLOAD_SUCCEEDED,
-	DOWNLOAD_CANCELED,
-	DOWNLOAD_FAILED,
-};
-
 // Plain text must have 0 value!
 enum text_type {
 	TEXT_PLAIN = 0,
@@ -267,6 +263,8 @@ void expose_all_visible_entries_of_the_list_menu(void);
 void redraw_list_menu(void);
 size_t *enter_list_menu(int8_t menu_index, size_t new_entries_count);
 void leave_list_menu(void);
+void pause_list_menu(void);
+void resume_list_menu(void);
 void list_menu_select_next(void);
 void list_menu_select_prev(void);
 void list_menu_select_next_unread(void);
@@ -317,6 +315,12 @@ void free_trim_link_list(const struct link_list *links);
 int pager_view(const struct render_block *first_block, bool (*custom_input_handler)(void *, input_cmd_id, uint32_t, const struct wstring *), void *data);
 int enter_item_pager_view_loop(int64_t rowid);
 int enter_status_pager_view_loop(void);
+
+// See "threading.c" file for implementation.
+bool initialize_threading(void);
+void branch_update_feed_action_into_thread(void *(*action)(void *arg), struct feed_line *feed);
+void wait_for_all_threads_to_finish(void);
+void terminate_threading(void);
 
 // See "path.c" file for implementation.
 bool set_feeds_path(const char *path);
@@ -444,7 +448,7 @@ struct string *convert_wstring_to_string(const struct wstring *src);
 // To write to the log stream use macros INFO, WARN or FAIL.
 // See "log.c" file for implementation.
 bool log_init(const char *path);
-void log_stop(void);
+void log_stop(int error_code);
 
 // Parse config file, fill out config_data structure, bind keys to actions.
 // See "load_config" directory for implementation.
@@ -459,7 +463,7 @@ void free_config(void);
 
 // Download, process and store new items of feed.
 // See "update_feed" directory for implementation.
-int8_t update_feed(const struct string *url);
+void update_feeds(struct feed_line **feeds, size_t feeds_count);
 
 // Here we append links of HTML elements like <img> or <a> to link_list.
 // Also, do some screen-independent processing of data that render blocks have

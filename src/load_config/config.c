@@ -51,6 +51,7 @@ static struct config_entry config[] = {
 	{"items-count-limit",               CFG_UINT,    {.u = 0    }},
 	{"download-timeout",                CFG_UINT,    {.u = 20   }},
 	{"download-speed-limit",            CFG_UINT,    {.u = 0    }},
+	{"update-threads-count",            CFG_UINT,    {.u = 0    }},
 	{"status-messages-count-limit",     CFG_UINT,    {.u = 10000}},
 	{"open-in-browser-command",         CFG_STRING,  {.s = {NULL, "auto",        4}}},
 	{"copy-to-clipboard-command",       CFG_STRING,  {.s = {NULL, "auto",        4}}},
@@ -138,6 +139,7 @@ bool
 assign_calculated_values_to_auto_config_strings(void)
 {
 	INFO("Assigning calculated values to auto config strings.");
+	set_sane_value_for_update_threads_count(config[CFG_UPDATE_THREADS_COUNT].value.u);
 	if (strcmp(config[CFG_USER_AGENT].value.s.actual->ptr, "auto") == 0) {
 		if (generate_useragent_string(config[CFG_USER_AGENT].value.s.actual) == false) {
 			return false;

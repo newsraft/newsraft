@@ -29,10 +29,10 @@ log_init(const char *path)
 }
 
 void
-log_stop(void)
+log_stop(int error_code)
 {
 	if (log_stream != NULL) {
-		INFO("It's just an empty cup.");
+		INFO("Quitting the program with exit code %d", error_code);
 		fclose(log_stream);
 	}
 }

@@ -4,6 +4,12 @@
 #include <yajl/yajl_parse.h>
 #include "newsraft.h"
 
+enum download_status {
+	DOWNLOAD_SUCCEEDED,
+	DOWNLOAD_CANCELED,
+	DOWNLOAD_FAILED,
+};
+
 struct getfeed_item {
 	struct string *guid;
 	struct string *title;

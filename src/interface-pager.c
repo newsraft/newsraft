@@ -131,7 +131,7 @@ scroll_to_the_end(struct pager_menu *menu)
 int
 pager_view(const struct render_block *first_block, bool (*custom_input_handler)(void *, input_cmd_id, uint32_t, const struct wstring *), void *data)
 {
-	status_clean();
+	pause_list_menu();
 
 	struct pager_menu menu = {NULL, 0, 0};
 	if (update_pager_menu(&menu, first_block) == false) {
@@ -174,8 +174,7 @@ pager_view(const struct render_block *first_block, bool (*custom_input_handler)(
 	}
 
 	delwin(menu.window);
-	redraw_list_menu();
-	status_clean();
+	resume_list_menu();
 
 	return cmd;
 }

@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 #include "newsraft.h"
 
 static inline void
@@ -10,10 +11,39 @@ remove_trailing_slashes_from_string(struct string *str)
 	str->ptr[str->len] = '\0';
 }
 
-bool
-parse_feeds_file(const char *path)
+static inline bool
+check_url_for_validity(const struct string *str)
 {
-	FILE *f = fopen(path, "r");
+	if (str->len == 0) {
+		fputs("Feed URL is empty!\n", stderr);
+		return false;
+	}
+	if (strstr(str->ptr, "://") == NULL) {
+		fputs("Feed URL is missing protocol scheme!\n", stderr);
+		fputs("Every feed URL must start with a protocol definition like \"http://\".\n", stderr);
+		return false;
+	}
+	if ((strncmp(str->ptr, "http://", 7) != 0)
+		&& (strncmp(str->ptr, "https://", 8) != 0)
+		&& (strncmp(str->ptr, "ftp://", 6) != 0)
+		&& (strncmp(str->ptr, "file://", 7) != 0))
+	{
+		fputs("Feed URL has unknown protocol scheme!\n", stderr);
+		fputs("Supported protocols are http, https, ftp and file.\n", stderr);
+		return false;
+	}
+	return true;
+}
+
+bool
+parse_feeds_file(void)
+{
+	const char *feeds_file_path = get_feeds_path();
+	if (feeds_file_path == NULL) {
+		// Error message written by get_feeds_path.
+		return false;
+	}
+	FILE *f = fopen(feeds_file_path, "r");
 	if (f == NULL) {
 		fputs("Couldn't open feeds file!\n", stderr);
 		return false;

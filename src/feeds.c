@@ -15,25 +15,6 @@ static struct format_arg fmt_args[] = {
 	{L'\0', NULL, {.i = 0}}, // terminator
 };
 
-bool
-load_feeds(void)
-{
-	const char *feeds_file_path = get_feeds_path();
-	if (feeds_file_path == NULL) {
-		// Error message written by get_feeds_path.
-		return false;
-	}
-	if (create_global_section() == false) {
-		fputs("Not enough memory for global section structure!\n", stderr);
-		return false;
-	}
-	if (parse_feeds_file(feeds_file_path) == false) {
-		fputs("Failed to load feeds from file!\n", stderr);
-		return false;
-	}
-	return true;
-}
-
 const wchar_t *
 write_feed_entry(size_t index)
 {

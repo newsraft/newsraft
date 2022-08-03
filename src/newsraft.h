@@ -244,12 +244,11 @@ const wchar_t *write_section_entry(size_t index);
 int paint_section_entry(size_t index);
 bool unread_section_condition(size_t index);
 
+// See "feeds-parse.c" file for implementation.
+bool parse_feeds_file(void);
+
 // See "feeds.c" file for implementation.
-bool parse_feeds_file(const char *path);
 input_cmd_id enter_feeds_menu_loop(struct feed_line **new_feeds, size_t new_feeds_count);
-bool load_feeds(void);
-bool check_url_for_validity(const struct string *str);
-bool update_and_refresh_feed(struct feed_line *feed);
 const wchar_t *write_feed_entry(size_t index);
 int paint_feed_entry(size_t index);
 bool unread_feed_condition(size_t index);

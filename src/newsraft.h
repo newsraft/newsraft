@@ -331,6 +331,7 @@ const char *get_config_path(void);
 const char *get_db_path(void);
 
 // See "dates.c" file for implementation.
+bool get_local_offset_relative_to_utc(void);
 time_t parse_date_rfc822(const struct string *value);
 time_t parse_date_rfc3339(const char *src, size_t src_len);
 struct string *get_config_date_str(time_t date, enum config_entry_index format_index);

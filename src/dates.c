@@ -4,6 +4,8 @@
 #include <ctype.h>
 #include "newsraft.h"
 
+static time_t local_offset_to_utc;
+
 static time_t
 get_timezone_offset_relative_to_utc(const char *timezone_str)
 {
@@ -103,20 +105,11 @@ parse_date_rfc3339(const char *src, size_t src_len)
 	return time;
 }
 
-static inline time_t
-get_local_time_offset_relative_to_utc(void)
-{
-	time_t rawtime = time(NULL);
-	time_t offset = rawtime - mktime(gmtime(&rawtime));
-	INFO("Local time offset relative to UTC: %ld", offset);
-	return offset;
-}
-
 static inline struct string *
 get_formatted_date_string(time_t time, const char *format)
 {
 	char date_ptr[1000];
-	time_t local_time = time + get_local_time_offset_relative_to_utc();
+	time_t local_time = time + local_offset_to_utc;
 	size_t date_len = strftime(date_ptr, 1000, format, localtime(&local_time));
 	if (date_len == 0) {
 		FAIL("Failed to create date string!");
@@ -135,4 +128,28 @@ get_config_date_str(time_t date, enum config_entry_index format_index)
 {
 	const struct string *format = get_cfg_string(format_index);
 	return get_formatted_date_string(date, format->ptr);
+}
+
+bool
+get_local_offset_relative_to_utc(void)
+{
+	time_t epoch_seconds = time(NULL);
+	if (epoch_seconds == ((time_t) -1)) {
+		fputs("Failed to get system time!\n", stderr);
+		return false;
+	}
+	// We don't need to free result of gmtime! See ctime(3).
+	struct tm *utc_time = gmtime(&epoch_seconds);
+	if (utc_time == NULL) {
+		fputs("Failed to get UTC time structure!\n", stderr);
+		return false;
+	}
+	time_t utc_seconds = mktime(utc_time);
+	if (utc_seconds == ((time_t) -1)) {
+		fputs("Failed to get epoch time expressed in UTC!\n", stderr);
+		return false;
+	}
+	local_offset_to_utc = epoch_seconds - utc_seconds;
+	INFO("Local time offset relative to UTC is %ld.", local_offset_to_utc);
+	return true;
 }

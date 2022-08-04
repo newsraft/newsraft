@@ -38,6 +38,22 @@ Newsraft uses streaming parsers to process feeds, while Newsboat uses DOM
 parsers. Also Newsraft takes simpler approach to data structures, which also
 gives a small performance boost.
 
+#### Fully concurrent updates
+
+When updating feeds, Newsboat allows you to navigate the interface only if all
+feeds are being updated. In Newsraft, on the other hand, all feed updates are
+concurrent and even in the case of a single feed update you are free to navigate
+the interface.
+
+#### Human readable update progress
+
+When updating multiple feeds, Newsraft will represent update progress as a
+count of processed feeds at the moment. This behavior seems quite expected, but
+in Newsboat, when updating multiple feeds, "progress" count shows some internal
+feed position indexes of feeds, which in most cases are out of order. Therefore
+you end up observing random numbers changing one after another, which do not
+carry any information about update progress as such.
+
 #### 4 times smaller codebase
 
 Newsraft's source lines of code count is around 9k, while Newsboat's is around

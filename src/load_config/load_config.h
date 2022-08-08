@@ -34,6 +34,4 @@ bool set_cfg_wstring(size_t i, const struct string *value);
 void log_config_settings(void);
 
 input_cmd_id get_input_id_by_name(const char *name);
-
-bool verify_config_values(void);
 #endif // LOAD_CONFIG_H

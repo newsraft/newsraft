@@ -66,7 +66,7 @@ main(int argc, char **argv)
 	if (parse_feeds_file()                 == false) { error = 11; goto undo5;  }
 	if (curses_init()                      == false) { error = 12; goto undo5;  }
 	if (adjust_list_menu()                 == false) { error = 13; goto undo6;  }
-	if (adjust_list_menu_format_buffer()   == false) { error = 14; goto undo7;  }
+	if (create_format_buffers()            == false) { error = 14; goto undo7;  }
 	if (status_create()                    == false) { error = 15; goto undo8;  }
 	if (counter_create()                   == false) { error = 16; goto undo9;  }
 	if (initialize_threading()             == false) { error = 17; goto undo10; }
@@ -84,7 +84,7 @@ undo10:
 undo9:
 	status_delete();
 undo8:
-	free_list_menu_format_buffer();
+	free_format_buffers();
 undo7:
 	free_list_menu();
 undo6:

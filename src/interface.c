@@ -76,9 +76,6 @@ resize_counter_action(void)
 	if (adjust_list_menu() == false) {
 		return false;
 	}
-	if (adjust_list_menu_format_buffer() == false) {
-		return false;
-	}
 	if (status_resize() == false) {
 		return false;
 	}

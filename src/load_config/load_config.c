@@ -24,11 +24,5 @@ load_config(void)
 
 	log_config_settings();
 
-	if (verify_config_values() == false) {
-		fputs("Verification of the configuration failed!\n", stderr);
-		free_config();
-		return false;
-	}
-
 	return true;
 }

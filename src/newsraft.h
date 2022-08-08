@@ -23,7 +23,6 @@
 // Limits that will most likely never be reached, but are needed to avoid
 // unexpected crashes.
 #define MIME_TYPE_LENGTH_LIMIT 255
-#define FORMAT_STRING_LENGTH_LIMIT 1000
 
 struct string {
 	char *ptr;
@@ -273,10 +272,10 @@ void list_menu_select_prev_page(void);
 void list_menu_select_first(void);
 void list_menu_select_last(void);
 
-// See "interface-list-format.c" file for implementation.
+// See "format.c" file for implementation.
+bool create_format_buffers(void);
+void free_format_buffers(void);
 const wchar_t *do_format(const struct wstring *fmt, const struct format_arg *args);
-bool adjust_list_menu_format_buffer(void);
-void free_list_menu_format_buffer(void);
 
 // items
 struct items_list *generate_items_list(struct feed_line **feeds, size_t feeds_count, enum sorting_order order);
@@ -435,10 +434,11 @@ void close_deserialize_stream(struct deserialize_stream *stream);
 struct wstring *wcrtas(const wchar_t *src_ptr, size_t src_len);
 struct wstring *wcrtss(const struct wstring *src);
 struct wstring *wcrtes(void);
-bool wcatas(struct wstring *dest, const wchar_t *src_ptr, size_t src_len);
+bool wcpyas(struct wstring *dest, const wchar_t *src_ptr, size_t src_len);
 bool wcpyss(struct wstring *dest, const struct wstring *src);
-bool wcatcs(struct wstring *dest, wchar_t c);
+bool wcatas(struct wstring *dest, const wchar_t *src_ptr, size_t src_len);
 bool wcatss(struct wstring *dest, const struct wstring *src);
+bool wcatcs(struct wstring *dest, wchar_t c);
 void empty_wstring(struct wstring *wstr);
 void free_wstring(struct wstring *wstr);
 void trim_whitespace_from_wstring(struct wstring *wstr);

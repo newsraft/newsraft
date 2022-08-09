@@ -14,8 +14,7 @@ write_splitted_wstring_to_window(WINDOW *window, const struct wstring *wbuf)
 	const wchar_t *iter = wbuf->ptr;
 	const wchar_t *newline_char = wcschr(iter, L'\n');
 	while (newline_char != NULL) {
-		wmove(window, newlines_count++, 0);
-		waddnwstr(window, iter, newline_char - iter);
+		mvwaddnwstr(window, newlines_count++, 0, iter, newline_char - iter);
 		iter = newline_char + 1;
 		newline_char = wcschr(iter, L'\n');
 	}

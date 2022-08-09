@@ -133,10 +133,9 @@ _download-speed-limit_ (default: *0*)
 _update-threads-count_ (default: *0*)
 	Maximum number of update processes running simultaneously. If set to zero,
 	value of the setting is set automatically according to the following rule:
-	if output of the *nproc*(1) program is a positive interger which is greater
-	than *1*, setting value is set to *2*; otherwise setting value is set to
-	*1*. Values greater than 2 may reduce performance if there is not enough
-	network bandwidth available.
+	if your system has more than one processor online, setting value is set to
+	*2*; otherwise setting value is set to *1*. Values greater than *2* may
+	reduce performance if there is not enough network bandwidth available.
 
 _status-messages-count-limit_ (default: *10000*)
 	Maximum number of status messages stored in memory. Zero disables the limit.
@@ -423,7 +422,7 @@ Identifier of the X graphics display.
 
 # SEE ALSO
 
-*sqlite3*(1), *nproc*(1), *strftime*(3), *libcurl*(3), *libcurl-env*(3)
+*sqlite3*(1), *strftime*(3), *libcurl*(3), *libcurl-env*(3)
 
 # BUGS
 

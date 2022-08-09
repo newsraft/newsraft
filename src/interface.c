@@ -82,5 +82,6 @@ resize_counter_action(void)
 	if (counter_resize() == false) {
 		return false;
 	}
+	redraw_list_menu();
 	return true;
 }

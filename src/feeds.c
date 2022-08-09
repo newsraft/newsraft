@@ -112,22 +112,8 @@ enter_feeds_menu_loop(struct feed_line **new_feeds, size_t new_feeds_count)
 	const struct wstring *macro;
 	while (true) {
 		cmd = get_input_command(&count, &macro);
-		if (cmd == INPUT_SELECT_NEXT) {
-			list_menu_select_next();
-		} else if (cmd == INPUT_SELECT_PREV) {
-			list_menu_select_prev();
-		} else if (cmd == INPUT_SELECT_NEXT_UNREAD) {
-			list_menu_select_next_unread();
-		} else if (cmd == INPUT_SELECT_PREV_UNREAD) {
-			list_menu_select_prev_unread();
-		} else if (cmd == INPUT_SELECT_NEXT_PAGE) {
-			list_menu_select_next_page();
-		} else if (cmd == INPUT_SELECT_PREV_PAGE) {
-			list_menu_select_prev_page();
-		} else if (cmd == INPUT_SELECT_FIRST) {
-			list_menu_select_first();
-		} else if (cmd == INPUT_SELECT_LAST) {
-			list_menu_select_last();
+		if (handle_list_menu_navigation(cmd) == true) {
+			// rest a little
 		} else if (cmd == INPUT_MARK_READ) {
 			mark_selected_feed_read();
 		} else if (cmd == INPUT_MARK_UNREAD) {
@@ -155,8 +141,6 @@ enter_feeds_menu_loop(struct feed_line **new_feeds, size_t new_feeds_count)
 			if (cmd == INPUT_QUIT_HARD) {
 				break;
 			}
-		} else if (cmd == INPUT_RESIZE) {
-			redraw_list_menu();
 		} else if ((cmd == INPUT_QUIT_SOFT) || (cmd == INPUT_QUIT_HARD)) {
 			break;
 		}

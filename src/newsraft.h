@@ -263,14 +263,7 @@ size_t *enter_list_menu(int8_t menu_index, size_t new_entries_count);
 void leave_list_menu(void);
 void pause_list_menu(void);
 void resume_list_menu(void);
-void list_menu_select_next(void);
-void list_menu_select_prev(void);
-void list_menu_select_next_unread(void);
-void list_menu_select_prev_unread(void);
-void list_menu_select_next_page(void);
-void list_menu_select_prev_page(void);
-void list_menu_select_first(void);
-void list_menu_select_last(void);
+bool handle_list_menu_navigation(input_cmd_id cmd);
 
 // See "format.c" file for implementation.
 bool create_format_buffers(void);

@@ -13,7 +13,7 @@ GUMBO_LIBS     = -lgumbo
 # for static linking
 #LDFLAGS        = -static
 #CURL_LIBS      = -lcurl -lbrotlidec -lbrotlienc -lbrotlicommon -lssl -lcrypto -lnghttp2 -lz
-LDLIBS         = $(CURSES_LIBS) $(SQLITE_LIBS) $(CURL_LIBS) $(EXPAT_LIBS) $(YAJL_LIBS) $(GUMBO_LIBS)
+LDLIBS         = -lpthread $(CURSES_LIBS) $(SQLITE_LIBS) $(CURL_LIBS) $(EXPAT_LIBS) $(YAJL_LIBS) $(GUMBO_LIBS)
 DESTDIR        =
 PREFIX         = /usr/local
 NEWSRAFT_FLAGS = -DNEWSRAFT_VERSION=\"0.7\" -DNEWSRAFT_FORMAT_SUPPORT_ATOM10 -DNEWSRAFT_FORMAT_SUPPORT_RSS -DNEWSRAFT_FORMAT_SUPPORT_RSSCONTENT -DNEWSRAFT_FORMAT_SUPPORT_DUBLINCORE -DNEWSRAFT_FORMAT_SUPPORT_MEDIARSS -DNEWSRAFT_FORMAT_SUPPORT_YANDEX -DNEWSRAFT_FORMAT_SUPPORT_RBCNEWS -DNEWSRAFT_FORMAT_SUPPORT_ATOM03 -DNEWSRAFT_FORMAT_SUPPORT_GEORSS -DNEWSRAFT_FORMAT_SUPPORT_GEORSS_GML -DNEWSRAFT_FORMAT_SUPPORT_JSONFEED
@@ -32,12 +32,12 @@ install-doc: doc
 	install -Dm644 newsraft.1 -t $(DESTDIR)$(PREFIX)/share/man/man1
 
 newsraft: $(OBJECTS)
-	$(CC) -std=c99 -pthread $(CFLAGS) $(LDFLAGS) -o $@ $(OBJECTS) $(LDLIBS)
+	$(CC) -std=c99 $(CFLAGS) $(LDFLAGS) -o $@ $(OBJECTS) $(LDLIBS)
 
 doc: newsraft.1
 
 .c.o:
-	$(CC) -std=c99 -pthread $(CFLAGS) -Isrc -D_XOPEN_SOURCE=700 $(NEWSRAFT_FLAGS) -c -o $@ $<
+	$(CC) -std=c99 $(CFLAGS) -Isrc -D_XOPEN_SOURCE=700 $(NEWSRAFT_FLAGS) -c -o $@ $<
 
 newsraft.1: doc/newsraft.scd
 	scdoc < $< > $@

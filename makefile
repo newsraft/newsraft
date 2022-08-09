@@ -26,10 +26,10 @@ all: newsraft doc
 install: install-newsraft install-doc
 
 install-newsraft: newsraft
-	install -Dm755 newsraft -t $(DESTDIR)$(PREFIX)/bin
+	install -Dm755 newsraft $(DESTDIR)$(PREFIX)/bin/newsraft
 
 install-doc: doc
-	install -Dm644 newsraft.1 -t $(DESTDIR)$(PREFIX)/share/man/man1
+	install -Dm644 newsraft.1 $(DESTDIR)$(PREFIX)/share/man/man1/newsraft.1
 
 newsraft: $(OBJECTS)
 	$(CC) -std=c99 $(CFLAGS) $(LDFLAGS) -o $@ $(OBJECTS) $(LDLIBS)
@@ -40,7 +40,7 @@ doc: newsraft.1
 	$(CC) -std=c99 $(CFLAGS) -Isrc -D_XOPEN_SOURCE=700 $(NEWSRAFT_FLAGS) -c -o $@ $<
 
 newsraft.1: doc/newsraft.scd
-	scdoc < $< > $@
+	scdoc > $@ < $<
 
 clean:
 	rm -f newsraft newsraft.1 vlog flog $(OBJECTS)

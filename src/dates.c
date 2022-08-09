@@ -4,54 +4,51 @@
 #include <ctype.h>
 #include "newsraft.h"
 
-static time_t local_offset_to_utc;
+static int64_t local_offset_to_utc;
 
-static time_t
+static int64_t
 get_timezone_offset_relative_to_utc(const char *timezone_str)
 {
-	time_t offset = 0;
-	if ((timezone_str[0] == '+') || (timezone_str[0] == '-')) {
+	if ((*timezone_str == '+') || (*timezone_str == '-')) {
 		if (strlen(timezone_str) < 4) {
 			WARN("Numeric time offset is too short!");
 			return 0;
 		}
-		time_t hours, minutes;
+		int64_t hours = 0, minutes = 0;
 		if (timezone_str[3] == ':') {
-			sscanf(timezone_str + 1, "%2ld:%2ld", &hours, &minutes);
+			sscanf(timezone_str + 1, "%2" SCNd64 ":%2" SCNd64, &hours, &minutes);
 		} else {
-			sscanf(timezone_str + 1, "%2ld%2ld", &hours, &minutes);
+			sscanf(timezone_str + 1, "%2" SCNd64 "%2" SCNd64, &hours, &minutes);
 		}
-		offset = hours * 3600 + minutes * 60;
-		if (timezone_str[0] == '-') {
-			offset = -offset;
-		}
+		int64_t offset = hours * 3600 + minutes * 60;
+		return *timezone_str == '-' ? (-offset) : offset;
 	} else {
 		// (TODO) To add more abbreviations visit:
 		// https://web.archive.org/web/20210320090620/https://en.wikipedia.org/wiki/List_of_time_zone_abbreviations
 		if (strcmp(timezone_str, "EST") == 0) {
-			offset = -18000; // -5 * 3600
+			return -18000; // -5 * 3600
 		} else if (strcmp(timezone_str, "EDT") == 0) {
-			offset = -14400; // -4 * 3600
+			return -14400; // -4 * 3600
 		} else if (strcmp(timezone_str, "CST") == 0) {
-			offset = -21600; // -6 * 3600
+			return -21600; // -6 * 3600
 		} else if (strcmp(timezone_str, "CDT") == 0) {
-			offset = -18000; // -5 * 3600
+			return -18000; // -5 * 3600
 		} else if (strcmp(timezone_str, "MST") == 0) {
-			offset = -25200; // -7 * 3600
+			return -25200; // -7 * 3600
 		} else if (strcmp(timezone_str, "MDT") == 0) {
-			offset = -21600; // -6 * 3600
+			return -21600; // -6 * 3600
 		} else if (strcmp(timezone_str, "PST") == 0) {
-			offset = -28800; // -8 * 3600
+			return -28800; // -8 * 3600
 		} else if (strcmp(timezone_str, "PDT") == 0) {
-			offset = -25200; // -7 * 3600
+			return -25200; // -7 * 3600
 		} else if (strcmp(timezone_str, "A") == 0) {
-			offset = -3600;  // -1 * 3600
+			return -3600;  // -1 * 3600
 		} else if (strcmp(timezone_str, "M") == 0) {
-			offset = -43200; // -12 * 3600
+			return -43200; // -12 * 3600
 		} else if (strcmp(timezone_str, "N") == 0) {
-			offset = 3600;   // +1 * 3600
+			return 3600;   // +1 * 3600
 		} else if (strcmp(timezone_str, "Y") == 0) {
-			offset = 43200;  // +12 * 3600
+			return 43200;  // +12 * 3600
 		//} else if (strcmp(timezone_str, "Z") == 0) {
 			// offset = 0;
 		//} else if (strcmp(timezone_str, "UT") == 0) {
@@ -60,57 +57,50 @@ get_timezone_offset_relative_to_utc(const char *timezone_str)
 			// offset = 0;
 		}
 	}
-	return offset;
+	return 0;
 }
 
-// On success returns time of the date string.
-// On failure returns 0.
-time_t
+int64_t
 parse_date_rfc822(const struct string *value)
 {
-	if (value->len == 0) {
-		return 0;
+	if (value->len > 22) {
+		struct tm t = {0};
+		char *timezone_str = strptime(value->ptr, "%a, %d %b %Y %H:%M:%S ", &t);
+		if (timezone_str != NULL) {
+			int64_t time = (int64_t)mktime(&t);
+			if (time > 0) {
+				time -= get_timezone_offset_relative_to_utc(timezone_str);
+				return time > 0 ? time : 0;
+			}
+		}
 	}
-	struct tm t = {0};
-	char *timezone_str = strptime(value->ptr, "%a, %d %b %Y %H:%M:%S ", &t);
-	if (timezone_str == NULL) {
-		return 0;
-	}
-	time_t time = mktime(&t);
-	if (time == ((time_t) -1)) {
-		return 0;
-	}
-	time -= get_timezone_offset_relative_to_utc(timezone_str);
-	return time;
+	return 0;
 }
 
-// On success returns time of the date string.
-// On failure returns 0.
-time_t
+int64_t
 parse_date_rfc3339(const char *src, size_t src_len)
 {
-	if (src_len == 0) {
-		return 0;
+	if (src_len > 17) {
+		struct tm t = {0};
+		char *timezone_str = strptime(src, "%Y-%m-%dT%H:%M:%S", &t);
+		if (timezone_str != NULL) {
+			int64_t time = (int64_t)mktime(&t);
+			if (time > 0) {
+				time -= get_timezone_offset_relative_to_utc(timezone_str);
+				return time > 0 ? time : 0;
+			}
+		}
 	}
-	struct tm t = {0};
-	char *timezone_str = strptime(src, "%Y-%m-%dT%H:%M:%S", &t);
-	if (timezone_str == NULL) {
-		return 0;
-	}
-	time_t time = mktime(&t);
-	if (time == ((time_t) -1)) {
-		return 0;
-	}
-	time -= get_timezone_offset_relative_to_utc(timezone_str);
-	return time;
+	return 0;
 }
 
-static inline struct string *
-get_formatted_date_string(time_t time, const char *format)
+struct string *
+get_config_date_str(int64_t date, enum config_entry_index format_index)
 {
 	char date_ptr[1000];
-	time_t local_time = time + local_offset_to_utc;
-	size_t date_len = strftime(date_ptr, 1000, format, localtime(&local_time));
+	const struct string *format = get_cfg_string(format_index);
+	int64_t local_time = date + local_offset_to_utc;
+	size_t date_len = strftime(date_ptr, 1000, format->ptr, localtime((time_t *)&local_time));
 	if (date_len == 0) {
 		FAIL("Failed to create date string!");
 		return NULL;
@@ -123,33 +113,26 @@ get_formatted_date_string(time_t time, const char *format)
 	return date_str;
 }
 
-struct string *
-get_config_date_str(time_t date, enum config_entry_index format_index)
-{
-	const struct string *format = get_cfg_string(format_index);
-	return get_formatted_date_string(date, format->ptr);
-}
-
 bool
 get_local_offset_relative_to_utc(void)
 {
-	time_t epoch_seconds = time(NULL);
-	if (epoch_seconds == ((time_t) -1)) {
+	int64_t epoch_seconds = (int64_t)time(NULL);
+	if (epoch_seconds < 0) {
 		fputs("Failed to get system time!\n", stderr);
 		return false;
 	}
 	// We don't need to free result of gmtime! See ctime(3).
-	struct tm *utc_time = gmtime(&epoch_seconds);
+	struct tm *utc_time = gmtime((time_t *)&epoch_seconds);
 	if (utc_time == NULL) {
 		fputs("Failed to get UTC time structure!\n", stderr);
 		return false;
 	}
-	time_t utc_seconds = mktime(utc_time);
-	if (utc_seconds == ((time_t) -1)) {
+	int64_t utc_seconds = (int64_t)mktime(utc_time);
+	if (utc_seconds < 0) {
 		fputs("Failed to get epoch time expressed in UTC!\n", stderr);
 		return false;
 	}
 	local_offset_to_utc = epoch_seconds - utc_seconds;
-	INFO("Local time offset relative to UTC is %ld.", local_offset_to_utc);
+	INFO("Local time offset relative to UTC is %" PRId64 ".", local_offset_to_utc);
 	return true;
 }

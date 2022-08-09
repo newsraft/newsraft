@@ -103,7 +103,7 @@ undo0:
 static bool
 append_date(struct render_block **list, sqlite3_stmt *res, const struct data_entry *entry)
 {
-	time_t date = (time_t)sqlite3_column_int64(res, entry->column);
+	int64_t date = sqlite3_column_int64(res, entry->column);
 	if (date == 0) {
 		return true; // It is not an error because this item simply does not have this date set.
 	}

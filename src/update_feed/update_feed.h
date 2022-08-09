@@ -18,8 +18,8 @@ struct getfeed_item {
 	struct string *attachments;
 	struct string *persons;
 	struct string *extras;
-	time_t publication_date; // Publication date in seconds since the Epoch (0 means unset).
-	time_t update_date; // Update date in seconds since the Epoch (0 means unset).
+	int64_t publication_date; // Publication date in seconds since the Epoch (0 means unset).
+	int64_t update_date; // Update date in seconds since the Epoch (0 means unset).
 	struct getfeed_item *next;
 };
 
@@ -30,9 +30,9 @@ struct getfeed_feed {
 	struct string *attachments;
 	struct string *persons;
 	struct string *extras;
-	time_t download_date;
-	time_t update_date;
-	time_t time_to_live;
+	int64_t download_date;
+	int64_t update_date;
+	int64_t time_to_live;
 	struct string *http_header_etag;
 	int64_t http_header_last_modified;
 	int64_t http_header_expires;

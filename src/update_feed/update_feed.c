@@ -34,7 +34,7 @@ update_feed_action(void *arg)
 	int8_t status = DOWNLOAD_FAILED;
 	struct stream_callback_data data = {0};
 
-	if (time(&data.feed.download_date) == (time_t) -1) {
+	if (time((time_t *)&data.feed.download_date) == (time_t)-1) {
 		goto undo;
 	}
 

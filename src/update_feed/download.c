@@ -148,7 +148,7 @@ prepare_curl_for_performance(CURL *curl, const char *url, struct curl_slist *hea
 	if ((get_cfg_bool(CFG_SEND_IF_MODIFIED_SINCE_HEADER) == true) && (data->feed.http_header_last_modified > 0)) {
 		curl_easy_setopt(curl, CURLOPT_TIMEVALUE, data->feed.http_header_last_modified);
 		curl_easy_setopt(curl, CURLOPT_TIMECONDITION, CURL_TIMECOND_IFMODSINCE);
-		INFO("Attached header - If-Modified-Since: %ld (it was converted to date string).", data->feed.http_header_last_modified);
+		INFO("Attached header - If-Modified-Since: %" PRId64 " (it was converted to date string).", data->feed.http_header_last_modified);
 	}
 	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &parse_stream_callback);

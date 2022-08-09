@@ -32,12 +32,12 @@ install-doc: doc
 	install -Dm644 newsraft.1 -t $(DESTDIR)$(PREFIX)/share/man/man1
 
 newsraft: $(OBJECTS)
-	$(CC) -std=c99 $(CFLAGS) $(LDFLAGS) -o $@ $(OBJECTS) $(LDLIBS)
+	$(CC) -std=c99 -pthread $(CFLAGS) $(LDFLAGS) -o $@ $(OBJECTS) $(LDLIBS)
 
 doc: newsraft.1
 
 .c.o:
-	$(CC) -std=c99 $(CFLAGS) -Isrc -D_XOPEN_SOURCE=700 $(NEWSRAFT_FLAGS) -c -o $@ $<
+	$(CC) -std=c99 -pthread $(CFLAGS) -Isrc -D_XOPEN_SOURCE=700 $(NEWSRAFT_FLAGS) -c -o $@ $<
 
 newsraft.1: doc/newsraft.scd
 	scdoc < $< > $@

@@ -40,7 +40,7 @@ doc: newsraft.1
 	$(CC) -std=c99 $(CFLAGS) -Isrc -D_XOPEN_SOURCE=700 $(NEWSRAFT_FLAGS) -c -o $@ $<
 
 newsraft.1: doc/newsraft.scd
-	scdoc > $@ < $<
+	scdoc < doc/newsraft.scd > newsraft.1
 
 clean:
 	rm -f newsraft newsraft.1 vlog flog $(OBJECTS)

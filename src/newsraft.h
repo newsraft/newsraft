@@ -5,7 +5,7 @@
 #include <inttypes.h>
 #include <time.h>
 #include <wchar.h>
-#include <ncurses.h>
+#include <curses.h>
 #include <sqlite3.h>
 
 #ifndef NEWSRAFT_VERSION

@@ -32,11 +32,11 @@ create_color_pairs(void)
 int
 get_color_pair(config_entry_id id)
 {
-	return paint_it_black == true ? A_NORMAL : colors[id / 2].pair;
+	return paint_it_black == true ? (int)A_NORMAL : colors[id / 2].pair;
 }
 
 int
 get_reversed_color_pair(config_entry_id id)
 {
-	return paint_it_black == true ? A_REVERSE : colors[id / 2].reverse_pair;
+	return paint_it_black == true ? (int)A_REVERSE : colors[id / 2].reverse_pair;
 }

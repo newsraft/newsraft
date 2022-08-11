@@ -5,6 +5,7 @@ struct color_assignment {
 	int reverse_pair;
 };
 
+static bool paint_it_black = true; // maybe then i'll fade away and not have to face the facts
 static struct color_assignment colors[NEWSRAFT_COLOR_PAIRS_COUNT];
 
 bool
@@ -24,17 +25,18 @@ create_color_pairs(void)
 		}
 		colors[i].reverse_pair = COLOR_PAIR(j + 1);
 	}
+	paint_it_black = false;
 	return true;
 }
 
 int
 get_color_pair(config_entry_id id)
 {
-	return colors[id / 2].pair;
+	return paint_it_black == true ? A_NORMAL : colors[id / 2].pair;
 }
 
 int
 get_reversed_color_pair(config_entry_id id)
 {
-	return colors[id / 2].reverse_pair;
+	return paint_it_black == true ? A_REVERSE : colors[id / 2].reverse_pair;
 }

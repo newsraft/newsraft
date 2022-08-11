@@ -38,10 +38,6 @@ curses_init(void)
 		fputs("Initialization of curses data structures failed!\n", stderr);
 		return false;
 	}
-	if (start_color() == ERR) {
-		fputs("Initialization of curses color structures failed!\n", stderr);
-		return false;
-	}
 	if (cbreak() == ERR) {
 		fputs("Can not disable line buffering and erase/kill character-processing!\n", stderr);
 		return false;
@@ -50,15 +46,16 @@ curses_init(void)
 		fputs("Invalid terminal size obtained!\n", stderr);
 		return false;
 	}
-	if (create_color_pairs() == false) {
-		fputs("Can not create color pairs!\n", stderr);
-		return false;
-	}
 	if (curs_set(0) == ERR) {
 		WARN("Can't hide cursor!");
 	}
 	if (noecho() == ERR) {
 		WARN("Can't disable echoing of characters typed by the user!");
+	}
+	if (start_color() == ERR) {
+		WARN("Initialization of curses color structures failed!");
+	} else if (create_color_pairs() == false) {
+		WARN("Can't create color pairs!");
 	}
 	return true;
 }

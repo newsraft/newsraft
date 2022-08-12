@@ -77,8 +77,8 @@ convert_seconds_to_human_readable_duration_string(const char *value)
 }
 
 // Return codes correspond to:
-// [0; +inf] link was added successfully with that index
-// {-1}      memory failure
+// [0; INT64_MAX] link was added successfully with that index
+// {-1}           memory failure
 int64_t
 add_another_url_to_trim_link_list(struct link_list *links, const char *url, size_t url_len)
 {
@@ -259,9 +259,9 @@ generate_link_list_string_for_pager(const struct link_list *links)
 		}
 
 		appended_size = false;
-		if ((links->list[i].size != NULL) &&
-		    (links->list[i].size->len != 0) &&
-		    (strcmp(links->list[i].size->ptr, "0") != 0))
+		if ((links->list[i].size != NULL)
+			&& (links->list[i].size->len != 0)
+			&& (strcmp(links->list[i].size->ptr, "0") != 0))
 		{
 			readable_string = convert_bytes_to_human_readable_size_string(links->list[i].size->ptr);
 			if (readable_string != NULL) {
@@ -278,9 +278,9 @@ generate_link_list_string_for_pager(const struct link_list *links)
 		}
 
 		appended_duration = false;
-		if ((links->list[i].duration != NULL) &&
-		    (links->list[i].duration->len != 0) &&
-		    (strcmp(links->list[i].duration->ptr, "0") != 0))
+		if ((links->list[i].duration != NULL)
+			&& (links->list[i].duration->len != 0)
+			&& (strcmp(links->list[i].duration->ptr, "0") != 0))
 		{
 			readable_string = convert_seconds_to_human_readable_duration_string(links->list[i].duration->ptr);
 			if (readable_string != NULL) {
@@ -296,9 +296,9 @@ generate_link_list_string_for_pager(const struct link_list *links)
 			}
 		}
 
-		if ((appended_type == true) ||
-		    (appended_size == true) ||
-		    (appended_duration == true))
+		if ((appended_type == true)
+			|| (appended_size == true)
+			|| (appended_duration == true))
 		{
 			if (catcs(str, ')') == false) {
 				goto error;

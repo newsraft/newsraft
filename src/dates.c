@@ -23,9 +23,14 @@ get_timezone_offset_relative_to_utc(const char *timezone_str)
 		int64_t offset = hours * 3600 + minutes * 60;
 		return *timezone_str == '-' ? (-offset) : offset;
 	} else {
-		// (TODO) To add more abbreviations visit:
-		// https://web.archive.org/web/20210320090620/https://en.wikipedia.org/wiki/List_of_time_zone_abbreviations
-		if (strcmp(timezone_str, "EST") == 0) {
+		// Note to the future.
+		// Check only for timezones that are mentioned in RFC 822,
+		// otherwise it will grow into a mess very fast.
+		if (strcmp(timezone_str, "UT") == 0) {
+			return 0;
+		} else if (strcmp(timezone_str, "GMT") == 0) {
+			return 0;
+		} else if (strcmp(timezone_str, "EST") == 0) {
 			return -18000; // -5 * 3600
 		} else if (strcmp(timezone_str, "EDT") == 0) {
 			return -14400; // -4 * 3600
@@ -41,6 +46,8 @@ get_timezone_offset_relative_to_utc(const char *timezone_str)
 			return -28800; // -8 * 3600
 		} else if (strcmp(timezone_str, "PDT") == 0) {
 			return -25200; // -7 * 3600
+		} else if (strcmp(timezone_str, "Z") == 0) {
+			return 0;
 		} else if (strcmp(timezone_str, "A") == 0) {
 			return -3600;  // -1 * 3600
 		} else if (strcmp(timezone_str, "M") == 0) {
@@ -49,12 +56,6 @@ get_timezone_offset_relative_to_utc(const char *timezone_str)
 			return 3600;   // +1 * 3600
 		} else if (strcmp(timezone_str, "Y") == 0) {
 			return 43200;  // +12 * 3600
-		//} else if (strcmp(timezone_str, "Z") == 0) {
-			// offset = 0;
-		//} else if (strcmp(timezone_str, "UT") == 0) {
-			// offset = 0;
-		//} else if (strcmp(timezone_str, "GMT") == 0) {
-			// offset = 0;
 		}
 	}
 	return 0;

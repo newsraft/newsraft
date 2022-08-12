@@ -80,7 +80,6 @@ enter_item_pager_view_loop(int64_t rowid)
 	if (block == NULL) {
 		return INPUTS_COUNT;
 	}
-	reverse_render_blocks(&block);
 	const int pager_result = pager_view(block, &custom_input_handler, (void *)&links);
 	free_render_blocks(block);
 	free_trim_link_list(&links);

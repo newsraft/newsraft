@@ -50,7 +50,7 @@ unread_feed_condition(size_t index)
 	return feeds[index]->unread_count > 0 ? true : false;
 }
 
-static void
+static inline void
 update_unread_items_count(size_t index)
 {
 	int64_t new_unread_count = get_unread_items_count_of_the_feed(feeds[index]->link);

@@ -45,24 +45,13 @@ join_render_block(struct render_block **list, const char *content, size_t conten
 		return false;
 	}
 	new_entry->content_type = content_type;
-	new_entry->next = *list;
-	*list = new_entry;
-	return true;
-}
-
-void
-reverse_render_blocks(struct render_block **list)
-{
-	struct render_block *prev = NULL;
-	struct render_block *current = *list;
-	struct render_block *next = NULL;
-	while (current != NULL) {
-		next = current->next;
-		current->next = prev;
-		prev = current;
-		current = next;
+	new_entry->next = NULL;
+	struct render_block **last_block = list;
+	while (*last_block != NULL) {
+		last_block = &((*last_block)->next);
 	}
-	*list = prev;
+	*last_block = new_entry;
+	return true;
 }
 
 bool

@@ -113,8 +113,11 @@ copy_feed_to_global_section(const struct feed_line *feed)
 	if (sections[0].feeds[feed_index]->link == NULL) {
 		return NULL;
 	}
-	// TODO check error of get_unread_items_count_of_the_feed
-	sections[0].feeds[feed_index]->unread_count = get_unread_items_count_of_the_feed(sections[0].feeds[feed_index]->link);
+	int64_t new_unread_count = get_unread_items_count_of_the_feed(sections[0].feeds[feed_index]->link);
+	if (new_unread_count < 0) {
+		return NULL;
+	}
+	sections[0].feeds[feed_index]->unread_count = new_unread_count;
 	return sections[0].feeds[feed_index];
 }
 

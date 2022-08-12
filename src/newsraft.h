@@ -20,10 +20,6 @@
 #define FAIL(...) do { if (log_stream) { fputs("[FAIL] ", log_stream); fprintf(log_stream, __VA_ARGS__); fputc('\n', log_stream); } } while (0)
 #define MIN(A, B) ((A) < (B) ? (A) : (B))
 
-// Limits that will most likely never be reached, but are needed to avoid
-// unexpected crashes.
-#define MIME_TYPE_LENGTH_LIMIT 255
-
 struct string {
 	char *ptr;
 	size_t len;
@@ -286,7 +282,6 @@ void mark_selected_item_read(void);
 // See "render-block.c" file for implementation.
 int8_t get_content_type_by_string(const char *type);
 bool join_render_block(struct render_block **list, const char *content, size_t content_len, int8_t content_type);
-void reverse_render_blocks(struct render_block **list);
 bool join_render_separator(struct render_block **list);
 void free_render_blocks(struct render_block *first_block);
 
@@ -302,9 +297,13 @@ struct string *generate_link_list_string_for_pager(const struct link_list *links
 int64_t add_another_url_to_trim_link_list(struct link_list *links, const char *url, size_t url_len);
 void free_trim_link_list(const struct link_list *links);
 
-// pager
+// See "interface-pager.c" file for implementation.
 int pager_view(const struct render_block *first_block, bool (*custom_input_handler)(void *, input_cmd_id, uint32_t, const struct wstring *), void *data);
+
+// See "interface-pager-item.c" file for implementation.
 int enter_item_pager_view_loop(int64_t rowid);
+
+// See "interface-pager-status.c" file for implementation.
 int enter_status_pager_view_loop(void);
 
 // See "threading.c" file for implementation.

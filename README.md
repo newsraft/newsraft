@@ -18,7 +18,7 @@ counterpart. The design differences betwen these projects are mentioned in the
 | [gumbo](https://github.com/google/gumbo-parser)  | >= 0.10.1 | required               |
 | C compiler                                       | Any C99   | required at build-time |
 | make                                             | Any POSIX | required at build-time |
-| [scdoc](https://git.sr.ht/~sircmpwn/scdoc)       | >= 1.11.2 | optional at build-time |
+| [scdoc](https://git.sr.ht/~sircmpwn/scdoc)       | >= 1.9.1  | optional at build-time |
 
 ## Building
 

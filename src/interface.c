@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include "newsraft.h"
 
 static bool
@@ -52,7 +53,9 @@ curses_init(void)
 	if (noecho() == ERR) {
 		WARN("Can't disable echoing of characters typed by the user!");
 	}
-	if (start_color() == ERR) {
+	if (getenv("NO_COLOR") != NULL) {
+		INFO("NO_COLOR environment variable is set, canceling colors initialization.");
+	} else if (start_color() == ERR) {
 		WARN("Initialization of curses color structures failed!");
 	} else if (create_color_pairs() == false) {
 		WARN("Can't create color pairs!");

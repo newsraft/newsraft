@@ -420,6 +420,10 @@ Identifier of the Wayland graphics display.
 
 Identifier of the X graphics display.
 
+## NO_COLOR
+
+Setting that forcibly makes the interface monochrome when set.
+
 # SEE ALSO
 
 *sqlite3*(1), *strftime*(3), *libcurl*(3), *libcurl-env*(3)

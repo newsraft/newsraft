@@ -8,7 +8,7 @@ static size_t update_queue_fails_count;
 
 static pthread_t queue_worker_thread;
 static bool queue_worker_is_active = false;
-static bool queue_worker_is_joined = true;
+static bool queue_worker_was_active_at_least_once = false;
 
 static pthread_mutex_t queue_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t update_lock = PTHREAD_MUTEX_INITIALIZER;
@@ -117,33 +117,32 @@ static void *
 start_processing_queue(void *arg)
 {
 	(void)arg;
-	queue_worker_is_active = true;
 	update_queue_progress = 0;
 	update_queue_fails_count = 0;
 
-	while (update_queue_progress != update_queue_length) {
-		info_status("(%zu/%zu) Loading %s", \
-			update_queue_progress + 1, update_queue_length, update_queue[update_queue_progress]->link->ptr);
+	while (true) {
 		branch_update_feed_action_into_thread(&update_feed_action, update_queue[update_queue_progress]);
 		pthread_mutex_lock(&queue_lock);
+		info_status("(%zu/%zu) Loading %s", update_queue_progress + 1, update_queue_length, update_queue[update_queue_progress]->link->ptr);
 		update_queue_progress += 1;
+		if (update_queue_progress == update_queue_length) {
+			queue_worker_is_active = false;
+			update_queue_length = 0;
+			free(update_queue);
+			update_queue = NULL;
+			pthread_mutex_unlock(&queue_lock);
+			break;
+		}
 		pthread_mutex_unlock(&queue_lock);
 	}
 
 	wait_for_all_threads_to_finish();
 
-	pthread_mutex_lock(&queue_lock);
 	if (update_queue_fails_count != 0) {
 		fail_status("Failed to update %zu feeds (check out status history for more details)", update_queue_fails_count);
 	} else {
 		status_clean();
 	}
-	free(update_queue);
-	update_queue_length = 0;
-	update_queue = NULL;
-	pthread_mutex_unlock(&queue_lock);
-	queue_worker_is_active = false;
-	queue_worker_is_joined = false;
 	return NULL;
 }
 
@@ -161,10 +160,11 @@ update_feeds(struct feed_line **feeds, size_t feeds_count)
 	pthread_mutex_unlock(&queue_lock);
 
 	if (queue_worker_is_active == false) {
-		if (queue_worker_is_joined == false) {
+		if (queue_worker_was_active_at_least_once == true) {
 			pthread_join(queue_worker_thread, NULL);
-			queue_worker_is_joined = true;
 		}
+		queue_worker_is_active = true;
 		pthread_create(&queue_worker_thread, NULL, &start_processing_queue, NULL);
+		queue_worker_was_active_at_least_once = true;
 	}
 }

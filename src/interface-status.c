@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <pthread.h>
 #include "newsraft.h"
 
 enum {
@@ -17,6 +18,7 @@ static bool status_window_is_clean;
 static struct status_message *messages;
 static size_t messages_count;
 static size_t messages_limit;
+static pthread_mutex_t write_lock = PTHREAD_MUTEX_INITIALIZER;
 
 static inline WINDOW *
 create_status_window(void)
@@ -108,51 +110,30 @@ append_new_message_to_status_messages(int8_t new_condition, struct string *new_m
 	return true;
 }
 
-static inline void
-status_write(int8_t condition, const char *format, va_list args)
+void
+status_write(int8_t condition, const char *format, ...)
 {
+	pthread_mutex_lock(&write_lock);
+	va_list args;
+	va_start(args, format);
 	struct string *new_message = crtes();
 	if (new_message == NULL) {
-		return;
+		goto undo;
 	}
 	if (string_vprintf(new_message, format, args) == false) {
 		free_string(new_message);
-		return;
+		goto undo;
 	}
 	if (append_new_message_to_status_messages(condition, new_message) == false) {
 		free_string(new_message);
-		return;
+		goto undo;
 	}
 	INFO("Last status message: %s", new_message->ptr);
 	status_window_is_clean = false;
 	status_update();
-}
-
-void
-good_status(const char *format, ...)
-{
-	va_list args;
-	va_start(args, format);
-	status_write(STATUS_GOOD, format, args);
+undo:
 	va_end(args);
-}
-
-void
-info_status(const char *format, ...)
-{
-	va_list args;
-	va_start(args, format);
-	status_write(STATUS_INFO, format, args);
-	va_end(args);
-}
-
-void
-fail_status(const char *format, ...)
-{
-	va_list args;
-	va_start(args, format);
-	status_write(STATUS_FAIL, format, args);
-	va_end(args);
+	pthread_mutex_unlock(&write_lock);
 }
 
 void

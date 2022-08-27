@@ -18,6 +18,9 @@
 #define INFO(...) do { if (log_stream) { fputs("[INFO] ", log_stream); fprintf(log_stream, __VA_ARGS__); fputc('\n', log_stream); } } while (0)
 #define WARN(...) do { if (log_stream) { fputs("[WARN] ", log_stream); fprintf(log_stream, __VA_ARGS__); fputc('\n', log_stream); } } while (0)
 #define FAIL(...) do { if (log_stream) { fputs("[FAIL] ", log_stream); fprintf(log_stream, __VA_ARGS__); fputc('\n', log_stream); } } while (0)
+#define good_status(...) status_write(0, __VA_ARGS__)
+#define info_status(...) status_write(1, __VA_ARGS__)
+#define fail_status(...) status_write(2, __VA_ARGS__)
 #define MIN(A, B) ((A) < (B) ? (A) : (B))
 
 struct string {
@@ -371,9 +374,7 @@ bool assign_default_binds(void);
 // See "interface-status.c" file for implementation.
 bool status_create(void);
 void status_update(void);
-void good_status(const char *format, ...);
-void info_status(const char *format, ...);
-void fail_status(const char *format, ...);
+void status_write(int8_t condition, const char *format, ...);
 void status_clean(void);
 bool status_resize(void);
 void status_delete(void);

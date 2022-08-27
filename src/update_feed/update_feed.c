@@ -3,7 +3,6 @@
 
 static struct feed_line **update_queue = NULL;
 static size_t update_queue_length = 0;
-static size_t update_queue_progress;
 static size_t update_queue_fails_count;
 
 static pthread_t queue_worker_thread;
@@ -117,26 +116,29 @@ static void *
 start_processing_queue(void *arg)
 {
 	(void)arg;
-	update_queue_progress = 0;
+	size_t update_queue_progress = 0;
 	update_queue_fails_count = 0;
 
-	while (true) {
+here_we_go_again:
+	while (update_queue_progress != update_queue_length) {
 		branch_update_feed_action_into_thread(&update_feed_action, update_queue[update_queue_progress]);
-		pthread_mutex_lock(&queue_lock);
 		info_status("(%zu/%zu) Loading %s", update_queue_progress + 1, update_queue_length, update_queue[update_queue_progress]->link->ptr);
 		update_queue_progress += 1;
-		if (update_queue_progress == update_queue_length) {
-			queue_worker_is_active = false;
-			update_queue_length = 0;
-			free(update_queue);
-			update_queue = NULL;
-			pthread_mutex_unlock(&queue_lock);
-			break;
-		}
-		pthread_mutex_unlock(&queue_lock);
 	}
 
 	wait_for_all_threads_to_finish();
+
+	pthread_mutex_lock(&queue_lock);
+	if (update_queue_progress != update_queue_length) {
+		// Something was added to the queue while the last feeds were updating.
+		pthread_mutex_unlock(&queue_lock);
+		goto here_we_go_again;
+	}
+	queue_worker_is_active = false;
+	update_queue_length = 0;
+	free(update_queue);
+	update_queue = NULL;
+	pthread_mutex_unlock(&queue_lock);
 
 	if (update_queue_fails_count != 0) {
 		fail_status("Failed to update %zu feeds (check out status history for more details)", update_queue_fails_count);

@@ -1,5 +1,5 @@
 .POSIX:
-.PHONY: all install install-newsraft install-doc doc clean
+.PHONY: all install install-newsraft install-doc install-examples doc clean
 
 CC             = cc
 CFLAGS         = -O3
@@ -23,13 +23,17 @@ OBJECTS = src/interface-list.o src/path.o src/db.o src/load_config/config-parse-
 
 all: newsraft doc
 
-install: install-newsraft install-doc
+install: install-newsraft install-doc install-examples
 
 install-newsraft: newsraft
 	install -Dm755 newsraft $(DESTDIR)$(PREFIX)/bin/newsraft
 
 install-doc: doc
 	install -Dm644 newsraft.1 $(DESTDIR)$(PREFIX)/share/man/man1/newsraft.1
+
+install-examples:
+	install -Dm644 examples/feeds $(DESTDIR)$(PREFIX)/share/newsraft/examples/feeds
+	install -Dm644 examples/config $(DESTDIR)$(PREFIX)/share/newsraft/examples/config
 
 newsraft: $(OBJECTS)
 	$(CC) -std=c99 $(CFLAGS) $(LDFLAGS) -o $@ $(OBJECTS) $(LDLIBS)

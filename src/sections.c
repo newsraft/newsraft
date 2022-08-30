@@ -32,11 +32,7 @@ write_section_entry(size_t index)
 int
 paint_section_entry(size_t index)
 {
-	if (sections[index].unread_count > 0) {
-		return CFG_COLOR_LIST_SECTION_UNREAD_FG;
-	} else {
-		return CFG_COLOR_LIST_SECTION_FG;
-	}
+	return sections[index].unread_count > 0 ? CFG_COLOR_LIST_SECTION_UNREAD_FG : CFG_COLOR_LIST_SECTION_FG;
 }
 
 bool

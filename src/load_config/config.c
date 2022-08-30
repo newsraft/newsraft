@@ -85,7 +85,7 @@ static struct config_entry config[] = {
 config_entry_id
 find_config_entry_by_name(const char *name)
 {
-	for (size_t i = 0; config[i].name != NULL; ++i) {
+	for (config_entry_id i = 0; config[i].name != NULL; ++i) {
 		if (strcmp(name, config[i].name) == 0) {
 			return i;
 		}
@@ -93,40 +93,22 @@ find_config_entry_by_name(const char *name)
 	return CFG_ENTRIES_COUNT;
 }
 
-static inline bool
-assign_default_value_to_config_string(size_t i)
-{
-	config[i].value.s.actual = crtas(config[i].value.s.primary, config[i].value.s.primary_len);
-	if (config[i].value.s.actual == NULL) {
-		return false;
-	}
-	return true;
-}
-
-static inline bool
-assign_default_value_to_config_wstring(size_t i)
-{
-	config[i].value.w.actual = wcrtas(config[i].value.w.primary, config[i].value.w.primary_len);
-	if (config[i].value.w.actual == NULL) {
-		return false;
-	}
-	return true;
-}
-
 bool
 assign_default_values_to_null_config_strings(void)
 {
 	INFO("Assigning default values to NULL config strings.");
-	for (size_t i = 0; config[i].name != NULL; ++i) {
+	for (config_entry_id i = 0; config[i].name != NULL; ++i) {
 		if (config[i].type == CFG_STRING) {
 			if (config[i].value.s.actual == NULL) {
-				if (assign_default_value_to_config_string(i) == false) {
+				config[i].value.s.actual = crtas(config[i].value.s.primary, config[i].value.s.primary_len);
+				if (config[i].value.s.actual == NULL) {
 					return false;
 				}
 			}
 		} else if (config[i].type == CFG_WSTRING) {
 			if (config[i].value.w.actual == NULL) {
-				if (assign_default_value_to_config_wstring(i) == false) {
+				config[i].value.w.actual = wcrtas(config[i].value.w.primary, config[i].value.w.primary_len);
+				if (config[i].value.w.actual == NULL) {
 					return false;
 				}
 			}
@@ -162,7 +144,7 @@ void
 free_config(void)
 {
 	INFO("Freeing configuration strings.");
-	for (size_t i = 0; config[i].name != NULL; ++i) {
+	for (config_entry_id i = 0; config[i].name != NULL; ++i) {
 		if (config[i].type == CFG_STRING) {
 			free_string(config[i].value.s.actual);
 		} else if (config[i].type == CFG_WSTRING) {
@@ -175,7 +157,7 @@ void
 log_config_settings(void)
 {
 	INFO("Current configuration settings:");
-	for (size_t i = 0; config[i].name != NULL; ++i) {
+	for (config_entry_id i = 0; config[i].name != NULL; ++i) {
 		if (config[i].type == CFG_BOOL) {
 			INFO("%s = %d", config[i].name, config[i].value.b);
 		} else if (config[i].type == CFG_UINT) {
@@ -189,73 +171,73 @@ log_config_settings(void)
 }
 
 config_type_id
-get_cfg_type(size_t i)
+get_cfg_type(config_entry_id i)
 {
 	return config[i].type;
 }
 
 const char *
-get_cfg_name(size_t i)
+get_cfg_name(config_entry_id i)
 {
 	return config[i].name;
 }
 
 bool
-get_cfg_bool(size_t i)
+get_cfg_bool(config_entry_id i)
 {
 	return config[i].value.b;
 }
 
 size_t
-get_cfg_uint(size_t i)
+get_cfg_uint(config_entry_id i)
 {
 	return config[i].value.u;
 }
 
 int
-get_cfg_color(size_t i)
+get_cfg_color(config_entry_id i)
 {
 	return config[i].value.c;
 }
 
 const struct string *
-get_cfg_string(size_t i)
+get_cfg_string(config_entry_id i)
 {
 	return config[i].value.s.actual;
 }
 
 const struct wstring *
-get_cfg_wstring(size_t i)
+get_cfg_wstring(config_entry_id i)
 {
 	return config[i].value.w.actual;
 }
 
 void
-set_cfg_bool(size_t i, bool value)
+set_cfg_bool(config_entry_id i, bool value)
 {
 	config[i].value.b = value;
 }
 
 void
-set_cfg_uint(size_t i, size_t value)
+set_cfg_uint(config_entry_id i, size_t value)
 {
 	config[i].value.u = value;
 }
 
 void
-set_cfg_color(size_t i, int value)
+set_cfg_color(config_entry_id i, int value)
 {
 	config[i].value.c = value;
 }
 
 bool
-set_cfg_string(size_t i, const struct string *value)
+set_cfg_string(config_entry_id i, const struct string *value)
 {
 	return crtss_or_cpyss(&config[i].value.s.actual, value);
 }
 
 bool
-set_cfg_wstring(size_t i, const struct string *value)
+set_cfg_wstring(config_entry_id i, const struct string *value)
 {
 	struct wstring *wstr = convert_string_to_wstring(value);
 	if (wstr == NULL) {

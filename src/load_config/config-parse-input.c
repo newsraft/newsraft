@@ -34,9 +34,9 @@ static const struct input_entry_match entries[] = {
 };
 
 input_cmd_id
-get_input_id_by_name(const char *name)
+get_input_cmd_id_by_name(const char *name)
 {
-	for (size_t i = 0; entries[i].name != NULL; ++i) {
+	for (uint8_t i = 0; entries[i].name != NULL; ++i) {
 		if (strcmp(name, entries[i].name) == 0) {
 			return entries[i].value;
 		}

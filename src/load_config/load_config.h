@@ -24,14 +24,14 @@ bool generate_copy_to_clipboard_command_string(struct string *cmd);
 bool assign_default_values_to_null_config_strings(void);
 bool assign_calculated_values_to_auto_config_strings(void);
 
-config_type_id get_cfg_type(size_t i);
-void set_cfg_bool(size_t i, bool value);
-void set_cfg_uint(size_t i, size_t value);
-void set_cfg_color(size_t i, int value);
-bool set_cfg_string(size_t i, const struct string *value);
-bool set_cfg_wstring(size_t i, const struct string *value);
+config_type_id get_cfg_type(config_entry_id i);
+void set_cfg_bool(config_entry_id i, bool value);
+void set_cfg_uint(config_entry_id i, size_t value);
+void set_cfg_color(config_entry_id i, int value);
+bool set_cfg_string(config_entry_id i, const struct string *value);
+bool set_cfg_wstring(config_entry_id i, const struct string *value);
 
 void log_config_settings(void);
 
-input_cmd_id get_input_id_by_name(const char *name);
+input_cmd_id get_input_cmd_id_by_name(const char *name);
 #endif // LOAD_CONFIG_H

@@ -37,11 +37,7 @@ write_feed_entry(size_t index)
 int
 paint_feed_entry(size_t index)
 {
-	if (feeds[index]->unread_count > 0) {
-		return CFG_COLOR_LIST_FEED_UNREAD_FG;
-	} else {
-		return CFG_COLOR_LIST_FEED_FG;
-	}
+	return feeds[index]->unread_count > 0 ? CFG_COLOR_LIST_FEED_UNREAD_FG : CFG_COLOR_LIST_FEED_FG;
 }
 
 bool

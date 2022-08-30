@@ -446,12 +446,12 @@ void log_stop(int error_code);
 // Parse config file, fill out config_data structure, bind keys to actions.
 // See "load_config" directory for implementation.
 bool load_config(void);
-const char *get_cfg_name(size_t i);
-bool get_cfg_bool(size_t i);
-size_t get_cfg_uint(size_t i);
-int get_cfg_color(size_t i);
-const struct string *get_cfg_string(size_t i);
-const struct wstring *get_cfg_wstring(size_t i);
+const char *get_cfg_name(config_entry_id i);
+bool get_cfg_bool(config_entry_id i);
+size_t get_cfg_uint(config_entry_id i);
+int get_cfg_color(config_entry_id i);
+const struct string *get_cfg_string(config_entry_id i);
+const struct wstring *get_cfg_wstring(config_entry_id i);
 void free_config(void);
 
 // Download, process and store new items of feed.

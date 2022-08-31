@@ -36,20 +36,17 @@ make install
 
 ## Learning more
 
-The main source of information about Newsraft is its man page. If you've built
-Newsraft from source with `scdoc` dependency, man page must be located in the
-build directory. Alternatively you can try to read it in the raw scdoc format at
-[doc/newsraft.scd](https://codeberg.org/grisha/newsraft/src/branch/main/doc/newsraft.scd).
-Examples on how to configure Newsraft are located in the
-[examples](https://codeberg.org/grisha/newsraft/src/branch/main/examples) directory.
+The essential source of information about Newsraft is its man page. If you've
+built Newsraft from source with scdoc dependency, the man page should've been
+generated in the project directory. Alternatively you can try to read
+[doc/newsraft.scd](https://codeberg.org/grisha/newsraft/src/branch/main/doc/newsraft.scd)
+scdoc file which is used to generate the man page.
 
-If you still have any questions, feel free to ask them in the #newsraft IRC
-channel which is hosted on the [OFTC](https://www.oftc.net) network. Waiting for
-the response may take some time, stay connected!
+Examples on how to configure Newsraft are located in the
+[examples](https://codeberg.org/grisha/newsraft/src/branch/main/examples)
+directory.
 
 ## Contributing
-
-Helping others: [doc/contributing-support.md](https://codeberg.org/grisha/newsraft/src/branch/main/doc/contributing-support.md)
 
 Reporting bugs: [doc/contributing-report.md](https://codeberg.org/grisha/newsraft/src/branch/main/doc/contributing-report.md)
 

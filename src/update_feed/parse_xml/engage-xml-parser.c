@@ -214,7 +214,7 @@ engage_xml_parser(struct stream_callback_data *data)
 void
 free_xml_parser(struct stream_callback_data *data)
 {
-	free_string(data->text);
-	XML_Parse(data->xml_parser, NULL, 0, true); // final call
+	XML_Parse(data->xml_parser, NULL, 0, true); // final parsing call
 	XML_ParserFree(data->xml_parser);
+	free_string(data->text);
 }

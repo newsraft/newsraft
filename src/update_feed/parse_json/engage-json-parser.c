@@ -349,7 +349,7 @@ engage_json_parser(struct stream_callback_data *data)
 void
 free_json_parser(struct stream_callback_data *data)
 {
-	free_string(data->text);
-	yajl_complete_parse(data->json_parser); // final call
+	yajl_complete_parse(data->json_parser); // final parsing call
 	yajl_free(data->json_parser);
+	free_string(data->text);
 }

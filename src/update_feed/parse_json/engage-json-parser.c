@@ -1,7 +1,11 @@
 #include <string.h>
-#include "update_feed/parse_json/parse_json_feed.h"
+#include "update_feed/update_feed.h"
 
 enum json_array {
+	JSON_OBJECT_UNKNOWN,
+	JSON_OBJECT_ITEM,
+	JSON_OBJECT_ATTACHMENT,
+	JSON_OBJECT_AUTHOR,
 	JSON_ARRAY_UNKNOWN,
 	JSON_ARRAY_ITEMS,
 	JSON_ARRAY_ATTACHMENTS,
@@ -9,69 +13,82 @@ enum json_array {
 	JSON_ARRAY_TAGS,
 };
 
+#define ISARRAY(A) ((A) >= JSON_ARRAY_UNKNOWN)
+
 static inline bool
+we_are_inside_item(struct stream_callback_data *data)
+{
+	for (uint8_t i = 1; i < data->depth; ++i) {
+		if (data->path[i] == JSON_OBJECT_ITEM) {
+			return true;
+		}
+	}
+	return false;
+}
+
+static inline int
 feed_string_handler(struct stream_callback_data *data, const char *val, size_t len)
 {
 	if (strcmp(data->text->ptr, "home_page_url") == 0) {
 		if (crtas_or_cpyas(&data->feed.url, val, len) == false) {
-			return false;
+			return 0;
 		}
 	} else if (strcmp(data->text->ptr, "title") == 0) {
 		if (crtas_or_cpyas(&data->feed.title, val, len) == false) {
-			return false;
+			return 0;
 		}
 	} else if (strcmp(data->text->ptr, "description") == 0) {
 		if (serialize_caret(&data->feed.content) == false) {
-			return false;
+			return 0;
 		}
 		if (serialize_array(&data->feed.content, "text", 4, val, len) == false) {
-			return false;
+			return 0;
 		}
 	}
-	return true;
+	return 1;
 }
 
-static inline bool
+static inline int
 item_string_handler(struct stream_callback_data *data, const char *val, size_t len)
 {
 	if (data->feed.item == NULL) {
-		return true;
+		return 1;
 	}
 	if (strcmp(data->text->ptr, "id") == 0) {
 		if (crtas_or_cpyas(&data->feed.item->guid, val, len) == false) {
-			return false;
+			return 0;
 		}
 	} else if (strcmp(data->text->ptr, "url") == 0) {
 		if (crtas_or_cpyas(&data->feed.item->url, val, len) == false) {
-			return false;
+			return 0;
 		}
 	} else if (strcmp(data->text->ptr, "title") == 0) {
 		if (crtas_or_cpyas(&data->feed.item->title, val, len) == false) {
-			return false;
+			return 0;
 		}
 	} else if (strcmp(data->text->ptr, "content_html") == 0) {
 		if (serialize_caret(&data->feed.item->content) == false) {
-			return false;
+			return 0;
 		}
 		if (serialize_array(&data->feed.item->content, "type", 4, "text/html", 9) == false) {
-			return false;
+			return 0;
 		}
 		if (serialize_array(&data->feed.item->content, "text", 4, val, len) == false) {
-			return false;
+			return 0;
 		}
 	} else if (strcmp(data->text->ptr, "content_text") == 0) {
 		if (serialize_caret(&data->feed.item->content) == false) {
-			return false;
+			return 0;
 		}
 		if (serialize_array(&data->feed.item->content, "text", 4, val, len) == false) {
-			return false;
+			return 0;
 		}
 	} else if (strcmp(data->text->ptr, "summary") == 0) {
 		if (serialize_caret(&data->feed.item->content) == false) {
-			return false;
+			return 0;
 		}
 		if (serialize_array(&data->feed.item->content, "text", 4, val, len) == false) {
-			return false;
+			return 0;
 		}
 	} else if (strcmp(data->text->ptr, "date_published") == 0) {
 		data->feed.item->publication_date = parse_date_rfc3339(val, len);
@@ -79,13 +96,13 @@ item_string_handler(struct stream_callback_data *data, const char *val, size_t l
 		data->feed.item->update_date = parse_date_rfc3339(val, len);
 	} else if (strcmp(data->text->ptr, "external_url") == 0) {
 		if (serialize_caret(&data->feed.item->attachments) == false) {
-			return false;
+			return 0;
 		}
 		if (serialize_array(&data->feed.item->attachments, "url", 3, val, len) == false) {
-			return false;
+			return 0;
 		}
 	}
-	return true;
+	return 1;
 }
 
 // Note to the future.
@@ -93,49 +110,34 @@ item_string_handler(struct stream_callback_data *data, const char *val, size_t l
 // like we ignore thumbnails, icons and other cosmetic stuff. Also, JSON Feed
 // doesn't provide email objects. Gosh...
 
-static inline bool
+static inline int
 person_string_handler(struct string **dest, const struct string *key, const char *val, size_t len)
 {
 	if (strcmp(key->ptr, "name") == 0) {
 		if (serialize_array(dest, "name", 4, val, len) == false) {
-			return false;
+			return 0;
 		}
 	} else if (strcmp(key->ptr, "url") == 0) {
 		if (serialize_array(dest, "url", 3, val, len) == false) {
-			return false;
+			return 0;
 		}
 	}
-	return true;
+	return 1;
 }
 
-static inline bool
-item_attachment_string_handler(struct stream_callback_data *data, const char *val, size_t len)
+static inline int
+attachment_string_handler(struct string **dest, const struct string *key, const char *val, size_t len)
 {
-	if (strcmp(data->text->ptr, "url") == 0) {
-		if (serialize_array(&data->feed.item->attachments, "url", 3, val, len) == false) {
-			return false;
+	if (strcmp(key->ptr, "url") == 0) {
+		if (serialize_array(dest, "url", 3, val, len) == false) {
+			return 0;
 		}
-	} else if (strcmp(data->text->ptr, "mime_type") == 0) {
-		if (serialize_array(&data->feed.item->attachments, "type", 4, val, len) == false) {
-			return false;
+	} else if (strcmp(key->ptr, "mime_type") == 0) {
+		if (serialize_array(dest, "type", 4, val, len) == false) {
+			return 0;
 		}
 	}
-	return true;
-}
-
-static inline bool
-item_attachment_number_handler(struct stream_callback_data *data, const char *val, size_t len)
-{
-	if (strcmp(data->text->ptr, "size_in_bytes") == 0) {
-		if (serialize_array(&data->feed.item->attachments, "size", 4, val, len) == false) {
-			return false;
-		}
-	} else if (strcmp(data->text->ptr, "duration_in_seconds") == 0) {
-		if (serialize_array(&data->feed.item->attachments, "duration", 8, val, len) == false) {
-			return false;
-		}
-	}
-	return true;
+	return 1;
 }
 
 static int
@@ -179,13 +181,15 @@ number_handler(void *ctx, const char *val, size_t len)
 {
 	struct stream_callback_data *data = ctx;
 	INFO("Stumbled upon number.");
-	if ((data->depth == 2)
-			&& (data->path[0] == JSON_ARRAY_ITEMS)
-			&& (data->path[1] == JSON_ARRAY_ATTACHMENTS)
-			&& (data->feed.item != NULL))
-	{
-		if (item_attachment_number_handler(data, val, len) == false) {
-			return 0;
+	if ((we_are_inside_item(data) == true) && (data->path[data->depth] == JSON_OBJECT_ATTACHMENT)) {
+		if (strcmp(data->text->ptr, "size_in_bytes") == 0) {
+			if (serialize_array(&data->feed.item->attachments, "size", 4, val, len) == false) {
+				return 0;
+			}
+		} else if (strcmp(data->text->ptr, "duration_in_seconds") == 0) {
+			if (serialize_array(&data->feed.item->attachments, "duration", 8, val, len) == false) {
+				return 0;
+			}
 		}
 	}
 	return 1;
@@ -196,39 +200,25 @@ string_handler(void *ctx, const unsigned char *val, size_t len)
 {
 	struct stream_callback_data *data = ctx;
 	INFO("Stumbled upon string.");
-	if (data->depth == 1) {
-		if (data->path[0] == JSON_ARRAY_ITEMS) {
-			if (item_string_handler(data, (char *)val, len) == false) {
+	if (data->path[data->depth] == JSON_OBJECT_ITEM) {
+		return item_string_handler(data, (char *)val, len);
+	} else if (we_are_inside_item(data) == true) {
+		if (data->path[data->depth] == JSON_OBJECT_AUTHOR) {
+			return person_string_handler(&data->feed.item->persons, data->text, (char *)val, len);
+		} else if (data->path[data->depth] == JSON_OBJECT_ATTACHMENT) {
+			return attachment_string_handler(&data->feed.item->attachments, data->text, (char *)val, len);
+		} else if (data->path[data->depth] == JSON_ARRAY_TAGS) {
+			if (serialize_caret(&data->feed.item->extras) == false) {
 				return 0;
 			}
-		} else if (data->path[0] == JSON_ARRAY_AUTHORS) {
-			if (person_string_handler(&data->feed.persons, data->text, (char *)val, len) == false) {
+			if (serialize_array(&data->feed.item->extras, "category", 8, (char *)val, len) == false) {
 				return 0;
 			}
 		}
-	} else if (data->depth == 0) {
-		if (feed_string_handler(data, (char *)val, len) == false) {
-			return 0;
-		}
-	} else if (data->depth == 2) {
-		if ((data->path[0] == JSON_ARRAY_ITEMS) && (data->feed.item != NULL)) {
-			if (data->path[1] == JSON_ARRAY_AUTHORS) {
-				if (person_string_handler(&data->feed.item->persons, data->text, (char *)val, len) == false) {
-					return 0;
-				}
-			} else if (data->path[1] == JSON_ARRAY_ATTACHMENTS) {
-				if (item_attachment_string_handler(data, (char *)val, len) == false) {
-					return 0;
-				}
-			} else if (data->path[1] == JSON_ARRAY_TAGS) {
-				if (serialize_caret(&data->feed.item->extras) == false) {
-					return 0;
-				}
-				if (serialize_array(&data->feed.item->extras, "category", 8, (char *)val, len) == false) {
-					return 0;
-				}
-			}
-		}
+	} else if (data->path[data->depth] == JSON_OBJECT_AUTHOR) {
+		return person_string_handler(&data->feed.persons, data->text, (char *)val, len);
+	} else if ((data->depth < 2) && (data->path[data->depth] == JSON_OBJECT_UNKNOWN)) {
+		return feed_string_handler(data, (char *)val, len);
 	}
 	return 1;
 }
@@ -238,32 +228,39 @@ start_map_handler(void *ctx)
 {
 	struct stream_callback_data *data = ctx;
 	INFO("Stumbled upon the beginning of an object.");
-	if (data->depth == 1) {
-		if (data->path[0] == JSON_ARRAY_ITEMS) {
-			prepend_item(&data->feed.item);
-		} else if (data->path[0] == JSON_ARRAY_AUTHORS) {
-			if (serialize_caret(&data->feed.persons) == false) {
+	data->depth += 1;
+	if (we_are_inside_item(data) == true) {
+		if (data->path[data->depth - 1] == JSON_ARRAY_AUTHORS) {
+			data->path[data->depth] = JSON_OBJECT_AUTHOR;
+			if (serialize_caret(&data->feed.item->persons) == false) {
 				return 0;
 			}
-			if (serialize_array(&data->feed.persons, "type", 4, "author", 6) == false) {
+			if (serialize_array(&data->feed.item->persons, "type", 4, "author", 6) == false) {
 				return 0;
 			}
-		}
-	} else if (data->depth == 2) {
-		if ((data->path[0] == JSON_ARRAY_ITEMS) && (data->feed.item != NULL)) {
-			if (data->path[1] == JSON_ARRAY_AUTHORS) {
-				if (serialize_caret(&data->feed.item->persons) == false) {
-					return 0;
-				}
-				if (serialize_array(&data->feed.item->persons, "type", 4, "author", 6) == false) {
-					return 0;
-				}
-			} else if (data->path[1] == JSON_ARRAY_ATTACHMENTS) {
-				if (serialize_caret(&data->feed.item->attachments) == false) {
-					return 0;
-				}
+		} else if (data->path[data->depth - 1] == JSON_ARRAY_ATTACHMENTS) {
+			data->path[data->depth] = JSON_OBJECT_ATTACHMENT;
+			if (serialize_caret(&data->feed.item->attachments) == false) {
+				return 0;
 			}
+		} else {
+			data->path[data->depth] = JSON_OBJECT_UNKNOWN;
 		}
+	} else if (data->path[data->depth - 1] == JSON_ARRAY_ITEMS) {
+		data->path[data->depth] = JSON_OBJECT_ITEM;
+		if (prepend_item(&data->feed.item) == false) {
+			return 0;
+		}
+	} else if (data->path[data->depth - 1] == JSON_ARRAY_AUTHORS) {
+		data->path[data->depth] = JSON_OBJECT_AUTHOR;
+		if (serialize_caret(&data->feed.persons) == false) {
+			return 0;
+		}
+		if (serialize_array(&data->feed.persons, "type", 4, "author", 6) == false) {
+			return 0;
+		}
+	} else {
+		data->path[data->depth] = JSON_OBJECT_UNKNOWN;
 	}
 	return 1;
 }
@@ -272,17 +269,9 @@ static int
 map_key_handler(void *ctx, const unsigned char *key, size_t key_len)
 {
 	struct stream_callback_data *data = ctx;
-	cpyas(data->text, (char *)key, key_len);
+	bool success = cpyas(data->text, (char *)key, key_len);
 	INFO("Stumbled upon key: %s", data->text->ptr);
-	return 1;
-}
-
-static int
-end_map_handler(void *ctx)
-{
-	(void)ctx;
-	INFO("Stumbled upon the end of an object.");
-	return 1;
+	return success;
 }
 
 static int
@@ -290,7 +279,11 @@ start_array_handler(void *ctx)
 {
 	struct stream_callback_data *data = ctx;
 	INFO("Stumbled upon the beginning of an array.");
-	if (strcmp(data->text->ptr, "items") == 0) {
+	data->depth += 1;
+	if (ISARRAY(data->path[data->depth - 1])) {
+		// JSON Feed doesn't have nested arrays!
+		data->path[data->depth] = JSON_ARRAY_UNKNOWN;
+	} else if (strcmp(data->text->ptr, "items") == 0) {
 		data->path[data->depth] = JSON_ARRAY_ITEMS;
 	} else if (strcmp(data->text->ptr, "attachments") == 0) {
 		data->path[data->depth] = JSON_ARRAY_ATTACHMENTS;
@@ -301,15 +294,14 @@ start_array_handler(void *ctx)
 	} else {
 		data->path[data->depth] = JSON_ARRAY_UNKNOWN;
 	}
-	data->depth += 1;
 	return 1;
 }
 
 static int
-end_array_handler(void *ctx)
+end_of_object_or_array_handler(void *ctx)
 {
 	struct stream_callback_data *data = ctx;
-	INFO("Stumbled upon the end of an array.");
+	INFO("Stumbled upon the end of an object/array.");
 	if (data->depth > 0) {
 		data->depth -= 1;
 	}
@@ -325,9 +317,9 @@ static const yajl_callbacks callbacks = {
 	&string_handler,
 	&start_map_handler,
 	&map_key_handler,
-	&end_map_handler,
+	&end_of_object_or_array_handler,
 	&start_array_handler,
-	&end_array_handler
+	&end_of_object_or_array_handler
 };
 
 bool
@@ -343,6 +335,7 @@ engage_json_parser(struct stream_callback_data *data)
 		return false;
 	}
 	data->depth = 0;
+	data->path[0] = JSON_OBJECT_UNKNOWN;
 	return true;
 }
 

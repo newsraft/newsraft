@@ -44,6 +44,7 @@ struct stream_callback_data {
 	XML_Parser xml_parser;
 	yajl_handle json_parser;
 	struct getfeed_feed feed;
+	bool in_item;
 	int8_t xml_format;
 	struct string *text;
 	uint8_t path[256];

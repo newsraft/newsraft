@@ -5,7 +5,7 @@
 static int8_t
 bind_to_end(struct stream_callback_data *data)
 {
-	if (we_are_inside_item(data) == true) {
+	if (data->in_item == true) {
 		if (serialize_caret(&data->feed.item->attachments) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}

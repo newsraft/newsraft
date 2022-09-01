@@ -3,7 +3,7 @@
 static int8_t
 title_end(struct stream_callback_data *data)
 {
-	if (we_are_inside_item(data) == true) {
+	if (data->in_item == true) {
 		if ((data->feed.item->title == NULL) || (data->feed.item->title->len == 0)) {
 			if (crtss_or_cpyss(&data->feed.item->title, data->text) == false) {
 				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
@@ -22,7 +22,7 @@ title_end(struct stream_callback_data *data)
 static int8_t
 creator_end(struct stream_callback_data *data)
 {
-	if (we_are_inside_item(data) == true) {
+	if (data->in_item == true) {
 		if (serialize_caret(&data->feed.item->persons) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
@@ -49,7 +49,7 @@ creator_end(struct stream_callback_data *data)
 static int8_t
 contributor_end(struct stream_callback_data *data)
 {
-	if (we_are_inside_item(data) == true) {
+	if (data->in_item == true) {
 		if (serialize_caret(&data->feed.item->persons) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}

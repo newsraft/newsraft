@@ -243,7 +243,7 @@ subtitle_end(struct stream_callback_data *data)
 }
 
 const struct xml_element_handler xml_atom10_handlers[] = {
-	{"entry",       GENERIC_ITEM,     &generic_item_starter, NULL},
+	{"entry",       GENERIC_ITEM,     &generic_item_starter, &generic_item_ender},
 	{"id",          XML_UNKNOWN_POS,  NULL,                  &generic_guid_end},
 	{"title",       XML_UNKNOWN_POS,  NULL,                  &generic_title_end},
 	{"link",        XML_UNKNOWN_POS,  &link_start,           NULL},

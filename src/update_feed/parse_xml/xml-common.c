@@ -1,17 +1,6 @@
 #include <string.h>
 #include "update_feed/parse_xml/parse_xml_feed.h"
 
-bool
-we_are_inside_item(const struct stream_callback_data *data)
-{
-	for (size_t i = 0; i <= data->depth; ++i) {
-		if (data->path[i] == GENERIC_ITEM) {
-			return true;
-		}
-	}
-	return false;
-}
-
 const char *
 get_value_of_attribute_key(const XML_Char **attrs, const char *key)
 {
@@ -44,6 +33,14 @@ generic_item_starter(struct stream_callback_data *data, const XML_Char **attrs)
 	if (prepend_item(&data->feed.item) == false) {
 		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 	}
+	data->in_item = true;
+	return PARSE_OKAY;
+}
+
+int8_t
+generic_item_ender(struct stream_callback_data *data)
+{
+	data->in_item = false;
 	return PARSE_OKAY;
 }
 
@@ -76,7 +73,7 @@ generic_title_end(struct stream_callback_data *data)
 int8_t
 generic_plain_content_end(struct stream_callback_data *data)
 {
-	if (we_are_inside_item(data) == true) {
+	if (data->in_item == true) {
 		if (serialize_caret(&data->feed.item->content) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
@@ -103,7 +100,7 @@ generic_plain_content_end(struct stream_callback_data *data)
 int8_t
 generic_html_content_end(struct stream_callback_data *data)
 {
-	if (we_are_inside_item(data) == true) {
+	if (data->in_item == true) {
 		if (serialize_caret(&data->feed.item->content) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
@@ -130,7 +127,7 @@ generic_html_content_end(struct stream_callback_data *data)
 int8_t
 generic_category_end(struct stream_callback_data *data)
 {
-	if (we_are_inside_item(data) == true) {
+	if (data->in_item == true) {
 		if (serialize_caret(&data->feed.item->extras) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}

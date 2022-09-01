@@ -58,10 +58,10 @@ struct xml_element_handler {
 
 // Functions common to parsers of all formats.
 // See "xml-common.c" file for implementation.
-bool we_are_inside_item(const struct stream_callback_data *data);
 const char *get_value_of_attribute_key(const XML_Char **attrs, const char *key);
 bool serialize_attribute(struct string **dest, const XML_Char **attrs, const char *attr_key, const char *prefix, size_t prefix_len);
 int8_t generic_item_starter(struct stream_callback_data *data, const XML_Char **attrs);
+int8_t generic_item_ender(struct stream_callback_data *data);
 int8_t generic_guid_end(struct stream_callback_data *data);
 int8_t generic_title_end(struct stream_callback_data *data);
 int8_t generic_plain_content_end(struct stream_callback_data *data);

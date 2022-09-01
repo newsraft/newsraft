@@ -216,7 +216,7 @@ source_end(struct stream_callback_data *data)
 }
 
 const struct xml_element_handler xml_rss_handlers[] = {
-	{"item",           GENERIC_ITEM,         &generic_item_starter, NULL},
+	{"item",           GENERIC_ITEM,         &generic_item_starter, &generic_item_ender},
 	{"guid",           XML_UNKNOWN_POS,      NULL,                  &generic_guid_end},
 	{"title",          XML_UNKNOWN_POS,      NULL,                  &generic_title_end},
 	{"link",           XML_UNKNOWN_POS,      NULL,                  &link_end},

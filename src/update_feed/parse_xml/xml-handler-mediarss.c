@@ -19,9 +19,6 @@
 static int8_t
 content_start(struct stream_callback_data *data, const XML_Char **attrs)
 {
-	if (we_are_inside_item(data) == false) {
-		return PARSE_OKAY; // Don't bother with global media elements.
-	}
 	const char *attr = get_value_of_attribute_key(attrs, "url");
 	if (attr == NULL) {
 		return PARSE_OKAY; // Ignore empty content entries.
@@ -30,25 +27,71 @@ content_start(struct stream_callback_data *data, const XML_Char **attrs)
 	if (attr_len == 0) {
 		return PARSE_OKAY; // Ignore empty content entries.
 	}
-	if (serialize_caret(&data->feed.item->attachments) == false) {
+	struct string **dest = data->in_item ? &data->feed.item->attachments : &data->feed.attachments;
+	if (serialize_caret(dest) == false) {
 		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 	}
-	if (serialize_array(&data->feed.item->attachments, "url", 3, attr, attr_len) == false) {
+	if (serialize_array(dest, "url", 3, attr, attr_len) == false) {
 		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 	}
-	if (serialize_attribute(&data->feed.item->attachments, attrs, "type", "type", 4) == false) {
+	if (serialize_attribute(dest, attrs, "type", "type", 4) == false) {
 		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 	}
-	if (serialize_attribute(&data->feed.item->attachments, attrs, "fileSize", "size", 4) == false) {
+	if (serialize_attribute(dest, attrs, "fileSize", "size", 4) == false) {
 		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 	}
-	if (serialize_attribute(&data->feed.item->attachments, attrs, "duration", "duration", 8) == false) {
+	if (serialize_attribute(dest, attrs, "duration", "duration", 8) == false) {
 		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 	}
-	if (serialize_attribute(&data->feed.item->attachments, attrs, "width", "width", 5) == false) {
+	if (serialize_attribute(dest, attrs, "width", "width", 5) == false) {
 		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 	}
-	if (serialize_attribute(&data->feed.item->attachments, attrs, "height", "height", 6) == false) {
+	if (serialize_attribute(dest, attrs, "height", "height", 6) == false) {
+		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+	}
+	return PARSE_OKAY;
+}
+
+static int8_t
+embed_or_player_start(struct stream_callback_data *data, const XML_Char **attrs)
+{
+	const char *attr = get_value_of_attribute_key(attrs, "url");
+	if (attr == NULL) {
+		return PARSE_OKAY; // Ignore empty entries.
+	}
+	const size_t attr_len = strlen(attr);
+	if (attr_len == 0) {
+		return PARSE_OKAY; // Ignore empty entries.
+	}
+	struct string **dest = data->in_item ? &data->feed.item->attachments : &data->feed.attachments;
+	if (serialize_caret(dest) == false) {
+		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+	}
+	if (serialize_array(dest, "url", 3, attr, attr_len) == false) {
+		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+	}
+	return PARSE_OKAY;
+}
+
+static int8_t
+peerlink_start(struct stream_callback_data *data, const XML_Char **attrs)
+{
+	const char *attr = get_value_of_attribute_key(attrs, "href");
+	if (attr == NULL) {
+		return PARSE_OKAY; // Ignore empty entries.
+	}
+	const size_t attr_len = strlen(attr);
+	if (attr_len == 0) {
+		return PARSE_OKAY; // Ignore empty entries.
+	}
+	struct string **dest = data->in_item ? &data->feed.item->attachments : &data->feed.attachments;
+	if (serialize_caret(dest) == false) {
+		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+	}
+	if (serialize_array(dest, "url", 3, attr, attr_len) == false) {
+		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+	}
+	if (serialize_attribute(dest, attrs, "type", "type", 4) == false) {
 		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 	}
 	return PARSE_OKAY;
@@ -57,7 +100,7 @@ content_start(struct stream_callback_data *data, const XML_Char **attrs)
 static int8_t
 description_start(struct stream_callback_data *data, const XML_Char **attrs)
 {
-	if (we_are_inside_item(data) == true) {
+	if (data->in_item == true) {
 		if (data->path[data->depth] == MEDIARSS_CONTENT) {
 			if (serialize_attribute(&data->feed.item->attachments, attrs, "type", "description_type", 16) == false) {
 				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
@@ -77,7 +120,7 @@ description_start(struct stream_callback_data *data, const XML_Char **attrs)
 static int8_t
 description_end(struct stream_callback_data *data)
 {
-	if (we_are_inside_item(data) == true) {
+	if (data->in_item == true) {
 		if (data->path[data->depth] == MEDIARSS_CONTENT) {
 			if (serialize_string(&data->feed.item->attachments, "description_text", 16, data->text) == false) {
 				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
@@ -92,7 +135,10 @@ description_end(struct stream_callback_data *data)
 }
 
 const struct xml_element_handler xml_mediarss_handlers[] = {
-	{"content",     MEDIARSS_CONTENT, &content_start,     NULL},
-	{"description", XML_UNKNOWN_POS,  &description_start, &description_end},
-	{NULL,          XML_UNKNOWN_POS,  NULL,               NULL},
+	{"content",     MEDIARSS_CONTENT, &content_start,         NULL},
+	{"embed",       XML_UNKNOWN_POS,  &embed_or_player_start, NULL},
+	{"player",      XML_UNKNOWN_POS,  &embed_or_player_start, NULL},
+	{"peerLink",    XML_UNKNOWN_POS,  &peerlink_start,        NULL},
+	{"description", XML_UNKNOWN_POS,  &description_start,     &description_end},
+	{NULL,          XML_UNKNOWN_POS,  NULL,                   NULL},
 };

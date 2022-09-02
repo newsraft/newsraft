@@ -12,32 +12,33 @@ line_char(struct line *line, wchar_t c, struct wstring *target)
 		return true;
 	}
 	if (line->len == 0) {
-		for (size_t i = 0; i < line->indent; ++i) {
+		for (size_t i = 0; (i < line->indent) && (i < line->lim); ++i) {
 			line->ptr[i] = L' ';
 		}
-		line->len = line->indent;
+		line->len = MIN(line->indent, line->lim);
 	}
 	line->ptr[line->len] = c;
 	if (c == L' ') {
 		line->pin = line->len;
 	}
-	++(line->len);
+	line->len += 1;
 	if (line->len != line->lim) {
 		return true;
 	}
 	if (line->ptr[line->len - 1] == L' ') {
-		line->pin = SIZE_MAX;
-		--(line->len);
-	}
-	if (line->pin == SIZE_MAX) {
 		wcatas(target, line->ptr, line->len);
 		line->len = 0;
+		line->pin = SIZE_MAX;
+	} else if (line->pin == SIZE_MAX) {
+		wcatas(target, line->ptr, line->len);
+		line->ptr[0] = line->ptr[line->len - 1];
+		line->len = 1;
 	} else {
 		wcatas(target, line->ptr, line->pin);
-		for (size_t i = 0; i < line->indent; ++i) {
+		for (size_t i = 0; (i < line->indent) && (i < line->lim); ++i) {
 			line->ptr[i] = L' ';
 		}
-		size_t new_len = line->indent;
+		size_t new_len = MIN(line->indent, line->lim);
 		for (size_t i = line->pin + 1; i < line->len; ++i) {
 			line->ptr[new_len++] = line->ptr[i];
 		}

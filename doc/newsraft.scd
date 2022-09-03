@@ -200,13 +200,13 @@ _list-entry-date-format_ (default: *%b %d*)
 	Date format of the list entries. Specifier values correspond to the
 	*strftime*(3) format.
 
-_menu-section-entry-format_ (default: *%4.0u @ %t*)
+_menu-section-entry-format_ (default: *%5.0u @ %t*)
 	Format of the section list entries. Specifiers are as follows:
 	- *t* - title;
 	- *u* - unread items count;
 	- *n* - index number.
 
-_menu-feed-entry-format_ (default: *%4.0u │ %o*)
+_menu-feed-entry-format_ (default: *%5.0u │ %o*)
 	Format of the feed list entries. Specifiers are as follows:
 	- *o* - title if set otherwise URL;
 	- *t* - title;

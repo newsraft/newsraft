@@ -38,6 +38,28 @@ curses interface.
 \-v
 	Print version information and quit with 0 exit code.
 
+# STARTER GUIDE
+
+To start using Newsraft you have to create a *feeds* file with the list of links
+that point to feeds you want to receive news from. Format of this file and valid
+paths for the location of this file are discussed in the *FEEDS FILE* section.
+
+When your *feeds* file is ready, you can launch Newsraft. Navigation in the
+interface is carried out by the same keys as in the *vi*(1p) text editor. To
+start reading news from feeds you have to update them (i. e. get information
+from the servers where the files for these feeds are located to local database).
+By default, to update a single feed you have to select it and press *r*. If you
+want to update all feeds, *Ctrl-R* (or *^R* for short) will do this fine.
+
+Every feed item entry (i. e. single piece of news) has two switchable properties
+\- read state and importance state. When you open feed item entry contents it
+automatically becomes read. Keys to force read state change: *d* to mark read,
+*D* to mark unread, *^D* to mark everything read. Keys to force importance state
+change: *i* to mark important, *I* to mark unimportant.
+
+That's it for the starter guide. More advanced functionality can be explored by
+studying the other sections of this manual in detail.
+
 # CONFIGURATION
 
 ## FEEDS FILE
@@ -426,7 +448,7 @@ Setting that forcibly makes the interface monochrome when set.
 
 # SEE ALSO
 
-*sqlite3*(1), *strftime*(3), *libcurl*(3), *libcurl-env*(3)
+*vi*(1p), *sqlite3*(1), *strftime*(3), *libcurl*(3), *libcurl-env*(3)
 
 # BUGS
 

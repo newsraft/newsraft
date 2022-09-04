@@ -364,6 +364,7 @@ int get_reversed_color_pair(config_entry_id id);
 // Functions responsible for handling input and bindings.
 // See "input.c" file for implementation.
 int get_input_command(uint32_t *count, const struct wstring **macro_ptr);
+void tell_program_to_terminate_safely_and_quickly(int dummy);
 bool assign_action_to_key(const char *bind_key, size_t bind_key_len, input_cmd_id bind_cmd);
 bool create_macro(const char *bind_key, size_t bind_key_len, const char *cmd, size_t cmd_len);
 void delete_action_from_key(const char *bind_key);
@@ -436,6 +437,9 @@ void empty_wstring(struct wstring *wstr);
 void free_wstring(struct wstring *wstr);
 void trim_whitespace_from_wstring(struct wstring *wstr);
 struct string *convert_wstring_to_string(const struct wstring *src);
+
+// See "signal.c" file for implementation.
+bool register_sighandlers(void);
 
 // Functions for opening and closing the log stream.
 // To write to the log stream use macros INFO, WARN or FAIL.

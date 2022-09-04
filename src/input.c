@@ -13,9 +13,16 @@ struct input_binding {
 static struct input_binding *binds = NULL;
 static size_t binds_count = 0;
 
+static volatile bool system_wants_us_to_terminate = false;
+
 int
 get_input_command(uint32_t *count, const struct wstring **macro_ptr)
 {
+	if (system_wants_us_to_terminate == true) {
+		INFO("Received a signal which is asking us to terminate the program.");
+		return INPUT_QUIT_HARD;
+	}
+
 	int c = read_key_from_status();
 	while (isdigit(c) != 0) {
 		counter_send_character(c);
@@ -43,6 +50,13 @@ get_input_command(uint32_t *count, const struct wstring **macro_ptr)
 	}
 
 	return INPUTS_COUNT; // No command matched with this key.
+}
+
+void
+tell_program_to_terminate_safely_and_quickly(int dummy)
+{
+	(void)dummy;
+	system_wants_us_to_terminate = true;
 }
 
 static inline int64_t

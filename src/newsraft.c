@@ -58,19 +58,20 @@ main(int argc, char **argv)
 		}
 	}
 
-	if (get_local_offset_relative_to_utc() == false) { error = 6;  goto undo1;  }
-	if (assign_default_binds()             == false) { error = 7;  goto undo1;  }
-	if (load_config()                      == false) { error = 8;  goto undo2;  }
-	if (db_init()                          == false) { error = 9;  goto undo3;  }
-	if (create_global_section()            == false) { error = 10; goto undo4;  }
-	if (parse_feeds_file()                 == false) { error = 11; goto undo5;  }
-	if (curses_init()                      == false) { error = 12; goto undo5;  }
-	if (adjust_list_menu()                 == false) { error = 13; goto undo6;  }
-	if (create_format_buffers()            == false) { error = 14; goto undo7;  }
-	if (status_create()                    == false) { error = 15; goto undo8;  }
-	if (counter_create()                   == false) { error = 16; goto undo9;  }
-	if (initialize_threading()             == false) { error = 17; goto undo10; }
-	if (curl_global_init(CURL_GLOBAL_DEFAULT)  != 0) { error = 18; goto undo11; }
+	if (register_sighandlers()             == false) { error = 6;  goto undo1;  }
+	if (get_local_offset_relative_to_utc() == false) { error = 7;  goto undo1;  }
+	if (assign_default_binds()             == false) { error = 8;  goto undo1;  }
+	if (load_config()                      == false) { error = 9;  goto undo2;  }
+	if (db_init()                          == false) { error = 10; goto undo3;  }
+	if (create_global_section()            == false) { error = 11; goto undo4;  }
+	if (parse_feeds_file()                 == false) { error = 12; goto undo5;  }
+	if (curses_init()                      == false) { error = 13; goto undo5;  }
+	if (adjust_list_menu()                 == false) { error = 14; goto undo6;  }
+	if (create_format_buffers()            == false) { error = 15; goto undo7;  }
+	if (status_create()                    == false) { error = 16; goto undo8;  }
+	if (counter_create()                   == false) { error = 17; goto undo9;  }
+	if (initialize_threading()             == false) { error = 18; goto undo10; }
+	if (curl_global_init(CURL_GLOBAL_DEFAULT)  != 0) { error = 19; goto undo11; }
 
 	enter_sections_menu_loop();
 

@@ -46,13 +46,21 @@ Every directory in the `src` directory is named after the function that the file
 
 ## Control statements
 
-Every control statement must be followed by parentheses to describe compound statement even if it has only one command. The first parenthesis must be on the same line with the control expression, and the closing parenthesis must be on a separate line.
+Every control expression in the control statement must be followed by a curly brace to describe compound statement even if it has only one command. The first curly brace must be on the same line with the control expression, and the closing curly brace must be on a separate line. The exception is when the condition in the control expression is longer than 120 characters, then it needs to be continued in the next line and the first curly brace placed on its own line.
 
 For example:
 
 ```
 for (size_t i = 0; i < items_count; ++i) {
 	mark_item_read(i);
+}
+```
+
+```
+for (size_t i = 0, j = 1; (j < enormously_long_variable) \
+	&& ((i < very_long_variable) || (i > another_very_long_variable)); ++i)
+{
+	j += count_important_stuff(i);
 }
 ```
 

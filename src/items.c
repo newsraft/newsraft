@@ -15,8 +15,8 @@ static struct format_arg fmt_args[] = {
 	{L'\0', NULL, {.i = 0}}, // terminator
 };
 
-const wchar_t *
-write_item_entry(size_t index)
+const struct format_arg *
+prepare_item_entry_args(size_t index)
 {
 	fmt_args[0].value.i = index + 1;
 	fmt_args[1].value.c = items->list[index].is_unread == true ? 'N' : ' ';
@@ -24,7 +24,7 @@ write_item_entry(size_t index)
 	fmt_args[3].value.s = items->list[index].feed_name->ptr;
 	fmt_args[4].value.s = items->list[index].date_str->ptr;
 	fmt_args[5].value.s = items->list[index].title->ptr;
-	return do_format(get_cfg_wstring(entry_format), fmt_args);
+	return fmt_args;
 }
 
 int

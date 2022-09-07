@@ -15,8 +15,8 @@ static struct format_arg fmt_args[] = {
 	{L'\0', NULL, {.i = 0}}, // terminator
 };
 
-const wchar_t *
-write_feed_entry(size_t index)
+const struct format_arg *
+prepare_feed_entry_args(size_t index)
 {
 	fmt_args[0].value.i = index + 1;
 	fmt_args[1].value.i = feeds[index]->unread_count;
@@ -31,7 +31,7 @@ write_feed_entry(size_t index)
 			fmt_args[4].value.s = "";
 		}
 	}
-	return do_format(get_cfg_wstring(CFG_MENU_FEED_ENTRY_FORMAT), fmt_args);
+	return fmt_args;
 }
 
 int

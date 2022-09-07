@@ -238,7 +238,7 @@ bool copy_feed_to_section(const struct feed_line *feed, const struct string *sec
 void refresh_unread_items_count_of_all_sections(void);
 void enter_sections_menu_loop(void);
 void free_sections(void);
-const wchar_t *write_section_entry(size_t index);
+const struct format_arg *prepare_section_entry_args(size_t index);
 int paint_section_entry(size_t index);
 bool unread_section_condition(size_t index);
 
@@ -247,7 +247,7 @@ bool parse_feeds_file(void);
 
 // See "feeds.c" file for implementation.
 input_cmd_id enter_feeds_menu_loop(struct feed_line **new_feeds, size_t new_feeds_count);
-const wchar_t *write_feed_entry(size_t index);
+const struct format_arg *prepare_feed_entry_args(size_t index);
 int paint_feed_entry(size_t index);
 bool unread_feed_condition(size_t index);
 
@@ -273,7 +273,7 @@ const wchar_t *do_format(const struct wstring *fmt, const struct format_arg *arg
 struct items_list *generate_items_list(struct feed_line **feeds, size_t feeds_count, enum sorting_order order);
 void free_items_list(struct items_list *items);
 input_cmd_id enter_items_menu_loop(struct feed_line **feeds, size_t feeds_count, int format);
-const wchar_t * write_item_entry(size_t index);
+const struct format_arg *prepare_item_entry_args(size_t index);
 int paint_item_entry(size_t index);
 bool unread_item_condition(size_t index);
 void mark_selected_item_read(void);

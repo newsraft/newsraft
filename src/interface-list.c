@@ -6,7 +6,8 @@ struct list_menu_settings {
 	size_t view_sel; // Index of the selected entry.
 	size_t view_min; // Index of the first visible entry.
 	size_t view_max; // Index of the last visible entry.
-	const wchar_t *(*write_action)(size_t index);
+	const struct wstring *entry_format;
+	const struct format_arg *(*prepare_args)(size_t index);
 	int (*paint_action)(size_t index);
 	void (*hover_action)(void);
 	bool (*unread_state)(size_t index);
@@ -64,15 +65,18 @@ free_list_menu(void)
 void
 initialize_settings_of_list_menus(void)
 {
-	menus[SECTIONS_MENU].write_action = &write_section_entry;
+	menus[SECTIONS_MENU].entry_format = get_cfg_wstring(CFG_MENU_SECTION_ENTRY_FORMAT);
+	menus[SECTIONS_MENU].prepare_args = &prepare_section_entry_args;
 	menus[SECTIONS_MENU].paint_action = &paint_section_entry;
 	menus[SECTIONS_MENU].hover_action = NULL;
 	menus[SECTIONS_MENU].unread_state = &unread_section_condition;
-	menus[FEEDS_MENU].write_action = &write_feed_entry;
+	menus[FEEDS_MENU].entry_format = get_cfg_wstring(CFG_MENU_FEED_ENTRY_FORMAT);
+	menus[FEEDS_MENU].prepare_args = &prepare_feed_entry_args;
 	menus[FEEDS_MENU].paint_action = &paint_feed_entry;
 	menus[FEEDS_MENU].hover_action = NULL;
 	menus[FEEDS_MENU].unread_state = &unread_feed_condition;
-	menus[ITEMS_MENU].write_action = &write_item_entry;
+	menus[ITEMS_MENU].entry_format = get_cfg_wstring(CFG_MENU_ITEM_ENTRY_FORMAT);
+	menus[ITEMS_MENU].prepare_args = &prepare_item_entry_args;
 	menus[ITEMS_MENU].paint_action = &paint_item_entry;
 	if (get_cfg_bool(CFG_MARK_ITEM_READ_ON_HOVER) == true) {
 		menus[ITEMS_MENU].hover_action = &mark_selected_item_read;
@@ -88,7 +92,7 @@ expose_entry_of_the_list_menu(size_t index)
 	if ((list_menu_is_paused == false) && (index >= menu->view_min) && (index <= menu->view_max)) {
 		WINDOW *w = windows[index - menu->view_min];
 		werase(w);
-		mvwaddnwstr(w, 0, 0, menu->write_action(index), list_menu_width);
+		mvwaddnwstr(w, 0, 0, do_format(menu->entry_format, menu->prepare_args(index)), list_menu_width);
 		if (index == menu->view_sel) {
 			wbkgd(w, get_reversed_color_pair(menu->paint_action(index)));
 		} else {

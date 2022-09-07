@@ -73,6 +73,7 @@ main(int argc, char **argv)
 	if (initialize_threading()             == false) { error = 18; goto undo10; }
 	if (curl_global_init(CURL_GLOBAL_DEFAULT)  != 0) { error = 19; goto undo11; }
 
+	initialize_settings_of_list_menus();
 	enter_sections_menu_loop();
 
 	wait_for_all_threads_to_finish();

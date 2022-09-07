@@ -11,7 +11,6 @@ struct feed_section {
 
 static struct feed_section *sections = NULL;
 static size_t sections_count = 0;
-static size_t *view_sel;
 
 static struct format_arg fmt_args[] = {
 	{L'n',  L"d", {.i = 0}},
@@ -20,13 +19,13 @@ static struct format_arg fmt_args[] = {
 	{L'\0', NULL, {.i = 0}}, // terminator
 };
 
-const wchar_t *
-write_section_entry(size_t index)
+const struct format_arg *
+prepare_section_entry_args(size_t index)
 {
 	fmt_args[0].value.i = index + 1;
 	fmt_args[1].value.i = sections[index].unread_count;
 	fmt_args[2].value.s = sections[index].name->ptr;
-	return do_format(get_cfg_wstring(CFG_MENU_SECTION_ENTRY_FORMAT), fmt_args);
+	return fmt_args;
 }
 
 int
@@ -197,15 +196,13 @@ free_sections(void)
 void
 enter_sections_menu_loop(void)
 {
-	initialize_settings_of_list_menus();
-
 	if (sections_count == 1) {
 		enter_feeds_menu_loop(sections[0].feeds, sections[0].feeds_count);
 		return;
 	}
 
 	refresh_unread_items_count_of_all_sections();
-	view_sel = enter_list_menu(SECTIONS_MENU, sections_count);
+	size_t *view_sel = enter_list_menu(SECTIONS_MENU, sections_count);
 
 	input_cmd_id cmd;
 	uint32_t count;

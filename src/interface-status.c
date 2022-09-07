@@ -23,12 +23,7 @@ static pthread_mutex_t write_lock = PTHREAD_MUTEX_INITIALIZER;
 static inline WINDOW *
 create_status_window(void)
 {
-	WINDOW *win;
-	if (list_menu_width > 9) {
-		win = newwin(1, list_menu_width - 9, list_menu_height, 0);
-	} else {
-		win = newwin(1, list_menu_width, list_menu_height, 0);
-	}
+	WINDOW *win = newwin(1, list_menu_width - 9, list_menu_height, 0);
 	if (win != NULL) {
 		INFO("Created new status window.");
 		if (keypad(win, TRUE) == ERR) {
@@ -45,7 +40,7 @@ status_create(void)
 {
 	status_window = create_status_window();
 	if (status_window == NULL) {
-		fputs("Failed to create status line window!\n", stderr);
+		fputs("Failed to create status field window!\n", stderr);
 		return false;
 	}
 	status_window_is_clean = true;
@@ -65,11 +60,7 @@ write_last_status_message_to_status_window(void)
 		} else {
 			m = messages + ((messages_count - 1) % messages_limit);
 		}
-		if (list_menu_width > 9) {
-			mvwaddnstr(status_window, 0, 0, m->text->ptr, list_menu_width - 9);
-		} else {
-			mvwaddnstr(status_window, 0, 0, m->text->ptr, list_menu_width);
-		}
+		mvwaddnstr(status_window, 0, 0, m->text->ptr, list_menu_width - 9);
 		if (m->condition == STATUS_GOOD) {
 			wbkgd(status_window, get_color_pair(CFG_COLOR_STATUS_GOOD_FG));
 		} else if (m->condition == STATUS_INFO) {

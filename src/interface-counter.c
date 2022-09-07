@@ -3,8 +3,9 @@
 
 static WINDOW *counter_window;
 
-// We take 999999999 as the maximum value for count variable to avoid
-// overflow of the uint32_t integer.
+// We take 999999999 as the maximum value for count variable to avoid overflow
+// of the uint32_t integer. The width of this number is hardcoded into the
+// terminal width limit, so when changing it here, consider changing the limit.
 // 9 (max length of input) + 1 (terminator) = 10
 static char count_buf[10];
 static uint8_t count_buf_len = 0;
@@ -12,15 +13,11 @@ static uint8_t count_buf_len = 0;
 bool
 counter_create(void)
 {
-	if (list_menu_width > 9) {
-		INFO("Creating counter window.");
-		counter_window = newwin(1, 9, list_menu_height, list_menu_width - 9);
-		if (counter_window == NULL) {
-			return false;
-		}
-	} else {
-		WARN("Terminal screen is too small for counter window!");
-		counter_window = NULL;
+	INFO("Creating counter window.");
+	counter_window = newwin(1, 9, list_menu_height, list_menu_width - 9);
+	if (counter_window == NULL) {
+		fputs("Failed to create counter field window!\n", stderr);
+		return false;
 	}
 	return true;
 }

@@ -10,7 +10,11 @@ obtain_terminal_size(void)
 		FAIL("Failed to get width of the terminal!");
 		return false;
 	}
-	if (terminal_width < 5) {
+	// It is necessary that a counter field of 9 characters width and at least
+	// some nonzero width of the status field fit in the screen.
+	// This is really critical! You will get integer overflow if terminal_width
+	// is less than 10. You have been warned.
+	if (terminal_width < 10) {
 		FAIL("Terminal is too narrow!");
 		return false;
 	}

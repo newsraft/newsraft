@@ -12,7 +12,7 @@ static const struct content_type_match types[] = {
 	{"text/html",  TEXT_HTML},
 	{"plain",      TEXT_PLAIN},
 	{"text/plain", TEXT_PLAIN},
-	{NULL,         TEXT_PLAIN},
+	{NULL,         0},
 };
 
 int8_t

@@ -46,7 +46,7 @@ append_plain_text(struct render_block **list, sqlite3_stmt *res, const struct da
 		if (title == NULL) {
 			return false;
 		}
-		inlinify_string(title);
+		inlinefy_string(title);
 		if (join_render_block(list, title->ptr, title->len, TEXT_PLAIN) == false) {
 			free_string(title);
 			return false;

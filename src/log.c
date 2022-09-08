@@ -15,7 +15,7 @@ log_init(const char *path)
 	}
 	log_stream = fopen(path, "w");
 	if (log_stream == NULL) {
-		fprintf(stderr, "Failed to open \"%s\" for writing a log information!\n", path);
+		fputs("Failed to open log file for writing!\n", stderr);
 		return false;
 	}
 	INFO("OK... Here we go. Focus. Speed. I am speed.");

@@ -250,7 +250,7 @@ convert_string_to_wstring(const struct string *src)
 }
 
 void
-inlinify_string(struct string *title)
+inlinefy_string(struct string *title)
 {
 	char *i, *j;
 	// Replace newlines and tabs with spaces.

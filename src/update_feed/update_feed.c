@@ -39,10 +39,9 @@ update_feed_action(void *arg)
 
 	if (get_cfg_bool(CFG_RESPECT_EXPIRES_HEADER) == true) {
 		int64_t expires_date = db_get_date_from_feeds_table(feed->link, "http_header_expires", 19);
-		if (expires_date == -1) {
+		if (expires_date < 0) {
 			goto undo;
-		}
-		if ((expires_date != 0) && (data.feed.download_date < expires_date)) {
+		} else if ((expires_date > 0) && (data.feed.download_date < expires_date)) {
 			INFO("Content hasn't expired yet - aborting update without error.");
 			status = DOWNLOAD_CANCELED;
 			goto undo;
@@ -52,23 +51,27 @@ update_feed_action(void *arg)
 	if (get_cfg_bool(CFG_RESPECT_TTL_ELEMENT) == true) {
 		int64_t ttl = db_get_date_from_feeds_table(feed->link, "time_to_live", 12);
 		int64_t prev_download_date = db_get_date_from_feeds_table(feed->link, "download_date", 13);
-		if ((ttl == -1) || (prev_download_date == -1)) {
+		if ((ttl < 0) || (prev_download_date < 0)) {
 			goto undo;
 		}
-		if ((ttl != 0) && (prev_download_date != 0) && ((prev_download_date + ttl) > data.feed.download_date)) {
+		if ((ttl > 0) && (prev_download_date > 0) && ((prev_download_date + ttl) > data.feed.download_date)) {
 			INFO("Content isn't dead yet - aborting update without error.");
 			status = DOWNLOAD_CANCELED;
 			goto undo;
 		}
 	}
 
-	data.feed.http_header_last_modified = db_get_date_from_feeds_table(feed->link, "http_header_last_modified", 25);
-	if (data.feed.http_header_last_modified == -1) {
-		// Error message written by db_get_date_from_feeds_table.
-		goto undo;
+	if (get_cfg_bool(CFG_SEND_IF_MODIFIED_SINCE_HEADER) == true) {
+		data.feed.http_header_last_modified = db_get_date_from_feeds_table(feed->link, "http_header_last_modified", 25);
+		if (data.feed.http_header_last_modified < 0) {
+			// Error message written by db_get_date_from_feeds_table.
+			goto undo;
+		}
 	}
 
-	data.feed.http_header_etag = db_get_string_from_feed_table(feed->link, "http_header_etag", 16);
+	if (get_cfg_bool(CFG_SEND_IF_NONE_MATCH_HEADER) == true) {
+		data.feed.http_header_etag = db_get_string_from_feed_table(feed->link, "http_header_etag", 16);
+	}
 
 	status = download_feed(feed->link->ptr, &data);
 
@@ -93,7 +96,7 @@ undo:
 		if ((feed->name == NULL) || (feed->name->len == 0)) {
 			struct string *title = db_get_string_from_feed_table(feed->link, "title", 5);
 			if (title != NULL) {
-				inlinify_string(title);
+				inlinefy_string(title);
 				crtss_or_cpyss(&feed->name, title);
 				free_string(title);
 				need_redraw = true;

@@ -72,8 +72,7 @@ resize_counter_action(void)
 {
 	if (obtain_terminal_size() == false) {
 		// Some really crazy resize happend. It is either a glitch or user
-		// deliberately trying to break something. This state is really
-		// dangerous anyways.
+		// deliberately trying to break something. This state is unusable anyways.
 		fputs("Don't flex around with me, okay?\n", stderr);
 		return false;
 	}

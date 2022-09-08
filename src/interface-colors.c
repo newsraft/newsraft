@@ -5,7 +5,7 @@ struct color_assignment {
 	int reverse_pair;
 };
 
-static bool paint_it_black = true; // maybe then i'll fade away and not have to face the facts
+static bool paint_it_black = true; // Maybe then I'll fade away and not have to face the facts...
 static struct color_assignment colors[NEWSRAFT_COLOR_PAIRS_COUNT];
 
 bool

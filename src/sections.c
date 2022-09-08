@@ -37,7 +37,7 @@ paint_section_entry(size_t index)
 bool
 unread_section_condition(size_t index)
 {
-	return sections[index].unread_count > 0 ? true : false;
+	return sections[index].unread_count > 0;
 }
 
 static bool

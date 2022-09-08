@@ -24,10 +24,7 @@ static const char *
 get_value_of_xml_attribute(GumboVector *attrs, const char *attr_name)
 {
 	GumboAttribute *attr = gumbo_get_attribute(attrs, attr_name);
-	if (attr != NULL) {
-		return attr->value;
-	}
-	return NULL;
+	return attr != NULL ? attr->value : NULL;
 }
 
 static void
@@ -91,16 +88,16 @@ add_url_mark(struct link_list *links, struct string *text, const char *url, cons
 	}
 
 	if (type == NULL) {
-		if (title != NULL) {
-			string_printf(url_mark, " [%" PRId64 ", \"%s\"]", url_index + 1, title);
-		} else {
+		if (title == NULL) {
 			string_printf(url_mark, " [%" PRId64 "]", url_index + 1);
+		} else {
+			string_printf(url_mark, " [%" PRId64 ", \"%s\"]", url_index + 1, title);
 		}
 	} else {
-		if (title != NULL) {
-			string_printf(url_mark, " [%" PRId64 ", %s \"%s\"]", url_index + 1, type, title);
-		} else {
+		if (title == NULL) {
 			string_printf(url_mark, " [%" PRId64 ", %s]", url_index + 1, type);
+		} else {
+			string_printf(url_mark, " [%" PRId64 ", %s \"%s\"]", url_index + 1, type, title);
 		}
 	}
 

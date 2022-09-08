@@ -43,7 +43,7 @@ paint_feed_entry(size_t index)
 bool
 unread_feed_condition(size_t index)
 {
-	return feeds[index]->unread_count > 0 ? true : false;
+	return feeds[index]->unread_count > 0;
 }
 
 static inline void

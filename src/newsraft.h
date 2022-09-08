@@ -414,7 +414,7 @@ void empty_string(struct string *str);
 void free_string(struct string *str);
 void trim_whitespace_from_string(struct string *str);
 struct wstring *convert_string_to_wstring(const struct string *src);
-void inlinify_string(struct string *title);
+void inlinefy_string(struct string *title);
 
 // See "string-serialize.c" file for implementation.
 bool serialize_caret(struct string **target);

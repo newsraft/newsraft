@@ -14,35 +14,25 @@ create_person(void)
 {
 	struct person *person = malloc(sizeof(struct person));
 	if (person == NULL) {
-		goto undo0;
+		return NULL;
 	}
 	person->type = crtes();
-	if (person->type == NULL) {
-		goto undo1;
-	}
 	person->name = crtes();
-	if (person->name == NULL) {
-		goto undo2;
-	}
 	person->email = crtes();
-	if (person->email == NULL) {
-		goto undo3;
-	}
 	person->url = crtes();
-	if (person->url == NULL) {
-		goto undo4;
+	if ((person->type == NULL)
+		|| (person->name == NULL)
+		|| (person->email == NULL)
+		|| (person->url == NULL))
+	{
+		free_string(person->type);
+		free_string(person->name);
+		free_string(person->email);
+		free_string(person->url);
+		free(person);
+		return NULL;
 	}
 	return person;
-undo4:
-	free_string(person->email);
-undo3:
-	free_string(person->name);
-undo2:
-	free_string(person->type);
-undo1:
-	free(person);
-undo0:
-	return NULL;
 }
 
 static void
@@ -69,18 +59,13 @@ free_person(struct person *person)
 static bool
 write_person_to_result(struct string *result, struct person *person)
 {
-	if ((person->name->len == 0)
-			&& (person->email->len == 0)
-			&& (person->url->len == 0))
-	{
+	if ((person->name->len == 0) && (person->email->len == 0) && (person->url->len == 0)) {
 		return true; // Ignore empty persons >,<
 	}
 	bool name = false;
 	bool email = false;
-	if (result->len != 0) {
-		if (catas(result, ", ", 2) == false) {
-			return false;
-		}
+	if ((result->len != 0) && (catas(result, ", ", 2) == false)) {
+		return false;
 	}
 	if (person->name->len != 0) {
 		if (catss(result, person->name) == false) {

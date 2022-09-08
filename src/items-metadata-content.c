@@ -3,13 +3,13 @@
 
 static bool
 get_largest_text_piece_from_item_serialized_data(
-		const char *data,
-		struct string *text,
-		struct string *type,
-		const char *text_prefix,
-		size_t text_prefix_len,
-		const char *type_prefix,
-		size_t type_prefix_len)
+	const char *data,
+	struct string *text,
+	struct string *type,
+	const char *text_prefix,
+	size_t text_prefix_len,
+	const char *type_prefix,
+	size_t type_prefix_len)
 {
 	if (data == NULL) {
 		return true; // There's no data. Ignore it.

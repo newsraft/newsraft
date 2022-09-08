@@ -3,6 +3,13 @@
 #include <curl/curl.h>
 #include "update_feed/update_feed.h"
 
+// Note to the future.
+// Sending "A-IM: feed" header is essential, since some servers in the presence
+// of this header and other headers indicating that the feed was already been
+// downloaded before, may limit themselves to sending only those entries that we
+// do not have; and those entries that were downloaded earlier will not be sent.
+// Thus resources and traffic will be saved. They call this "delta update".
+
 // Unknown type must have 0 value!
 enum media_type {
 	MEDIA_TYPE_UNKNOWN = 0,
@@ -19,7 +26,7 @@ create_list_of_headers(const struct getfeed_feed *feed)
 		return NULL;
 	}
 	INFO("Attached header - A-IM: feed");
-	if ((get_cfg_bool(CFG_SEND_IF_NONE_MATCH_HEADER) == true) && (feed->http_header_etag != NULL)) {
+	if (feed->http_header_etag != NULL) {
 		struct string *if_none_match_header = crtas("If-None-Match: ", 15);
 		if (if_none_match_header == NULL) {
 			goto error;
@@ -145,7 +152,7 @@ prepare_curl_for_performance(CURL *curl, const char *url, struct curl_slist *hea
 		INFO("Attached header - User-Agent: %s", useragent->ptr);
 		curl_easy_setopt(curl, CURLOPT_USERAGENT, useragent->ptr);
 	}
-	if ((get_cfg_bool(CFG_SEND_IF_MODIFIED_SINCE_HEADER) == true) && (data->feed.http_header_last_modified > 0)) {
+	if (data->feed.http_header_last_modified > 0) {
 		curl_easy_setopt(curl, CURLOPT_TIMEVALUE, data->feed.http_header_last_modified);
 		curl_easy_setopt(curl, CURLOPT_TIMECONDITION, CURL_TIMECOND_IFMODSINCE);
 		INFO("Attached header - If-Modified-Since: %" PRId64 " (it was converted to date string).", data->feed.http_header_last_modified);

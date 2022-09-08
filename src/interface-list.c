@@ -212,41 +212,34 @@ list_menu_change_view(size_t new_sel)
 bool
 handle_list_menu_navigation(input_cmd_id cmd)
 {
-	switch (cmd) {
-		case INPUT_SELECT_NEXT:
-			list_menu_change_view(menu->view_sel + 1);
-			return true;
-		case INPUT_SELECT_PREV:
-			list_menu_change_view(menu->view_sel > 1 ? (menu->view_sel - 1) : 0);
-			return true;
-		case INPUT_SELECT_NEXT_UNREAD:
-			for (size_t i = menu->view_sel + 1; i < menu->entries_count; ++i) {
-				if (menu->unread_state(i) == true) {
-					list_menu_change_view(i);
-					break;
-				}
+	if (cmd == INPUT_SELECT_NEXT) {
+		list_menu_change_view(menu->view_sel + 1);
+	} else if (cmd == INPUT_SELECT_PREV) {
+		list_menu_change_view(menu->view_sel > 1 ? (menu->view_sel - 1) : 0);
+	} else if (cmd == INPUT_SELECT_NEXT_UNREAD) {
+		for (size_t i = menu->view_sel + 1; i < menu->entries_count; ++i) {
+			if (menu->unread_state(i) == true) {
+				list_menu_change_view(i);
+				break;
 			}
-			return true;
-		case INPUT_SELECT_PREV_UNREAD:
-			for (int64_t i = (int64_t)menu->view_sel - 1; i >= 0; --i) {
-				if (menu->unread_state(i) == true) {
-					list_menu_change_view(i);
-					break;
-				}
+		}
+	} else if (cmd == INPUT_SELECT_PREV_UNREAD) {
+		for (int64_t i = (int64_t)menu->view_sel - 1; i >= 0; --i) {
+			if (menu->unread_state(i) == true) {
+				list_menu_change_view(i);
+				break;
 			}
-			return true;
-		case INPUT_SELECT_NEXT_PAGE:
-			list_menu_change_view(menu->view_sel + list_menu_height);
-			return true;
-		case INPUT_SELECT_PREV_PAGE:
-			list_menu_change_view(menu->view_sel > list_menu_height ? (menu->view_sel - list_menu_height) : 0);
-			return true;
-		case INPUT_SELECT_FIRST:
-			list_menu_change_view(0);
-			return true;
-		case INPUT_SELECT_LAST:
-			list_menu_change_view(menu->entries_count > 1 ? (menu->entries_count - 1) : 0);
-			return true;
+		}
+	} else if (cmd == INPUT_SELECT_NEXT_PAGE) {
+		list_menu_change_view(menu->view_sel + list_menu_height);
+	} else if (cmd == INPUT_SELECT_PREV_PAGE) {
+		list_menu_change_view(menu->view_sel > list_menu_height ? (menu->view_sel - list_menu_height) : 0);
+	} else if (cmd == INPUT_SELECT_FIRST) {
+		list_menu_change_view(0);
+	} else if (cmd == INPUT_SELECT_LAST) {
+		list_menu_change_view(menu->entries_count > 1 ? (menu->entries_count - 1) : 0);
+	} else {
+		return false;
 	}
-	return false;
+	return true;
 }

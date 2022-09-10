@@ -2,7 +2,6 @@
 #include "newsraft.h"
 
 static struct items_list *items;
-static config_entry_id entry_format;
 
 static struct format_arg fmt_args[] = {
 	{L'n',  L"d", {.i = 0}},
@@ -111,7 +110,7 @@ mark_all_items_unread(struct feed_line **feeds, size_t feeds_count)
 }
 
 input_cmd_id
-enter_items_menu_loop(struct feed_line **feeds, size_t feeds_count, int format)
+enter_items_menu_loop(struct feed_line **feeds, size_t feeds_count, config_entry_id format_id)
 {
 	items = generate_items_list(feeds, feeds_count, SORT_BY_TIME_DESC);
 	if (items == NULL) {
@@ -119,9 +118,7 @@ enter_items_menu_loop(struct feed_line **feeds, size_t feeds_count, int format)
 		return INPUTS_COUNT;
 	}
 
-	entry_format = format;
-
-	const size_t *view_sel = enter_list_menu(ITEMS_MENU, items->count);
+	const size_t *view_sel = enter_list_menu(ITEMS_MENU, items->count, format_id);
 
 	input_cmd_id cmd;
 	uint32_t count;

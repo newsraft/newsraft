@@ -258,7 +258,7 @@ void initialize_settings_of_list_menus(void);
 void expose_entry_of_the_list_menu(size_t index);
 void expose_all_visible_entries_of_the_list_menu(void);
 void redraw_list_menu(void);
-const size_t *enter_list_menu(int8_t menu_index, size_t new_entries_count);
+const size_t *enter_list_menu(int8_t menu_index, size_t new_entries_count, config_entry_id format_id);
 void leave_list_menu(void);
 void pause_list_menu(void);
 void resume_list_menu(void);
@@ -272,7 +272,7 @@ const wchar_t *do_format(const struct wstring *fmt, const struct format_arg *arg
 // items
 struct items_list *generate_items_list(struct feed_line **feeds, size_t feeds_count, enum sorting_order order);
 void free_items_list(struct items_list *items);
-input_cmd_id enter_items_menu_loop(struct feed_line **feeds, size_t feeds_count, int format);
+input_cmd_id enter_items_menu_loop(struct feed_line **feeds, size_t feeds_count, config_entry_id format_id);
 const struct format_arg *prepare_item_entry_args(size_t index);
 int paint_item_entry(size_t index);
 bool unread_item_condition(size_t index);

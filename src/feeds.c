@@ -100,7 +100,7 @@ enter_feeds_menu_loop(struct feed_line **new_feeds, size_t new_feeds_count)
 	feeds = new_feeds;
 	feeds_count = new_feeds_count;
 
-	const size_t *view_sel = enter_list_menu(FEEDS_MENU, feeds_count);
+	const size_t *view_sel = enter_list_menu(FEEDS_MENU, feeds_count, CFG_MENU_FEED_ENTRY_FORMAT);
 
 	input_cmd_id cmd;
 	uint32_t count;

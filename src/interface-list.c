@@ -65,17 +65,14 @@ free_list_menu(void)
 void
 initialize_settings_of_list_menus(void)
 {
-	menus[SECTIONS_MENU].entry_format = get_cfg_wstring(CFG_MENU_SECTION_ENTRY_FORMAT);
 	menus[SECTIONS_MENU].prepare_args = &prepare_section_entry_args;
 	menus[SECTIONS_MENU].paint_action = &paint_section_entry;
 	menus[SECTIONS_MENU].hover_action = NULL;
 	menus[SECTIONS_MENU].unread_state = &unread_section_condition;
-	menus[FEEDS_MENU].entry_format = get_cfg_wstring(CFG_MENU_FEED_ENTRY_FORMAT);
 	menus[FEEDS_MENU].prepare_args = &prepare_feed_entry_args;
 	menus[FEEDS_MENU].paint_action = &paint_feed_entry;
 	menus[FEEDS_MENU].hover_action = NULL;
 	menus[FEEDS_MENU].unread_state = &unread_feed_condition;
-	menus[ITEMS_MENU].entry_format = get_cfg_wstring(CFG_MENU_ITEM_ENTRY_FORMAT);
 	menus[ITEMS_MENU].prepare_args = &prepare_item_entry_args;
 	menus[ITEMS_MENU].paint_action = &paint_item_entry;
 	if (get_cfg_bool(CFG_MARK_ITEM_READ_ON_HOVER) == true) {
@@ -136,13 +133,14 @@ redraw_list_menu(void)
 }
 
 const size_t *
-enter_list_menu(int8_t menu_index, size_t new_entries_count)
+enter_list_menu(int8_t menu_index, size_t new_entries_count, config_entry_id format_id)
 {
 	menus_immersion[++menus_immersion_depth] = menu_index;
 	menu = &menus[menu_index];
 	menu->entries_count = new_entries_count;
 	menu->view_sel = 0;
 	menu->view_min = 0;
+	menu->entry_format = get_cfg_wstring(format_id);
 	redraw_list_menu();
 	status_clean();
 	return &(menu->view_sel);

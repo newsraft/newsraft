@@ -3,7 +3,6 @@
 
 static struct items_list *items;
 static config_entry_id entry_format;
-static size_t *view_sel;
 
 static struct format_arg fmt_args[] = {
 	{L'n',  L"d", {.i = 0}},
@@ -46,45 +45,45 @@ unread_item_condition(size_t index)
 }
 
 void
-mark_selected_item_read(void)
+mark_selected_item_read(size_t view_sel)
 {
-	if (items->list[*view_sel].is_unread == true) {
-		if (db_mark_item_read(items->list[*view_sel].rowid) == true) {
-			items->list[*view_sel].is_unread = false;
-			expose_entry_of_the_list_menu(*view_sel);
+	if (items->list[view_sel].is_unread == true) {
+		if (db_mark_item_read(items->list[view_sel].rowid) == true) {
+			items->list[view_sel].is_unread = false;
+			expose_entry_of_the_list_menu(view_sel);
 		}
 	}
 }
 
 static void
-mark_selected_item_unread(void)
+mark_selected_item_unread(size_t view_sel)
 {
-	if (items->list[*view_sel].is_unread == false) {
-		if (db_mark_item_unread(items->list[*view_sel].rowid) == true) {
-			items->list[*view_sel].is_unread = true;
-			expose_entry_of_the_list_menu(*view_sel);
+	if (items->list[view_sel].is_unread == false) {
+		if (db_mark_item_unread(items->list[view_sel].rowid) == true) {
+			items->list[view_sel].is_unread = true;
+			expose_entry_of_the_list_menu(view_sel);
 		}
 	}
 }
 
 static void
-mark_selected_item_important(void)
+mark_selected_item_important(size_t view_sel)
 {
-	if (items->list[*view_sel].is_important == false) {
-		if (db_mark_item_important(items->list[*view_sel].rowid) == true) {
-			items->list[*view_sel].is_important = true;
-			expose_entry_of_the_list_menu(*view_sel);
+	if (items->list[view_sel].is_important == false) {
+		if (db_mark_item_important(items->list[view_sel].rowid) == true) {
+			items->list[view_sel].is_important = true;
+			expose_entry_of_the_list_menu(view_sel);
 		}
 	}
 }
 
 static void
-mark_selected_item_unimportant(void)
+mark_selected_item_unimportant(size_t view_sel)
 {
-	if (items->list[*view_sel].is_important == true) {
-		if (db_mark_item_unimportant(items->list[*view_sel].rowid) == true) {
-			items->list[*view_sel].is_important = false;
-			expose_entry_of_the_list_menu(*view_sel);
+	if (items->list[view_sel].is_important == true) {
+		if (db_mark_item_unimportant(items->list[view_sel].rowid) == true) {
+			items->list[view_sel].is_important = false;
+			expose_entry_of_the_list_menu(view_sel);
 		}
 	}
 }
@@ -122,7 +121,7 @@ enter_items_menu_loop(struct feed_line **feeds, size_t feeds_count, int format)
 
 	entry_format = format;
 
-	view_sel = enter_list_menu(ITEMS_MENU, items->count);
+	const size_t *view_sel = enter_list_menu(ITEMS_MENU, items->count);
 
 	input_cmd_id cmd;
 	uint32_t count;
@@ -132,17 +131,17 @@ enter_items_menu_loop(struct feed_line **feeds, size_t feeds_count, int format)
 		if (handle_list_menu_navigation(cmd) == true) {
 			// rest a little
 		} else if (cmd == INPUT_MARK_READ) {
-			mark_selected_item_read();
+			mark_selected_item_read(*view_sel);
 		} else if (cmd == INPUT_MARK_UNREAD) {
-			mark_selected_item_unread();
+			mark_selected_item_unread(*view_sel);
 		} else if (cmd == INPUT_MARK_READ_ALL) {
 			mark_all_items_read(feeds, feeds_count);
 		} else if (cmd == INPUT_MARK_UNREAD_ALL) {
 			mark_all_items_unread(feeds, feeds_count);
 		} else if (cmd == INPUT_MARK_IMPORTANT) {
-			mark_selected_item_important();
+			mark_selected_item_important(*view_sel);
 		} else if (cmd == INPUT_MARK_UNIMPORTANT) {
-			mark_selected_item_unimportant();
+			mark_selected_item_unimportant(*view_sel);
 		} else if (cmd == INPUT_ENTER) {
 			db_mark_item_read(items->list[*view_sel].rowid);
 			items->list[*view_sel].is_unread = false;

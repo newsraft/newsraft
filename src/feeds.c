@@ -4,7 +4,6 @@
 
 static struct feed_line **feeds = NULL;
 static size_t feeds_count = 0;
-static size_t *view_sel;
 
 static struct format_arg fmt_args[] = {
 	{L'n',  L"d", {.i = 0}},
@@ -64,19 +63,19 @@ update_unread_items_count_of_all_feeds(void)
 }
 
 static inline void
-mark_selected_feed_read(void)
+mark_selected_feed_read(size_t view_sel)
 {
-	db_mark_all_items_in_feeds_as_read(&feeds[*view_sel], 1);
-	update_unread_items_count(*view_sel);
-	expose_entry_of_the_list_menu(*view_sel);
+	db_mark_all_items_in_feeds_as_read(&feeds[view_sel], 1);
+	update_unread_items_count(view_sel);
+	expose_entry_of_the_list_menu(view_sel);
 }
 
 static inline void
-mark_selected_feed_unread(void)
+mark_selected_feed_unread(size_t view_sel)
 {
-	db_mark_all_items_in_feeds_as_unread(&feeds[*view_sel], 1);
-	update_unread_items_count(*view_sel);
-	expose_entry_of_the_list_menu(*view_sel);
+	db_mark_all_items_in_feeds_as_unread(&feeds[view_sel], 1);
+	update_unread_items_count(view_sel);
+	expose_entry_of_the_list_menu(view_sel);
 }
 
 static inline void
@@ -101,7 +100,7 @@ enter_feeds_menu_loop(struct feed_line **new_feeds, size_t new_feeds_count)
 	feeds = new_feeds;
 	feeds_count = new_feeds_count;
 
-	view_sel = enter_list_menu(FEEDS_MENU, feeds_count);
+	const size_t *view_sel = enter_list_menu(FEEDS_MENU, feeds_count);
 
 	input_cmd_id cmd;
 	uint32_t count;
@@ -111,9 +110,9 @@ enter_feeds_menu_loop(struct feed_line **new_feeds, size_t new_feeds_count)
 		if (handle_list_menu_navigation(cmd) == true) {
 			// rest a little
 		} else if (cmd == INPUT_MARK_READ) {
-			mark_selected_feed_read();
+			mark_selected_feed_read(*view_sel);
 		} else if (cmd == INPUT_MARK_UNREAD) {
-			mark_selected_feed_unread();
+			mark_selected_feed_unread(*view_sel);
 		} else if (cmd == INPUT_MARK_READ_ALL) {
 			mark_all_feeds_read();
 		} else if (cmd == INPUT_MARK_UNREAD_ALL) {

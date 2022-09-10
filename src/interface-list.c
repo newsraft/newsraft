@@ -9,7 +9,7 @@ struct list_menu_settings {
 	const struct wstring *entry_format;
 	const struct format_arg *(*prepare_args)(size_t index);
 	int (*paint_action)(size_t index);
-	void (*hover_action)(void);
+	void (*hover_action)(size_t index);
 	bool (*unread_state)(size_t index);
 };
 
@@ -135,7 +135,7 @@ redraw_list_menu(void)
 	}
 }
 
-size_t *
+const size_t *
 enter_list_menu(int8_t menu_index, size_t new_entries_count)
 {
 	menus_immersion[++menus_immersion_depth] = menu_index;
@@ -205,7 +205,7 @@ list_menu_change_view(size_t new_sel)
 	}
 
 	if (menu->hover_action != NULL) {
-		menu->hover_action();
+		menu->hover_action(menu->view_sel);
 	}
 }
 

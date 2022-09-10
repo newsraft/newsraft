@@ -202,7 +202,7 @@ enter_sections_menu_loop(void)
 	}
 
 	refresh_unread_items_count_of_all_sections();
-	size_t *view_sel = enter_list_menu(SECTIONS_MENU, sections_count);
+	const size_t *view_sel = enter_list_menu(SECTIONS_MENU, sections_count);
 
 	input_cmd_id cmd;
 	uint32_t count;

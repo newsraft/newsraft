@@ -258,7 +258,7 @@ void initialize_settings_of_list_menus(void);
 void expose_entry_of_the_list_menu(size_t index);
 void expose_all_visible_entries_of_the_list_menu(void);
 void redraw_list_menu(void);
-size_t *enter_list_menu(int8_t menu_index, size_t new_entries_count);
+const size_t *enter_list_menu(int8_t menu_index, size_t new_entries_count);
 void leave_list_menu(void);
 void pause_list_menu(void);
 void resume_list_menu(void);
@@ -276,7 +276,7 @@ input_cmd_id enter_items_menu_loop(struct feed_line **feeds, size_t feeds_count,
 const struct format_arg *prepare_item_entry_args(size_t index);
 int paint_item_entry(size_t index);
 bool unread_item_condition(size_t index);
-void mark_selected_item_read(void);
+void mark_selected_item_read(size_t view_sel);
 
 // Functions responsible for managing render blocks.
 // Render block is a piece of text in a single format. They are stored as linked

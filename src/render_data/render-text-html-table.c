@@ -32,26 +32,6 @@ struct html_table_element_handler {
 	void (*end_handler)(struct html_table *, GumboVector *);
 };
 
-struct html_table *
-create_html_table(void)
-{
-	struct html_table *table = malloc(sizeof(struct html_table));
-	if (table == NULL) {
-		return NULL;
-	}
-	table->unmapped_text = wcrtes();
-	if (table->unmapped_text == NULL) {
-		free(table);
-		return NULL;
-	}
-	table->rows = NULL;
-	table->rows_count = 0;
-	table->columns_count = 0;
-	table->column_widths = NULL;
-	table->target = table->unmapped_text;
-	return table;
-}
-
 static void
 append_empty_cell_to_last_row_of_the_table(struct html_table *table)
 {
@@ -205,7 +185,7 @@ write_to_table(struct html_table *table, const char *src, size_t src_len)
 }
 
 static inline void
-free_html_table(struct html_table *table)
+free_html_table(const struct html_table *table)
 {
 	for (int64_t i = 0; i < table->rows_count; ++i) {
 		for (int64_t j = 0; j < table->rows[i].cells_count; ++j) {
@@ -219,7 +199,6 @@ free_html_table(struct html_table *table)
 	free(table->rows);
 	free(table->column_widths);
 	free_wstring(table->unmapped_text);
-	free(table);
 }
 
 static inline void
@@ -250,8 +229,8 @@ adjust_column_widths_to_contain_cells_with_colspan_attribute(struct html_table *
 	}
 }
 
-void
-print_html_table_and_free_it(struct html_table *table, struct wstring *text, struct line *line)
+static inline void
+print_html_table(struct wstring *text, struct line *line, const struct html_table *table)
 {
 	wchar_t buf[5000];
 	size_t w;
@@ -259,7 +238,6 @@ print_html_table_and_free_it(struct html_table *table, struct wstring *text, str
 		line_string(line, table->unmapped_text->ptr, text);
 		line_char(line, L'\n', text);
 	}
-	adjust_column_widths_to_contain_cells_with_colspan_attribute(table);
 	for (int64_t i = 0; i < table->rows_count; ++i) {
 		for (int64_t j = 0; j < table->rows[i].cells_count; ++j) {
 			if (table->rows[i].cells[j].lines != NULL) {
@@ -275,7 +253,6 @@ print_html_table_and_free_it(struct html_table *table, struct wstring *text, str
 		}
 		line_char(line, L'\n', text);
 	}
-	free_html_table(table);
 }
 
 static const struct html_table_element_handler handlers[] = {
@@ -290,8 +267,8 @@ static const struct html_table_element_handler handlers[] = {
 	{GUMBO_TAG_UNKNOWN, NULL,                                       NULL},
 };
 
-void
-dump_html_table(GumboNode *node, struct html_table *table)
+static void
+dump_html_table_child(GumboNode *node, struct html_table *table)
 {
 	if (node->type == GUMBO_NODE_ELEMENT) {
 		size_t i, j;
@@ -303,7 +280,7 @@ dump_html_table(GumboNode *node, struct html_table *table)
 		if (handlers[i].tag_id == GUMBO_TAG_UNKNOWN) {
 			write_to_table(table, node->v.element.original_tag.data, node->v.element.original_tag.length);
 			for (j = 0; j < node->v.element.children.length; ++j) {
-				dump_html_table(node->v.element.children.data[j], table);
+				dump_html_table_child(node->v.element.children.data[j], table);
 			}
 			write_to_table(table, node->v.element.original_end_tag.data, node->v.element.original_end_tag.length);
 		} else {
@@ -311,7 +288,7 @@ dump_html_table(GumboNode *node, struct html_table *table)
 				handlers[i].start_handler(table, &node->v.element.attributes);
 			}
 			for (j = 0; j < node->v.element.children.length; ++j) {
-				dump_html_table(node->v.element.children.data[j], table);
+				dump_html_table_child(node->v.element.children.data[j], table);
 			}
 			if (handlers[i].end_handler != NULL) {
 				handlers[i].end_handler(table, &node->v.element.attributes);
@@ -320,4 +297,21 @@ dump_html_table(GumboNode *node, struct html_table *table)
 	} else if ((node->type == GUMBO_NODE_TEXT) || (node->type == GUMBO_NODE_CDATA)) {
 		write_to_table(table, node->v.text.text, strlen(node->v.text.text));
 	}
+}
+
+void
+write_contents_of_html_table_node_to_text(struct wstring *text, struct line *line, GumboNode *node)
+{
+	struct html_table table = {0};
+	table.unmapped_text = wcrtes();
+	if (table.unmapped_text == NULL) {
+		return;
+	}
+	table.target = table.unmapped_text;
+	for (size_t i = 0; i < node->v.element.children.length; ++i) {
+		dump_html_table_child(node->v.element.children.data[i], &table);
+	}
+	adjust_column_widths_to_contain_cells_with_colspan_attribute(&table);
+	print_html_table(text, line, &table);
+	free_html_table(&table);
 }

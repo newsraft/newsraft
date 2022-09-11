@@ -11,16 +11,11 @@ struct line {
 	size_t indent; // Shows how many spaces must be printed in the beginning of ptr.
 };
 
-struct html_table; // See "render-text-html-table.c" file.
-
 bool render_text_plain(const struct wstring *source, struct line *line, struct wstring *target, bool is_first_call);
 bool render_text_html(const struct wstring *source, struct line *line, struct wstring *target, bool is_first_call);
 
 bool line_char(struct line *line, wchar_t c, struct wstring *target);
 bool line_string(struct line *line, const wchar_t *str, struct wstring *target);
 
-// html table
-struct html_table *create_html_table(void);
-void dump_html_table(GumboNode *node, struct html_table *table);
-void print_html_table_and_free_it(struct html_table *table, struct wstring *text, struct line *line);
+void write_contents_of_html_table_node_to_text(struct wstring *text, struct line *line, GumboNode *node);
 #endif // RENDER_DATA_H

@@ -289,13 +289,7 @@ dump_html(GumboNode *node, struct wstring *text, struct line *line, enum html_po
 				}
 			}
 		} else if (handlers[i].tag_id == GUMBO_TAG_TABLE) {
-			struct html_table *table = create_html_table();
-			if (table != NULL) {
-				for (size_t j = 0; j < node->v.element.children.length; ++j) {
-					dump_html_table(node->v.element.children.data[j], table);
-				}
-				print_html_table_and_free_it(table, text, line);
-			}
+			write_contents_of_html_table_node_to_text(text, line, node);
 		} else {
 			if (handlers[i].start_handler != NULL) {
 				handlers[i].start_handler(text, line, pos);

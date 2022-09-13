@@ -14,6 +14,7 @@ struct html_table_cell {
 struct html_table_row {
 	struct html_table_cell *cells;
 	int64_t cells_count;
+	size_t max_cell_height;
 };
 
 struct html_table {
@@ -39,6 +40,7 @@ expand_html_table_by_one_row(struct html_table *table, GumboVector *attrs)
 	if (tmp != NULL) {
 		tmp[table->rows_count].cells = NULL;
 		tmp[table->rows_count].cells_count = 0;
+		tmp[table->rows_count].max_cell_height = 1;
 		table->rows = tmp;
 		table->rows_count += 1;
 	}
@@ -130,12 +132,34 @@ expand_last_row_in_html_table_by_one_cell(struct html_table *table, GumboVector 
 }
 
 static void
+expand_target_cell_by_one_line(struct html_table *table, GumboVector *attrs)
+{
+	(void)attrs;
+	if (table->target != NULL) {
+		struct wstring **tmp = realloc(
+			table->target->lines,
+			sizeof(struct wstring *) * (table->target->lines_count + 1)
+		);
+		if (tmp != NULL) {
+			tmp[table->target->lines_count] = wcrtes();
+			table->target->lines = tmp;
+			table->target->lines_count += 1;
+		}
+		struct html_table_row *last_row = &table->rows[table->rows_count - 1];
+		if (last_row->max_cell_height < table->target->lines_count) {
+			last_row->max_cell_height = table->target->lines_count;
+		}
+	}
+}
+
+static void
 write_to_table(struct html_table *table, const char *src, size_t src_len)
 {
 	struct string *tag = crtas(src, src_len);
 	if (tag == NULL) {
 		return;
 	}
+	trim_whitespace_from_string(tag);
 	inlinefy_string(tag);
 	struct wstring *wtag = convert_string_to_wstring(tag);
 	free_string(tag);
@@ -219,21 +243,25 @@ print_html_table(struct wstring *text, struct line *line, const struct html_tabl
 		line_char(line, L'\n', text);
 	}
 	for (int64_t i = 0; i < table->rows_count; ++i) {
-		for (int64_t j = 0; j < table->rows[i].cells_count; ++j) {
-			if (table->rows[i].cells[j].colspan > 0) {
-				w = table->column_widths[j];
-				for (int64_t k = j + 1; (k < table->rows[i].cells_count) && (table->rows[i].cells[k].colspan == -1); ++k) {
-					w += table->column_widths[k] + 1;
+		for (size_t height = 0; height < table->rows[i].max_cell_height; ++height) {
+			for (int64_t j = 0; j < table->rows[i].cells_count; ++j) {
+				if (table->rows[i].cells[j].colspan > 0) {
+					w = table->column_widths[j];
+					for (int64_t k = j + 1; (k < table->rows[i].cells_count) && (table->rows[i].cells[k].colspan == -1); ++k) {
+						w += table->column_widths[k] + 1;
+					}
+					if ((table->rows[i].cells[j].rowspan == -1)
+						|| (height >= table->rows[i].cells[j].lines_count))
+					{
+						swprintf(buf, 8192, L"%-*.*ls ", w, w, L"");
+					} else {
+						swprintf(buf, 8192, L"%-*.*ls ", w, w, table->rows[i].cells[j].lines[height]->ptr);
+					}
+					line_string(line, buf, text);
 				}
-				if (table->rows[i].cells[j].rowspan == -1) {
-					swprintf(buf, 8192, L"%-*.*ls ", w, w, L"");
-				} else {
-					swprintf(buf, 8192, L"%-*.*ls ", w, w, table->rows[i].cells[j].lines[0]->ptr);
-				}
-				line_string(line, buf, text);
 			}
+			line_char(line, L'\n', text);
 		}
-		line_char(line, L'\n', text);
 	}
 }
 
@@ -241,6 +269,7 @@ static const struct html_table_element_handler handlers[] = {
 	{GUMBO_TAG_TD,      &expand_last_row_in_html_table_by_one_cell, NULL},
 	{GUMBO_TAG_TR,      &expand_html_table_by_one_row,              NULL},
 	{GUMBO_TAG_TH,      &expand_last_row_in_html_table_by_one_cell, NULL},
+	{GUMBO_TAG_BR,      &expand_target_cell_by_one_line,            NULL},
 	// Gumbo can assign thead, tbody and tfoot tags to table element under
 	// some circumstances, so we need to ignore these to avoid tag display.
 	{GUMBO_TAG_THEAD,   NULL,                                       NULL},

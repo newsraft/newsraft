@@ -260,14 +260,14 @@ _mark-item-read-on-hover_ (default: *false*)
 _content-append-links_ (default: *true*)
 	Whether or not append links section to content view.
 
-_clean-database-on-startup_ (default: *true*)
-	Run "VACUUM" SQLite command on the database every time you start Newsraft.
-	It rebuilds the database file, repacking it into a minimal amount of disk space.
-	This can significantly increase startup time.
-
 _analyze-database-on-startup_ (default: *true*)
 	Run "ANALYZE" SQLite command on the database every time you start Newsraft.
-	It gathers statistics about database and uses it to optimize some queries.
+	It gathers statistics about database and uses it to optimize some queries
+	making runtime faster.
+
+_clean-database-on-startup_ (default: *false*)
+	Run "VACUUM" SQLite command on the database every time you start Newsraft.
+	It rebuilds the database file by packing it into a minimal amount of disk space.
 	This can significantly increase startup time.
 
 _respect-ttl-element_ (default: *true*)

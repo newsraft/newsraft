@@ -82,22 +82,22 @@ add_url_mark(struct link_list *links, struct string *text, const char *url, cons
 	}
 
 	// Add link mark to HTML content.
-	struct string *url_mark = crtes();
+	struct string *url_mark = crtas(" ", 1);
 	if (url_mark == NULL) {
 		return;
 	}
 
 	if (type == NULL) {
 		if (title == NULL) {
-			string_printf(url_mark, " [%" PRId64 "]", url_index + 1);
+			string_printf(url_mark, "[%" PRId64 "]", url_index + 1);
 		} else {
-			string_printf(url_mark, " [%" PRId64 ", \"%s\"]", url_index + 1, title);
+			string_printf(url_mark, "[%" PRId64 ", \"%s\"]", url_index + 1, title);
 		}
 	} else {
 		if (title == NULL) {
-			string_printf(url_mark, " [%" PRId64 ", %s]", url_index + 1, type);
+			string_printf(url_mark, "[%" PRId64 ", %s]", url_index + 1, type);
 		} else {
-			string_printf(url_mark, " [%" PRId64 ", %s \"%s\"]", url_index + 1, type, title);
+			string_printf(url_mark, "[%" PRId64 ", %s \"%s\"]", url_index + 1, type, title);
 		}
 	}
 
@@ -157,6 +157,13 @@ embed_handler(struct string *text, struct html_data *data, GumboVector *attrs)
 }
 
 static void
+audio_handler(struct string *text, struct html_data *data, GumboVector *attrs)
+{
+	const char *url = get_value_of_xml_attribute(attrs, "src");
+	add_url_mark(data->links, text, url, "audio", NULL);
+}
+
+static void
 video_handler(struct string *text, struct html_data *data, GumboVector *attrs)
 {
 	const char *url = get_value_of_xml_attribute(attrs, "src");
@@ -169,6 +176,15 @@ source_handler(struct string *text, struct html_data *data, GumboVector *attrs)
 	const char *url = get_value_of_xml_attribute(attrs, "src");
 	const char *type = get_value_of_xml_attribute(attrs, "type");
 	add_url_mark(data->links, text, url, type, NULL);
+}
+
+static void
+object_handler(struct string *text, struct html_data *data, GumboVector *attrs)
+{
+	const char *url = get_value_of_xml_attribute(attrs, "data");
+	const char *type = get_value_of_xml_attribute(attrs, "type");
+	const char *title = get_value_of_xml_attribute(attrs, "name");
+	add_url_mark(data->links, text, url, type, title);
 }
 
 static void
@@ -214,6 +230,7 @@ static const struct html_element_handler handlers[] = {
 	{GUMBO_TAG_IFRAME,   &iframe_handler,       NULL},
 	{GUMBO_TAG_EMBED,    &embed_handler,        NULL},
 	{GUMBO_TAG_SOURCE,   &source_handler,       NULL},
+	{GUMBO_TAG_OBJECT,   &object_handler,       NULL},
 	{GUMBO_TAG_ABBR,     NULL,                  &abbr_handler},
 	{GUMBO_TAG_Q,        &q_handler,            &q_handler},
 	{GUMBO_TAG_I,        NULL,                  NULL},
@@ -233,8 +250,11 @@ static const struct html_element_handler handlers[] = {
 	{GUMBO_TAG_DFN,      NULL,                  NULL},
 	{GUMBO_TAG_TIME,     NULL,                  NULL},
 	{GUMBO_TAG_STRONG,   NULL,                  NULL},
+	{GUMBO_TAG_FONT,     NULL,                  NULL},
+	{GUMBO_TAG_BASEFONT, NULL,                  NULL},
 	// As of 2022.07.08, Gumbo doesn't support <picture> tags.
 	//{GUMBO_TAG_PICTURE,  NULL,                  NULL},
+	{GUMBO_TAG_AUDIO,    &audio_handler,        NULL},
 	{GUMBO_TAG_VIDEO,    &video_handler,        NULL},
 	{GUMBO_TAG_LABEL,    NULL,                  NULL},
 	{GUMBO_TAG_TEXTAREA, NULL,                  NULL},

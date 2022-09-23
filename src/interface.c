@@ -64,6 +64,7 @@ curses_init(void)
 	} else if (create_color_pairs() == false) {
 		WARN("Can't create color pairs!");
 	}
+	INFO("The value of KEY_RESIZE code is %d.", KEY_RESIZE);
 	return true;
 }
 

@@ -30,7 +30,6 @@ get_input_command(uint32_t *count, const struct wstring **macro_ptr)
 	}
 
 	if (c == KEY_RESIZE) {
-		INFO("Apparently, resize action code is %d.", c);
 		if (resize_counter_action() == true) {
 			return INPUT_RESIZE;
 		} else {

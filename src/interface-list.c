@@ -18,6 +18,7 @@ size_t list_menu_width;
 
 static WINDOW **windows = NULL;
 static size_t windows_count = 0;
+static size_t scrolloff;
 
 static struct list_menu_settings menus[MENUS_COUNT];
 static struct list_menu_settings *menu = menus; // selected menu
@@ -47,6 +48,10 @@ adjust_list_menu(void)
 		}
 	}
 	windows_count = list_menu_height;
+	scrolloff = get_cfg_uint(CFG_SCROLLOFF);
+	if (scrolloff > (list_menu_height / 2)) {
+		scrolloff = list_menu_height / 2;
+	}
 	return true;
 error:
 	FAIL("Not enough memory for adjusting list menu!");
@@ -182,14 +187,23 @@ list_menu_change_view(size_t new_sel)
 		new_sel = menu->entries_count - 1;
 	}
 
-	if (new_sel > menu->view_max) {
-		menu->view_min = new_sel - (list_menu_height - 1);
-		menu->view_max = new_sel;
+	if ((new_sel + scrolloff) > menu->view_max) {
+		if (menu->entries_count > list_menu_height) {
+			menu->view_max = MIN(new_sel + scrolloff, menu->entries_count - 1);
+		} else {
+			menu->view_max = list_menu_height - 1;
+		}
+		menu->view_min = menu->view_max - (list_menu_height - 1);
+		menu->view_sel = new_sel;
+		expose_all_visible_entries_of_the_list_menu();
+	} else if ((new_sel >= scrolloff) && ((new_sel - scrolloff) < menu->view_min)) {
+		menu->view_min = new_sel - scrolloff;
+		menu->view_max = menu->view_min + (list_menu_height - 1);
 		menu->view_sel = new_sel;
 		expose_all_visible_entries_of_the_list_menu();
 	} else if (new_sel < menu->view_min) {
 		menu->view_min = new_sel;
-		menu->view_max = new_sel + (list_menu_height - 1);
+		menu->view_max = menu->view_min + (list_menu_height - 1);
 		menu->view_sel = new_sel;
 		expose_all_visible_entries_of_the_list_menu();
 	} else if (new_sel != menu->view_sel) {

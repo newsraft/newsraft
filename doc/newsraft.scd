@@ -159,6 +159,11 @@ _update-threads-count_ (default: *0*)
 	*2*; otherwise setting value is set to *1*. Values greater than *2* may
 	reduce performance if there is not enough network bandwidth available.
 
+_scrolloff_ (default: *0*)
+	Minimal number of list menu entries to keep above and below the selected
+	entry. If you set it to a very large value the selected entry will always be
+	in the middle of the list menu (except at the start or end of the list menu).
+
 _status-messages-count-limit_ (default: *10000*)
 	Maximum number of status messages stored in memory. Zero disables the limit.
 

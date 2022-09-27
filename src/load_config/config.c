@@ -52,6 +52,7 @@ static struct config_entry config[] = {
 	{"download-timeout",                CFG_UINT,    {.u = 20   }},
 	{"download-speed-limit",            CFG_UINT,    {.u = 0    }},
 	{"update-threads-count",            CFG_UINT,    {.u = 0    }},
+	{"scrolloff",                       CFG_UINT,    {.u = 0    }},
 	{"status-messages-count-limit",     CFG_UINT,    {.u = 10000}},
 	{"open-in-browser-command",         CFG_STRING,  {.s = {NULL, "auto",        4}}},
 	{"copy-to-clipboard-command",       CFG_STRING,  {.s = {NULL, "auto",        4}}},

@@ -82,22 +82,22 @@ add_url_mark(struct link_list *links, struct string *text, const char *url, cons
 	}
 
 	// Add link mark to HTML content.
-	struct string *url_mark = crtas(" ", 1);
+	struct string *url_mark = crtes();
 	if (url_mark == NULL) {
 		return;
 	}
 
 	if (type == NULL) {
 		if (title == NULL) {
-			string_printf(url_mark, "[%" PRId64 "]", url_index + 1);
+			string_printf(url_mark, " [%" PRId64 "]", url_index + 1);
 		} else {
-			string_printf(url_mark, "[%" PRId64 ", \"%s\"]", url_index + 1, title);
+			string_printf(url_mark, " [%" PRId64 ", \"%s\"]", url_index + 1, title);
 		}
 	} else {
 		if (title == NULL) {
-			string_printf(url_mark, "[%" PRId64 ", %s]", url_index + 1, type);
+			string_printf(url_mark, " [%" PRId64 ", %s]", url_index + 1, type);
 		} else {
-			string_printf(url_mark, "[%" PRId64 ", %s \"%s\"]", url_index + 1, type, title);
+			string_printf(url_mark, " [%" PRId64 ", %s \"%s\"]", url_index + 1, type, title);
 		}
 	}
 

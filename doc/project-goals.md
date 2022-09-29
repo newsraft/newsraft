@@ -48,7 +48,7 @@ the interface.
 #### 4 times smaller codebase
 
 Newsraft's source lines of code count is around 9k, while Newsboat's is around
-36k.
+40k.
 
 #### Omitted functionality
 

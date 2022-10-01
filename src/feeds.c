@@ -1,5 +1,3 @@
-#include <stdlib.h>
-#include <stdio.h>
 #include "newsraft.h"
 
 static struct feed_line **feeds = NULL;

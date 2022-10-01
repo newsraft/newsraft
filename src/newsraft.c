@@ -58,7 +58,7 @@ main(int argc, char **argv)
 		}
 	}
 
-	if (register_sighandlers()             == false) { error = 6;  goto undo1;  }
+	if (register_signal_handlers()         == false) { error = 6;  goto undo1;  }
 	if (get_local_offset_relative_to_utc() == false) { error = 7;  goto undo1;  }
 	if (assign_default_binds()             == false) { error = 8;  goto undo1;  }
 	if (load_config()                      == false) { error = 9;  goto undo2;  }

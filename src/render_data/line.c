@@ -1,4 +1,3 @@
-#include <stdlib.h>
 #include "render_data.h"
 
 bool
@@ -52,10 +51,9 @@ line_char(struct line *line, wchar_t c, struct wstring *target)
 bool
 line_string(struct line *line, const wchar_t *str, struct wstring *target)
 {
-	const wchar_t *iter = str;
-	while (*iter != L'\0') {
-		line_char(line, *iter, target);
-		++iter;
+	while (*str != L'\0') {
+		line_char(line, *str, target);
+		str += 1;
 	}
 	return true;
 }

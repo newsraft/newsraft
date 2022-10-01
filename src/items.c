@@ -1,4 +1,3 @@
-#include <stdlib.h>
 #include "newsraft.h"
 
 static struct items_list *items;

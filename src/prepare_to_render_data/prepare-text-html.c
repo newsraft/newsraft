@@ -14,7 +14,7 @@ struct html_data {
 	struct html_abbr *abbrs;
 };
 
-struct html_element_handler {
+struct html_element_preparer {
 	const GumboTag tag_id;
 	void (*start_handler)(struct string *, struct html_data *, GumboVector *);
 	void (*end_handler)(struct string *, struct html_data *, GumboVector *);
@@ -222,7 +222,7 @@ abbr_handler(struct string *text, struct html_data *data, GumboVector *attrs)
 
 // Elements without handlers (both handlers are set to NULL), will simply
 // be ignored and the text in them will be displayed without any changes.
-static const struct html_element_handler handlers[] = {
+static const struct html_element_preparer preparers[] = {
 	{GUMBO_TAG_SPAN,     NULL,                  NULL},
 	{GUMBO_TAG_A,        NULL,                  &a_handler},
 	{GUMBO_TAG_SUP,      &sup_handler,          NULL},
@@ -277,29 +277,29 @@ dump_html(GumboNode *node, struct string *text, struct html_data *data)
 {
 	if (node->type == GUMBO_NODE_ELEMENT) {
 		size_t i;
-		for (i = 0; handlers[i].tag_id != GUMBO_TAG_UNKNOWN; ++i) {
-			if (node->v.element.tag == handlers[i].tag_id) {
+		for (i = 0; preparers[i].tag_id != GUMBO_TAG_UNKNOWN; ++i) {
+			if (preparers[i].tag_id == node->v.element.tag) {
 				break;
 			}
 		}
-		if (handlers[i].tag_id == GUMBO_TAG_UNKNOWN) {
+		if (preparers[i].tag_id == GUMBO_TAG_UNKNOWN) {
 			catas(text, node->v.element.original_tag.data, node->v.element.original_tag.length);
 			for (size_t j = 0; j < node->v.element.children.length; ++j) {
 				dump_html(node->v.element.children.data[j], text, data);
 			}
 			catas(text, node->v.element.original_end_tag.data, node->v.element.original_end_tag.length);
 		} else {
-			if (handlers[i].start_handler != NULL) {
-				handlers[i].start_handler(text, data, &node->v.element.attributes);
+			if (preparers[i].start_handler != NULL) {
+				preparers[i].start_handler(text, data, &node->v.element.attributes);
 			}
 			// We don't descent into style and script elements at all.
-			if ((handlers[i].tag_id != GUMBO_TAG_STYLE) && (handlers[i].tag_id != GUMBO_TAG_SCRIPT)) {
+			if ((preparers[i].tag_id != GUMBO_TAG_STYLE) && (preparers[i].tag_id != GUMBO_TAG_SCRIPT)) {
 				for (size_t j = 0; j < node->v.element.children.length; ++j) {
 					dump_html(node->v.element.children.data[j], text, data);
 				}
 			}
-			if (handlers[i].end_handler != NULL) {
-				handlers[i].end_handler(text, data, &node->v.element.attributes);
+			if (preparers[i].end_handler != NULL) {
+				preparers[i].end_handler(text, data, &node->v.element.attributes);
 			}
 		}
 	} else if ((node->type == GUMBO_NODE_TEXT)

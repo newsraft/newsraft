@@ -3,7 +3,7 @@
 #include "newsraft.h"
 
 bool
-register_sighandlers(void)
+register_signal_handlers(void)
 {
 	struct sigaction act = {0};
 	act.sa_handler = &tell_program_to_terminate_safely_and_quickly;

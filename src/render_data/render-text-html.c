@@ -7,7 +7,7 @@ enum html_position {
 	HTML_PRE = 1,
 };
 
-struct html_element_handler {
+struct html_element_renderer {
 	const GumboTag tag_id;
 	void (*start_handler)(struct wstring *, struct line *, enum html_position *);
 	void (*end_handler)(struct wstring *, struct line *, enum html_position *);
@@ -218,7 +218,7 @@ pre_end_handler(struct wstring *text, struct line *line, enum html_position *pos
 	*pos &= ~HTML_PRE;
 }
 
-static const struct html_element_handler handlers[] = {
+static const struct html_element_renderer renderers[] = {
 	{GUMBO_TAG_P,          &provide_two_newlines,     &provide_two_newlines},
 	{GUMBO_TAG_DL,         &provide_two_newlines,     &provide_two_newlines},
 	{GUMBO_TAG_BR,         &br_handler,               NULL},
@@ -259,13 +259,11 @@ static void
 dump_html(GumboNode *node, struct wstring *text, struct line *line, enum html_position *pos)
 {
 	if (node->type == GUMBO_NODE_ELEMENT) {
-		size_t i;
-		for (i = 0; handlers[i].tag_id != GUMBO_TAG_UNKNOWN; ++i) {
-			if (node->v.element.tag == handlers[i].tag_id) {
-				break;
-			}
+		size_t i = 0;
+		while ((renderers[i].tag_id != GUMBO_TAG_UNKNOWN) && (renderers[i].tag_id != node->v.element.tag)) {
+			i += 1;
 		}
-		if (handlers[i].tag_id == GUMBO_TAG_UNKNOWN) {
+		if (renderers[i].tag_id == GUMBO_TAG_UNKNOWN) {
 			struct string *tag = crtas(node->v.element.original_tag.data, node->v.element.original_tag.length);
 			struct wstring *wtag;
 			if (tag != NULL) {
@@ -288,17 +286,17 @@ dump_html(GumboNode *node, struct wstring *text, struct line *line, enum html_po
 					free_wstring(wtag);
 				}
 			}
-		} else if (handlers[i].tag_id == GUMBO_TAG_TABLE) {
+		} else if (renderers[i].tag_id == GUMBO_TAG_TABLE) {
 			write_contents_of_html_table_node_to_text(text, line, node);
 		} else {
-			if (handlers[i].start_handler != NULL) {
-				handlers[i].start_handler(text, line, pos);
+			if (renderers[i].start_handler != NULL) {
+				renderers[i].start_handler(text, line, pos);
 			}
 			for (size_t j = 0; j < node->v.element.children.length; ++j) {
 				dump_html(node->v.element.children.data[j], text, line, pos);
 			}
-			if (handlers[i].end_handler != NULL) {
-				handlers[i].end_handler(text, line, pos);
+			if (renderers[i].end_handler != NULL) {
+				renderers[i].end_handler(text, line, pos);
 			}
 		}
 	} else if ((node->type == GUMBO_NODE_TEXT)

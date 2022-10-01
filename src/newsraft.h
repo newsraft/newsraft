@@ -440,7 +440,7 @@ void trim_whitespace_from_wstring(struct wstring *wstr);
 struct string *convert_wstring_to_string(const struct wstring *src);
 
 // See "signal.c" file for implementation.
-bool register_sighandlers(void);
+bool register_signal_handlers(void);
 
 // Functions for opening and closing the log stream.
 // To write to the log stream use macros INFO, WARN or FAIL.

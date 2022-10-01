@@ -242,6 +242,20 @@ handle_list_menu_navigation(input_cmd_id cmd)
 				break;
 			}
 		}
+	} else if ((cmd == INPUT_SELECT_NEXT_IMPORTANT) && (menus_immersion[menus_immersion_depth] == ITEMS_MENU)) {
+		for (size_t i = menu->view_sel + 1; i < menu->entries_count; ++i) {
+			if (important_item_condition(i) == true) {
+				list_menu_change_view(i);
+				break;
+			}
+		}
+	} else if ((cmd == INPUT_SELECT_PREV_IMPORTANT) && (menus_immersion[menus_immersion_depth] == ITEMS_MENU)) {
+		for (int64_t i = (int64_t)menu->view_sel - 1; i >= 0; --i) {
+			if (important_item_condition(i) == true) {
+				list_menu_change_view(i);
+				break;
+			}
+		}
 	} else if (cmd == INPUT_SELECT_NEXT_PAGE) {
 		list_menu_change_view(menu->view_sel + list_menu_height);
 	} else if (cmd == INPUT_SELECT_PREV_PAGE) {

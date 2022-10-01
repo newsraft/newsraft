@@ -45,7 +45,7 @@ that point to feeds you want to receive news from. Format of this file and valid
 paths for the location of this file are discussed in the *FEEDS FILE* section.
 
 When your *feeds* file is ready, you can launch Newsraft. Navigation in the
-interface is carried out by the same keys as in the *vi*(1p) text editor. To
+interface is carried out by the same keys as in the *vi*(1) text editor. To
 start reading news from feeds you have to update them (i. e. get information
 from the servers where the files for these feeds are located to local database).
 By default, to update a single feed you have to select it and press *r*. If you
@@ -372,13 +372,17 @@ _color-list-section-unread-bg_ (default: *black*)
 
 _select-next_ (default: *j*, *KEY_DOWN*)
 
-_select-next-unread_ (default: *n*)
-
-_select-next-page_ (default: *KEY_NPAGE*)
-
 _select-prev_ (default: *k*, *KEY_UP*)
 
+_select-next-unread_ (default: *n*)
+
 _select-prev-unread_ (default: *p*)
+
+_select-next-important_ (default: *N*)
+
+_select-prev-important_ (default: *P*)
+
+_select-next-page_ (default: *KEY_NPAGE*)
 
 _select-prev-page_ (default: *KEY_PPAGE*)
 
@@ -394,9 +398,9 @@ _reload-all_ (default: *^R*)
 
 _mark-read_ (default: *d*)
 
-_mark-read-all_ (default: *^D*)
-
 _mark-unread_ (default: *D*)
+
+_mark-read-all_ (default: *^D*)
 
 _mark-unread-all_ (default: not set)
 
@@ -453,7 +457,7 @@ Setting that forcibly makes the interface monochrome when set.
 
 # SEE ALSO
 
-*vi*(1p), *sqlite3*(1), *strftime*(3), *libcurl*(3), *libcurl-env*(3)
+*vi*(1), *sqlite3*(1), *strftime*(3), *libcurl*(3), *libcurl-env*(3)
 
 # BUGS
 

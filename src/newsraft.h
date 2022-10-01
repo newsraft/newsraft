@@ -156,21 +156,21 @@ enum {
 typedef uint8_t input_cmd_id;
 enum input_cmd {
 	INPUT_SELECT_NEXT = 0,
-	INPUT_SELECT_NEXT_UNREAD,
-	INPUT_SELECT_NEXT_PAGE,
 	INPUT_SELECT_PREV,
+	INPUT_SELECT_NEXT_UNREAD,
 	INPUT_SELECT_PREV_UNREAD,
+	INPUT_SELECT_NEXT_IMPORTANT,
+	INPUT_SELECT_PREV_IMPORTANT,
+	INPUT_SELECT_NEXT_PAGE,
 	INPUT_SELECT_PREV_PAGE,
 	INPUT_SELECT_FIRST,
 	INPUT_SELECT_LAST,
 	INPUT_ENTER,
 	INPUT_RELOAD,
 	INPUT_RELOAD_ALL,
-	INPUT_QUIT_SOFT,
-	INPUT_QUIT_HARD,
 	INPUT_MARK_READ,
-	INPUT_MARK_READ_ALL,
 	INPUT_MARK_UNREAD,
+	INPUT_MARK_READ_ALL,
 	INPUT_MARK_UNREAD_ALL,
 	INPUT_MARK_IMPORTANT,
 	INPUT_MARK_UNIMPORTANT,
@@ -178,6 +178,8 @@ enum input_cmd {
 	INPUT_STATUS_HISTORY_MENU,
 	INPUT_OPEN_IN_BROWSER,
 	INPUT_COPY_TO_CLIPBOARD,
+	INPUT_QUIT_SOFT,
+	INPUT_QUIT_HARD,
 	INPUT_RESIZE,
 	INPUTS_COUNT,
 	INPUT_SYSTEM_COMMAND,
@@ -277,6 +279,7 @@ input_cmd_id enter_items_menu_loop(struct feed_line **feeds, size_t feeds_count,
 const struct format_arg *prepare_item_entry_args(size_t index);
 int paint_item_entry(size_t index);
 bool unread_item_condition(size_t index);
+bool important_item_condition(size_t index);
 void mark_selected_item_read(size_t view_sel);
 
 // Functions responsible for managing render blocks.

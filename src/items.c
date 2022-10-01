@@ -42,6 +42,12 @@ unread_item_condition(size_t index)
 	return items->list[index].is_unread;
 }
 
+bool
+important_item_condition(size_t index)
+{
+	return items->list[index].is_important;
+}
+
 void
 mark_selected_item_read(size_t view_sel)
 {

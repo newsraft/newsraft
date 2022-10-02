@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include "newsraft.h"
 
+pthread_mutex_t interface_lock = PTHREAD_MUTEX_INITIALIZER;
+
 static bool
 obtain_terminal_size(void)
 {
@@ -71,21 +73,32 @@ curses_init(void)
 bool
 resize_counter_action(void)
 {
+	pthread_mutex_lock(&interface_lock);
+
+	// We need to call clear and refresh before all resize actions because
+	// the junk text of previous size may remain in inactive areas.
+	clear();
+	refresh();
+
 	if (obtain_terminal_size() == false) {
 		// Some really crazy resize happend. It is either a glitch or user
 		// deliberately trying to break something. This state is unusable anyways.
 		fputs("Don't flex around with me, okay?\n", stderr);
-		return false;
+		goto error;
 	}
 	if (adjust_list_menu() == false) {
-		return false;
+		goto error;
 	}
-	if (status_resize() == false) {
-		return false;
+	if (status_recreate() == false) {
+		goto error;
 	}
-	if (counter_resize() == false) {
-		return false;
+	if (counter_recreate() == false) {
+		goto error;
 	}
-	redraw_list_menu();
+	redraw_list_menu_unprotected();
+	pthread_mutex_unlock(&interface_lock);
 	return true;
+error:
+	pthread_mutex_unlock(&interface_lock);
+	return false;
 }

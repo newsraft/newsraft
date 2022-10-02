@@ -12,12 +12,14 @@ execute_system_command(const char *cmd)
 {
 	// https://stackoverflow.com/questions/18678943/ncurses-shell-escape-drops-parent-process-output
 	info_status("Executing %s", cmd);
+	pthread_mutex_lock(&interface_lock);
 	reset_shell_mode();
 	int status = system(cmd);
 	fflush(stdout);
 	reset_prog_mode();
-	clear();
-	refresh();
+	pthread_mutex_unlock(&interface_lock);
+	// Resizing could be handled by the program running on top, so we have to catch up.
+	resize_counter_action();
 	if (status == 0) {
 		status_clean();
 	} else {

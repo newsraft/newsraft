@@ -157,13 +157,9 @@ enter_items_menu_loop(struct feed_line **feeds, size_t feeds_count, config_entry
 				break;
 			}
 		} else if (cmd == INPUT_OPEN_IN_BROWSER) {
-			if (open_url_in_browser(items->list[*view_sel].url) == true) {
-				redraw_list_menu();
-			}
+			open_url_in_browser(items->list[*view_sel].url);
 		} else if (cmd == INPUT_COPY_TO_CLIPBOARD) {
-			if (copy_string_to_clipboard(items->list[*view_sel].url) == true) {
-				redraw_list_menu();
-			}
+			copy_string_to_clipboard(items->list[*view_sel].url);
 		} else if ((cmd == INPUT_QUIT_SOFT) || (cmd == INPUT_QUIT_HARD)) {
 			break;
 		} else if ((cmd == INPUT_SYSTEM_COMMAND) && (macro != NULL)) {
@@ -172,14 +168,13 @@ enter_items_menu_loop(struct feed_line **feeds, size_t feeds_count, config_entry
 			} else {
 				fmt_args[2].value.s = items->list[*view_sel].url->ptr;
 			}
-			if (execute_command_with_specifiers_in_it(macro, fmt_args) == true) {
-				redraw_list_menu();
-			}
+			execute_command_with_specifiers_in_it(macro, fmt_args);
 		}
 	}
 
-	free_items_list(items);
-
+	// Get new feeds' unread counts before leaving list menu so that when we
+	// calculate sections' unread counts in leave_list_menu() it gets the
+	// actual data.
 	int64_t new_unread_count;
 	for (size_t i = 0; i < feeds_count; ++i) {
 		new_unread_count = get_unread_items_count_of_the_feed(feeds[i]->link);
@@ -188,7 +183,8 @@ enter_items_menu_loop(struct feed_line **feeds, size_t feeds_count, config_entry
 		}
 	}
 
-	leave_list_menu();
+	leave_list_menu(); // Leave before freeing to avoid potential use-after-frees.
+	free_items_list(items);
 
 	return cmd;
 }

@@ -47,6 +47,8 @@ update_pager_menu(struct pager_menu *menu, const struct render_block *data_list)
 		}
 	}
 
+	pthread_mutex_lock(&interface_lock);
+
 	if (menu->window != NULL) {
 		delwin(menu->window);
 	}
@@ -56,6 +58,7 @@ update_pager_menu(struct pager_menu *menu, const struct render_block *data_list)
 	if (menu->window == NULL) {
 		FAIL("Failed to create pad window for item contents (newpad returned NULL)!");
 		free_wstring(text);
+		pthread_mutex_unlock(&interface_lock);
 		return false;
 	}
 
@@ -63,16 +66,9 @@ update_pager_menu(struct pager_menu *menu, const struct render_block *data_list)
 
 	menu->view_min = 0;
 	menu->view_lim = pad_height > list_menu_height ? pad_height - list_menu_height : 0;
-
-	// We need to call clear and refresh before every prefresh here because
-	// after terminal resize (i. e. terminal size increased) in the area where
-	// the pad is no longer there, the text of previous buffer may remain.
-	clear();
-	// Redraw status message since we cleared the whole screen.
-	refresh();
-	status_update();
-
 	prefresh(menu->window, menu->view_min, 0, 0, 0, list_menu_height - 1, list_menu_width - 1);
+
+	pthread_mutex_unlock(&interface_lock);
 
 	free_wstring(text);
 

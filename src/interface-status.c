@@ -1,54 +1,16 @@
 #include <stdlib.h>
-#include <pthread.h>
 #include "newsraft.h"
-
-enum {
-	STATUS_GOOD,
-	STATUS_INFO,
-	STATUS_FAIL,
-};
 
 struct status_message {
 	struct string *text;
-	int8_t condition; // What condition my condition was in?
+	config_entry_id color;
 };
 
-static WINDOW *status_window;
-static bool status_window_is_clean;
-static struct status_message *messages;
-static size_t messages_count;
+static WINDOW *status_window = NULL;
+static bool status_window_is_clean = true;
+static struct status_message *messages = NULL;
+static size_t messages_count = 0;
 static size_t messages_limit;
-static pthread_mutex_t write_lock = PTHREAD_MUTEX_INITIALIZER;
-
-static inline WINDOW *
-create_status_window(void)
-{
-	WINDOW *win = newwin(1, list_menu_width - 9, list_menu_height, 0);
-	if (win != NULL) {
-		INFO("Created new status window.");
-		if (keypad(win, TRUE) == ERR) {
-			WARN("Can't enable keypad and function keys for status window!");
-		}
-	} else {
-		FAIL("Failed to create new status window!");
-	}
-	return win;
-}
-
-bool
-status_create(void)
-{
-	status_window = create_status_window();
-	if (status_window == NULL) {
-		fputs("Failed to create status field window!\n", stderr);
-		return false;
-	}
-	status_window_is_clean = true;
-	messages = NULL;
-	messages_count = 0;
-	messages_limit = get_cfg_uint(CFG_STATUS_MESSAGES_COUNT_LIMIT);
-	return true;
-}
 
 static inline void
 write_last_status_message_to_status_window(void)
@@ -61,28 +23,52 @@ write_last_status_message_to_status_window(void)
 			m = messages + ((messages_count - 1) % messages_limit);
 		}
 		mvwaddnstr(status_window, 0, 0, m->text->ptr, list_menu_width - 9);
-		if (m->condition == STATUS_GOOD) {
-			wbkgd(status_window, get_color_pair(CFG_COLOR_STATUS_GOOD_FG));
-		} else if (m->condition == STATUS_INFO) {
-			wbkgd(status_window, get_color_pair(CFG_COLOR_STATUS_INFO_FG));
-		} else {
-			wbkgd(status_window, get_color_pair(CFG_COLOR_STATUS_FAIL_FG));
-		}
+		wbkgd(status_window, get_color_pair(m->color));
 	}
 }
 
-void
-status_update(void)
+bool
+status_recreate(void)
 {
+	if (status_window != NULL) {
+		delwin(status_window);
+	}
+	status_window = newwin(1, list_menu_width - 9, list_menu_height, 0);
+	if (status_window == NULL) {
+		fputs("Failed to create status window!\n", stderr);
+		return false;
+	}
+	INFO("Created new status window.");
+	if (keypad(status_window, TRUE) == ERR) {
+		WARN("Can't enable keypad and function keys for status window!");
+	}
 	werase(status_window);
 	if (status_window_is_clean == false) {
 		write_last_status_message_to_status_window();
 	}
 	wrefresh(status_window);
+	messages_limit = get_cfg_uint(CFG_STATUS_MESSAGES_COUNT_LIMIT);
+	return true;
+}
+
+void
+status_clean_unprotected(void)
+{
+	status_window_is_clean = true;
+	werase(status_window);
+	wrefresh(status_window);
+}
+
+void
+status_clean(void)
+{
+	pthread_mutex_lock(&interface_lock);
+	status_clean_unprotected();
+	pthread_mutex_unlock(&interface_lock);
 }
 
 static inline bool
-append_new_message_to_status_messages(int8_t new_condition, struct string *new_message)
+append_new_message_to_status_messages(config_entry_id new_color, struct string *new_message)
 {
 	messages_count += 1;
 	if ((messages_limit == 0) || (messages_count <= messages_limit)) {
@@ -92,19 +78,19 @@ append_new_message_to_status_messages(int8_t new_condition, struct string *new_m
 		}
 		messages = temp;
 		messages[messages_count - 1].text = new_message;
-		messages[messages_count - 1].condition = new_condition;
+		messages[messages_count - 1].color = new_color;
 	} else {
 		free_string(messages[(messages_count - 1) % messages_limit].text);
 		messages[(messages_count - 1) % messages_limit].text = new_message;
-		messages[(messages_count - 1) % messages_limit].condition = new_condition;
+		messages[(messages_count - 1) % messages_limit].color = new_color;
 	}
 	return true;
 }
 
 void
-status_write(int8_t condition, const char *format, ...)
+status_write(config_entry_id color, const char *format, ...)
 {
-	pthread_mutex_lock(&write_lock);
+	pthread_mutex_lock(&interface_lock);
 	va_list args;
 	va_start(args, format);
 	struct string *new_message = crtes();
@@ -115,39 +101,18 @@ status_write(int8_t condition, const char *format, ...)
 		free_string(new_message);
 		goto undo;
 	}
-	if (append_new_message_to_status_messages(condition, new_message) == false) {
+	if (append_new_message_to_status_messages(color, new_message) == false) {
 		free_string(new_message);
 		goto undo;
 	}
 	INFO("Last status message: %s", new_message->ptr);
 	status_window_is_clean = false;
-	status_update();
+	werase(status_window);
+	write_last_status_message_to_status_window();
+	wrefresh(status_window);
 undo:
 	va_end(args);
-	pthread_mutex_unlock(&write_lock);
-}
-
-void
-status_clean(void)
-{
-	status_window_is_clean = true;
-	werase(status_window);
-	wrefresh(status_window);
-}
-
-bool
-status_resize(void)
-{
-	if (status_window != NULL) {
-		delwin(status_window);
-	}
-	status_window = create_status_window();
-	if (status_window != NULL) {
-		status_update();
-	} else {
-		return false;
-	}
-	return true;
+	pthread_mutex_unlock(&interface_lock);
 }
 
 int

@@ -5,6 +5,7 @@
 #include <inttypes.h>
 #include <time.h>
 #include <wchar.h>
+#include <pthread.h>
 #include <curses.h>
 #include <sqlite3.h>
 
@@ -18,9 +19,9 @@
 #define INFO(...) do { if (log_stream) { fputs("[INFO] ", log_stream); fprintf(log_stream, __VA_ARGS__); fputc('\n', log_stream); } } while (0)
 #define WARN(...) do { if (log_stream) { fputs("[WARN] ", log_stream); fprintf(log_stream, __VA_ARGS__); fputc('\n', log_stream); } } while (0)
 #define FAIL(...) do { if (log_stream) { fputs("[FAIL] ", log_stream); fprintf(log_stream, __VA_ARGS__); fputc('\n', log_stream); } } while (0)
-#define good_status(...) status_write(0, __VA_ARGS__)
-#define info_status(...) status_write(1, __VA_ARGS__)
-#define fail_status(...) status_write(2, __VA_ARGS__)
+#define good_status(...) status_write(CFG_COLOR_STATUS_GOOD_FG, __VA_ARGS__)
+#define info_status(...) status_write(CFG_COLOR_STATUS_INFO_FG, __VA_ARGS__)
+#define fail_status(...) status_write(CFG_COLOR_STATUS_FAIL_FG, __VA_ARGS__)
 #define MIN(A, B) ((A) < (B) ? (A) : (B))
 
 struct string {
@@ -260,7 +261,7 @@ void free_list_menu(void);
 void initialize_settings_of_list_menus(void);
 void expose_entry_of_the_list_menu(size_t index);
 void expose_all_visible_entries_of_the_list_menu(void);
-void redraw_list_menu(void);
+void redraw_list_menu_unprotected(void);
 const size_t *enter_list_menu(int8_t menu_index, size_t new_entries_count, config_entry_id format_id);
 void leave_list_menu(void);
 void pause_list_menu(void);
@@ -377,22 +378,20 @@ bool assign_default_binds(void);
 
 // Functions related to window which displays status messages.
 // See "interface-status.c" file for implementation.
-bool status_create(void);
-void status_update(void);
-void status_write(int8_t condition, const char *format, ...);
+bool status_recreate(void);
+void status_clean_unprotected(void);
 void status_clean(void);
-bool status_resize(void);
+void status_write(config_entry_id color, const char *format, ...);
 void status_delete(void);
 int read_key_from_status(void);
 struct string *generate_string_with_status_messages_for_pager(void);
 
 // Functions related to window which displays command counter.
 // See "interface-counter.c" file for implementation.
-bool counter_create(void);
+bool counter_recreate(void);
 void counter_send_character(char c);
 uint32_t counter_extract_count(void);
 void counter_clean(void);
-bool counter_resize(void);
 void counter_delete(void);
 
 // Functions related to executing system commands.
@@ -480,4 +479,5 @@ struct wstring *render_data(const struct render_block *first_block);
 extern FILE *log_stream;
 extern size_t list_menu_height;
 extern size_t list_menu_width;
+extern pthread_mutex_t interface_lock;
 #endif // NEWSRAFT_H

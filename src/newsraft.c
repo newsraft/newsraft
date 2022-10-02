@@ -68,8 +68,8 @@ main(int argc, char **argv)
 	if (curses_init()                      == false) { error = 13; goto undo5;  }
 	if (adjust_list_menu()                 == false) { error = 14; goto undo6;  }
 	if (create_format_buffers()            == false) { error = 15; goto undo7;  }
-	if (status_create()                    == false) { error = 16; goto undo8;  }
-	if (counter_create()                   == false) { error = 17; goto undo9;  }
+	if (status_recreate()                  == false) { error = 16; goto undo8;  }
+	if (counter_recreate()                 == false) { error = 17; goto undo9;  }
 	if (initialize_threading()             == false) { error = 18; goto undo10; }
 	if (curl_global_init(CURL_GLOBAL_DEFAULT)  != 0) { error = 19; goto undo11; }
 

@@ -1,4 +1,3 @@
-#include <pthread.h>
 #include "update_feed/update_feed.h"
 
 static struct feed_line **update_queue = NULL;

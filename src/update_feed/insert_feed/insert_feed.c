@@ -1,4 +1,3 @@
-#include <pthread.h>
 #include "update_feed/insert_feed/insert_feed.h"
 
 static pthread_mutex_t database_lock = PTHREAD_MUTEX_INITIALIZER;

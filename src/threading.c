@@ -1,5 +1,4 @@
 #include <stdlib.h>
-#include <pthread.h>
 #include "newsraft.h"
 
 struct responsive_thread {

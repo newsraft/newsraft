@@ -1,5 +1,5 @@
-#include <stdio.h>
 #include <stdlib.h>
+#include <curses.h>
 #include "newsraft.h"
 
 pthread_mutex_t interface_lock = PTHREAD_MUTEX_INITIALIZER;

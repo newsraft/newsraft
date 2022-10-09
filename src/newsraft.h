@@ -1,12 +1,12 @@
 #ifndef NEWSRAFT_H
 #define NEWSRAFT_H
-#include <stdbool.h>
 #include <stdarg.h>
+#include <stdbool.h>
+#include <stdio.h>
 #include <inttypes.h>
 #include <time.h>
 #include <wchar.h>
 #include <pthread.h>
-#include <curses.h>
 #include <sqlite3.h>
 
 #ifndef NEWSRAFT_VERSION

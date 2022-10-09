@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <curses.h>
 #include "newsraft.h"
 
 struct pager_menu {

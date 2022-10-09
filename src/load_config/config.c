@@ -1,4 +1,5 @@
 #include <string.h>
+#include <curses.h>
 #include "load_config/load_config.h"
 
 struct config_string {

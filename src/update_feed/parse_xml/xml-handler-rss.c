@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include <string.h>
 #include "update_feed/parse_xml/parse_xml_feed.h"
 

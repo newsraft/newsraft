@@ -1,4 +1,4 @@
-#include <stdio.h>
+#include <curses.h>
 #include <curl/curl.h>
 #include <expat.h>
 #include <yajl/yajl_version.h>

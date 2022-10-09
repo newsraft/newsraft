@@ -1,5 +1,4 @@
 #include <stdlib.h>
-#include <stdio.h>
 #include "load_config/load_config.h"
 
 bool

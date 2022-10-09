@@ -1,3 +1,4 @@
+#include <curses.h>
 #include "newsraft.h"
 
 struct color_assignment {

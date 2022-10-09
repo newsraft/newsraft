@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include <string.h>
 #include <sys/utsname.h>
 #include "load_config/load_config.h"

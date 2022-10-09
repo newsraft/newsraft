@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include <unistd.h>
 #include "load_config/load_config.h"
 

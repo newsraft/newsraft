@@ -1,5 +1,5 @@
 #include <stdlib.h>
-#include <stdio.h>
+#include <curses.h>
 #include "newsraft.h"
 
 // Note to the future.

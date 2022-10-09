@@ -1,7 +1,7 @@
 #include <stdlib.h>
-#include <stdio.h>
 #include <string.h>
 #include <ctype.h>
+#include <curses.h>
 #include "newsraft.h"
 
 struct input_binding {

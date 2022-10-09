@@ -1,6 +1,6 @@
 #include <stdlib.h>
-#include <stdio.h>
 #include <string.h>
+#include <curses.h>
 #include "load_config/load_config.h"
 
 static inline void

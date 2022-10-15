@@ -195,30 +195,21 @@ free_string(struct string *str)
 void
 trim_whitespace_from_string(struct string *str)
 {
-	if (str->len == 0) {
-		return;
-	}
-
-	size_t left_edge = 0, right_edge = str->len - 1;
-	while (ISWHITESPACE(*(str->ptr + left_edge)) && left_edge <= right_edge) {
-		++left_edge;
-	}
-	while (ISWHITESPACE(*(str->ptr + right_edge)) && right_edge >= left_edge) {
-		--right_edge;
-	}
-
-	if ((left_edge != 0) || (right_edge != (str->len - 1))) {
-		if (right_edge < left_edge) {
-			*(str->ptr + 0) = '\0';
-			str->len = 0;
-		} else {
-			size_t trimmed_string_len = right_edge - left_edge + 1;
-			for (size_t i = 0; i < trimmed_string_len; ++i) {
+	if (str->len != 0) {
+		size_t left_edge = 0;
+		while (left_edge < str->len && ISWHITESPACE(*(str->ptr + left_edge))) {
+			++left_edge;
+		}
+		while (left_edge < str->len && ISWHITESPACE(*(str->ptr + str->len - 1))) {
+			str->len -= 1;
+		}
+		str->len -= left_edge;
+		if (left_edge != 0) {
+			for (size_t i = 0; i < str->len; ++i) {
 				*(str->ptr + i) = *(str->ptr + i + left_edge);
 			}
-			str->len = trimmed_string_len;
-			*(str->ptr + trimmed_string_len) = '\0';
 		}
+		*(str->ptr + str->len) = '\0';
 	}
 }
 

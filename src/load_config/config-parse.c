@@ -161,6 +161,7 @@ process_bind_line(char *line)
 static inline bool
 process_config_file_line(char *line)
 {
+	remove_trailing_whitespace(line);
 	INFO("Processing config line: %s", line);
 	char *i = line;
 	while (ISWHITESPACE(*i)) {
@@ -169,34 +170,28 @@ process_config_file_line(char *line)
 	if ((*i == '#') || (*i == '\0')) {
 		return true; // Ignore comments and empty lines.
 	}
-	// Length of the longest line type "unbind" is 6 + 1 characters.
-	char line_type[7];
-	uint8_t line_type_len = 0;
-	do {
-		if (line_type_len == 6) {
-			goto badline;
+	if ((strncmp(i, "set", 3) == 0) && ISWHITESPACE(*(i + 3))) {
+		i += 4;
+		while (ISWHITESPACE(*i)) {
+			i += 1;
 		}
-		line_type[line_type_len++] = *i;
-		i += 1;
-		if (ISWHITESPACE(*i)) {
-			break;
-		}
-	} while (*i != '\0');
-	while (ISWHITESPACE(*i)) {
-		i += 1;
-	}
-	line_type[line_type_len] = '\0';
-	if (strcmp(line_type, "set") == 0) {
 		return process_set_line(i);
-	} else if (strcmp(line_type, "bind") == 0) {
+	} else if ((strncmp(i, "bind", 4) == 0) && ISWHITESPACE(*(i + 4))) {
+		i += 5;
+		while (ISWHITESPACE(*i)) {
+			i += 1;
+		}
 		return process_bind_line(i);
-	} else if (strcmp(line_type, "unbind") == 0) {
+	} else if ((strncmp(i, "unbind", 6) == 0) && ISWHITESPACE(*(i + 6))) {
+		i += 7;
+		while (ISWHITESPACE(*i)) {
+			i += 1;
+		}
 		// Since we deleted trailing whitespace from the line, we can pass its
 		// remainings as a key to delete an action from.
 		delete_action_from_key(i);
 		return true;
 	}
-badline:
 	fputs("Incorrect line notation! ", stderr);
 	fputs("Lines can only start with either \"set\", \"bind\" or \"unbind\"!\n", stderr);
 	return false;
@@ -210,30 +205,19 @@ parse_config_file(const char *path)
 		fputs("Couldn't open config file!\n", stderr);
 		return false;
 	}
-
 	char *line = NULL;
 	size_t line_size = 0;
 	size_t lines_count = 0;
 	while (getline(&line, &line_size, f) != -1) {
 		lines_count += 1;
-		remove_trailing_whitespace(line);
 		if (process_config_file_line(line) == false) {
 			fprintf(stderr, "The error was detected on line %zu of config file.\n", lines_count);
 			free(line);
-			goto error;
+			fclose(f);
+			return false;
 		}
-		free(line);
-		line = NULL;
-		line_size = 0;
 	}
-
-	if (line != NULL) {
-		free(line);
-	}
-
+	free(line);
 	fclose(f);
 	return true;
-error:
-	fclose(f);
-	return false;
 }

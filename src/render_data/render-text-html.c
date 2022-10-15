@@ -335,14 +335,12 @@ dump_html(GumboNode *node, struct wstring *text, struct line *line, enum html_po
 }
 
 bool
-render_text_html(const struct wstring *wstr, struct line *text_line, struct wstring *text, bool is_first_call)
+render_text_html(const struct wstring *wstr, struct line *text_line, struct wstring *text)
 {
 	enum html_position html_pos = HTML_NONE;
-	if (is_first_call == true) {
-		list_depth = 0;
-		list_levels[0].type = UNORDERED_LIST;
-		list_levels[0].length = 0;
-	}
+	list_depth = 0;
+	list_levels[0].type = UNORDERED_LIST;
+	list_levels[0].length = 0;
 	struct string *str = convert_wstring_to_string(wstr);
 	if (str == NULL) {
 		return false;

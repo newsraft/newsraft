@@ -23,12 +23,12 @@ render_data(const struct render_block *first_block)
 	while (block != NULL) {
 		line.indent = 0;
 		if (block->content_type == TEXT_PLAIN) {
-			render_text_plain(block->content, &line, text, true);
+			line_string(&line, block->content->ptr, text);
 			if (line.len == 0) {
 				trim_whitespace_from_wstring(text);
 			}
 		} else if (block->content_type == TEXT_HTML) {
-			render_text_html(block->content, &line, text, true);
+			render_text_html(block->content, &line, text);
 			if (line.len == 0) {
 				trim_whitespace_from_wstring(text);
 			}

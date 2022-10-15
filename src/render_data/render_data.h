@@ -11,8 +11,7 @@ struct line {
 	size_t indent; // Shows how many spaces must be printed in the beginning of ptr.
 };
 
-bool render_text_plain(const struct wstring *source, struct line *line, struct wstring *target, bool is_first_call);
-bool render_text_html(const struct wstring *source, struct line *line, struct wstring *target, bool is_first_call);
+bool render_text_html(const struct wstring *source, struct line *line, struct wstring *target);
 
 bool line_char(struct line *line, wchar_t c, struct wstring *target);
 bool line_string(struct line *line, const wchar_t *str, struct wstring *target);

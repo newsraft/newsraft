@@ -141,8 +141,8 @@ trim_whitespace_from_wstring(struct wstring *wstr)
 		while (left_edge < wstr->len && ISWIDEWHITESPACE(*(wstr->ptr + wstr->len - 1))) {
 			wstr->len -= 1;
 		}
-		wstr->len -= left_edge;
 		if (left_edge != 0) {
+			wstr->len -= left_edge;
 			for (size_t i = 0; i < wstr->len; ++i) {
 				*(wstr->ptr + i) = *(wstr->ptr + i + left_edge);
 			}

@@ -203,8 +203,8 @@ trim_whitespace_from_string(struct string *str)
 		while (left_edge < str->len && ISWHITESPACE(*(str->ptr + str->len - 1))) {
 			str->len -= 1;
 		}
-		str->len -= left_edge;
 		if (left_edge != 0) {
+			str->len -= left_edge;
 			for (size_t i = 0; i < str->len; ++i) {
 				*(str->ptr + i) = *(str->ptr + i + left_edge);
 			}

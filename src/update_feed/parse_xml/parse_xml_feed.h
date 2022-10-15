@@ -70,34 +70,34 @@ int8_t generic_category_end(struct stream_callback_data *data);
 int8_t generator_start(struct stream_callback_data *data, const XML_Char **attrs);
 int8_t generator_end(struct stream_callback_data *data);
 
-#ifdef NEWSRAFT_FORMAT_SUPPORT_ATOM10
+#ifndef NEWSRAFT_DISABLE_FORMAT_ATOM10
 extern const struct xml_element_handler xml_atom10_handlers[];
 #endif
-#ifdef NEWSRAFT_FORMAT_SUPPORT_RSS
+#ifndef NEWSRAFT_DISABLE_FORMAT_RSS
 extern const struct xml_element_handler xml_rss_handlers[];
 #endif
-#ifdef NEWSRAFT_FORMAT_SUPPORT_RSSCONTENT
+#ifndef NEWSRAFT_DISABLE_FORMAT_RSSCONTENT
 extern const struct xml_element_handler xml_rsscontent_handlers[];
 #endif
-#ifdef NEWSRAFT_FORMAT_SUPPORT_DUBLINCORE
+#ifndef NEWSRAFT_DISABLE_FORMAT_DUBLINCORE
 extern const struct xml_element_handler xml_dublincore_handlers[];
 #endif
-#ifdef NEWSRAFT_FORMAT_SUPPORT_MEDIARSS
+#ifndef NEWSRAFT_DISABLE_FORMAT_MEDIARSS
 extern const struct xml_element_handler xml_mediarss_handlers[];
 #endif
-#ifdef NEWSRAFT_FORMAT_SUPPORT_YANDEX
+#ifndef NEWSRAFT_DISABLE_FORMAT_YANDEX
 extern const struct xml_element_handler xml_yandex_handlers[];
 #endif
-#ifdef NEWSRAFT_FORMAT_SUPPORT_RBCNEWS
+#ifndef NEWSRAFT_DISABLE_FORMAT_RBCNEWS
 extern const struct xml_element_handler xml_rbcnews_handlers[];
 #endif
-#ifdef NEWSRAFT_FORMAT_SUPPORT_ATOM03
+#ifndef NEWSRAFT_DISABLE_FORMAT_ATOM03
 extern const struct xml_element_handler xml_atom03_handlers[];
 #endif
-#ifdef NEWSRAFT_FORMAT_SUPPORT_GEORSS
+#ifndef NEWSRAFT_DISABLE_FORMAT_GEORSS
 extern const struct xml_element_handler xml_georss_handlers[];
 #endif
-#ifdef NEWSRAFT_FORMAT_SUPPORT_GEORSS_GML
+#ifndef NEWSRAFT_DISABLE_FORMAT_GEORSS_GML
 extern const struct xml_element_handler xml_georss_gml_handlers[];
 #endif
 #endif // PARSE_XML_FEED_H

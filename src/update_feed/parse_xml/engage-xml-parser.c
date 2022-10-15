@@ -4,37 +4,37 @@
 #define XML_NAMESPACE_SEPARATOR ' '
 
 enum xml_format_index {
-#ifdef NEWSRAFT_FORMAT_SUPPORT_ATOM10
+#ifndef NEWSRAFT_DISABLE_FORMAT_ATOM10
 	ATOM10_FORMAT = 0,
 #endif
-#ifdef NEWSRAFT_FORMAT_SUPPORT_RSS
+#ifndef NEWSRAFT_DISABLE_FORMAT_RSS
 	RSS20_FORMAT,
 #endif
-#ifdef NEWSRAFT_FORMAT_SUPPORT_RSSCONTENT
+#ifndef NEWSRAFT_DISABLE_FORMAT_RSSCONTENT
 	RSSCONTENT_FORMAT,
 #endif
-#ifdef NEWSRAFT_FORMAT_SUPPORT_DUBLINCORE
+#ifndef NEWSRAFT_DISABLE_FORMAT_DUBLINCORE
 	DUBLINCORE_FORMAT,
 #endif
-#ifdef NEWSRAFT_FORMAT_SUPPORT_MEDIARSS
+#ifndef NEWSRAFT_DISABLE_FORMAT_MEDIARSS
 	MEDIARSS_FORMAT,
 #endif
-#ifdef NEWSRAFT_FORMAT_SUPPORT_YANDEX
+#ifndef NEWSRAFT_DISABLE_FORMAT_YANDEX
 	YANDEX_FORMAT,
 #endif
-#ifdef NEWSRAFT_FORMAT_SUPPORT_RBCNEWS
+#ifndef NEWSRAFT_DISABLE_FORMAT_RBCNEWS
 	RBCNEWS_FORMAT,
 #endif
-#ifdef NEWSRAFT_FORMAT_SUPPORT_ATOM03
+#ifndef NEWSRAFT_DISABLE_FORMAT_ATOM03
 	ATOM03_FORMAT,
 #endif
-#ifdef NEWSRAFT_FORMAT_SUPPORT_GEORSS
+#ifndef NEWSRAFT_DISABLE_FORMAT_GEORSS
 	GEORSS_FORMAT,
 #endif
-#ifdef NEWSRAFT_FORMAT_SUPPORT_GEORSS_GML
+#ifndef NEWSRAFT_DISABLE_FORMAT_GEORSS_GML
 	GEORSS_GML_FORMAT,
 #endif
-#ifdef NEWSRAFT_FORMAT_SUPPORT_RSS
+#ifndef NEWSRAFT_DISABLE_FORMAT_RSS
 	RSS11_FORMAT,
 	RSS10_FORMAT,
 	RSS09_FORMAT,
@@ -49,37 +49,37 @@ struct namespace_handler {
 };
 
 static const struct namespace_handler namespace_handlers[] = {
-#ifdef NEWSRAFT_FORMAT_SUPPORT_ATOM10
+#ifndef NEWSRAFT_DISABLE_FORMAT_ATOM10
 	{"http://www.w3.org/2005/Atom", 27, xml_atom10_handlers},
 #endif
-#ifdef NEWSRAFT_FORMAT_SUPPORT_RSS
+#ifndef NEWSRAFT_DISABLE_FORMAT_RSS
 	{"http://backend.userland.com/rss2", 32, xml_rss_handlers},
 #endif
-#ifdef NEWSRAFT_FORMAT_SUPPORT_RSSCONTENT
+#ifndef NEWSRAFT_DISABLE_FORMAT_RSSCONTENT
 	{"http://purl.org/rss/1.0/modules/content/", 40, xml_rsscontent_handlers},
 #endif
-#ifdef NEWSRAFT_FORMAT_SUPPORT_DUBLINCORE
+#ifndef NEWSRAFT_DISABLE_FORMAT_DUBLINCORE
 	{"http://purl.org/dc/elements/1.1/", 32, xml_dublincore_handlers},
 #endif
-#ifdef NEWSRAFT_FORMAT_SUPPORT_MEDIARSS
+#ifndef NEWSRAFT_DISABLE_FORMAT_MEDIARSS
 	{"http://search.yahoo.com/mrss/", 29, xml_mediarss_handlers},
 #endif
-#ifdef NEWSRAFT_FORMAT_SUPPORT_YANDEX
+#ifndef NEWSRAFT_DISABLE_FORMAT_YANDEX
 	{"http://news.yandex.ru", 21, xml_yandex_handlers},
 #endif
-#ifdef NEWSRAFT_FORMAT_SUPPORT_RBCNEWS
+#ifndef NEWSRAFT_DISABLE_FORMAT_RBCNEWS
 	{"http://www.rbc.ru", 17, xml_rbcnews_handlers},
 #endif
-#ifdef NEWSRAFT_FORMAT_SUPPORT_ATOM03
+#ifndef NEWSRAFT_DISABLE_FORMAT_ATOM03
 	{"http://purl.org/atom/ns#", 24, xml_atom03_handlers},
 #endif
-#ifdef NEWSRAFT_FORMAT_SUPPORT_GEORSS
+#ifndef NEWSRAFT_DISABLE_FORMAT_GEORSS
 	{"http://www.georss.org/georss", 28, xml_georss_handlers},
 #endif
-#ifdef NEWSRAFT_FORMAT_SUPPORT_GEORSS_GML
+#ifndef NEWSRAFT_DISABLE_FORMAT_GEORSS_GML
 	{"http://www.opengis.net/gml", 26, xml_georss_gml_handlers},
 #endif
-#ifdef NEWSRAFT_FORMAT_SUPPORT_RSS
+#ifndef NEWSRAFT_DISABLE_FORMAT_RSS
 	{"http://purl.org/net/rss1.1#", 27, xml_rss_handlers},
 	{"http://purl.org/rss/1.0/", 24, xml_rss_handlers},
 	{"http://channel.netscape.com/rdf/simple/0.9/", 43, xml_rss_handlers},
@@ -135,7 +135,7 @@ start_element_handler(void *userData, const XML_Char *name, const XML_Char **att
 	if (data->xml_format != XML_FORMATS_COUNT) {
 		return;
 	}
-#ifdef NEWSRAFT_FORMAT_SUPPORT_RSS
+#ifndef NEWSRAFT_DISABLE_FORMAT_RSS
 	if ((data->depth == 1) && (strcmp(name, "rss") == 0)) {
 		const char *version = get_value_of_attribute_key(atts, "version");
 		if ((version != NULL) &&

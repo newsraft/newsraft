@@ -74,10 +74,10 @@ contributor_end(struct stream_callback_data *data)
 }
 
 const struct xml_element_handler xml_dublincore_handlers[] = {
-	{"title",       DC_TITLE,        NULL, &title_end},
+	{"title",       XML_UNKNOWN_POS, NULL, &title_end},
 	{"description", XML_UNKNOWN_POS, NULL, &generic_plain_content_end},
-	{"creator",     DC_CREATOR,      NULL, &creator_end},
-	{"contributor", DC_CONTRIBUTOR,  NULL, &contributor_end},
+	{"creator",     XML_UNKNOWN_POS, NULL, &creator_end},
+	{"contributor", XML_UNKNOWN_POS, NULL, &contributor_end},
 	{"subject",     XML_UNKNOWN_POS, NULL, &generic_category_end},
 	{NULL,          XML_UNKNOWN_POS, NULL, NULL},
 };

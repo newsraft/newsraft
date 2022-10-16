@@ -383,7 +383,6 @@ void status_clean_unprotected(void);
 void status_clean(void);
 void status_write(config_entry_id color, const char *format, ...);
 void status_delete(void);
-int read_key_from_status(void);
 struct string *generate_string_with_status_messages_for_pager(void);
 
 // Functions related to window which displays command counter.
@@ -392,6 +391,7 @@ bool counter_recreate(void);
 void counter_send_character(char c);
 uint32_t counter_extract_count(void);
 void counter_clean(void);
+int read_key_from_counter_window(void);
 void counter_delete(void);
 
 // Functions related to executing system commands.

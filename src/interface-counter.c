@@ -35,6 +35,9 @@ counter_recreate(void)
 		return false;
 	}
 	INFO("Created counter window.");
+	if (keypad(counter_window, TRUE) == ERR) {
+		WARN("Can't enable keypad and function keys reading support for counter window!");
+	}
 	counter_update();
 	return true;
 }
@@ -72,6 +75,16 @@ counter_clean(void)
 		wrefresh(counter_window);
 	}
 	count_buf_len = 0;
+}
+
+int
+read_key_from_counter_window(void)
+{
+	// We can't read keys from stdscr via getch() function because calling it
+	// will bring stdscr on top of other windows and overlap them.
+	int c = wgetch(counter_window);
+	INFO("Received \"%c\" character with %d key code.", c, c);
+	return c;
 }
 
 void

@@ -40,9 +40,6 @@ status_recreate(void)
 		return false;
 	}
 	INFO("Created new status window.");
-	if (keypad(status_window, TRUE) == ERR) {
-		WARN("Can't enable keypad and function keys for status window!");
-	}
 	werase(status_window);
 	if (status_window_is_clean == false) {
 		write_last_status_message_to_status_window();
@@ -114,16 +111,6 @@ status_write(config_entry_id color, const char *format, ...)
 undo:
 	va_end(args);
 	pthread_mutex_unlock(&interface_lock);
-}
-
-int
-read_key_from_status(void)
-{
-	// We can't read keys from stdscr via getch() function because calling it
-	// will bring stdscr on top of other windows and overlap them.
-	int c = wgetch(status_window);
-	INFO("Received \"%c\" character with %d key code.", c, c);
-	return c;
 }
 
 struct string *

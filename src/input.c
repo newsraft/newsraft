@@ -23,10 +23,10 @@ get_input_command(uint32_t *count, const struct wstring **macro_ptr)
 		return INPUT_QUIT_HARD;
 	}
 
-	int c = read_key_from_status();
+	int c = read_key_from_counter_window();
 	while (isdigit(c) != 0) {
 		counter_send_character(c);
-		c = read_key_from_status();
+		c = read_key_from_counter_window();
 	}
 
 	if (c == KEY_RESIZE) {

@@ -139,7 +139,7 @@ contributor_start(struct stream_callback_data *data, const XML_Char **attrs)
 static int8_t
 name_end(struct stream_callback_data *data)
 {
-	if (data->path[data->depth] == ATOM10_AUTHOR) {
+	if (data->path[data->depth] == ATOM_AUTHOR) {
 		if (data->path[data->depth - 1] == GENERIC_ITEM) {
 			if (serialize_string(&data->feed.item->persons, "name", 4, data->text) == false) {
 				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
@@ -156,7 +156,7 @@ name_end(struct stream_callback_data *data)
 static int8_t
 uri_end(struct stream_callback_data *data)
 {
-	if (data->path[data->depth] == ATOM10_AUTHOR) {
+	if (data->path[data->depth] == ATOM_AUTHOR) {
 		if (data->path[data->depth - 1] == GENERIC_ITEM) {
 			if (serialize_string(&data->feed.item->persons, "url", 3, data->text) == false) {
 				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
@@ -173,7 +173,7 @@ uri_end(struct stream_callback_data *data)
 static int8_t
 email_end(struct stream_callback_data *data)
 {
-	if (data->path[data->depth] == ATOM10_AUTHOR) {
+	if (data->path[data->depth] == ATOM_AUTHOR) {
 		if (data->path[data->depth - 1] == GENERIC_ITEM) {
 			if (serialize_string(&data->feed.item->persons, "email", 5, data->text) == false) {
 				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
@@ -251,8 +251,8 @@ const struct xml_element_handler xml_atom10_handlers[] = {
 	{"content",     XML_UNKNOWN_POS, &content_start,        &content_end},
 	{"published",   XML_UNKNOWN_POS, NULL,                  &published_end},
 	{"updated",     XML_UNKNOWN_POS, NULL,                  &updated_end},
-	{"author",      ATOM10_AUTHOR,   &author_start,         NULL},
-	{"contributor", ATOM10_AUTHOR,   &contributor_start,    NULL},
+	{"author",      ATOM_AUTHOR,     &author_start,         NULL},
+	{"contributor", ATOM_AUTHOR,     &contributor_start,    NULL},
 	{"name",        XML_UNKNOWN_POS, NULL,                  &name_end},
 	{"uri",         XML_UNKNOWN_POS, NULL,                  &uri_end},
 	{"email",       XML_UNKNOWN_POS, NULL,                  &email_end},

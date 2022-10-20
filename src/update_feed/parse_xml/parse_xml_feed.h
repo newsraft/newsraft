@@ -12,9 +12,8 @@ enum xml_position {
 	XML_UNKNOWN_POS = 0,
 	GENERIC_FEED,
 	GENERIC_ITEM,
-	ATOM10_AUTHOR,
+	ATOM_AUTHOR,
 	MEDIARSS_CONTENT,
-	ATOM03_AUTHOR,
 };
 
 struct xml_element_handler {

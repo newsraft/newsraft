@@ -15,7 +15,6 @@ enum media_type {
 	MEDIA_TYPE_UNKNOWN = 0,
 	MEDIA_TYPE_XML,
 	MEDIA_TYPE_JSON,
-	MEDIA_TYPE_OTHER,
 };
 
 static struct curl_slist *

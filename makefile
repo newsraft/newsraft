@@ -4,6 +4,7 @@
 CC             = cc
 CFLAGS         = -O3
 LDFLAGS        =
+NEWSRAFT_FLAGS = -DNEWSRAFT_VERSION=\"0.11\"
 CURSES_LIBS    = -lncursesw
 SQLITE_LIBS    = -lsqlite3
 CURL_LIBS      = -lcurl
@@ -16,7 +17,9 @@ GUMBO_LIBS     = -lgumbo
 LDLIBS         = -lpthread $(CURSES_LIBS) $(SQLITE_LIBS) $(CURL_LIBS) $(EXPAT_LIBS) $(YAJL_LIBS) $(GUMBO_LIBS)
 DESTDIR        =
 PREFIX         = /usr/local
-NEWSRAFT_FLAGS = -DNEWSRAFT_VERSION=\"0.11\"
+BINDIR         = $(PREFIX)/bin
+MANDIR         = $(PREFIX)/share/man
+EXAMPLES_DIR   = $(PREFIX)/share/newsraft/examples
 
 # find src -name '*.c' | sed 's/\.c/.o/' | tr '\n' ' '
 OBJECTS = src/interface-list.o src/path.o src/db.o src/load_config/config-parse-input.o src/load_config/load_config.o src/load_config/config-updatethreadscount.o src/load_config/config.o src/load_config/config-openinbrowsercommand.o src/load_config/config-useragent.o src/load_config/config-parse.o src/load_config/config-copytoclipboardcommand.o src/items-links.o src/feeds-parse.o src/interface-status.o src/threading.o src/items.o src/newsraft.o src/dates.o src/interface.o src/string.o src/interface-colors.o src/interface-pager.o src/items-metadata-content.o src/format.o src/wstring.o src/interface-pager-status.o src/log.o src/update_feed/update_feed.o src/update_feed/insert_feed/insert-feed-data.o src/update_feed/insert_feed/insert_feed.o src/update_feed/insert_feed/insert-item-data.o src/update_feed/download.o src/update_feed/parse_json/engage-json-parser.o src/update_feed/struct-item.o src/update_feed/parse_xml/xml-handler-atom10.o src/update_feed/parse_xml/xml-handler-rss.o src/update_feed/parse_xml/xml-handler-rbcnews.o src/update_feed/parse_xml/xml-handler-atom03.o src/update_feed/parse_xml/xml-handler-georss-gml.o src/update_feed/parse_xml/xml-handler-mediarss.o src/update_feed/parse_xml/xml-handler-yandex.o src/update_feed/parse_xml/xml-common.o src/update_feed/parse_xml/xml-handler-rsscontent.o src/update_feed/parse_xml/xml-handler-dublincore.o src/update_feed/parse_xml/xml-handler-georss.o src/update_feed/parse_xml/engage-xml-parser.o src/signal.o src/render-block.o src/feeds.o src/db-items.o src/interface-pager-item.o src/items-metadata.o src/interface-counter.o src/render_data/line.o src/render_data/render-text-html.o src/render_data/render_data.o src/render_data/render-text-html-table.o src/items-persons.o src/sections.o src/string-serialize.o src/commands.o src/prepare_to_render_data/prepare-text-html.o src/prepare_to_render_data/prepare_to_render_data.o src/items-list.o src/input.o
@@ -26,14 +29,14 @@ all: newsraft doc
 install: install-newsraft install-doc install-examples
 
 install-newsraft: newsraft
-	install -Dm755 newsraft $(DESTDIR)$(PREFIX)/bin/newsraft
+	install -Dm755 newsraft $(DESTDIR)$(BINDIR)/newsraft
 
 install-doc: doc
-	install -Dm644 newsraft.1 $(DESTDIR)$(PREFIX)/share/man/man1/newsraft.1
+	install -Dm644 newsraft.1 $(DESTDIR)$(MANDIR)/man1/newsraft.1
 
 install-examples:
-	install -Dm644 examples/feeds $(DESTDIR)$(PREFIX)/share/newsraft/examples/feeds
-	install -Dm644 examples/config $(DESTDIR)$(PREFIX)/share/newsraft/examples/config
+	install -Dm644 examples/feeds $(DESTDIR)$(EXAMPLES_DIR)/feeds
+	install -Dm644 examples/config $(DESTDIR)$(EXAMPLES_DIR)/config
 
 newsraft: $(OBJECTS)
 	$(CC) -std=c99 $(CFLAGS) $(LDFLAGS) -o $@ $(OBJECTS) $(LDLIBS)

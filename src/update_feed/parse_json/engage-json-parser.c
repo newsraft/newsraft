@@ -140,40 +140,25 @@ attachment_string_handler(struct string **dest, const struct string *key, const 
 	return 1;
 }
 
+// Note to the future.
+// There are two token handlers which we could've set to NULL in yajl_callbacks
+// structure because they have no use in actual JSON Feed, but we have to create
+// these dummy functions to return 1 (no error) anyway because when parser
+// doesn't find appropriate handler for token it returns error and we're screwed.
+
 static int
 null_handler(void *ctx)
 {
 	(void)ctx;
-	// JSON Feed doesn't have any NULL.
-	WARN("Stumbled upon null.");
-	return 1;
+	return 1; // Null handler is redundant because the spec doesn't mention it.
 }
 
 static int
-boolean_handler(void *ctx, int value)
+boolean_handler(void *ctx, int val)
 {
 	(void)ctx;
-	// TODO expired
-	INFO("Stumbled upon boolean: %d", value);
-	return 1;
-}
-
-static int
-integer_handler(void *ctx, long long value)
-{
-	(void)ctx;
-	// JSON Feed doesn't have any integers.
-	WARN("Stumbled upon integer: %lld", value);
-	return 1;
-}
-
-static int
-double_handler(void *ctx, double value)
-{
-	(void)ctx;
-	// JSON Feed doesn't have any doubles.
-	WARN("Stumbled upon double: %lf", value);
-	return 1;
+	(void)val;
+	return 1; // Boolean handler might be used for expired object, but it's useless.
 }
 
 static int
@@ -309,10 +294,10 @@ end_of_object_or_array_handler(void *ctx)
 }
 
 static const yajl_callbacks callbacks = {
-	&null_handler,
-	&boolean_handler,
-	&integer_handler,
-	&double_handler,
+	null_handler,
+	boolean_handler,
+	NULL, // Integer handler is ignored when number handler is set.
+	NULL, // Double handler is ignored when number handler is set.
 	&number_handler,
 	&string_handler,
 	&start_map_handler,

@@ -66,12 +66,14 @@ free_items_list(struct items_list *items)
 	}
 }
 
-static inline const struct string *
-find_feed_name_for_given_feed(struct feed_line **feeds, size_t feeds_count, const char *feed_url)
+static inline const struct feed_line *
+find_feed_line_by_url(struct feed_line **feeds, size_t feeds_count, const char *feed_url)
 {
-	for (size_t i = 0; i < feeds_count; ++i) {
-		if (strcmp(feed_url, feeds[i]->link->ptr) == 0) {
-			return feeds[i]->name != NULL ? feeds[i]->name : feeds[i]->link;
+	if (feed_url != NULL) {
+		for (size_t i = 0; i < feeds_count; ++i) {
+			if (strcmp(feed_url, feeds[i]->link->ptr) == 0) {
+				return feeds[i];
+			}
 		}
 	}
 	return NULL;
@@ -111,25 +113,26 @@ generate_items_list(struct feed_line **feeds, size_t feeds_count, enum sorting_o
 		}
 		items->list = tmp;
 
-		items->list[items->count].rowid = sqlite3_column_int64(res, 0); // rowid
+		items->list[items->count].rowid = sqlite3_column_int64(res, 0);
 
-		text = (char *)sqlite3_column_text(res, 1); // feed_url
-		items->list[items->count].feed_name = find_feed_name_for_given_feed(feeds, feeds_count, text);
+		text = (const char *)sqlite3_column_text(res, 1);
+		items->list[items->count].feed = find_feed_line_by_url(feeds, feeds_count, text);
+		if (items->list[items->count].feed == NULL) {
+			// Shouldn't happen normally, but wouldn't hurt to check just in case.
+			items->count -= 1;
+			continue;
+		}
 
-		text = (char *)sqlite3_column_text(res, 2); // title
+		text = (const char *)sqlite3_column_text(res, 2);
 		if (text == NULL) {
-			items->list[items->count].title = crtss(get_cfg_string(CFG_EMPTY_TITLE_PLACEHOLDER));
+			items->list[items->count].title = NULL;
 		} else {
 			items->list[items->count].title = crtas(text, strlen(text));
 			inlinefy_string(items->list[items->count].title);
 		}
 
-		text = (const char *)sqlite3_column_text(res, 3); // link
-		if (text == NULL) {
-			items->list[items->count].url = NULL;
-		} else {
-			items->list[items->count].url = crtas(text, strlen(text));
-		}
+		text = (const char *)sqlite3_column_text(res, 3);
+		items->list[items->count].url = text == NULL ? crtes() : crtas(text, strlen(text));
 
 		int64_t item_date = sqlite3_column_int64(res, 4); // publication_date
 		int64_t tmp_date = sqlite3_column_int64(res, 5); // update_date

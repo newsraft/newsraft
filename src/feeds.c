@@ -4,12 +4,12 @@ static struct feed_line **feeds = NULL;
 static size_t feeds_count = 0;
 
 static struct format_arg fmt_args[] = {
-	{L'n',  L"d", {.i = 0}},
-	{L'u',  L"d", {.i = 0}},
+	{L'n',  L"d", {.i = 0   }},
+	{L'u',  L"d", {.i = 0   }},
 	{L'l',  L"s", {.s = NULL}},
 	{L't',  L"s", {.s = NULL}},
 	{L'o',  L"s", {.s = NULL}},
-	{L'\0', NULL, {.i = 0}}, // terminator
+	{L'\0', NULL, {.i = 0   }}, // terminator
 };
 
 const struct format_arg *
@@ -17,17 +17,9 @@ prepare_feed_entry_args(size_t index)
 {
 	fmt_args[0].value.i = index + 1;
 	fmt_args[1].value.i = feeds[index]->unread_count;
-	fmt_args[2].value.s = feeds[index]->link ? feeds[index]->link->ptr : "";
+	fmt_args[2].value.s = feeds[index]->link->ptr;
 	fmt_args[3].value.s = feeds[index]->name ? feeds[index]->name->ptr : "";
-	if (feeds[index]->name != NULL) {
-		fmt_args[4].value.s = feeds[index]->name->ptr;
-	} else {
-		if (feeds[index]->link != NULL) {
-			fmt_args[4].value.s = feeds[index]->link->ptr;
-		} else {
-			fmt_args[4].value.s = "";
-		}
-	}
+	fmt_args[4].value.s = feeds[index]->name ? feeds[index]->name->ptr : feeds[index]->link->ptr;
 	return fmt_args;
 }
 

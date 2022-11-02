@@ -45,8 +45,8 @@ struct feed_line {
 struct item_entry {
 	struct string *title;
 	struct string *url;
-	const struct string *feed_name; // name of the feed to which this item belongs
-	int64_t rowid;                  // id of row in sqlite table related to this item
+	const struct feed_line *feed;
+	int64_t rowid;
 	bool is_unread;
 	bool is_important;
 	struct string *date_str;
@@ -124,7 +124,6 @@ enum config_entry_index {
 	CFG_PROXY_USER,
 	CFG_PROXY_PASSWORD,
 	CFG_GLOBAL_SECTION_NAME,
-	CFG_EMPTY_TITLE_PLACEHOLDER,
 	CFG_USER_AGENT,
 	CFG_ITEM_FORMATION_ORDER,
 	CFG_CONTENT_DATE_FORMAT,

@@ -3,13 +3,16 @@
 static struct items_list *items;
 
 static struct format_arg fmt_args[] = {
-	{L'n',  L"d", {.i = 0}},
+	{L'n',  L"d", {.i = 0   }},
 	{L'u',  L"c", {.c = '\0'}},
-	{L'l',  L"s", {.s = NULL}},
-	{L'o',  L"s", {.s = NULL}},
 	{L'd',  L"s", {.s = NULL}},
+	{L'l',  L"s", {.s = NULL}},
 	{L't',  L"s", {.s = NULL}},
-	{L'\0', NULL, {.i = 0}}, // terminator
+	{L'o',  L"s", {.s = NULL}},
+	{L'L',  L"s", {.s = NULL}},
+	{L'T',  L"s", {.s = NULL}},
+	{L'O',  L"s", {.s = NULL}},
+	{L'\0', NULL, {.i = 0   }}, // terminator
 };
 
 const struct format_arg *
@@ -17,10 +20,13 @@ prepare_item_entry_args(size_t index)
 {
 	fmt_args[0].value.i = index + 1;
 	fmt_args[1].value.c = items->list[index].is_unread == true ? 'N' : ' ';
-	fmt_args[2].value.s = items->list[index].url ? items->list[index].url->ptr : "";
-	fmt_args[3].value.s = items->list[index].feed_name->ptr;
-	fmt_args[4].value.s = items->list[index].date_str->ptr;
-	fmt_args[5].value.s = items->list[index].title->ptr;
+	fmt_args[2].value.s = items->list[index].date_str->ptr;
+	fmt_args[3].value.s = items->list[index].url->ptr;
+	fmt_args[4].value.s = items->list[index].title ? items->list[index].title->ptr : "";
+	fmt_args[5].value.s = items->list[index].title ? items->list[index].title->ptr : items->list[index].url->ptr;
+	fmt_args[6].value.s = items->list[index].feed->link->ptr;
+	fmt_args[7].value.s = items->list[index].feed->name ? items->list[index].feed->name->ptr : "";
+	fmt_args[8].value.s = items->list[index].feed->name ? items->list[index].feed->name->ptr : items->list[index].feed->link->ptr;
 	return fmt_args;
 }
 

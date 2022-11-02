@@ -198,9 +198,6 @@ _proxy-password_ (default: *""*)
 _global-section-name_ (default: *Global*)
 	Name of the section that contains all feeds.
 
-_empty-title-placeholder_ (default: *(untitled)*)
-	Text that is displayed in place of empty titles.
-
 _send-user-agent-header_ (default: *true*)
 	Attach user-agent header to download requests. See _user-agent_ setting.
 
@@ -229,35 +226,33 @@ _list-entry-date-format_ (default: *%b %d*)
 
 _menu-section-entry-format_ (default: *%5.0u @ %t*)
 	Format of the section list entries. Specifiers are as follows:
-	- *t* - title;
+	- *n* - index number;
 	- *u* - unread items count;
-	- *n* - index number.
+	- *t* - section title.
 
 _menu-feed-entry-format_ (default: *%5.0u │ %o*)
 	Format of the feed list entries. Specifiers are as follows:
-	- *o* - title if set otherwise URL;
-	- *t* - title;
-	- *l* - URL;
+	- *n* - index number;
 	- *u* - unread items count;
-	- *n* - index number.
+	- *l* - feed link;
+	- *t* - feed title;
+	- *o* - feed title if set, feed link otherwise.
 
-_menu-item-entry-format_ (default: *" %u │ %d │ %t"*)
+_menu-item-entry-format_ (default: *" %u │ %d │ %o"*)
 	Format of the item list entries. Specifiers are as follows:
-	- *t* - title if set _empty-title-placeholder_ otherwise;
-	- *d* - update date formatted according _list-entry-date-format_;
-	- *o* - feed title if set otherwise feed URL;
-	- *l* - URL;
-	- *u* - "N" if item is unread " " otherwise;
-	- *n* - index number.
+	- *n* - index number;
+	- *u* - "N" if item is unread, " " otherwise;
+	- *d* - update date formatted according to _list-entry-date-format_;
+	- *l* - item link;
+	- *t* - item title;
+	- *o* - item title if set, item link otherwise;
+	- *L* - feed link;
+	- *T* - feed title;
+	- *O* - feed title if set, feed link otherwise.
 
-_menu-explore-item-entry-format_ (default: *" %u │ %d │ %-28.28o │ %t"*)
-	Format of the item list entries in explore mode. Specifiers are as follows:
-	- *t* - title if set _empty-title-placeholder_ otherwise;
-	- *d* - update date formatted according _list-entry-date-format_;
-	- *o* - feed title if set otherwise feed URL;
-	- *l* - URL;
-	- *u* - "N" if item is unread " " otherwise;
-	- *n* - index number.
+_menu-explore-item-entry-format_ (default: *" %u │ %d │ %-28.28O │ %o"*)
+	Format of the item list entries in explore mode. Specifiers are the same as
+	in _menu-item-entry-format_.
 
 _mark-item-read-on-hover_ (default: *false*)
 	Mark every item that gets selected as read.

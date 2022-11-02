@@ -13,10 +13,10 @@ static struct feed_section *sections = NULL;
 static size_t sections_count = 0;
 
 static struct format_arg fmt_args[] = {
-	{L'n',  L"d", {.i = 0}},
-	{L'u',  L"d", {.i = 0}},
+	{L'n',  L"d", {.i = 0   }},
+	{L'u',  L"d", {.i = 0   }},
 	{L't',  L"s", {.s = NULL}},
-	{L'\0', NULL, {.i = 0}}, // terminator
+	{L'\0', NULL, {.i = 0   }}, // terminator
 };
 
 const struct format_arg *

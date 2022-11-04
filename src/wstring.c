@@ -31,13 +31,6 @@ wcrtas(const wchar_t *src_ptr, size_t src_len)
 	return wstr;
 }
 
-// Create wstring out of wstring.
-struct wstring *
-wcrtss(const struct wstring *src)
-{
-	return wcrtas(src->ptr, src->len);
-}
-
 // Create empty wstring.
 struct wstring *
 wcrtes(void)
@@ -65,13 +58,6 @@ wcpyas(struct wstring *dest, const wchar_t *src_ptr, size_t src_len)
 	*(dest->ptr + src_len) = L'\0';
 	dest->len = src_len;
 	return true;
-}
-
-// Copy wstring to wstring.
-bool
-wcpyss(struct wstring *dest, const struct wstring *src)
-{
-	return wcpyas(dest, src->ptr, src->len);
 }
 
 // Concatenate array to wstring.
@@ -112,13 +98,6 @@ wcatcs(struct wstring *dest, wchar_t c)
 {
 	wchar_t src[1] = {c};
 	return wcatas(dest, src, 1);
-}
-
-void
-empty_wstring(struct wstring *wstr)
-{
-	wstr->len = 0;
-	*(wstr->ptr + 0) = L'\0';
 }
 
 void

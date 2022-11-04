@@ -428,14 +428,11 @@ void close_deserialize_stream(struct deserialize_stream *stream);
 
 // See "wstring.c" file for implementation.
 struct wstring *wcrtas(const wchar_t *src_ptr, size_t src_len);
-struct wstring *wcrtss(const struct wstring *src);
 struct wstring *wcrtes(void);
 bool wcpyas(struct wstring *dest, const wchar_t *src_ptr, size_t src_len);
-bool wcpyss(struct wstring *dest, const struct wstring *src);
 bool wcatas(struct wstring *dest, const wchar_t *src_ptr, size_t src_len);
 bool wcatss(struct wstring *dest, const struct wstring *src);
 bool wcatcs(struct wstring *dest, wchar_t c);
-void empty_wstring(struct wstring *wstr);
 void free_wstring(struct wstring *wstr);
 void trim_whitespace_from_wstring(struct wstring *wstr);
 struct string *convert_wstring_to_string(const struct wstring *src);
@@ -452,7 +449,6 @@ void log_stop(int error_code);
 // Parse config file, fill out config_data structure, bind keys to actions.
 // See "load_config" directory for implementation.
 bool load_config(void);
-const char *get_cfg_name(config_entry_id i);
 bool get_cfg_bool(config_entry_id i);
 size_t get_cfg_uint(config_entry_id i);
 int get_cfg_color(config_entry_id i);

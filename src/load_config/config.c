@@ -177,12 +177,6 @@ get_cfg_type(config_entry_id i)
 	return config[i].type;
 }
 
-const char *
-get_cfg_name(config_entry_id i)
-{
-	return config[i].name;
-}
-
 bool
 get_cfg_bool(config_entry_id i)
 {
@@ -248,7 +242,7 @@ set_cfg_wstring(config_entry_id i, const struct string *value)
 		config[i].value.w.actual = wstr;
 		return true;
 	}
-	if (wcpyss(config[i].value.w.actual, wstr) == false) {
+	if (wcpyas(config[i].value.w.actual, wstr->ptr, wstr->len) == false) {
 		free_wstring(wstr);
 		return false;
 	}

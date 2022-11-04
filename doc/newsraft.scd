@@ -106,10 +106,11 @@ the *ACTIONS* section. Format of these lines is as follows:
 
 	*bind* key _action_
 
-There is also a way to assign command bindings. When the key to which the
-command binding is assigned is pressed, the specifiers in the _command_ are
-replaced with the corresponding values and the command is executed. Available
-specifiers are: *%l* for URL. Format of these lines is as follows:
+There is also a way to assign command bindings. When a key with a command
+binding assigned is pressed while feed item is selected, the specifiers in the
+_command_ are replaced with the corresponding feed item values and the command
+is executed. You can find which specifiers are available in the description of
+the _menu-item-entry-format_ setting. Format of these lines is as follows:
 
 	*bind* key *exec* _command_
 

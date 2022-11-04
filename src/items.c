@@ -169,12 +169,7 @@ enter_items_menu_loop(struct feed_line **feeds, size_t feeds_count, config_entry
 		} else if ((cmd == INPUT_QUIT_SOFT) || (cmd == INPUT_QUIT_HARD)) {
 			break;
 		} else if ((cmd == INPUT_SYSTEM_COMMAND) && (macro != NULL)) {
-			if (items->list[*view_sel].url == NULL) {
-				fmt_args[2].value.s = "";
-			} else {
-				fmt_args[2].value.s = items->list[*view_sel].url->ptr;
-			}
-			execute_command_with_specifiers_in_it(macro, fmt_args);
+			execute_command_with_specifiers_in_it(macro, prepare_item_entry_args(*view_sel));
 		}
 	}
 

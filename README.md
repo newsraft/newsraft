@@ -55,4 +55,4 @@ Making changes: [doc/contributing-change.md](https://codeberg.org/grisha/newsraf
 ## Copying
 
 Newsraft is distributed under the terms of the
-[MIT License](https://codeberg.org/grisha/newsraft/src/branch/main/doc/license.txt).
+[ISC license](https://codeberg.org/grisha/newsraft/src/branch/main/doc/license.txt).

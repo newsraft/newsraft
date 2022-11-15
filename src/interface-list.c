@@ -252,11 +252,13 @@ list_menu_change_view(size_t new_sel)
 		wrefresh(w);
 	}
 
+	pthread_mutex_unlock(&interface_lock);
+
+	// We have to perform the hover action only after unlocking the interface
+	// lock because the hover actions are already thread-safe functions.
 	if (menu->hover_action != NULL) {
 		menu->hover_action(menu->view_sel);
 	}
-
-	pthread_mutex_unlock(&interface_lock);
 }
 
 bool

@@ -258,9 +258,6 @@ _menu-explore-item-entry-format_ (default: *" %u │ %d │ %-28.28O │ %o"*)
 _mark-item-read-on-hover_ (default: *false*)
 	Mark every item that gets selected as read.
 
-_content-append-links_ (default: *true*)
-	Whether or not append links section to content view.
-
 _analyze-database-on-startup_ (default: *true*)
 	Run "ANALYZE" SQLite command on the database every time you start Newsraft.
 	It gathers statistics about database and uses it to optimize some queries

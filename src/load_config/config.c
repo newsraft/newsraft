@@ -70,7 +70,6 @@ static struct config_entry config[] = {
 	{"menu-item-entry-format",          CFG_WSTRING, {.w = {NULL, L" %u │ %d │ %o",            13}}},
 	{"menu-explore-item-entry-format",  CFG_WSTRING, {.w = {NULL, L" %u │ %d │ %-28.28O │ %o", 24}}},
 	{"mark-item-read-on-hover",         CFG_BOOL,    {.b = false}},
-	{"content-append-links",            CFG_BOOL,    {.b = true }},
 	{"analyze-database-on-startup",     CFG_BOOL,    {.b = true }},
 	{"clean-database-on-startup",       CFG_BOOL,    {.b = false}},
 	{"respect-ttl-element",             CFG_BOOL,    {.b = true }},

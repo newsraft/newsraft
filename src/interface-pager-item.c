@@ -34,7 +34,7 @@ generate_render_blocks_for_item(sqlite3_stmt *res, struct link_list *links)
 	if (prepare_to_render_data(first_block, links) == false) {
 		goto error;
 	}
-	if ((get_cfg_bool(CFG_CONTENT_APPEND_LINKS) == true) && (links->len != 0)) {
+	if (links->len != 0) {
 		if (complete_urls_of_links(links, res) == false) {
 			goto error;
 		}

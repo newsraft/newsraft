@@ -81,9 +81,6 @@ parse_feeds_file(void)
 		if (c == '#') {
 			// Skip a comment line.
 			do { c = fgetc(f); } while (c != '\n' && c != EOF);
-			if (c == EOF) {
-				break;
-			}
 			continue;
 		} else if (c == '@') {
 			empty_string(section_name);
@@ -91,9 +88,6 @@ parse_feeds_file(void)
 			while ((c != '\n') && (c != EOF)) {
 				if (catcs(section_name, c) == false) { goto error; }
 				c = fgetc(f);
-			}
-			if (c == EOF) {
-				break;
 			}
 			continue;
 		} else if (c == EOF) {
@@ -138,15 +132,7 @@ parse_feeds_file(void)
 		}
 
 		// Skip everything to the next newline character.
-		if (c != '\n') {
-			if (c == EOF) {
-				break;
-			}
-			do { c = fgetc(f); } while (c != '\n' && c != EOF);
-			if (c == EOF) {
-				break;
-			}
-		}
+		while (c != '\n' && c != EOF) { c = fgetc(f); };
 
 	}
 

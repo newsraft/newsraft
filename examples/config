@@ -6,8 +6,7 @@
 # Set some settings.
 set download-timeout 5
 set mark-item-read-on-hover true
-set color-list-item-important-fg black
-set color-list-item-important-bg red
+set color-list-item-important-fg red
 
 # Assign some binds.
 bind ^P mark-unread-all

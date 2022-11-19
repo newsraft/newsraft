@@ -3,46 +3,23 @@
 #include <curses.h>
 #include "load_config/load_config.h"
 
-static inline void
-remove_trailing_whitespace(char *line)
-{
-	char *i = line;
-	while (*i != '\0') {
-		i += 1;
-	}
-	if (i != line) {
-		i -= 1;
-	}
-	while (ISWHITESPACE(*i)) {
-		*i = '\0';
-		if (i == line) {
-			break;
-		}
-		i -= 1;
-	}
-}
+#define CONFIG_LINE_SIZE 1000
 
 static inline bool
 process_set_line(char *line)
 {
-	char setting_name[100];
-	uint8_t setting_name_len = 0;
 	char *i = line;
 	while (*i != '\0') {
 		if (ISWHITESPACE(*i)) {
+			*i = '\0';
+			i += 1;
 			break;
 		}
-		if (setting_name_len > 90) {
-			fputs("This setting name exceeds the maximum possible length of valid setting!\n", stderr);
-			return false;
-		}
-		setting_name[setting_name_len++] = *i;
 		i += 1;
 	}
-	setting_name[setting_name_len] = '\0';
-	config_entry_id id = find_config_entry_by_name(setting_name);
+	config_entry_id id = find_config_entry_by_name(line);
 	if (id == CFG_ENTRIES_COUNT) {
-		fprintf(stderr, "Setting \"%s\" doesn't exist!\n", setting_name);
+		fprintf(stderr, "Setting \"%s\" doesn't exist!\n", line);
 		return false;
 	}
 	while (ISWHITESPACE(*i)) {
@@ -124,21 +101,16 @@ error:
 static inline bool
 process_bind_line(char *line)
 {
-	char key_name[20];
-	uint8_t key_name_len = 0;
 	char *i = line;
+	size_t key_len = 0;
 	while (*i != '\0') {
 		if (ISWHITESPACE(*i)) {
+			key_len = i - line;
+			i += 1;
 			break;
 		}
-		if (key_name_len > 15) {
-			fputs("This key name exceeds the maximum possible length of valid key!\n", stderr);
-			return false;
-		}
-		key_name[key_name_len++] = *i;
 		i += 1;
 	}
-	key_name[key_name_len] = '\0';
 	while (ISWHITESPACE(*i)) {
 		i += 1;
 	}
@@ -147,54 +119,15 @@ process_bind_line(char *line)
 		while (ISWHITESPACE(*i)) {
 			i += 1;
 		}
-		return create_macro(key_name, key_name_len, i, strlen(i));
+		return create_macro(line, key_len, i, strlen(i));
 	} else {
 		input_cmd_id cmd = get_input_cmd_id_by_name(i);
 		if (cmd == INPUTS_COUNT) {
 			fprintf(stderr, "Action \"%s\" doesn't exist!\n", i);
 			return false;
 		}
-		return assign_action_to_key(key_name, key_name_len, cmd);
+		return assign_action_to_key(line, key_len, cmd);
 	}
-}
-
-static inline bool
-process_config_file_line(char *line)
-{
-	remove_trailing_whitespace(line);
-	INFO("Processing config line: %s", line);
-	char *i = line;
-	while (ISWHITESPACE(*i)) {
-		i += 1;
-	}
-	if ((*i == '#') || (*i == '\0')) {
-		return true; // Ignore comments and empty lines.
-	}
-	if ((strncmp(i, "set", 3) == 0) && ISWHITESPACE(*(i + 3))) {
-		i += 4;
-		while (ISWHITESPACE(*i)) {
-			i += 1;
-		}
-		return process_set_line(i);
-	} else if ((strncmp(i, "bind", 4) == 0) && ISWHITESPACE(*(i + 4))) {
-		i += 5;
-		while (ISWHITESPACE(*i)) {
-			i += 1;
-		}
-		return process_bind_line(i);
-	} else if ((strncmp(i, "unbind", 6) == 0) && ISWHITESPACE(*(i + 6))) {
-		i += 7;
-		while (ISWHITESPACE(*i)) {
-			i += 1;
-		}
-		// Since we deleted trailing whitespace from the line, we can pass its
-		// remainings as a key to delete an action from.
-		delete_action_from_key(i);
-		return true;
-	}
-	fputs("Incorrect line notation! ", stderr);
-	fputs("Lines can only start with either \"set\", \"bind\" or \"unbind\"!\n", stderr);
-	return false;
 }
 
 bool
@@ -205,19 +138,66 @@ parse_config_file(const char *path)
 		fputs("Couldn't open config file!\n", stderr);
 		return false;
 	}
-	char *line = NULL;
-	size_t line_size = 0;
-	size_t lines_count = 0;
-	while (getline(&line, &line_size, f) != -1) {
-		lines_count += 1;
-		if (process_config_file_line(line) == false) {
-			fprintf(stderr, "The error was detected on line %zu of config file.\n", lines_count);
-			free(line);
-			fclose(f);
-			return false;
+	char type[6], line[CONFIG_LINE_SIZE + 1];
+	size_t type_len, line_len;
+	char c;
+	// This is line-by-line file processing loop:
+	// one iteration of loop results in one processed line.
+	while (true) {
+
+		// Get first non-whitespace character.
+		do { c = fgetc(f); } while (ISWHITESPACE(c));
+
+		if (c == '#') {
+			// Skip a comment line.
+			do { c = fgetc(f); } while (c != '\n' && c != EOF);
+			continue;
+		} else if (c == EOF) {
+			break;
 		}
+
+		type_len = 0;
+		do {
+			if (type_len == 6) {
+				goto invalid_line_type;
+			}
+			type[type_len++] = c;
+			c = fgetc(f);
+		} while (!ISWHITESPACE(c) && c != EOF);
+
+		do { c = fgetc(f); } while (ISWHITESPACEEXCEPTNEWLINE(c));
+
+		line_len = 0;
+		while (c != '\n' && c != EOF) {
+			if (line_len == CONFIG_LINE_SIZE) {
+				fputs("Stumbled upon a config file line that is too long!\n", stderr);
+				goto error;
+			}
+			line[line_len++] = c;
+			c = fgetc(f);
+		}
+		line[line_len] = '\0';
+
+		if (strncmp(type, "set", type_len) == 0) {
+			if (process_set_line(line) == false) {
+				goto error;
+			}
+		} else if (strncmp(type, "bind", type_len) == 0) {
+			if (process_bind_line(line) == false) {
+				goto error;
+			}
+		} else if (strncmp(type, "unbind", type_len) == 0) {
+			delete_action_from_key(line);
+		} else {
+			goto invalid_line_type;
+		}
+
 	}
-	free(line);
 	fclose(f);
 	return true;
+invalid_line_type:
+	fputs("Incorrect line notation! Lines can only start with either \"set\", \"bind\" or \"unbind\"!\n", stderr);
+error:
+	fclose(f);
+	return false;
 }

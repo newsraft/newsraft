@@ -44,7 +44,7 @@ newsraft: $(OBJECTS)
 doc: newsraft.1
 
 .c.o:
-	$(CC) -std=c99 $(CFLAGS) -Isrc -D_XOPEN_SOURCE=700 -D_XOPEN_SOURCE_EXTENDED $(NEWSRAFT_FLAGS) -c -o $@ $<
+	$(CC) -std=c99 $(CFLAGS) -Isrc -D_XOPEN_SOURCE -D_XOPEN_SOURCE_EXTENDED $(NEWSRAFT_FLAGS) -c -o $@ $<
 
 newsraft.1: doc/newsraft.scd
 	scdoc < doc/newsraft.scd > newsraft.1

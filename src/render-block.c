@@ -33,13 +33,7 @@ join_render_block(struct render_block **list, const char *content, size_t conten
 	if (new_entry == NULL) {
 		return false;
 	}
-	struct string *str = crtas(content, content_len);
-	if (str == NULL) {
-		free(new_entry);
-		return false;
-	}
-	new_entry->content = convert_string_to_wstring(str);
-	free_string(str);
+	new_entry->content = convert_array_to_wstring(content, content_len);
 	if (new_entry->content == NULL) {
 		free(new_entry);
 		return false;

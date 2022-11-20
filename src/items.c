@@ -168,7 +168,7 @@ enter_items_menu_loop(struct feed_line **feeds, size_t feeds_count, config_entry
 			copy_string_to_clipboard(items->list[*view_sel].url);
 		} else if ((cmd == INPUT_QUIT_SOFT) || (cmd == INPUT_QUIT_HARD)) {
 			break;
-		} else if ((cmd == INPUT_SYSTEM_COMMAND) && (macro != NULL)) {
+		} else if (cmd == INPUT_SYSTEM_COMMAND) {
 			execute_command_with_specifiers_in_it(macro, prepare_item_entry_args(*view_sel));
 		}
 	}

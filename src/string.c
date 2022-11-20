@@ -240,6 +240,18 @@ convert_string_to_wstring(const struct string *src)
 	return wstr;
 }
 
+struct wstring *
+convert_array_to_wstring(const char *src_ptr, size_t src_len)
+{
+	struct string *str = crtas(src_ptr, src_len);
+	if (str == NULL) {
+		return NULL;
+	}
+	struct wstring *wstr = convert_string_to_wstring(str);
+	free_string(str);
+	return wstr;
+}
+
 void
 inlinefy_string(struct string *title)
 {

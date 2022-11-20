@@ -28,8 +28,8 @@ config_type_id get_cfg_type(config_entry_id i);
 void set_cfg_bool(config_entry_id i, bool value);
 void set_cfg_uint(config_entry_id i, size_t value);
 void set_cfg_color(config_entry_id i, int value);
-bool set_cfg_string(config_entry_id i, const struct string *value);
-bool set_cfg_wstring(config_entry_id i, const struct string *value);
+bool set_cfg_string(config_entry_id i, const char *src_ptr, size_t src_len);
+bool set_cfg_wstring(config_entry_id i, const char *src_ptr, size_t src_len);
 
 void log_config_settings(void);
 

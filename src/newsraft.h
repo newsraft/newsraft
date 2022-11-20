@@ -356,7 +356,7 @@ bool db_mark_all_items_in_feeds_as_unread(struct feed_line **feeds, size_t feeds
 
 // See "interface.c" file for implementation.
 bool curses_init(void);
-bool resize_counter_action(void);
+input_cmd_id resize_counter_action(void);
 
 // Functions responsible for curses color pairs.
 // See "interface-colors.c" file for implementation.
@@ -366,7 +366,7 @@ int get_reversed_color_pair(config_entry_id id);
 
 // Functions responsible for handling input and bindings.
 // See "input.c" file for implementation.
-int get_input_command(uint32_t *count, const struct wstring **macro_ptr);
+input_cmd_id get_input_command(uint32_t *count, const struct wstring **macro_ptr);
 void tell_program_to_terminate_safely_and_quickly(int dummy);
 bool assign_action_to_key(const char *bind_key, size_t bind_key_len, input_cmd_id bind_cmd);
 bool create_macro(const char *bind_key, size_t bind_key_len, const char *cmd, size_t cmd_len);
@@ -386,10 +386,7 @@ struct string *generate_string_with_status_messages_for_pager(void);
 // Functions related to window which displays command counter.
 // See "interface-counter.c" file for implementation.
 bool counter_recreate(void);
-void counter_send_character(char c);
-uint32_t counter_extract_count(void);
-void counter_clean(void);
-int read_key_from_counter_window(void);
+int read_counted_key_from_counter_window(uint32_t *count);
 void counter_delete(void);
 
 // Functions related to executing system commands.
@@ -415,6 +412,7 @@ void empty_string(struct string *str);
 void free_string(struct string *str);
 void trim_whitespace_from_string(struct string *str);
 struct wstring *convert_string_to_wstring(const struct string *src);
+struct wstring *convert_array_to_wstring(const char *src_ptr, size_t src_len);
 void inlinefy_string(struct string *title);
 
 // See "string-serialize.c" file for implementation.

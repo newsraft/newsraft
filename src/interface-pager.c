@@ -19,7 +19,7 @@ write_splitted_wstring_to_window(WINDOW *window, const struct wstring *wbuf)
 		iter = newline_char + 1;
 		newline_char = wcschr(iter, L'\n');
 	}
-	INFO("Number of lines written to the window: %zu.", newlines_count);
+	INFO("Wrote %zu lines to the content window.", newlines_count);
 }
 
 static bool

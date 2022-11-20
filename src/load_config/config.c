@@ -225,23 +225,22 @@ set_cfg_color(config_entry_id i, int value)
 }
 
 bool
-set_cfg_string(config_entry_id i, const struct string *value)
+set_cfg_string(config_entry_id i, const char *src_ptr, size_t src_len)
 {
-	return crtss_or_cpyss(&config[i].value.s.actual, value);
+	return crtas_or_cpyas(&config[i].value.s.actual, src_ptr, src_len);
 }
 
 bool
-set_cfg_wstring(config_entry_id i, const struct string *value)
+set_cfg_wstring(config_entry_id i, const char *src_ptr, size_t src_len)
 {
-	struct wstring *wstr = convert_string_to_wstring(value);
+	struct wstring *wstr = convert_array_to_wstring(src_ptr, src_len);
 	if (wstr == NULL) {
 		return false;
 	}
 	if (config[i].value.w.actual == NULL) {
 		config[i].value.w.actual = wstr;
 		return true;
-	}
-	if (wcpyas(config[i].value.w.actual, wstr->ptr, wstr->len) == false) {
+	} else if (wcpyas(config[i].value.w.actual, wstr->ptr, wstr->len) == false) {
 		free_wstring(wstr);
 		return false;
 	}

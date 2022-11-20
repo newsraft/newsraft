@@ -263,27 +263,18 @@ dump_html(GumboNode *node, struct wstring *text, struct line *line, enum html_po
 			i += 1;
 		}
 		if (renderers[i].tag_id == GUMBO_TAG_UNKNOWN) {
-			struct string *tag = crtas(node->v.element.original_tag.data, node->v.element.original_tag.length);
-			struct wstring *wtag;
+			struct wstring *tag = convert_array_to_wstring(node->v.element.original_tag.data, node->v.element.original_tag.length);
 			if (tag != NULL) {
-				wtag = convert_string_to_wstring(tag);
-				free_string(tag);
-				if (wtag != NULL) {
-					line_string(line, wtag->ptr, text);
-					free_wstring(wtag);
-				}
+				line_string(line, tag->ptr, text);
+				free_wstring(tag);
 			}
 			for (size_t j = 0; j < node->v.element.children.length; ++j) {
 				dump_html(node->v.element.children.data[j], text, line, pos);
 			}
-			tag = crtas(node->v.element.original_end_tag.data, node->v.element.original_end_tag.length);
+			tag = convert_array_to_wstring(node->v.element.original_end_tag.data, node->v.element.original_end_tag.length);
 			if (tag != NULL) {
-				wtag = convert_string_to_wstring(tag);
-				free_string(tag);
-				if (wtag != NULL) {
-					line_string(line, wtag->ptr, text);
-					free_wstring(wtag);
-				}
+				line_string(line, tag->ptr, text);
+				free_wstring(tag);
 			}
 		} else if (renderers[i].tag_id == GUMBO_TAG_TABLE) {
 			write_contents_of_html_table_node_to_text(text, line, node);
@@ -302,34 +293,30 @@ dump_html(GumboNode *node, struct wstring *text, struct line *line, enum html_po
 		|| (node->type == GUMBO_NODE_CDATA)
 		|| (node->type == GUMBO_NODE_WHITESPACE))
 	{
-		struct string *str = crtas(node->v.text.text, strlen(node->v.text.text));
-		if (str != NULL) {
-			struct wstring *wstr = convert_string_to_wstring(str);
-			free_string(str);
-			if (wstr != NULL) {
-				for (const wchar_t *i = wstr->ptr; *i != L'\0'; ++i) {
-					if (!ISWIDEWHITESPACE(*i)) {
-						line_char(line, *i, text);
-					} else if ((*pos & HTML_PRE) != 0) {
-						if (*i == '\n') {
-							line_char(line, L'\n', text);
-						} else if (*i == '\t') {
-							line_string(line, L"    ", text);
-						} else {
-							line_char(line, L' ', text);
-						}
-					} else if (line->len > 0) {
-						if (!ISWIDEWHITESPACE(line->ptr[line->len - 1])) {
-							line_char(line, L' ', text);
-						}
-					} else if (text->len > 0) {
-						if (!ISWIDEWHITESPACE(text->ptr[text->len - 1])) {
-							line_char(line, L' ', text);
-						}
+		struct wstring *wstr = convert_array_to_wstring(node->v.text.text, strlen(node->v.text.text));
+		if (wstr != NULL) {
+			for (const wchar_t *i = wstr->ptr; *i != L'\0'; ++i) {
+				if (!ISWIDEWHITESPACE(*i)) {
+					line_char(line, *i, text);
+				} else if ((*pos & HTML_PRE) != 0) {
+					if (*i == '\n') {
+						line_char(line, L'\n', text);
+					} else if (*i == '\t') {
+						line_string(line, L"    ", text);
+					} else {
+						line_char(line, L' ', text);
+					}
+				} else if (line->len > 0) {
+					if (!ISWIDEWHITESPACE(line->ptr[line->len - 1])) {
+						line_char(line, L' ', text);
+					}
+				} else if (text->len > 0) {
+					if (!ISWIDEWHITESPACE(text->ptr[text->len - 1])) {
+						line_char(line, L' ', text);
 					}
 				}
-				free_wstring(wstr);
 			}
+			free_wstring(wstr);
 		}
 	}
 }

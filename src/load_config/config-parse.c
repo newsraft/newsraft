@@ -40,7 +40,7 @@ process_set_line(char *line)
 	}
 	config_type_id type = get_cfg_type(id);
 	if (type == CFG_BOOL) {
-		if ((strlen(i) == 0) || (strcmp(i, "true") == 0)) {
+		if ((*i == '\0') || (strcmp(i, "true") == 0)) {
 			set_cfg_bool(id, true);
 		} else if (strcmp(i, "false") == 0) {
 			set_cfg_bool(id, false);
@@ -50,7 +50,7 @@ process_set_line(char *line)
 		}
 	} else if (type == CFG_UINT) {
 		size_t val;
-		if ((strlen(i) == 0) || (*i == '-') || (sscanf(i, "%zu", &val) != 1)) {
+		if ((*i == '\0') || (*i == '-') || (sscanf(i, "%zu", &val) != 1)) {
 			fputs("Numeric settings can only take non-negative integer values!\n", stderr);
 			return false;
 		}
@@ -76,19 +76,12 @@ process_set_line(char *line)
 			fputs("Color settings can only take lower-case ASCII color names!\n", stderr);
 			return false;
 		}
-	} else if ((type == CFG_STRING) || (type == CFG_WSTRING)) {
-		struct string *str = crtas(i, strlen(i));
-		if (str == NULL) {
+	} else if (type == CFG_STRING) {
+		if (set_cfg_string(id, i, strlen(i)) == false) {
 			goto error;
 		}
-		bool success;
-		if (type == CFG_STRING) {
-			success = set_cfg_string(id, str);
-		} else {
-			success = set_cfg_wstring(id, str);
-		}
-		free_string(str);
-		if (success == false) {
+	} else if (type == CFG_WSTRING) {
+		if (set_cfg_wstring(id, i, strlen(i)) == false) {
 			goto error;
 		}
 	}
@@ -99,7 +92,7 @@ error:
 }
 
 static inline bool
-process_bind_line(char *line)
+process_bind_line(char *line, size_t line_len)
 {
 	char *i = line;
 	size_t key_len = 0;
@@ -119,7 +112,7 @@ process_bind_line(char *line)
 		while (ISWHITESPACE(*i)) {
 			i += 1;
 		}
-		return create_macro(line, key_len, i, strlen(i));
+		return create_macro(line, key_len, i, line_len + line - i);
 	} else {
 		input_cmd_id cmd = get_input_cmd_id_by_name(i);
 		if (cmd == INPUTS_COUNT) {
@@ -176,6 +169,10 @@ parse_config_file(const char *path)
 			line[line_len++] = c;
 			c = fgetc(f);
 		}
+		// Delete trailing whitespace.
+		while (line_len > 0 && ISWHITESPACE(line[line_len - 1])) {
+			line_len -= 1;
+		}
 		line[line_len] = '\0';
 
 		if (strncmp(type, "set", type_len) == 0) {
@@ -183,7 +180,7 @@ parse_config_file(const char *path)
 				goto error;
 			}
 		} else if (strncmp(type, "bind", type_len) == 0) {
-			if (process_bind_line(line) == false) {
+			if (process_bind_line(line, line_len) == false) {
 				goto error;
 			}
 		} else if (strncmp(type, "unbind", type_len) == 0) {

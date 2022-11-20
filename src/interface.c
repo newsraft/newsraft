@@ -70,7 +70,7 @@ curses_init(void)
 	return true;
 }
 
-bool
+input_cmd_id
 resize_counter_action(void)
 {
 	pthread_mutex_lock(&interface_lock);
@@ -97,8 +97,8 @@ resize_counter_action(void)
 	}
 	redraw_list_menu_unprotected();
 	pthread_mutex_unlock(&interface_lock);
-	return true;
+	return INPUT_RESIZE;
 error:
 	pthread_mutex_unlock(&interface_lock);
-	return false;
+	return INPUT_QUIT_HARD;
 }

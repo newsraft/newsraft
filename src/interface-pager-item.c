@@ -58,7 +58,7 @@ custom_input_handler(void *data, input_cmd_id cmd, uint32_t count, const struct 
 			return open_url_in_browser(links->list[count - 1].url);
 		} else if (cmd == INPUT_COPY_TO_CLIPBOARD) {
 			return copy_string_to_clipboard(links->list[count - 1].url);
-		} else if ((cmd == INPUT_SYSTEM_COMMAND) && (macro != NULL)) {
+		} else if (cmd == INPUT_SYSTEM_COMMAND) {
 			cmd_args[0].value.s = links->list[count - 1].url->ptr;
 			return execute_command_with_specifiers_in_it(macro, cmd_args);
 		}

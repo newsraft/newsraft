@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <ctype.h>
 #include <curses.h>
 #include "newsraft.h"
 
@@ -42,48 +43,42 @@ counter_recreate(void)
 	return true;
 }
 
-void
-counter_send_character(char c)
-{
-	if (count_buf_len == 9) {
-		count_buf_len = 0;
-	}
-	count_buf[count_buf_len++] = c;
-	counter_update();
-}
-
-uint32_t
-counter_extract_count(void)
-{
-	uint32_t count;
-	if (count_buf_len == 0) {
-		count = 1;
-	} else {
-		count_buf[count_buf_len] = '\0';
-		if (sscanf(count_buf, "%" SCNu32, &count) != 1) {
-			count = 1;
-		}
-	}
-	return count;
-}
-
-void
-counter_clean(void)
-{
-	if (counter_window != NULL) {
-		werase(counter_window);
-		wrefresh(counter_window);
-	}
-	count_buf_len = 0;
-}
-
-int
+static inline int
 read_key_from_counter_window(void)
 {
 	// We can't read keys from stdscr via getch() function because calling it
 	// will bring stdscr on top of other windows and overlap them.
 	int c = wgetch(counter_window);
 	INFO("Received \"%c\" character with %d key code.", c, c);
+	return c;
+}
+
+int
+read_counted_key_from_counter_window(uint32_t *count)
+{
+	int c = read_key_from_counter_window();
+	while (isdigit(c) != 0) {
+
+		// Add digit to counter.
+		if (count_buf_len == 9) {
+			count_buf_len = 0;
+		}
+		count_buf[count_buf_len++] = c;
+		counter_update();
+
+		c = read_key_from_counter_window();
+	}
+	if (c != KEY_RESIZE) {
+		count_buf[count_buf_len] = '\0';
+		if (sscanf(count_buf, "%" SCNu32, count) != 1) {
+			*count = 1;
+		}
+		if (counter_window != NULL) {
+			werase(counter_window);
+			wrefresh(counter_window);
+		}
+		count_buf_len = 0;
+	}
 	return c;
 }
 

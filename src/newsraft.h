@@ -313,10 +313,10 @@ int enter_item_pager_view_loop(int64_t rowid);
 int enter_status_pager_view_loop(void);
 
 // See "threading.c" file for implementation.
-bool initialize_threading(void);
+bool initialize_update_threads(void);
 void branch_update_feed_action_into_thread(void *(*action)(void *arg), struct feed_line *feed);
 void wait_for_all_threads_to_finish(void);
-void terminate_threading(void);
+void terminate_update_threads(void);
 
 // See "path.c" file for implementation.
 bool set_feeds_path(const char *path);
@@ -334,6 +334,8 @@ struct string *get_config_date_str(int64_t date, enum config_entry_index format_
 
 // See "db.c" file for implementation.
 bool db_init(void);
+void start_database_file_optimization(void);
+bool catch_database_file_optimization(void);
 void db_stop(void);
 sqlite3_stmt *db_prepare(const char *zSql, int nByte);
 bool db_begin_transaction(void);

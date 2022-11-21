@@ -2,6 +2,7 @@
 #include "newsraft.h"
 
 static sqlite3 *db;
+static pthread_t database_file_optimization_thread;
 
 bool
 db_init(void)
@@ -13,8 +14,8 @@ db_init(void)
 	}
 
 	if (sqlite3_config(SQLITE_CONFIG_SERIALIZED) != SQLITE_OK) {
-		// Probably SQLite was compiled without multithreading functionality.
 		fputs("Failed to set threading mode of database to serialized!\n", stderr);
+		fputs("It probably happens because SQLite was compiled without multithreading functionality.\n", stderr);
 		return false;
 	}
 
@@ -25,7 +26,6 @@ db_init(void)
 	}
 
 	char *errmsg;
-
 	// All dates are stored as the number of seconds since 1970.
 	// Note that numeric arguments in parentheses that following the type name
 	// are ignored by SQLite - there's no need to impose any length limits.
@@ -84,26 +84,45 @@ db_init(void)
 		return false;
 	}
 
+	return true;
+}
+
+static void *
+database_file_optimization_routine(void *dummy)
+{
+	(void)dummy;
+	char *errmsg = NULL;
 	if (get_cfg_bool(CFG_CLEAN_DATABASE_ON_STARTUP) == true) {
 		sqlite3_exec(db, "VACUUM;", NULL, NULL, &errmsg);
-		if (errmsg != NULL) {
-			fprintf(stderr, "Failed to clean database: %s!\n", errmsg);
-			sqlite3_close(db);
-			sqlite3_free(errmsg);
-			return false;
-		}
 	}
-
 	if (get_cfg_bool(CFG_ANALYZE_DATABASE_ON_STARTUP) == true) {
 		sqlite3_exec(db, "ANALYZE;", NULL, NULL, &errmsg);
-		if (errmsg != NULL) {
-			fprintf(stderr, "Failed to analyze database: %s!\n", errmsg);
-			sqlite3_close(db);
-			sqlite3_free(errmsg);
-			return false;
-		}
 	}
+	return errmsg;
+}
 
+// Note to the future.
+// This should be done in the background (separate thread), because VACUUM and
+// ANALYZE database queries take very long time in case of big database files.
+void
+start_database_file_optimization(void)
+{
+	pthread_create(&database_file_optimization_thread, NULL, &database_file_optimization_routine, NULL);
+}
+
+bool
+catch_database_file_optimization(void)
+{
+	char *errmsg = NULL;
+	if (pthread_join(database_file_optimization_thread, (void **)&errmsg) != 0) {
+		fputs("Failed to finish database file optimization!\n", stderr);
+		return false;
+	}
+	if (errmsg != NULL) {
+		fprintf(stderr, "Failed to optimize the database: %s!\n", errmsg);
+		sqlite3_free(errmsg);
+		return false;
+	}
 	return true;
 }
 

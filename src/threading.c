@@ -10,7 +10,7 @@ static struct responsive_thread *threads = NULL;
 static size_t threads_count;
 
 bool
-initialize_threading(void)
+initialize_update_threads(void)
 {
 	threads_count = get_cfg_uint(CFG_UPDATE_THREADS_COUNT);
 	if (threads_count != 0) {
@@ -71,7 +71,7 @@ wait_for_all_threads_to_finish(void)
 }
 
 void
-terminate_threading(void)
+terminate_update_threads(void)
 {
 	free(threads);
 }

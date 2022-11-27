@@ -121,6 +121,8 @@ start_processing_queue(void *arg)
 	size_t update_queue_progress = 0;
 	update_queue_fails_count = 0;
 
+	prevent_status_cleaning();
+
 here_we_go_again:
 	while (update_queue_progress != update_queue_length) {
 		branch_update_feed_action_into_thread(&update_feed_action, update_queue[update_queue_progress]);
@@ -141,6 +143,8 @@ here_we_go_again:
 	free(update_queue);
 	update_queue = NULL;
 	pthread_mutex_unlock(&queue_lock);
+
+	allow_status_cleaning();
 
 	if (update_queue_fails_count != 0) {
 		fail_status("Failed to update %zu feeds (check out status history for more details)", update_queue_fails_count);

@@ -381,6 +381,8 @@ bool assign_default_binds(void);
 bool status_recreate(void);
 void status_clean_unprotected(void);
 void status_clean(void);
+void prevent_status_cleaning(void);
+void allow_status_cleaning(void);
 void status_write(config_entry_id color, const char *format, ...);
 void status_delete(void);
 struct string *generate_string_with_status_messages_for_pager(void);

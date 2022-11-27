@@ -12,6 +12,7 @@ static bool status_window_is_clean = true;
 static struct status_message *messages = NULL;
 static size_t messages_count = 0;
 static size_t messages_limit;
+static volatile bool is_status_cleanable = true;
 
 static inline void
 write_last_status_message_to_status_window(void)
@@ -52,9 +53,11 @@ status_recreate(void)
 void
 status_clean_unprotected(void)
 {
-	status_window_is_clean = true;
-	werase(status_window);
-	wrefresh(status_window);
+	if (is_status_cleanable == true) {
+		status_window_is_clean = true;
+		werase(status_window);
+		wrefresh(status_window);
+	}
 }
 
 void
@@ -63,6 +66,18 @@ status_clean(void)
 	pthread_mutex_lock(&interface_lock);
 	status_clean_unprotected();
 	pthread_mutex_unlock(&interface_lock);
+}
+
+void
+prevent_status_cleaning(void)
+{
+	is_status_cleanable = false;
+}
+
+void
+allow_status_cleaning(void)
+{
+	is_status_cleanable = true;
 }
 
 static inline bool

@@ -12,16 +12,16 @@ Newsboat it is impossible with meta-feeds due to their filtering purpose.
 
 #### Simpler command bindings
 
-You can bind any key to execute command on the feed item with for example:
+You can bind any key to execute a command on the feed item with for example:
 
 ```
-bind m exec mpv %l
+bind m exec mpv "%l"
 ```
 
 No more stuff like:
 
 ```
-macro m set browser mpv; open-in-browser; set browser w3m
+macro m set browser mpv; open-in-browser; set browser elinks
 ```
 
 #### Vim-like bindings by default

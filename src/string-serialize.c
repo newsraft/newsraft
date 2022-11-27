@@ -18,11 +18,13 @@ struct deserialize_stream {
 // However, this constant must never be changed. Or wicked times will come!
 #define SEPARATOR '='
 
+static const char caret[2] = {DELIMITER, '^'};
+
 static inline void
-remove_character_from_string(struct string *str, char c)
+remove_delimiter_from_string_with_start_offset(struct string *str, size_t offset)
 {
-	for (char *i = str->ptr; *i != '\0'; ++i) {
-		if (*i == c) {
+	for (char *i = str->ptr + offset; *i != '\0'; ++i) {
+		if (*i == DELIMITER) {
 			for (char *j = i; *j != '\0'; ++j) {
 				*j = *(j + 1);
 			}
@@ -35,15 +37,11 @@ remove_character_from_string(struct string *str, char c)
 bool
 serialize_caret(struct string **target)
 {
-	if (*target == NULL) {
-		*target = crtes();
-	}
 	if (*target != NULL) {
-		if (catcs(*target, DELIMITER) == true) {
-			return catcs(*target, '^');
-		}
+		return catas(*target, caret, 2);
 	}
-	return false;
+	*target = crtes();
+	return *target != NULL ? catas(*target, caret, 2) : false;
 }
 
 bool
@@ -67,16 +65,11 @@ serialize_array(struct string **target, const char *key, size_t key_len, const c
 	if (catcs(*target, SEPARATOR) == false) {
 		return false;
 	}
-	struct string *str = crtas(value, value_len);
-	if (str == NULL) {
+	size_t old_len = (*target)->len;
+	if (catas(*target, value, value_len) == false) {
 		return false;
 	}
-	remove_character_from_string(str, DELIMITER);
-	if (catss(*target, str) == false) {
-		free_string(str);
-		return false;
-	}
-	free_string(str);
+	remove_delimiter_from_string_with_start_offset(*target, old_len);
 	return true;
 }
 
@@ -86,26 +79,7 @@ serialize_string(struct string **target, const char *key, size_t key_len, struct
 	if ((value == NULL) || (value->len == 0)) {
 		return true; // Ignore empty entries.
 	}
-	if (*target == NULL) {
-		*target = crtes();
-		if (*target == NULL) {
-			return false;
-		}
-	}
-	if (catcs(*target, DELIMITER) == false) {
-		return false;
-	}
-	if (catas(*target, key, key_len) == false) {
-		return false;
-	}
-	if (catcs(*target, SEPARATOR) == false) {
-		return false;
-	}
-	remove_character_from_string(value, DELIMITER);
-	if (catss(*target, value) == false) {
-		return false;
-	}
-	return true;
+	return serialize_array(target, key, key_len, value->ptr, value->len);
 }
 
 struct deserialize_stream *

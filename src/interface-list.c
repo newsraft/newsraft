@@ -28,7 +28,7 @@ static struct list_menu_settings menus[MENUS_COUNT];
 static struct list_menu_settings *menu = menus; // selected menu
 static int8_t menus_immersion[10];
 static int8_t menus_immersion_depth = 0;
-static bool list_menu_is_paused = false;
+static volatile bool list_menu_is_paused = false;
 
 bool
 adjust_list_menu(void)
@@ -194,6 +194,7 @@ pause_list_menu(void)
 	clear();
 	refresh();
 	status_clean_unprotected();
+	status_recreate();
 	pthread_mutex_unlock(&interface_lock);
 }
 
@@ -204,8 +205,9 @@ resume_list_menu(void)
 	list_menu_is_paused = false;
 	clear();
 	refresh();
-	status_clean_unprotected();
 	redraw_list_menu_unprotected();
+	status_clean_unprotected();
+	status_recreate();
 	pthread_mutex_unlock(&interface_lock);
 }
 

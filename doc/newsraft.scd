@@ -139,6 +139,7 @@ it will be very sad.
 Search precedence:
 . _$XDG_DATA_HOME_/newsraft/newsraft.sqlite3
 . _$HOME_/.local/share/newsraft/newsraft.sqlite3
+. _$HOME_/.newsraft/newsraft.sqlite3
 
 # SETTINGS
 

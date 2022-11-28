@@ -165,21 +165,19 @@ get_db_path(void)
 		return db_file_path;
 	}
 
-	FILE *f;
-	char *env_var = getenv("XDG_DATA_HOME");
-	size_t env_var_len;
-	bool xdg_dir_is_set = false;
-	bool home_dir_is_set = false;
-
 	// Order in which to look up a database file:
 	// 1. $XDG_DATA_HOME/newsraft/newsraft.sqlite3
 	// 2. $HOME/.local/share/newsraft/newsraft.sqlite3
+	// 3. $HOME/.newsraft/newsraft.sqlite3
 
-	if (env_var != NULL) {
-		env_var_len = strlen(env_var);
-		if (env_var_len != 0) {
-			xdg_dir_is_set = true;
-			strcpy(db_file_path, env_var);
+	FILE *f;
+
+	char *xdg_data_home_var = getenv("XDG_DATA_HOME");
+	size_t xdg_data_home_var_len = 0;
+	if (xdg_data_home_var != NULL) {
+		xdg_data_home_var_len = strlen(xdg_data_home_var);
+		if (xdg_data_home_var_len != 0) {
+			strcpy(db_file_path, xdg_data_home_var);
 			strcat(db_file_path, "/newsraft/newsraft.sqlite3");
 			f = fopen(db_file_path, "r");
 			if (f != NULL) {
@@ -189,29 +187,35 @@ get_db_path(void)
 		}
 	}
 
-	env_var = getenv("HOME");
-	if (env_var != NULL) {
-		env_var_len = strlen(env_var);
-		if (env_var_len != 0) {
-			home_dir_is_set = true;
-			strcpy(db_file_path, env_var);
+	char *home_var = getenv("HOME");
+	size_t home_var_len = 0;
+	if (home_var != NULL) {
+		home_var_len = strlen(home_var);
+		if (home_var_len != 0) {
+			strcpy(db_file_path, home_var);
 			strcat(db_file_path, "/.local/share/newsraft/newsraft.sqlite3");
 			f = fopen(db_file_path, "r");
 			if (f != NULL) {
 				fclose(f);
 				return db_file_path; // 2
 			}
+			strcpy(db_file_path, home_var);
+			strcat(db_file_path, "/.newsraft/newsraft.sqlite3");
+			f = fopen(db_file_path, "r");
+			if (f != NULL) {
+				fclose(f);
+				return db_file_path; // 3
+			}
 		}
 	}
 
 	// If we got to this point then database file does not exist.
-	// We have to create new one!
+	// We have to create a new one!
 
 	DIR *d;
 
-	if (xdg_dir_is_set == true) {
-		env_var = getenv("XDG_DATA_HOME");
-		strcpy(db_file_path, env_var);
+	if ((xdg_data_home_var != NULL) && (xdg_data_home_var_len != 0)) {
+		strcpy(db_file_path, xdg_data_home_var);
 		mkdir(db_file_path, 0777);
 		strcat(db_file_path, "/newsraft");
 		mkdir(db_file_path, 0777);
@@ -223,9 +227,8 @@ get_db_path(void)
 		} else {
 			fprintf(stderr, "Failed to create \"%s\" directory!\n", db_file_path);
 		}
-	} else if (home_dir_is_set == true) {
-		env_var = getenv("HOME");
-		strcpy(db_file_path, env_var);
+	} else if ((home_var != NULL) && (home_var_len != 0)) {
+		strcpy(db_file_path, home_var);
 		mkdir(db_file_path, 0777);
 		strcat(db_file_path, "/.local");
 		mkdir(db_file_path, 0777);

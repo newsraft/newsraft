@@ -256,6 +256,14 @@ _menu-explore-item-entry-format_ (default: *" %u │ %d │ %-28.28O │ %o"*)
 	Format of the item list entries in explore mode. Specifiers are the same as
 	in _menu-item-entry-format_.
 
+_auto-advance-on-read_ (default: *true*)
+	Automatically advance selection in the list menu when selected entry is
+	marked as read.
+
+_auto-advance-on-unread_ (default: *true*)
+	Automatically advance selection in the list menu when selected entry is
+	marked as unread.
+
 _mark-item-read-on-hover_ (default: *false*)
 	Mark every item that gets selected as read.
 

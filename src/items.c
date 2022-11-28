@@ -140,8 +140,14 @@ enter_items_menu_loop(struct feed_line **feeds, size_t feeds_count, config_entry
 			// rest a little
 		} else if (cmd == INPUT_MARK_READ) {
 			mark_selected_item_read(*view_sel);
+			if (get_cfg_bool(CFG_AUTO_ADVANCE_ON_READ) == true) {
+				handle_list_menu_navigation(INPUT_SELECT_NEXT);
+			}
 		} else if (cmd == INPUT_MARK_UNREAD) {
 			mark_selected_item_unread(*view_sel);
+			if (get_cfg_bool(CFG_AUTO_ADVANCE_ON_UNREAD) == true) {
+				handle_list_menu_navigation(INPUT_SELECT_NEXT);
+			}
 		} else if (cmd == INPUT_MARK_READ_ALL) {
 			mark_all_items_read(feeds, feeds_count);
 		} else if (cmd == INPUT_MARK_UNREAD_ALL) {

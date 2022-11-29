@@ -104,10 +104,14 @@ database_file_optimization_routine(void *dummy)
 // Note to the future.
 // This should be done in the background (separate thread), because VACUUM and
 // ANALYZE database queries take very long time in case of big database files.
-void
+bool
 start_database_file_optimization(void)
 {
-	pthread_create(&database_file_optimization_thread, NULL, &database_file_optimization_routine, NULL);
+	if (pthread_create(&database_file_optimization_thread, NULL, &database_file_optimization_routine, NULL) != 0) {
+		fputs("Failed to create database optimization thread!\n", stderr);
+		return false;
+	}
+	return true;
 }
 
 bool

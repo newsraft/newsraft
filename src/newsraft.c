@@ -65,17 +65,17 @@ main(int argc, char **argv)
 	if (db_init()                          == false) { error = 10; goto undo3;  }
 	if (create_global_section()            == false) { error = 11; goto undo4;  }
 	if (parse_feeds_file()                 == false) { error = 12; goto undo5;  }
-	start_database_file_optimization(); // Don't touch database after this call!
-	if (curses_init()                      == false) { error = 13; goto undo5;  }
-	if (adjust_list_menu()                 == false) { error = 14; goto undo6;  }
-	if (create_format_buffers()            == false) { error = 15; goto undo7;  }
-	if (status_recreate()                  == false) { error = 16; goto undo8;  }
-	if (counter_recreate()                 == false) { error = 17; goto undo9;  }
-	if (initialize_update_threads()        == false) { error = 18; goto undo10; }
-	if (curl_global_init(CURL_GLOBAL_DEFAULT)  != 0) { error = 19; goto undo11; }
+	if (start_database_file_optimization() == false) { error = 13; goto undo5;  }
+	if (curses_init()                      == false) { error = 14; goto undo5;  }
+	if (adjust_list_menu()                 == false) { error = 15; goto undo6;  }
+	if (create_format_buffers()            == false) { error = 16; goto undo7;  }
+	if (status_recreate()                  == false) { error = 17; goto undo8;  }
+	if (counter_recreate()                 == false) { error = 18; goto undo9;  }
+	if (initialize_update_threads()        == false) { error = 19; goto undo10; }
+	if (curl_global_init(CURL_GLOBAL_DEFAULT)  != 0) { error = 20; goto undo11; }
 	initialize_settings_of_list_menus();
 	refresh_unread_items_count_of_all_sections();
-	if (catch_database_file_optimization() == false) { error = 20; goto undo12; }
+	if (catch_database_file_optimization() == false) { error = 21; goto undo12; }
 
 	enter_sections_menu_loop();
 

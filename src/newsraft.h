@@ -336,7 +336,7 @@ struct string *get_config_date_str(int64_t date, enum config_entry_index format_
 
 // See "db.c" file for implementation.
 bool db_init(void);
-void start_database_file_optimization(void);
+bool start_database_file_optimization(void);
 bool catch_database_file_optimization(void);
 void db_stop(void);
 sqlite3_stmt *db_prepare(const char *zSql, int nByte);

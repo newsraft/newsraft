@@ -63,9 +63,9 @@ main(int argc, char **argv)
 	if (assign_default_binds()             == false) { error = 8;  goto undo1;  }
 	if (load_config()                      == false) { error = 9;  goto undo2;  }
 	if (db_init()                          == false) { error = 10; goto undo3;  }
-	if (create_global_section()            == false) { error = 11; goto undo4;  }
-	if (parse_feeds_file()                 == false) { error = 12; goto undo5;  }
-	if (start_database_file_optimization() == false) { error = 13; goto undo5;  }
+	if (start_database_file_optimization() == false) { error = 11; goto undo4;  }
+	if (create_global_section()            == false) { error = 12; goto undo4;  }
+	if (parse_feeds_file()                 == false) { error = 13; goto undo5;  }
 	if (curses_init()                      == false) { error = 14; goto undo5;  }
 	if (adjust_list_menu()                 == false) { error = 15; goto undo6;  }
 	if (create_format_buffers()            == false) { error = 16; goto undo7;  }
@@ -76,6 +76,7 @@ main(int argc, char **argv)
 	initialize_settings_of_list_menus();
 	refresh_unread_items_count_of_all_sections();
 	if (catch_database_file_optimization() == false) { error = 21; goto undo12; }
+	if (name_feeds_by_their_titles_in_db() == false) { error = 22; goto undo12; }
 
 	enter_sections_menu_loop();
 

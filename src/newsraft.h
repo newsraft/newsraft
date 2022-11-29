@@ -239,6 +239,7 @@ enum text_type {
 // See "sections.c" file for implementation.
 bool create_global_section(void);
 bool copy_feed_to_section(const struct feed_line *feed, const struct string *section_name);
+bool name_feeds_by_their_titles_in_db(void);
 void refresh_unread_items_count_of_all_sections(void);
 void enter_sections_menu_loop(void);
 void free_sections(void);

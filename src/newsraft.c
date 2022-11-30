@@ -59,19 +59,19 @@ main(int argc, char **argv)
 	}
 
 	if (register_signal_handlers()         == false) { error = 6;  goto undo1;  }
-	if (get_local_offset_relative_to_utc() == false) { error = 7;  goto undo1;  }
-	if (assign_default_binds()             == false) { error = 8;  goto undo1;  }
-	if (load_config()                      == false) { error = 9;  goto undo2;  }
-	if (db_init()                          == false) { error = 10; goto undo3;  }
-	if (start_database_file_optimization() == false) { error = 11; goto undo4;  }
-	if (create_global_section()            == false) { error = 12; goto undo4;  }
-	if (parse_feeds_file()                 == false) { error = 13; goto undo5;  }
-	if (curses_init()                      == false) { error = 14; goto undo5;  }
-	if (adjust_list_menu()                 == false) { error = 15; goto undo6;  }
-	if (create_format_buffers()            == false) { error = 16; goto undo7;  }
-	if (status_recreate()                  == false) { error = 17; goto undo8;  }
-	if (counter_recreate()                 == false) { error = 18; goto undo9;  }
-	if (initialize_update_threads()        == false) { error = 19; goto undo10; }
+	if (assign_default_binds()             == false) { error = 7;  goto undo1;  }
+	if (load_config()                      == false) { error = 8;  goto undo2;  }
+	if (db_init()                          == false) { error = 9;  goto undo3;  }
+	if (start_database_file_optimization() == false) { error = 10; goto undo4;  }
+	if (create_global_section()            == false) { error = 11; goto undo4;  }
+	if (parse_feeds_file()                 == false) { error = 12; goto undo5;  }
+	if (curses_init()                      == false) { error = 13; goto undo5;  }
+	if (adjust_list_menu()                 == false) { error = 14; goto undo6;  }
+	if (create_format_buffers()            == false) { error = 15; goto undo7;  }
+	if (status_recreate()                  == false) { error = 16; goto undo8;  }
+	if (counter_recreate()                 == false) { error = 17; goto undo9;  }
+	if (initialize_update_threads()        == false) { error = 18; goto undo10; }
+	if (get_local_offset_relative_to_utc() == false) { error = 19; goto undo11; }
 	if (curl_global_init(CURL_GLOBAL_DEFAULT)  != 0) { error = 20; goto undo11; }
 	initialize_settings_of_list_menus();
 	refresh_unread_items_count_of_all_sections();

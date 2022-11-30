@@ -172,17 +172,17 @@ _status-messages-count-limit_ (default: *10000*)
 _open-in-browser-command_ (default: *auto*)
 	Shell command for opening URL in web browser. The URL to be opened is
 	appended to the end of the setting value as the last command argument.
-	If it is set to "auto", then Newsraft will try to obtain setting value
+	If it is set to *"auto"*, then Newsraft will try to obtain setting value
 	from the BROWSER environment variable. If environment variable BROWSER
-	is not set, then its value is taken as "xdg-open".
+	is not set, then its value is taken as *"xdg-open"*.
 
 _copy-to-clipboard-command_ (default: *auto*)
-	Shell command for copying text to clipboard. All copied information is sent
-	to the standard input of the command. If it is set to "auto", then Newsraft
-	will set the setting value depending on the environment variables: "wl-copy"
+	Shell command for copying text to clipboard. All copied data is sent to the
+	standard input of the command. If it is set to *"auto"*, then Newsraft will
+	set the setting value depending on the environment variables: *"wl-copy"*
 	command will be set if environment variable WAYLAND_DISPLAY is present and
-	"xclip -selection clipboard" command will be set if environment variable
-	DISPLAY is present, otherwise "false" command will be set.
+	*"xclip -selection clipboard"* command will be set if environment variable
+	DISPLAY is present, otherwise *"false"* command will be set.
 
 _proxy_ (default: *""*)
 	Sets the proxy to use for the network requests. It must be either a hostname
@@ -204,14 +204,14 @@ _send-user-agent-header_ (default: *true*)
 	Attach user-agent header to download requests. See _user-agent_ setting.
 
 _user-agent_ (default: *auto*)
-	User-agent string to attach to download requests. If it is set to "auto",
-	Newsraft will generate it in the following form:
+	User-agent string to attach to download requests. If it is set to *"auto"*,
+	Newsraft will generate it according to the following format:
 
 		*"newsraft/"* + NEWSRAFT_VERSION + *" ("* + OS_NAME + *")"*
 
 	OS_NAME shouldn't be a matter of privacy concern, because on most systems it
-	contains nothing more like "Linux" or "Darwin". If you want to be sure of
-	this, check Newsraft log to see which _user-agent_ is set at startup.
+	contains nothing more like *"Linux"* or *"Darwin"*. If you want to be sure
+	of this, check Newsraft log to see how _user-agent_ is set at startup.
 
 _item-formation-order_ (default: *feed-url,title,authors,published,updated,max-content*)
 	Sets the order in which the data of item entry is formed for viewing in a

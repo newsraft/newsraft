@@ -87,6 +87,10 @@ mark_all_feeds_unread(void)
 input_cmd_id
 enter_feeds_menu_loop(struct feed_line **new_feeds, size_t new_feeds_count)
 {
+	if (new_feeds_count == 1) {
+		return enter_items_menu_loop(new_feeds, 1, CFG_MENU_ITEM_ENTRY_FORMAT);
+	}
+
 	feeds = new_feeds;
 	feeds_count = new_feeds_count;
 

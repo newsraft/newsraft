@@ -115,7 +115,7 @@ process_bind_line(char *line, size_t line_len)
 		return create_macro(line, key_len, i, line_len + line - i);
 	} else {
 		input_cmd_id cmd = get_input_cmd_id_by_name(i);
-		if (cmd == INPUTS_COUNT) {
+		if (cmd == INPUT_ERROR) {
 			fprintf(stderr, "Action \"%s\" doesn't exist!\n", i);
 			return false;
 		}

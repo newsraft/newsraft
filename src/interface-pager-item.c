@@ -72,13 +72,13 @@ enter_item_pager_view_loop(int64_t rowid)
 	INFO("Trying to view an item with rowid %" PRId64 "...", rowid);
 	sqlite3_stmt *res = db_find_item_by_rowid(rowid);
 	if (res == NULL) {
-		return INPUTS_COUNT;
+		return INPUT_ERROR;
 	}
 	struct link_list links = {0};
 	struct render_block *block = generate_render_blocks_for_item(res, &links);
 	sqlite3_finalize(res);
 	if (block == NULL) {
-		return INPUTS_COUNT;
+		return INPUT_ERROR;
 	}
 	const int pager_result = pager_view(block, &custom_input_handler, (void *)&links);
 	free_render_blocks(block);

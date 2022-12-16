@@ -3,7 +3,7 @@
 
 struct input_entry_match {
 	const char *name;
-	input_cmd_id value;
+	const input_cmd_id value;
 };
 
 static const struct input_entry_match entries[] = {
@@ -43,5 +43,5 @@ get_input_cmd_id_by_name(const char *name)
 			return entries[i].value;
 		}
 	}
-	return INPUTS_COUNT;
+	return INPUT_ERROR;
 }

@@ -35,7 +35,7 @@ get_input_command(uint32_t *count, const struct wstring **macro_ptr)
 		}
 	}
 
-	return INPUTS_COUNT; // No command matched with this key.
+	return INPUT_ERROR; // No command matched with this key.
 }
 
 void

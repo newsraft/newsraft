@@ -126,7 +126,7 @@ enter_items_menu_loop(struct feed_line **feeds, size_t feeds_count, config_entry
 	items = generate_items_list(feeds, feeds_count, SORT_BY_TIME_DESC);
 	if (items == NULL) {
 		// Error message written by generate_items_list.
-		return INPUTS_COUNT;
+		return INPUT_ERROR;
 	}
 
 	const size_t *view_sel = enter_list_menu(ITEMS_MENU, items->count, format_id);

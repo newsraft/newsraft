@@ -4,14 +4,10 @@
 #include <gumbo.h>
 #include "prepare_to_render_data/prepare_to_render_data.h"
 
-struct html_abbr {
-	struct string *title;
-	struct html_abbr *next;
-};
-
 struct html_data {
 	struct links_list *links;
-	struct html_abbr *abbrs;
+	struct string **abbrs;
+	size_t abbrs_len;
 };
 
 struct html_element_preparer {
@@ -198,24 +194,20 @@ abbr_handler(struct string *text, struct html_data *data, GumboVector *attrs)
 	if (title_len == 0) {
 		return;
 	}
-	struct html_abbr *abbr = data->abbrs;
-	while (abbr != NULL) {
-		if (strcasecmp(title, abbr->title->ptr) == 0) {
-			return; // Is duplicate.
+	for (size_t i = 0; i < data->abbrs_len; ++i) {
+		if (strcasecmp(title, data->abbrs[i]->ptr) == 0) {
+			return; // It's a duplicate.
 		}
-		abbr = abbr->next;
 	}
 	catas(text, " (", 2);
 	catas(text, title, title_len);
 	catcs(text, ')');
-	abbr = malloc(sizeof(struct html_abbr));
-	if (abbr != NULL) {
-		abbr->title = crtas(title, title_len);
-		if (abbr->title == NULL) {
-			free(abbr);
-		} else {
-			abbr->next = data->abbrs;
-			data->abbrs = abbr;
+	void *tmp = realloc(data->abbrs, sizeof(struct string *) * (data->abbrs_len + 1));
+	if (tmp != NULL) {
+		data->abbrs = tmp;
+		data->abbrs[data->abbrs_len] = crtas(title, title_len);
+		if (data->abbrs[data->abbrs_len] != NULL) {
+			data->abbrs_len += 1;
 		}
 	}
 }
@@ -310,17 +302,13 @@ dump_html(GumboNode *node, struct string *text, struct html_data *data)
 	}
 }
 
-static void
-free_abbrs(struct html_abbr *abbr)
+static inline void
+free_abbrs(struct html_data *data)
 {
-	struct html_abbr *temp;
-	struct html_abbr *a = abbr;
-	while (a != NULL) {
-		free_string(a->title);
-		temp = a;
-		a = a->next;
-		free(temp);
+	for (size_t i = 0; i < data->abbrs_len; ++i) {
+		free_string(data->abbrs[i]);
 	}
+	free(data->abbrs);
 }
 
 struct wstring *
@@ -344,12 +332,12 @@ prepare_to_render_text_html(const struct wstring *wide_src, struct links_list *l
 		free_string(src);
 		return NULL;
 	}
-	struct html_data data = {links, NULL};
+	struct html_data data = {links, NULL, 0};
 	dump_html(output->root, text, &data);
-	free_abbrs(data.abbrs);
-	gumbo_destroy_output(&kGumboDefaultOptions, output);
-	free_string(src);
 	struct wstring *wtext = convert_string_to_wstring(text);
+	gumbo_destroy_output(&kGumboDefaultOptions, output);
+	free_abbrs(&data);
+	free_string(src);
 	free_string(text);
 	return wtext;
 }

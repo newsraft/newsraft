@@ -53,8 +53,8 @@ struct item_entry {
 };
 
 struct items_list {
-	struct item_entry *list;
-	size_t count;
+	struct item_entry *ptr;
+	size_t len;
 };
 
 struct format_arg {
@@ -82,9 +82,9 @@ struct link {
 	struct string *duration; // Duration of data in seconds.
 };
 
-struct link_list {
-	struct link *list; // Dynamic array of links.
-	size_t len;        // Shows how many items is in list.
+struct links_list {
+	struct link *ptr;
+	size_t len;
 };
 
 struct deserialize_stream;
@@ -300,11 +300,11 @@ bool join_render_blocks_of_item_data(struct render_block **data_list, sqlite3_st
 
 // contents
 struct string *deserialize_persons_string(const char *src, const char *person_type);
-bool populate_link_list_with_links_of_item(struct link_list *links, sqlite3_stmt *res);
-bool complete_urls_of_links(struct link_list *links, sqlite3_stmt *res);
-struct string *generate_link_list_string_for_pager(const struct link_list *links);
-int64_t add_another_url_to_trim_link_list(struct link_list *links, const char *url, size_t url_len);
-void free_trim_link_list(const struct link_list *links);
+bool populate_link_list_with_links_of_item(struct links_list *links, sqlite3_stmt *res);
+bool complete_urls_of_links(struct links_list *links, sqlite3_stmt *res);
+struct string *generate_link_list_string_for_pager(const struct links_list *links);
+int64_t add_another_url_to_trim_links_list(struct links_list *links, const char *url, size_t url_len);
+void free_trim_link_list(const struct links_list *links);
 
 // See "interface-pager.c" file for implementation.
 int pager_view(const struct render_block *first_block, bool (*custom_input_handler)(void *, input_cmd_id, uint32_t, const struct wstring *), void *data);
@@ -468,7 +468,7 @@ void update_feeds(struct feed_line **feeds, size_t feeds_count);
 // Also, do some screen-independent processing of data that render blocks have
 // (for example expand inline HTML elements like <sup>, <span> or <q>).
 // See "prepare_to_render_data" directory for implementation.
-bool prepare_to_render_data(struct render_block *first_block, struct link_list *links);
+bool prepare_to_render_data(struct render_block *first_block, struct links_list *links);
 
 // Convert render blocks to one big string that can be written to pad window
 // without additional splitting into lines or any other processing.

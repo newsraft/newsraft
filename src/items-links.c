@@ -79,25 +79,25 @@ convert_seconds_to_human_readable_duration_string(const char *value)
 // [0; INT64_MAX] link was added successfully with that index
 // {-1}           memory failure
 int64_t
-add_another_url_to_trim_link_list(struct link_list *links, const char *url, size_t url_len)
+add_another_url_to_trim_links_list(struct links_list *links, const char *url, size_t url_len)
 {
 	for (int64_t i = 0; i < (int64_t)links->len; ++i) {
-		if ((url_len == links->list[i].url->len) && (strncmp(url, links->list[i].url->ptr, url_len) == 0)) {
+		if ((url_len == links->ptr[i].url->len) && (strncmp(url, links->ptr[i].url->ptr, url_len) == 0)) {
 			// Don't add duplicate.
 			return i;
 		}
 	}
-	struct link *temp = realloc(links->list, sizeof(struct link) * (links->len + 1));
+	struct link *temp = realloc(links->ptr, sizeof(struct link) * (links->len + 1));
 	if (temp == NULL) {
 		return -1;
 	}
 	size_t index = (links->len)++;
-	links->list = temp;
-	links->list[index].url = crtas(url, url_len);
-	links->list[index].type = NULL;
-	links->list[index].size = NULL;
-	links->list[index].duration = NULL;
-	if (links->list[index].url == NULL) {
+	links->ptr = temp;
+	links->ptr[index].url = crtas(url, url_len);
+	links->ptr[index].type = NULL;
+	links->ptr[index].size = NULL;
+	links->ptr[index].duration = NULL;
+	if (links->ptr[index].url == NULL) {
 		return -1;
 	}
 	return index;
@@ -113,24 +113,24 @@ free_contents_of_link(const struct link *link)
 }
 
 void
-free_trim_link_list(const struct link_list *links)
+free_trim_link_list(const struct links_list *links)
 {
-	if (links->list != NULL) {
+	if (links->ptr != NULL) {
 		for (size_t i = 0; i < links->len; ++i) {
-			free_contents_of_link(&(links->list[i]));
+			free_contents_of_link(&(links->ptr[i]));
 		}
-		free(links->list);
+		free(links->ptr);
 	}
 }
 
 static inline bool
-append_raw_link(struct link_list *links, sqlite3_stmt *res, enum item_column column)
+append_raw_link(struct links_list *links, sqlite3_stmt *res, enum item_column column)
 {
 	const char *text = (char *)sqlite3_column_text(res, column);
 	if (text != NULL) {
 		size_t text_len = strlen(text);
 		if (text_len != 0) {
-			if (add_another_url_to_trim_link_list(links, text, text_len) < 0) {
+			if (add_another_url_to_trim_links_list(links, text, text_len) < 0) {
 				return false;
 			}
 		}
@@ -139,35 +139,35 @@ append_raw_link(struct link_list *links, sqlite3_stmt *res, enum item_column col
 }
 
 static inline bool
-add_another_link_to_trim_link_list(struct link_list *links, const struct link *link)
+add_another_link_to_trim_link_list(struct links_list *links, const struct link *link)
 {
 	if ((link->url == NULL) || (link->url->len == 0)) {
 		free_contents_of_link(link);
 		return true; // Ignore empty links.
 	}
 	for (int64_t i = 0; i < (int64_t)links->len; ++i) {
-		if (strcmp(link->url->ptr, links->list[i].url->ptr) == 0) {
+		if (strcmp(link->url->ptr, links->ptr[i].url->ptr) == 0) {
 			// Don't add duplicate.
 			free_contents_of_link(link);
 			return true;
 		}
 	}
-	struct link *temp = realloc(links->list, sizeof(struct link) * (links->len + 1));
+	struct link *temp = realloc(links->ptr, sizeof(struct link) * (links->len + 1));
 	if (temp == NULL) {
 		free_contents_of_link(link);
 		return false;
 	}
-	links->list = temp;
+	links->ptr = temp;
 	size_t index = (links->len)++;
-	links->list[index].url = link->url;
-	links->list[index].type = link->type;
-	links->list[index].size = link->size;
-	links->list[index].duration = link->duration;
+	links->ptr[index].url = link->url;
+	links->ptr[index].type = link->type;
+	links->ptr[index].size = link->size;
+	links->ptr[index].duration = link->duration;
 	return true;
 }
 
 static inline bool
-append_attachments(struct link_list *links, sqlite3_stmt *res)
+append_attachments(struct links_list *links, sqlite3_stmt *res)
 {
 	const char *text = (const char *)sqlite3_column_text(res, ITEM_COLUMN_ATTACHMENTS);
 	if (text == NULL) {
@@ -212,7 +212,7 @@ error:
 }
 
 bool
-populate_link_list_with_links_of_item(struct link_list *links, sqlite3_stmt *res)
+populate_link_list_with_links_of_item(struct links_list *links, sqlite3_stmt *res)
 {
 	if (append_raw_link(links, res, ITEM_COLUMN_LINK) == true) {
 		if (append_attachments(links, res) == true) {
@@ -223,7 +223,7 @@ populate_link_list_with_links_of_item(struct link_list *links, sqlite3_stmt *res
 }
 
 struct string *
-generate_link_list_string_for_pager(const struct link_list *links)
+generate_link_list_string_for_pager(const struct links_list *links)
 {
 	struct string *str = crtas("Links:\n", 7);
 	if (str == NULL) {
@@ -237,7 +237,7 @@ generate_link_list_string_for_pager(const struct link_list *links)
 	bool appended_type, appended_size, appended_duration;
 	struct string *readable_string = NULL;
 	for (size_t i = 0; i < links->len; ++i) {
-		if ((links->list[i].url == NULL) || (links->list[i].url->len == 0)) {
+		if ((links->ptr[i].url == NULL) || (links->ptr[i].url->len == 0)) {
 			continue;
 		}
 		if (is_first_link == false) {
@@ -248,21 +248,21 @@ generate_link_list_string_for_pager(const struct link_list *links)
 		prefix_len = snprintf(prefix, LINK_PREFIX_SIZE, "[%zu]: ", i + 1);
 #undef LINK_PREFIX_SIZE
 		if (catas(str, prefix, prefix_len) == false) { goto error; }
-		if (catss(str, links->list[i].url) == false) { goto error; }
+		if (catss(str, links->ptr[i].url) == false) { goto error; }
 
 		appended_type = false;
-		if ((links->list[i].type != NULL) && (links->list[i].type->len != 0)) {
+		if ((links->ptr[i].type != NULL) && (links->ptr[i].type->len != 0)) {
 			if (catas(str, " (type: ", 8) == false) { goto error; }
-			if (catss(str, links->list[i].type) == false) { goto error; }
+			if (catss(str, links->ptr[i].type) == false) { goto error; }
 			appended_type = true;
 		}
 
 		appended_size = false;
-		if ((links->list[i].size != NULL)
-			&& (links->list[i].size->len != 0)
-			&& (strcmp(links->list[i].size->ptr, "0") != 0))
+		if ((links->ptr[i].size != NULL)
+			&& (links->ptr[i].size->len != 0)
+			&& (strcmp(links->ptr[i].size->ptr, "0") != 0))
 		{
-			readable_string = convert_bytes_to_human_readable_size_string(links->list[i].size->ptr);
+			readable_string = convert_bytes_to_human_readable_size_string(links->ptr[i].size->ptr);
 			if (readable_string != NULL) {
 				if (appended_type == true) {
 					if (catas(str, ", size: ", 8) == false) { goto error; }
@@ -277,11 +277,11 @@ generate_link_list_string_for_pager(const struct link_list *links)
 		}
 
 		appended_duration = false;
-		if ((links->list[i].duration != NULL)
-			&& (links->list[i].duration->len != 0)
-			&& (strcmp(links->list[i].duration->ptr, "0") != 0))
+		if ((links->ptr[i].duration != NULL)
+			&& (links->ptr[i].duration->len != 0)
+			&& (strcmp(links->ptr[i].duration->ptr, "0") != 0))
 		{
-			readable_string = convert_seconds_to_human_readable_duration_string(links->list[i].duration->ptr);
+			readable_string = convert_seconds_to_human_readable_duration_string(links->ptr[i].duration->ptr);
 			if (readable_string != NULL) {
 				if ((appended_type == true) || (appended_size == true)) {
 					if (catas(str, ", duration: ", 12) == false) { goto error; }
@@ -319,7 +319,7 @@ error:
 // In this function we beautify these URLs by prepending feed url hostname in
 // case (1) and by prepending full feed url with trailing slash in case (2).
 bool
-complete_urls_of_links(struct link_list *links, sqlite3_stmt *res)
+complete_urls_of_links(struct links_list *links, sqlite3_stmt *res)
 {
 	INFO("Completing URLs of link list.");
 	const char *feed_url = (char *)sqlite3_column_text(res, ITEM_COLUMN_FEED_URL);
@@ -334,22 +334,22 @@ complete_urls_of_links(struct link_list *links, sqlite3_stmt *res)
 	}
 	char *url;
 	for (size_t i = 0; i < links->len; ++i) {
-		if (strncmp(links->list[i].url->ptr, "mailto:", 7) == 0) {
+		if (strncmp(links->ptr[i].url->ptr, "mailto:", 7) == 0) {
 			continue; // This is an email URL, leave it as is.
 		}
-		if (strncmp(links->list[i].url->ptr, "tel:", 4) == 0) {
+		if (strncmp(links->ptr[i].url->ptr, "tel:", 4) == 0) {
 			continue; // This is a telephone URL, leave it as is.
 		}
 		if (curl_url_set(h, CURLUPART_URL, feed_url, 0) != CURLUE_OK) {
 			continue; // This URL is broken, leave it alone.
 		}
-		if (curl_url_set(h, CURLUPART_URL, links->list[i].url->ptr, 0) != CURLUE_OK) {
+		if (curl_url_set(h, CURLUPART_URL, links->ptr[i].url->ptr, 0) != CURLUE_OK) {
 			continue; // This URL is broken, leave it alone.
 		}
 		if (curl_url_get(h, CURLUPART_URL, &url, 0) != CURLUE_OK) {
 			continue; // This URL is broken, leave it alone.
 		}
-		if (cpyas(links->list[i].url, url, strlen(url)) == false) {
+		if (cpyas(links->ptr[i].url, url, strlen(url)) == false) {
 			curl_free(url);
 			curl_url_cleanup(h);
 			return false;

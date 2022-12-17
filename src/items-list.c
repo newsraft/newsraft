@@ -47,8 +47,8 @@ create_items_list(void)
 	if (items == NULL) {
 		return NULL;
 	}
-	items->list = NULL;
-	items->count = 0;
+	items->ptr = NULL;
+	items->len = 0;
 	return items;
 }
 
@@ -56,12 +56,12 @@ void
 free_items_list(struct items_list *items)
 {
 	if (items != NULL) {
-		for (size_t i = 0; i < items->count; ++i) {
-			free_string(items->list[i].title);
-			free_string(items->list[i].url);
-			free_string(items->list[i].date_str);
+		for (size_t i = 0; i < items->len; ++i) {
+			free_string(items->ptr[i].title);
+			free_string(items->ptr[i].url);
+			free_string(items->ptr[i].date_str);
 		}
-		free(items->list);
+		free(items->ptr);
 		free(items);
 	}
 }
@@ -107,46 +107,46 @@ generate_items_list(struct feed_line **feeds, size_t feeds_count, enum sorting_o
 	void *tmp;
 	const char *text;
 	while (sqlite3_step(res) == SQLITE_ROW) {
-		tmp = realloc(items->list, sizeof(struct item_entry) * (items->count + 1));
+		tmp = realloc(items->ptr, sizeof(struct item_entry) * (items->len + 1));
 		if (tmp == NULL) {
 			goto undo3;
 		}
-		items->list = tmp;
+		items->ptr = tmp;
 
-		items->list[items->count].rowid = sqlite3_column_int64(res, 0);
+		items->ptr[items->len].rowid = sqlite3_column_int64(res, 0);
 
 		text = (const char *)sqlite3_column_text(res, 1);
-		items->list[items->count].feed = find_feed_line_by_url(feeds, feeds_count, text);
-		if (items->list[items->count].feed == NULL) {
+		items->ptr[items->len].feed = find_feed_line_by_url(feeds, feeds_count, text);
+		if (items->ptr[items->len].feed == NULL) {
 			// Shouldn't happen normally, but wouldn't hurt to check just in case.
-			items->count -= 1;
+			items->len -= 1;
 			continue;
 		}
 
 		text = (const char *)sqlite3_column_text(res, 2);
 		if (text == NULL) {
-			items->list[items->count].title = NULL;
+			items->ptr[items->len].title = NULL;
 		} else {
-			items->list[items->count].title = crtas(text, strlen(text));
-			inlinefy_string(items->list[items->count].title);
+			items->ptr[items->len].title = crtas(text, strlen(text));
+			inlinefy_string(items->ptr[items->len].title);
 		}
 
 		text = (const char *)sqlite3_column_text(res, 3);
-		items->list[items->count].url = text == NULL ? crtes() : crtas(text, strlen(text));
+		items->ptr[items->len].url = text == NULL ? crtes() : crtas(text, strlen(text));
 
 		int64_t item_date = sqlite3_column_int64(res, 4); // publication_date
 		int64_t tmp_date = sqlite3_column_int64(res, 5); // update_date
 		if (tmp_date > item_date) {
 			item_date = tmp_date;
 		}
-		items->list[items->count].date_str = get_config_date_str(item_date, CFG_LIST_ENTRY_DATE_FORMAT);
+		items->ptr[items->len].date_str = get_config_date_str(item_date, CFG_LIST_ENTRY_DATE_FORMAT);
 
-		items->list[items->count].is_unread = sqlite3_column_int(res, 6); // unread
-		items->list[items->count].is_important = sqlite3_column_int(res, 7); // important
+		items->ptr[items->len].is_unread = sqlite3_column_int(res, 6); // unread
+		items->ptr[items->len].is_important = sqlite3_column_int(res, 7); // important
 
-		items->count += 1;
+		items->len += 1;
 	}
-	if (items->count == 0) {
+	if (items->len == 0) {
 		info_status("Couldn't find any items in this feed.");
 		goto undo3;
 	}

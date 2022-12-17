@@ -1,7 +1,7 @@
 #include "prepare_to_render_data/prepare_to_render_data.h"
 
 bool
-prepare_to_render_data(struct render_block *first_block, struct link_list *links)
+prepare_to_render_data(struct render_block *first_block, struct links_list *links)
 {
 	INFO("Preparing to render data.");
 	struct wstring *processed_str;

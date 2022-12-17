@@ -19,23 +19,23 @@ const struct format_arg *
 prepare_item_entry_args(size_t index)
 {
 	fmt_args[0].value.i = index + 1;
-	fmt_args[1].value.c = items->list[index].is_unread == true ? 'N' : ' ';
-	fmt_args[2].value.s = items->list[index].date_str->ptr;
-	fmt_args[3].value.s = items->list[index].url->ptr;
-	fmt_args[4].value.s = items->list[index].title ? items->list[index].title->ptr : "";
-	fmt_args[5].value.s = items->list[index].title ? items->list[index].title->ptr : items->list[index].url->ptr;
-	fmt_args[6].value.s = items->list[index].feed->link->ptr;
-	fmt_args[7].value.s = items->list[index].feed->name ? items->list[index].feed->name->ptr : "";
-	fmt_args[8].value.s = items->list[index].feed->name ? items->list[index].feed->name->ptr : items->list[index].feed->link->ptr;
+	fmt_args[1].value.c = items->ptr[index].is_unread == true ? 'N' : ' ';
+	fmt_args[2].value.s = items->ptr[index].date_str->ptr;
+	fmt_args[3].value.s = items->ptr[index].url->ptr;
+	fmt_args[4].value.s = items->ptr[index].title ? items->ptr[index].title->ptr : "";
+	fmt_args[5].value.s = items->ptr[index].title ? items->ptr[index].title->ptr : items->ptr[index].url->ptr;
+	fmt_args[6].value.s = items->ptr[index].feed->link->ptr;
+	fmt_args[7].value.s = items->ptr[index].feed->name ? items->ptr[index].feed->name->ptr : "";
+	fmt_args[8].value.s = items->ptr[index].feed->name ? items->ptr[index].feed->name->ptr : items->ptr[index].feed->link->ptr;
 	return fmt_args;
 }
 
 int
 paint_item_entry(size_t index)
 {
-	if (items->list[index].is_important == true) {
+	if (items->ptr[index].is_important == true) {
 		return CFG_COLOR_LIST_ITEM_IMPORTANT_FG;
-	} else if (items->list[index].is_unread == true) {
+	} else if (items->ptr[index].is_unread == true) {
 		return CFG_COLOR_LIST_ITEM_UNREAD_FG;
 	} else {
 		return CFG_COLOR_LIST_ITEM_FG;
@@ -45,21 +45,21 @@ paint_item_entry(size_t index)
 bool
 unread_item_condition(size_t index)
 {
-	return items->list[index].is_unread;
+	return items->ptr[index].is_unread;
 }
 
 bool
 important_item_condition(size_t index)
 {
-	return items->list[index].is_important;
+	return items->ptr[index].is_important;
 }
 
 void
 mark_selected_item_read(size_t view_sel)
 {
-	if (items->list[view_sel].is_unread == true) {
-		if (db_mark_item_read(items->list[view_sel].rowid) == true) {
-			items->list[view_sel].is_unread = false;
+	if (items->ptr[view_sel].is_unread == true) {
+		if (db_mark_item_read(items->ptr[view_sel].rowid) == true) {
+			items->ptr[view_sel].is_unread = false;
 			expose_entry_of_the_list_menu(view_sel);
 		}
 	}
@@ -68,9 +68,9 @@ mark_selected_item_read(size_t view_sel)
 static void
 mark_selected_item_unread(size_t view_sel)
 {
-	if (items->list[view_sel].is_unread == false) {
-		if (db_mark_item_unread(items->list[view_sel].rowid) == true) {
-			items->list[view_sel].is_unread = true;
+	if (items->ptr[view_sel].is_unread == false) {
+		if (db_mark_item_unread(items->ptr[view_sel].rowid) == true) {
+			items->ptr[view_sel].is_unread = true;
 			expose_entry_of_the_list_menu(view_sel);
 		}
 	}
@@ -79,9 +79,9 @@ mark_selected_item_unread(size_t view_sel)
 static void
 mark_selected_item_important(size_t view_sel)
 {
-	if (items->list[view_sel].is_important == false) {
-		if (db_mark_item_important(items->list[view_sel].rowid) == true) {
-			items->list[view_sel].is_important = true;
+	if (items->ptr[view_sel].is_important == false) {
+		if (db_mark_item_important(items->ptr[view_sel].rowid) == true) {
+			items->ptr[view_sel].is_important = true;
 			expose_entry_of_the_list_menu(view_sel);
 		}
 	}
@@ -90,9 +90,9 @@ mark_selected_item_important(size_t view_sel)
 static void
 mark_selected_item_unimportant(size_t view_sel)
 {
-	if (items->list[view_sel].is_important == true) {
-		if (db_mark_item_unimportant(items->list[view_sel].rowid) == true) {
-			items->list[view_sel].is_important = false;
+	if (items->ptr[view_sel].is_important == true) {
+		if (db_mark_item_unimportant(items->ptr[view_sel].rowid) == true) {
+			items->ptr[view_sel].is_important = false;
 			expose_entry_of_the_list_menu(view_sel);
 		}
 	}
@@ -102,8 +102,8 @@ static void
 mark_all_items_read(struct feed_line **feeds, size_t feeds_count)
 {
 	if (db_mark_all_items_in_feeds_as_read(feeds, feeds_count) == true) {
-		for (size_t i = 0; i < items->count; ++i) {
-			items->list[i].is_unread = false;
+		for (size_t i = 0; i < items->len; ++i) {
+			items->ptr[i].is_unread = false;
 		}
 		expose_all_visible_entries_of_the_list_menu();
 	}
@@ -113,8 +113,8 @@ static void
 mark_all_items_unread(struct feed_line **feeds, size_t feeds_count)
 {
 	if (db_mark_all_items_in_feeds_as_unread(feeds, feeds_count) == true) {
-		for (size_t i = 0; i < items->count; ++i) {
-			items->list[i].is_unread = true;
+		for (size_t i = 0; i < items->len; ++i) {
+			items->ptr[i].is_unread = true;
 		}
 		expose_all_visible_entries_of_the_list_menu();
 	}
@@ -129,7 +129,7 @@ enter_items_menu_loop(struct feed_line **feeds, size_t feeds_count, config_entry
 		return INPUT_ERROR;
 	}
 
-	const size_t *view_sel = enter_list_menu(ITEMS_MENU, items->count, format_id);
+	const size_t *view_sel = enter_list_menu(ITEMS_MENU, items->len, format_id);
 
 	input_cmd_id cmd;
 	uint32_t count;
@@ -157,9 +157,9 @@ enter_items_menu_loop(struct feed_line **feeds, size_t feeds_count, config_entry
 		} else if (cmd == INPUT_MARK_UNIMPORTANT) {
 			mark_selected_item_unimportant(*view_sel);
 		} else if (cmd == INPUT_ENTER) {
-			db_mark_item_read(items->list[*view_sel].rowid);
-			items->list[*view_sel].is_unread = false;
-			cmd = enter_item_pager_view_loop(items->list[*view_sel].rowid);
+			db_mark_item_read(items->ptr[*view_sel].rowid);
+			items->ptr[*view_sel].is_unread = false;
+			cmd = enter_item_pager_view_loop(items->ptr[*view_sel].rowid);
 			if (cmd == INPUT_QUIT_HARD) {
 				break;
 			}
@@ -169,9 +169,9 @@ enter_items_menu_loop(struct feed_line **feeds, size_t feeds_count, config_entry
 				break;
 			}
 		} else if (cmd == INPUT_OPEN_IN_BROWSER) {
-			open_url_in_browser(items->list[*view_sel].url);
+			open_url_in_browser(items->ptr[*view_sel].url);
 		} else if (cmd == INPUT_COPY_TO_CLIPBOARD) {
-			copy_string_to_clipboard(items->list[*view_sel].url);
+			copy_string_to_clipboard(items->ptr[*view_sel].url);
 		} else if ((cmd == INPUT_QUIT_SOFT) || (cmd == INPUT_QUIT_HARD)) {
 			break;
 		} else if (cmd == INPUT_SYSTEM_COMMAND) {

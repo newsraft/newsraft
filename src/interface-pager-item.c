@@ -7,7 +7,7 @@ static struct format_arg cmd_args[] = {
 };
 
 static inline bool
-join_links_render_block(struct render_block **contents, struct link_list *links)
+join_links_render_block(struct render_block **contents, struct links_list *links)
 {
 	struct string *str = generate_link_list_string_for_pager(links);
 	if (str == NULL) {
@@ -22,7 +22,7 @@ join_links_render_block(struct render_block **contents, struct link_list *links)
 }
 
 static inline struct render_block *
-generate_render_blocks_for_item(sqlite3_stmt *res, struct link_list *links)
+generate_render_blocks_for_item(sqlite3_stmt *res, struct links_list *links)
 {
 	struct render_block *first_block = NULL;
 	if (populate_link_list_with_links_of_item(links, res) == false) {
@@ -52,14 +52,14 @@ error:
 static bool
 custom_input_handler(void *data, input_cmd_id cmd, uint32_t count, const struct wstring *macro)
 {
-	const struct link_list *links = data;
-	if ((count != 0) && (links->len >= count)) {
+	const struct links_list *links = data;
+	if ((count > 0) && (count <= links->len)) {
 		if (cmd == INPUT_OPEN_IN_BROWSER) {
-			return open_url_in_browser(links->list[count - 1].url);
+			return open_url_in_browser(links->ptr[count - 1].url);
 		} else if (cmd == INPUT_COPY_TO_CLIPBOARD) {
-			return copy_string_to_clipboard(links->list[count - 1].url);
+			return copy_string_to_clipboard(links->ptr[count - 1].url);
 		} else if (cmd == INPUT_SYSTEM_COMMAND) {
-			cmd_args[0].value.s = links->list[count - 1].url->ptr;
+			cmd_args[0].value.s = links->ptr[count - 1].url->ptr;
 			return execute_command_with_specifiers_in_it(macro, cmd_args);
 		}
 	}
@@ -74,7 +74,7 @@ enter_item_pager_view_loop(int64_t rowid)
 	if (res == NULL) {
 		return INPUT_ERROR;
 	}
-	struct link_list links = {0};
+	struct links_list links = {0};
 	struct render_block *block = generate_render_blocks_for_item(res, &links);
 	sqlite3_finalize(res);
 	if (block == NULL) {

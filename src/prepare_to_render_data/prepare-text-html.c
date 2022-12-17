@@ -10,7 +10,7 @@ struct html_abbr {
 };
 
 struct html_data {
-	struct link_list *links;
+	struct links_list *links;
 	struct html_abbr *abbrs;
 };
 
@@ -60,7 +60,7 @@ button_end_handler(struct string *text, struct html_data *data, GumboVector *att
 }
 
 static void
-add_url_mark(struct link_list *links, struct string *text, const char *url, const char *type, const char *title)
+add_url_mark(struct links_list *links, struct string *text, const char *url, const char *type, const char *title)
 {
 	if (url == NULL) {
 		return;
@@ -76,7 +76,7 @@ add_url_mark(struct link_list *links, struct string *text, const char *url, cons
 		return;
 	}
 
-	int64_t url_index = add_another_url_to_trim_link_list(links, url, url_len);
+	int64_t url_index = add_another_url_to_trim_links_list(links, url, url_len);
 	if (url_index < 0) {
 		return;
 	}
@@ -324,7 +324,7 @@ free_abbrs(struct html_abbr *abbr)
 }
 
 struct wstring *
-prepare_to_render_text_html(const struct wstring *wide_src, struct link_list *links)
+prepare_to_render_text_html(const struct wstring *wide_src, struct links_list *links)
 {
 	struct string *text = crtes();
 	if (text == NULL) {

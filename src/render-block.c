@@ -27,42 +27,33 @@ get_content_type_by_string(const char *type)
 }
 
 bool
-join_render_block(struct render_block **list, const char *content, size_t content_len, int8_t content_type)
+join_render_block(struct render_blocks_list *blocks, const char *content, size_t content_len, int8_t content_type)
 {
-	struct render_block *new_entry = malloc(sizeof(struct render_block));
-	if (new_entry == NULL) {
+	void *tmp = realloc(blocks->ptr, sizeof(struct render_block) * (blocks->len + 1));
+	if (tmp == NULL) {
 		return false;
 	}
-	new_entry->content = convert_array_to_wstring(content, content_len);
-	if (new_entry->content == NULL) {
-		free(new_entry);
+	blocks->ptr = tmp;
+	blocks->ptr[blocks->len].content = convert_array_to_wstring(content, content_len);
+	if (blocks->ptr[blocks->len].content == NULL) {
 		return false;
 	}
-	new_entry->content_type = content_type;
-	new_entry->next = NULL;
-	struct render_block **last_block = list;
-	while (*last_block != NULL) {
-		last_block = &((*last_block)->next);
-	}
-	*last_block = new_entry;
+	blocks->ptr[blocks->len].content_type = content_type;
+	blocks->len += 1;
 	return true;
 }
 
 bool
-join_render_separator(struct render_block **list)
+join_render_separator(struct render_blocks_list *blocks)
 {
-	return join_render_block(list, "", 0, TEXT_SEPARATOR);
+	return join_render_block(blocks, "", 0, TEXT_SEPARATOR);
 }
 
 void
-free_render_blocks(struct render_block *first_block)
+free_render_blocks(struct render_blocks_list *blocks)
 {
-	struct render_block *head_block = first_block;
-	struct render_block *temp;
-	while (head_block != NULL) {
-		free_wstring(head_block->content);
-		temp = head_block;
-		head_block = head_block->next;
-		free(temp);
+	for (size_t i = 0; i < blocks->len; ++i) {
+		free_wstring(blocks->ptr[i].content);
 	}
+	free(blocks->ptr);
 }

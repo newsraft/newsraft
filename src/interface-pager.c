@@ -23,9 +23,9 @@ write_splitted_wstring_to_window(WINDOW *window, const struct wstring *wbuf)
 }
 
 static bool
-update_pager_menu(struct pager_menu *menu, const struct render_block *data_list)
+update_pager_menu(struct pager_menu *menu, const struct render_blocks_list *blocks)
 {
-	struct wstring *text = render_data(data_list);
+	struct wstring *text = render_data(blocks);
 	if (text == NULL) {
 		FAIL("Failed to render content!");
 		fail_status("Can't render content!");
@@ -123,12 +123,12 @@ scroll_to_the_end(struct pager_menu *menu)
 }
 
 int
-pager_view(const struct render_block *first_block, bool (*custom_input_handler)(void *, input_cmd_id, uint32_t, const struct wstring *), void *data)
+pager_view(const struct render_blocks_list *blocks, bool (*custom_input_handler)(void *, input_cmd_id, uint32_t, const struct wstring *), void *data)
 {
 	pause_list_menu();
 
 	struct pager_menu menu = {NULL, 0, 0};
-	if (update_pager_menu(&menu, first_block) == false) {
+	if (update_pager_menu(&menu, blocks) == false) {
 		// Error message written by update_pager_menu.
 		return INPUT_ERROR;
 	}
@@ -151,7 +151,7 @@ pager_view(const struct render_block *first_block, bool (*custom_input_handler)(
 		} else if (cmd == INPUT_SELECT_LAST) {
 			scroll_to_the_end(&menu);
 		} else if (cmd == INPUT_RESIZE) {
-			if (update_pager_menu(&menu, first_block) == false) {
+			if (update_pager_menu(&menu, blocks) == false) {
 				cmd = INPUT_ERROR;
 				break;
 			}
@@ -159,7 +159,7 @@ pager_view(const struct render_block *first_block, bool (*custom_input_handler)(
 			break;
 		} else if (custom_input_handler != NULL) {
 			if (custom_input_handler(data, cmd, count, macro) == true) {
-				if (update_pager_menu(&menu, first_block) == false) {
+				if (update_pager_menu(&menu, blocks) == false) {
 					cmd = INPUT_ERROR;
 					break;
 				}

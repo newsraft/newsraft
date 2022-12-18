@@ -20,11 +20,11 @@ struct data_entry {
 	const size_t tooltip_len;
 	const items_column_id column; // Column index from which to take data.
 	const entry_extra_id feature_mask;
-	bool (*append_handler)(struct render_block **list, sqlite3_stmt *res, const struct data_entry *entry);
+	bool (*append_handler)(struct render_blocks_list *blocks, sqlite3_stmt *res, const struct data_entry *entry);
 };
 
 static bool
-append_plain_text(struct render_block **list, sqlite3_stmt *res, const struct data_entry *entry)
+append_plain_text(struct render_blocks_list *blocks, sqlite3_stmt *res, const struct data_entry *entry)
 {
 	const char *text = (char *)sqlite3_column_text(res, entry->column);
 	if (text == NULL) {
@@ -34,11 +34,11 @@ append_plain_text(struct render_block **list, sqlite3_stmt *res, const struct da
 	if (text_len == 0) {
 		return true; // It is not an error because this item simply does not have value set.
 	}
-	if (join_render_block(list, entry->tooltip, entry->tooltip_len, TEXT_PLAIN) == false) {
+	if (join_render_block(blocks, entry->tooltip, entry->tooltip_len, TEXT_PLAIN) == false) {
 		return false;
 	}
 	if ((entry->feature_mask & REQUIRES_INLINING) == 0) {
-		if (join_render_block(list, text, text_len, TEXT_PLAIN) == false) {
+		if (join_render_block(blocks, text, text_len, TEXT_PLAIN) == false) {
 			return false;
 		}
 	} else {
@@ -47,17 +47,17 @@ append_plain_text(struct render_block **list, sqlite3_stmt *res, const struct da
 			return false;
 		}
 		inlinefy_string(title);
-		if (join_render_block(list, title->ptr, title->len, TEXT_PLAIN) == false) {
+		if (join_render_block(blocks, title->ptr, title->len, TEXT_PLAIN) == false) {
 			free_string(title);
 			return false;
 		}
 		free_string(title);
 	}
-	return join_render_separator(list);
+	return join_render_separator(blocks);
 }
 
 static bool
-append_max_content(struct render_block **list, sqlite3_stmt *res, const struct data_entry *entry)
+append_max_content(struct render_blocks_list *blocks, sqlite3_stmt *res, const struct data_entry *entry)
 {
 	(void)entry;
 	const char *content = (char *)sqlite3_column_text(res, ITEM_COLUMN_CONTENT);
@@ -81,10 +81,10 @@ append_max_content(struct render_block **list, sqlite3_stmt *res, const struct d
 		}
 	}
 	if (text->len != 0) {
-		if (join_render_separator(list) == false) {
+		if (join_render_separator(blocks) == false) {
 			goto undo2;
 		}
-		if (join_render_block(list, text->ptr, text->len, get_content_type_by_string(type->ptr)) == false) {
+		if (join_render_block(blocks, text->ptr, text->len, get_content_type_by_string(type->ptr)) == false) {
 			goto undo2;
 		}
 	}
@@ -101,7 +101,7 @@ undo0:
 
 
 static bool
-append_date(struct render_block **list, sqlite3_stmt *res, const struct data_entry *entry)
+append_date(struct render_blocks_list *blocks, sqlite3_stmt *res, const struct data_entry *entry)
 {
 	int64_t date = sqlite3_column_int64(res, entry->column);
 	if (date == 0) {
@@ -122,16 +122,16 @@ append_date(struct render_block **list, sqlite3_stmt *res, const struct data_ent
 		return false;
 	}
 	free_string(date_str);
-	if (join_render_block(list, date_entry->ptr, date_entry->len, TEXT_PLAIN) == false) {
+	if (join_render_block(blocks, date_entry->ptr, date_entry->len, TEXT_PLAIN) == false) {
 		free_string(date_entry);
 		return false;
 	}
 	free_string(date_entry);
-	return join_render_separator(list);
+	return join_render_separator(blocks);
 }
 
 static bool
-append_persons(struct render_block **list, sqlite3_stmt *res, const struct data_entry *entry)
+append_persons(struct render_blocks_list *blocks, sqlite3_stmt *res, const struct data_entry *entry)
 {
 	const char *serialized_persons = (char *)sqlite3_column_text(res, ITEM_COLUMN_PERSONS);
 	if (serialized_persons == NULL) {
@@ -162,12 +162,12 @@ append_persons(struct render_block **list, sqlite3_stmt *res, const struct data_
 		return false;
 	}
 	free_string(persons);
-	if (join_render_block(list, block_text->ptr, block_text->len, TEXT_PLAIN) == false) {
+	if (join_render_block(blocks, block_text->ptr, block_text->len, TEXT_PLAIN) == false) {
 		free_string(block_text);
 		return false;
 	}
 	free_string(block_text);
-	return join_render_separator(list);
+	return join_render_separator(blocks);
 }
 
 // ATTENTION! Maximal length of meta data entry name has to be reflected in MAX_METADATA_ENTRY_NAME_LENGTH.
@@ -185,7 +185,7 @@ static const struct data_entry entries[] = {
 };
 
 bool
-join_render_blocks_of_item_data(struct render_block **list, sqlite3_stmt *res)
+join_render_blocks_of_item_data(struct render_blocks_list *blocks, sqlite3_stmt *res)
 {
 	char entry[MAX_METADATA_ENTRY_NAME_LENGTH + 1];
 	size_t entry_len = 0;
@@ -195,7 +195,7 @@ join_render_blocks_of_item_data(struct render_block **list, sqlite3_stmt *res)
 		if ((*i == ',') || (*i == '\0')) {
 			for (size_t j = 0; entries[j].field != NULL; ++j) {
 				if (strncmp(entry, entries[j].field, entry_len) == 0) {
-					if (entries[j].append_handler(list, res, entries + j) == false) {
+					if (entries[j].append_handler(blocks, res, entries + j) == false) {
 						return false;
 					}
 					break;

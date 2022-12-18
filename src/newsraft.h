@@ -37,8 +37,8 @@ struct wstring {
 };
 
 struct feed_line {
-	struct string *name; // what is displayed in menu
-	struct string *link; // url of the feed
+	struct string *name;
+	struct string *link;
 	int64_t unread_count;
 };
 
@@ -68,11 +68,14 @@ struct format_arg {
 	} value;
 };
 
-// Linked list
 struct render_block {
 	struct wstring *content;
 	int8_t content_type;
-	struct render_block *next;
+};
+
+struct render_blocks_list {
+	struct render_block *ptr;
+	size_t len;
 };
 
 struct link {
@@ -285,18 +288,29 @@ bool important_item_condition(size_t index);
 void mark_selected_item_read(size_t view_sel);
 
 // Functions responsible for managing render blocks.
-// Render block is a piece of text in a single format. They are stored as linked
-// list and sent to pager_view function so it can generate a single text buffer
-// out of texts with different types (plain, html, markdown).
+// Render block is a piece of text in a single format. A list of render blocks
+// is passed to render_data function which processes them based on their types
+// and generates a single plain text buffer for a pager to display.
 // See "render-block.c" file for implementation.
 int8_t get_content_type_by_string(const char *type);
-bool join_render_block(struct render_block **list, const char *content, size_t content_len, int8_t content_type);
-bool join_render_separator(struct render_block **list);
-void free_render_blocks(struct render_block *first_block);
+bool join_render_block(struct render_blocks_list *blocks, const char *content, size_t content_len, int8_t content_type);
+bool join_render_separator(struct render_blocks_list *blocks);
+void free_render_blocks(struct render_blocks_list *blocks);
+
+// Here we append links of HTML elements like <img> or <a> to link_list.
+// Also, do some screen-independent processing of data that render blocks have
+// (for example expand inline HTML elements like <sup>, <span> or <q>).
+// See "prepare_to_render_data" directory for implementation.
+bool prepare_to_render_data(struct render_blocks_list *blocks, struct links_list *links);
+
+// Convert render blocks to one big string that can be written to pad window
+// without additional splitting into lines or any other processing.
+// See "render_data" directory for implementation.
+struct wstring *render_data(const struct render_blocks_list *blocks);
 
 bool get_largest_piece_from_item_content(const char *content, struct string *text, struct string *type);
 bool get_largest_piece_from_item_attachments(const char *attachments, struct string *text, struct string *type);
-bool join_render_blocks_of_item_data(struct render_block **data_list, sqlite3_stmt *res);
+bool join_render_blocks_of_item_data(struct render_blocks_list *blocks, sqlite3_stmt *res);
 
 // contents
 struct string *deserialize_persons_string(const char *src, const char *person_type);
@@ -307,7 +321,7 @@ int64_t add_another_url_to_trim_links_list(struct links_list *links, const char 
 void free_trim_link_list(const struct links_list *links);
 
 // See "interface-pager.c" file for implementation.
-int pager_view(const struct render_block *first_block, bool (*custom_input_handler)(void *, input_cmd_id, uint32_t, const struct wstring *), void *data);
+int pager_view(const struct render_blocks_list *blocks, bool (*custom_input_handler)(void *, input_cmd_id, uint32_t, const struct wstring *), void *data);
 
 // See "interface-pager-item.c" file for implementation.
 int enter_item_pager_view_loop(int64_t rowid);
@@ -463,17 +477,6 @@ void free_config(void);
 // Download, process and store new items of feed.
 // See "update_feed" directory for implementation.
 void update_feeds(struct feed_line **feeds, size_t feeds_count);
-
-// Here we append links of HTML elements like <img> or <a> to link_list.
-// Also, do some screen-independent processing of data that render blocks have
-// (for example expand inline HTML elements like <sup>, <span> or <q>).
-// See "prepare_to_render_data" directory for implementation.
-bool prepare_to_render_data(struct render_block *first_block, struct links_list *links);
-
-// Convert render blocks to one big string that can be written to pad window
-// without additional splitting into lines or any other processing.
-// See "render_data" directory for implementation.
-struct wstring *render_data(const struct render_block *first_block);
 
 extern FILE *log_stream;
 extern size_t list_menu_height;

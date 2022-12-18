@@ -17,8 +17,9 @@ enter_status_pager_view_loop(void)
 		return INPUT_ERROR;
 	}
 	free_string(messages);
-	const struct render_block block = {wmessages, TEXT_PLAIN, NULL};
-	const int pager_result = pager_view(&block, NULL, NULL);
+	struct render_block block = {wmessages, TEXT_PLAIN};
+	const struct render_blocks_list blocks = {&block, 1};
+	const int pager_result = pager_view(&blocks, NULL, NULL);
 	free_wstring(wmessages);
 	return pager_result;
 }

@@ -2,6 +2,7 @@
 
 static struct feed_line **update_queue = NULL;
 static size_t update_queue_length = 0;
+static size_t update_queue_progress = 0;
 static size_t update_queue_fails_count;
 
 static pthread_t queue_worker_thread;
@@ -118,7 +119,7 @@ static void *
 start_processing_queue(void *arg)
 {
 	(void)arg;
-	size_t update_queue_progress = 0;
+	update_queue_progress = 0;
 	update_queue_fails_count = 0;
 
 	prevent_status_cleaning();
@@ -126,8 +127,10 @@ start_processing_queue(void *arg)
 here_we_go_again:
 	while (update_queue_progress != update_queue_length) {
 		branch_update_feed_action_into_thread(&update_feed_action, update_queue[update_queue_progress]);
+		pthread_mutex_lock(&queue_lock);
 		info_status("(%zu/%zu) Loading %s", update_queue_progress + 1, update_queue_length, update_queue[update_queue_progress]->link->ptr);
 		update_queue_progress += 1;
+		pthread_mutex_unlock(&queue_lock);
 	}
 
 	wait_for_all_threads_to_finish();
@@ -140,6 +143,7 @@ here_we_go_again:
 	}
 	queue_worker_is_active = false;
 	update_queue_length = 0;
+	update_queue_progress = 0;
 	free(update_queue);
 	update_queue = NULL;
 	pthread_mutex_unlock(&queue_lock);
@@ -165,6 +169,7 @@ update_feeds(struct feed_line **feeds, size_t feeds_count)
 			update_queue[update_queue_length++] = feeds[i];
 		}
 	}
+	info_status("(%zu/%zu) Loading %s", update_queue_progress + 1, update_queue_length, update_queue[update_queue_progress]->link->ptr);
 	pthread_mutex_unlock(&queue_lock);
 
 	if (queue_worker_is_active == false) {

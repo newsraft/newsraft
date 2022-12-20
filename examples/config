@@ -4,8 +4,8 @@
 # they are completely ignored by the parser.
 
 # Set some settings.
-set download-timeout 5
-set mark-item-read-on-hover true
+set scrolloff 5
+set download-timeout 10
 set color-list-item-important-fg red
 
 # Assign some binds.

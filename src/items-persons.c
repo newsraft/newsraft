@@ -57,51 +57,37 @@ free_person(struct person *person)
 }
 
 static bool
-write_person_to_result(struct string *result, struct person *person)
+write_person_to_result(struct string *result, const struct person *person)
 {
 	if ((person->name->len == 0) && (person->email->len == 0) && (person->url->len == 0)) {
 		return true; // Ignore empty persons >,<
 	}
-	bool name = false;
-	bool email = false;
 	if ((result->len != 0) && (catas(result, ", ", 2) == false)) {
 		return false;
 	}
-	if (person->name->len != 0) {
-		if (catss(result, person->name) == false) {
-			return false;
-		}
-		name = true;
+	if ((person->name->len != 0) && (catss(result, person->name) == false)) {
+		return false;
 	}
 	if (person->email->len != 0) {
-		if (name == true) {
-			if (catas(result, " <", 2) == false) {
-				return false;
-			}
+		if ((person->name->len != 0) && (catas(result, " <", 2) == false)) {
+			return false;
 		}
 		if (catss(result, person->email) == false) {
 			return false;
 		}
-		if (name == true) {
-			if (catcs(result, '>') == false) {
-				return false;
-			}
+		if ((person->name->len != 0) && (catcs(result, '>') == false)) {
+			return false;
 		}
-		email = true;
 	}
 	if (person->url->len != 0) {
-		if ((name == true) || (email == true)) {
-			if (catas(result, " (", 2) == false) {
-				return false;
-			}
+		if (((person->name->len != 0) || (person->email->len != 0)) && (catas(result, " (", 2) == false)) {
+			return false;
 		}
 		if (catss(result, person->url) == false) {
 			return false;
 		}
-		if ((name == true) || (email == true)) {
-			if (catcs(result, ')') == false) {
-				return false;
-			}
+		if (((person->name->len != 0) || (person->email->len != 0)) && (catcs(result, ')') == false)) {
+			return false;
 		}
 	}
 	return true;

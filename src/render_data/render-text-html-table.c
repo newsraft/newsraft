@@ -233,13 +233,13 @@ adjust_column_widths_to_contain_cells_with_colspan_attribute(struct html_table *
 }
 
 static inline void
-print_html_table(struct wstring *text, struct line *line, const struct html_table *table)
+print_html_table(struct line *line, const struct html_table *table)
 {
 	wchar_t buf[8192];
 	size_t w;
 	if (table->unmapped_text->len > 0) {
-		line_string(line, table->unmapped_text->ptr, text);
-		line_char(line, L'\n', text);
+		line_string(line, table->unmapped_text->ptr);
+		line_char(line, L'\n');
 	}
 	for (int64_t i = 0; i < table->rows_count; ++i) {
 		for (size_t height = 0; height < table->rows[i].max_cell_height; ++height) {
@@ -256,10 +256,10 @@ print_html_table(struct wstring *text, struct line *line, const struct html_tabl
 					} else {
 						swprintf(buf, 8192, L"%-*.*ls ", w, w, table->rows[i].cells[j].lines[height]->ptr);
 					}
-					line_string(line, buf, text);
+					line_string(line, buf);
 				}
 			}
-			line_char(line, L'\n', text);
+			line_char(line, L'\n');
 		}
 	}
 }
@@ -308,7 +308,7 @@ dump_html_table_child(GumboNode *node, struct html_table *table)
 }
 
 void
-write_contents_of_html_table_node_to_text(struct wstring *text, struct line *line, GumboNode *node)
+write_contents_of_html_table_node_to_text(struct line *line, GumboNode *node)
 {
 	struct html_table table = {0};
 	table.unmapped_text = wcrtes();
@@ -319,6 +319,6 @@ write_contents_of_html_table_node_to_text(struct wstring *text, struct line *lin
 		dump_html_table_child(node->v.element.children.data[i], &table);
 	}
 	adjust_column_widths_to_contain_cells_with_colspan_attribute(&table);
-	print_html_table(text, line, &table);
+	print_html_table(line, &table);
 	free_html_table(&table);
 }

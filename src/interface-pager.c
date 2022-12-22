@@ -9,21 +9,40 @@ struct pager_menu {
 };
 
 static inline void
-write_splitted_wstring_to_window(WINDOW *window, const struct wstring *wbuf)
+write_splitted_wstring_to_window(WINDOW *window, const struct wstring *wbuf, const struct render_blocks_list *blocks)
 {
-	size_t newlines_count = 0;
-	const wchar_t *iter = wbuf->ptr;
-	const wchar_t *newline_char = wcschr(iter, L'\n');
-	while (newline_char != NULL) {
-		mvwaddnwstr(window, newlines_count++, 0, iter, newline_char - iter);
-		iter = newline_char + 1;
-		newline_char = wcschr(iter, L'\n');
+	size_t vertical_pos = 0, horizontal_pos = 0, hint_index = 0;
+	for (size_t i = 0; i < wbuf->len; ++i) {
+		if ((hint_index < blocks->hints_len) && (i == blocks->hints[hint_index].pos)) {
+			if (blocks->hints[hint_index].value & FORMAT_BOLD_END) {
+				wattroff(window, A_BOLD);
+			} else if (blocks->hints[hint_index].value & FORMAT_BOLD_BEGIN) {
+				wattron(window, A_BOLD);
+			}
+			if (blocks->hints[hint_index].value & FORMAT_ITALIC_END) {
+				wattroff(window, A_ITALIC);
+			} else if (blocks->hints[hint_index].value & FORMAT_ITALIC_BEGIN) {
+				wattron(window, A_ITALIC);
+			}
+			if (blocks->hints[hint_index].value & FORMAT_UNDERLINED_END) {
+				wattroff(window, A_UNDERLINE);
+			} else if (blocks->hints[hint_index].value & FORMAT_UNDERLINED_BEGIN) {
+				wattron(window, A_UNDERLINE);
+			}
+			hint_index += 1;
+		}
+		if (wbuf->ptr[i] == '\n') {
+			vertical_pos += 1;
+			horizontal_pos = 0;
+		} else {
+			mvwaddnwstr(window, vertical_pos, horizontal_pos++, wbuf->ptr + i, 1);
+		}
 	}
-	INFO("Wrote %zu lines to the content window.", newlines_count);
+	INFO("Wrote %zu lines to the content window.", vertical_pos);
 }
 
 static bool
-update_pager_menu(struct pager_menu *menu, const struct render_blocks_list *blocks)
+update_pager_menu(struct pager_menu *menu, struct render_blocks_list *blocks)
 {
 	struct wstring *text = render_data(blocks);
 	if (text == NULL) {
@@ -63,7 +82,7 @@ update_pager_menu(struct pager_menu *menu, const struct render_blocks_list *bloc
 		return false;
 	}
 
-	write_splitted_wstring_to_window(menu->window, text);
+	write_splitted_wstring_to_window(menu->window, text, blocks);
 
 	menu->view_min = 0;
 	menu->view_lim = pad_height > list_menu_height ? pad_height - list_menu_height : 0;
@@ -123,7 +142,7 @@ scroll_to_the_end(struct pager_menu *menu)
 }
 
 int
-pager_view(const struct render_blocks_list *blocks, bool (*custom_input_handler)(void *, input_cmd_id, uint32_t, const struct wstring *), void *data)
+pager_view(struct render_blocks_list *blocks, bool (*custom_input_handler)(void *, input_cmd_id, uint32_t, const struct wstring *), void *data)
 {
 	pause_list_menu();
 

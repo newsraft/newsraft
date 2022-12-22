@@ -73,9 +73,16 @@ struct render_block {
 	int8_t content_type;
 };
 
+struct format_hint {
+	uint8_t value;
+	size_t pos;
+};
+
 struct render_blocks_list {
 	struct render_block *ptr;
 	size_t len;
+	struct format_hint *hints;
+	size_t hints_len;
 };
 
 struct link {
@@ -239,6 +246,16 @@ enum text_type {
 	TEXT_SEPARATOR,
 };
 
+typedef uint8_t format_hint_mask;
+enum {
+	FORMAT_BOLD_BEGIN = 1,
+	FORMAT_BOLD_END = 2,
+	FORMAT_ITALIC_BEGIN = 4,
+	FORMAT_ITALIC_END = 8,
+	FORMAT_UNDERLINED_BEGIN = 16,
+	FORMAT_UNDERLINED_END = 32,
+};
+
 // See "sections.c" file for implementation.
 bool create_global_section(void);
 bool copy_feed_to_section(const struct feed_line *feed, const struct string *section_name);
@@ -306,7 +323,7 @@ bool prepare_to_render_data(struct render_blocks_list *blocks, struct links_list
 // Convert render blocks to one big string that can be written to pad window
 // without additional splitting into lines or any other processing.
 // See "render_data" directory for implementation.
-struct wstring *render_data(const struct render_blocks_list *blocks);
+struct wstring *render_data(struct render_blocks_list *blocks);
 
 bool get_largest_piece_from_item_content(const char *content, struct string *text, struct string *type);
 bool get_largest_piece_from_item_attachments(const char *attachments, struct string *text, struct string *type);
@@ -321,7 +338,7 @@ int64_t add_another_url_to_trim_links_list(struct links_list *links, const char 
 void free_trim_link_list(const struct links_list *links);
 
 // See "interface-pager.c" file for implementation.
-int pager_view(const struct render_blocks_list *blocks, bool (*custom_input_handler)(void *, input_cmd_id, uint32_t, const struct wstring *), void *data);
+int pager_view(struct render_blocks_list *blocks, bool (*custom_input_handler)(void *, input_cmd_id, uint32_t, const struct wstring *), void *data);
 
 // See "interface-pager-item.c" file for implementation.
 int enter_item_pager_view_loop(int64_t rowid);

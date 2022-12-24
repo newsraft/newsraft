@@ -63,39 +63,32 @@ append_max_content(struct render_blocks_list *blocks, sqlite3_stmt *res, const s
 	const char *content = (char *)sqlite3_column_text(res, ITEM_COLUMN_CONTENT);
 	struct string *text = crtes();
 	if (text == NULL) {
-		goto undo0;
+		return false;
 	}
-	struct string *type = crtas("text/plain", 10);
-	if (type == NULL) {
-		goto undo1;
-	}
-	if (get_largest_piece_from_item_content(content, text, type) == false) {
-		goto undo2;
+	render_block_format type = TEXT_PLAIN;
+	if (get_largest_piece_from_item_content(content, text, &type) == false) {
+		goto error;
 	}
 	if (text->len == 0) {
 		// There were no texts in the content, let's try to search in
 		// the descriptions for item's attachments.
 		const char *attachments = (char *)sqlite3_column_text(res, ITEM_COLUMN_ATTACHMENTS);
-		if (get_largest_piece_from_item_attachments(attachments, text, type) == false) {
-			goto undo2;
+		if (get_largest_piece_from_item_attachments(attachments, text, &type) == false) {
+			goto error;
 		}
 	}
 	if (text->len != 0) {
 		if (join_render_separator(blocks) == false) {
-			goto undo2;
+			goto error;
 		}
-		if (join_render_block(blocks, text->ptr, text->len, get_content_type_by_string(type->ptr)) == false) {
-			goto undo2;
+		if (join_render_block(blocks, text->ptr, text->len, type) == false) {
+			goto error;
 		}
 	}
 	free_string(text);
-	free_string(type);
 	return true;
-undo2:
-	free_string(type);
-undo1:
+error:
 	free_string(text);
-undo0:
 	return false;
 }
 

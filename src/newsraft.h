@@ -239,9 +239,9 @@ enum sorting_order {
 	SORT_BY_NAME_ASC,
 };
 
-// Plain text must have 0 value!
-enum text_type {
-	TEXT_PLAIN = 0,
+typedef uint8_t render_block_format;
+enum {
+	TEXT_PLAIN = 0, // It must be a zero!
 	TEXT_HTML,
 	TEXT_SEPARATOR,
 };
@@ -309,7 +309,6 @@ void mark_selected_item_read(size_t view_sel);
 // is passed to render_data function which processes them based on their types
 // and generates a single plain text buffer for a pager to display.
 // See "render-block.c" file for implementation.
-int8_t get_content_type_by_string(const char *type);
 bool join_render_block(struct render_blocks_list *blocks, const char *content, size_t content_len, int8_t content_type);
 bool join_render_separator(struct render_blocks_list *blocks);
 void free_render_blocks(struct render_blocks_list *blocks);
@@ -325,8 +324,8 @@ bool prepare_to_render_data(struct render_blocks_list *blocks, struct links_list
 // See "render_data" directory for implementation.
 struct wstring *render_data(struct render_blocks_list *blocks);
 
-bool get_largest_piece_from_item_content(const char *content, struct string *text, struct string *type);
-bool get_largest_piece_from_item_attachments(const char *attachments, struct string *text, struct string *type);
+bool get_largest_piece_from_item_content(const char *content, struct string *text, render_block_format *type);
+bool get_largest_piece_from_item_attachments(const char *attachments, struct string *text, render_block_format *type);
 bool join_render_blocks_of_item_data(struct render_blocks_list *blocks, sqlite3_stmt *res);
 
 // contents

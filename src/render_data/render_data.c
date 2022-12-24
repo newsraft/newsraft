@@ -10,12 +10,6 @@ render_data(struct render_blocks_list *blocks)
 		return NULL;
 	}
 	struct line line;
-	line.ptr = malloc(sizeof(wchar_t) * (list_menu_width + 1));
-	if (line.ptr == NULL) {
-		FAIL("Not enough memory for line buffer to render data!");
-		free_wstring(text);
-		return NULL;
-	}
 	line.target = text;
 	line.len = 0;
 	line.lim = list_menu_width + 1;
@@ -38,10 +32,6 @@ render_data(struct render_blocks_list *blocks)
 			line_char(&line, L'\n');
 		}
 	}
-	for (size_t i = 0; i < line.len; ++i) {
-		wcatcs(text, line.ptr[i]);
-	}
-	free(line.ptr);
 	trim_whitespace_from_wstring(text);
 	// We still need last newline to count in last line of text.
 	wcatcs(text, L'\n');

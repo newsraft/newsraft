@@ -5,11 +5,10 @@
 
 struct line {
 	struct wstring *target;     // Text buffer of actual data to be displayed.
-	wchar_t *ptr;               // Intermediate buffer for one line of text.
-	size_t len;                 // Shows actual number of characters in ptr.
-	size_t lim;                 // Shows how many characters can fit in ptr.
-	size_t pin;                 // Holds index of the last space in ptr.
-	size_t indent;              // Shows how many spaces must be printed in the beginning of ptr.
+	size_t len;                 // Length of the last text line.
+	size_t lim;                 // Capacity of one text line.
+	size_t pin;                 // Index of the last space in target->ptr.
+	size_t indent;              // Shows how many spaces must be in the beginning of line.
 	struct format_hint **hints;
 	size_t *hints_len;
 };

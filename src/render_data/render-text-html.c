@@ -331,10 +331,6 @@ dump_html(GumboNode *node, struct line *line, enum html_position *pos)
 					} else {
 						line_char(line, L' ');
 					}
-				} else if (line->len > 0) {
-					if (!ISWIDEWHITESPACE(line->ptr[line->len - 1])) {
-						line_char(line, L' ');
-					}
 				} else if (line->target->len > 0) {
 					if (!ISWIDEWHITESPACE(line->target->ptr[line->target->len - 1])) {
 						line_char(line, L' ');

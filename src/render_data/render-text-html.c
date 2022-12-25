@@ -31,19 +31,12 @@ static uint8_t list_depth;
 static struct list_level list_levels[MAX_NESTED_LISTS_DEPTH + 1];
 
 static inline void
-provide_newlines(struct line *line, int8_t count)
+provide_newlines(struct line *line, size_t count)
 {
-	int8_t how_many_newlines_already_present = 0;
-	if (line->len == 0) {
-		for (int8_t i = 1; i <= count; ++i) {
-			if ((line->target->len >= (size_t)i) && (line->target->ptr[line->target->len - i] == L'\n')) {
-				++how_many_newlines_already_present;
-			} else {
-				break;
-			}
-		}
+	for (size_t i = 0; (i < line->target->len) && (line->target->ptr[line->target->len - i - 1] == L'\n'); ++i) {
+		count = count > 0 ? count - 1 : 0;
 	}
-	for (int8_t i = 0; i < count - how_many_newlines_already_present; ++i) {
+	for (size_t i = 0; i < count; ++i) {
 		line_char(line, L'\n');
 	}
 }

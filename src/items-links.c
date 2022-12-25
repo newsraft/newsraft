@@ -124,7 +124,7 @@ free_trim_link_list(const struct links_list *links)
 }
 
 static inline bool
-append_raw_link(struct links_list *links, sqlite3_stmt *res, enum item_column column)
+append_raw_link(struct links_list *links, sqlite3_stmt *res, items_column_id column)
 {
 	const char *text = (char *)sqlite3_column_text(res, column);
 	if (text != NULL) {

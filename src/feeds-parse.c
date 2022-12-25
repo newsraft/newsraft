@@ -53,7 +53,7 @@ parse_feeds_file(void)
 		fclose(f);
 		return false;
 	}
-	struct feed_line feed;
+	struct feed_entry feed;
 	feed.name = crtes();
 	if (feed.name == NULL) {
 		free_string(section_name);

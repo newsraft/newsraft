@@ -4,8 +4,8 @@
 
 struct feed_section {
 	struct string *name;
-	struct feed_line **feeds; // Array of pointers to related feed_line structs.
-	size_t feeds_count; // Length of feeds array.
+	struct feed_entry **feeds; // Array of pointers to feeds belonging to this section.
+	size_t feeds_count;
 	size_t unread_count;
 };
 
@@ -68,7 +68,7 @@ create_global_section(void)
 	return create_new_section(get_cfg_string(CFG_GLOBAL_SECTION_NAME));
 }
 
-static inline struct feed_line *
+static inline struct feed_entry *
 find_feed_in_section(const struct string *link, const struct feed_section *section)
 {
 	for (size_t i = 0; i < section->feeds_count; ++i) {
@@ -79,20 +79,20 @@ find_feed_in_section(const struct string *link, const struct feed_section *secti
 	return NULL;
 }
 
-static inline struct feed_line *
-copy_feed_to_global_section(const struct feed_line *feed)
+static inline struct feed_entry *
+copy_feed_to_global_section(const struct feed_entry *feed)
 {
-	struct feed_line *potential_duplicate = find_feed_in_section(feed->link, &sections[0]);
+	struct feed_entry *potential_duplicate = find_feed_in_section(feed->link, &sections[0]);
 	if (potential_duplicate != NULL) {
 		return potential_duplicate;
 	}
 	size_t feed_index = (sections[0].feeds_count)++;
-	struct feed_line **temp = realloc(sections[0].feeds, sizeof(struct feed_line *) * sections[0].feeds_count);
+	struct feed_entry **temp = realloc(sections[0].feeds, sizeof(struct feed_entry *) * sections[0].feeds_count);
 	if (temp == NULL) {
 		return NULL;
 	}
 	sections[0].feeds = temp;
-	sections[0].feeds[feed_index] = malloc(sizeof(struct feed_line));
+	sections[0].feeds[feed_index] = malloc(sizeof(struct feed_entry));
 	if (sections[0].feeds[feed_index] == NULL) {
 		return NULL;
 	}
@@ -117,12 +117,12 @@ copy_feed_to_global_section(const struct feed_line *feed)
 }
 
 static bool
-attach_feed_to_section(struct feed_line *feed, struct feed_section *section)
+attach_feed_to_section(struct feed_entry *feed, struct feed_section *section)
 {
-	const struct feed_line *potential_duplicate = find_feed_in_section(feed->link, section);
+	const struct feed_entry *potential_duplicate = find_feed_in_section(feed->link, section);
 	if (potential_duplicate == NULL) {
 		size_t feed_index = (section->feeds_count)++;
-		struct feed_line **temp = realloc(section->feeds, sizeof(struct feed_line *) * section->feeds_count);
+		struct feed_entry **temp = realloc(section->feeds, sizeof(struct feed_entry *) * section->feeds_count);
 		if (temp == NULL) {
 			return false;
 		}
@@ -133,9 +133,9 @@ attach_feed_to_section(struct feed_line *feed, struct feed_section *section)
 }
 
 bool
-copy_feed_to_section(const struct feed_line *feed, const struct string *section_name)
+copy_feed_to_section(const struct feed_entry *feed, const struct string *section_name)
 {
-	struct feed_line *attached_feed = copy_feed_to_global_section(feed);
+	struct feed_entry *attached_feed = copy_feed_to_global_section(feed);
 	if (attached_feed == NULL) {
 		fputs("Not enough memory for new feed in global section!\n", stderr);
 		return false;
@@ -190,7 +190,7 @@ refresh_unread_items_count_of_all_sections(void)
 }
 
 static inline void
-free_feed(struct feed_line *feed)
+free_feed(struct feed_entry *feed)
 {
 	if (feed != NULL) {
 		free_string(feed->name);

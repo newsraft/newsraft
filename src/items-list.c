@@ -3,7 +3,7 @@
 #include "newsraft.h"
 
 static inline bool
-append_sorting_order_expression_to_query(struct string *query, enum sorting_order order)
+append_sorting_order_expression_to_query(struct string *query, sorting_order order)
 {
 	if (order == SORT_BY_NONE) {
 		return true;
@@ -20,7 +20,7 @@ append_sorting_order_expression_to_query(struct string *query, enum sorting_orde
 }
 
 static inline struct string *
-generate_search_query_string(size_t feeds_count, enum sorting_order order)
+generate_search_query_string(size_t feeds_count, sorting_order order)
 {
 	struct string *query = crtas("SELECT rowid,feed_url,title,link,publication_date,update_date,unread,important FROM items WHERE feed_url=?", 106);
 	if (query == NULL) {
@@ -66,8 +66,8 @@ free_items_list(struct items_list *items)
 	}
 }
 
-static inline const struct feed_line *
-find_feed_line_by_url(struct feed_line **feeds, size_t feeds_count, const char *feed_url)
+static inline const struct feed_entry *
+find_feed_entry_by_url(struct feed_entry **feeds, size_t feeds_count, const char *feed_url)
 {
 	if (feed_url != NULL) {
 		for (size_t i = 0; i < feeds_count; ++i) {
@@ -80,7 +80,7 @@ find_feed_line_by_url(struct feed_line **feeds, size_t feeds_count, const char *
 }
 
 struct items_list *
-generate_items_list(struct feed_line **feeds, size_t feeds_count, enum sorting_order order)
+generate_items_list(struct feed_entry **feeds, size_t feeds_count, sorting_order order)
 {
 	INFO("Generating items list.");
 	if (feeds_count == 0) {
@@ -116,7 +116,7 @@ generate_items_list(struct feed_line **feeds, size_t feeds_count, enum sorting_o
 		items->ptr[items->len].rowid = sqlite3_column_int64(res, 0);
 
 		text = (const char *)sqlite3_column_text(res, 1);
-		items->ptr[items->len].feed = find_feed_line_by_url(feeds, feeds_count, text);
+		items->ptr[items->len].feed = find_feed_entry_by_url(feeds, feeds_count, text);
 		if (items->ptr[items->len].feed == NULL) {
 			// Shouldn't happen normally, but wouldn't hurt to check just in case.
 			items->len -= 1;

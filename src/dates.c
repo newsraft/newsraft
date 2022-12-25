@@ -95,7 +95,7 @@ parse_date_rfc3339(const char *src, size_t src_len)
 }
 
 struct string *
-get_config_date_str(int64_t date, enum config_entry_index format_index)
+get_config_date_str(int64_t date, config_entry_id format_index)
 {
 	char date_ptr[1000];
 	const struct string *format = get_cfg_string(format_index);

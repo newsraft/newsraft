@@ -2,7 +2,7 @@
 #include "newsraft.h"
 
 bool
-join_render_block(struct render_blocks_list *blocks, const char *content, size_t content_len, int8_t content_type)
+join_render_block(struct render_blocks_list *blocks, const char *content, size_t content_len, render_block_format content_type)
 {
 	void *tmp = realloc(blocks->ptr, sizeof(struct render_block) * (blocks->len + 1));
 	if (tmp == NULL) {

@@ -24,84 +24,9 @@
 #define fail_status(...) status_write(CFG_COLOR_STATUS_FAIL_FG, __VA_ARGS__)
 #define MIN(A, B) ((A) < (B) ? (A) : (B))
 
-struct string {
-	char *ptr;
-	size_t len;
-	size_t lim;
-};
-
-struct wstring {
-	wchar_t *ptr;
-	size_t len;
-	size_t lim;
-};
-
-struct feed_line {
-	struct string *name;
-	struct string *link;
-	int64_t unread_count;
-};
-
-struct item_entry {
-	struct string *title;
-	struct string *url;
-	const struct feed_line *feed;
-	int64_t rowid;
-	bool is_unread;
-	bool is_important;
-	struct string *date_str;
-};
-
-struct items_list {
-	struct item_entry *ptr;
-	size_t len;
-};
-
-struct format_arg {
-	const wchar_t specifier;
-	const wchar_t *const type_specifier;
-	union {
-		int i;
-		char c;
-		char *s;
-		wchar_t *ls;
-	} value;
-};
-
-struct render_block {
-	struct wstring *content;
-	int8_t content_type;
-};
-
-struct format_hint {
-	uint8_t value;
-	size_t pos;
-};
-
-struct render_blocks_list {
-	struct render_block *ptr;
-	size_t len;
-	struct format_hint *hints;
-	size_t hints_len;
-};
-
-struct link {
-	struct string *url;      // URL link to data.
-	struct string *type;     // Standard MIME type of data.
-	struct string *size;     // Size of data in bytes.
-	struct string *duration; // Duration of data in seconds.
-};
-
-struct links_list {
-	struct link *ptr;
-	size_t len;
-};
-
-struct deserialize_stream;
-
 #define NEWSRAFT_COLOR_PAIRS_COUNT 10
 typedef uint8_t config_entry_id;
-enum config_entry_index {
+enum {
 	CFG_COLOR_STATUS_GOOD_FG,
 	CFG_COLOR_STATUS_GOOD_BG,
 	CFG_COLOR_STATUS_INFO_FG,
@@ -157,15 +82,8 @@ enum config_entry_index {
 	CFG_ENTRIES_COUNT,
 };
 
-enum {
-	SECTIONS_MENU,
-	FEEDS_MENU,
-	ITEMS_MENU,
-	MENUS_COUNT
-};
-
 typedef uint8_t input_cmd_id;
-enum input_cmd {
+enum {
 	INPUT_SELECT_NEXT = 0,
 	INPUT_SELECT_PREV,
 	INPUT_SELECT_NEXT_UNREAD,
@@ -215,7 +133,7 @@ enum feed_column {
 };
 
 typedef int8_t items_column_id;
-enum item_column {
+enum {
 	ITEM_COLUMN_FEED_URL,
 	ITEM_COLUMN_GUID,
 	ITEM_COLUMN_TITLE,
@@ -231,7 +149,15 @@ enum item_column {
 	ITEM_COLUMN_NONE,
 };
 
-enum sorting_order {
+enum {
+	SECTIONS_MENU,
+	FEEDS_MENU,
+	ITEMS_MENU,
+	MENUS_COUNT
+};
+
+typedef uint8_t sorting_order;
+enum {
 	SORT_BY_NONE,
 	SORT_BY_TIME_DESC,
 	SORT_BY_TIME_ASC,
@@ -256,9 +182,84 @@ enum {
 	FORMAT_UNDERLINED_END = 32,
 };
 
+struct string {
+	char *ptr;
+	size_t len;
+	size_t lim;
+};
+
+struct wstring {
+	wchar_t *ptr;
+	size_t len;
+	size_t lim;
+};
+
+struct feed_entry {
+	struct string *name;
+	struct string *link;
+	int64_t unread_count;
+};
+
+struct item_entry {
+	struct string *title;
+	struct string *url;
+	const struct feed_entry *feed;
+	int64_t rowid;
+	bool is_unread;
+	bool is_important;
+	struct string *date_str;
+};
+
+struct items_list {
+	struct item_entry *ptr;
+	size_t len;
+};
+
+struct format_arg {
+	const wchar_t specifier;
+	const wchar_t *const type_specifier;
+	union {
+		int i;
+		char c;
+		char *s;
+		wchar_t *ls;
+	} value;
+};
+
+struct render_block {
+	struct wstring *content;
+	render_block_format content_type;
+};
+
+struct format_hint {
+	format_hint_mask value;
+	size_t pos;
+};
+
+struct render_blocks_list {
+	struct render_block *ptr;
+	size_t len;
+	struct format_hint *hints;
+	size_t hints_len;
+};
+
+struct link {
+	struct string *url;      // URL link to data.
+	struct string *type;     // Standard MIME type of data.
+	struct string *size;     // Size of data in bytes.
+	struct string *duration; // Duration of data in seconds.
+};
+
+struct links_list {
+	struct link *ptr;
+	size_t len;
+};
+
+struct deserialize_stream;
+
 // See "sections.c" file for implementation.
 bool create_global_section(void);
-bool copy_feed_to_section(const struct feed_line *feed, const struct string *section_name);
+bool copy_feed_to_section(const struct feed_entry *feed, const struct string *section_name);
 bool name_feeds_by_their_titles_in_db(void);
 void refresh_unread_items_count_of_all_sections(void);
 void enter_sections_menu_loop(void);
@@ -271,7 +272,7 @@ bool unread_section_condition(size_t index);
 bool parse_feeds_file(void);
 
 // See "feeds.c" file for implementation.
-input_cmd_id enter_feeds_menu_loop(struct feed_line **new_feeds, size_t new_feeds_count);
+input_cmd_id enter_feeds_menu_loop(struct feed_entry **new_feeds, size_t new_feeds_count);
 const struct format_arg *prepare_feed_entry_args(size_t index);
 int paint_feed_entry(size_t index);
 bool unread_feed_condition(size_t index);
@@ -295,9 +296,9 @@ void free_format_buffers(void);
 const wchar_t *do_format(const struct wstring *fmt, const struct format_arg *args);
 
 // items
-struct items_list *generate_items_list(struct feed_line **feeds, size_t feeds_count, enum sorting_order order);
+struct items_list *generate_items_list(struct feed_entry **feeds, size_t feeds_count, sorting_order order);
 void free_items_list(struct items_list *items);
-input_cmd_id enter_items_menu_loop(struct feed_line **feeds, size_t feeds_count, config_entry_id format_id);
+input_cmd_id enter_items_menu_loop(struct feed_entry **feeds, size_t feeds_count, config_entry_id format_id);
 const struct format_arg *prepare_item_entry_args(size_t index);
 int paint_item_entry(size_t index);
 bool unread_item_condition(size_t index);
@@ -309,7 +310,7 @@ void mark_selected_item_read(size_t view_sel);
 // is passed to render_data function which processes them based on their types
 // and generates a single plain text buffer for a pager to display.
 // See "render-block.c" file for implementation.
-bool join_render_block(struct render_blocks_list *blocks, const char *content, size_t content_len, int8_t content_type);
+bool join_render_block(struct render_blocks_list *blocks, const char *content, size_t content_len, render_block_format content_type);
 bool join_render_separator(struct render_blocks_list *blocks);
 void free_render_blocks(struct render_blocks_list *blocks);
 
@@ -347,7 +348,7 @@ int enter_status_pager_view_loop(void);
 
 // See "threading.c" file for implementation.
 bool initialize_update_threads(void);
-void branch_update_feed_action_into_thread(void *(*action)(void *arg), struct feed_line *feed);
+void branch_update_feed_action_into_thread(void *(*action)(void *arg), struct feed_entry *feed);
 void wait_for_all_threads_to_finish(void);
 void terminate_update_threads(void);
 
@@ -363,7 +364,7 @@ const char *get_db_path(void);
 bool get_local_offset_relative_to_utc(void);
 int64_t parse_date_rfc822(const struct string *value);
 int64_t parse_date_rfc3339(const char *src, size_t src_len);
-struct string *get_config_date_str(int64_t date, enum config_entry_index format_index);
+struct string *get_config_date_str(int64_t date, config_entry_id format_index);
 
 // See "db.c" file for implementation.
 bool db_init(void);
@@ -386,8 +387,8 @@ bool db_mark_item_unread(int64_t rowid);
 bool db_mark_item_important(int64_t rowid);
 bool db_mark_item_unimportant(int64_t rowid);
 int64_t get_unread_items_count_of_the_feed(const struct string *url);
-bool db_mark_all_items_in_feeds_as_read(struct feed_line **feeds, size_t feeds_count);
-bool db_mark_all_items_in_feeds_as_unread(struct feed_line **feeds, size_t feeds_count);
+bool db_mark_all_items_in_feeds_as_read(struct feed_entry **feeds, size_t feeds_count);
+bool db_mark_all_items_in_feeds_as_unread(struct feed_entry **feeds, size_t feeds_count);
 
 // See "interface.c" file for implementation.
 bool curses_init(void);
@@ -492,7 +493,7 @@ void free_config(void);
 
 // Download, process and store new items of feed.
 // See "update_feed" directory for implementation.
-void update_feeds(struct feed_line **feeds, size_t feeds_count);
+void update_feeds(struct feed_entry **feeds, size_t feeds_count);
 
 extern FILE *log_stream;
 extern size_t list_menu_height;

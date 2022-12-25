@@ -99,7 +99,7 @@ mark_selected_item_unimportant(size_t view_sel)
 }
 
 static void
-mark_all_items_read(struct feed_line **feeds, size_t feeds_count)
+mark_all_items_read(struct feed_entry **feeds, size_t feeds_count)
 {
 	if (db_mark_all_items_in_feeds_as_read(feeds, feeds_count) == true) {
 		for (size_t i = 0; i < items->len; ++i) {
@@ -110,7 +110,7 @@ mark_all_items_read(struct feed_line **feeds, size_t feeds_count)
 }
 
 static void
-mark_all_items_unread(struct feed_line **feeds, size_t feeds_count)
+mark_all_items_unread(struct feed_entry **feeds, size_t feeds_count)
 {
 	if (db_mark_all_items_in_feeds_as_unread(feeds, feeds_count) == true) {
 		for (size_t i = 0; i < items->len; ++i) {
@@ -121,7 +121,7 @@ mark_all_items_unread(struct feed_line **feeds, size_t feeds_count)
 }
 
 input_cmd_id
-enter_items_menu_loop(struct feed_line **feeds, size_t feeds_count, config_entry_id format_id)
+enter_items_menu_loop(struct feed_entry **feeds, size_t feeds_count, config_entry_id format_id)
 {
 	items = generate_items_list(feeds, feeds_count, SORT_BY_TIME_DESC);
 	if (items == NULL) {

@@ -1,6 +1,6 @@
 #include "update_feed/update_feed.h"
 
-static struct feed_line **update_queue = NULL;
+static struct feed_entry **update_queue = NULL;
 static size_t update_queue_length = 0;
 static size_t update_queue_progress = 0;
 static size_t update_queue_fails_count;
@@ -28,7 +28,7 @@ free_feed(struct getfeed_feed *feed)
 static void *
 update_feed_action(void *arg)
 {
-	struct feed_line *feed = arg;
+	struct feed_entry *feed = arg;
 
 	int8_t status = DOWNLOAD_FAILED;
 	struct stream_callback_data data = {0};
@@ -159,10 +159,10 @@ here_we_go_again:
 }
 
 void
-update_feeds(struct feed_line **feeds, size_t feeds_count)
+update_feeds(struct feed_entry **feeds, size_t feeds_count)
 {
 	pthread_mutex_lock(&queue_lock);
-	struct feed_line **temp = realloc(update_queue, sizeof(struct feed_line *) * (update_queue_length + feeds_count));
+	struct feed_entry **temp = realloc(update_queue, sizeof(struct feed_entry *) * (update_queue_length + feeds_count));
 	if (temp != NULL) {
 		update_queue = temp;
 		for (size_t i = 0; i < feeds_count; ++i) {

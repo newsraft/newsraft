@@ -35,7 +35,7 @@ wait_for_any_thread_to_finish(void)
 }
 
 static inline bool
-start_any_thread(void *(*action)(void *arg), struct feed_line *feed)
+start_any_thread(void *(*action)(void *arg), struct feed_entry *feed)
 {
 	for (size_t i = 0; i < threads_count; ++i) {
 		if (threads[i].was_started == false) {
@@ -48,7 +48,7 @@ start_any_thread(void *(*action)(void *arg), struct feed_line *feed)
 }
 
 void
-branch_update_feed_action_into_thread(void *(*action)(void *arg), struct feed_line *feed)
+branch_update_feed_action_into_thread(void *(*action)(void *arg), struct feed_entry *feed)
 {
 	if (threads_count == 0) {
 		action(feed);

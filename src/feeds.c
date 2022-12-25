@@ -1,6 +1,6 @@
 #include "newsraft.h"
 
-static struct feed_line **feeds = NULL;
+static struct feed_entry **feeds = NULL;
 static size_t feeds_count = 0;
 
 static struct format_arg fmt_args[] = {
@@ -85,7 +85,7 @@ mark_all_feeds_unread(void)
 }
 
 input_cmd_id
-enter_feeds_menu_loop(struct feed_line **new_feeds, size_t new_feeds_count)
+enter_feeds_menu_loop(struct feed_entry **new_feeds, size_t new_feeds_count)
 {
 	if (new_feeds_count == 1) {
 		return enter_items_menu_loop(new_feeds, 1, CFG_MENU_ITEM_ENTRY_FORMAT);

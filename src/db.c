@@ -220,13 +220,8 @@ db_get_date_from_feeds_table(const struct string *url, const char *column, size_
 	if (res == NULL) {
 		return -1;
 	}
-	sqlite3_bind_text(res, 1, url->ptr, url->len, NULL);
-	int64_t date;
-	if (sqlite3_step(res) == SQLITE_ROW) {
-		date = sqlite3_column_int64(res, 0);
-	} else {
-		date = 0; // This is the first reloading of the feed.
-	}
+	db_bind_string(res, 1, url);
+	int64_t date = sqlite3_step(res) == SQLITE_ROW ? sqlite3_column_int64(res, 0) : 0;
 	sqlite3_finalize(res);
 	return date;
 }
@@ -240,7 +235,7 @@ db_get_string_from_feed_table(const struct string *url, const char *column, size
 	memcpy(query + 7 + column_len, " FROM feeds WHERE feed_url=?", 29);
 	sqlite3_stmt *res = db_prepare(query, 7 + column_len + 29);
 	if (res != NULL) {
-		sqlite3_bind_text(res, 1, url->ptr, url->len, NULL);
+		db_bind_string(res, 1, url);
 		if (sqlite3_step(res) == SQLITE_ROW) {
 			const char *str_ptr = (char *)sqlite3_column_text(res, 0);
 			if (str_ptr != NULL) {

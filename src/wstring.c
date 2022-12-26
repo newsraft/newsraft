@@ -100,6 +100,26 @@ wcatcs(struct wstring *dest, wchar_t c)
 	return wcatas(dest, src, 1);
 }
 
+bool
+increase_wstring_size(struct wstring *dest, size_t factor)
+{
+	size_t new_lim = (dest->lim + 67) * factor;
+	wchar_t *new_ptr = realloc(dest->ptr, sizeof(wchar_t) * (new_lim + 1));
+	if (new_ptr == NULL) {
+		return false;
+	}
+	dest->ptr = new_ptr;
+	dest->lim = new_lim;
+	return true;
+}
+
+void
+empty_wstring(struct wstring *dest)
+{
+	dest->len = 0;
+	dest->ptr[0] = '\0';
+}
+
 void
 free_wstring(struct wstring *wstr)
 {

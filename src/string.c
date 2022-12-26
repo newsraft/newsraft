@@ -177,10 +177,10 @@ string_printf(struct string *dest, const char *format, ...)
 }
 
 void
-empty_string(struct string *str)
+empty_string(struct string *dest)
 {
-	str->len = 0;
-	*(str->ptr + 0) = '\0';
+	dest->len = 0;
+	dest->ptr[0] = '\0';
 }
 
 void

@@ -19,16 +19,18 @@ write_splitted_wstring_to_window(WINDOW *window, const struct wstring *wbuf, con
 			} else if (blocks->hints[hint_index].value & FORMAT_BOLD_BEGIN) {
 				wattron(window, A_BOLD);
 			}
-			if (blocks->hints[hint_index].value & FORMAT_ITALIC_END) {
-				wattroff(window, A_ITALIC);
-			} else if (blocks->hints[hint_index].value & FORMAT_ITALIC_BEGIN) {
-				wattron(window, A_ITALIC);
-			}
 			if (blocks->hints[hint_index].value & FORMAT_UNDERLINED_END) {
 				wattroff(window, A_UNDERLINE);
 			} else if (blocks->hints[hint_index].value & FORMAT_UNDERLINED_BEGIN) {
 				wattron(window, A_UNDERLINE);
 			}
+#ifdef A_ITALIC // Since A_ITALIC is an ncurses extension, some systems may lack it.
+			if (blocks->hints[hint_index].value & FORMAT_ITALIC_END) {
+				wattroff(window, A_ITALIC);
+			} else if (blocks->hints[hint_index].value & FORMAT_ITALIC_BEGIN) {
+				wattron(window, A_ITALIC);
+			}
+#endif
 			hint_index += 1;
 		}
 		if (wbuf->ptr[i] == '\n') {

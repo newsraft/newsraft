@@ -469,7 +469,7 @@ bool wcpyas(struct wstring *dest, const wchar_t *src_ptr, size_t src_len);
 bool wcatas(struct wstring *dest, const wchar_t *src_ptr, size_t src_len);
 bool wcatss(struct wstring *dest, const struct wstring *src);
 bool wcatcs(struct wstring *dest, wchar_t c);
-bool increase_wstring_size(struct wstring *dest, size_t factor);
+bool increase_wstring_size(struct wstring *dest, size_t expansion);
 void empty_wstring(struct wstring *dest);
 void free_wstring(struct wstring *wstr);
 void trim_whitespace_from_wstring(struct wstring *wstr);

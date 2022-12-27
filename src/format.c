@@ -16,7 +16,7 @@ create_format_buffers(void)
 		free_wstring(tmp_buf);
 		return false;
 	}
-	increase_wstring_size(fmt_buf, 10);
+	increase_wstring_size(fmt_buf, 1000);
 	return true;
 }
 
@@ -78,7 +78,7 @@ do_format(const struct wstring *fmt, const struct format_arg *args)
 						fmt_buf->len += tmp_res;
 						fmt_buf->ptr[fmt_buf->len] = L'\0';
 						break;
-					} else if (increase_wstring_size(fmt_buf, 2) == false) {
+					} else if (increase_wstring_size(fmt_buf, 100) == false) {
 						return L""; // OOM
 					}
 				}

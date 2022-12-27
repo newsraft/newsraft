@@ -101,9 +101,9 @@ wcatcs(struct wstring *dest, wchar_t c)
 }
 
 bool
-increase_wstring_size(struct wstring *dest, size_t factor)
+increase_wstring_size(struct wstring *dest, size_t expansion)
 {
-	size_t new_lim = (dest->lim + 67) * factor;
+	size_t new_lim = dest->lim + expansion;
 	wchar_t *new_ptr = realloc(dest->ptr, sizeof(wchar_t) * (new_lim + 1));
 	if (new_ptr == NULL) {
 		return false;

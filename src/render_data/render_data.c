@@ -25,6 +25,7 @@ render_data(struct render_blocks_list *blocks)
 			}
 		} else if (blocks->ptr[i].content_type == TEXT_HTML) {
 			render_text_html(&line, blocks->ptr[i].content);
+			append_format_hint_to_line(&line, FORMAT_ALL_END);
 			if (line.len == 0) {
 				trim_whitespace_from_wstring(text);
 			}

@@ -180,6 +180,7 @@ enum {
 	FORMAT_ITALIC_END = 8,
 	FORMAT_UNDERLINED_BEGIN = 16,
 	FORMAT_UNDERLINED_END = 32,
+	FORMAT_ALL_END = 42, // Sum of all ending hints.
 };
 
 struct string {

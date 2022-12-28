@@ -60,7 +60,7 @@ parse_stream_callback(char *contents, size_t length, size_t nmemb, void *userdat
 				INFO("Found \"<\" character in the beginning of the stream - consider it to be XML data.");
 				if (engage_xml_parser(data) == false) {
 					FAIL("Failed to engage XML parser!");
-					return 0;
+					return CURL_WRITEFUNC_ERROR;
 				}
 				data->media_type = MEDIA_TYPE_XML;
 				break;
@@ -68,7 +68,7 @@ parse_stream_callback(char *contents, size_t length, size_t nmemb, void *userdat
 				INFO("Found \"{\" character in the beginning of the stream - consider it to be JSON data.");
 				if (engage_json_parser(data) == false) {
 					FAIL("Failed to engage JSON parser!");
-					return 0;
+					return CURL_WRITEFUNC_ERROR;
 				}
 				data->media_type = MEDIA_TYPE_JSON;
 				break;
@@ -78,13 +78,13 @@ parse_stream_callback(char *contents, size_t length, size_t nmemb, void *userdat
 	if (data->media_type == MEDIA_TYPE_XML) {
 		if (XML_Parse(data->xml_parser, contents, real_size, false) == XML_STATUS_ERROR) {
 			fail_status("XML parser ran into an error: %s", XML_ErrorString(XML_GetErrorCode(data->xml_parser)));
-			return 0;
+			return CURL_WRITEFUNC_ERROR;
 		}
 	} else if (data->media_type == MEDIA_TYPE_JSON) {
 		yajl_status status = yajl_parse(data->json_parser, (const unsigned char *)contents, real_size);
 		if (status != yajl_status_ok) {
 			fail_status("JSON parser ran into an error: %s", yajl_status_to_string(status));
-			return 0;
+			return CURL_WRITEFUNC_ERROR;
 		}
 	}
 	return real_size;

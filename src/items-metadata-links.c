@@ -225,30 +225,33 @@ populate_link_list_with_links_of_item(struct links_list *links, sqlite3_stmt *re
 struct string *
 generate_link_list_string_for_pager(const struct links_list *links)
 {
-	struct string *str = crtas("Links:\n", 7);
+	struct string *str = crtas("Links:", 6);
 	if (str == NULL) {
 		return false;
 	}
-	// Square brackets, colon and space (4) + longest size_t (20) + terminator (1)
-#define LINK_PREFIX_SIZE 25
+#define LINK_PREFIX_SIZE 30
+	// For the link prefix we need at minimum 29 bytes, because:
+	// 1 newline         1  ascii character    1  byte
+	// 1 bracket         1  ascii character    1  byte
+	// 1 size_t integer  20 ascii characters   20 bytes
+	// 1 bracket         1  ascii character    1  byte
+	// 1 colon           1  ascii character    1  byte
+	// 1 nbsp            1  unicode character  4  bytes
+	// 1 terminator      1  ascii character    1  byte
 	char prefix[LINK_PREFIX_SIZE];
-	size_t prefix_len;
-	bool is_first_link = true;
+	int prefix_len;
 	bool appended_type, appended_size, appended_duration;
 	struct string *readable_string = NULL;
 	for (size_t i = 0; i < links->len; ++i) {
 		if ((links->ptr[i].url == NULL) || (links->ptr[i].url->len == 0)) {
 			continue;
 		}
-		if (is_first_link == false) {
-			if (catcs(str, '\n') == false) { goto error; }
+
+		// Non-breaking space below the parentheses! ---------> ( )
+		prefix_len = snprintf(prefix, LINK_PREFIX_SIZE, "\n[%zu]: ", i + 1);
+		if ((prefix_len <= 0) || (catas(str, prefix, prefix_len) == false) || (catss(str, links->ptr[i].url) == false)) {
+			goto error;
 		}
-		is_first_link = false;
-		// non-breaking space below the parentheses --------> ( )
-		prefix_len = snprintf(prefix, LINK_PREFIX_SIZE, "[%zu]: ", i + 1);
-#undef LINK_PREFIX_SIZE
-		if (catas(str, prefix, prefix_len) == false) { goto error; }
-		if (catss(str, links->ptr[i].url) == false) { goto error; }
 
 		appended_type = false;
 		if ((links->ptr[i].type != NULL) && (links->ptr[i].type->len != 0)) {
@@ -319,14 +322,9 @@ error:
 // In this function we beautify these URLs by prepending feed url hostname in
 // case (1) and by prepending full feed url with trailing slash in case (2).
 bool
-complete_urls_of_links(struct links_list *links, sqlite3_stmt *res)
+complete_urls_of_links(struct links_list *links, const struct string *feed_url)
 {
 	INFO("Completing URLs of link list.");
-	const char *feed_url = (char *)sqlite3_column_text(res, ITEM_COLUMN_FEED_URL);
-	if ((feed_url == NULL) || (strlen(feed_url) == 0)) {
-		FAIL("Feed URL of the item is empty!");
-		return false;
-	}
 	CURLU *h = curl_url();
 	if (h == NULL) {
 		FAIL("Not enough memory for parsing URL!");
@@ -340,7 +338,7 @@ complete_urls_of_links(struct links_list *links, sqlite3_stmt *res)
 		if (strncmp(links->ptr[i].url->ptr, "tel:", 4) == 0) {
 			continue; // This is a telephone URL, leave it as is.
 		}
-		if (curl_url_set(h, CURLUPART_URL, feed_url, 0) != CURLUE_OK) {
+		if (curl_url_set(h, CURLUPART_URL, feed_url->ptr, 0) != CURLUE_OK) {
 			continue; // This URL is broken, leave it alone.
 		}
 		if (curl_url_set(h, CURLUPART_URL, links->ptr[i].url->ptr, 0) != CURLUE_OK) {

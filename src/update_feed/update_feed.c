@@ -42,7 +42,7 @@ update_feed_action(void *arg)
 		if (expires_date < 0) {
 			goto undo;
 		} else if ((expires_date > 0) && (data.feed.download_date < expires_date)) {
-			INFO("Content hasn't expired yet - aborting update without error.");
+			INFO("Aborting update because content isn't expired yet.");
 			status = DOWNLOAD_CANCELED;
 			goto undo;
 		}
@@ -55,7 +55,7 @@ update_feed_action(void *arg)
 			goto undo;
 		}
 		if ((ttl > 0) && (prev_download_date > 0) && ((prev_download_date + ttl) > data.feed.download_date)) {
-			INFO("Content isn't dead yet - aborting update without error.");
+			INFO("Aborting update because content isn't stale yet.");
 			status = DOWNLOAD_CANCELED;
 			goto undo;
 		}

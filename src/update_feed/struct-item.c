@@ -17,17 +17,16 @@ void
 free_item(struct getfeed_item *item)
 {
 	struct getfeed_item *temp;
-	struct getfeed_item *i = item;
-	while (i != NULL) {
-		free_string(i->guid);
-		free_string(i->title);
-		free_string(i->url);
-		free_string(i->content);
-		free_string(i->attachments);
-		free_string(i->persons);
-		free_string(i->extras);
-		temp = i;
-		i = i->next;
+	while (item != NULL) {
+		free_string(item->guid);
+		free_string(item->title);
+		free_string(item->url);
+		free_string(item->content);
+		free_string(item->attachments);
+		free_string(item->persons);
+		free_string(item->extras);
+		temp = item;
+		item = item->next;
 		free(temp);
 	}
 }

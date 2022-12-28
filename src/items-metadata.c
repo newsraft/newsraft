@@ -178,7 +178,7 @@ static const struct data_entry entries[] = {
 };
 
 bool
-join_render_blocks_of_item_data(struct render_blocks_list *blocks, sqlite3_stmt *res)
+generate_render_blocks_based_on_item_data(struct render_blocks_list *blocks, sqlite3_stmt *res)
 {
 	char entry[MAX_METADATA_ENTRY_NAME_LENGTH + 1];
 	size_t entry_len = 0;

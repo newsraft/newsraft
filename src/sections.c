@@ -189,22 +189,16 @@ refresh_unread_items_count_of_all_sections(void)
 	}
 }
 
-static inline void
-free_feed(struct feed_entry *feed)
-{
-	if (feed != NULL) {
-		free_string(feed->name);
-		free_string(feed->link);
-		free(feed);
-	}
-}
-
 void
 free_sections(void)
 {
 	size_t i;
 	for (i = 0; i < sections[0].feeds_count; ++i) {
-		free_feed(sections[0].feeds[i]);
+		if (sections[0].feeds[i] != NULL) {
+			free_string(sections[0].feeds[i]->name);
+			free_string(sections[0].feeds[i]->link);
+			free(sections[0].feeds[i]);
+		}
 	}
 	for (i = 0; i < sections_count; ++i) {
 		free_string(sections[i].name);

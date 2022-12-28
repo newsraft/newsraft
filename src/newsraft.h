@@ -167,7 +167,7 @@ enum {
 
 typedef uint8_t render_block_format;
 enum {
-	TEXT_PLAIN = 0, // It must be a zero!
+	TEXT_PLAIN,
 	TEXT_HTML,
 	TEXT_SEPARATOR,
 };
@@ -327,23 +327,28 @@ bool prepare_to_render_data(struct render_blocks_list *blocks, struct links_list
 // See "render_data" directory for implementation.
 struct wstring *render_data(struct render_blocks_list *blocks);
 
+// See "items-metadata.c" file for implementation.
+bool generate_render_blocks_based_on_item_data(struct render_blocks_list *blocks, sqlite3_stmt *res);
+
+// See "items-metadata-content.c" file for implementation.
 bool get_largest_piece_from_item_content(const char *content, struct string *text, render_block_format *type);
 bool get_largest_piece_from_item_attachments(const char *attachments, struct string *text, render_block_format *type);
-bool join_render_blocks_of_item_data(struct render_blocks_list *blocks, sqlite3_stmt *res);
 
-// contents
-struct string *deserialize_persons_string(const char *src, const char *person_type);
-bool populate_link_list_with_links_of_item(struct links_list *links, sqlite3_stmt *res);
-bool complete_urls_of_links(struct links_list *links, sqlite3_stmt *res);
-struct string *generate_link_list_string_for_pager(const struct links_list *links);
+// See "items-metadata-links.c" file for implementation.
 int64_t add_another_url_to_trim_links_list(struct links_list *links, const char *url, size_t url_len);
+bool populate_link_list_with_links_of_item(struct links_list *links, sqlite3_stmt *res);
+struct string *generate_link_list_string_for_pager(const struct links_list *links);
+bool complete_urls_of_links(struct links_list *links, const struct string *feed_url);
 void free_trim_link_list(const struct links_list *links);
+
+// See "items-metadata-persons.c" file for implementation.
+struct string *deserialize_persons_string(const char *src, const char *person_type);
 
 // See "interface-pager.c" file for implementation.
 int pager_view(struct render_blocks_list *blocks, bool (*custom_input_handler)(void *, input_cmd_id, uint32_t, const struct wstring *), void *data);
 
 // See "interface-pager-item.c" file for implementation.
-int enter_item_pager_view_loop(int64_t rowid);
+int enter_item_pager_view_loop(const struct item_entry *item);
 
 // See "interface-pager-status.c" file for implementation.
 int enter_status_pager_view_loop(void);

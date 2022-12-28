@@ -21,23 +21,23 @@ join_links_render_block(struct render_blocks_list *blocks, struct links_list *li
 }
 
 static inline bool
-populate_render_blocks_list_with_data_from_item(int64_t rowid, struct render_blocks_list *blocks, struct links_list *links)
+populate_render_blocks_list_with_data_from_item(const struct item_entry *item, struct render_blocks_list *blocks, struct links_list *links)
 {
-	sqlite3_stmt *res = db_find_item_by_rowid(rowid);
+	sqlite3_stmt *res = db_find_item_by_rowid(item->rowid);
 	if (res == NULL) {
 		return false;
 	}
 	if (populate_link_list_with_links_of_item(links, res) == false) {
 		goto error;
 	}
-	if (join_render_blocks_of_item_data(blocks, res) == false) {
+	if (generate_render_blocks_based_on_item_data(blocks, res) == false) {
 		goto error;
 	}
 	if (prepare_to_render_data(blocks, links) == false) {
 		goto error;
 	}
 	if (links->len != 0) {
-		if (complete_urls_of_links(links, res) == false) {
+		if (complete_urls_of_links(links, item->feed->link) == false) {
 			goto error;
 		}
 		if (join_links_render_block(blocks, links) == false) {
@@ -71,12 +71,12 @@ custom_input_handler(void *data, input_cmd_id cmd, uint32_t count, const struct 
 }
 
 int
-enter_item_pager_view_loop(int64_t rowid)
+enter_item_pager_view_loop(const struct item_entry *item)
 {
-	INFO("Trying to view an item with the rowid %" PRId64 "...", rowid);
+	INFO("Trying to view an item with the rowid %" PRId64 "...", item->rowid);
 	struct render_blocks_list blocks = {0};
 	struct links_list links = {0};
-	if (populate_render_blocks_list_with_data_from_item(rowid, &blocks, &links) == false) {
+	if (populate_render_blocks_list_with_data_from_item(item, &blocks, &links) == false) {
 		return INPUT_ERROR;
 	}
 	const int pager_result = pager_view(&blocks, &custom_input_handler, (void *)&links);

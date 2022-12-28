@@ -1,7 +1,7 @@
 #include <string.h>
 #include "newsraft.h"
 
-static render_block_format
+static inline render_block_format
 get_content_type_by_string(const char *type)
 {
 	return (strstr(type, "html") != NULL) || (strstr(type, "HTML") != NULL) ? TEXT_HTML : TEXT_PLAIN;

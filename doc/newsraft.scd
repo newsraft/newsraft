@@ -156,10 +156,11 @@ _download-speed-limit_ (default: *0*)
 
 _update-threads-count_ (default: *0*)
 	Maximum number of update processes running simultaneously. If set to zero,
-	value of the setting is set automatically according to the following rule:
-	if your system has more than one processor online, setting value is set to
-	*2*; otherwise setting value is set to *1*. Values greater than *2* may
-	reduce performance if there is not enough network bandwidth available.
+	value of the setting is set to the number of CPU cores available. You may want
+	to set this setting to a lower value in cases of a slow network connection
+	where parallel downloads can slow down the update process. If set to a value
+	greater than the number of CPU cores available, it will be implicitly reduced
+	to the number of CPU cores to avoid performance issues.
 
 _scrolloff_ (default: *0*)
 	Minimal number of list menu entries to keep above and below the selected

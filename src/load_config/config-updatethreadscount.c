@@ -9,7 +9,7 @@ set_sane_value_for_update_threads_count(size_t initial_value)
 	if (online_cpus <= 1) {
 		set_cfg_uint(CFG_UPDATE_THREADS_COUNT, 1);
 	} else if (initial_value == 0) {
-		set_cfg_uint(CFG_UPDATE_THREADS_COUNT, 2);
+		set_cfg_uint(CFG_UPDATE_THREADS_COUNT, (size_t)online_cpus);
 	} else {
 		set_cfg_uint(CFG_UPDATE_THREADS_COUNT, MIN(initial_value, (size_t)online_cpus));
 	}

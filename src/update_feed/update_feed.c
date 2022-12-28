@@ -112,6 +112,7 @@ undo:
 		INFO("Download canceled.");
 	}
 	pthread_mutex_unlock(&update_lock);
+	indicate_that_thread_routine_has_finished(feed->update_thread_index);
 	return NULL;
 }
 

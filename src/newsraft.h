@@ -199,6 +199,7 @@ struct feed_entry {
 	struct string *name;
 	struct string *link;
 	int64_t unread_count;
+	size_t update_thread_index;
 };
 
 struct item_entry {
@@ -350,6 +351,7 @@ int enter_status_pager_view_loop(void);
 // See "threading.c" file for implementation.
 bool initialize_update_threads(void);
 void branch_update_feed_action_into_thread(void *(*action)(void *arg), struct feed_entry *feed);
+void indicate_that_thread_routine_has_finished(size_t index);
 void wait_for_all_threads_to_finish(void);
 void terminate_update_threads(void);
 

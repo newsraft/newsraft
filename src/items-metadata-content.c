@@ -25,7 +25,7 @@ get_largest_text_piece_from_item_serialized_data(
 	if ((temp_text == NULL) || (stream == NULL)) {
 		goto error;
 	}
-	render_block_format temp_type;
+	render_block_format temp_type = TEXT_PLAIN;
 	const struct string *entry = get_next_entry_from_deserialize_stream(stream);
 	while (entry != NULL) {
 		if (strcmp(entry->ptr, "^") == 0) {

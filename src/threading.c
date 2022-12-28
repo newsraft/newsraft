@@ -9,6 +9,7 @@ struct responsive_thread {
 
 static struct responsive_thread *threads = NULL;
 static size_t threads_count;
+static const struct timespec update_routine_finish_check_period = {0, 10000000};
 
 bool
 initialize_update_threads(void)
@@ -36,6 +37,10 @@ branch_update_feed_action_into_thread(void *(*action)(void *arg), struct feed_en
 				return;
 			}
 		}
+		// Note to the future.
+		// We add a little delay before checking for finished threads so that
+		// the CPU is not overloaded by running through this loop very fast.
+		nanosleep(&update_routine_finish_check_period, NULL);
 		for (size_t i = 0; i < threads_count; ++i) {
 			if (threads[i].says_it_is_done == true) {
 				pthread_join(threads[i].thread, NULL);

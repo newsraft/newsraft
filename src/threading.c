@@ -32,7 +32,7 @@ branch_update_feed_action_into_thread(void *(*action)(void *arg), struct feed_en
 			if (threads[i].was_started == false) {
 				threads[i].was_started = true;
 				threads[i].says_it_is_done = false;
-				feed->update_thread_index = i;
+				feed->did_update_just_finished = &threads[i].says_it_is_done;
 				pthread_create(&(threads[i].thread), NULL, action, feed);
 				return;
 			}
@@ -50,12 +50,6 @@ branch_update_feed_action_into_thread(void *(*action)(void *arg), struct feed_en
 			}
 		}
 	}
-}
-
-void
-indicate_that_thread_routine_has_finished(size_t index)
-{
-	threads[index].says_it_is_done = true;
 }
 
 void

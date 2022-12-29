@@ -14,7 +14,7 @@ join_links_render_block(struct render_blocks_list *blocks, struct links_list *li
 	}
 	join_render_separator(blocks);
 	join_render_separator(blocks);
-	join_render_block(blocks, str->ptr, str->len, TEXT_PLAIN);
+	join_render_block(blocks, str->ptr, str->len, TEXT_RAW);
 	join_render_separator(blocks);
 	free_string(str);
 	return true;

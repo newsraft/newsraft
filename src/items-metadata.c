@@ -4,27 +4,16 @@
 #define MAX_METADATA_ENTRY_NAME_LENGTH 12
 // Currently it is "contributors".
 
-typedef int8_t entry_extra_id;
-enum {
-	NO_EXTRA_DATA = 0,
-	REQUIRES_INLINING = 1,
-	PREPEND_SEPARATOR = 2,
-	PERSON_AUTHOR = 4,
-	PERSON_CONTRIBUTOR = 8,
-	PERSON_EDITOR = 16,
-};
-
 struct data_entry {
 	const char *const field;      // Name of field to match in config_contents_meta_data.
 	const char *const tooltip;    // String to write before entry data.
 	const size_t tooltip_len;
 	const items_column_id column; // Column index from which to take data.
-	const entry_extra_id feature_mask;
 	bool (*append_handler)(struct render_blocks_list *blocks, sqlite3_stmt *res, const struct data_entry *entry);
 };
 
 static bool
-append_plain_text(struct render_blocks_list *blocks, sqlite3_stmt *res, const struct data_entry *entry)
+append_text_line(struct render_blocks_list *blocks, sqlite3_stmt *res, const struct data_entry *entry)
 {
 	const char *text = (char *)sqlite3_column_text(res, entry->column);
 	if (text == NULL) {
@@ -34,26 +23,22 @@ append_plain_text(struct render_blocks_list *blocks, sqlite3_stmt *res, const st
 	if (text_len == 0) {
 		return true; // It is not an error because this item simply does not have value set.
 	}
-	if (join_render_block(blocks, entry->tooltip, entry->tooltip_len, TEXT_PLAIN) == false) {
+	struct string *data = crtas(entry->tooltip, entry->tooltip_len);
+	if (data == NULL) {
 		return false;
 	}
-	if ((entry->feature_mask & REQUIRES_INLINING) == 0) {
-		if (join_render_block(blocks, text, text_len, TEXT_PLAIN) == false) {
-			return false;
-		}
-	} else {
-		struct string *title = crtas(text, text_len);
-		if (title == NULL) {
-			return false;
-		}
-		inlinefy_string(title);
-		if (join_render_block(blocks, title->ptr, title->len, TEXT_PLAIN) == false) {
-			free_string(title);
-			return false;
-		}
-		free_string(title);
+	if (catas(data, text, text_len) == false) {
+		goto error;
 	}
+	inlinefy_string(data);
+	if (join_render_block(blocks, data->ptr, data->len, TEXT_RAW) == false) {
+		goto error;
+	}
+	free_string(data);
 	return join_render_separator(blocks);
+error:
+	free_string(data);
+	return false;
 }
 
 static bool
@@ -115,7 +100,7 @@ append_date(struct render_blocks_list *blocks, sqlite3_stmt *res, const struct d
 		return false;
 	}
 	free_string(date_str);
-	if (join_render_block(blocks, date_entry->ptr, date_entry->len, TEXT_PLAIN) == false) {
+	if (join_render_block(blocks, date_entry->ptr, date_entry->len, TEXT_RAW) == false) {
 		free_string(date_entry);
 		return false;
 	}
@@ -124,22 +109,13 @@ append_date(struct render_blocks_list *blocks, sqlite3_stmt *res, const struct d
 }
 
 static bool
-append_persons(struct render_blocks_list *blocks, sqlite3_stmt *res, const struct data_entry *entry)
+append_persons(struct render_blocks_list *blocks, sqlite3_stmt *res, const struct data_entry *entry, const char *type)
 {
-	const char *serialized_persons = (char *)sqlite3_column_text(res, ITEM_COLUMN_PERSONS);
+	const char *serialized_persons = (char *)sqlite3_column_text(res, entry->column);
 	if (serialized_persons == NULL) {
 		return true; // Ignore empty persons >:-D
 	}
-	struct string *persons;
-	if (entry->feature_mask == PERSON_AUTHOR) {
-		persons = deserialize_persons_string(serialized_persons, "author");
-	} else if (entry->feature_mask == PERSON_CONTRIBUTOR) {
-		persons = deserialize_persons_string(serialized_persons, "contributor");
-	} else if (entry->feature_mask == PERSON_EDITOR) {
-		persons = deserialize_persons_string(serialized_persons, "editor");
-	} else {
-		persons = NULL;
-	}
+	struct string *persons = deserialize_persons_string(serialized_persons, type);
 	if ((persons == NULL) || (persons->len == 0)) {
 		free_string(persons);
 		return true; // There is nothing here that we were looking for.
@@ -155,7 +131,7 @@ append_persons(struct render_blocks_list *blocks, sqlite3_stmt *res, const struc
 		return false;
 	}
 	free_string(persons);
-	if (join_render_block(blocks, block_text->ptr, block_text->len, TEXT_PLAIN) == false) {
+	if (join_render_block(blocks, block_text->ptr, block_text->len, TEXT_RAW) == false) {
 		free_string(block_text);
 		return false;
 	}
@@ -163,18 +139,36 @@ append_persons(struct render_blocks_list *blocks, sqlite3_stmt *res, const struc
 	return join_render_separator(blocks);
 }
 
+static bool
+append_authors(struct render_blocks_list *blocks, sqlite3_stmt *res, const struct data_entry *entry)
+{
+	return append_persons(blocks, res, entry, "author");
+}
+
+static bool
+append_contributors(struct render_blocks_list *blocks, sqlite3_stmt *res, const struct data_entry *entry)
+{
+	return append_persons(blocks, res, entry, "contributor");
+}
+
+static bool
+append_editors(struct render_blocks_list *blocks, sqlite3_stmt *res, const struct data_entry *entry)
+{
+	return append_persons(blocks, res, entry, "editor");
+}
+
 // ATTENTION! Maximal length of meta data entry name has to be reflected in MAX_METADATA_ENTRY_NAME_LENGTH.
 static const struct data_entry entries[] = {
-	{"feed-url",     "Feed: ",          6, ITEM_COLUMN_FEED_URL,         NO_EXTRA_DATA,      &append_plain_text},
-	{"title",        "Title: ",         7, ITEM_COLUMN_TITLE,            REQUIRES_INLINING,  &append_plain_text},
-	{"link",         "Link: ",          6, ITEM_COLUMN_LINK,             NO_EXTRA_DATA,      &append_plain_text},
-	{"published",    "Published: ",    11, ITEM_COLUMN_PUBLICATION_DATE, 0,                  &append_date},
-	{"updated",      "Updated: ",       9, ITEM_COLUMN_UPDATE_DATE,      0,                  &append_date},
-	{"authors",      "Authors: ",       9, 0,                            PERSON_AUTHOR,      &append_persons},
-	{"contributors", "Contributors: ", 14, 0,                            PERSON_CONTRIBUTOR, &append_persons},
-	{"editors",      "Editors: ",       9, 0,                            PERSON_EDITOR,      &append_persons},
-	{"max-content",  NULL,              0, 0,                            0,                  &append_max_content},
-	{NULL,           NULL,              0, 0,                            0,                  NULL},
+	{"feed-url",     "Feed: ",          6, ITEM_COLUMN_FEED_URL,         &append_text_line},
+	{"title",        "Title: ",         7, ITEM_COLUMN_TITLE,            &append_text_line},
+	{"link",         "Link: ",          6, ITEM_COLUMN_LINK,             &append_text_line},
+	{"published",    "Published: ",    11, ITEM_COLUMN_PUBLICATION_DATE, &append_date},
+	{"updated",      "Updated: ",       9, ITEM_COLUMN_UPDATE_DATE,      &append_date},
+	{"authors",      "Authors: ",       9, ITEM_COLUMN_PERSONS,          &append_authors},
+	{"contributors", "Contributors: ", 14, ITEM_COLUMN_PERSONS,          &append_contributors},
+	{"editors",      "Editors: ",       9, ITEM_COLUMN_PERSONS,          &append_editors},
+	{"max-content",  NULL,              0, 0,                            &append_max_content},
+	{NULL,           NULL,              0, 0,                            NULL},
 };
 
 bool

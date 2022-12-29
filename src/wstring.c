@@ -176,3 +176,15 @@ convert_wstring_to_string(const struct wstring *src)
 	str->lim = str->len;
 	return str;
 }
+
+struct string *
+convert_warray_to_string(const wchar_t *src_ptr, size_t src_len)
+{
+	struct wstring *wstr = wcrtas(src_ptr, src_len);
+	if (wstr == NULL) {
+		return NULL;
+	}
+	struct string *str = convert_wstring_to_string(wstr);
+	free_wstring(wstr);
+	return str;
+}

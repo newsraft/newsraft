@@ -14,6 +14,14 @@ prepare_to_render_data(struct render_blocks_list *blocks, struct links_list *lin
 			}
 			free_wstring(blocks->ptr[i].content);
 			blocks->ptr[i].content = processed_str;
+		} else if (blocks->ptr[i].content_type == TEXT_PLAIN) {
+			processed_str = prepare_to_render_text_plain(blocks->ptr[i].content, links);
+			if (processed_str == NULL) {
+				FAIL("Failed to prepare plain text for rendering!");
+				return false;
+			}
+			free_wstring(blocks->ptr[i].content);
+			blocks->ptr[i].content = processed_str;
 		}
 	}
 	return true;

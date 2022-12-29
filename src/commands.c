@@ -70,15 +70,11 @@ bool
 execute_command_with_specifiers_in_it(const struct wstring *wcmd_fmt, const struct format_arg *args)
 {
 	const wchar_t *wcmd_ptr = do_format(wcmd_fmt, args);
-	struct wstring *wcmd = wcrtas(wcmd_ptr, wcslen(wcmd_ptr));
-	if (wcmd != NULL) {
-		struct string *cmd = convert_wstring_to_string(wcmd);
-		free_wstring(wcmd);
-		if (cmd != NULL) {
-			execute_system_command(cmd->ptr);
-			free_string(cmd);
-			return true;
-		}
+	struct string *cmd = convert_warray_to_string(wcmd_ptr, wcslen(wcmd_ptr));
+	if (cmd == NULL) {
+		return false;
 	}
-	return false;
+	execute_system_command(cmd->ptr);
+	free_string(cmd);
+	return true;
 }

@@ -18,19 +18,15 @@ render_data(struct render_blocks_list *blocks)
 	line.hints_len = &blocks->hints_len;
 	for (size_t i = 0; i < blocks->len; ++i) {
 		line.indent = 0;
-		if (blocks->ptr[i].content_type == TEXT_PLAIN) {
-			line_string(&line, blocks->ptr[i].content->ptr);
-			if (line.len == 0) {
-				trim_whitespace_from_wstring(text);
-			}
-		} else if (blocks->ptr[i].content_type == TEXT_HTML) {
+		if (blocks->ptr[i].content_type == TEXT_HTML) {
 			render_text_html(&line, blocks->ptr[i].content);
 			append_format_hint_to_line(&line, FORMAT_ALL_END);
-			if (line.len == 0) {
-				trim_whitespace_from_wstring(text);
-			}
+			trim_whitespace_from_wstring(text);
 		} else if (blocks->ptr[i].content_type == TEXT_SEPARATOR) {
 			line_char(&line, L'\n');
+		} else { // TEXT_RAW || TEXT_PLAIN
+			line_string(&line, blocks->ptr[i].content->ptr);
+			trim_whitespace_from_wstring(text);
 		}
 	}
 	trim_whitespace_from_wstring(text);

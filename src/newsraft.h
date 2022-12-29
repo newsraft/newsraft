@@ -168,6 +168,7 @@ enum {
 typedef uint8_t render_block_format;
 enum {
 	TEXT_PLAIN,
+	TEXT_RAW, // Same thing as TEXT_PLAIN, but without search for links.
 	TEXT_HTML,
 	TEXT_SEPARATOR,
 };
@@ -480,6 +481,7 @@ void empty_wstring(struct wstring *dest);
 void free_wstring(struct wstring *wstr);
 void trim_whitespace_from_wstring(struct wstring *wstr);
 struct string *convert_wstring_to_string(const struct wstring *src);
+struct string *convert_warray_to_string(const wchar_t *src_ptr, size_t src_len);
 
 // See "signal.c" file for implementation.
 bool register_signal_handlers(void);

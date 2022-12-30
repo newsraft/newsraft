@@ -13,22 +13,14 @@ remove_trailing_slashes_from_string(struct string *str)
 static inline bool
 check_url_for_validity(const struct string *str)
 {
-	if (str->len == 0) {
-		fputs("Feed URL is empty!\n", stderr);
-		return false;
-	}
-	if (strstr(str->ptr, "://") == NULL) {
-		fputs("Feed URL is missing protocol scheme!\n", stderr);
-		fputs("Every feed URL must start with a protocol definition like \"http://\".\n", stderr);
-		return false;
-	}
 	if ((strncmp(str->ptr, "http://", 7) != 0)
 		&& (strncmp(str->ptr, "https://", 8) != 0)
 		&& (strncmp(str->ptr, "ftp://", 6) != 0)
 		&& (strncmp(str->ptr, "file://", 7) != 0))
 	{
-		fputs("Feed URL has unknown protocol scheme!\n", stderr);
-		fputs("Supported protocols are http, https, ftp and file.\n", stderr);
+		fprintf(stderr, "Stumbled across an invalid URL: \"%s\"!\n", str->ptr);
+		fputs("Every feed URL must start with a protocol scheme like \"http://\".\n", stderr);
+		fputs("Supported protocol schemes are http, https, ftp and file.\n", stderr);
 		return false;
 	}
 	return true;
@@ -101,11 +93,10 @@ parse_feeds_file(void)
 			c = fgetc(f);
 			if (ISWHITESPACE(c) || c == EOF) { break; }
 		}
-		remove_trailing_slashes_from_string(feed.link);
 		if (check_url_for_validity(feed.link) == false) {
-			fprintf(stderr, "Stumbled across an invalid URL: \"%s\"!\n", feed.link->ptr);
 			goto error;
 		}
+		remove_trailing_slashes_from_string(feed.link);
 		while (ISWHITESPACEEXCEPTNEWLINE(c)) { c = fgetc(f); }
 		// process name
 		if (c == '"') {

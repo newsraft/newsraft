@@ -158,7 +158,7 @@ copy_feed_to_section(const struct feed_entry *feed, const struct string *section
 	return attach_feed_to_section(attached_feed, &sections[sections_count - 1]);
 }
 
-bool
+void
 name_feeds_by_their_titles_in_db(void)
 {
 	struct string *tmp;
@@ -167,15 +167,11 @@ name_feeds_by_their_titles_in_db(void)
 			tmp = db_get_string_from_feed_table(sections[0].feeds[i]->link, "title", 5);
 			if (tmp != NULL) {
 				inlinefy_string(tmp);
-				if (crtss_or_cpyss(&sections[0].feeds[i]->name, tmp) == false) {
-					free_string(tmp);
-					return false;
-				}
-				free_string(tmp);
+				free_string(sections[0].feeds[i]->name);
+				sections[0].feeds[i]->name = tmp;
 			}
 		}
 	}
-	return true;
 }
 
 void

@@ -76,7 +76,7 @@ main(int argc, char **argv)
 	initialize_settings_of_list_menus();
 	refresh_unread_items_count_of_all_sections();
 	if (catch_database_file_optimization() == false) { error = 21; goto undo12; }
-	if (name_feeds_by_their_titles_in_db() == false) { error = 22; goto undo12; }
+	name_feeds_by_their_titles_in_db();
 
 	enter_sections_menu_loop();
 

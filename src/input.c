@@ -145,6 +145,8 @@ assign_default_binds(void)
 	if (assign_action_to_key("KEY_HOME",       8, INPUT_SELECT_FIRST)          == false) { goto fail; }
 	if (assign_action_to_key("G",              1, INPUT_SELECT_LAST)           == false) { goto fail; }
 	if (assign_action_to_key("KEY_END",        7, INPUT_SELECT_LAST)           == false) { goto fail; }
+	if (assign_action_to_key("s",              1, INPUT_SORT_NEXT)             == false) { goto fail; }
+	if (assign_action_to_key("S",              1, INPUT_SORT_PREV)             == false) { goto fail; }
 	if (assign_action_to_key("l",              1, INPUT_ENTER)                 == false) { goto fail; }
 	if (assign_action_to_key("^J",             2, INPUT_ENTER)                 == false) { goto fail; }
 	if (assign_action_to_key("KEY_RIGHT",      9, INPUT_ENTER)                 == false) { goto fail; }

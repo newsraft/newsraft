@@ -17,6 +17,8 @@ static const struct input_entry_match entries[] = {
 	{"select-prev-page",      INPUT_SELECT_PREV_PAGE     },
 	{"select-first",          INPUT_SELECT_FIRST         },
 	{"select-last",           INPUT_SELECT_LAST          },
+	{"sorting-method-next",   INPUT_SORT_NEXT            },
+	{"sorting-method-prev",   INPUT_SORT_PREV            },
 	{"enter",                 INPUT_ENTER                },
 	{"reload",                INPUT_RELOAD               },
 	{"reload-all",            INPUT_RELOAD_ALL           },

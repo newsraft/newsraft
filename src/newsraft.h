@@ -94,6 +94,8 @@ enum {
 	INPUT_SELECT_PREV_PAGE,
 	INPUT_SELECT_FIRST,
 	INPUT_SELECT_LAST,
+	INPUT_SORT_NEXT,
+	INPUT_SORT_PREV,
 	INPUT_ENTER,
 	INPUT_RELOAD,
 	INPUT_RELOAD_ALL,
@@ -156,13 +158,12 @@ enum {
 	MENUS_COUNT
 };
 
-typedef uint8_t sorting_order;
+typedef int8_t sorting_order; // Need negative numbers somewhere.
 enum {
-	SORT_BY_NONE,
-	SORT_BY_TIME_DESC,
+	SORT_BY_TIME_DESC = 0,
 	SORT_BY_TIME_ASC,
-	SORT_BY_NAME_DESC,
-	SORT_BY_NAME_ASC,
+	SORT_BY_TITLE_DESC,
+	SORT_BY_TITLE_ASC,
 };
 
 typedef uint8_t render_block_format;
@@ -216,6 +217,7 @@ struct item_entry {
 struct items_list {
 	struct item_entry *ptr;
 	size_t len;
+	sorting_order sort;
 };
 
 struct format_arg {
@@ -300,6 +302,7 @@ const wchar_t *do_format(const struct wstring *fmt, const struct format_arg *arg
 
 // items
 struct items_list *generate_items_list(struct feed_entry **feeds, size_t feeds_count, sorting_order order);
+bool change_sorting_order_of_items_list(struct items_list **items, struct feed_entry **feeds, size_t feeds_count, sorting_order order);
 void free_items_list(struct items_list *items);
 input_cmd_id enter_items_menu_loop(struct feed_entry **feeds, size_t feeds_count, config_entry_id format_id);
 const struct format_arg *prepare_item_entry_args(size_t index);

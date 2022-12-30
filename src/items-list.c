@@ -5,18 +5,13 @@
 static inline bool
 append_sorting_order_expression_to_query(struct string *query, sorting_order order)
 {
-	if (order == SORT_BY_NONE) {
-		return true;
-	} else if (order == SORT_BY_TIME_DESC) {
-		return catas(query, " ORDER BY publication_date DESC, update_date DESC, rowid DESC", 61);
-	} else if (order == SORT_BY_TIME_ASC) {
-		return catas(query, " ORDER BY publication_date ASC, update_date ASC, rowid ASC", 58);
-	} else if (order == SORT_BY_NAME_DESC) {
-		return true; // TODO
-	} else if (order == SORT_BY_NAME_ASC) {
-		return true; // TODO
+	switch (order) {
+		case SORT_BY_TIME_DESC:  return catas(query, " ORDER BY publication_date DESC, update_date DESC, rowid DESC", 61);
+		case SORT_BY_TIME_ASC:   return catas(query, " ORDER BY publication_date ASC, update_date ASC, rowid ASC", 58);
+		case SORT_BY_TITLE_DESC: return catas(query, " ORDER BY title DESC, rowid DESC", 32);
+		case SORT_BY_TITLE_ASC:  return catas(query, " ORDER BY title ASC, rowid ASC", 30);
 	}
-	return true; // Will never happen.
+	return false;
 }
 
 static inline struct string *
@@ -38,18 +33,6 @@ generate_search_query_string(size_t feeds_count, sorting_order order)
 		return NULL;
 	}
 	return query;
-}
-
-static inline struct items_list *
-create_items_list(void)
-{
-	struct items_list *items = malloc(sizeof(struct items_list));
-	if (items == NULL) {
-		return NULL;
-	}
-	items->ptr = NULL;
-	items->len = 0;
-	return items;
 }
 
 void
@@ -84,25 +67,25 @@ generate_items_list(struct feed_entry **feeds, size_t feeds_count, sorting_order
 {
 	INFO("Generating items list.");
 	if (feeds_count == 0) {
-		FAIL("For some mysterious reason feeds_count is zero!");
-		goto undo0;
+		return NULL;
 	}
-	struct string *query = generate_search_query_string(feeds_count, order);
+	struct items_list *items = calloc(1, sizeof(struct items_list));
+	if (items == NULL) {
+		return NULL;
+	}
+	items->sort = order;
+	struct string *query = generate_search_query_string(feeds_count, items->sort);
 	if (query == NULL) {
 		fail_status("Can't generate search query string!");
-		goto undo0;
+		goto undo1;
 	}
 	sqlite3_stmt *res = db_prepare(query->ptr, query->len + 1);
 	if (res == NULL) {
 		fail_status("Can't prepare search query for action!");
-		goto undo1;
+		goto undo2;
 	}
 	for (size_t i = 0; i < feeds_count; ++i) {
 		sqlite3_bind_text(res, i + 1, feeds[i]->link->ptr, feeds[i]->link->len, NULL);
-	}
-	struct items_list *items = create_items_list();
-	if (items == NULL) {
-		goto undo2;
 	}
 	void *tmp;
 	const char *text;
@@ -154,11 +137,36 @@ generate_items_list(struct feed_entry **feeds, size_t feeds_count, sorting_order
 	free_string(query);
 	return items;
 undo3:
-	free_items_list(items);
-undo2:
 	sqlite3_finalize(res);
-undo1:
+undo2:
 	free_string(query);
-undo0:
+undo1:
+	free_items_list(items);
 	return NULL;
+}
+
+bool
+change_sorting_order_of_items_list(struct items_list **items, struct feed_entry **feeds, size_t feeds_count, sorting_order order)
+{
+	if (order > SORT_BY_TITLE_ASC) {
+		order = SORT_BY_TIME_DESC;
+	} else if (order < 0) {
+		order = SORT_BY_TITLE_ASC;
+	}
+	struct items_list *new_items = generate_items_list(feeds, feeds_count, order);
+	if (new_items == NULL) {
+		return false;
+	}
+	pthread_mutex_lock(&interface_lock);
+	free_items_list(*items);
+	*items = new_items;
+	redraw_list_menu_unprotected();
+	pthread_mutex_unlock(&interface_lock);
+	switch (order) {
+		case SORT_BY_TIME_DESC:  info_status("Sorted items by time (descending).");  break;
+		case SORT_BY_TIME_ASC:   info_status("Sorted items by time (ascending).");   break;
+		case SORT_BY_TITLE_DESC: info_status("Sorted items by title (descending)."); break;
+		case SORT_BY_TITLE_ASC:  info_status("Sorted items by title (ascending).");  break;
+	}
+	return true;
 }

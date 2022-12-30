@@ -393,6 +393,10 @@ _select-first_ (default: *g*, *KEY_HOME*)
 
 _select-last_ (default: *G*, *KEY_END*)
 
+_sorting-method-next_ (default: *s*)
+
+_sorting-method-prev_ (default: *S*)
+
 _enter_ (default: *l*, *^J*, *KEY_RIGHT*, *KEY_ENTER*)
 
 _reload_ (default: *r*)

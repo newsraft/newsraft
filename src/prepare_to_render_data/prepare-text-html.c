@@ -78,11 +78,10 @@ add_url_mark(struct links_list *links, struct string *text, const char *url, con
 	}
 
 	// Add link mark to HTML content.
-	struct string *url_mark = crtes();
+	struct string *url_mark = crtes(50);
 	if (url_mark == NULL) {
 		return;
 	}
-
 	if (type == NULL) {
 		if (title == NULL) {
 			string_printf(url_mark, " [%" PRId64 "]", url_index + 1);
@@ -96,7 +95,6 @@ add_url_mark(struct links_list *links, struct string *text, const char *url, con
 			string_printf(url_mark, " [%" PRId64 ", %s \"%s\"]", url_index + 1, type, title);
 		}
 	}
-
 	catss(text, url_mark);
 	free_string(url_mark);
 }
@@ -303,7 +301,7 @@ free_abbrs(struct html_data *data)
 struct wstring *
 prepare_to_render_text_html(const struct wstring *wide_src, struct links_list *links)
 {
-	struct string *text = crtes();
+	struct string *text = crtes(wide_src->len + 1000);
 	if (text == NULL) {
 		FAIL("Not enough memory for text buffer to prepare HTML render block!");
 		return NULL;

@@ -4,11 +4,28 @@
 
 // Note to the future.
 // When allocating memory, we request more resources than necessary to reduce
-// the number of further realloc calls to expand string string buffer.
+// the number of further realloc calls to expand wstring buffer.
 
-// Create wstring out of array.
-// On success returns pointer to wstring.
-// On memory shortage returns NULL.
+struct wstring *
+wcrtes(size_t desired_capacity)
+{
+	struct wstring *wstr = malloc(sizeof(struct wstring));
+	if (wstr == NULL) {
+		FAIL("Not enough memory for wstring structure!");
+		return NULL;
+	}
+	wstr->ptr = malloc(sizeof(wchar_t) * (desired_capacity + 1));
+	if (wstr->ptr == NULL) {
+		FAIL("Not enough memory for wstring pointer!");
+		free(wstr);
+		return NULL;
+	}
+	*wstr->ptr = L'\0';
+	wstr->len = 0;
+	wstr->lim = desired_capacity;
+	return wstr;
+}
+
 struct wstring *
 wcrtas(const wchar_t *src_ptr, size_t src_len)
 {
@@ -31,16 +48,6 @@ wcrtas(const wchar_t *src_ptr, size_t src_len)
 	return wstr;
 }
 
-// Create empty wstring.
-struct wstring *
-wcrtes(void)
-{
-	return wcrtas(L"", 0);
-}
-
-// Copy array to wstring.
-// On success returns true.
-// On memory shortage returns false.
 bool
 wcpyas(struct wstring *dest, const wchar_t *src_ptr, size_t src_len)
 {
@@ -60,9 +67,6 @@ wcpyas(struct wstring *dest, const wchar_t *src_ptr, size_t src_len)
 	return true;
 }
 
-// Concatenate array to wstring.
-// On success returns true.
-// On memory shortage returns false.
 bool
 wcatas(struct wstring *dest, const wchar_t *src_ptr, size_t src_len)
 {
@@ -83,16 +87,12 @@ wcatas(struct wstring *dest, const wchar_t *src_ptr, size_t src_len)
 	return true;
 }
 
-// Concatenate wstring to wstring.
 bool
 wcatss(struct wstring *dest, const struct wstring *src)
 {
 	return wcatas(dest, src->ptr, src->len);
 }
 
-// Concatenate character to wstring.
-// On success returns true.
-// On memory shortage returns false.
 bool
 wcatcs(struct wstring *dest, wchar_t c)
 {

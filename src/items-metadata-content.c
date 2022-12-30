@@ -20,7 +20,7 @@ get_largest_text_piece_from_item_serialized_data(
 	if (data == NULL) {
 		return true; // There's no data. Ignore it.
 	}
-	struct string *temp_text = crtes();
+	struct string *temp_text = crtes(1000);
 	struct deserialize_stream *stream = open_deserialize_stream(data);
 	if ((temp_text == NULL) || (stream == NULL)) {
 		goto error;

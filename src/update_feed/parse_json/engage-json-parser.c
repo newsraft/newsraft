@@ -310,7 +310,7 @@ static const yajl_callbacks callbacks = {
 bool
 engage_json_parser(struct stream_callback_data *data)
 {
-	data->text = crtes();
+	data->text = crtes(50000);
 	if (data->text == NULL) {
 		return false;
 	}

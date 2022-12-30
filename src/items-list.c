@@ -132,7 +132,7 @@ generate_items_list(struct feed_entry **feeds, size_t feeds_count, sorting_order
 		}
 
 		text = (const char *)sqlite3_column_text(res, 3);
-		items->ptr[items->len].url = text == NULL ? crtes() : crtas(text, strlen(text));
+		items->ptr[items->len].url = text == NULL ? crtes(1) : crtas(text, strlen(text));
 
 		int64_t item_date = sqlite3_column_int64(res, 4); // publication_date
 		int64_t tmp_date = sqlite3_column_int64(res, 5); // update_date

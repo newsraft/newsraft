@@ -40,7 +40,7 @@ serialize_caret(struct string **target)
 	if (*target != NULL) {
 		return catas(*target, caret, 2);
 	}
-	*target = crtes();
+	*target = crtes(100);
 	return *target != NULL ? catas(*target, caret, 2) : false;
 }
 
@@ -51,7 +51,7 @@ serialize_array(struct string **target, const char *key, size_t key_len, const c
 		return true; // Ignore empty entries.
 	}
 	if (*target == NULL) {
-		*target = crtes();
+		*target = crtes(100);
 		if (*target == NULL) {
 			return false;
 		}
@@ -89,7 +89,7 @@ open_deserialize_stream(const char *serialized_data)
 	if (stream == NULL) {
 		return NULL;
 	}
-	stream->entry = crtes();
+	stream->entry = crtes(100);
 	if (stream->entry == NULL) {
 		free(stream);
 		return NULL;

@@ -106,7 +106,7 @@ status_write(config_entry_id color, const char *format, ...)
 	pthread_mutex_lock(&interface_lock);
 	va_list args;
 	va_start(args, format);
-	struct string *new_message = crtes();
+	struct string *new_message = crtes(100);
 	if (new_message == NULL) {
 		goto undo;
 	}
@@ -131,7 +131,7 @@ undo:
 struct string *
 generate_string_with_status_messages_for_pager(void)
 {
-	struct string *str = crtes();
+	struct string *str = crtes(1000);
 	if (str == NULL) {
 		FAIL("Not enough memory for string with status messages for pager!");
 		return NULL;

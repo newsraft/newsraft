@@ -195,7 +195,7 @@ character_data_handler(void *userData, const XML_Char *s, int len)
 bool
 engage_xml_parser(struct stream_callback_data *data)
 {
-	data->text = crtes();
+	data->text = crtes(50000);
 	if (data->text == NULL) {
 		return false;
 	}

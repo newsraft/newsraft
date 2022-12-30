@@ -442,9 +442,9 @@ bool copy_string_to_clipboard(const struct string *src);
 bool execute_command_with_specifiers_in_it(const struct wstring *wcmd_fmt, const struct format_arg *args);
 
 // See "string.c" file for implementation.
+struct string *crtes(size_t desired_capacity);
 struct string *crtas(const char *src_ptr, size_t src_len);
 struct string *crtss(const struct string *src);
-struct string *crtes(void);
 bool cpyas(struct string *dest, const char *src_ptr, size_t src_len);
 bool cpyss(struct string *dest, const struct string *src);
 bool catas(struct string *dest, const char *src_ptr, size_t src_len);
@@ -470,8 +470,8 @@ const struct string *get_next_entry_from_deserialize_stream(struct deserialize_s
 void close_deserialize_stream(struct deserialize_stream *stream);
 
 // See "wstring.c" file for implementation.
+struct wstring *wcrtes(size_t desired_capacity);
 struct wstring *wcrtas(const wchar_t *src_ptr, size_t src_len);
-struct wstring *wcrtes(void);
 bool wcpyas(struct wstring *dest, const wchar_t *src_ptr, size_t src_len);
 bool wcatas(struct wstring *dest, const wchar_t *src_ptr, size_t src_len);
 bool wcatss(struct wstring *dest, const struct wstring *src);

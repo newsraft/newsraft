@@ -54,13 +54,13 @@ parse_feeds_file(void)
 		return false;
 	}
 	struct feed_entry feed;
-	feed.name = crtes();
+	feed.name = crtes(100);
 	if (feed.name == NULL) {
 		free_string(section_name);
 		fclose(f);
 		return false;
 	}
-	feed.link = crtes();
+	feed.link = crtes(200);
 	if (feed.link == NULL) {
 		free_string(feed.name);
 		free_string(section_name);

@@ -108,7 +108,7 @@ expand_last_row_in_html_table_by_one_cell(struct html_table *table, GumboVector 
 	}
 
 	tmp[last_row->cells_count - colspan].lines = malloc(sizeof(struct wstring *));
-	tmp[last_row->cells_count - colspan].lines[0] = wcrtes();
+	tmp[last_row->cells_count - colspan].lines[0] = wcrtes(10);
 	tmp[last_row->cells_count - colspan].lines_count = 1;
 	tmp[last_row->cells_count - colspan].colspan = colspan;
 	tmp[last_row->cells_count - colspan].rowspan = rowspan;
@@ -140,7 +140,7 @@ expand_target_cell_by_one_line(struct html_table *table, GumboVector *attrs)
 			sizeof(struct wstring *) * (table->target->lines_count + 1)
 		);
 		if (tmp != NULL) {
-			tmp[table->target->lines_count] = wcrtes();
+			tmp[table->target->lines_count] = wcrtes(10);
 			table->target->lines = tmp;
 			table->target->lines_count += 1;
 		}
@@ -311,7 +311,7 @@ void
 write_contents_of_html_table_node_to_text(struct line *line, GumboNode *node)
 {
 	struct html_table table = {0};
-	table.unmapped_text = wcrtes();
+	table.unmapped_text = wcrtes(10);
 	if (table.unmapped_text == NULL) {
 		return;
 	}

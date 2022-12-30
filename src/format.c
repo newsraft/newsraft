@@ -8,15 +8,14 @@ static struct wstring *tmp_buf;
 bool
 create_format_buffers(void)
 {
-	fmt_buf = wcrtes();
-	tmp_buf = wcrtes();
+	fmt_buf = wcrtes(1000);
+	tmp_buf = wcrtes(100);
 	if ((fmt_buf == NULL) || (tmp_buf == NULL)) {
 		fputs("Not enough memory for format buffers!\n", stderr);
 		free_wstring(fmt_buf);
 		free_wstring(tmp_buf);
 		return false;
 	}
-	increase_wstring_size(fmt_buf, 1000);
 	return true;
 }
 

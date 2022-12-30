@@ -4,7 +4,7 @@
 struct wstring *
 render_data(struct render_blocks_list *blocks)
 {
-	struct wstring *text = wcrtes();
+	struct wstring *text = wcrtes(1000);
 	if (text == NULL) {
 		FAIL("Not enough memory to render data!");
 		return NULL;

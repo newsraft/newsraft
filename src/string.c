@@ -6,9 +6,26 @@
 // When allocating memory, we request more resources than necessary to reduce
 // the number of further realloc calls to expand string buffer.
 
-// Create string out of array.
-// On success returns pointer to string.
-// On memory shortage returns NULL.
+struct string *
+crtes(size_t desired_capacity)
+{
+	struct string *str = malloc(sizeof(struct string));
+	if (str == NULL) {
+		FAIL("Not enough memory for string structure!");
+		return NULL;
+	}
+	str->ptr = malloc(sizeof(char) * (desired_capacity + 1));
+	if (str->ptr == NULL) {
+		FAIL("Not enough memory for string pointer!");
+		free(str);
+		return NULL;
+	}
+	*str->ptr = '\0';
+	str->len = 0;
+	str->lim = desired_capacity;
+	return str;
+}
+
 struct string *
 crtas(const char *src_ptr, size_t src_len)
 {
@@ -31,23 +48,12 @@ crtas(const char *src_ptr, size_t src_len)
 	return str;
 }
 
-// Create string out of string.
 struct string *
 crtss(const struct string *src)
 {
 	return crtas(src->ptr, src->len);
 }
 
-// Create empty string.
-struct string *
-crtes(void)
-{
-	return crtas("", 0);
-}
-
-// Copy array to string.
-// On success returns true.
-// On memory shortage returns false.
 bool
 cpyas(struct string *dest, const char *src_ptr, size_t src_len)
 {
@@ -67,16 +73,12 @@ cpyas(struct string *dest, const char *src_ptr, size_t src_len)
 	return true;
 }
 
-// Copy string to string.
 bool
 cpyss(struct string *dest, const struct string *src)
 {
 	return cpyas(dest, src->ptr, src->len);
 }
 
-// Concatenate array to string.
-// On success returns true.
-// On memory shortage returns false.
 bool
 catas(struct string *dest, const char *src_ptr, size_t src_len)
 {
@@ -97,16 +99,12 @@ catas(struct string *dest, const char *src_ptr, size_t src_len)
 	return true;
 }
 
-// Concatenate string to string.
 bool
 catss(struct string *dest, const struct string *src)
 {
 	return catas(dest, src->ptr, src->len);
 }
 
-// Concatenate character to string.
-// On success returns true.
-// On memory shortage returns false.
 bool
 catcs(struct string *dest, char c)
 {

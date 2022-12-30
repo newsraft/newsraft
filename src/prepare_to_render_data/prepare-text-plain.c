@@ -4,12 +4,8 @@
 struct wstring *
 prepare_to_render_text_plain(const struct wstring *wide_src, struct links_list *links)
 {
-	struct wstring *output = wcrtes();
+	struct wstring *output = wcrtes(wide_src->len + 100);
 	if (output == NULL) {
-		return NULL;
-	}
-	if (increase_wstring_size(output, wide_src->len) == false) {
-		free_wstring(output);
 		return NULL;
 	}
 	int64_t link_start = -1;

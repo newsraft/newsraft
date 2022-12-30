@@ -46,7 +46,7 @@ append_max_content(struct render_blocks_list *blocks, sqlite3_stmt *res, const s
 {
 	(void)entry;
 	const char *content = (char *)sqlite3_column_text(res, ITEM_COLUMN_CONTENT);
-	struct string *text = crtes();
+	struct string *text = crtes(1000);
 	if (text == NULL) {
 		return false;
 	}

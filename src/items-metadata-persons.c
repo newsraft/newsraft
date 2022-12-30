@@ -16,10 +16,10 @@ create_person(void)
 	if (person == NULL) {
 		return NULL;
 	}
-	person->type = crtes();
-	person->name = crtes();
-	person->email = crtes();
-	person->url = crtes();
+	person->type = crtes(17);
+	person->name = crtes(19);
+	person->email = crtes(23);
+	person->url = crtes(29);
 	if ((person->type == NULL)
 		|| (person->name == NULL)
 		|| (person->email == NULL)
@@ -96,7 +96,7 @@ write_person_to_result(struct string *result, const struct person *person)
 struct string *
 deserialize_persons_string(const char *src, const char *person_type)
 {
-	struct string *result = crtes();
+	struct string *result = crtes(100);
 	struct person *person = create_person();
 	struct deserialize_stream *stream = open_deserialize_stream(src);
 	if ((person == NULL) || (result == NULL) || (stream == NULL)) {

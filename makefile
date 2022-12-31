@@ -4,7 +4,7 @@
 CC             = cc
 CFLAGS         = -O3
 LDFLAGS        =
-NEWSRAFT_FLAGS = -DNEWSRAFT_VERSION=\"0.13\"
+NEWSRAFT_FLAGS = -DNEWSRAFT_VERSION=\"0.14\"
 CURL_LIBS      = -lcurl
 CURSES_LIBS    = -lncursesw
 EXPAT_LIBS     = -lexpat

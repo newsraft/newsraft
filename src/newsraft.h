@@ -1,5 +1,10 @@
 #ifndef NEWSRAFT_H
 #define NEWSRAFT_H
+
+#ifdef __APPLE__
+#define _DARWIN_C_SOURCE
+#endif
+
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdio.h>

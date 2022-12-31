@@ -13,9 +13,7 @@ join_links_render_block(struct render_blocks_list *blocks, struct links_list *li
 		return false;
 	}
 	join_render_separator(blocks);
-	join_render_separator(blocks);
 	join_render_block(blocks, str->ptr, str->len, TEXT_RAW);
-	join_render_separator(blocks);
 	free_string(str);
 	return true;
 }
@@ -49,7 +47,7 @@ populate_render_blocks_list_with_data_from_item(const struct item_entry *item, s
 error:
 	sqlite3_finalize(res);
 	free_render_blocks(blocks);
-	free_trim_link_list(links);
+	free_links_list(links);
 	return false;
 }
 
@@ -81,6 +79,6 @@ enter_item_pager_view_loop(const struct item_entry *item)
 	}
 	const int pager_result = pager_view(&blocks, &custom_input_handler, (void *)&links);
 	free_render_blocks(&blocks);
-	free_trim_link_list(&links);
+	free_links_list(&links);
 	return pager_result;
 }

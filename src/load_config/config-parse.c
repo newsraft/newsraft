@@ -1,4 +1,3 @@
-#include <stdlib.h>
 #include <string.h>
 #include <curses.h>
 #include "load_config/load_config.h"
@@ -45,13 +44,13 @@ process_set_line(char *line)
 		} else if (strcmp(i, "false") == 0) {
 			set_cfg_bool(id, false);
 		} else {
-			fputs("Boolean settings can only take the values \"true\" or \"false\"!\n", stderr);
+			fputs("Boolean settings only take \"true\" and \"false\" for values!\n", stderr);
 			return false;
 		}
 	} else if (type == CFG_UINT) {
 		size_t val;
 		if ((*i == '\0') || (*i == '-') || (sscanf(i, "%zu", &val) != 1)) {
-			fputs("Numeric settings can only take non-negative integer values!\n", stderr);
+			fputs("Numeric settings only take non-negative integers for values!\n", stderr);
 			return false;
 		}
 		set_cfg_uint(id, val);

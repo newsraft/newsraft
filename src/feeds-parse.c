@@ -11,14 +11,14 @@ remove_trailing_slashes_from_string(struct string *str)
 }
 
 static inline bool
-check_url_for_validity(const struct string *str)
+check_url_for_validity(const struct string *url)
 {
-	if ((strncmp(str->ptr, "http://", 7) != 0)
-		&& (strncmp(str->ptr, "https://", 8) != 0)
-		&& (strncmp(str->ptr, "ftp://", 6) != 0)
-		&& (strncmp(str->ptr, "file://", 7) != 0))
+	if ((strncmp(url->ptr, "http://", 7) != 0)
+		&& (strncmp(url->ptr, "https://", 8) != 0)
+		&& (strncmp(url->ptr, "ftp://", 6) != 0)
+		&& (strncmp(url->ptr, "file://", 7) != 0))
 	{
-		fprintf(stderr, "Stumbled across an invalid URL: \"%s\"!\n", str->ptr);
+		fprintf(stderr, "Stumbled across an invalid URL: \"%s\"!\n", url->ptr);
 		fputs("Every feed URL must start with a protocol scheme like \"http://\".\n", stderr);
 		fputs("Supported protocol schemes are http, https, ftp and file.\n", stderr);
 		return false;
@@ -129,7 +129,6 @@ parse_feeds_file(void)
 	fclose(f);
 	return true;
 error:
-	free_sections();
 	free_string(feed.link);
 	free_string(feed.name);
 	free_string(section_name);

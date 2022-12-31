@@ -63,41 +63,43 @@ main(int argc, char **argv)
 	if (load_config()                      == false) { error = 8;  goto undo2;  }
 	if (db_init()                          == false) { error = 9;  goto undo3;  }
 	if (start_database_file_optimization() == false) { error = 10; goto undo4;  }
-	if (create_global_section()            == false) { error = 11; goto undo4;  }
-	if (parse_feeds_file()                 == false) { error = 12; goto undo5;  }
-	if (curses_init()                      == false) { error = 13; goto undo5;  }
-	if (adjust_list_menu()                 == false) { error = 14; goto undo6;  }
-	if (create_format_buffers()            == false) { error = 15; goto undo7;  }
-	if (status_recreate()                  == false) { error = 16; goto undo8;  }
-	if (counter_recreate()                 == false) { error = 17; goto undo9;  }
-	if (initialize_update_threads()        == false) { error = 18; goto undo10; }
-	if (get_local_offset_relative_to_utc() == false) { error = 19; goto undo11; }
-	if (curl_global_init(CURL_GLOBAL_DEFAULT)  != 0) { error = 20; goto undo11; }
+	if (create_global_section()            == false) { error = 11; goto undo5;  }
+	if (parse_feeds_file()                 == false) { error = 12; goto undo6;  }
+	if (curses_init()                      == false) { error = 13; goto undo6;  }
+	if (adjust_list_menu()                 == false) { error = 14; goto undo7;  }
+	if (create_format_buffers()            == false) { error = 15; goto undo8;  }
+	if (status_recreate()                  == false) { error = 16; goto undo9;  }
+	if (counter_recreate()                 == false) { error = 17; goto undo10; }
+	if (initialize_update_threads()        == false) { error = 18; goto undo11; }
+	if (get_local_offset_relative_to_utc() == false) { error = 19; goto undo12; }
+	if (curl_global_init(CURL_GLOBAL_DEFAULT)  != 0) { error = 20; goto undo12; }
 	initialize_settings_of_list_menus();
 	refresh_unread_items_count_of_all_sections();
-	if (catch_database_file_optimization() == false) { error = 21; goto undo12; }
+	if (catch_database_file_optimization() == false) { error = 21; goto undo13; }
 	name_feeds_by_their_titles_in_db();
 
 	enter_sections_menu_loop();
 
 	wait_for_all_threads_to_finish();
 
-undo12:
+undo13:
 	curl_global_cleanup();
-undo11:
+undo12:
 	terminate_update_threads();
-undo10:
+undo11:
 	counter_delete();
-undo9:
+undo10:
 	status_delete();
-undo8:
+undo9:
 	free_format_buffers();
-undo7:
+undo8:
 	free_list_menu();
-undo6:
+undo7:
 	endwin();
-undo5:
+undo6:
 	free_sections();
+undo5:
+	if ((error > 0) && (error < 21)) catch_database_file_optimization();
 undo4:
 	db_stop();
 undo3:

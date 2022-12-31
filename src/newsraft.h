@@ -171,7 +171,6 @@ enum {
 	TEXT_PLAIN,
 	TEXT_RAW, // Same thing as TEXT_PLAIN, but without search for links.
 	TEXT_HTML,
-	TEXT_SEPARATOR,
 };
 
 typedef uint8_t format_hint_mask;
@@ -234,6 +233,7 @@ struct format_arg {
 struct render_block {
 	struct wstring *content;
 	render_block_format content_type;
+	size_t separators_count;
 };
 
 struct format_hint {
@@ -300,16 +300,18 @@ bool create_format_buffers(void);
 void free_format_buffers(void);
 const wchar_t *do_format(const struct wstring *fmt, const struct format_arg *args);
 
-// items
-struct items_list *generate_items_list(struct feed_entry **feeds, size_t feeds_count, sorting_order order);
-bool change_sorting_order_of_items_list(struct items_list **items, struct feed_entry **feeds, size_t feeds_count, sorting_order order);
-void free_items_list(struct items_list *items);
-input_cmd_id enter_items_menu_loop(struct feed_entry **feeds, size_t feeds_count, config_entry_id format_id);
+// See "items.c" file for implementation.
 const struct format_arg *prepare_item_entry_args(size_t index);
 int paint_item_entry(size_t index);
 bool unread_item_condition(size_t index);
 bool important_item_condition(size_t index);
 void mark_selected_item_read(size_t view_sel);
+input_cmd_id enter_items_menu_loop(struct feed_entry **feeds, size_t feeds_count, config_entry_id format_id);
+
+// See "items-list.c" file for implementation.
+struct items_list *generate_items_list(struct feed_entry **feeds, size_t feeds_count, sorting_order order);
+bool change_sorting_order_of_items_list(struct items_list **items, struct feed_entry **feeds, size_t feeds_count, sorting_order order);
+void free_items_list(struct items_list *items);
 
 // Functions responsible for managing render blocks.
 // Render block is a piece of text in a single format. A list of render blocks
@@ -317,12 +319,14 @@ void mark_selected_item_read(size_t view_sel);
 // and generates a single plain text buffer for a pager to display.
 // See "render-block.c" file for implementation.
 bool join_render_block(struct render_blocks_list *blocks, const char *content, size_t content_len, render_block_format content_type);
-bool join_render_separator(struct render_blocks_list *blocks);
+void join_render_separator(struct render_blocks_list *blocks);
 void free_render_blocks(struct render_blocks_list *blocks);
 
-// Here we append links of HTML elements like <img> or <a> to link_list.
-// Also, do some screen-independent processing of data that render blocks have
-// (for example expand inline HTML elements like <sup>, <span> or <q>).
+// Here we extract links from texts of render_block entries into links_list and
+// insert link marks into texts so that it's more convenient for user to work
+// with the list of links in the pager. Also, we do here some screen-independent
+// processing of texts that render_block entries have, for example expand a few
+// inline HTML elements like <span>, <sup>, <q>, etc.
 // See "prepare_to_render_data" directory for implementation.
 bool prepare_to_render_data(struct render_blocks_list *blocks, struct links_list *links);
 
@@ -343,7 +347,7 @@ int64_t add_another_url_to_trim_links_list(struct links_list *links, const char 
 bool populate_link_list_with_links_of_item(struct links_list *links, sqlite3_stmt *res);
 struct string *generate_link_list_string_for_pager(const struct links_list *links);
 bool complete_urls_of_links(struct links_list *links, const struct string *feed_url);
-void free_trim_link_list(const struct links_list *links);
+void free_links_list(const struct links_list *links);
 
 // See "items-metadata-persons.c" file for implementation.
 struct string *deserialize_persons_string(const char *src, const char *person_type);

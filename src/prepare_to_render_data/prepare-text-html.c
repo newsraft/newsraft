@@ -59,17 +59,14 @@ static void
 add_url_mark(struct links_list *links, struct string *text, const char *url, const char *type, const char *title)
 {
 	if (url == NULL) {
-		return;
+		return; // Ignore empty links.
+	}
+	if (url[0] == '#') {
+		return; // Ignore anchors to elements.
 	}
 	size_t url_len = strlen(url);
 	if (url_len == 0) {
-		return;
-	}
-
-	if (url[0] == '#') {
-		// Don't pollute the list of links with anchors to elements.
-		INFO("Ignoring an anchor to element.");
-		return;
+		return; // Ignore empty links.
 	}
 
 	int64_t url_index = add_another_url_to_trim_links_list(links, url, url_len);
@@ -282,8 +279,8 @@ dump_html(GumboNode *node, struct string *text, struct html_data *data)
 			}
 		}
 	} else if ((node->type == GUMBO_NODE_TEXT)
-			|| (node->type == GUMBO_NODE_CDATA)
-			|| (node->type == GUMBO_NODE_WHITESPACE))
+		|| (node->type == GUMBO_NODE_CDATA)
+		|| (node->type == GUMBO_NODE_WHITESPACE))
 	{
 		catas(text, node->v.text.original_text.data, node->v.text.original_text.length);
 	}

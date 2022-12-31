@@ -14,14 +14,17 @@ join_render_block(struct render_blocks_list *blocks, const char *content, size_t
 		return false;
 	}
 	blocks->ptr[blocks->len].content_type = content_type;
+	blocks->ptr[blocks->len].separators_count = 1;
 	blocks->len += 1;
 	return true;
 }
 
-bool
+void
 join_render_separator(struct render_blocks_list *blocks)
 {
-	return join_render_block(blocks, "", 0, TEXT_SEPARATOR);
+	if (blocks->len > 0) {
+		blocks->ptr[blocks->len - 1].separators_count += 1;
+	}
 }
 
 void

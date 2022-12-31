@@ -169,8 +169,7 @@ prepare_curl_for_performance(CURL *curl, const char *url, struct curl_slist *hea
 	curl_easy_setopt(curl, CURLOPT_FAILONERROR, 1);
 	curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1);
 	curl_easy_setopt(curl, CURLOPT_MAXREDIRS, 10);
-	// Empty string enables all supported built-in encodings
-	curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "");
+	curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, ""); // Enable all supported built-in encodings.
 	curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
 	curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1);
 	curl_easy_setopt(curl, CURLOPT_VERBOSE, 0);

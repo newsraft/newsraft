@@ -142,36 +142,6 @@ assign_calculated_values_to_auto_config_strings(void)
 	return true;
 }
 
-void
-free_config(void)
-{
-	INFO("Freeing configuration strings.");
-	for (config_entry_id i = 0; config[i].name != NULL; ++i) {
-		if (config[i].type == CFG_STRING) {
-			free_string(config[i].value.s.actual);
-		} else if (config[i].type == CFG_WSTRING) {
-			free_wstring(config[i].value.w.actual);
-		}
-	}
-}
-
-void
-log_config_settings(void)
-{
-	INFO("Current configuration settings:");
-	for (config_entry_id i = 0; config[i].name != NULL; ++i) {
-		if (config[i].type == CFG_BOOL) {
-			INFO("%s = %d", config[i].name, config[i].value.b);
-		} else if (config[i].type == CFG_UINT) {
-			INFO("%s = %zu", config[i].name, config[i].value.u);
-		} else if (config[i].type == CFG_STRING) {
-			INFO("%s = \"%s\"", config[i].name, config[i].value.s.actual->ptr);
-		} else if (config[i].type == CFG_WSTRING) {
-			INFO("%s = \"%ls\"", config[i].name, config[i].value.w.actual->ptr);
-		}
-	}
-}
-
 config_type_id
 get_cfg_type(config_entry_id i)
 {
@@ -248,4 +218,34 @@ set_cfg_wstring(config_entry_id i, const char *src_ptr, size_t src_len)
 	}
 	free_wstring(wstr);
 	return true;
+}
+
+void
+log_config_settings(void)
+{
+	INFO("Current configuration settings:");
+	for (config_entry_id i = 0; config[i].name != NULL; ++i) {
+		if (config[i].type == CFG_BOOL) {
+			INFO("%s = %d", config[i].name, config[i].value.b);
+		} else if (config[i].type == CFG_UINT) {
+			INFO("%s = %zu", config[i].name, config[i].value.u);
+		} else if (config[i].type == CFG_STRING) {
+			INFO("%s = \"%s\"", config[i].name, config[i].value.s.actual->ptr);
+		} else if (config[i].type == CFG_WSTRING) {
+			INFO("%s = \"%ls\"", config[i].name, config[i].value.w.actual->ptr);
+		}
+	}
+}
+
+void
+free_config(void)
+{
+	INFO("Freeing configuration strings.");
+	for (config_entry_id i = 0; config[i].name != NULL; ++i) {
+		if (config[i].type == CFG_STRING) {
+			free_string(config[i].value.s.actual);
+		} else if (config[i].type == CFG_WSTRING) {
+			free_wstring(config[i].value.w.actual);
+		}
+	}
 }

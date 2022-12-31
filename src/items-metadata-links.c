@@ -113,7 +113,7 @@ free_contents_of_link(const struct link *link)
 }
 
 void
-free_trim_link_list(const struct links_list *links)
+free_links_list(const struct links_list *links)
 {
 	if (links->ptr != NULL) {
 		for (size_t i = 0; i < links->len; ++i) {
@@ -298,10 +298,7 @@ generate_link_list_string_for_pager(const struct links_list *links)
 			}
 		}
 
-		if ((appended_type == true)
-			|| (appended_size == true)
-			|| (appended_duration == true))
-		{
+		if ((appended_type == true) || (appended_size == true) || (appended_duration == true)) {
 			if (catcs(str, ')') == false) {
 				goto error;
 			}

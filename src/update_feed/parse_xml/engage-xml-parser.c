@@ -44,7 +44,7 @@ enum xml_format_index {
 
 struct namespace_handler {
 	const char *const uri;
-	const size_t uri_len;
+	const size_t len;
 	const struct xml_element_handler *const handlers;
 };
 
@@ -91,9 +91,7 @@ static inline size_t
 get_namespace_handler_index_by_namespace_name(const char *ns, size_t ns_len)
 {
 	for (size_t i = 0; namespace_handlers[i].uri != NULL; ++i) {
-		if ((ns_len == namespace_handlers[i].uri_len)
-				&& (memcmp(ns, namespace_handlers[i].uri, ns_len) == 0))
-		{
+		if ((ns_len == namespace_handlers[i].len) && (memcmp(ns, namespace_handlers[i].uri, ns_len) == 0)) {
 			return i;
 		}
 	}

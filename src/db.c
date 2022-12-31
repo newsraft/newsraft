@@ -3,6 +3,8 @@
 
 static sqlite3 *db;
 static pthread_t database_file_optimization_thread;
+static char *vacuum_error = NULL;
+static char *analyze_error = NULL;
 
 bool
 db_init(void)
@@ -91,14 +93,13 @@ static void *
 database_file_optimization_routine(void *dummy)
 {
 	(void)dummy;
-	char *errmsg = NULL;
 	if (get_cfg_bool(CFG_CLEAN_DATABASE_ON_STARTUP) == true) {
-		sqlite3_exec(db, "VACUUM;", NULL, NULL, &errmsg);
+		sqlite3_exec(db, "VACUUM;", NULL, NULL, &vacuum_error);
 	}
 	if (get_cfg_bool(CFG_ANALYZE_DATABASE_ON_STARTUP) == true) {
-		sqlite3_exec(db, "ANALYZE;", NULL, NULL, &errmsg);
+		sqlite3_exec(db, "ANALYZE;", NULL, NULL, &analyze_error);
 	}
-	return errmsg;
+	return NULL;
 }
 
 // Note to the future.
@@ -117,14 +118,19 @@ start_database_file_optimization(void)
 bool
 catch_database_file_optimization(void)
 {
-	char *errmsg = NULL;
-	if (pthread_join(database_file_optimization_thread, (void **)&errmsg) != 0) {
+	if (pthread_join(database_file_optimization_thread, NULL) != 0) {
 		fputs("Failed to finish database file optimization!\n", stderr);
 		return false;
 	}
-	if (errmsg != NULL) {
-		fprintf(stderr, "Failed to optimize the database: %s!\n", errmsg);
-		sqlite3_free(errmsg);
+	if ((vacuum_error != NULL) || (analyze_error != NULL)) {
+		if (vacuum_error != NULL) {
+			fprintf(stderr, "Failed to vacuum the database: %s!\n", vacuum_error);
+			sqlite3_free(vacuum_error);
+		}
+		if (analyze_error != NULL) {
+			fprintf(stderr, "Failed to analyze the database: %s!\n", analyze_error);
+			sqlite3_free(analyze_error);
+		}
 		return false;
 	}
 	return true;

@@ -35,7 +35,7 @@ append_text_line(struct render_blocks_list *blocks, sqlite3_stmt *res, const str
 		goto error;
 	}
 	free_string(data);
-	return join_render_separator(blocks);
+	return true;
 error:
 	free_string(data);
 	return false;
@@ -63,9 +63,7 @@ append_max_content(struct render_blocks_list *blocks, sqlite3_stmt *res, const s
 		}
 	}
 	if (text->len != 0) {
-		if (join_render_separator(blocks) == false) {
-			goto error;
-		}
+		join_render_separator(blocks);
 		if (join_render_block(blocks, text->ptr, text->len, type) == false) {
 			goto error;
 		}
@@ -105,7 +103,7 @@ append_date(struct render_blocks_list *blocks, sqlite3_stmt *res, const struct d
 		return false;
 	}
 	free_string(date_entry);
-	return join_render_separator(blocks);
+	return true;
 }
 
 static bool
@@ -136,7 +134,7 @@ append_persons(struct render_blocks_list *blocks, sqlite3_stmt *res, const struc
 		return false;
 	}
 	free_string(block_text);
-	return join_render_separator(blocks);
+	return true;
 }
 
 static bool

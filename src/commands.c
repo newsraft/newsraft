@@ -47,6 +47,11 @@ open_url_in_browser(const struct string *src)
 	return false;
 }
 
+// Note to the future.
+// We always return false from copy_string_to_clipboard function to prevent
+// pager from refreshing itself as it should be done in case of executing of
+// a regular command during which terminal size changes may occur.
+
 bool
 copy_string_to_clipboard(const struct string *src)
 {
@@ -57,13 +62,13 @@ copy_string_to_clipboard(const struct string *src)
 	const struct string *copy_cmd = get_cfg_string(CFG_COPY_TO_CLIPBOARD_COMMAND);
 	FILE *p = popen(copy_cmd->ptr, "w");
 	if (p == NULL) {
-		fail_status("Failed to copy %s", src->ptr);
+		fail_status("Failed to execute clipboard command!");
 		return false;
 	}
 	fwrite(src->ptr, sizeof(char), src->len, p);
 	pclose(p);
 	good_status("Copied %s", src->ptr);
-	return true;
+	return false;
 }
 
 bool

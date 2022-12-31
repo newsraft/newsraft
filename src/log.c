@@ -18,8 +18,8 @@ log_init(const char *path)
 		fputs("Failed to open log file for writing!\n", stderr);
 		return false;
 	}
-	INFO("OK... Here we go. Focus. Speed. I am speed.");
-	INFO("newsraft version: " NEWSRAFT_VERSION);
+	INFO("Okay... Here we go. Focus. Speed. I am speed.");
+	INFO("newsraft version: %s", NEWSRAFT_VERSION);
 	INFO("ncurses version: %s", curses_version());
 	INFO("SQLite version: %s", sqlite3_libversion());
 	INFO("curl version: %s", curl_version());
@@ -32,7 +32,7 @@ void
 log_stop(int error_code)
 {
 	if (log_stream != NULL) {
-		INFO("Quitting the program with exit code %d", error_code);
+		INFO("Quitting the program with an exit code %d.", error_code);
 		fclose(log_stream);
 	}
 }

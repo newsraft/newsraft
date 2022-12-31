@@ -1,4 +1,3 @@
-#include <stdlib.h>
 #include "render_data.h"
 
 struct wstring *
@@ -21,12 +20,12 @@ render_data(struct render_blocks_list *blocks)
 		if (blocks->ptr[i].content_type == TEXT_HTML) {
 			render_text_html(&line, blocks->ptr[i].content);
 			append_format_hint_to_line(&line, FORMAT_ALL_END);
-			trim_whitespace_from_wstring(text);
-		} else if (blocks->ptr[i].content_type == TEXT_SEPARATOR) {
-			line_char(&line, L'\n');
 		} else { // TEXT_RAW || TEXT_PLAIN
 			line_string(&line, blocks->ptr[i].content->ptr);
-			trim_whitespace_from_wstring(text);
+		}
+		trim_whitespace_from_wstring(text);
+		for (size_t j = 0; j < blocks->ptr[i].separators_count; ++j) {
+			line_char(&line, L'\n');
 		}
 	}
 	trim_whitespace_from_wstring(text);

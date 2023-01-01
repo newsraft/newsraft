@@ -2,8 +2,9 @@
 #define NEWSRAFT_H
 
 #ifdef __APPLE__
-#define _DARWIN_C_SOURCE
+#ifndef _C99_SOURCE
 #define _C99_SOURCE
+#endif
 #endif
 
 #include <stdarg.h>

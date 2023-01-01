@@ -3,7 +3,7 @@
 Newsraft is a [feed reader](https://en.wikipedia.org/wiki/News_aggregator) with
 [ncurses](https://en.wikipedia.org/wiki/Ncurses) user interface. It is greatly
 inspired by [Newsboat](https://www.newsboat.org) and tries to be its lightweight
-counterpart. The design differences betwen these projects are mentioned in the
+counterpart. The design differences between these projects are mentioned in the
 [doc/project-goals.md](https://codeberg.org/grisha/newsraft/src/branch/main/doc/project-goals.md).
 
 ## Dependencies
@@ -28,7 +28,7 @@ package manager.
 [![Packaging status](https://repology.org/badge/vertical-allrepos/newsraft.svg)](https://repology.org/project/newsraft/versions)
 
 If your package repository doesn't provide Newsraft package, you can build it
-from source. Detailed instructions for this are provided in
+from source. Detailed instructions for different platforms are described in
 [doc/build-instructions.md](https://codeberg.org/grisha/newsraft/src/branch/main/doc/build-instructions.md).
 
 ## Learning more

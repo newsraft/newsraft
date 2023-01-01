@@ -87,8 +87,13 @@ mark_all_feeds_unread(void)
 input_cmd_id
 enter_feeds_menu_loop(struct feed_entry **new_feeds, size_t new_feeds_count)
 {
+	input_cmd_id cmd;
+
 	if (new_feeds_count == 1) {
-		return enter_items_menu_loop(new_feeds, 1, CFG_MENU_ITEM_ENTRY_FORMAT);
+		cmd = enter_items_menu_loop(new_feeds, 1, CFG_MENU_ITEM_ENTRY_FORMAT);
+		if (cmd != INPUT_ERROR) {
+			return cmd;
+		}
 	}
 
 	feeds = new_feeds;
@@ -96,7 +101,6 @@ enter_feeds_menu_loop(struct feed_entry **new_feeds, size_t new_feeds_count)
 
 	const size_t *view_sel = enter_list_menu(FEEDS_MENU, feeds_count, CFG_MENU_FEED_ENTRY_FORMAT);
 
-	input_cmd_id cmd;
 	uint32_t count;
 	const struct wstring *macro;
 	while (true) {

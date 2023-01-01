@@ -3,6 +3,7 @@
 
 #ifdef __APPLE__
 #define _DARWIN_C_SOURCE
+#define _C99_SOURCE
 #endif
 
 #include <stdarg.h>

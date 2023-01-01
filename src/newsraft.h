@@ -5,6 +5,9 @@
 #ifndef _C99_SOURCE
 #define _C99_SOURCE
 #endif
+#ifndef _DARWIN_C_SOURCE
+#define _DARWIN_C_SOURCE
+#endif
 #endif
 
 #include <stdarg.h>

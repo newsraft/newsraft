@@ -20,19 +20,16 @@ counterpart. The design differences betwen these projects are mentioned in the
 | make                                             | Any POSIX | required at build-time |
 | [scdoc](https://git.sr.ht/~sircmpwn/scdoc)       | >= 1.9.1  | optional at build-time |
 
-## Building
+## Installing
 
-Compile:
+Some package repositories have Newsraft package so it can be installed with a
+package manager.
 
-```
-make
-```
+[![Packaging status](https://repology.org/badge/vertical-allrepos/newsraft.svg)](https://repology.org/project/newsraft/versions)
 
-Install (run as root):
-
-```
-make install
-```
+If your package repository doesn't provide Newsraft package, you can build it
+from source. Detailed instructions for this are provided in
+[doc/build-instructions.md](https://codeberg.org/grisha/newsraft/src/branch/main/doc/build-instructions.md).
 
 ## Learning more
 

@@ -59,15 +59,8 @@ content_start(struct stream_callback_data *data, const XML_Char **attrs)
 		}
 		const char *type = get_value_of_attribute_key(attrs, "type");
 		if ((type != NULL) && (strstr(type, "xhtml") != NULL)) {
-			if (data->xhtml == NULL) {
-				data->xhtml = crtes(10000);
-				if (data->xhtml == NULL) {
-					return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-				}
-			} else {
-				empty_string(data->xhtml);
-			}
-			data->write_target = data->xhtml;
+			data->emptying_target = &data->decoy;
+			empty_string(data->text);
 		}
 	}
 	return PARSE_OKAY;
@@ -77,15 +70,9 @@ static int8_t
 content_end(struct stream_callback_data *data)
 {
 	if (data->path[data->depth] == GENERIC_ITEM) {
-		if (data->write_target == data->xhtml) {
-			data->write_target = data->text;
-			if (serialize_string(&data->feed.item->content, "text", 4, data->xhtml) == false) {
-				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-			}
-		} else {
-			if (serialize_string(&data->feed.item->content, "text", 4, data->text) == false) {
-				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-			}
+		data->emptying_target = data->text;
+		if (serialize_string(&data->feed.item->content, "text", 4, data->text) == false) {
+			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	}
 	return PARSE_OKAY;

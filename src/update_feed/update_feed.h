@@ -49,8 +49,8 @@ struct stream_callback_data {
 	struct string *text;
 	uint8_t path[256];
 	uint8_t depth;
-	struct string *xhtml;
-	struct string *write_target;
+	struct string decoy;
+	struct string *emptying_target;
 };
 
 enum download_status download_feed(const char *url, struct stream_callback_data *data);

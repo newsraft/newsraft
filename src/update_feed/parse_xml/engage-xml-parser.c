@@ -102,7 +102,7 @@ static void
 start_element_handler(void *userData, const XML_Char *name, const XML_Char **atts)
 {
 	struct stream_callback_data *data = userData;
-	empty_string(data->text);
+	empty_string(data->emptying_target);
 	data->depth += 1;
 	data->path[data->depth] = XML_UNKNOWN_POS;
 	const char *tag;
@@ -195,15 +195,15 @@ static void
 character_data_handler(void *userData, const XML_Char *s, int len)
 {
 	struct stream_callback_data *data = userData;
-	catas(data->write_target, s, len);
+	catas(data->text, s, len);
 }
 
 static void
 xml_default_handler(void *userData, const XML_Char *s, int len)
 {
 	struct stream_callback_data *data = userData;
-	if (data->write_target == data->xhtml) {
-		catas(data->xhtml, s, len);
+	if (data->emptying_target == &data->decoy) {
+		catas(data->text, s, len);
 	}
 }
 
@@ -219,8 +219,10 @@ engage_xml_parser(struct stream_callback_data *data)
 		free_string(data->text);
 		return false;
 	}
+	static char ptr_for_decoy[1];
+	data->decoy.ptr = ptr_for_decoy;
 	data->xml_format = XML_FORMATS_COUNT;
-	data->write_target = data->text;
+	data->emptying_target = data->text;
 	XML_SetUserData(data->xml_parser, data);
 	XML_SetElementHandler(data->xml_parser, &start_element_handler, &end_element_handler);
 	XML_SetCharacterDataHandler(data->xml_parser, &character_data_handler);
@@ -234,5 +236,4 @@ free_xml_parser(struct stream_callback_data *data)
 	XML_Parse(data->xml_parser, NULL, 0, true); // Final parsing call.
 	XML_ParserFree(data->xml_parser);
 	free_string(data->text);
-	free_string(data->xhtml); // It might be allocated during parsing.
 }

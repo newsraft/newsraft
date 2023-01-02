@@ -6,8 +6,8 @@ static inline bool
 append_sorting_order_expression_to_query(struct string *query, sorting_order order)
 {
 	switch (order) {
-		case SORT_BY_TIME_DESC:  return catas(query, " ORDER BY publication_date DESC, update_date DESC, rowid DESC", 61);
-		case SORT_BY_TIME_ASC:   return catas(query, " ORDER BY publication_date ASC, update_date ASC, rowid ASC", 58);
+		case SORT_BY_TIME_DESC:  return catas(query, " ORDER BY MAX(publication_date, update_date) DESC, rowid DESC", 61);
+		case SORT_BY_TIME_ASC:   return catas(query, " ORDER BY MAX(publication_date, update_date) ASC, rowid ASC", 59);
 		case SORT_BY_TITLE_DESC: return catas(query, " ORDER BY title DESC, rowid DESC", 32);
 		case SORT_BY_TITLE_ASC:  return catas(query, " ORDER BY title ASC, rowid ASC", 30);
 	}

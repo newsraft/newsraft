@@ -19,6 +19,9 @@ enum xml_format_index {
 #ifndef NEWSRAFT_DISABLE_FORMAT_MEDIARSS
 	MEDIARSS_FORMAT,
 #endif
+#ifndef NEWSRAFT_DISABLE_FORMAT_XHTML
+	XHTML_FORMAT,
+#endif
 #ifndef NEWSRAFT_DISABLE_FORMAT_YANDEX
 	YANDEX_FORMAT,
 #endif
@@ -63,6 +66,9 @@ static const struct namespace_handler namespace_handlers[] = {
 #endif
 #ifndef NEWSRAFT_DISABLE_FORMAT_MEDIARSS
 	{"http://search.yahoo.com/mrss/", 29, xml_mediarss_handlers},
+#endif
+#ifndef NEWSRAFT_DISABLE_FORMAT_XHTML
+	{"http://www.w3.org/1999/xhtml", 28, xml_xhtml_handlers},
 #endif
 #ifndef NEWSRAFT_DISABLE_FORMAT_YANDEX
 	{"http://news.yandex.ru", 21, xml_yandex_handlers},
@@ -118,7 +124,8 @@ start_element_handler(void *userData, const XML_Char *name, const XML_Char **att
 	INFO("Element start: %s (%s)", tag, name);
 	if (handler_index != XML_FORMATS_COUNT) {
 		const struct xml_element_handler *handlers = namespace_handlers[handler_index].handlers;
-		for (size_t i = 0; handlers[i].name != NULL; ++i) {
+		size_t i = 0;
+		for (; handlers[i].name != NULL; ++i) {
 			if (strcmp(tag, handlers[i].name) == 0) {
 				data->path[data->depth] = handlers[i].bitpos;
 				if (handlers[i].start_handle != NULL) {
@@ -128,6 +135,10 @@ start_element_handler(void *userData, const XML_Char *name, const XML_Char **att
 				}
 				return;
 			}
+		}
+		if (handlers[i].start_handle != NULL) {
+			handlers[i].start_handle(data, atts); // Default handler.
+			return;
 		}
 	}
 	if (data->xml_format != XML_FORMATS_COUNT) {
@@ -170,15 +181,18 @@ end_element_handler(void *userData, const XML_Char *name)
 	INFO("Element close: %s (%s)", tag, name);
 	if (handler_index != XML_FORMATS_COUNT) {
 		const struct xml_element_handler *handlers = namespace_handlers[handler_index].handlers;
-		for (size_t i = 0; handlers[i].name != NULL; ++i) {
+		size_t i = 0;
+		for (; handlers[i].name != NULL; ++i) {
 			if (strcmp(tag, handlers[i].name) == 0) {
-				// We only need to call the end handler if it is set and there's
-				// some text content in the element.
-				if ((handlers[i].end_handle != NULL) && (data->text->len != 0)) {
+				if (handlers[i].end_handle != NULL) {
 					handlers[i].end_handle(data);
 				}
 				return;
 			}
+		}
+		if (handlers[i].end_handle != NULL) {
+			handlers[i].end_handle(data); // Default handler.
+			return;
 		}
 	}
 }
@@ -187,7 +201,16 @@ static void
 character_data_handler(void *userData, const XML_Char *s, int len)
 {
 	struct stream_callback_data *data = userData;
-	catas(data->text, s, len);
+	catas(data->write_target, s, len);
+}
+
+static void
+xml_default_handler(void *userData, const XML_Char *s, int len)
+{
+	struct stream_callback_data *data = userData;
+	if (data->write_target == data->xhtml) {
+		catas(data->xhtml, s, len);
+	}
 }
 
 bool
@@ -203,16 +226,19 @@ engage_xml_parser(struct stream_callback_data *data)
 		return false;
 	}
 	data->xml_format = XML_FORMATS_COUNT;
+	data->write_target = data->text;
 	XML_SetUserData(data->xml_parser, data);
 	XML_SetElementHandler(data->xml_parser, &start_element_handler, &end_element_handler);
 	XML_SetCharacterDataHandler(data->xml_parser, &character_data_handler);
+	XML_SetDefaultHandler(data->xml_parser, &xml_default_handler);
 	return true;
 }
 
 void
 free_xml_parser(struct stream_callback_data *data)
 {
-	XML_Parse(data->xml_parser, NULL, 0, true); // final parsing call
+	XML_Parse(data->xml_parser, NULL, 0, true); // Final parsing call.
 	XML_ParserFree(data->xml_parser);
 	free_string(data->text);
+	free_string(data->xhtml); // It might be allocated during parsing.
 }

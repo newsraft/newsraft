@@ -111,5 +111,5 @@ enter_item_pager_view_loop(struct item_entry *items, const size_t *view_sel)
 		free_render_blocks(&blocks);
 		free_links_list(&links);
 	}
-	return INPUT_ERROR; // It shouldn't get here.
+	return INPUT_ERROR; // It shouldn't reach here.
 }

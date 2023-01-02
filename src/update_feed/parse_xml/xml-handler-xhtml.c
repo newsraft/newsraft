@@ -3,6 +3,7 @@
 static int8_t
 xhtml_start(struct stream_callback_data *data, const XML_Char **attrs)
 {
+	(void)attrs;
 	XML_DefaultCurrent(data->xml_parser);
 	return PARSE_OKAY;
 }

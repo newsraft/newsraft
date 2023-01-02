@@ -1,53 +1,48 @@
-#include <stdlib.h>
 #include <curses.h>
 #include "newsraft.h"
 
-struct pager_menu {
-	WINDOW *window;
-	size_t view_min; // index of first visible line (row)
-	size_t view_lim; // maximum reachable value of view_min
-};
-
-static struct pager_menu menu = {NULL, 0, 0};
+static WINDOW *pager_window = NULL;
+static size_t view_min = 0; // Index of first visible line (row).
+static size_t view_lim = 0; // Maximum reachable value of view_min.
 static struct render_blocks_list *blocks;
 
 static inline void
-write_splitted_wstring_to_window(WINDOW *window, const struct wstring *wbuf, const struct render_blocks_list *blocks)
+write_splitted_wstring_to_window(const struct wstring *wstr)
 {
 	size_t vertical_pos = 0, horizontal_pos = 0, hint_index = 0;
-	for (size_t i = 0; i < wbuf->len; ++i) {
+	for (size_t i = 0; i < wstr->len; ++i) {
 		if ((hint_index < blocks->hints_len) && (i == blocks->hints[hint_index].pos)) {
 			if (blocks->hints[hint_index].value & FORMAT_BOLD_END) {
-				wattroff(window, A_BOLD);
+				wattroff(pager_window, A_BOLD);
 			} else if (blocks->hints[hint_index].value & FORMAT_BOLD_BEGIN) {
-				wattron(window, A_BOLD);
+				wattron(pager_window, A_BOLD);
 			}
 			if (blocks->hints[hint_index].value & FORMAT_UNDERLINED_END) {
-				wattroff(window, A_UNDERLINE);
+				wattroff(pager_window, A_UNDERLINE);
 			} else if (blocks->hints[hint_index].value & FORMAT_UNDERLINED_BEGIN) {
-				wattron(window, A_UNDERLINE);
+				wattron(pager_window, A_UNDERLINE);
 			}
 #ifdef A_ITALIC // Since A_ITALIC is an ncurses extension, some systems may lack it.
 			if (blocks->hints[hint_index].value & FORMAT_ITALIC_END) {
-				wattroff(window, A_ITALIC);
+				wattroff(pager_window, A_ITALIC);
 			} else if (blocks->hints[hint_index].value & FORMAT_ITALIC_BEGIN) {
-				wattron(window, A_ITALIC);
+				wattron(pager_window, A_ITALIC);
 			}
 #endif
 			hint_index += 1;
 		}
-		if (wbuf->ptr[i] == '\n') {
+		if (wstr->ptr[i] == '\n') {
 			vertical_pos += 1;
 			horizontal_pos = 0;
 		} else {
-			mvwaddnwstr(window, vertical_pos, horizontal_pos++, wbuf->ptr + i, 1);
+			mvwaddnwstr(pager_window, vertical_pos, horizontal_pos++, wstr->ptr + i, 1);
 		}
 	}
 	INFO("Wrote %zu lines to the content window.", vertical_pos);
 }
 
 static bool
-update_pager_menu(struct pager_menu *menu, struct render_blocks_list *blocks)
+update_pager_menu(void)
 {
 	struct wstring *text = render_data(blocks);
 	if (text == NULL) {
@@ -74,24 +69,24 @@ update_pager_menu(struct pager_menu *menu, struct render_blocks_list *blocks)
 
 	pthread_mutex_lock(&interface_lock);
 
-	if (menu->window != NULL) {
-		delwin(menu->window);
+	if (pager_window != NULL) {
+		delwin(pager_window);
 	}
 
 	INFO("Creating pad window with %zu width and %zu height.", list_menu_width, pad_height);
-	menu->window = newpad(pad_height, list_menu_width);
-	if (menu->window == NULL) {
+	pager_window = newpad(pad_height, list_menu_width);
+	if (pager_window == NULL) {
 		FAIL("Failed to create pad window for item contents (newpad returned NULL)!");
 		free_wstring(text);
 		pthread_mutex_unlock(&interface_lock);
 		return false;
 	}
 
-	write_splitted_wstring_to_window(menu->window, text, blocks);
+	write_splitted_wstring_to_window(text);
 
-	menu->view_min = 0;
-	menu->view_lim = pad_height > list_menu_height ? pad_height - list_menu_height : 0;
-	prefresh(menu->window, menu->view_min, 0, 0, 0, list_menu_height - 1, list_menu_width - 1);
+	view_min = 0;
+	view_lim = pad_height > list_menu_height ? pad_height - list_menu_height : 0;
+	prefresh(pager_window, view_min, 0, 0, 0, list_menu_height - 1, list_menu_width - 1);
 
 	pthread_mutex_unlock(&interface_lock);
 
@@ -100,50 +95,13 @@ update_pager_menu(struct pager_menu *menu, struct render_blocks_list *blocks)
 	return true;
 }
 
-static void
-scroll_view(struct pager_menu *menu, size_t pminrow)
+static inline void
+scroll_view(size_t pminrow)
 {
-	if (pminrow == menu->view_min) {
-		return;
+	if (pminrow != view_min) {
+		view_min = pminrow;
+		prefresh(pager_window, pminrow, 0, 0, 0, list_menu_height - 1, list_menu_width - 1);
 	}
-	menu->view_min = pminrow;
-	prefresh(menu->window, pminrow, 0, 0, 0, list_menu_height - 1, list_menu_width - 1);
-}
-
-static inline void
-scroll_one_line_down(struct pager_menu *menu)
-{
-	scroll_view(menu, menu->view_min < menu->view_lim ? menu->view_min + 1 : menu->view_lim);
-}
-
-static inline void
-scroll_one_line_up(struct pager_menu *menu)
-{
-	scroll_view(menu, menu->view_min == 0 ? 0 : menu->view_min - 1);
-}
-
-static inline void
-scroll_one_page_down(struct pager_menu *menu)
-{
-	scroll_view(menu, menu->view_min + list_menu_height < menu->view_lim ? menu->view_min + list_menu_height : menu->view_lim);
-}
-
-static inline void
-scroll_one_page_up(struct pager_menu *menu)
-{
-	scroll_view(menu, menu->view_min > list_menu_height ? menu->view_min - list_menu_height : 0);
-}
-
-static inline void
-scroll_to_the_beginning(struct pager_menu *menu)
-{
-	scroll_view(menu, 0);
-}
-
-static inline void
-scroll_to_the_end(struct pager_menu *menu)
-{
-	scroll_view(menu, menu->view_lim);
 }
 
 bool
@@ -151,7 +109,7 @@ start_pager_menu(struct render_blocks_list *new_blocks)
 {
 	blocks = new_blocks;
 	pause_list_menu();
-	if (update_pager_menu(&menu, blocks) == false) {
+	if (update_pager_menu() == false) {
 		// Error message written by update_pager_menu.
 		resume_list_menu();
 		return false;
@@ -162,23 +120,23 @@ start_pager_menu(struct render_blocks_list *new_blocks)
 bool
 handle_pager_menu_navigation(input_cmd_id cmd)
 {
-	if ((cmd == INPUT_SELECT_NEXT) || (cmd == INPUT_ENTER)) {
-		scroll_one_line_down(&menu);
-	} else if (cmd == INPUT_SELECT_PREV) {
-		scroll_one_line_up(&menu);
-	} else if (cmd == INPUT_SELECT_NEXT_PAGE) {
-		scroll_one_page_down(&menu);
-	} else if (cmd == INPUT_SELECT_PREV_PAGE) {
-		scroll_one_page_up(&menu);
-	} else if (cmd == INPUT_SELECT_FIRST) {
-		scroll_to_the_beginning(&menu);
-	} else if (cmd == INPUT_SELECT_LAST) {
-		scroll_to_the_end(&menu);
+	if ((cmd == INPUT_SELECT_NEXT) || (cmd == INPUT_ENTER)) { // Scroll one line down.
+		scroll_view(view_min < view_lim ? view_min + 1 : view_lim);
+	} else if (cmd == INPUT_SELECT_PREV) { // Scroll one line up.
+		scroll_view(view_min == 0 ? 0 : view_min - 1);
+	} else if (cmd == INPUT_SELECT_NEXT_PAGE) { // Scroll one page down.
+		scroll_view(view_min + list_menu_height < view_lim ? view_min + list_menu_height : view_lim);
+	} else if (cmd == INPUT_SELECT_PREV_PAGE) { // Scroll one page up.
+		scroll_view(view_min > list_menu_height ? view_min - list_menu_height : 0);
+	} else if (cmd == INPUT_SELECT_FIRST) { // Scroll to the beginning.
+		scroll_view(0);
+	} else if (cmd == INPUT_SELECT_LAST) { // Scroll to the end.
+		scroll_view(view_lim);
 	} else if (cmd == INPUT_RESIZE) {
-		update_pager_menu(&menu, blocks);
+		update_pager_menu();
 	} else if ((cmd == INPUT_QUIT_SOFT) || (cmd == INPUT_QUIT_HARD)) {
-		delwin(menu.window);
-		menu.window = NULL;
+		delwin(pager_window);
+		pager_window = NULL;
 		resume_list_menu();
 		return false;
 	} else {

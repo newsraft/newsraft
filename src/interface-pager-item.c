@@ -79,7 +79,13 @@ enter_item_pager_view_loop(struct item_entry *items, const size_t *view_sel)
 			cmd = get_input_command(&count, &macro);
 			if (handle_pager_menu_navigation(cmd) == true) {
 				// Rest a little.
-			} else if ((cmd == INPUT_SELECT_NEXT_UNREAD) || (cmd == INPUT_SELECT_PREV_UNREAD)) {
+			} else if ((cmd == INPUT_JUMP_TO_NEXT)
+				|| (cmd == INPUT_JUMP_TO_PREV)
+				|| (cmd == INPUT_JUMP_TO_NEXT_UNREAD)
+				|| (cmd == INPUT_JUMP_TO_PREV_UNREAD)
+				|| (cmd == INPUT_JUMP_TO_NEXT_IMPORTANT)
+				|| (cmd == INPUT_JUMP_TO_PREV_IMPORTANT))
+			{
 				current_sel = *view_sel;
 				handle_list_menu_navigation(cmd);
 				if (current_sel != *view_sel) {

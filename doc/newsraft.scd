@@ -377,14 +377,6 @@ _select-next_ (default: *j*, *KEY_DOWN*)
 
 _select-prev_ (default: *k*, *KEY_UP*)
 
-_select-next-unread_ (default: *n*)
-
-_select-prev-unread_ (default: *p*)
-
-_select-next-important_ (default: *N*)
-
-_select-prev-important_ (default: *P*)
-
 _select-next-page_ (default: *KEY_NPAGE*)
 
 _select-prev-page_ (default: *KEY_PPAGE*)
@@ -392,6 +384,18 @@ _select-prev-page_ (default: *KEY_PPAGE*)
 _select-first_ (default: *g*, *KEY_HOME*)
 
 _select-last_ (default: *G*, *KEY_END*)
+
+_jump-to-next_ (default: *J*)
+
+_jump-to-prev_ (default: *K*)
+
+_jump-to-next-unread_ (default: *n*)
+
+_jump-to-prev-unread_ (default: *p*)
+
+_jump-to-next-important_ (default: *N*)
+
+_jump-to-prev-important_ (default: *P*)
 
 _sorting-method-next_ (default: *s*)
 

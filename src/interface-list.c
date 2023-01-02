@@ -270,32 +270,32 @@ list_menu_change_view(size_t new_sel)
 bool
 handle_list_menu_navigation(input_cmd_id cmd)
 {
-	if (cmd == INPUT_SELECT_NEXT) {
+	if ((cmd == INPUT_SELECT_NEXT) || (cmd == INPUT_JUMP_TO_NEXT)) {
 		list_menu_change_view(menu->view_sel + 1);
-	} else if (cmd == INPUT_SELECT_PREV) {
+	} else if ((cmd == INPUT_SELECT_PREV) || (cmd == INPUT_JUMP_TO_PREV)) {
 		list_menu_change_view(menu->view_sel > 1 ? (menu->view_sel - 1) : 0);
-	} else if (cmd == INPUT_SELECT_NEXT_UNREAD) {
+	} else if (cmd == INPUT_JUMP_TO_NEXT_UNREAD) {
 		for (size_t i = menu->view_sel + 1; i < menu->entries_count; ++i) {
 			if (menu->unread_state(i) == true) {
 				list_menu_change_view(i);
 				break;
 			}
 		}
-	} else if (cmd == INPUT_SELECT_PREV_UNREAD) {
+	} else if (cmd == INPUT_JUMP_TO_PREV_UNREAD) {
 		for (int64_t i = (int64_t)menu->view_sel - 1; i >= 0; --i) {
 			if (menu->unread_state(i) == true) {
 				list_menu_change_view(i);
 				break;
 			}
 		}
-	} else if ((cmd == INPUT_SELECT_NEXT_IMPORTANT) && (menus_immersion[menus_immersion_depth] == ITEMS_MENU)) {
+	} else if ((cmd == INPUT_JUMP_TO_NEXT_IMPORTANT) && (menus_immersion[menus_immersion_depth] == ITEMS_MENU)) {
 		for (size_t i = menu->view_sel + 1; i < menu->entries_count; ++i) {
 			if (important_item_condition(i) == true) {
 				list_menu_change_view(i);
 				break;
 			}
 		}
-	} else if ((cmd == INPUT_SELECT_PREV_IMPORTANT) && (menus_immersion[menus_immersion_depth] == ITEMS_MENU)) {
+	} else if ((cmd == INPUT_JUMP_TO_PREV_IMPORTANT) && (menus_immersion[menus_immersion_depth] == ITEMS_MENU)) {
 		for (int64_t i = (int64_t)menu->view_sel - 1; i >= 0; --i) {
 			if (important_item_condition(i) == true) {
 				list_menu_change_view(i);

@@ -1,10 +1,11 @@
 ## Obtaining dependencies
 
-| Operating system | Command                                                                             |
-|------------------|-------------------------------------------------------------------------------------|
-| Arch Linux       | `pacman -S curl expat gumbo-parser ncurses scdoc sqlite yajl`                       |
-| Alpine Linux     | `apk add curl-dev expat-dev gumbo-parser-dev ncurses-dev scdoc sqlite-dev yajl-dev` |
-| OpenBSD          | `pkg_add curl gumbo scdoc sqlite libyajl`                                           |
+| Operating system | Command                                                                                                 |
+|------------------|---------------------------------------------------------------------------------------------------------|
+| Arch Linux       | `pacman -S curl expat gumbo-parser ncurses scdoc sqlite yajl`                                           |
+| Alpine Linux     | `apk add curl-dev expat-dev gumbo-parser-dev ncurses-dev scdoc sqlite-dev yajl-dev`                     |
+| Void Linux       | `xbps-install libcurl-devel expat-devel gumbo-parser-devel ncurses-devel scdoc sqlite-devel yajl-devel` |
+| OpenBSD          | `pkg_add curl gumbo scdoc sqlite libyajl`                                                               |
 
 ## Compilation
 

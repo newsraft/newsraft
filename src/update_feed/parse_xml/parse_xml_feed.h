@@ -61,9 +61,6 @@ extern const struct xml_element_handler xml_yandex_handlers[];
 #ifndef NEWSRAFT_DISABLE_FORMAT_RBCNEWS
 extern const struct xml_element_handler xml_rbcnews_handlers[];
 #endif
-#ifndef NEWSRAFT_DISABLE_FORMAT_ATOM03
-extern const struct xml_element_handler xml_atom03_handlers[];
-#endif
 #ifndef NEWSRAFT_DISABLE_FORMAT_GEORSS
 extern const struct xml_element_handler xml_georss_handlers[];
 #endif

@@ -28,9 +28,6 @@ enum xml_format_index {
 #ifndef NEWSRAFT_DISABLE_FORMAT_RBCNEWS
 	RBCNEWS_FORMAT,
 #endif
-#ifndef NEWSRAFT_DISABLE_FORMAT_ATOM03
-	ATOM03_FORMAT,
-#endif
 #ifndef NEWSRAFT_DISABLE_FORMAT_GEORSS
 	GEORSS_FORMAT,
 #endif
@@ -75,9 +72,6 @@ static const struct namespace_handler namespace_handlers[] = {
 #endif
 #ifndef NEWSRAFT_DISABLE_FORMAT_RBCNEWS
 	{"http://www.rbc.ru", 17, xml_rbcnews_handlers},
-#endif
-#ifndef NEWSRAFT_DISABLE_FORMAT_ATOM03
-	{"http://purl.org/atom/ns#", 24, xml_atom03_handlers},
 #endif
 #ifndef NEWSRAFT_DISABLE_FORMAT_GEORSS
 	{"http://www.georss.org/georss", 28, xml_georss_handlers},

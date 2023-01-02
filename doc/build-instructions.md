@@ -12,7 +12,7 @@
 |------------------|-----------------------------------------------------------------|
 | Generic Linux    | `make`                                                          |
 | OpenBSD          | `make CFLAGS="-I/usr/local/include" LDFLAGS="-L/usr/local/lib"` |
-| macOS            | `make CFLAGS="-D_DARWIN_C_SOURCE"`                              |
+| macOS            | `make CFLAGS="-D_C99_SOURCE -D_DARWIN_C_SOURCE"`                |
 
 ## Installing (run as root)
 

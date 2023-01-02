@@ -157,9 +157,7 @@ enter_items_menu_loop(struct feed_entry **feeds, size_t feeds_count, config_entr
 		} else if (cmd == INPUT_MARK_UNIMPORTANT) {
 			mark_selected_item_unimportant(*view_sel);
 		} else if (cmd == INPUT_ENTER) {
-			db_mark_item_read(items->ptr[*view_sel].rowid);
-			items->ptr[*view_sel].is_unread = false;
-			cmd = enter_item_pager_view_loop(items->ptr + *view_sel);
+			cmd = enter_item_pager_view_loop(items->ptr, view_sel);
 			if (cmd == INPUT_QUIT_HARD) {
 				break;
 			}

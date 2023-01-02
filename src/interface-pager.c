@@ -8,6 +8,9 @@ struct pager_menu {
 	size_t view_lim; // maximum reachable value of view_min
 };
 
+static struct pager_menu menu = {NULL, 0, 0};
+static struct render_blocks_list *blocks;
+
 static inline void
 write_splitted_wstring_to_window(WINDOW *window, const struct wstring *wbuf, const struct render_blocks_list *blocks)
 {
@@ -143,53 +146,43 @@ scroll_to_the_end(struct pager_menu *menu)
 	scroll_view(menu, menu->view_lim);
 }
 
-int
-pager_view(struct render_blocks_list *blocks, bool (*custom_input_handler)(void *, input_cmd_id, uint32_t, const struct wstring *), void *data)
+bool
+start_pager_menu(struct render_blocks_list *new_blocks)
 {
+	blocks = new_blocks;
 	pause_list_menu();
-
-	struct pager_menu menu = {NULL, 0, 0};
 	if (update_pager_menu(&menu, blocks) == false) {
 		// Error message written by update_pager_menu.
-		return INPUT_ERROR;
+		resume_list_menu();
+		return false;
 	}
+	return true;
+}
 
-	input_cmd_id cmd;
-	uint32_t count;
-	const struct wstring *macro;
-	while (true) {
-		cmd = get_input_command(&count, &macro);
-		if ((cmd == INPUT_SELECT_NEXT) || (cmd == INPUT_ENTER)) {
-			scroll_one_line_down(&menu);
-		} else if (cmd == INPUT_SELECT_PREV) {
-			scroll_one_line_up(&menu);
-		} else if (cmd == INPUT_SELECT_NEXT_PAGE) {
-			scroll_one_page_down(&menu);
-		} else if (cmd == INPUT_SELECT_PREV_PAGE) {
-			scroll_one_page_up(&menu);
-		} else if (cmd == INPUT_SELECT_FIRST) {
-			scroll_to_the_beginning(&menu);
-		} else if (cmd == INPUT_SELECT_LAST) {
-			scroll_to_the_end(&menu);
-		} else if (cmd == INPUT_RESIZE) {
-			if (update_pager_menu(&menu, blocks) == false) {
-				cmd = INPUT_ERROR;
-				break;
-			}
-		} else if ((cmd == INPUT_QUIT_SOFT) || (cmd == INPUT_QUIT_HARD)) {
-			break;
-		} else if (custom_input_handler != NULL) {
-			if (custom_input_handler(data, cmd, count, macro) == true) {
-				if (update_pager_menu(&menu, blocks) == false) {
-					cmd = INPUT_ERROR;
-					break;
-				}
-			}
-		}
+bool
+handle_pager_menu_navigation(input_cmd_id cmd)
+{
+	if ((cmd == INPUT_SELECT_NEXT) || (cmd == INPUT_ENTER)) {
+		scroll_one_line_down(&menu);
+	} else if (cmd == INPUT_SELECT_PREV) {
+		scroll_one_line_up(&menu);
+	} else if (cmd == INPUT_SELECT_NEXT_PAGE) {
+		scroll_one_page_down(&menu);
+	} else if (cmd == INPUT_SELECT_PREV_PAGE) {
+		scroll_one_page_up(&menu);
+	} else if (cmd == INPUT_SELECT_FIRST) {
+		scroll_to_the_beginning(&menu);
+	} else if (cmd == INPUT_SELECT_LAST) {
+		scroll_to_the_end(&menu);
+	} else if (cmd == INPUT_RESIZE) {
+		update_pager_menu(&menu, blocks);
+	} else if ((cmd == INPUT_QUIT_SOFT) || (cmd == INPUT_QUIT_HARD)) {
+		delwin(menu.window);
+		menu.window = NULL;
+		resume_list_menu();
+		return false;
+	} else {
+		return false;
 	}
-
-	delwin(menu.window);
-	resume_list_menu();
-
-	return cmd;
+	return true;
 }

@@ -353,10 +353,11 @@ void free_links_list(const struct links_list *links);
 struct string *deserialize_persons_string(const char *src, const char *person_type);
 
 // See "interface-pager.c" file for implementation.
-int pager_view(struct render_blocks_list *blocks, bool (*custom_input_handler)(void *, input_cmd_id, uint32_t, const struct wstring *), void *data);
+bool start_pager_menu(struct render_blocks_list *new_blocks);
+bool handle_pager_menu_navigation(input_cmd_id cmd);
 
 // See "interface-pager-item.c" file for implementation.
-int enter_item_pager_view_loop(const struct item_entry *item);
+int enter_item_pager_view_loop(struct item_entry *items, const size_t *view_sel);
 
 // See "interface-pager-status.c" file for implementation.
 int enter_status_pager_view_loop(void);
@@ -445,8 +446,8 @@ void counter_delete(void);
 // Functions related to executing system commands.
 // See "commands.c" file for implementation.
 bool open_url_in_browser(const struct string *src);
-bool copy_string_to_clipboard(const struct string *src);
-bool execute_command_with_specifiers_in_it(const struct wstring *wcmd_fmt, const struct format_arg *args);
+void copy_string_to_clipboard(const struct string *src);
+void execute_command_with_specifiers_in_it(const struct wstring *wcmd_fmt, const struct format_arg *args);
 
 // See "string.c" file for implementation.
 struct string *crtes(size_t desired_capacity);

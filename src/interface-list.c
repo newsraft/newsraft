@@ -245,13 +245,17 @@ list_menu_change_view(size_t new_sel)
 		menu->view_sel = new_sel;
 		expose_all_visible_entries_of_the_list_menu_unprotected();
 	} else if (new_sel != menu->view_sel) {
-		WINDOW *w = windows[menu->view_sel - menu->view_min];
-		wbkgd(w, get_color_pair(menu->paint_action(menu->view_sel)));
-		wrefresh(w);
-		menu->view_sel = new_sel;
-		w = windows[menu->view_sel - menu->view_min];
-		wbkgd(w, get_reversed_color_pair(menu->paint_action(menu->view_sel)));
-		wrefresh(w);
+		if (list_menu_is_paused == true) {
+			menu->view_sel = new_sel;
+		} else {
+			WINDOW *w = windows[menu->view_sel - menu->view_min];
+			wbkgd(w, get_color_pair(menu->paint_action(menu->view_sel)));
+			wrefresh(w);
+			menu->view_sel = new_sel;
+			w = windows[menu->view_sel - menu->view_min];
+			wbkgd(w, get_reversed_color_pair(menu->paint_action(menu->view_sel)));
+			wrefresh(w);
+		}
 	}
 
 	pthread_mutex_unlock(&interface_lock);

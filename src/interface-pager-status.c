@@ -19,7 +19,21 @@ enter_status_pager_view_loop(void)
 	free_string(messages);
 	struct render_block block = {wmessages, TEXT_PLAIN, 0};
 	struct render_blocks_list blocks = {&block, 1, NULL, 0};
-	const int pager_result = pager_view(&blocks, NULL, NULL);
+	if (start_pager_menu(&blocks) == false) {
+		free_wstring(wmessages);
+		return INPUT_ERROR;
+	}
+	input_cmd_id cmd;
+	uint32_t count;
+	const struct wstring *macro;
+	while (true) {
+		cmd = get_input_command(&count, &macro);
+		if (handle_pager_menu_navigation(cmd) == true) {
+			// Rest a little.
+		} else if ((cmd == INPUT_QUIT_SOFT) || (cmd == INPUT_QUIT_HARD)) {
+			break;
+		}
+	}
 	free_wstring(wmessages);
-	return pager_result;
+	return cmd;
 }

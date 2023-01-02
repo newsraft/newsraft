@@ -1,3 +1,4 @@
+#include <string.h>
 #include "newsraft.h"
 
 static struct format_arg cmd_args[] = {
@@ -51,34 +52,58 @@ error:
 	return false;
 }
 
-static bool
-custom_input_handler(void *data, input_cmd_id cmd, uint32_t count, const struct wstring *macro)
-{
-	const struct links_list *links = data;
-	if ((count > 0) && (count <= links->len)) {
-		if (cmd == INPUT_OPEN_IN_BROWSER) {
-			return open_url_in_browser(links->ptr[count - 1].url);
-		} else if (cmd == INPUT_COPY_TO_CLIPBOARD) {
-			return copy_string_to_clipboard(links->ptr[count - 1].url);
-		} else if (cmd == INPUT_SYSTEM_COMMAND) {
-			cmd_args[0].value.s = links->ptr[count - 1].url->ptr;
-			return execute_command_with_specifiers_in_it(macro, cmd_args);
-		}
-	}
-	return false;
-}
-
 int
-enter_item_pager_view_loop(const struct item_entry *item)
+enter_item_pager_view_loop(struct item_entry *items, const size_t *view_sel)
 {
-	INFO("Trying to view an item with the rowid %" PRId64 "...", item->rowid);
-	struct render_blocks_list blocks = {0};
-	struct links_list links = {0};
-	if (populate_render_blocks_list_with_data_from_item(item, &blocks, &links) == false) {
-		return INPUT_ERROR;
+	struct render_blocks_list blocks;
+	struct links_list links;
+	input_cmd_id cmd;
+	uint32_t count;
+	const struct wstring *macro;
+	size_t current_sel;
+	while (true) {
+		INFO("Trying to view an item with the rowid %" PRId64 "...", items[*view_sel].rowid);
+		memset(&blocks, 0, sizeof(struct render_blocks_list));
+		memset(&links, 0, sizeof(struct links_list));
+		if (populate_render_blocks_list_with_data_from_item(items + *view_sel, &blocks, &links) == false) {
+			return INPUT_ERROR;
+		}
+		if (start_pager_menu(&blocks) == false) {
+			free_render_blocks(&blocks);
+			free_links_list(&links);
+			return INPUT_ERROR;
+		}
+		db_mark_item_read(items[*view_sel].rowid);
+		items[*view_sel].is_unread = false;
+		while (true) {
+			cmd = get_input_command(&count, &macro);
+			if (handle_pager_menu_navigation(cmd) == true) {
+				// Rest a little.
+			} else if ((cmd == INPUT_SELECT_NEXT_UNREAD) || (cmd == INPUT_SELECT_PREV_UNREAD)) {
+				current_sel = *view_sel;
+				handle_list_menu_navigation(cmd);
+				if (current_sel != *view_sel) {
+					break;
+				}
+			} else if ((cmd == INPUT_QUIT_SOFT) || (cmd == INPUT_QUIT_HARD)) {
+				free_render_blocks(&blocks);
+				free_links_list(&links);
+				return cmd;
+			} else if ((count > 0) && (count <= links.len)) {
+				if (cmd == INPUT_OPEN_IN_BROWSER) {
+					open_url_in_browser(links.ptr[count - 1].url);
+					handle_pager_menu_navigation(INPUT_RESIZE);
+				} else if (cmd == INPUT_COPY_TO_CLIPBOARD) {
+					copy_string_to_clipboard(links.ptr[count - 1].url);
+				} else if (cmd == INPUT_SYSTEM_COMMAND) {
+					cmd_args[0].value.s = links.ptr[count - 1].url->ptr;
+					execute_command_with_specifiers_in_it(macro, cmd_args);
+					handle_pager_menu_navigation(INPUT_RESIZE);
+				}
+			}
+		}
+		free_render_blocks(&blocks);
+		free_links_list(&links);
 	}
-	const int pager_result = pager_view(&blocks, &custom_input_handler, (void *)&links);
-	free_render_blocks(&blocks);
-	free_links_list(&links);
-	return pager_result;
+	return INPUT_ERROR; // It shouldn't get here.
 }

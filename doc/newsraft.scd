@@ -52,7 +52,7 @@ By default, to update a single feed you have to select it and press *r*. If you
 want to update all feeds, *Ctrl-R* (or *^R* for short) will do this fine.
 
 Every feed item entry (i. e. single piece of news) has two switchable properties
-\- read state and importance state. When you open feed item entry contents it
+\- read state and importance state. When you open a feed item entry contents it
 automatically becomes read. Keys to force read state change: *d* to mark read,
 *D* to mark unread, *^D* to mark everything read. Keys to force importance state
 change: *i* to mark important, *I* to mark unimportant.
@@ -81,7 +81,38 @@ the name of the section must be specified. For example:
 Comment lines start with # character. These lines are completely ignored. For
 example:
 
-	_# you will gain from using it, for sure_
+	_# You will gain from using it, for sure._
+
+Both feed and section lines allow you to set an auto update counter at the end,
+which will force section or feed related to this line to be automatically
+updated at a certain frequency. The period of automatic updates is specified in
+minutes and must be enclosed in curly braces, for example *{15}*. If you set an
+auto update counter for a feed that belongs to a section with an auto update
+counter set, then the auto update counter of the feed will take precedence. Auto
+update counter *{0}* disables automatic updates. Let's walk through a small
+example of how it all works. Consider this feed file:
+
+	_http://example.org/feed1.xml_++
+_http://example.org/feed2.xml {30}_
+
+	_@ Replies {20}_++
+_http://example.org/feed3.xml {10}_++
+_http://example.org/feed4.xml "Forum notifications"_
+
+	_@ News {60}_++
+_http://example.org/feed5.xml_++
+_http://example.org/feed6.xml "Local weather" {0}_
+
+In this example, _feed1_ will never update automatically, _feed2_ will update
+every *30* minutes, _feed3_ will update every *10* minutes, _feed4_ will update
+every *20* minutes, _feed5_ will update every *60* minutes and _feed6_ will
+never update automatically.
+
+If you want to just automatically update all feeds then you should set an auto
+update counter for *Global* section, but before doing so, think about what load
+can be exerted on a servers by frequent downloads from a large number of users.
+Going for a small auto update counter on *Global* section will most likely
+result in a waste of a lot of resources. You have been warned.
 
 Search precedence:
 . _$XDG_CONFIG_HOME_/newsraft/feeds
@@ -122,7 +153,7 @@ you can use a line according to this format:
 Comment lines start with # character. These lines are completely ignored. For
 example:
 
-	_# look closely, the beautiful may be small_
+	_# Look closely, the beautiful may be small._
 
 Search precedence:
 . _$XDG_CONFIG_HOME_/newsraft/config

@@ -43,50 +43,37 @@ counter_recreate(void)
 	return true;
 }
 
-static inline int
-read_key_from_counter_window(void)
-{
-	// We can't read keys from stdscr via getch() function because calling it
-	// will bring stdscr on top of other windows and overlap them.
-	int c = wgetch(counter_window);
-	INFO("Received \"%c\" character with %d key code.", c, c);
-	return c;
-}
-
 int
 read_counted_key_from_counter_window(uint32_t *count)
 {
-	int c = read_key_from_counter_window();
-	while (isdigit(c) != 0) {
-
-		// Add digit to counter.
-		if (count_buf_len == 9) {
-			count_buf_len = 0;
+	int c;
+	do {
+		// We can't read keys from stdscr via getch() function because calling
+		// it will bring stdscr on top of other windows and overlap them.
+		c = wgetch(counter_window);
+		INFO("Received \"%c\" character with %d key code.", c, c);
+		if (isdigit(c) == 0) {
+			if (c != KEY_RESIZE) {
+				count_buf[count_buf_len] = '\0';
+				if (sscanf(count_buf, "%" SCNu32, count) != 1) {
+					*count = 1;
+				}
+				count_buf_len = 0;
+				counter_update();
+			}
+			return c;
 		}
+		count_buf_len %= 9;
 		count_buf[count_buf_len++] = c;
 		counter_update();
-
-		c = read_key_from_counter_window();
-	}
-	if (c != KEY_RESIZE) {
-		count_buf[count_buf_len] = '\0';
-		if (sscanf(count_buf, "%" SCNu32, count) != 1) {
-			*count = 1;
-		}
-		if (counter_window != NULL) {
-			werase(counter_window);
-			wrefresh(counter_window);
-		}
-		count_buf_len = 0;
-	}
-	return c;
+	} while(true);
 }
 
 void
 counter_delete(void)
 {
-	INFO("Freeing counter window.");
 	if (counter_window != NULL) {
+		INFO("Freeing counter window.");
 		delwin(counter_window);
 	}
 }

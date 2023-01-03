@@ -1,8 +1,6 @@
 #include <string.h>
 #include "newsraft.h"
 
-#define SKIP_TO_THE_END_OF_LINE while ((c != '\n') && (c != EOF)) { c = fgetc(f); }
-
 static inline void
 remove_trailing_slashes_from_string(struct string *str)
 {
@@ -45,11 +43,13 @@ parse_feeds_file(void)
 	int64_t section_index = 0;
 	int64_t section_update_period = -1;
 	struct string *section_name = crtes(100);
-	struct string *update_time_str = crtes(10);
+#define UPDATE_TIME_SIZE 17 // Allow less than 19 characters to not overflow int64_t.
+	char update_time[UPDATE_TIME_SIZE + 1];
+	size_t update_time_len;
 	struct feed_entry feed;
 	feed.name = crtes(100);
 	feed.link = crtes(200);
-	if ((section_name == NULL) || (update_time_str == NULL) || (feed.name == NULL) || (feed.link == NULL)) {
+	if ((section_name == NULL) || (feed.name == NULL) || (feed.link == NULL)) {
 		fputs("Not enough memory for parsing feeds file!\n", stderr);
 		goto error;
 	}
@@ -72,15 +72,16 @@ parse_feeds_file(void)
 			}
 			section_update_period = -1;
 			if (c == '{') {
-				empty_string(update_time_str);
-				for (c = fgetc(f); (c != '}') && (c != '\n') && (c != EOF); c = fgetc(f)) {
-					if (catcs(update_time_str, c) == false) { goto error; }
+				update_time_len = 0;
+				for (c = fgetc(f); (update_time_len < UPDATE_TIME_SIZE) && (c != '}') && (c != '\n') && (c != EOF); c = fgetc(f)) {
+					update_time[update_time_len++] = c;
 				}
-				if (sscanf(update_time_str->ptr, "%" SCNd64, &section_update_period) != 1) {
+				update_time[update_time_len] = '\0';
+				if (sscanf(update_time, "%" SCNd64, &section_update_period) != 1) {
 					fputs("Encountered an invalid section update period value!\n", stderr);
 					goto error;
 				}
-				SKIP_TO_THE_END_OF_LINE;
+				while ((c != '\n') && (c != EOF)) { c = fgetc(f); }
 			}
 			trim_whitespace_from_string(section_name);
 			section_index = make_sure_section_exists(section_name, section_update_period);
@@ -114,11 +115,12 @@ parse_feeds_file(void)
 		}
 		while ((c != '{') && (c != '\n') && (c != EOF)) { c = fgetc(f); }
 		if (c == '{') {
-			empty_string(update_time_str);
-			for (c = fgetc(f); (c != '}') && (c != '\n') && (c != EOF); c = fgetc(f)) {
-				if (catcs(update_time_str, c) == false) { goto error; }
+			update_time_len = 0;
+			for (c = fgetc(f); (update_time_len < UPDATE_TIME_SIZE) && (c != '}') && (c != '\n') && (c != EOF); c = fgetc(f)) {
+				update_time[update_time_len++] = c;
 			}
-			if (sscanf(update_time_str->ptr, "%" SCNd64, &feed.update_period) != 1) {
+			update_time[update_time_len] = '\0';
+			if (sscanf(update_time, "%" SCNd64, &feed.update_period) != 1) {
 				fputs("Encountered an invalid feed update period value!\n", stderr);
 				goto error;
 			}
@@ -133,7 +135,7 @@ parse_feeds_file(void)
 			goto error;
 		}
 
-		SKIP_TO_THE_END_OF_LINE;
+		while ((c != '\n') && (c != EOF)) { c = fgetc(f); }
 	}
 
 	if (at_least_one_feed_was_added == false) {
@@ -142,14 +144,12 @@ parse_feeds_file(void)
 	}
 
 	free_string(section_name);
-	free_string(update_time_str);
 	free_string(feed.link);
 	free_string(feed.name);
 	fclose(f);
 	return true;
 error:
 	free_string(section_name);
-	free_string(update_time_str);
 	free_string(feed.link);
 	free_string(feed.name);
 	fclose(f);

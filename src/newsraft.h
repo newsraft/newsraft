@@ -270,10 +270,9 @@ struct deserialize_stream;
 int64_t make_sure_section_exists(const struct string *section_name, int64_t update_period);
 bool create_global_section(void);
 bool copy_feed_to_section(const struct feed_entry *feed, int64_t section_index);
-void name_feeds_by_their_titles_in_db(void);
 void refresh_unread_items_count_of_all_sections(void);
-bool start_auto_updater_thread(void);
-void finish_auto_updater_thread(void);
+bool start_auto_updater_if_necessary(void);
+void finish_auto_updater_if_necessary(void);
 void enter_sections_menu_loop(void);
 void free_sections(void);
 const struct format_arg *prepare_section_entry_args(size_t index);
@@ -391,8 +390,7 @@ struct string *get_config_date_str(int64_t date, config_entry_id format_index);
 
 // See "db.c" file for implementation.
 bool db_init(void);
-bool start_database_file_optimization(void);
-bool catch_database_file_optimization(void);
+bool query_database_file_optimization(void);
 void db_stop(void);
 sqlite3_stmt *db_prepare(const char *zSql, int nByte);
 bool db_begin_transaction(void);

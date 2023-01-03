@@ -54,24 +54,24 @@ make_sure_section_exists(const struct string *section_name, int64_t update_perio
 			return i;
 		}
 	}
-	size_t section_index = sections_count++;
-	struct feed_section *tmp = realloc(sections, sizeof(struct feed_section) * sections_count);
+	struct feed_section *tmp = realloc(sections, sizeof(struct feed_section) * (sections_count + 1));
 	if (tmp == NULL) {
 		fputs("Not enough memory for another section structure!\n", stderr);
 		return -1;
 	}
 	sections = tmp;
-	sections[section_index].name = crtss(section_name);
-	if (sections[section_index].name == NULL) {
+	sections[sections_count].name = crtss(section_name);
+	if (sections[sections_count].name == NULL) {
 		fputs("Not enough memory for section name string!\n", stderr);
 		return -1;
 	}
-	sections[section_index].feeds = NULL;
-	sections[section_index].feeds_count = 0;
-	sections[section_index].unread_count = 0;
-	sections[section_index].update_period = update_period;
-	INFO("Created \"%s\" section.", sections[section_index].name->ptr);
-	return section_index;
+	sections[sections_count].feeds = NULL;
+	sections[sections_count].feeds_count = 0;
+	sections[sections_count].unread_count = 0;
+	sections[sections_count].update_period = update_period;
+	INFO("Created section \"%s\" with update period %" PRId64 ".", sections[sections_count].name->ptr, update_period);
+	sections_count += 1;
+	return sections_count - 1;
 }
 
 bool
@@ -110,7 +110,10 @@ copy_feed_to_global_section(const struct feed_entry *feed)
 		return NULL;
 	}
 	if ((feed->name == NULL) || (feed->name->len == 0)) {
-		sections[0].feeds[feed_index]->name = NULL;
+		sections[0].feeds[feed_index]->name = db_get_string_from_feed_table(feed->link, "title", 5);
+		if (sections[0].feeds[feed_index]->name != NULL) {
+			inlinefy_string(sections[0].feeds[feed_index]->name);
+		}
 	} else {
 		sections[0].feeds[feed_index]->name = crtss(feed->name);
 		if (sections[0].feeds[feed_index]->name == NULL) {
@@ -162,22 +165,6 @@ copy_feed_to_section(const struct feed_entry *feed, int64_t section_index)
 }
 
 void
-name_feeds_by_their_titles_in_db(void)
-{
-	struct string *tmp;
-	for (size_t i = 0; i < sections[0].feeds_count; ++i) {
-		if ((sections[0].feeds[i]->name == NULL) || (sections[0].feeds[i]->name->len == 0)) {
-			tmp = db_get_string_from_feed_table(sections[0].feeds[i]->link, "title", 5);
-			if (tmp != NULL) {
-				inlinefy_string(tmp);
-				free_string(sections[0].feeds[i]->name);
-				sections[0].feeds[i]->name = tmp;
-			}
-		}
-	}
-}
-
-void
 refresh_unread_items_count_of_all_sections(void)
 {
 	for (size_t i = 0; i < sections_count; ++i) {
@@ -211,7 +198,7 @@ auto_updater_routine(void *dummy)
 {
 	(void)dummy;
 	size_t i;
-	static const struct timespec auto_updater_routine_period = {1, 0};
+	const struct timespec auto_updater_routine_period = {1, 0};
 	while (stop_auto_updater_routine == false) {
 		for (i = 0; i < sections[0].feeds_count; ++i) {
 			if (sections[0].feeds[i]->update_period > 0) {
@@ -236,7 +223,7 @@ auto_updater_routine(void *dummy)
 }
 
 bool
-start_auto_updater_thread(void)
+start_auto_updater_if_necessary(void)
 {
 	if ((at_least_one_feed_has_positive_update_period == true) || (sections[0].update_period > 0)) {
 		if (pthread_create(&auto_updater_routine_thread, NULL, &auto_updater_routine, NULL) != 0) {
@@ -248,7 +235,7 @@ start_auto_updater_thread(void)
 }
 
 void
-finish_auto_updater_thread(void)
+finish_auto_updater_if_necessary(void)
 {
 	if ((at_least_one_feed_has_positive_update_period == true) || (sections[0].update_period > 0)) {
 		stop_auto_updater_routine = true;

@@ -2,9 +2,6 @@
 #include "newsraft.h"
 
 static sqlite3 *db;
-static pthread_t database_file_optimization_thread;
-static char *vacuum_error = NULL;
-static char *analyze_error = NULL;
 
 bool
 db_init(void)
@@ -89,49 +86,25 @@ db_init(void)
 	return true;
 }
 
-static void *
-database_file_optimization_routine(void *dummy)
+bool
+query_database_file_optimization(void)
 {
-	(void)dummy;
+	char *error = NULL;
 	if (get_cfg_bool(CFG_CLEAN_DATABASE_ON_STARTUP) == true) {
-		sqlite3_exec(db, "VACUUM;", NULL, NULL, &vacuum_error);
+		sqlite3_exec(db, "VACUUM;", NULL, NULL, &error);
+		if (error != NULL) {
+			fprintf(stderr, "Failed to vacuum the database: %s!\n", error);
+			sqlite3_free(error);
+			return false;
+		}
 	}
 	if (get_cfg_bool(CFG_ANALYZE_DATABASE_ON_STARTUP) == true) {
-		sqlite3_exec(db, "ANALYZE;", NULL, NULL, &analyze_error);
-	}
-	return NULL;
-}
-
-// Note to the future.
-// This should be done in the background (separate thread), because VACUUM and
-// ANALYZE database queries take very long time in case of big database files.
-bool
-start_database_file_optimization(void)
-{
-	if (pthread_create(&database_file_optimization_thread, NULL, &database_file_optimization_routine, NULL) != 0) {
-		fputs("Failed to create database optimization thread!\n", stderr);
-		return false;
-	}
-	return true;
-}
-
-bool
-catch_database_file_optimization(void)
-{
-	if (pthread_join(database_file_optimization_thread, NULL) != 0) {
-		fputs("Failed to finish database file optimization!\n", stderr);
-		return false;
-	}
-	if ((vacuum_error != NULL) || (analyze_error != NULL)) {
-		if (vacuum_error != NULL) {
-			fprintf(stderr, "Failed to vacuum the database: %s!\n", vacuum_error);
-			sqlite3_free(vacuum_error);
+		sqlite3_exec(db, "ANALYZE;", NULL, NULL, &error);
+		if (error != NULL) {
+			fprintf(stderr, "Failed to analyze the database: %s!\n", error);
+			sqlite3_free(error);
+			return false;
 		}
-		if (analyze_error != NULL) {
-			fprintf(stderr, "Failed to analyze the database: %s!\n", analyze_error);
-			sqlite3_free(analyze_error);
-		}
-		return false;
 	}
 	return true;
 }

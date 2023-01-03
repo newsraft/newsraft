@@ -1,4 +1,3 @@
-#include <stdlib.h>
 #include <string.h>
 #include "newsraft.h"
 
@@ -9,51 +8,32 @@ struct person {
 	struct string *url;
 };
 
-static struct person *
-create_person(void)
+static inline bool
+initialize_person(struct person *p)
 {
-	struct person *person = malloc(sizeof(struct person));
-	if (person == NULL) {
-		return NULL;
-	}
-	person->type = crtes(17);
-	person->name = crtes(19);
-	person->email = crtes(23);
-	person->url = crtes(29);
-	if ((person->type == NULL)
-		|| (person->name == NULL)
-		|| (person->email == NULL)
-		|| (person->url == NULL))
-	{
-		free_string(person->type);
-		free_string(person->name);
-		free_string(person->email);
-		free_string(person->url);
-		free(person);
-		return NULL;
-	}
-	return person;
+	p->type = crtes(17);
+	p->name = crtes(19);
+	p->email = crtes(23);
+	p->url = crtes(29);
+	return p->type != NULL && p->name != NULL && p->email != NULL && p->url != NULL;
 }
 
-static void
-empty_person(struct person *person)
+static inline void
+empty_person(struct person *p)
 {
-	empty_string(person->type);
-	empty_string(person->name);
-	empty_string(person->email);
-	empty_string(person->url);
+	empty_string(p->type);
+	empty_string(p->name);
+	empty_string(p->email);
+	empty_string(p->url);
 }
 
-static void
-free_person(struct person *person)
+static inline void
+free_person(struct person *p)
 {
-	if (person != NULL) {
-		free_string(person->type);
-		free_string(person->name);
-		free_string(person->email);
-		free_string(person->url);
-		free(person);
-	}
+	free_string(p->type);
+	free_string(p->name);
+	free_string(p->email);
+	free_string(p->url);
 }
 
 static bool
@@ -96,49 +76,49 @@ write_person_to_result(struct string *result, const struct person *person)
 struct string *
 deserialize_persons_string(const char *src, const char *person_type)
 {
+	struct person person;
 	struct string *result = crtes(100);
-	struct person *person = create_person();
 	struct deserialize_stream *stream = open_deserialize_stream(src);
-	if ((person == NULL) || (result == NULL) || (stream == NULL)) {
+	if ((initialize_person(&person) == false) || (result == NULL) || (stream == NULL)) {
 		goto error;
 	}
 	const struct string *field = get_next_entry_from_deserialize_stream(stream);
 	while (field != NULL) {
 		if (strcmp(field->ptr, "^") == 0) {
-			if (strcmp(person_type, person->type->ptr) == 0) {
-				if (write_person_to_result(result, person) == false) {
+			if (strcmp(person_type, person.type->ptr) == 0) {
+				if (write_person_to_result(result, &person) == false) {
 					goto error;
 				}
 			}
-			empty_person(person);
+			empty_person(&person);
 		} else if (strncmp(field->ptr, "type=", 5) == 0) {
-			if (cpyas(person->type, field->ptr + 5, field->len - 5) == false) {
+			if (cpyas(person.type, field->ptr + 5, field->len - 5) == false) {
 				goto error;
 			}
 		} else if (strncmp(field->ptr, "name=", 5) == 0) {
-			if (cpyas(person->name, field->ptr + 5, field->len - 5) == false) {
+			if (cpyas(person.name, field->ptr + 5, field->len - 5) == false) {
 				goto error;
 			}
 		} else if (strncmp(field->ptr, "email=", 6) == 0) {
-			if (cpyas(person->email, field->ptr + 6, field->len - 6) == false) {
+			if (cpyas(person.email, field->ptr + 6, field->len - 6) == false) {
 				goto error;
 			}
 		} else if (strncmp(field->ptr, "url=", 4) == 0) {
-			if (cpyas(person->url, field->ptr + 4, field->len - 4) == false) {
+			if (cpyas(person.url, field->ptr + 4, field->len - 4) == false) {
 				goto error;
 			}
 		}
 		field = get_next_entry_from_deserialize_stream(stream);
 	}
-	if (write_person_to_result(result, person) == false) {
+	if (write_person_to_result(result, &person) == false) {
 		goto error;
 	}
 	close_deserialize_stream(stream);
-	free_person(person);
+	free_person(&person);
 	return result;
 error:
 	close_deserialize_stream(stream);
-	free_person(person);
+	free_person(&person);
 	free_string(result);
 	return NULL;
 }

@@ -89,7 +89,7 @@ open_deserialize_stream(const char *serialized_data)
 	if (stream == NULL) {
 		return NULL;
 	}
-	stream->entry = crtes(100);
+	stream->entry = crtes(10000);
 	if (stream->entry == NULL) {
 		free(stream);
 		return NULL;

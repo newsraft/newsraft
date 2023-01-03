@@ -1,6 +1,8 @@
 #include <string.h>
 #include "newsraft.h"
 
+#define SKIP_TO_THE_END_OF_LINE while ((c != '\n') && (c != EOF)) { c = fgetc(f); }
+
 static inline void
 remove_trailing_slashes_from_string(struct string *str)
 {
@@ -39,27 +41,18 @@ parse_feeds_file(void)
 		fputs("Couldn't open feeds file!\n", stderr);
 		return false;
 	}
-	const struct string *global_section_name = get_cfg_string(CFG_GLOBAL_SECTION_NAME);
-	struct string *section_name = crtss(global_section_name);
-	if (section_name == NULL) {
-		fclose(f);
-		return false;
-	}
+	bool at_least_one_feed_was_added = false;
+	int64_t section_index = 0;
+	int64_t section_update_period = -1;
+	struct string *section_name = crtes(100);
+	struct string *update_time_str = crtes(10);
 	struct feed_entry feed;
 	feed.name = crtes(100);
-	if (feed.name == NULL) {
-		free_string(section_name);
-		fclose(f);
-		return false;
-	}
 	feed.link = crtes(200);
-	if (feed.link == NULL) {
-		free_string(feed.name);
-		free_string(section_name);
-		fclose(f);
-		return false;
+	if ((section_name == NULL) || (update_time_str == NULL) || (feed.name == NULL) || (feed.link == NULL)) {
+		fputs("Not enough memory for parsing feeds file!\n", stderr);
+		goto error;
 	}
-	size_t feeds_count = 0;
 
 	char c;
 	// This is line-by-line file processing loop:
@@ -69,17 +62,29 @@ parse_feeds_file(void)
 		// Get first non-whitespace character.
 		do { c = fgetc(f); } while (ISWHITESPACE(c));
 
-		if (c == '#') {
-			// Skip a comment line.
+		if (c == '#') { // Skip a comment line.
 			do { c = fgetc(f); } while (c != '\n' && c != EOF);
 			continue;
-		} else if (c == '@') {
+		} else if (c == '@') { // Start a new section.
 			empty_string(section_name);
-			do { c = fgetc(f); } while (ISWHITESPACEEXCEPTNEWLINE(c));
-			while ((c != '\n') && (c != EOF)) {
+			for (c = fgetc(f); (c != '{') && (c != '\n') && (c != EOF); c = fgetc(f)) {
 				if (catcs(section_name, c) == false) { goto error; }
-				c = fgetc(f);
 			}
+			section_update_period = -1;
+			if (c == '{') {
+				empty_string(update_time_str);
+				for (c = fgetc(f); (c != '}') && (c != '\n') && (c != EOF); c = fgetc(f)) {
+					if (catcs(update_time_str, c) == false) { goto error; }
+				}
+				if (sscanf(update_time_str->ptr, "%" SCNd64, &section_update_period) != 1) {
+					fputs("Encountered an invalid section update period value!\n", stderr);
+					goto error;
+				}
+				SKIP_TO_THE_END_OF_LINE;
+			}
+			trim_whitespace_from_string(section_name);
+			section_index = make_sure_section_exists(section_name, section_update_period);
+			if (section_index < 0) { goto error; }
 			continue;
 		} else if (c == EOF) {
 			break;
@@ -87,6 +92,7 @@ parse_feeds_file(void)
 
 		empty_string(feed.name);
 		empty_string(feed.link);
+		feed.update_period = -1;
 
 		while (true) {
 			if (catcs(feed.link, c) == false) { goto error; }
@@ -106,32 +112,46 @@ parse_feeds_file(void)
 				if (catcs(feed.name, c) == false) { goto error; }
 			}
 		}
-		if (copy_feed_to_section(&feed, section_name) == true) {
-			feeds_count += 1;
+		while ((c != '{') && (c != '\n') && (c != EOF)) { c = fgetc(f); }
+		if (c == '{') {
+			empty_string(update_time_str);
+			for (c = fgetc(f); (c != '}') && (c != '\n') && (c != EOF); c = fgetc(f)) {
+				if (catcs(update_time_str, c) == false) { goto error; }
+			}
+			if (sscanf(update_time_str->ptr, "%" SCNd64, &feed.update_period) != 1) {
+				fputs("Encountered an invalid feed update period value!\n", stderr);
+				goto error;
+			}
+		}
+		if (feed.update_period < 0) {
+			feed.update_period = section_update_period;
+		}
+		if (copy_feed_to_section(&feed, section_index) == true) {
+			at_least_one_feed_was_added = true;
 		} else {
 			fprintf(stderr, "Failed to add feed \"%s\" to section \"%s\"!\n", feed.link->ptr, section_name->ptr);
 			goto error;
 		}
 
-		// Skip everything to the next newline character.
-		while (c != '\n' && c != EOF) { c = fgetc(f); };
-
+		SKIP_TO_THE_END_OF_LINE;
 	}
 
-	if (feeds_count == 0) {
+	if (at_least_one_feed_was_added == false) {
 		fputs("Not a single feed was loaded!\n", stderr);
 		goto error;
 	}
 
+	free_string(section_name);
+	free_string(update_time_str);
 	free_string(feed.link);
 	free_string(feed.name);
-	free_string(section_name);
 	fclose(f);
 	return true;
 error:
+	free_string(section_name);
+	free_string(update_time_str);
 	free_string(feed.link);
 	free_string(feed.name);
-	free_string(section_name);
 	fclose(f);
 	return false;
 }

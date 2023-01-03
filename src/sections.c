@@ -7,10 +7,15 @@ struct feed_section {
 	struct feed_entry **feeds; // Array of pointers to feeds belonging to this section.
 	size_t feeds_count;
 	size_t unread_count;
+	int64_t update_period;
 };
 
 static struct feed_section *sections = NULL;
 static size_t sections_count = 0;
+
+static pthread_t auto_updater_routine_thread;
+static volatile bool stop_auto_updater_routine = false;
+static bool at_least_one_feed_has_positive_update_period = false;
 
 static struct format_arg fmt_args[] = {
 	{L'n',  L"d", {.i = 0   }},
@@ -40,32 +45,39 @@ unread_section_condition(size_t index)
 	return sections[index].unread_count > 0;
 }
 
-static bool
-create_new_section(const struct string *section_name)
+int64_t
+make_sure_section_exists(const struct string *section_name, int64_t update_period)
 {
-	size_t section_index = sections_count++;
-	struct feed_section *temp = realloc(sections, sizeof(struct feed_section) * sections_count);
-	if (temp == NULL) {
-		fputs("Not enough memory for another section structure!\n", stderr);
-		return false;
+	for (size_t i = 0; i < sections_count; ++i) {
+		if (strcmp(section_name->ptr, sections[i].name->ptr) == 0) {
+			sections[i].update_period = update_period;
+			return i;
+		}
 	}
-	sections = temp;
+	size_t section_index = sections_count++;
+	struct feed_section *tmp = realloc(sections, sizeof(struct feed_section) * sections_count);
+	if (tmp == NULL) {
+		fputs("Not enough memory for another section structure!\n", stderr);
+		return -1;
+	}
+	sections = tmp;
 	sections[section_index].name = crtss(section_name);
 	if (sections[section_index].name == NULL) {
 		fputs("Not enough memory for section name string!\n", stderr);
-		return false;
+		return -1;
 	}
 	sections[section_index].feeds = NULL;
 	sections[section_index].feeds_count = 0;
 	sections[section_index].unread_count = 0;
-	INFO("Created \"%s\" section.", section_name->ptr);
-	return true;
+	sections[section_index].update_period = update_period;
+	INFO("Created \"%s\" section.", sections[section_index].name->ptr);
+	return section_index;
 }
 
 bool
 create_global_section(void)
 {
-	return create_new_section(get_cfg_string(CFG_GLOBAL_SECTION_NAME));
+	return make_sure_section_exists(get_cfg_string(CFG_GLOBAL_SECTION_NAME), -1) == 0 ? true : false;
 }
 
 static inline struct feed_entry *
@@ -86,6 +98,7 @@ copy_feed_to_global_section(const struct feed_entry *feed)
 	if (potential_duplicate != NULL) {
 		return potential_duplicate;
 	}
+	INFO("Copying feed %s with update time period %" PRId64 " to global section.", feed->link->ptr, feed->update_period);
 	size_t feed_index = (sections[0].feeds_count)++;
 	struct feed_entry **temp = realloc(sections[0].feeds, sizeof(struct feed_entry *) * sections[0].feeds_count);
 	if (temp == NULL) {
@@ -113,6 +126,11 @@ copy_feed_to_global_section(const struct feed_entry *feed)
 		return NULL;
 	}
 	sections[0].feeds[feed_index]->unread_count = new_unread_count;
+	sections[0].feeds[feed_index]->update_period = feed->update_period;
+	sections[0].feeds[feed_index]->update_iterator = 0;
+	if (feed->update_period > 0) {
+		at_least_one_feed_has_positive_update_period = true;
+	}
 	return sections[0].feeds[feed_index];
 }
 
@@ -133,29 +151,14 @@ attach_feed_to_section(struct feed_entry *feed, struct feed_section *section)
 }
 
 bool
-copy_feed_to_section(const struct feed_entry *feed, const struct string *section_name)
+copy_feed_to_section(const struct feed_entry *feed, int64_t section_index)
 {
 	struct feed_entry *attached_feed = copy_feed_to_global_section(feed);
 	if (attached_feed == NULL) {
 		fputs("Not enough memory for new feed in global section!\n", stderr);
 		return false;
 	}
-	if (strcmp(section_name->ptr, sections[0].name->ptr) == 0) {
-		// The section we add a feed to is global and we already added
-		// a feed to the global section above. So exit innocently here.
-		return true;
-	}
-	// Skip (i == 0) because first section is always the global one and
-	// we already know that the section we add a feed to is not global.
-	for (size_t i = 1; i < sections_count; ++i) {
-		if (strcmp(section_name->ptr, sections[i].name->ptr) == 0) {
-			return attach_feed_to_section(attached_feed, &sections[i]);
-		}
-	}
-	if (create_new_section(section_name) == false) {
-		return false;
-	}
-	return attach_feed_to_section(attached_feed, &sections[sections_count - 1]);
+	return attach_feed_to_section(attached_feed, &sections[section_index]);
 }
 
 void
@@ -201,6 +204,56 @@ free_sections(void)
 		free(sections[i].feeds);
 	}
 	free(sections);
+}
+
+static void *
+auto_updater_routine(void *dummy)
+{
+	(void)dummy;
+	size_t i;
+	static const struct timespec auto_updater_routine_period = {1, 0};
+	while (stop_auto_updater_routine == false) {
+		for (i = 0; i < sections[0].feeds_count; ++i) {
+			if (sections[0].feeds[i]->update_period > 0) {
+				if ((sections[0].feeds[i]->update_iterator % sections[0].feeds[i]->update_period) == 0) {
+					update_feeds(sections[0].feeds + i, 1);
+				}
+				sections[0].feeds[i]->update_iterator += 1;
+			} else if (sections[0].feeds[i]->update_period < 0) {
+				if (sections[0].update_period > 0) {
+					if ((sections[0].feeds[i]->update_iterator % sections[0].update_period) == 0) {
+						update_feeds(sections[0].feeds + i, 1);
+					}
+					sections[0].feeds[i]->update_iterator += 1;
+				}
+			}
+		}
+		for (i = 0; (i < 60) && (stop_auto_updater_routine == false); ++i) {
+			nanosleep(&auto_updater_routine_period, NULL);
+		}
+	}
+	return NULL;
+}
+
+bool
+start_auto_updater_thread(void)
+{
+	if ((at_least_one_feed_has_positive_update_period == true) || (sections[0].update_period > 0)) {
+		if (pthread_create(&auto_updater_routine_thread, NULL, &auto_updater_routine, NULL) != 0) {
+			fputs("Failed to create auto updater thread!\n", stderr);
+			return false;
+		}
+	}
+	return true;
+}
+
+void
+finish_auto_updater_thread(void)
+{
+	if ((at_least_one_feed_has_positive_update_period == true) || (sections[0].update_period > 0)) {
+		stop_auto_updater_routine = true;
+		pthread_join(auto_updater_routine_thread, NULL);
+	}
 }
 
 void

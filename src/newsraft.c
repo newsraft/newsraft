@@ -77,9 +77,11 @@ main(int argc, char **argv)
 	refresh_unread_items_count_of_all_sections();
 	if (catch_database_file_optimization() == false) { error = 21; goto undo13; }
 	name_feeds_by_their_titles_in_db();
+	if (start_auto_updater_thread()        == false) { error = 22; goto undo13; }
 
 	enter_sections_menu_loop();
 
+	finish_auto_updater_thread();
 	wait_for_all_threads_to_finish();
 
 undo13:

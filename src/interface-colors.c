@@ -2,8 +2,8 @@
 #include "newsraft.h"
 
 struct color_assignment {
-	int pair;
-	int reverse_pair;
+	unsigned int pair;
+	unsigned int reverse_pair;
 	unsigned int attribute;
 };
 
@@ -31,14 +31,14 @@ create_color_pairs(void)
 	return true;
 }
 
-int
+unsigned int
 get_color_pair(config_entry_id id)
 {
-	return paint_it_black == true ? (int)A_NORMAL : colors[id / 2].pair | colors[id / 2].attribute;
+	return paint_it_black == true ? A_NORMAL : colors[id / 2].pair | colors[id / 2].attribute;
 }
 
-int
+unsigned int
 get_reversed_color_pair(config_entry_id id)
 {
-	return paint_it_black == true ? (int)A_REVERSE : colors[id / 2].reverse_pair | colors[id / 2].attribute;
+	return paint_it_black == true ? A_REVERSE : colors[id / 2].reverse_pair | colors[id / 2].attribute;
 }

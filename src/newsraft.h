@@ -415,8 +415,8 @@ input_cmd_id resize_counter_action(void);
 // Functions responsible for curses color pairs.
 // See "interface-colors.c" file for implementation.
 bool create_color_pairs(void);
-int get_color_pair(config_entry_id id);
-int get_reversed_color_pair(config_entry_id id);
+unsigned int get_color_pair(config_entry_id id);
+unsigned int get_reversed_color_pair(config_entry_id id);
 
 // Functions responsible for handling input and bindings.
 // See "input.c" file for implementation.

@@ -14,10 +14,15 @@ struct config_wstring {
 	const size_t primary_len;
 };
 
+struct config_color {
+	int hue;
+	unsigned int attribute;
+};
+
 union config_value {
 	bool b;
 	size_t u;
-	int c;
+	struct config_color c;
 	struct config_string s;
 	struct config_wstring w;
 };
@@ -29,26 +34,26 @@ struct config_entry {
 };
 
 static struct config_entry config[] = {
-	{"color-status-good-fg",            CFG_COLOR,   {.c = COLOR_GREEN  }},
-	{"color-status-good-bg",            CFG_COLOR,   {.c = COLOR_BLACK  }},
-	{"color-status-info-fg",            CFG_COLOR,   {.c = COLOR_CYAN   }},
-	{"color-status-info-bg",            CFG_COLOR,   {.c = COLOR_BLACK  }},
-	{"color-status-fail-fg",            CFG_COLOR,   {.c = COLOR_RED    }},
-	{"color-status-fail-bg",            CFG_COLOR,   {.c = COLOR_BLACK  }},
-	{"color-list-item-fg",              CFG_COLOR,   {.c = COLOR_WHITE  }},
-	{"color-list-item-bg",              CFG_COLOR,   {.c = COLOR_BLACK  }},
-	{"color-list-item-unread-fg",       CFG_COLOR,   {.c = COLOR_YELLOW }},
-	{"color-list-item-unread-bg",       CFG_COLOR,   {.c = COLOR_BLACK  }},
-	{"color-list-item-important-fg",    CFG_COLOR,   {.c = COLOR_MAGENTA}},
-	{"color-list-item-important-bg",    CFG_COLOR,   {.c = COLOR_BLACK  }},
-	{"color-list-feed-fg",              CFG_COLOR,   {.c = COLOR_WHITE  }},
-	{"color-list-feed-bg",              CFG_COLOR,   {.c = COLOR_BLACK  }},
-	{"color-list-feed-unread-fg",       CFG_COLOR,   {.c = COLOR_YELLOW }},
-	{"color-list-feed-unread-bg",       CFG_COLOR,   {.c = COLOR_BLACK  }},
-	{"color-list-section-fg",           CFG_COLOR,   {.c = COLOR_WHITE  }},
-	{"color-list-section-bg",           CFG_COLOR,   {.c = COLOR_BLACK  }},
-	{"color-list-section-unread-fg",    CFG_COLOR,   {.c = COLOR_YELLOW }},
-	{"color-list-section-unread-bg",    CFG_COLOR,   {.c = COLOR_BLACK  }},
+	{"color-status-good-fg",            CFG_COLOR,   {.c = {COLOR_GREEN,   A_NORMAL}}},
+	{"color-status-good-bg",            CFG_COLOR,   {.c = {COLOR_BLACK,   A_NORMAL}}},
+	{"color-status-info-fg",            CFG_COLOR,   {.c = {COLOR_CYAN,    A_NORMAL}}},
+	{"color-status-info-bg",            CFG_COLOR,   {.c = {COLOR_BLACK,   A_NORMAL}}},
+	{"color-status-fail-fg",            CFG_COLOR,   {.c = {COLOR_RED,     A_NORMAL}}},
+	{"color-status-fail-bg",            CFG_COLOR,   {.c = {COLOR_BLACK,   A_NORMAL}}},
+	{"color-list-item-fg",              CFG_COLOR,   {.c = {COLOR_WHITE,   A_NORMAL}}},
+	{"color-list-item-bg",              CFG_COLOR,   {.c = {COLOR_BLACK,   A_NORMAL}}},
+	{"color-list-item-unread-fg",       CFG_COLOR,   {.c = {COLOR_YELLOW,  A_NORMAL}}},
+	{"color-list-item-unread-bg",       CFG_COLOR,   {.c = {COLOR_BLACK,   A_NORMAL}}},
+	{"color-list-item-important-fg",    CFG_COLOR,   {.c = {COLOR_MAGENTA, A_NORMAL}}},
+	{"color-list-item-important-bg",    CFG_COLOR,   {.c = {COLOR_BLACK,   A_NORMAL}}},
+	{"color-list-feed-fg",              CFG_COLOR,   {.c = {COLOR_WHITE,   A_NORMAL}}},
+	{"color-list-feed-bg",              CFG_COLOR,   {.c = {COLOR_BLACK,   A_NORMAL}}},
+	{"color-list-feed-unread-fg",       CFG_COLOR,   {.c = {COLOR_YELLOW,  A_NORMAL}}},
+	{"color-list-feed-unread-bg",       CFG_COLOR,   {.c = {COLOR_BLACK,   A_NORMAL}}},
+	{"color-list-section-fg",           CFG_COLOR,   {.c = {COLOR_WHITE,   A_NORMAL}}},
+	{"color-list-section-bg",           CFG_COLOR,   {.c = {COLOR_BLACK,   A_NORMAL}}},
+	{"color-list-section-unread-fg",    CFG_COLOR,   {.c = {COLOR_YELLOW,  A_NORMAL}}},
+	{"color-list-section-unread-bg",    CFG_COLOR,   {.c = {COLOR_BLACK,   A_NORMAL}}},
 	{"items-count-limit",               CFG_UINT,    {.u = 0    }},
 	{"download-timeout",                CFG_UINT,    {.u = 20   }},
 	{"download-speed-limit",            CFG_UINT,    {.u = 0    }},
@@ -160,10 +165,11 @@ get_cfg_uint(config_entry_id i)
 	return config[i].value.u;
 }
 
-int
-get_cfg_color(config_entry_id i)
+void
+get_cfg_color(config_entry_id i, int *hue, unsigned int *attribute)
 {
-	return config[i].value.c;
+	*hue = config[i].value.c.hue;
+	*attribute = config[i].value.c.attribute;
 }
 
 const struct string *
@@ -191,9 +197,15 @@ set_cfg_uint(config_entry_id i, size_t value)
 }
 
 void
-set_cfg_color(config_entry_id i, int value)
+set_cfg_color_hue(config_entry_id i, int hue)
 {
-	config[i].value.c = value;
+	config[i].value.c.hue = hue;
+}
+
+void
+set_cfg_color_attribute(config_entry_id i, unsigned int attribute)
+{
+	config[i].value.c.attribute = attribute;
 }
 
 bool

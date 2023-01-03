@@ -27,7 +27,7 @@
 #define NEWSRAFT_COLOR_PAIRS_COUNT 10
 typedef uint8_t config_entry_id;
 enum {
-	CFG_COLOR_STATUS_GOOD_FG,
+	CFG_COLOR_STATUS_GOOD_FG = 0,
 	CFG_COLOR_STATUS_GOOD_BG,
 	CFG_COLOR_STATUS_INFO_FG,
 	CFG_COLOR_STATUS_INFO_BG,
@@ -507,7 +507,7 @@ void log_stop(int error_code);
 bool load_config(void);
 bool get_cfg_bool(config_entry_id i);
 size_t get_cfg_uint(config_entry_id i);
-int get_cfg_color(config_entry_id i);
+void get_cfg_color(config_entry_id i, int *hue, unsigned int *attribute);
 const struct string *get_cfg_string(config_entry_id i);
 const struct wstring *get_cfg_wstring(config_entry_id i);
 void free_config(void);

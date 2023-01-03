@@ -4,6 +4,7 @@
 struct color_assignment {
 	int pair;
 	int reverse_pair;
+	unsigned int attribute;
 };
 
 static bool paint_it_black = true;
@@ -15,8 +16,8 @@ create_color_pairs(void)
 	INFO("Creating color pairs.");
 	int fg, bg;
 	for (size_t i = 0, j = 1; i < NEWSRAFT_COLOR_PAIRS_COUNT; ++i, j += 2) {
-		fg = get_cfg_color(i * 2);
-		bg = get_cfg_color(i * 2 + 1);
+		get_cfg_color(i * 2 + 1, &bg, &colors[i].attribute);
+		get_cfg_color(i * 2, &fg, &colors[i].attribute);
 		if (init_pair(j, fg, bg) == ERR) {
 			return false;
 		}
@@ -33,11 +34,11 @@ create_color_pairs(void)
 int
 get_color_pair(config_entry_id id)
 {
-	return paint_it_black == true ? (int)A_NORMAL : colors[id / 2].pair;
+	return paint_it_black == true ? (int)A_NORMAL : colors[id / 2].pair | colors[id / 2].attribute;
 }
 
 int
 get_reversed_color_pair(config_entry_id id)
 {
-	return paint_it_black == true ? (int)A_REVERSE : colors[id / 2].reverse_pair;
+	return paint_it_black == true ? (int)A_REVERSE : colors[id / 2].reverse_pair | colors[id / 2].attribute;
 }

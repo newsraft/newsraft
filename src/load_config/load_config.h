@@ -27,11 +27,14 @@ bool assign_calculated_values_to_auto_config_strings(void);
 config_type_id get_cfg_type(config_entry_id i);
 void set_cfg_bool(config_entry_id i, bool value);
 void set_cfg_uint(config_entry_id i, size_t value);
-void set_cfg_color(config_entry_id i, int value);
+void set_cfg_color_hue(config_entry_id i, int hue);
+void set_cfg_color_attribute(config_entry_id i, unsigned int attribute);
 bool set_cfg_string(config_entry_id i, const char *src_ptr, size_t src_len);
 bool set_cfg_wstring(config_entry_id i, const char *src_ptr, size_t src_len);
 
 void log_config_settings(void);
 
 input_cmd_id get_input_cmd_id_by_name(const char *name);
+
+bool parse_color_setting(config_entry_id id, const char *iter);
 #endif // LOAD_CONFIG_H

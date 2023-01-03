@@ -1,5 +1,4 @@
 #include <string.h>
-#include <curses.h>
 #include "load_config/load_config.h"
 
 #define CONFIG_LINE_SIZE 1000
@@ -55,24 +54,7 @@ process_set_line(char *line)
 		}
 		set_cfg_uint(id, val);
 	} else if (type == CFG_COLOR) {
-		if (strcmp(i, "black") == 0) {
-			set_cfg_color(id, COLOR_BLACK);
-		} else if (strcmp(i, "red") == 0) {
-			set_cfg_color(id, COLOR_RED);
-		} else if (strcmp(i, "green") == 0) {
-			set_cfg_color(id, COLOR_GREEN);
-		} else if (strcmp(i, "yellow") == 0) {
-			set_cfg_color(id, COLOR_YELLOW);
-		} else if (strcmp(i, "blue") == 0) {
-			set_cfg_color(id, COLOR_BLUE);
-		} else if (strcmp(i, "magenta") == 0) {
-			set_cfg_color(id, COLOR_MAGENTA);
-		} else if (strcmp(i, "cyan") == 0) {
-			set_cfg_color(id, COLOR_CYAN);
-		} else if (strcmp(i, "white") == 0) {
-			set_cfg_color(id, COLOR_WHITE);
-		} else {
-			fputs("Color settings can only take lower-case ASCII color names!\n", stderr);
+		if (parse_color_setting(id, i) == false) {
 			return false;
 		}
 	} else if (type == CFG_STRING) {

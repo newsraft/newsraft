@@ -94,8 +94,8 @@ Config file is used to override default settings and bindings of Newsraft.
 Presence of config file is totally optional and Newsraft will work without it
 just fine. There are 3 types of lines in config file.
 
-Setting lines start with the *set* word. Complete list of configurable settings
-can be found in the *SETTINGS* section. Format of these lines is as follows,
+Setting lines start with the *set* word. You can find available settings in the
+*SETTINGS* and *COLOR SETTINGS* sections. Format of these lines is as follows,
 where _value_ can be enclosed in single or double quotes:
 
 	*set* setting _value_
@@ -310,6 +310,14 @@ _ssl-verify-peer_ (default: *true*)
 	Verifies that the peer certificate corresponds to its identity when a
 	secure connection is established. Connections with an invalid certificate
 	will fail. Disabling it is strongly discouraged.
+
+# COLOR SETTINGS
+
+Color settings are the same settings as above, but they take a certain set of
+whitespace separated tokens for their values: one hue word and optional format
+attributes. Available tokens for hue are *black*, *red*, *green*, *yellow*,
+*blue*, *magenta*, *cyan* and *white*. Available tokens for format attributes
+are *bold*, *italic* and *underlined*.
 
 _color-status-good-fg_ (default: *green*)
 	Text color of status area when reporting success.

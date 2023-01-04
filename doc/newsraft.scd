@@ -45,20 +45,44 @@ that point to feeds you want to receive news from. Format of this file and valid
 paths for the location of this file are discussed in the *FEEDS FILE* section.
 
 When your *feeds* file is ready, you can launch Newsraft. Navigation in the
-interface is carried out by the same keys as in the *vi*(1) text editor. To
-start reading news from feeds you have to update them (i. e. get information
-from the servers where the files for these feeds are located to local database).
-By default, to update a single feed you have to select it and press *r*. If you
-want to update all feeds, *Ctrl-R* (or *^R* for short) will do this fine.
+interface is carried out by the same keys as in the *vi*(1) text editor. There
+are only 4 menus you're gonna deal with: _sections menu_, _feeds menu_,
+_items menu_ and _pager menu_.
 
-Every feed item entry (i. e. single piece of news) has two switchable properties
-\- read state and importance state. When you open a feed item entry contents it
-automatically becomes read. Keys to force read state change: *d* to mark read,
-*D* to mark unread, *^D* to mark everything read. Keys to force importance state
-change: *i* to mark important, *I* to mark unimportant.
+_Sections menu_ consists of section entries which are needed to organize feeds
+in groups to be able to process them in bulk. They are kind of directories for
+feeds. If you didn't specify any section declarations in your *feeds* file then
+you will get to the _feeds menu_ straightaway.
 
-That's it for the starter guide. More advanced functionality can be explored by
-studying the other sections of this manual in detail.
+_Feeds menu_ consists of feed entries. Every feed entry contains news downloaded
+from one specific source which you have set in *feeds* file. To update a single
+feed you have to select it and press *r*. If you want to update all feeds,
+*Ctrl-R* (or *^R* for short) will do this fine. From _feeds menu_ you can get to
+the _items menu_ by entering some feed.
+
+_Items menu_ consists of feed item entries (i. e. single pieces of news) which
+you get when you update feeds in the previous menu. Every feed item entry has
+two switchable properties - read state and importance state. Keys to force read
+state change: *d* to mark read, *D* to mark unread, *^D* to mark everything
+read. Keys to force importance state change: *i* to mark important, *I* to mark
+unimportant. To view item's content you have to go to _pager menu_ by entering
+selected item.
+
+_Pager menu_ will display some details about selected item and render its
+content if it was provided by feed. Usually feed item entries have a links
+section with one link pointing to a related web page and several links that were
+mentioned in the item's content. You can copy these links into your clipboard
+with *y* key and open them in your web browser with *o* key. To target a key
+action to link with a specific index you have to prefix your key with this
+index. For example, *5y* will copy fifth link and *17o* will open seventeenth
+link in the web browser. You can also setup custom command bindings to execute
+any commands with these links. Consider this *config* file:
+
+	_bind m exec mpv "%l"_++
+_bind f exec feh "%l"_
+
+With this you will be able to open any link in _mpv_ and _feh_ directly from
+your terminal! Isn't it awesome? It is freaking amazing!
 
 # CONFIGURATION
 

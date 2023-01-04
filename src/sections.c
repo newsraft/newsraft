@@ -198,7 +198,7 @@ auto_updater_routine(void *dummy)
 {
 	(void)dummy;
 	size_t i;
-	const struct timespec auto_updater_routine_period = {1, 0};
+	const struct timespec auto_updater_interval = {0, 500000000L}; // 0.5 seconds
 	while (stop_auto_updater_routine == false) {
 		for (i = 0; i < sections[0].feeds_count; ++i) {
 			if (sections[0].feeds[i]->update_period > 0) {
@@ -206,17 +206,16 @@ auto_updater_routine(void *dummy)
 					update_feeds(sections[0].feeds + i, 1);
 				}
 				sections[0].feeds[i]->update_iterator += 1;
-			} else if (sections[0].feeds[i]->update_period < 0) {
-				if (sections[0].update_period > 0) {
-					if ((sections[0].feeds[i]->update_iterator % sections[0].update_period) == 0) {
-						update_feeds(sections[0].feeds + i, 1);
-					}
-					sections[0].feeds[i]->update_iterator += 1;
+			} else if ((sections[0].feeds[i]->update_period < 0) && (sections[0].update_period > 0)) {
+				if ((sections[0].feeds[i]->update_iterator % sections[0].update_period) == 0) {
+					update_feeds(sections[0].feeds + i, 1);
 				}
+				sections[0].feeds[i]->update_iterator += 1;
 			}
 		}
-		for (i = 0; (i < 60) && (stop_auto_updater_routine == false); ++i) {
-			nanosleep(&auto_updater_routine_period, NULL);
+		// Sleep for a total of 1 minute while checking if they want us to stop.
+		for (i = 0; (i < 120) && (stop_auto_updater_routine == false); ++i) {
+			nanosleep(&auto_updater_interval, NULL);
 		}
 	}
 	return NULL;

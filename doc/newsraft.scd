@@ -293,8 +293,9 @@ _download-speed-limit_ (default: *0*)
 	Maximum download speed in kilobytes per second (kB/s). Zero disables the
 	limit.
 
-_status-messages-count-limit_ (default: *10000*)
-	Maximum number of status messages stored in memory. Zero disables the limit.
+_status-messages-count-limit_ (default: *1000*)
+	Maximum number of status messages stored in memory. If set to zero, status
+	messages history won't be stored in memory.
 
 _send-user-agent-header_ (default: *true*)
 	Attach user-agent header to download requests. See _user-agent_ setting.

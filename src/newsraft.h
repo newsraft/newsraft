@@ -434,6 +434,7 @@ bool assign_default_binds(void);
 // Functions related to window which displays status messages.
 // See "interface-status.c" file for implementation.
 bool status_recreate(void);
+bool allocate_status_messages_buffer(void);
 void status_clean_unprotected(void);
 void status_clean(void);
 void prevent_status_cleaning(void);

@@ -69,13 +69,14 @@ main(int argc, char **argv)
 	if (adjust_list_menu()                 == false) { error = 14; goto undo6;  }
 	if (create_format_buffers()            == false) { error = 15; goto undo7;  }
 	if (status_recreate()                  == false) { error = 16; goto undo8;  }
-	if (counter_recreate()                 == false) { error = 17; goto undo9;  }
-	if (initialize_update_threads()        == false) { error = 18; goto undo10; }
-	if (get_local_offset_relative_to_utc() == false) { error = 19; goto undo11; }
-	if (curl_global_init(CURL_GLOBAL_DEFAULT)  != 0) { error = 20; goto undo11; }
+	if (allocate_status_messages_buffer()  == false) { error = 17; goto undo9;  }
+	if (counter_recreate()                 == false) { error = 18; goto undo9;  }
+	if (initialize_update_threads()        == false) { error = 19; goto undo10; }
+	if (get_local_offset_relative_to_utc() == false) { error = 20; goto undo11; }
+	if (curl_global_init(CURL_GLOBAL_DEFAULT)  != 0) { error = 21; goto undo11; }
 	initialize_settings_of_list_menus();
 	refresh_unread_items_count_of_all_sections();
-	if (start_auto_updater_if_necessary()  == false) { error = 21; goto undo12; }
+	if (start_auto_updater_if_necessary()  == false) { error = 22; goto undo12; }
 
 	enter_sections_menu_loop();
 

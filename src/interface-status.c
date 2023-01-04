@@ -9,24 +9,16 @@ struct status_message {
 
 static WINDOW *status_window = NULL;
 static bool status_window_is_clean = true;
-static struct status_message *messages = NULL;
-static size_t messages_count = 0;
-static size_t messages_limit;
-static volatile bool is_status_cleanable = true;
+static volatile bool status_window_is_cleanable = true;
+static struct status_message *messages;
+static size_t messages_len = 0;
+static size_t messages_lim = 0;
 
 static inline void
 write_last_status_message_to_status_window(void)
 {
-	if ((messages != NULL) && (messages_count != 0)) {
-		struct status_message *m;
-		if (messages_limit == 0) {
-			m = messages + messages_count - 1;
-		} else {
-			m = messages + ((messages_count - 1) % messages_limit);
-		}
-		mvwaddnstr(status_window, 0, 0, m->text->ptr, list_menu_width - 9);
-		wbkgd(status_window, get_color_pair(m->color));
-	}
+	mvwaddnstr(status_window, 0, 0, messages[(messages_len - 1) % messages_lim].text->ptr, list_menu_width - 9);
+	wbkgd(status_window, get_color_pair(messages[(messages_len - 1) % messages_lim].color));
 }
 
 bool
@@ -46,14 +38,34 @@ status_recreate(void)
 		write_last_status_message_to_status_window();
 	}
 	wrefresh(status_window);
-	messages_limit = get_cfg_uint(CFG_STATUS_MESSAGES_COUNT_LIMIT);
 	return true;
+}
+
+bool
+allocate_status_messages_buffer(void)
+{
+	messages_lim = get_cfg_uint(CFG_STATUS_MESSAGES_COUNT_LIMIT);
+	messages_lim |= 1; // Make sure it's not a zero.
+	messages = calloc(messages_lim, sizeof(struct status_message));
+	if (messages == NULL) {
+		goto error;
+	}
+	for (size_t i = 0; i < messages_lim; ++i) {
+		messages[i].text = crtes(100);
+		if (messages[i].text == NULL) {
+			goto error; // Since we calloced messages buffer, everything after that remains NULL.
+		}
+	}
+	return true;
+error:
+	fputs("Not enough memory for status messages buffer!\n", stderr);
+	return false;
 }
 
 void
 status_clean_unprotected(void)
 {
-	if (is_status_cleanable == true) {
+	if (status_window_is_cleanable == true) {
 		status_window_is_clean = true;
 		werase(status_window);
 		wrefresh(status_window);
@@ -71,33 +83,13 @@ status_clean(void)
 void
 prevent_status_cleaning(void)
 {
-	is_status_cleanable = false;
+	status_window_is_cleanable = false;
 }
 
 void
 allow_status_cleaning(void)
 {
-	is_status_cleanable = true;
-}
-
-static inline bool
-append_new_message_to_status_messages(config_entry_id new_color, struct string *new_message)
-{
-	messages_count += 1;
-	if ((messages_limit == 0) || (messages_count <= messages_limit)) {
-		struct status_message *temp = realloc(messages, sizeof(struct status_message) * messages_count);
-		if (temp == NULL) {
-			return false;
-		}
-		messages = temp;
-		messages[messages_count - 1].text = new_message;
-		messages[messages_count - 1].color = new_color;
-	} else {
-		free_string(messages[(messages_count - 1) % messages_limit].text);
-		messages[(messages_count - 1) % messages_limit].text = new_message;
-		messages[(messages_count - 1) % messages_limit].color = new_color;
-	}
-	return true;
+	status_window_is_cleanable = true;
 }
 
 void
@@ -106,19 +98,12 @@ status_write(config_entry_id color, const char *format, ...)
 	pthread_mutex_lock(&interface_lock);
 	va_list args;
 	va_start(args, format);
-	struct string *new_message = crtes(100);
-	if (new_message == NULL) {
+	if (string_vprintf(messages[messages_len % messages_lim].text, format, args) == false) {
 		goto undo;
 	}
-	if (string_vprintf(new_message, format, args) == false) {
-		free_string(new_message);
-		goto undo;
-	}
-	if (append_new_message_to_status_messages(color, new_message) == false) {
-		free_string(new_message);
-		goto undo;
-	}
-	INFO("Last status message: %s", new_message->ptr);
+	messages[messages_len % messages_lim].color = color;
+	INFO("Printed status message: %s", messages[messages_len % messages_lim].text->ptr);
+	messages_len += 1;
 	status_window_is_clean = false;
 	werase(status_window);
 	write_last_status_message_to_status_window();
@@ -136,46 +121,27 @@ generate_string_with_status_messages_for_pager(void)
 		FAIL("Not enough memory for string with status messages for pager!");
 		return NULL;
 	}
-	if ((messages_limit == 0) || (messages_count <= messages_limit)) {
-		for (size_t i = messages_count; i != 0; --i) {
-			catss(str, messages[i - 1].text);
-			catcs(str, '\n');
-		}
-	} else {
-		size_t i = (messages_count - 1) % messages_limit;
-		for (size_t count = messages_limit; count != 0; --count) {
-			catss(str, messages[i].text);
-			catcs(str, '\n');
-			if (i == 0) {
-				i = messages_limit - 1;
-			} else {
-				i = i - 1;
-			}
+	size_t i = (messages_len - 1) % messages_lim;
+	for (size_t j = MIN(messages_len, messages_lim); j > 0; --j) {
+		catss(str, messages[i].text);
+		catcs(str, '\n');
+		if (i == 0) {
+			i = messages_lim - 1;
+		} else {
+			i -= 1;
 		}
 	}
 	return str;
-}
-
-static inline void
-free_messages(void)
-{
-	if ((messages_limit == 0) || (messages_count <= messages_limit)) {
-		for (size_t i = 0; i < messages_count; ++i) {
-			free_string(messages[i].text);
-		}
-	} else {
-		for (size_t i = 0; i < messages_limit; ++i) {
-			free_string(messages[i].text);
-		}
-	}
-	free(messages);
 }
 
 void
 status_delete(void)
 {
 	INFO("Freeing status messages.");
-	free_messages();
+	for (size_t i = 0; i < messages_lim; ++i) {
+		free_string(messages[i].text);
+	}
+	free(messages);
 	INFO("Freeing status window.");
 	delwin(status_window);
 }

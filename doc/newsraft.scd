@@ -174,16 +174,13 @@ Search precedence:
 
 # SETTINGS
 
+_scrolloff_ (default: *0*)
+	Minimal number of list menu entries to keep above and below the selected
+	entry. If you set it to a very large value the selected entry will always be
+	in the middle of the list menu (except at the start or end of the list menu).
+
 _items-count-limit_ (default: *0*)
 	Maximum number of items stored in one feed. Zero disables the limit.
-
-_download-timeout_ (default: *20*)
-	Maximum time in seconds that you allow Newsraft to download one feed. Zero
-	disables the limit.
-
-_download-speed-limit_ (default: *0*)
-	Maximum download speed in kilobytes per second (kB/s). Zero disables the
-	limit.
 
 _update-threads-count_ (default: *0*)
 	Maximum number of update processes running simultaneously. If set to zero,
@@ -192,14 +189,6 @@ _update-threads-count_ (default: *0*)
 	where parallel downloads can slow down the update process. If set to a value
 	greater than the number of CPU cores available, it will be implicitly reduced
 	to the number of CPU cores to avoid performance issues.
-
-_scrolloff_ (default: *0*)
-	Minimal number of list menu entries to keep above and below the selected
-	entry. If you set it to a very large value the selected entry will always be
-	in the middle of the list menu (except at the start or end of the list menu).
-
-_status-messages-count-limit_ (default: *10000*)
-	Maximum number of status messages stored in memory. Zero disables the limit.
 
 _open-in-browser-command_ (default: *auto*)
 	Shell command for opening URL in web browser. The URL to be opened is
@@ -231,19 +220,6 @@ _proxy-password_ (default: *""*)
 
 _global-section-name_ (default: *Global*)
 	Name of the section that contains all feeds.
-
-_send-user-agent-header_ (default: *true*)
-	Attach user-agent header to download requests. See _user-agent_ setting.
-
-_user-agent_ (default: *auto*)
-	User-agent string to attach to download requests. If it is set to *"auto"*,
-	Newsraft will generate it according to the following format:
-
-		*"newsraft/"* + NEWSRAFT_VERSION + *" ("* + OS_NAME + *")"*
-
-	OS_NAME shouldn't be a matter of privacy concern, because on most systems it
-	contains nothing more like *"Linux"* or *"Darwin"*. If you want to be sure
-	of this, check Newsraft log to see how _user-agent_ is set at startup.
 
 _item-formation-order_ (default: *feed-url,title,authors,published,updated,max-content*)
 	Sets the order in which the data of item entry is formed for viewing in a
@@ -308,6 +284,30 @@ _clean-database-on-startup_ (default: *false*)
 	Run "VACUUM" SQLite command on the database every time you start Newsraft.
 	It rebuilds the database file by packing it into a minimal amount of disk space.
 	This can significantly increase startup time.
+
+_download-timeout_ (default: *20*)
+	Maximum time in seconds that you allow Newsraft to download one feed. Zero
+	disables the limit.
+
+_download-speed-limit_ (default: *0*)
+	Maximum download speed in kilobytes per second (kB/s). Zero disables the
+	limit.
+
+_status-messages-count-limit_ (default: *10000*)
+	Maximum number of status messages stored in memory. Zero disables the limit.
+
+_send-user-agent-header_ (default: *true*)
+	Attach user-agent header to download requests. See _user-agent_ setting.
+
+_user-agent_ (default: *auto*)
+	User-agent string to attach to download requests. If it is set to *"auto"*,
+	Newsraft will generate it according to the following format:
+
+		*"newsraft/"* + NEWSRAFT_VERSION + *" ("* + OS_NAME + *")"*
+
+	OS_NAME shouldn't be a matter of privacy concern, because on most systems it
+	contains nothing more like *"Linux"* or *"Darwin"*. If you want to be sure
+	of this, check Newsraft log to see how _user-agent_ is set at startup.
 
 _respect-ttl-element_ (default: *true*)
 	Prevents too frequent updates for some feeds. The limit is set by the

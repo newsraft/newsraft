@@ -20,20 +20,6 @@ struct deserialize_stream {
 
 static const char caret[2] = {DELIMITER, '^'};
 
-static inline void
-remove_delimiter_from_string_with_start_offset(struct string *str, size_t offset)
-{
-	for (char *i = str->ptr + offset; *i != '\0'; ++i) {
-		if (*i == DELIMITER) {
-			for (char *j = i; *j != '\0'; ++j) {
-				*j = *(j + 1);
-			}
-			str->len -= 1;
-			i -= 1;
-		}
-	}
-}
-
 bool
 serialize_caret(struct string **target)
 {
@@ -69,7 +55,20 @@ serialize_array(struct string **target, const char *key, size_t key_len, const c
 	if (catas(*target, value, value_len) == false) {
 		return false;
 	}
-	remove_delimiter_from_string_with_start_offset(*target, old_len);
+	// Remove delimiter from string starting at where value was appended.
+	for (char *i = (*target)->ptr + old_len; *i != '\0'; ++i) {
+		if (*i == DELIMITER) {
+			for (char *j = i; *j != '\0'; ++j) {
+				*j = *(j + 1);
+			}
+			(*target)->len -= 1;
+			// Since DELIMITER won't occur in 99.99999999999999% of cases
+			// it's actually more effective to put null-terminator when it
+			// occurs than to put it on every serialize_array call.
+			(*target)->ptr[(*target)->len] = '\0';
+			i -= 1;
+		}
+	}
 	return true;
 }
 

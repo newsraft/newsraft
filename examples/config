@@ -3,12 +3,12 @@
 # Lines with # character at the beginning are comments,
 # they are completely ignored by the parser.
 
-# Set some settings.
+# Here we set some settings.
 set scrolloff 5
-set download-timeout 10
-set color-list-item-important-fg red
+set download-timeout 20
+set color-list-item-important-fg bold red
 
-# Assign some binds.
-bind ^P mark-unread-all
+# And here we bind actions to some keys.
 bind m exec mpv "%l"
 bind f exec feh "%l"
+bind ^P mark-unread-all

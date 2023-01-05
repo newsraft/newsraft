@@ -228,8 +228,8 @@ download_feed(const char *url, struct stream_callback_data *data)
 	INFO("Curl response code: %ld", response);
 
 	if (res != CURLE_OK) {
-		WARN("Curl error from error code: %s", curl_easy_strerror(res));
-		WARN("Curl error from error buffer: %s", curl_errbuf);
+		WARN("Curl error number string: %s", curl_easy_strerror(res));
+		WARN("Curl error buffer string: %s", curl_errbuf);
 		curl_slist_free_all(headers);
 		curl_easy_cleanup(curl);
 		if (response == 429) {

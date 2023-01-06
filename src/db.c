@@ -24,7 +24,24 @@ db_init(void)
 		return false;
 	}
 
-	char *errmsg;
+	char *errmsg = NULL;
+	sqlite3_exec(db, "PRAGMA locking_mode = EXCLUSIVE;", NULL, NULL, &errmsg);
+	if (errmsg != NULL) {
+		fprintf(stderr, "Failed to set database locking mode to exclusive: %s!\n", errmsg);
+		goto error;
+	}
+	sqlite3_exec(db, "BEGIN EXCLUSIVE;", NULL, NULL, &errmsg);
+	if (errmsg != NULL) {
+		fprintf(stderr, "Failed to begin database exclusive locking mode: %s!\n", errmsg);
+		fputs("Probably there's other process currently working with this database.\n", stderr);
+		goto error;
+	}
+	sqlite3_exec(db, "COMMIT;", NULL, NULL, &errmsg);
+	if (errmsg != NULL) {
+		fprintf(stderr, "Failed to commit database exclusive locking mode: %s!\n", errmsg);
+		goto error;
+	}
+
 	// All dates are stored as the number of seconds since 1970.
 	// Note that numeric arguments in parentheses that following the type name
 	// are ignored by SQLite - there's no need to impose any length limits.
@@ -78,12 +95,14 @@ db_init(void)
 	);
 	if (errmsg != NULL) {
 		fprintf(stderr, "Failed to initialize database: %s!\n", errmsg);
-		sqlite3_close(db);
-		sqlite3_free(errmsg);
-		return false;
+		goto error;
 	}
 
 	return true;
+error:
+	sqlite3_free(errmsg);
+	sqlite3_close(db);
+	return false;
 }
 
 bool

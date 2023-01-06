@@ -33,7 +33,7 @@ convert_bytes_to_human_readable_size_string(const char *value)
 	} else {
 		length = sprintf(human_readable, "%.2f GB", size / 1000000000);
 	}
-	if (length < 0) {
+	if (length < 4) {
 		FAIL("Failed to write size string to buffer!");
 		return NULL;
 	}
@@ -68,7 +68,7 @@ convert_seconds_to_human_readable_duration_string(const char *value)
 	} else {
 		length = sprintf(human_readable, "%.1f hours", duration / 3600);
 	}
-	if (length < 0) {
+	if (length < 7) {
 		FAIL("Failed to write duration string to buffer!");
 		return NULL;
 	}
@@ -240,7 +240,7 @@ generate_link_list_string_for_pager(const struct links_list *links)
 	// 1 terminator      1  ascii character    1  byte
 	char prefix[LINK_PREFIX_SIZE];
 	int prefix_len;
-	bool appended_type, appended_size, appended_duration;
+	bool parentheses_are_open;
 	struct string *readable_string = NULL;
 	for (size_t i = 0; i < links->len; ++i) {
 		if ((links->ptr[i].url == NULL) || (links->ptr[i].url->len == 0)) {
@@ -253,57 +253,53 @@ generate_link_list_string_for_pager(const struct links_list *links)
 			goto error;
 		}
 
-		appended_type = false;
+		parentheses_are_open = false;
+
 		if ((links->ptr[i].type != NULL) && (links->ptr[i].type->len != 0)) {
 			if (catas(str, " (type: ", 8) == false) { goto error; }
 			if (catss(str, links->ptr[i].type) == false) { goto error; }
-			appended_type = true;
+			parentheses_are_open = true;
 		}
 
-		appended_size = false;
 		if ((links->ptr[i].size != NULL)
 			&& (links->ptr[i].size->len != 0)
 			&& (strcmp(links->ptr[i].size->ptr, "0") != 0))
 		{
 			readable_string = convert_bytes_to_human_readable_size_string(links->ptr[i].size->ptr);
 			if (readable_string != NULL) {
-				if (appended_type == true) {
+				if (parentheses_are_open == true) {
 					if (catas(str, ", size: ", 8) == false) { goto error; }
 				} else {
+					parentheses_are_open = true;
 					if (catas(str, " (size: ", 8) == false) { goto error; }
 				}
 				if (catss(str, readable_string) == false) { goto error; }
 				free_string(readable_string);
 				readable_string = NULL;
-				appended_size = true;
 			}
 		}
 
-		appended_duration = false;
 		if ((links->ptr[i].duration != NULL)
 			&& (links->ptr[i].duration->len != 0)
 			&& (strcmp(links->ptr[i].duration->ptr, "0") != 0))
 		{
 			readable_string = convert_seconds_to_human_readable_duration_string(links->ptr[i].duration->ptr);
 			if (readable_string != NULL) {
-				if ((appended_type == true) || (appended_size == true)) {
+				if (parentheses_are_open == true) {
 					if (catas(str, ", duration: ", 12) == false) { goto error; }
 				} else {
+					parentheses_are_open = true;
 					if (catas(str, " (duration: ", 12) == false) { goto error; }
 				}
 				if (catss(str, readable_string) == false) { goto error; }
 				free_string(readable_string);
 				readable_string = NULL;
-				appended_duration = true;
 			}
 		}
 
-		if ((appended_type == true) || (appended_size == true) || (appended_duration == true)) {
-			if (catcs(str, ')') == false) {
-				goto error;
-			}
+		if ((parentheses_are_open == true) && (catcs(str, ')') == false)) {
+			goto error;
 		}
-
 	}
 	return str;
 error:
@@ -321,10 +317,10 @@ error:
 bool
 complete_urls_of_links(struct links_list *links, const struct string *feed_url)
 {
-	INFO("Completing URLs of link list.");
+	INFO("Completing URLs of links list.");
 	CURLU *h = curl_url();
 	if (h == NULL) {
-		FAIL("Not enough memory for parsing URL!");
+		FAIL("Not enough memory for completing URLs of links list!");
 		return false;
 	}
 	char *url;
@@ -344,6 +340,7 @@ complete_urls_of_links(struct links_list *links, const struct string *feed_url)
 		if (curl_url_get(h, CURLUPART_URL, &url, 0) != CURLUE_OK) {
 			continue; // This URL is broken, leave it alone.
 		}
+		INFO("Completed \"%s\" to \"%s\".", links->ptr[i].url->ptr, url);
 		if (cpyas(links->ptr[i].url, url, strlen(url)) == false) {
 			curl_free(url);
 			curl_url_cleanup(h);

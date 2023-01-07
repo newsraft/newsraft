@@ -6,6 +6,7 @@ struct config_string {
 	struct string *actual;
 	const char *const primary;
 	const size_t primary_len;
+	bool (*auto_handler)(struct string *);
 };
 
 struct config_wstring {
@@ -60,16 +61,16 @@ static struct config_entry config[] = {
 	{"download-timeout",                CFG_UINT,    {.u = 10  }},
 	{"download-speed-limit",            CFG_UINT,    {.u = 0   }},
 	{"status-messages-count-limit",     CFG_UINT,    {.u = 1000}},
-	{"open-in-browser-command",         CFG_STRING,  {.s = {NULL, "auto",        4}}},
-	{"copy-to-clipboard-command",       CFG_STRING,  {.s = {NULL, "auto",        4}}},
-	{"proxy",                           CFG_STRING,  {.s = {NULL, "",            0}}},
-	{"proxy-user",                      CFG_STRING,  {.s = {NULL, "",            0}}},
-	{"proxy-password",                  CFG_STRING,  {.s = {NULL, "",            0}}},
-	{"global-section-name",             CFG_STRING,  {.s = {NULL, "Global",      6}}},
-	{"user-agent",                      CFG_STRING,  {.s = {NULL, "auto",        4}}},
-	{"item-formation-order",            CFG_STRING,  {.s = {NULL, "feed-url,title,authors,published,updated,max-content", 52}}},
-	{"content-date-format",             CFG_STRING,  {.s = {NULL, "%a, %d %b %Y %H:%M:%S %z",  24}}},
-	{"list-entry-date-format",          CFG_STRING,  {.s = {NULL, "%b %d",                      5}}},
+	{"open-in-browser-command",         CFG_STRING,  {.s = {NULL, "auto",   4, &obtain_browser_command}}},
+	{"copy-to-clipboard-command",       CFG_STRING,  {.s = {NULL, "auto",   4, &obtain_clipboard_command}}},
+	{"proxy",                           CFG_STRING,  {.s = {NULL, "",       0, NULL}}},
+	{"proxy-user",                      CFG_STRING,  {.s = {NULL, "",       0, NULL}}},
+	{"proxy-password",                  CFG_STRING,  {.s = {NULL, "",       0, NULL}}},
+	{"global-section-name",             CFG_STRING,  {.s = {NULL, "Global", 6, NULL}}},
+	{"user-agent",                      CFG_STRING,  {.s = {NULL, "auto",   4, &obtain_useragent_string}}},
+	{"item-formation-order",            CFG_STRING,  {.s = {NULL, "feed-url,title,authors,published,updated,max-content", 52, NULL}}},
+	{"content-date-format",             CFG_STRING,  {.s = {NULL, "%a, %d %b %Y %H:%M:%S %z",  24, NULL}}},
+	{"list-entry-date-format",          CFG_STRING,  {.s = {NULL, "%b %d",                      5, NULL}}},
 	{"menu-section-entry-format",       CFG_WSTRING, {.w = {NULL, L"%5.0u @ %t",               10}}},
 	{"menu-feed-entry-format",          CFG_WSTRING, {.w = {NULL, L"%5.0u │ %o",               10}}},
 	{"menu-item-entry-format",          CFG_WSTRING, {.w = {NULL, L" %u │ %d │ %o",            13}}},
@@ -128,19 +129,12 @@ bool
 assign_calculated_values_to_auto_config_strings(void)
 {
 	INFO("Assigning calculated values to auto config strings.");
-	set_sane_value_for_update_threads_count(config[CFG_UPDATE_THREADS_COUNT].value.u);
-	if (strcmp(config[CFG_USER_AGENT].value.s.actual->ptr, "auto") == 0) {
-		if (generate_useragent_string(config[CFG_USER_AGENT].value.s.actual) == false) {
-			return false;
-		}
-	}
-	if (strcmp(config[CFG_OPEN_IN_BROWSER_COMMAND].value.s.actual->ptr, "auto") == 0) {
-		if (generate_open_in_browser_command_string(config[CFG_OPEN_IN_BROWSER_COMMAND].value.s.actual) == false) {
-			return false;
-		}
-	}
-	if (strcmp(config[CFG_COPY_TO_CLIPBOARD_COMMAND].value.s.actual->ptr, "auto") == 0) {
-		if (generate_copy_to_clipboard_command_string(config[CFG_COPY_TO_CLIPBOARD_COMMAND].value.s.actual) == false) {
+	for (config_entry_id i = 0; config[i].name != NULL; ++i) {
+		if ((config[i].type == CFG_STRING)
+			&& (config[i].value.s.auto_handler != NULL)
+			&& (strcmp(config[i].value.s.actual->ptr, "auto") == 0)
+			&& (config[i].value.s.auto_handler(config[i].value.s.actual) == false))
+		{
 			return false;
 		}
 	}

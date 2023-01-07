@@ -3,7 +3,7 @@
 #include "load_config/load_config.h"
 
 bool
-generate_useragent_string(struct string *ua)
+obtain_useragent_string(struct string *ua)
 {
 	if (cpyas(ua, "newsraft/", 9) == false) {
 		goto error;

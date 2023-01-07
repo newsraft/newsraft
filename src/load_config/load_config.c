@@ -1,3 +1,4 @@
+#include <unistd.h>
 #include "load_config/load_config.h"
 
 bool
@@ -9,6 +10,16 @@ load_config(void)
 			fputs("Failed to parse config file!\n", stderr);
 			return false;
 		}
+	}
+
+	const size_t preferred_threads = get_cfg_uint(CFG_UPDATE_THREADS_COUNT);
+	const long online_cpus = sysconf(_SC_NPROCESSORS_ONLN);
+	INFO("Sysconf value of _SC_NPROCESSORS_ONLN equals to %ld.", online_cpus);
+	const size_t real_threads = online_cpus > 1 ? online_cpus : 1;
+	if (preferred_threads == 0) {
+		set_cfg_uint(CFG_UPDATE_THREADS_COUNT, real_threads);
+	} else {
+		set_cfg_uint(CFG_UPDATE_THREADS_COUNT, MIN(preferred_threads, real_threads));
 	}
 
 	if (assign_default_values_to_null_config_strings() == false) {

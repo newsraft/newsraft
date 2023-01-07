@@ -3,7 +3,7 @@
 #include "load_config/load_config.h"
 
 bool
-generate_open_in_browser_command_string(struct string *cmd)
+obtain_browser_command(struct string *cmd)
 {
 	const char *env_browser = getenv("BROWSER");
 	if (env_browser != NULL) {

@@ -21,10 +21,10 @@ curses interface.
 # OPTIONS
 
 \-f _FILE_
-	Force use of _FILE_ as feeds file.
+	Force use of _FILE_ as *feeds* file.
 
 \-c _FILE_
-	Force use of _FILE_ as configuration file.
+	Force use of _FILE_ as *config* file.
 
 \-d _FILE_
 	Force use of _FILE_ as database file.
@@ -97,8 +97,8 @@ you will get all feed item entries of feeds in this _feeds menu_. Now, explore!
 
 ## FEEDS FILE
 
-Feeds file contains feed entries that Newsraft will display and process. There
-are 3 types of lines in feeds file.
+This file contains feed entries that Newsraft will display and process. There
+are 3 types of lines in *feeds* file.
 
 Feed lines start with a URL. After at least one whitespace character, the name
 of the feed may be specified - it must be enclosed in double quotes. For
@@ -119,11 +119,11 @@ example:
 Both feed and section lines allow you to set an auto update counter at the end,
 which will force section or feed related to this line to be automatically
 updated at a certain frequency. The period of automatic updates is specified in
-minutes and must be enclosed in curly braces, for example *{15}*. If you set an
-auto update counter for a feed that belongs to a section with an auto update
-counter set, then the auto update counter of the feed will take precedence. Auto
-update counter *{0}* disables automatic updates. Let's walk through a small
-example of how it all works. Consider this feed file:
+minutes and must be enclosed in curly braces. If you set an auto update counter
+for a feed that belongs to a section with an auto update counter set, then the
+auto update counter of the feed will take precedence. Auto update counter of *0*
+disables automatic updates. Let's walk through a small example and see how it
+all works. Consider this *feeds* file:
 
 	_http://example.org/feed1.xml_++
 _http://example.org/feed2.xml {30}_
@@ -154,9 +154,9 @@ Search precedence:
 
 ## CONFIG FILE
 
-Config file is used to override default settings and bindings of Newsraft.
-Presence of config file is totally optional and Newsraft will work without it
-just fine. There are 3 types of lines in config file.
+This file is used to override default settings and bindings of Newsraft.
+Presence of *config* file is totally optional and Newsraft will work without it
+just fine. There are 3 types of lines in *config* file.
 
 Setting lines start with the *set* word. You can find available settings in the
 *SETTINGS* and *COLOR SETTINGS* sections. Format of these lines is as follows,
@@ -195,7 +195,7 @@ Search precedence:
 
 ## DATABASE FILE
 
-Database file stores everything you download from feeds in *sqlite3*(1) format.
+This file stores everything you download from feeds in *sqlite3*(1) format.
 Although you now know the format in which the data is stored, it is highly
 recommended to avoid modifying the database manually - things will break and
 it will be very sad.

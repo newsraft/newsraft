@@ -8,7 +8,13 @@ set scrolloff 5
 set download-timeout 20
 set color-list-item-important-fg bold red
 
-# And here we bind actions to some keys.
-bind m exec mpv "%l"
-bind f exec feh "%l"
+# That's how you bind a regular action.
 bind ^P mark-unread-all
+
+# Command binding for opening links with feh image viewer.
+bind f exec feh "%l"
+
+# This will launch mpv in the background.
+bind m exec mpv --no-terminal "%l" &
+# This will launch mpv interactively.
+bind M exec mpv "%l"

@@ -450,9 +450,9 @@ _select-next_ (default: *j*, *KEY_DOWN*)
 
 _select-prev_ (default: *k*, *KEY_UP*)
 
-_select-next-page_ (default: *KEY_NPAGE*)
+_select-next-page_ (default: *^F*, *KEY_NPAGE*)
 
-_select-prev-page_ (default: *KEY_PPAGE*)
+_select-prev-page_ (default: *^B*, *KEY_PPAGE*)
 
 _select-first_ (default: *g*, *KEY_HOME*)
 

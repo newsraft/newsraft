@@ -159,11 +159,11 @@ get_cfg_uint(config_entry_id i)
 	return config[i].value.u;
 }
 
-void
-get_cfg_color(config_entry_id i, int *hue, unsigned int *attribute)
+int
+get_cfg_color(config_entry_id i, unsigned int *attribute)
 {
-	*hue = config[i].value.c.hue;
 	*attribute = config[i].value.c.attribute;
+	return config[i].value.c.hue;
 }
 
 const struct string *

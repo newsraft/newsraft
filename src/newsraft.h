@@ -511,7 +511,7 @@ void log_stop(int error_code);
 bool load_config(void);
 bool get_cfg_bool(config_entry_id i);
 size_t get_cfg_uint(config_entry_id i);
-void get_cfg_color(config_entry_id i, int *hue, unsigned int *attribute);
+int get_cfg_color(config_entry_id i, unsigned int *attribute);
 const struct string *get_cfg_string(config_entry_id i);
 const struct wstring *get_cfg_wstring(config_entry_id i);
 void free_config(void);

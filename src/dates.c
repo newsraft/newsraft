@@ -1,6 +1,4 @@
-#include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
 #include "newsraft.h"
 
 static int64_t local_offset_to_utc;

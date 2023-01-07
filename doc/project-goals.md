@@ -48,6 +48,29 @@ feeds are being updated. In Newsraft, on the other hand, all feed updates are
 concurrent and even in the case of a single feed update you are free to navigate
 the interface.
 
+#### More flexible automatic updates
+
+In Newsboat you have settings for automatic updates but they are applied to all
+feeds at once, while in Newsraft you can set auto update counters (numbers in
+curly braces below) for separate sections and feeds like that:
+
+```
+http://example.org/feed1.xml
+http://example.org/feed2.xml {30}
+
+@ Replies {20}
+http://example.org/feed3.xml {10}
+http://example.org/feed4.xml "Forum notifications"
+
+@ News {60}
+http://example.org/feed5.xml
+http://example.org/feed6.xml "Local weather" {0}
+```
+
+With this you are able to update the feeds that are very important to you more
+often, while other feeds may be updated less frequently or not automatically
+updated at all.
+
 #### Much simpler codebase
 
 In Newsraft's codebase there are only C source files while in the repository of

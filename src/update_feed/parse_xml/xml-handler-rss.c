@@ -146,17 +146,7 @@ ttl_end(struct stream_callback_data *data)
 static int8_t
 web_master_end(struct stream_callback_data *data)
 {
-	if (data->path[data->depth] == GENERIC_FEED) {
-		if (serialize_caret(&data->feed.persons) == false) {
-			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-		}
-		if (serialize_array(&data->feed.persons, "type", 4, "webmaster", 9) == false) {
-			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-		}
-		if (serialize_string(&data->feed.persons, "email", 5, data->text) == false) {
-			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-		}
-	}
+	INFO("Webmaster of this feed: %s", data->text->ptr);
 	return PARSE_OKAY;
 }
 

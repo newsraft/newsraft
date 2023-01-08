@@ -248,6 +248,25 @@ subtitle_end(struct stream_callback_data *data)
 	return PARSE_OKAY;
 }
 
+static int8_t
+atom_generator_start(struct stream_callback_data *data, const XML_Char **attrs)
+{
+	(void)data;
+	const char *attr = get_value_of_attribute_key(attrs, "uri");
+	if (attr != NULL) {
+		INFO("Feed generator URI: %s", attr);
+	}
+	attr = get_value_of_attribute_key(attrs, "url");
+	if (attr != NULL) {
+		INFO("Feed generator URL: %s", attr);
+	}
+	attr = get_value_of_attribute_key(attrs, "version");
+	if (attr != NULL) {
+		INFO("Feed generator version: %s", attr);
+	}
+	return PARSE_OKAY;
+}
+
 const struct xml_element_handler xml_atom10_handlers[] = {
 	{"entry",       GENERIC_ITEM,    &generic_item_starter, &generic_item_ender},
 	{"id",          XML_UNKNOWN_POS, NULL,                  &generic_guid_end},
@@ -264,7 +283,7 @@ const struct xml_element_handler xml_atom10_handlers[] = {
 	{"email",       XML_UNKNOWN_POS, NULL,                  &email_end},
 	{"category",    XML_UNKNOWN_POS, &category_start,       NULL},
 	{"subtitle",    XML_UNKNOWN_POS, &subtitle_start,       &subtitle_end},
-	{"generator",   XML_UNKNOWN_POS, &generator_start,      &generator_end},
+	{"generator",   XML_UNKNOWN_POS, &atom_generator_start, &generator_end},
 	{"feed",        GENERIC_FEED,    NULL,                  NULL},
 	{NULL,          XML_UNKNOWN_POS, NULL,                  NULL},
 };

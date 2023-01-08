@@ -34,7 +34,6 @@ int8_t generic_title_end(struct stream_callback_data *data);
 int8_t generic_plain_content_end(struct stream_callback_data *data);
 int8_t generic_html_content_end(struct stream_callback_data *data);
 int8_t generic_category_end(struct stream_callback_data *data);
-int8_t generator_start(struct stream_callback_data *data, const XML_Char **attrs);
 int8_t generator_end(struct stream_callback_data *data);
 
 #ifndef NEWSRAFT_DISABLE_FORMAT_ATOM10

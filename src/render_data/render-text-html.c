@@ -31,13 +31,15 @@ static uint8_t list_depth;
 static struct list_level list_levels[MAX_NESTED_LISTS_DEPTH + 1];
 
 static inline void
-provide_newlines(struct line *line, size_t count)
+provide_newlines(struct line *line, size_t count, bool force)
 {
-	for (size_t i = 0; (i < line->target->len) && (line->target->ptr[line->target->len - i - 1] == L'\n'); ++i) {
-		count = count > 0 ? count - 1 : 0;
-	}
-	for (size_t i = 0; i < count; ++i) {
-		line_char(line, L'\n');
+	if ((list_depth == 0) || (force == true)) {
+		for (size_t i = 0; (i < line->target->len) && (line->target->ptr[line->target->len - i - 1] == L'\n'); ++i) {
+			count = count > 0 ? count - 1 : 0;
+		}
+		for (size_t i = 0; i < count; ++i) {
+			line_char(line, L'\n');
+		}
 	}
 }
 
@@ -45,14 +47,14 @@ static void
 provide_one_newline(struct line *line, enum html_position *pos)
 {
 	(void)pos;
-	provide_newlines(line, 1);
+	provide_newlines(line, 1, false);
 }
 
 static void
 provide_two_newlines(struct line *line, enum html_position *pos)
 {
 	(void)pos;
-	provide_newlines(line, 2);
+	provide_newlines(line, 2, false);
 }
 
 static void
@@ -65,9 +67,10 @@ br_handler(struct line *line, enum html_position *pos)
 static void
 hr_handler(struct line *line, enum html_position *pos)
 {
+	(void)pos;
 	size_t temp_indent = line->indent;
 	line->indent = 0;
-	provide_one_newline(line, pos);
+	provide_newlines(line, 1, true);
 	for (size_t i = 1; i < line->lim; ++i) {
 		line_char(line, L'─');
 	}
@@ -78,7 +81,8 @@ hr_handler(struct line *line, enum html_position *pos)
 static void
 li_handler(struct line *line, enum html_position *pos)
 {
-	provide_one_newline(line, pos);
+	(void)pos;
+	provide_newlines(line, 1, true);
 	line->indent = list_depth * SPACES_PER_INDENTATION_LEVEL;
 	if (list_levels[list_depth].type == UNORDERED_LIST) {
 		line_string(line, L"*  ");
@@ -98,7 +102,7 @@ ul_start_handler(struct line *line, enum html_position *pos)
 {
 	(void)pos;
 	if (list_depth != MAX_NESTED_LISTS_DEPTH) {
-		provide_newlines(line, list_depth == 0 ? 2 : 1);
+		provide_newlines(line, list_depth == 0 ? 2 : 1, true);
 		list_levels[++list_depth].type = UNORDERED_LIST;
 	}
 }
@@ -111,7 +115,7 @@ ul_end_handler(struct line *line, enum html_position *pos)
 		--list_depth;
 		line->indent = list_depth * SPACES_PER_INDENTATION_LEVEL;
 	}
-	provide_newlines(line, list_depth == 0 ? 2 : 1);
+	provide_newlines(line, list_depth == 0 ? 2 : 1, true);
 }
 
 static void
@@ -119,7 +123,7 @@ ol_start_handler(struct line *line, enum html_position *pos)
 {
 	(void)pos;
 	if (list_depth != MAX_NESTED_LISTS_DEPTH) {
-		provide_newlines(line, list_depth == 0 ? 2 : 1);
+		provide_newlines(line, list_depth == 0 ? 2 : 1, true);
 		++list_depth;
 		list_levels[list_depth].type = ORDERED_LIST;
 		list_levels[list_depth].length = 0;
@@ -129,14 +133,16 @@ ol_start_handler(struct line *line, enum html_position *pos)
 static void
 figure_start_handler(struct line *line, enum html_position *pos)
 {
-	provide_two_newlines(line, pos);
+	(void)pos;
+	provide_newlines(line, 2, true);
 	line->indent += SPACES_PER_INDENTATION_LEVEL;
 }
 
 static void
 figure_end_handler(struct line *line, enum html_position *pos)
 {
-	provide_two_newlines(line, pos);
+	(void)pos;
+	provide_newlines(line, 2, true);
 	if (line->indent >= SPACES_PER_INDENTATION_LEVEL) {
 		line->indent -= SPACES_PER_INDENTATION_LEVEL;
 	}
@@ -145,14 +151,16 @@ figure_end_handler(struct line *line, enum html_position *pos)
 static void
 dd_start_handler(struct line *line, enum html_position *pos)
 {
-	provide_one_newline(line, pos);
+	(void)pos;
+	provide_newlines(line, 1, true);
 	line->indent += SPACES_PER_INDENTATION_LEVEL;
 }
 
 static void
 dd_end_handler(struct line *line, enum html_position *pos)
 {
-	provide_one_newline(line, pos);
+	(void)pos;
+	provide_newlines(line, 1, true);
 	if (line->indent >= SPACES_PER_INDENTATION_LEVEL) {
 		line->indent -= SPACES_PER_INDENTATION_LEVEL;
 	}
@@ -161,14 +169,14 @@ dd_end_handler(struct line *line, enum html_position *pos)
 static void
 pre_start_handler(struct line *line, enum html_position *pos)
 {
-	provide_two_newlines(line, pos);
+	provide_newlines(line, 2, true);
 	*pos |= HTML_PRE;
 }
 
 static void
 pre_end_handler(struct line *line, enum html_position *pos)
 {
-	provide_two_newlines(line, pos);
+	provide_newlines(line, 2, true);
 	*pos &= ~HTML_PRE;
 }
 
@@ -218,15 +226,16 @@ static void
 header_start_handler(struct line *line, enum html_position *pos)
 {
 	(void)pos;
-	provide_newlines(line, 3);
+	provide_newlines(line, 3, false);
 	append_format_hint_to_line(line, FORMAT_BOLD_BEGIN);
 }
 
 static void
 header_end_handler(struct line *line, enum html_position *pos)
 {
+	(void)pos;
 	append_format_hint_to_line(line, FORMAT_BOLD_END);
-	provide_two_newlines(line, pos);
+	provide_newlines(line, 2, false);
 }
 
 static const struct html_element_renderer renderers[] = {

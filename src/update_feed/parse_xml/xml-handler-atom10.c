@@ -82,7 +82,7 @@ static int8_t
 published_end(struct stream_callback_data *data)
 {
 	if (data->path[data->depth] == GENERIC_ITEM) {
-		data->feed.item->publication_date = parse_date_rfc3339(data->text->ptr, data->text->len);
+		data->feed.item->publication_date = parse_date_rfc3339(data->text->ptr);
 	}
 	return PARSE_OKAY;
 }
@@ -91,9 +91,9 @@ static int8_t
 updated_end(struct stream_callback_data *data)
 {
 	if (data->path[data->depth] == GENERIC_ITEM) {
-		data->feed.item->update_date = parse_date_rfc3339(data->text->ptr, data->text->len);
+		data->feed.item->update_date = parse_date_rfc3339(data->text->ptr);
 	} else if (data->path[data->depth] == GENERIC_FEED) {
-		data->feed.update_date = parse_date_rfc3339(data->text->ptr, data->text->len);
+		data->feed.update_date = parse_date_rfc3339(data->text->ptr);
 	}
 	return PARSE_OKAY;
 }

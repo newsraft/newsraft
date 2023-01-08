@@ -91,9 +91,9 @@ item_string_handler(struct stream_callback_data *data, const char *val, size_t l
 			return 0;
 		}
 	} else if (strcmp(data->text->ptr, "date_published") == 0) {
-		data->feed.item->publication_date = parse_date_rfc3339(val, len);
+		data->feed.item->publication_date = parse_date_rfc3339(len > 18 ? val : "");
 	} else if (strcmp(data->text->ptr, "date_modified") == 0) {
-		data->feed.item->update_date = parse_date_rfc3339(val, len);
+		data->feed.item->update_date = parse_date_rfc3339(len > 18 ? val : "");
 	} else if (strcmp(data->text->ptr, "external_url") == 0) {
 		if (serialize_caret(&data->feed.item->attachments) == false) {
 			return 0;

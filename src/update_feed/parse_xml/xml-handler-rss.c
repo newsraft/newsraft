@@ -1,4 +1,5 @@
 #include <string.h>
+#include <curl/curl.h>
 #include "update_feed/parse_xml/parse_xml_feed.h"
 
 // https://web.archive.org/web/20211208135333/https://validator.w3.org/feed/docs/rss2.html
@@ -27,7 +28,10 @@ static int8_t
 pub_date_end(struct stream_callback_data *data)
 {
 	if (data->path[data->depth] == GENERIC_ITEM) {
-		data->feed.item->publication_date = parse_date_rfc822(data->text);
+		data->feed.item->publication_date = curl_getdate(data->text->ptr, NULL);
+		if (data->feed.item->publication_date < 0) {
+			data->feed.item->publication_date = 0;
+		}
 	} else if (data->path[data->depth] == GENERIC_FEED) {
 		// Some RSS 2.0 feeds use lastBuildDate and some
 		// use pubDate for showing last update time of channel.
@@ -35,7 +39,10 @@ pub_date_end(struct stream_callback_data *data)
 		// bother with pubDate value if lastBuildDate was already
 		// set.
 		if (data->feed.update_date == 0) {
-			data->feed.update_date = parse_date_rfc822(data->text);
+			data->feed.update_date = curl_getdate(data->text->ptr, NULL);
+			if (data->feed.update_date < 0) {
+				data->feed.update_date = 0;
+			}
 		}
 	}
 	return PARSE_OKAY;
@@ -47,7 +54,10 @@ last_build_date_end(struct stream_callback_data *data)
 	// In RSS 2.0 lastBuildDate element is only for channel,
 	// for items they use pubDate.
 	if (data->path[data->depth] == GENERIC_FEED) {
-		data->feed.update_date = parse_date_rfc822(data->text);
+		data->feed.update_date = curl_getdate(data->text->ptr, NULL);
+		if (data->feed.update_date < 0) {
+			data->feed.update_date = 0;
+		}
 	}
 	return PARSE_OKAY;
 }

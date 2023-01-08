@@ -107,8 +107,9 @@ item_string_handler(struct stream_callback_data *data, const char *val, size_t l
 
 // Note to the future.
 // Person structure in the JSON Feed have an avatar object. We ignore it just
-// like we ignore thumbnails, icons and other cosmetic stuff. Also, JSON Feed
-// doesn't provide email objects. Gosh...
+// like we ignore thumbnails, icons and other cosmetic stuff. It's worth
+// mentioning that JSON Feed specification doesn't provide email objects.
+// That's truly modern approach for sure...
 
 static inline int
 person_string_handler(struct string **dest, const struct string *key, const char *val, size_t len)

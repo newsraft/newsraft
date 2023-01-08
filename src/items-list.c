@@ -117,12 +117,13 @@ generate_items_list(struct feed_entry **feeds, size_t feeds_count, sorting_order
 		text = (const char *)sqlite3_column_text(res, 3);
 		items->ptr[items->len].url = text == NULL ? crtes(1) : crtas(text, strlen(text));
 
-		int64_t item_date = sqlite3_column_int64(res, 4); // publication_date
-		int64_t tmp_date = sqlite3_column_int64(res, 5); // update_date
-		if (tmp_date > item_date) {
-			item_date = tmp_date;
+		items->ptr[items->len].pub_date = sqlite3_column_int64(res, 4);
+		items->ptr[items->len].upd_date = sqlite3_column_int64(res, 5);
+		int64_t max_date = items->ptr[items->len].pub_date;
+		if (items->ptr[items->len].upd_date > max_date) {
+			max_date = items->ptr[items->len].upd_date;
 		}
-		items->ptr[items->len].date_str = get_config_date_str(item_date, CFG_LIST_ENTRY_DATE_FORMAT);
+		items->ptr[items->len].date_str = get_config_date_str(max_date, CFG_LIST_ENTRY_DATE_FORMAT);
 
 		items->ptr[items->len].is_unread = sqlite3_column_int(res, 6); // unread
 		items->ptr[items->len].is_important = sqlite3_column_int(res, 7); // important

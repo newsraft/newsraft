@@ -29,7 +29,7 @@ populate_render_blocks_list_with_data_from_item(const struct item_entry *item, s
 	if (populate_link_list_with_links_of_item(links, res) == false) {
 		goto error;
 	}
-	if (generate_render_blocks_based_on_item_data(blocks, res) == false) {
+	if (generate_render_blocks_based_on_item_data(blocks, item, res) == false) {
 		goto error;
 	}
 	if (prepare_to_render_data(blocks, links) == false) {

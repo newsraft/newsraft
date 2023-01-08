@@ -214,6 +214,8 @@ struct item_entry {
 	int64_t rowid;
 	bool is_unread;
 	bool is_important;
+	int64_t pub_date;
+	int64_t upd_date;
 	struct string *date_str;
 };
 
@@ -342,7 +344,7 @@ bool prepare_to_render_data(struct render_blocks_list *blocks, struct links_list
 struct wstring *render_data(struct render_blocks_list *blocks);
 
 // See "items-metadata.c" file for implementation.
-bool generate_render_blocks_based_on_item_data(struct render_blocks_list *blocks, sqlite3_stmt *res);
+bool generate_render_blocks_based_on_item_data(struct render_blocks_list *blocks, const struct item_entry *item, sqlite3_stmt *res);
 
 // See "items-metadata-content.c" file for implementation.
 bool get_largest_piece_from_item_content(const char *content, struct string *text, render_block_format *type);

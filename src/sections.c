@@ -246,8 +246,9 @@ void
 enter_sections_menu_loop(void)
 {
 	if (get_cfg_bool(CFG_ENTER_EXPLORE_MENU_ON_STARTUP) == true) {
-		enter_items_menu_loop(sections[0].feeds, sections[0].feeds_count, CFG_MENU_EXPLORE_ITEM_ENTRY_FORMAT);
-		return;
+		if (enter_items_menu_loop(sections[0].feeds, sections[0].feeds_count, CFG_MENU_EXPLORE_ITEM_ENTRY_FORMAT) != INPUT_ERROR) {
+			return;
+		}
 	}
 	if (sections_count == 1) {
 		enter_feeds_menu_loop(sections[0].feeds, sections[0].feeds_count);

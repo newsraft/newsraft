@@ -249,6 +249,10 @@ enter_sections_menu_loop(void)
 		enter_feeds_menu_loop(sections[0].feeds, sections[0].feeds_count);
 		return;
 	}
+	if (get_cfg_bool(CFG_ENTER_EXPLORE_MENU_ON_STARTUP) == true) {
+		enter_items_menu_loop(sections[0].feeds, sections[0].feeds_count, CFG_MENU_EXPLORE_ITEM_ENTRY_FORMAT);
+		return;
+	}
 
 	const size_t *view_sel = enter_list_menu(SECTIONS_MENU, sections_count, CFG_MENU_SECTION_ENTRY_FORMAT);
 

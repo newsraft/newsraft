@@ -297,6 +297,9 @@ _menu-explore-item-entry-format_ (default: *" %u │ %d │ %-28.28O │ %o"*)
 	Format of the item list entries in explore mode. Specifiers are the same as
 	in _menu-item-entry-format_.
 
+_enter-explore-menu-on-startup_ (default: *false*)
+	If set to *true*, it makes explore menu the main menu of the program.
+
 _auto-advance-on-read_ (default: *true*)
 	Automatically advance selection in the list menu when selected entry is
 	marked as read.

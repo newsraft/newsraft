@@ -6,6 +6,8 @@ inspired by [Newsboat](https://www.newsboat.org) and tries to be its lightweight
 counterpart. The design differences between these projects are mentioned in the
 [doc/project-goals.md](https://codeberg.org/grisha/newsraft/src/branch/main/doc/project-goals.md).
 
+![Newsraft in action](doc/newsraft.png)
+
 ## Dependencies
 
 | Name                                             | Version   | Necessity              |

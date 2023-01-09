@@ -147,9 +147,9 @@ here_we_go_again:
 	update_queue_progress = 0;
 	free(update_queue);
 	update_queue = NULL;
-	pthread_mutex_unlock(&queue_lock);
-
+	tell_items_menu_to_regenerate();
 	allow_status_cleaning();
+	pthread_mutex_unlock(&queue_lock);
 
 	if (update_queue_fails_count != 0) {
 		fail_status("Failed to update %zu feeds (check out status history for more details)", update_queue_fails_count);

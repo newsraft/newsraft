@@ -25,10 +25,15 @@ static size_t windows_count = 0;
 static size_t scrolloff;
 
 static struct list_menu_settings menus[MENUS_COUNT];
-static struct list_menu_settings *menu = menus; // selected menu
-static int8_t menus_immersion[10];
-static int8_t menus_immersion_depth = 0;
+static struct list_menu_settings *menu = menus; // Selected menu.
+static struct list_menu_settings *prev_menu = menus; // Previously selected menu.
 static volatile bool list_menu_is_paused = false;
+
+int8_t
+get_current_menu_type(void)
+{
+	return list_menu_is_paused == true ? MENUS_COUNT : menu - menus;
+}
 
 bool
 adjust_list_menu(void)
@@ -161,8 +166,8 @@ const size_t *
 enter_list_menu(int8_t menu_index, size_t new_entries_count, config_entry_id format_id)
 {
 	pthread_mutex_lock(&interface_lock);
-	menus_immersion[++menus_immersion_depth] = menu_index;
-	menu = &menus[menu_index];
+	prev_menu = menu;
+	menu = menus + menu_index;
 	menu->entries_count = new_entries_count;
 	menu->view_sel = 0;
 	menu->view_min = 0;
@@ -174,11 +179,22 @@ enter_list_menu(int8_t menu_index, size_t new_entries_count, config_entry_id for
 }
 
 void
+reset_list_menu_unprotected(size_t new_entries_count)
+{
+	if (new_entries_count < menu->entries_count) {
+		menu->view_sel = 0;
+		menu->view_min = 0;
+	}
+	menu->entries_count = new_entries_count;
+	redraw_list_menu_unprotected();
+}
+
+void
 leave_list_menu(void)
 {
 	pthread_mutex_lock(&interface_lock);
-	menu = &menus[menus_immersion[--menus_immersion_depth]];
-	if (menus_immersion[menus_immersion_depth] == SECTIONS_MENU) {
+	menu = menu == menus + FEEDS_MENU ? menus : prev_menu;
+	if (menu == menus) {
 		refresh_unread_items_count_of_all_sections();
 	}
 	status_clean_unprotected();
@@ -288,14 +304,14 @@ handle_list_menu_navigation(input_cmd_id cmd)
 				break;
 			}
 		}
-	} else if ((cmd == INPUT_JUMP_TO_NEXT_IMPORTANT) && (menus_immersion[menus_immersion_depth] == ITEMS_MENU)) {
+	} else if ((cmd == INPUT_JUMP_TO_NEXT_IMPORTANT) && (menu - menus == ITEMS_MENU)) {
 		for (size_t i = menu->view_sel + 1; i < menu->entries_count; ++i) {
 			if (important_item_condition(i) == true) {
 				list_menu_change_view(i);
 				break;
 			}
 		}
-	} else if ((cmd == INPUT_JUMP_TO_PREV_IMPORTANT) && (menus_immersion[menus_immersion_depth] == ITEMS_MENU)) {
+	} else if ((cmd == INPUT_JUMP_TO_PREV_IMPORTANT) && (menu - menus == ITEMS_MENU)) {
 		for (int64_t i = (int64_t)menu->view_sel - 1; i >= 0; --i) {
 			if (important_item_condition(i) == true) {
 				list_menu_change_view(i);

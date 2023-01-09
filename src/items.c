@@ -1,6 +1,10 @@
 #include "newsraft.h"
 
+static struct feed_entry **feeds;
+static size_t feeds_count;
 static struct items_list *items;
+static pthread_mutex_t items_lock = PTHREAD_MUTEX_INITIALIZER;
+static volatile bool item_menu_needs_to_regenerate = false;
 
 static struct format_arg fmt_args[] = {
 	{L'n',  L"d", {.i = 0   }},
@@ -120,9 +124,32 @@ mark_all_items_unread(struct feed_entry **feeds, size_t feeds_count)
 	}
 }
 
-input_cmd_id
-enter_items_menu_loop(struct feed_entry **feeds, size_t feeds_count, config_entry_id format_id)
+void
+tell_items_menu_to_regenerate(void)
 {
+	int8_t menu_type = get_current_menu_type();
+	if (menu_type == ITEMS_MENU) {
+		struct items_list *new_items = generate_items_list(feeds, feeds_count, items->sort);
+		if (new_items != NULL) {
+			pthread_mutex_lock(&items_lock);
+			pthread_mutex_lock(&interface_lock);
+			free_items_list(items);
+			items = new_items;
+			reset_list_menu_unprotected(items->len);
+			pthread_mutex_unlock(&interface_lock);
+			pthread_mutex_unlock(&items_lock);
+		}
+		item_menu_needs_to_regenerate = false;
+	} else if (menu_type == MENUS_COUNT) {
+		item_menu_needs_to_regenerate = true;
+	}
+}
+
+input_cmd_id
+enter_items_menu_loop(struct feed_entry **new_feeds, size_t new_feeds_count, config_entry_id format_id)
+{
+	feeds = new_feeds;
+	feeds_count = new_feeds_count;
 	items = generate_items_list(feeds, feeds_count, SORT_BY_TIME_DESC);
 	if (items == NULL) {
 		// Error message written by generate_items_list.
@@ -136,6 +163,7 @@ enter_items_menu_loop(struct feed_entry **feeds, size_t feeds_count, config_entr
 	const struct wstring *macro;
 	while (true) {
 		cmd = get_input_command(&count, &macro);
+		pthread_mutex_lock(&items_lock);
 		if (handle_list_menu_navigation(cmd) == true) {
 			// rest a little
 		} else if (cmd == INPUT_MARK_READ) {
@@ -179,7 +207,13 @@ enter_items_menu_loop(struct feed_entry **feeds, size_t feeds_count, config_entr
 		} else if (cmd == INPUT_SYSTEM_COMMAND) {
 			execute_command_with_specifiers_in_it(macro, prepare_item_entry_args(*view_sel));
 		}
+		pthread_mutex_unlock(&items_lock);
+		if (item_menu_needs_to_regenerate == true) {
+			tell_items_menu_to_regenerate();
+		}
 	}
+	// Since we exit the loop only through break, double unlock can't occur.
+	pthread_mutex_unlock(&items_lock);
 
 	// Get new feeds' unread counts before leaving list menu so that when we
 	// calculate sections' unread counts in leave_list_menu() it gets the

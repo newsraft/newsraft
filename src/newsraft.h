@@ -291,6 +291,7 @@ int paint_feed_entry(size_t index);
 bool unread_feed_condition(size_t index);
 
 // See "interface-list.c" file for implementation.
+int8_t get_current_menu_type(void);
 bool adjust_list_menu(void);
 void free_list_menu(void);
 void initialize_settings_of_list_menus(void);
@@ -298,6 +299,7 @@ void expose_entry_of_the_list_menu(size_t index);
 void expose_all_visible_entries_of_the_list_menu(void);
 void redraw_list_menu_unprotected(void);
 const size_t *enter_list_menu(int8_t menu_index, size_t new_entries_count, config_entry_id format_id);
+void reset_list_menu_unprotected(size_t new_entries_count);
 void leave_list_menu(void);
 void pause_list_menu(void);
 void resume_list_menu(void);
@@ -314,6 +316,7 @@ int paint_item_entry(size_t index);
 bool unread_item_condition(size_t index);
 bool important_item_condition(size_t index);
 void mark_selected_item_read(size_t view_sel);
+void tell_items_menu_to_regenerate(void);
 input_cmd_id enter_items_menu_loop(struct feed_entry **feeds, size_t feeds_count, config_entry_id format_id);
 
 // See "items-list.c" file for implementation.

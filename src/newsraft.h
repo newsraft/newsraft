@@ -211,7 +211,7 @@ struct feed_entry {
 struct item_entry {
 	struct string *title;
 	struct string *url;
-	const struct feed_entry *feed;
+	struct feed_entry *feed;
 	int64_t rowid;
 	bool is_unread;
 	bool is_important;

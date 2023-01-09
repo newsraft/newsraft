@@ -49,7 +49,7 @@ free_items_list(struct items_list *items)
 	}
 }
 
-static inline const struct feed_entry *
+static inline struct feed_entry *
 find_feed_entry_by_url(struct feed_entry **feeds, size_t feeds_count, const char *feed_url)
 {
 	if (feed_url != NULL) {

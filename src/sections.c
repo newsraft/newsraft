@@ -245,12 +245,12 @@ finish_auto_updater_if_necessary(void)
 void
 enter_sections_menu_loop(void)
 {
-	if (sections_count == 1) {
-		enter_feeds_menu_loop(sections[0].feeds, sections[0].feeds_count);
-		return;
-	}
 	if (get_cfg_bool(CFG_ENTER_EXPLORE_MENU_ON_STARTUP) == true) {
 		enter_items_menu_loop(sections[0].feeds, sections[0].feeds_count, CFG_MENU_EXPLORE_ITEM_ENTRY_FORMAT);
+		return;
+	}
+	if (sections_count == 1) {
+		enter_feeds_menu_loop(sections[0].feeds, sections[0].feeds_count);
 		return;
 	}
 

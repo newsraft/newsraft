@@ -146,8 +146,8 @@ assign_default_binds(void)
 	if (assign_action_to_key("J",              1, INPUT_JUMP_TO_NEXT)           == false) { goto fail; }
 	if (assign_action_to_key("K",              1, INPUT_JUMP_TO_PREV)           == false) { goto fail; }
 	if (assign_action_to_key("n",              1, INPUT_JUMP_TO_NEXT_UNREAD)    == false) { goto fail; }
-	if (assign_action_to_key("p",              1, INPUT_JUMP_TO_PREV_UNREAD)    == false) { goto fail; }
-	if (assign_action_to_key("N",              1, INPUT_JUMP_TO_NEXT_IMPORTANT) == false) { goto fail; }
+	if (assign_action_to_key("N",              1, INPUT_JUMP_TO_PREV_UNREAD)    == false) { goto fail; }
+	if (assign_action_to_key("p",              1, INPUT_JUMP_TO_NEXT_IMPORTANT) == false) { goto fail; }
 	if (assign_action_to_key("P",              1, INPUT_JUMP_TO_PREV_IMPORTANT) == false) { goto fail; }
 	if (assign_action_to_key("s",              1, INPUT_SORT_NEXT)              == false) { goto fail; }
 	if (assign_action_to_key("S",              1, INPUT_SORT_PREV)              == false) { goto fail; }

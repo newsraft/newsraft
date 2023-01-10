@@ -467,9 +467,9 @@ _jump-to-prev_ (default: *K*)
 
 _jump-to-next-unread_ (default: *n*)
 
-_jump-to-prev-unread_ (default: *p*)
+_jump-to-prev-unread_ (default: *N*)
 
-_jump-to-next-important_ (default: *N*)
+_jump-to-next-important_ (default: *p*)
 
 _jump-to-prev-important_ (default: *P*)
 

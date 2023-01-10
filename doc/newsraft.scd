@@ -223,12 +223,9 @@ _update-threads-count_ (default: *0*)
 	greater than the number of CPU cores available, it will be implicitly reduced
 	to the number of CPU cores to avoid performance issues.
 
-_open-in-browser-command_ (default: *auto*)
-	Shell command for opening URL in web browser. The URL to be opened is
-	appended to the end of the setting value as the last command argument.
-	If it is set to *"auto"*, then Newsraft will try to obtain setting value
-	from the BROWSER environment variable. If environment variable BROWSER
-	is not set, then its value is taken as *"xdg-open"*.
+_open-in-browser-command_ (default: *${BROWSER:-xdg-open} "%l"*)
+	Shell command for opening URL in a web browser. The URL to be opened is put
+	in place where *%l* specifier is located.
 
 _copy-to-clipboard-command_ (default: *auto*)
 	Shell command for copying text to clipboard. All copied data is sent to the

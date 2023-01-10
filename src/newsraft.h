@@ -53,7 +53,6 @@ enum {
 	CFG_DOWNLOAD_TIMEOUT,
 	CFG_DOWNLOAD_SPEED_LIMIT,
 	CFG_STATUS_MESSAGES_COUNT_LIMIT,
-	CFG_OPEN_IN_BROWSER_COMMAND,
 	CFG_COPY_TO_CLIPBOARD_COMMAND,
 	CFG_PROXY,
 	CFG_PROXY_USER,
@@ -63,6 +62,7 @@ enum {
 	CFG_ITEM_FORMATION_ORDER,
 	CFG_CONTENT_DATE_FORMAT,
 	CFG_LIST_ENTRY_DATE_FORMAT,
+	CFG_OPEN_IN_BROWSER_COMMAND,
 	CFG_MENU_SECTION_ENTRY_FORMAT,
 	CFG_MENU_FEED_ENTRY_FORMAT,
 	CFG_MENU_ITEM_ENTRY_FORMAT,
@@ -455,9 +455,8 @@ void counter_delete(void);
 
 // Functions related to executing system commands.
 // See "commands.c" file for implementation.
-bool open_url_in_browser(const struct string *src);
 void copy_string_to_clipboard(const struct string *src);
-void execute_command_with_specifiers_in_it(const struct wstring *wcmd_fmt, const struct format_arg *args);
+void run_command_with_specifiers(const struct wstring *wcmd_fmt, const struct format_arg *args);
 
 // See "string.c" file for implementation.
 struct string *crtes(size_t desired_capacity);

@@ -27,26 +27,6 @@ execute_system_command(const char *cmd)
 	}
 }
 
-bool
-open_url_in_browser(const struct string *src)
-{
-	if ((src == NULL) || (src->len == 0)) {
-		info_status("Link you want to open is empty!");
-		return false;
-	}
-	const struct string *browser_cmd = get_cfg_string(CFG_OPEN_IN_BROWSER_COMMAND);
-	struct string *cmd = crtss(browser_cmd);
-	if (cmd != NULL) {
-		if ((catcs(cmd, ' ') == true) && (catss(cmd, src) == true)) {
-			execute_system_command(cmd->ptr);
-			free_string(cmd);
-			return true;
-		}
-		free_string(cmd);
-	}
-	return false;
-}
-
 void
 copy_string_to_clipboard(const struct string *src)
 {
@@ -66,7 +46,7 @@ copy_string_to_clipboard(const struct string *src)
 }
 
 void
-execute_command_with_specifiers_in_it(const struct wstring *wcmd_fmt, const struct format_arg *args)
+run_command_with_specifiers(const struct wstring *wcmd_fmt, const struct format_arg *args)
 {
 	const struct wstring *wcmd = do_format(wcmd_fmt, args);
 	struct string *cmd = convert_wstring_to_string(wcmd);

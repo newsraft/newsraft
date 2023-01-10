@@ -25,7 +25,7 @@ free_format_buffers(void)
 	free_wstring(tmp_buf);
 }
 
-const wchar_t *
+const struct wstring *
 do_format(const struct wstring *fmt, const struct format_arg *args)
 {
 	const wchar_t *specifier;
@@ -34,14 +34,14 @@ do_format(const struct wstring *fmt, const struct format_arg *args)
 	for (const wchar_t *iter = fmt->ptr; *iter != '\0';) {
 		if (iter[0] != L'%') {
 			if (wcatcs(fmt_buf, *iter) == false) {
-				return L"";
+				return tmp_buf; // OOM
 			}
 			iter += 1;
 			continue;
 		} else if (iter[1] == L'%') {
 			// iter[0] and iter[1] are percent signs.
 			if (wcatcs(fmt_buf, L'%') == false) {
-				return L"";
+				return tmp_buf; // OOM
 			}
 			iter += 2;
 			continue;
@@ -57,10 +57,10 @@ do_format(const struct wstring *fmt, const struct format_arg *args)
 					continue;
 				}
 				if (wcpyas(tmp_buf, iter, specifier - iter) == false) {
-					return L""; // OOM
+					return tmp_buf; // OOM
 				}
 				if (wcatas(tmp_buf, args[j].type_specifier, wcslen(args[j].type_specifier)) == false) {
-					return L""; // OOM
+					return tmp_buf; // OOM
 				}
 				while (true) {
 					if (wcscmp(args[j].type_specifier, L"d") == 0) {
@@ -77,7 +77,7 @@ do_format(const struct wstring *fmt, const struct format_arg *args)
 						fmt_buf->ptr[fmt_buf->len] = L'\0';
 						break;
 					} else if (increase_wstring_size(fmt_buf, 100) == false) {
-						return L""; // OOM
+						return tmp_buf; // OOM
 					}
 				}
 				break;
@@ -87,5 +87,5 @@ do_format(const struct wstring *fmt, const struct format_arg *args)
 		}
 		iter = specifier;
 	}
-	return fmt_buf->ptr;
+	return fmt_buf;
 }

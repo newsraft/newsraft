@@ -68,8 +68,8 @@ copy_string_to_clipboard(const struct string *src)
 void
 execute_command_with_specifiers_in_it(const struct wstring *wcmd_fmt, const struct format_arg *args)
 {
-	const wchar_t *wcmd_ptr = do_format(wcmd_fmt, args);
-	struct string *cmd = convert_warray_to_string(wcmd_ptr, wcslen(wcmd_ptr));
+	const struct wstring *wcmd = do_format(wcmd_fmt, args);
+	struct string *cmd = convert_wstring_to_string(wcmd);
 	if (cmd != NULL) {
 		execute_system_command(cmd->ptr);
 		free_string(cmd);

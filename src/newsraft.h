@@ -309,7 +309,7 @@ bool handle_list_menu_navigation(input_cmd_id cmd);
 // See "format.c" file for implementation.
 bool create_format_buffers(void);
 void free_format_buffers(void);
-const wchar_t *do_format(const struct wstring *fmt, const struct format_arg *args);
+const struct wstring *do_format(const struct wstring *fmt, const struct format_arg *args);
 
 // See "items.c" file for implementation.
 const struct format_arg *prepare_item_entry_args(size_t index);

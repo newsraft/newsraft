@@ -256,7 +256,7 @@ list_menu_change_view(size_t new_sel)
 		menu->view_sel = new_sel;
 		expose_all_visible_entries_of_the_list_menu_unprotected();
 	} else if (new_sel < menu->view_min) {
-		menu->view_min = new_sel;
+		menu->view_min = new_sel < scrolloff ? 0 : new_sel - scrolloff;
 		menu->view_max = menu->view_min + (list_menu_height - 1);
 		menu->view_sel = new_sel;
 		expose_all_visible_entries_of_the_list_menu_unprotected();

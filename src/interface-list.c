@@ -291,16 +291,20 @@ handle_list_menu_navigation(input_cmd_id cmd)
 	} else if ((cmd == INPUT_SELECT_PREV) || (cmd == INPUT_JUMP_TO_PREV)) {
 		list_menu_change_view(menu->view_sel > 1 ? (menu->view_sel - 1) : 0);
 	} else if (cmd == INPUT_JUMP_TO_NEXT_UNREAD) {
-		for (size_t i = menu->view_sel + 1; i < menu->entries_count; ++i) {
-			if (menu->unread_state(i) == true) {
-				list_menu_change_view(i);
+		for (size_t i = 1, j = menu->view_sel + 1; i < menu->entries_count; ++i, ++j) {
+			j %= menu->entries_count;
+			if (menu->unread_state(j) == true) {
+				list_menu_change_view(j);
 				break;
 			}
 		}
 	} else if (cmd == INPUT_JUMP_TO_PREV_UNREAD) {
-		for (int64_t i = (int64_t)menu->view_sel - 1; i >= 0; --i) {
-			if (menu->unread_state(i) == true) {
-				list_menu_change_view(i);
+		for (size_t i = 1, j = menu->view_sel; i < menu->entries_count; ++i, --j) {
+			if (j == 0) {
+				j = menu->entries_count;
+			}
+			if (menu->unread_state(j - 1) == true) {
+				list_menu_change_view(j - 1);
 				break;
 			}
 		}

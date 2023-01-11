@@ -1,6 +1,11 @@
 #include <string.h>
 #include "newsraft.h"
 
+static struct format_arg cmd_args[] = {
+	{L'l',  L"s", {.s = NULL}},
+	{L'\0', NULL, {.i = 0}}, // terminator
+};
+
 static inline bool
 join_links_render_block(struct render_blocks_list *blocks, struct links_list *links)
 {
@@ -91,13 +96,14 @@ enter_item_pager_view_loop(struct item_entry *items, const size_t *view_sel)
 				free_links_list(&links);
 				return cmd;
 			} else if ((count > 0) && (count <= links.len)) {
+				cmd_args[0].value.s = links.ptr[count - 1].url->ptr;
 				if (cmd == INPUT_OPEN_IN_BROWSER) {
-					run_command_with_specifiers(get_cfg_wstring(CFG_OPEN_IN_BROWSER_COMMAND), prepare_item_entry_args(*view_sel));
+					run_command_with_specifiers(get_cfg_wstring(CFG_OPEN_IN_BROWSER_COMMAND), cmd_args);
 					handle_pager_menu_navigation(INPUT_RESIZE);
 				} else if (cmd == INPUT_COPY_TO_CLIPBOARD) {
 					copy_string_to_clipboard(links.ptr[count - 1].url);
 				} else if (cmd == INPUT_SYSTEM_COMMAND) {
-					run_command_with_specifiers(macro, prepare_item_entry_args(*view_sel));
+					run_command_with_specifiers(macro, cmd_args);
 					handle_pager_menu_navigation(INPUT_RESIZE);
 				}
 			}

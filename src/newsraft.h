@@ -68,8 +68,6 @@ enum {
 	CFG_MENU_ITEM_ENTRY_FORMAT,
 	CFG_MENU_EXPLORE_ITEM_ENTRY_FORMAT,
 	CFG_ENTER_EXPLORE_MENU_ON_STARTUP,
-	CFG_AUTO_ADVANCE_ON_READ,
-	CFG_AUTO_ADVANCE_ON_UNREAD,
 	CFG_MARK_ITEM_READ_ON_HOVER,
 	CFG_ANALYZE_DATABASE_ON_STARTUP,
 	CFG_CLEAN_DATABASE_ON_STARTUP,
@@ -103,7 +101,10 @@ enum {
 	INPUT_RELOAD,
 	INPUT_RELOAD_ALL,
 	INPUT_MARK_READ,
+	INPUT_MARK_READ_AND_JUMP_TO_NEXT,
+	INPUT_MARK_READ_AND_JUMP_TO_NEXT_UNREAD,
 	INPUT_MARK_UNREAD,
+	INPUT_MARK_UNREAD_AND_JUMP_TO_NEXT,
 	INPUT_MARK_READ_ALL,
 	INPUT_MARK_UNREAD_ALL,
 	INPUT_MARK_IMPORTANT,
@@ -281,11 +282,15 @@ void free_sections(void);
 const struct format_arg *prepare_section_entry_args(size_t index);
 int paint_section_entry(size_t index);
 bool unread_section_condition(size_t index);
+void mark_selected_section_read(size_t view_sel);
+void mark_selected_section_unread(size_t view_sel);
 
 // See "feeds-parse.c" file for implementation.
 bool parse_feeds_file(void);
 
 // See "feeds.c" file for implementation.
+void mark_selected_feed_read(size_t view_sel);
+void mark_selected_feed_unread(size_t view_sel);
 input_cmd_id enter_feeds_menu_loop(struct feed_entry **new_feeds, size_t new_feeds_count);
 const struct format_arg *prepare_feed_entry_args(size_t index);
 int paint_feed_entry(size_t index);
@@ -312,11 +317,12 @@ void free_format_buffers(void);
 const struct wstring *do_format(const struct wstring *fmt, const struct format_arg *args);
 
 // See "items.c" file for implementation.
+void mark_selected_item_read(size_t view_sel);
+void mark_selected_item_unread(size_t view_sel);
 const struct format_arg *prepare_item_entry_args(size_t index);
 int paint_item_entry(size_t index);
 bool unread_item_condition(size_t index);
 bool important_item_condition(size_t index);
-void mark_selected_item_read(size_t view_sel);
 void tell_items_menu_to_regenerate(void);
 input_cmd_id enter_items_menu_loop(struct feed_entry **feeds, size_t feeds_count, config_entry_id format_id);
 

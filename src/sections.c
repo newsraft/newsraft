@@ -45,6 +45,18 @@ unread_section_condition(size_t index)
 	return sections[index].unread_count > 0;
 }
 
+void
+mark_selected_section_read(size_t view_sel)
+{
+	(void)view_sel; // Under construction.
+}
+
+void
+mark_selected_section_unread(size_t view_sel)
+{
+	(void)view_sel; // Under construction.
+}
+
 int64_t
 make_sure_section_exists(const struct string *section_name, int64_t update_period)
 {

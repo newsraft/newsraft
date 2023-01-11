@@ -52,7 +52,7 @@ update_unread_items_count_of_all_feeds(void)
 	}
 }
 
-static inline void
+void
 mark_selected_feed_read(size_t view_sel)
 {
 	db_mark_all_items_in_feeds_as_read(&feeds[view_sel], 1);
@@ -60,7 +60,7 @@ mark_selected_feed_read(size_t view_sel)
 	expose_entry_of_the_list_menu(view_sel);
 }
 
-static inline void
+void
 mark_selected_feed_unread(size_t view_sel)
 {
 	db_mark_all_items_in_feeds_as_unread(&feeds[view_sel], 1);
@@ -106,17 +106,7 @@ enter_feeds_menu_loop(struct feed_entry **new_feeds, size_t new_feeds_count)
 	while (true) {
 		cmd = get_input_command(&count, &macro);
 		if (handle_list_menu_navigation(cmd) == true) {
-			// rest a little
-		} else if (cmd == INPUT_MARK_READ) {
-			mark_selected_feed_read(*view_sel);
-			if (get_cfg_bool(CFG_AUTO_ADVANCE_ON_READ) == true) {
-				handle_list_menu_navigation(INPUT_SELECT_NEXT);
-			}
-		} else if (cmd == INPUT_MARK_UNREAD) {
-			mark_selected_feed_unread(*view_sel);
-			if (get_cfg_bool(CFG_AUTO_ADVANCE_ON_UNREAD) == true) {
-				handle_list_menu_navigation(INPUT_SELECT_NEXT);
-			}
+			// Rest a little.
 		} else if (cmd == INPUT_MARK_READ_ALL) {
 			mark_all_feeds_read();
 		} else if (cmd == INPUT_MARK_UNREAD_ALL) {

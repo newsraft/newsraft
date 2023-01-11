@@ -69,7 +69,7 @@ mark_selected_item_read(size_t view_sel)
 	}
 }
 
-static void
+void
 mark_selected_item_unread(size_t view_sel)
 {
 	if (items->ptr[view_sel].is_unread == false) {
@@ -165,17 +165,7 @@ enter_items_menu_loop(struct feed_entry **new_feeds, size_t new_feeds_count, con
 		cmd = get_input_command(&count, &macro);
 		pthread_mutex_lock(&items_lock);
 		if (handle_list_menu_navigation(cmd) == true) {
-			// rest a little
-		} else if (cmd == INPUT_MARK_READ) {
-			mark_selected_item_read(*view_sel);
-			if (get_cfg_bool(CFG_AUTO_ADVANCE_ON_READ) == true) {
-				handle_list_menu_navigation(INPUT_SELECT_NEXT);
-			}
-		} else if (cmd == INPUT_MARK_UNREAD) {
-			mark_selected_item_unread(*view_sel);
-			if (get_cfg_bool(CFG_AUTO_ADVANCE_ON_UNREAD) == true) {
-				handle_list_menu_navigation(INPUT_SELECT_NEXT);
-			}
+			// Rest a little.
 		} else if (cmd == INPUT_MARK_READ_ALL) {
 			mark_all_items_read(feeds, feeds_count);
 		} else if (cmd == INPUT_MARK_UNREAD_ALL) {

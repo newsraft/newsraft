@@ -11,6 +11,8 @@ struct list_menu_settings {
 	size_t view_min; // Index of the first visible entry.
 	size_t view_max; // Index of the last visible entry.
 	const struct wstring *entry_format;
+	void (*read_action)(size_t index);
+	void (*unread_action)(size_t index);
 	const struct format_arg *(*prepare_args)(size_t index);
 	int (*paint_action)(size_t index);
 	void (*hover_action)(size_t index);
@@ -79,16 +81,22 @@ free_list_menu(void)
 void
 initialize_settings_of_list_menus(void)
 {
-	menus[SECTIONS_MENU].prepare_args = &prepare_section_entry_args;
-	menus[SECTIONS_MENU].paint_action = &paint_section_entry;
-	menus[SECTIONS_MENU].hover_action = NULL;
-	menus[SECTIONS_MENU].unread_state = &unread_section_condition;
-	menus[FEEDS_MENU].prepare_args = &prepare_feed_entry_args;
-	menus[FEEDS_MENU].paint_action = &paint_feed_entry;
-	menus[FEEDS_MENU].hover_action = NULL;
-	menus[FEEDS_MENU].unread_state = &unread_feed_condition;
-	menus[ITEMS_MENU].prepare_args = &prepare_item_entry_args;
-	menus[ITEMS_MENU].paint_action = &paint_item_entry;
+	menus[SECTIONS_MENU].read_action   = &mark_selected_section_read;
+	menus[SECTIONS_MENU].unread_action = &mark_selected_section_unread;
+	menus[SECTIONS_MENU].prepare_args  = &prepare_section_entry_args;
+	menus[SECTIONS_MENU].paint_action  = &paint_section_entry;
+	menus[SECTIONS_MENU].hover_action  = NULL;
+	menus[SECTIONS_MENU].unread_state  = &unread_section_condition;
+	menus[FEEDS_MENU].read_action   = &mark_selected_feed_read;
+	menus[FEEDS_MENU].unread_action = &mark_selected_feed_unread;
+	menus[FEEDS_MENU].prepare_args  = &prepare_feed_entry_args;
+	menus[FEEDS_MENU].paint_action  = &paint_feed_entry;
+	menus[FEEDS_MENU].hover_action  = NULL;
+	menus[FEEDS_MENU].unread_state  = &unread_feed_condition;
+	menus[ITEMS_MENU].read_action   = &mark_selected_item_read;
+	menus[ITEMS_MENU].unread_action = &mark_selected_item_unread;
+	menus[ITEMS_MENU].prepare_args  = &prepare_item_entry_args;
+	menus[ITEMS_MENU].paint_action  = &paint_item_entry;
 	if (get_cfg_bool(CFG_MARK_ITEM_READ_ON_HOVER) == true) {
 		menus[ITEMS_MENU].hover_action = &mark_selected_item_read;
 	} else {
@@ -330,6 +338,19 @@ handle_list_menu_navigation(input_cmd_id cmd)
 		list_menu_change_view(0);
 	} else if (cmd == INPUT_SELECT_LAST) {
 		list_menu_change_view(menu->entries_count > 1 ? (menu->entries_count - 1) : 0);
+	} else if (cmd == INPUT_MARK_READ) {
+		menu->read_action(menu->view_sel);
+	} else if (cmd == INPUT_MARK_READ_AND_JUMP_TO_NEXT) {
+		menu->read_action(menu->view_sel);
+		handle_list_menu_navigation(INPUT_SELECT_NEXT);
+	} else if (cmd == INPUT_MARK_READ_AND_JUMP_TO_NEXT_UNREAD) {
+		menu->read_action(menu->view_sel);
+		handle_list_menu_navigation(INPUT_JUMP_TO_NEXT_UNREAD);
+	} else if (cmd == INPUT_MARK_UNREAD) {
+		menu->unread_action(menu->view_sel);
+	} else if (cmd == INPUT_MARK_UNREAD_AND_JUMP_TO_NEXT) {
+		menu->unread_action(menu->view_sel);
+		handle_list_menu_navigation(INPUT_SELECT_NEXT);
 	} else {
 		return false;
 	}

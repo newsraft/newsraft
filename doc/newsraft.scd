@@ -297,14 +297,6 @@ _menu-explore-item-entry-format_ (default: *" %u │ %d │ %-28.28O │ %o"*)
 _enter-explore-menu-on-startup_ (default: *false*)
 	If set to *true*, it makes explore menu the main menu of the program.
 
-_auto-advance-on-read_ (default: *true*)
-	Automatically advance selection in the list menu when selected entry is
-	marked as read.
-
-_auto-advance-on-unread_ (default: *true*)
-	Automatically advance selection in the list menu when selected entry is
-	marked as unread.
-
 _mark-item-read-on-hover_ (default: *false*)
 	Mark every item that gets selected as read.
 
@@ -480,9 +472,15 @@ _reload_ (default: *r*)
 
 _reload-all_ (default: *^R*)
 
-_mark-read_ (default: *d*)
+_mark-read_ (default: not set)
 
-_mark-unread_ (default: *D*)
+_mark-read-and-jump-to-next_ (default: *d*)
+
+_mark-read-and-jump-to-next-unread_ (default: not set)
+
+_mark-unread_ (default: not set)
+
+_mark-unread-and-jump-to-next_ (default: *D*)
 
 _mark-read-all_ (default: *^D*)
 

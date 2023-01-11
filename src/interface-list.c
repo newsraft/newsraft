@@ -317,16 +317,20 @@ handle_list_menu_navigation(input_cmd_id cmd)
 			}
 		}
 	} else if ((cmd == INPUT_JUMP_TO_NEXT_IMPORTANT) && (menu - menus == ITEMS_MENU)) {
-		for (size_t i = menu->view_sel + 1; i < menu->entries_count; ++i) {
-			if (important_item_condition(i) == true) {
-				list_menu_change_view(i);
+		for (size_t i = 1, j = menu->view_sel + 1; i < menu->entries_count; ++i, ++j) {
+			j %= menu->entries_count;
+			if (important_item_condition(j) == true) {
+				list_menu_change_view(j);
 				break;
 			}
 		}
 	} else if ((cmd == INPUT_JUMP_TO_PREV_IMPORTANT) && (menu - menus == ITEMS_MENU)) {
-		for (int64_t i = (int64_t)menu->view_sel - 1; i >= 0; --i) {
-			if (important_item_condition(i) == true) {
-				list_menu_change_view(i);
+		for (size_t i = 1, j = menu->view_sel; i < menu->entries_count; ++i, --j) {
+			if (j == 0) {
+				j = menu->entries_count;
+			}
+			if (important_item_condition(j - 1) == true) {
+				list_menu_change_view(j - 1);
 				break;
 			}
 		}

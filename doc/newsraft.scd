@@ -435,68 +435,37 @@ _color-list-section-unread-bg_ (default: *black*)
 
 # ACTIONS
 
-_select-next_ (default: *j*, *KEY_DOWN*)
-
-_select-prev_ (default: *k*, *KEY_UP*)
-
-_select-next-page_ (default: *^F*, *KEY_NPAGE*)
-
-_select-prev-page_ (default: *^B*, *KEY_PPAGE*)
-
-_select-first_ (default: *g*, *KEY_HOME*)
-
-_select-last_ (default: *G*, *KEY_END*)
-
-_jump-to-next_ (default: *J*)
-
-_jump-to-prev_ (default: *K*)
-
-_jump-to-next-unread_ (default: *n*)
-
-_jump-to-prev-unread_ (default: *N*)
-
-_jump-to-next-important_ (default: *p*)
-
-_jump-to-prev-important_ (default: *P*)
-
-_sorting-method-next_ (default: *s*)
-
-_sorting-method-prev_ (default: *S*)
-
-_enter_ (default: *l*, *^J*, *KEY_RIGHT*, *KEY_ENTER*)
-
-_reload_ (default: *r*)
-
-_reload-all_ (default: *^R*)
-
-_mark-read_ (default: not set)
-
-_mark-read-and-jump-to-next_ (default: *d*)
-
-_mark-read-and-jump-to-next-unread_ (default: not set)
-
-_mark-unread_ (default: not set)
-
-_mark-unread-and-jump-to-next_ (default: *D*)
-
-_mark-read-all_ (default: *^D*)
-
-_mark-unread-all_ (default: not set)
-
-_mark-important_ (default: *i*)
-
-_mark-unimportant_ (default: *I*)
-
-_explore-menu_ (default: *e*)
-
-_status-history-menu_ (default: *v*)
-
-_open-in-browser_ (default: *o*)
-
-_copy-to-clipboard_ (default: *y*, *c*)
-
-_quit_ (default: *h*, *q*, *KEY_LEFT*, *KEY_BACKSPACE*)
-
+_select-next_ (default: *j*, *KEY_DOWN*)++
+_select-prev_ (default: *k*, *KEY_UP*)++
+_select-next-page_ (default: *^F*, *KEY_NPAGE*)++
+_select-prev-page_ (default: *^B*, *KEY_PPAGE*)++
+_select-first_ (default: *g*, *KEY_HOME*)++
+_select-last_ (default: *G*, *KEY_END*)++
+_jump-to-next_ (default: *J*)++
+_jump-to-prev_ (default: *K*)++
+_jump-to-next-unread_ (default: *n*)++
+_jump-to-prev-unread_ (default: *N*)++
+_jump-to-next-important_ (default: *p*)++
+_jump-to-prev-important_ (default: *P*)++
+_sorting-method-next_ (default: *s*)++
+_sorting-method-prev_ (default: *S*)++
+_enter_ (default: *l*, *^J*, *KEY_RIGHT*, *KEY_ENTER*)++
+_reload_ (default: *r*)++
+_reload-all_ (default: *^R*)++
+_mark-read_ (default: not set)++
+_mark-read-and-jump-to-next_ (default: *d*)++
+_mark-read-and-jump-to-next-unread_ (default: not set)++
+_mark-unread_ (default: not set)++
+_mark-unread-and-jump-to-next_ (default: *D*)++
+_mark-read-all_ (default: *^D*)++
+_mark-unread-all_ (default: not set)++
+_mark-important_ (default: *i*)++
+_mark-unimportant_ (default: *I*)++
+_explore-menu_ (default: *e*)++
+_status-history-menu_ (default: *v*)++
+_open-in-browser_ (default: *o*)++
+_copy-to-clipboard_ (default: *y*, *c*)++
+_quit_ (default: *h*, *q*, *KEY_LEFT*, *KEY_BACKSPACE*)++
 _quit-hard_ (default: *Q*)
 
 # ENVIRONMENT

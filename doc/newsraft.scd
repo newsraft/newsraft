@@ -86,12 +86,14 @@ your terminal! Isn't it awesome? It is freaking amazing!
 
 Actually, I lied that there are only 4 menus. There are actually 5 of them, and
 the fifth secret menu is legendary as the greatest and the most useful menu in
-feed readers history! This menu is known by the name of *Explore Menu* and is
+feed readers history! This menu is known by the name of _explore menu_ and is
 invoked by pressing the *e* key in either _sections menu_ or _feeds menu_. What
-it does is really miraculous - it gives you the list of feed item entries of all
+it does is truly miraculous - it gives you the list of feed item entries of all
 sections or feeds in the current scope. Open it in _sections menu_ and you will
 get all feed item entries you have in the database, open it in _feeds menu_ and
-you will get all feed item entries of feeds in this _feeds menu_. Now, explore!
+you will get all feed item entries of feeds in this _feeds menu_. This menu may
+come in handy when you want to quickly scroll through all the news without
+switching between sections and feeds back and forth.
 
 # CONFIGURATION
 

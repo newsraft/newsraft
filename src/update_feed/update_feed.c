@@ -33,7 +33,9 @@ update_feed_action(void *arg)
 	int8_t status = DOWNLOAD_FAILED;
 	struct stream_callback_data data = {0};
 
-	if (time((time_t *)&data.feed.download_date) == (time_t)-1) {
+	data.feed.download_date = time(NULL);
+	if (data.feed.download_date <= 0) {
+		FAIL("Failed to obtain system time!");
 		goto undo;
 	}
 
@@ -42,7 +44,7 @@ update_feed_action(void *arg)
 		if (expires_date < 0) {
 			goto undo;
 		} else if ((expires_date > 0) && (data.feed.download_date < expires_date)) {
-			INFO("Aborting update because content isn't expired yet.");
+			INFO("Aborting update because content hasn't expired yet.");
 			status = DOWNLOAD_CANCELED;
 			goto undo;
 		}
@@ -53,9 +55,8 @@ update_feed_action(void *arg)
 		int64_t prev_download_date = db_get_date_from_feeds_table(feed->link, "download_date", 13);
 		if ((ttl < 0) || (prev_download_date < 0)) {
 			goto undo;
-		}
-		if ((ttl > 0) && (prev_download_date > 0) && ((prev_download_date + ttl) > data.feed.download_date)) {
-			INFO("Aborting update because content isn't stale yet.");
+		} else if ((ttl > 0) && (prev_download_date > 0) && ((prev_download_date + ttl) > data.feed.download_date)) {
+			INFO("Aborting update because content hasn't died yet.");
 			status = DOWNLOAD_CANCELED;
 			goto undo;
 		}
@@ -64,7 +65,6 @@ update_feed_action(void *arg)
 	if (get_cfg_bool(CFG_SEND_IF_MODIFIED_SINCE_HEADER) == true) {
 		data.feed.http_header_last_modified = db_get_date_from_feeds_table(feed->link, "http_header_last_modified", 25);
 		if (data.feed.http_header_last_modified < 0) {
-			// Error message written by db_get_date_from_feeds_table.
 			goto undo;
 		}
 	}

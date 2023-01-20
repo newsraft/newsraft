@@ -127,8 +127,8 @@ start_processing_queue(void *arg)
 
 here_we_go_again:
 	while (update_queue_progress != update_queue_length) {
-		branch_update_feed_action_into_thread(&update_feed_action, update_queue[update_queue_progress]);
 		pthread_mutex_lock(&queue_lock);
+		branch_update_feed_action_into_thread(&update_feed_action, update_queue[update_queue_progress]);
 		info_status("(%zu/%zu) Loading %s", update_queue_progress + 1, update_queue_length, update_queue[update_queue_progress]->link->ptr);
 		update_queue_progress += 1;
 		pthread_mutex_unlock(&queue_lock);

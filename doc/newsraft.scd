@@ -470,6 +470,19 @@ _copy-to-clipboard_ (default: *y*, *c*)++
 _quit_ (default: *h*, *q*, *KEY_LEFT*, *KEY_BACKSPACE*)++
 _quit-hard_ (default: *Q*)
 
+# FORMATS SUPPORT
+
+Data formats of feeds which Newsraft recognizes. Not the whole functionality of
+these formats is implemented, but only the functionality that is most likely to
+carry the most essential information.
+
+_RSS 2.0_, _1.1_, _1.0_, _0.94_, _0.93_, _0.92_, _0.91_, _0.9_++
+_Atom 1.0_++
+_RSS Content Module_++
+_Media RSS_++
+_DublinCore 1.1 Elements_++
+_JSON Feed_ (it's such a joke)
+
 # ENVIRONMENT
 
 Since all Newsraft's interactions with the network occur through the

@@ -54,12 +54,6 @@ extern const struct xml_element_handler xml_mediarss_handlers[];
 #ifndef NEWSRAFT_DISABLE_FORMAT_XHTML
 extern const struct xml_element_handler xml_xhtml_handlers[];
 #endif
-#ifndef NEWSRAFT_DISABLE_FORMAT_YANDEX
-extern const struct xml_element_handler xml_yandex_handlers[];
-#endif
-#ifndef NEWSRAFT_DISABLE_FORMAT_RBCNEWS
-extern const struct xml_element_handler xml_rbcnews_handlers[];
-#endif
 #ifndef NEWSRAFT_DISABLE_FORMAT_GEORSS
 extern const struct xml_element_handler xml_georss_handlers[];
 #endif

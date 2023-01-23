@@ -382,7 +382,7 @@ int enter_status_pager_view_loop(void);
 // See "threading.c" file for implementation.
 bool initialize_update_threads(void);
 void branch_update_feed_action_into_thread(void *(*action)(void *arg), struct feed_entry *feed);
-void wait_for_all_threads_to_finish(void);
+void wait_for_all_threads_to_finish(bool block_threading);
 void terminate_update_threads(void);
 
 // See "path.c" file for implementation.

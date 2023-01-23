@@ -80,8 +80,7 @@ main(int argc, char **argv)
 	enter_sections_menu_loop();
 
 	finish_auto_updater_if_necessary();
-	wait_for_all_threads_to_finish();
-
+	wait_for_all_threads_to_finish(true);
 undo12:
 	curl_global_cleanup();
 undo11:

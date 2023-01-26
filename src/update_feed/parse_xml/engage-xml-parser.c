@@ -128,16 +128,20 @@ start_element_handler(void *userData, const XML_Char *name, const XML_Char **att
 	}
 #ifndef NEWSRAFT_DISABLE_FORMAT_RSS
 	if ((data->depth == 1) && (strcmp(name, "rss") == 0)) {
-		const char *version = get_value_of_attribute_key(atts, "version");
-		if ((version != NULL) &&
-			((strcmp(version, "2.0") == 0) ||
-			(strcmp(version, "0.94") == 0) ||
-			(strcmp(version, "0.93") == 0) ||
-			(strcmp(version, "0.92") == 0) ||
-			(strcmp(version, "0.91") == 0)))
-		{
-			data->xml_format = RSS20_FORMAT;
-		}
+		// Note to the future.
+		// Since all versions of RSS specifications are basically compatible
+		// with each other, we don't even have to check for a value in the
+		// version attribute of the rss element.
+		// https://www.rssboard.org/rss-specification
+		// http://inamidst.com/rss1.1/
+		// https://web.resource.org/rss/1.0/spec
+		// http://backend.userland.com/rss093
+		// https://www.rssboard.org/rss-0-9-2
+		// http://static.userland.com/gems/backend/gratefulDead.xml
+		// https://www.rssboard.org/rss-0-9-1-netscape
+		// https://www.rssboard.org/rss-0-9-0
+		// http://backend.userland.com/rssChangeNotes
+		data->xml_format = RSS20_FORMAT;
 	}
 #endif
 }

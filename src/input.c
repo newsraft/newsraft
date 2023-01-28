@@ -135,6 +135,7 @@ assign_default_binds(void)
 	if (assign_action_to_key("KEY_DOWN",  8, INPUT_SELECT_NEXT)                  == false) { goto fail; }
 	if (assign_action_to_key("k",         1, INPUT_SELECT_PREV)                  == false) { goto fail; }
 	if (assign_action_to_key("KEY_UP",    6, INPUT_SELECT_PREV)                  == false) { goto fail; }
+	if (assign_action_to_key(" ",         1, INPUT_SELECT_NEXT_PAGE)             == false) { goto fail; }
 	if (assign_action_to_key("^F",        2, INPUT_SELECT_NEXT_PAGE)             == false) { goto fail; }
 	if (assign_action_to_key("KEY_NPAGE", 9, INPUT_SELECT_NEXT_PAGE)             == false) { goto fail; }
 	if (assign_action_to_key("^B",        2, INPUT_SELECT_PREV_PAGE)             == false) { goto fail; }

@@ -439,7 +439,7 @@ _color-list-section-unread-bg_ (default: *black*)
 
 _select-next_ (default: *j*, *KEY_DOWN*)++
 _select-prev_ (default: *k*, *KEY_UP*)++
-_select-next-page_ (default: *^F*, *KEY_NPAGE*)++
+_select-next-page_ (default: *space*, *^F*, *KEY_NPAGE*)++
 _select-prev-page_ (default: *^B*, *KEY_PPAGE*)++
 _select-first_ (default: *g*, *KEY_HOME*)++
 _select-last_ (default: *G*, *KEY_END*)++

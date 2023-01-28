@@ -85,6 +85,10 @@ process_bind_line(char *line, size_t line_len)
 		}
 		i += 1;
 	}
+	if ((key_len == 5) && (strncmp("space", line, key_len) == 0)) {
+		*line = ' ';
+		key_len = 1;
+	}
 	while (ISWHITESPACE(*i)) {
 		i += 1;
 	}

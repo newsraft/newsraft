@@ -31,7 +31,9 @@ parse_feeds_file(void)
 {
 	const char *feeds_file_path = get_feeds_path();
 	if (feeds_file_path == NULL) {
-		// Error message written by get_feeds_path.
+		return false;
+	}
+	if (make_sure_section_exists(get_cfg_string(CFG_GLOBAL_SECTION_NAME), -1) != 0) {
 		return false;
 	}
 	FILE *f = fopen(feeds_file_path, "r");

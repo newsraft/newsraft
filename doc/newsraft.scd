@@ -32,6 +32,9 @@ curses interface.
 \-l _FILE_
 	Write log information to _FILE_.
 
+\-p
+	Purge feeds not specified in the *feeds* file.
+
 \-h
 	Print usage information and quit with 0 exit code.
 

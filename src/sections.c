@@ -104,12 +104,6 @@ make_sure_section_exists(const struct string *section_name, int64_t update_perio
 	return sections_count - 1;
 }
 
-bool
-create_global_section(void)
-{
-	return make_sure_section_exists(get_cfg_string(CFG_GLOBAL_SECTION_NAME), -1) == 0 ? true : false;
-}
-
 static inline struct feed_entry *
 find_feed_in_section(const struct string *link, const struct feed_section *section)
 {
@@ -203,6 +197,40 @@ refresh_unread_items_count_of_all_sections(void)
 			sections[i].unread_count += sections[i].feeds[j]->unread_count;
 		}
 	}
+}
+
+bool
+purge_abandoned_feeds(void)
+{
+	if (sections[0].feeds_count == 0) {
+		return true;
+	}
+	struct string *query = crtas("DELETE FROM items WHERE feed_url NOT IN (?", 42);
+	if (query == NULL) {
+		return false;
+	}
+	for (size_t i = 1; i < sections[0].feeds_count; ++i) {
+		if (catas(query, ",?", 2) == false) {
+			free_string(query);
+			return false;
+		}
+	}
+	if (catcs(query, ')') == false) {
+		free_string(query);
+		return false;
+	}
+	sqlite3_stmt *res = db_prepare(query->ptr, query->len + 1);
+	if (res == NULL) {
+		free_string(query);
+		return false;
+	}
+	for (size_t i = 0; i < sections[0].feeds_count; ++i) {
+		db_bind_string(res, i + 1, sections[0].feeds[i]->link);
+	}
+	const bool status = sqlite3_step(res) == SQLITE_DONE ? true : false;
+	sqlite3_finalize(res);
+	free_string(query);
+	return status;
 }
 
 void

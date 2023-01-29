@@ -106,17 +106,27 @@ error:
 }
 
 bool
-query_database_file_optimization(void)
+db_vacuum(void)
 {
 	char *error = NULL;
+	sqlite3_exec(db, "VACUUM;", NULL, NULL, &error);
+	if (error != NULL) {
+		fprintf(stderr, "Failed to vacuum the database: %s!\n", error);
+		sqlite3_free(error);
+		return false;
+	}
+	return true;
+}
+
+bool
+query_database_file_optimization(void)
+{
 	if (get_cfg_bool(CFG_CLEAN_DATABASE_ON_STARTUP) == true) {
-		sqlite3_exec(db, "VACUUM;", NULL, NULL, &error);
-		if (error != NULL) {
-			fprintf(stderr, "Failed to vacuum the database: %s!\n", error);
-			sqlite3_free(error);
+		if (db_vacuum() == false) {
 			return false;
 		}
 	}
+	char *error = NULL;
 	if (get_cfg_bool(CFG_ANALYZE_DATABASE_ON_STARTUP) == true) {
 		sqlite3_exec(db, "ANALYZE;", NULL, NULL, &error);
 		if (error != NULL) {

@@ -85,7 +85,7 @@ generate_items_list(struct feed_entry **feeds, size_t feeds_count, sorting_order
 		goto undo2;
 	}
 	for (size_t i = 0; i < feeds_count; ++i) {
-		sqlite3_bind_text(res, i + 1, feeds[i]->link->ptr, feeds[i]->link->len, NULL);
+		sqlite3_bind_text(res, i + 1, feeds[i]->link->ptr, feeds[i]->link->len, SQLITE_STATIC);
 	}
 	void *tmp;
 	const char *text;

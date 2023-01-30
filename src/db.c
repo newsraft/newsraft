@@ -213,7 +213,7 @@ db_bind_string(sqlite3_stmt *stmt, int pos, const struct string *str)
 	if ((str == NULL) || (str->len == 0)) {
 		return sqlite3_bind_null(stmt, pos);
 	} else {
-		return sqlite3_bind_text(stmt, pos, str->ptr, str->len, NULL);
+		return sqlite3_bind_text(stmt, pos, str->ptr, str->len, SQLITE_STATIC);
 	}
 }
 

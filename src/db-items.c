@@ -76,7 +76,7 @@ get_unread_items_count_of_the_feed(const struct string *url)
 
 	sqlite3_stmt *res = db_prepare("SELECT COUNT(*) FROM items WHERE feed_url=? AND unread=1", 57);
 	if (res != NULL) {
-		sqlite3_bind_text(res, 1, url->ptr, url->len, NULL);
+		sqlite3_bind_text(res, 1, url->ptr, url->len, SQLITE_STATIC);
 		if (sqlite3_step(res) == SQLITE_ROW) {
 			unread_count = sqlite3_column_int64(res, 0);
 		}
@@ -113,7 +113,7 @@ change_unread_status_of_all_items_in_feeds(struct feed_entry **feeds, size_t fee
 	}
 	sqlite3_bind_int(res, 1, unread);
 	for (size_t i = 0; i < feeds_count; ++i) {
-		sqlite3_bind_text(res, i + 2, feeds[i]->link->ptr, feeds[i]->link->len, NULL);
+		sqlite3_bind_text(res, i + 2, feeds[i]->link->ptr, feeds[i]->link->len, SQLITE_STATIC);
 	}
 	if (sqlite3_step(res) != SQLITE_DONE) {
 		sqlite3_finalize(res);

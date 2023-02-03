@@ -6,40 +6,36 @@ newsraft - feed reader for terminal
 
 # SYNOPSIS
 
-*newsraft* [-f _FILE1_] [-c _FILE2_] [-d _FILE3_] [-l _FILE4_]
-
-*newsraft* -h
-
-*newsraft* -v
+*newsraft* [*-f* _FILE1_] [*-c* _FILE2_] [*-d* _FILE3_] [*-l* _FILE4_] [*-p*] [*-v*] [*-h*]
 
 # DESCRIPTION
 
-Newsraft is a piece of software that aggregates syndicated web content like
-blogs and podcasts in one location for easy access from your terminal via comfy
-curses interface.
+Newsraft is a small text based program for reading syndication feeds - it
+enables you to obtain content from many blogs and platforms and view all this
+via one single interface in an efficient and convenient manner.
 
 # OPTIONS
 
-\-f _FILE_
+*-f* _FILE_
 	Force use of _FILE_ as *feeds* file.
 
-\-c _FILE_
+*-c* _FILE_
 	Force use of _FILE_ as *config* file.
 
-\-d _FILE_
-	Force use of _FILE_ as database file.
+*-d* _FILE_
+	Force use of _FILE_ as *database* file.
 
-\-l _FILE_
+*-l* _FILE_
 	Write log information to _FILE_.
 
-\-p
+*-p*
 	Purge feeds not specified in the *feeds* file.
 
-\-h
-	Print usage information and quit with 0 exit code.
+*-v*
+	Print version information.
 
-\-v
-	Print version information and quit with 0 exit code.
+*-h*
+	Print usage information.
 
 # STARTER GUIDE
 
@@ -484,7 +480,7 @@ _Atom 1.0_++
 _RSS Content Module_++
 _Media RSS_++
 _DublinCore 1.1 Elements_++
-_JSON Feed_ (it's such a joke)
+_JSON Feed_
 
 # ENVIRONMENT
 

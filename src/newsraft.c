@@ -25,7 +25,7 @@ main(int argc, char **argv)
 
 	int error = 0;
 	int opt;
-	while ((opt = getopt(argc, argv, "f:c:d:vhl:p")) != -1) {
+	while ((opt = getopt(argc, argv, "f:c:d:l:pvh")) != -1) {
 		if (opt == 'f') {
 			if (set_feeds_path(optarg) == false) {
 				error = 2;
@@ -41,12 +41,6 @@ main(int argc, char **argv)
 				error = 4;
 				goto undo1;
 			}
-		} else if (opt == 'h') {
-			print_usage();
-			goto undo1;
-		} else if (opt == 'v') {
-			fputs(NEWSRAFT_VERSION "\n", stderr);
-			goto undo1;
 		} else if (opt == 'l') {
 			if (log_init(optarg) == false) {
 				error = 5;
@@ -59,6 +53,12 @@ main(int argc, char **argv)
 			if (purge_abandoned_feeds() == false) { error = 9;  goto undo5; }
 			if (db_vacuum()             == false) { error = 10; goto undo5; }
 			goto undo5;
+		} else if (opt == 'v') {
+			fputs(NEWSRAFT_VERSION "\n", stderr);
+			goto undo1;
+		} else if (opt == 'h') {
+			print_usage();
+			goto undo1;
 		} else {
 			fprintf(stderr, "Try '%s -h' for more information.\n", argv[0]);
 			error = 1;

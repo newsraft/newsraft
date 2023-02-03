@@ -6,8 +6,9 @@
 #include "newsraft.h"
 
 // Note to the future.
-// Do not read Newsraft-specific file pathes from environment variables (like NEWSRAFT_CONFIG_DIR),
-// because environment is intended for settings that are valueable to many programs, not just a single one.
+// Do not read Newsraft-specific file pathes from environment variables (like
+// NEWSRAFT_CONFIG_DIR), because environment is intended for settings that are
+// valueable to many programs, not just a single one.
 
 #ifndef PATH_MAX
 #define PATH_MAX 4096
@@ -17,37 +18,33 @@ static char feeds_file_path[PATH_MAX] = "";
 static char config_file_path[PATH_MAX] = "";
 static char db_file_path[PATH_MAX] = "";
 
+static inline bool
+set_file_path(char *dest, const char *name, const char *src)
+{
+	if (strlen(src) >= PATH_MAX) {
+		fprintf(stderr, "Path to the %s file is too long!\n", name);
+		return false;
+	}
+	strcpy(dest, src);
+	return true;
+}
+
 bool
 set_feeds_path(const char *path)
 {
-	if (strlen(path) >= PATH_MAX) {
-		fputs("Path to the feeds file is too long!\n", stderr);
-		return false;
-	}
-	strcpy(feeds_file_path, path);
-	return true;
+	return set_file_path(feeds_file_path, "feeds", path);
 }
 
 bool
 set_config_path(const char *path)
 {
-	if (strlen(path) >= PATH_MAX) {
-		fputs("Path to the config file is too long!\n", stderr);
-		return false;
-	}
-	strcpy(config_file_path, path);
-	return true;
+	return set_file_path(config_file_path, "config", path);
 }
 
 bool
 set_db_path(const char *path)
 {
-	if (strlen(path) >= PATH_MAX) {
-		fputs("Path to the database file is too long!\n", stderr);
-		return false;
-	}
-	strcpy(db_file_path, path);
-	return true;
+	return set_file_path(db_file_path, "database", path);
 }
 
 const char *

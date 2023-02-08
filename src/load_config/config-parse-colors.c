@@ -10,6 +10,7 @@ struct color_token {
 };
 
 static const struct color_token tokens[] = {
+	{"default",    7,  true,  -1},
 	{"black",      5,  true,  COLOR_BLACK},
 	{"red",        3,  true,  COLOR_RED},
 	{"green",      5,  true,  COLOR_GREEN},

@@ -61,6 +61,8 @@ curses_init(void)
 	}
 	if (getenv("NO_COLOR") != NULL) {
 		INFO("NO_COLOR environment variable is set, canceling colors initialization.");
+	} else if (has_colors() == FALSE) {
+		WARN("Terminal emulator doesn't support colors!");
 	} else if (start_color() == ERR) {
 		WARN("Initialization of curses color structures failed!");
 	} else if (create_color_pairs() == false) {

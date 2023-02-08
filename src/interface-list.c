@@ -113,7 +113,7 @@ expose_entry_of_the_list_menu_unprotected(size_t index)
 		werase(w);
 		mvwaddnwstr(w, 0, 0, do_format(menu->entry_format, menu->prepare_args(index))->ptr, list_menu_width);
 		if (index == menu->view_sel) {
-			wbkgd(w, get_reversed_color_pair(menu->paint_action(index)));
+			wbkgd(w, get_color_pair(menu->paint_action(index)) | A_REVERSE);
 		} else {
 			wbkgd(w, get_color_pair(menu->paint_action(index)));
 		}

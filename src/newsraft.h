@@ -429,7 +429,6 @@ input_cmd_id resize_counter_action(void);
 // See "interface-colors.c" file for implementation.
 bool create_color_pairs(void);
 unsigned int get_color_pair(config_entry_id id);
-unsigned int get_reversed_color_pair(config_entry_id id);
 
 // Functions responsible for handling input and bindings.
 // See "input.c" file for implementation.

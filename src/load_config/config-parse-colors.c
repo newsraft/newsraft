@@ -62,7 +62,7 @@ parse_color_setting(config_entry_id id, const char *iter)
 	return true;
 invalid:
 	fputs("Color settings can only contain the following tokens:\n", stderr);
-	fputs("black, red, green, yellow, blue, magenta, cyan, white,\n", stderr);
+	fputs("default, black, red, green, yellow, blue, magenta, cyan, white,\n", stderr);
 	fputs("bold, italic, underlined.\n", stderr);
 	return false;
 }

@@ -392,7 +392,7 @@ _color-status-fail-fg_ (default: *red*)
 _color-status-fail-bg_ (default: *default*)
 	Background color of status area when reporting failure.
 
-_color-list-item-fg_ (default: *white*)
+_color-list-item-fg_ (default: *default*)
 	Text color of item list entry.
 
 _color-list-item-bg_ (default: *default*)
@@ -410,7 +410,7 @@ _color-list-item-important-fg_ (default: *magenta*)
 _color-list-item-important-bg_ (default: *default*)
 	Background color of important item list entry.
 
-_color-list-feed-fg_ (default: *white*)
+_color-list-feed-fg_ (default: *default*)
 	Text color of feed list entry.
 
 _color-list-feed-bg_ (default: *default*)
@@ -422,7 +422,7 @@ _color-list-feed-unread-fg_ (default: *yellow*)
 _color-list-feed-unread-bg_ (default: *default*)
 	Background color of unread feed list entry.
 
-_color-list-section-fg_ (default: *white*)
+_color-list-section-fg_ (default: *default*)
 	Text color of section list entry.
 
 _color-list-section-bg_ (default: *default*)

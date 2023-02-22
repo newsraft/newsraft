@@ -278,7 +278,7 @@ bool start_auto_updater_if_necessary(void);
 void finish_auto_updater_if_necessary(void);
 void enter_sections_menu_loop(void);
 void free_sections(void);
-const struct format_arg *prepare_section_entry_args(size_t index);
+const struct format_arg *get_section_entry_args(size_t index);
 int paint_section_entry(size_t index);
 bool unread_section_condition(size_t index);
 void mark_selected_section_read(size_t view_sel);
@@ -291,7 +291,7 @@ bool parse_feeds_file(void);
 void mark_selected_feed_read(size_t view_sel);
 void mark_selected_feed_unread(size_t view_sel);
 input_cmd_id enter_feeds_menu_loop(struct feed_entry **new_feeds, size_t new_feeds_count);
-const struct format_arg *prepare_feed_entry_args(size_t index);
+const struct format_arg *get_feed_entry_args(size_t index);
 int paint_feed_entry(size_t index);
 bool unread_feed_condition(size_t index);
 
@@ -318,7 +318,7 @@ const struct wstring *do_format(const struct wstring *fmt, const struct format_a
 // See "items.c" file for implementation.
 void mark_selected_item_read(size_t view_sel);
 void mark_selected_item_unread(size_t view_sel);
-const struct format_arg *prepare_item_entry_args(size_t index);
+const struct format_arg *get_item_entry_args(size_t index);
 int paint_item_entry(size_t index);
 bool unread_item_condition(size_t index);
 bool important_item_condition(size_t index);

@@ -13,7 +13,7 @@ struct list_menu_settings {
 	const struct wstring *entry_format;
 	void (*read_action)(size_t index);
 	void (*unread_action)(size_t index);
-	const struct format_arg *(*prepare_args)(size_t index);
+	const struct format_arg *(*get_args)(size_t index);
 	int (*paint_action)(size_t index);
 	void (*hover_action)(size_t index);
 	bool (*unread_state)(size_t index);
@@ -83,19 +83,19 @@ initialize_settings_of_list_menus(void)
 {
 	menus[SECTIONS_MENU].read_action   = &mark_selected_section_read;
 	menus[SECTIONS_MENU].unread_action = &mark_selected_section_unread;
-	menus[SECTIONS_MENU].prepare_args  = &prepare_section_entry_args;
+	menus[SECTIONS_MENU].get_args      = &get_section_entry_args;
 	menus[SECTIONS_MENU].paint_action  = &paint_section_entry;
 	menus[SECTIONS_MENU].hover_action  = NULL;
 	menus[SECTIONS_MENU].unread_state  = &unread_section_condition;
 	menus[FEEDS_MENU].read_action   = &mark_selected_feed_read;
 	menus[FEEDS_MENU].unread_action = &mark_selected_feed_unread;
-	menus[FEEDS_MENU].prepare_args  = &prepare_feed_entry_args;
+	menus[FEEDS_MENU].get_args      = &get_feed_entry_args;
 	menus[FEEDS_MENU].paint_action  = &paint_feed_entry;
 	menus[FEEDS_MENU].hover_action  = NULL;
 	menus[FEEDS_MENU].unread_state  = &unread_feed_condition;
 	menus[ITEMS_MENU].read_action   = &mark_selected_item_read;
 	menus[ITEMS_MENU].unread_action = &mark_selected_item_unread;
-	menus[ITEMS_MENU].prepare_args  = &prepare_item_entry_args;
+	menus[ITEMS_MENU].get_args      = &get_item_entry_args;
 	menus[ITEMS_MENU].paint_action  = &paint_item_entry;
 	if (get_cfg_bool(CFG_MARK_ITEM_READ_ON_HOVER) == true) {
 		menus[ITEMS_MENU].hover_action = &mark_selected_item_read;
@@ -111,7 +111,7 @@ expose_entry_of_the_list_menu_unprotected(size_t index)
 	if ((list_menu_is_paused == false) && (index >= menu->view_min) && (index <= menu->view_max)) {
 		WINDOW *w = windows[index - menu->view_min];
 		werase(w);
-		mvwaddnwstr(w, 0, 0, do_format(menu->entry_format, menu->prepare_args(index))->ptr, list_menu_width);
+		mvwaddnwstr(w, 0, 0, do_format(menu->entry_format, menu->get_args(index))->ptr, list_menu_width);
 		if (index == menu->view_sel) {
 			wbkgd(w, get_color_pair(menu->paint_action(index)) | A_REVERSE);
 		} else {

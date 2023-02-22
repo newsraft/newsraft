@@ -20,7 +20,7 @@ static struct format_arg fmt_args[] = {
 };
 
 const struct format_arg *
-prepare_item_entry_args(size_t index)
+get_item_entry_args(size_t index)
 {
 	fmt_args[0].value.i = index + 1;
 	fmt_args[1].value.c = items->ptr[index].is_unread == true ? 'N' : ' ';
@@ -193,13 +193,13 @@ enter_items_menu_loop(struct feed_entry **new_feeds, size_t new_feeds_count, con
 				break;
 			}
 		} else if (cmd == INPUT_OPEN_IN_BROWSER) {
-			run_command_with_specifiers(get_cfg_wstring(CFG_OPEN_IN_BROWSER_COMMAND), prepare_item_entry_args(*view_sel));
+			run_command_with_specifiers(get_cfg_wstring(CFG_OPEN_IN_BROWSER_COMMAND), get_item_entry_args(*view_sel));
 		} else if (cmd == INPUT_COPY_TO_CLIPBOARD) {
 			copy_string_to_clipboard(items->ptr[*view_sel].url);
 		} else if ((cmd == INPUT_QUIT_SOFT) || (cmd == INPUT_QUIT_HARD)) {
 			break;
 		} else if (cmd == INPUT_SYSTEM_COMMAND) {
-			run_command_with_specifiers(macro, prepare_item_entry_args(*view_sel));
+			run_command_with_specifiers(macro, get_item_entry_args(*view_sel));
 		}
 		pthread_mutex_unlock(&items_lock);
 		if (item_menu_needs_to_regenerate == true) {

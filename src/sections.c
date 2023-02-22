@@ -25,7 +25,7 @@ static struct format_arg fmt_args[] = {
 };
 
 const struct format_arg *
-prepare_section_entry_args(size_t index)
+get_section_entry_args(size_t index)
 {
 	fmt_args[0].value.i = index + 1;
 	fmt_args[1].value.i = sections[index].unread_count;

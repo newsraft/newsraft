@@ -13,7 +13,7 @@ static struct format_arg fmt_args[] = {
 };
 
 const struct format_arg *
-prepare_feed_entry_args(size_t index)
+get_feed_entry_args(size_t index)
 {
 	fmt_args[0].value.i = index + 1;
 	fmt_args[1].value.i = feeds[index]->unread_count;

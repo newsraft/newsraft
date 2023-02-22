@@ -149,9 +149,9 @@ static inline void
 erase_all_visible_entries_not_in_the_list_menu_unprotected(void)
 {
 	for (size_t i = menu->entries_count; i <= menu->view_max; ++i) {
-		werase(windows[i]);
-		wbkgd(windows[i], COLOR_PAIR(0));
-		wnoutrefresh(windows[i]);
+		werase(windows[i - menu->view_min]);
+		wbkgd(windows[i - menu->view_min], COLOR_PAIR(0));
+		wnoutrefresh(windows[i - menu->view_min]);
 	}
 	doupdate();
 }

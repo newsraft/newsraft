@@ -51,7 +51,13 @@ run_command_with_specifiers(const struct wstring *wcmd_fmt, const struct format_
 	const struct wstring *wcmd = do_format(wcmd_fmt, args);
 	struct string *cmd = convert_wstring_to_string(wcmd);
 	if (cmd != NULL) {
+		if (curs_set(1) == ERR) {
+			WARN("Can't unhide cursor!");
+		}
 		execute_system_command(cmd->ptr);
 		free_string(cmd);
+		if (curs_set(0) == ERR) {
+			WARN("Can't hide cursor!");
+		}
 	}
 }

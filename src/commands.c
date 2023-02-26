@@ -2,11 +2,6 @@
 #include <curses.h>
 #include "newsraft.h"
 
-// Note to the future.
-// These functions only return true if something actually happened (command was
-// executed), because we need the boolean result of these functions as an
-// indication whether the screen has to be redrawn or not.
-
 static inline void
 execute_system_command(const char *cmd)
 {

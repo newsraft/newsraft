@@ -8,10 +8,12 @@ execute_system_command(const char *cmd)
 	// https://stackoverflow.com/questions/18678943/ncurses-shell-escape-drops-parent-process-output
 	info_status("Executing %s", cmd);
 	pthread_mutex_lock(&interface_lock);
+	curs_set(1); // Some programs expect that the cursor is enabled.
 	reset_shell_mode();
 	int status = system(cmd);
 	fflush(stdout);
 	reset_prog_mode();
+	curs_set(0);
 	pthread_mutex_unlock(&interface_lock);
 	// Resizing could be handled by the program running on top, so we have to catch up.
 	resize_counter_action();
@@ -46,13 +48,7 @@ run_command_with_specifiers(const struct wstring *wcmd_fmt, const struct format_
 	const struct wstring *wcmd = do_format(wcmd_fmt, args);
 	struct string *cmd = convert_wstring_to_string(wcmd);
 	if (cmd != NULL) {
-		if (curs_set(1) == ERR) {
-			WARN("Can't unhide cursor!");
-		}
 		execute_system_command(cmd->ptr);
 		free_string(cmd);
-		if (curs_set(0) == ERR) {
-			WARN("Can't hide cursor!");
-		}
 	}
 }

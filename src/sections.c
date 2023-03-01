@@ -7,7 +7,6 @@ struct feed_section {
 	struct feed_entry **feeds; // Array of pointers to feeds belonging to this section.
 	size_t feeds_count;
 	size_t unread_count;
-	int64_t update_period;
 };
 
 static struct feed_section *sections = NULL;
@@ -76,11 +75,10 @@ mark_selected_section_unread(size_t view_sel)
 }
 
 int64_t
-make_sure_section_exists(const struct string *section_name, int64_t update_period)
+make_sure_section_exists(const struct string *section_name)
 {
 	for (size_t i = 0; i < sections_count; ++i) {
 		if (strcmp(section_name->ptr, sections[i].name->ptr) == 0) {
-			sections[i].update_period = update_period;
 			return i;
 		}
 	}
@@ -98,8 +96,7 @@ make_sure_section_exists(const struct string *section_name, int64_t update_perio
 	sections[sections_count].feeds = NULL;
 	sections[sections_count].feeds_count = 0;
 	sections[sections_count].unread_count = 0;
-	sections[sections_count].update_period = update_period;
-	INFO("Created section \"%s\" with update period %" PRId64 ".", sections[sections_count].name->ptr, update_period);
+	INFO("Created section \"%s\".", sections[sections_count].name->ptr);
 	sections_count += 1;
 	return sections_count - 1;
 }
@@ -118,9 +115,9 @@ find_feed_in_section(const struct string *link, const struct feed_section *secti
 static inline struct feed_entry *
 copy_feed_to_global_section(const struct feed_entry *feed)
 {
-	struct feed_entry *potential_duplicate = find_feed_in_section(feed->link, &sections[0]);
-	if (potential_duplicate != NULL) {
-		return potential_duplicate;
+	struct feed_entry *duplicate = find_feed_in_section(feed->link, &sections[0]);
+	if (duplicate != NULL) {
+		return duplicate;
 	}
 	INFO("Copying feed %s with update time period %" PRId64 " to global section.", feed->link->ptr, feed->update_period);
 	size_t feed_index = (sections[0].feeds_count)++;
@@ -153,8 +150,8 @@ copy_feed_to_global_section(const struct feed_entry *feed)
 		return NULL;
 	}
 	sections[0].feeds[feed_index]->unread_count = new_unread_count;
+	sections[0].feeds[feed_index]->download_date = db_get_date_from_feeds_table(feed->link, "download_date", 13);
 	sections[0].feeds[feed_index]->update_period = feed->update_period;
-	sections[0].feeds[feed_index]->update_iterator = 0;
 	if (feed->update_period > 0) {
 		at_least_one_feed_has_positive_update_period = true;
 	}
@@ -164,15 +161,14 @@ copy_feed_to_global_section(const struct feed_entry *feed)
 static bool
 attach_feed_to_section(struct feed_entry *feed, struct feed_section *section)
 {
-	const struct feed_entry *potential_duplicate = find_feed_in_section(feed->link, section);
-	if (potential_duplicate == NULL) {
-		size_t feed_index = (section->feeds_count)++;
-		struct feed_entry **temp = realloc(section->feeds, sizeof(struct feed_entry *) * section->feeds_count);
+	if (find_feed_in_section(feed->link, section) == NULL) {
+		struct feed_entry **temp = realloc(section->feeds, sizeof(struct feed_entry *) * (section->feeds_count + 1));
 		if (temp == NULL) {
 			return false;
 		}
 		section->feeds = temp;
-		section->feeds[feed_index] = feed;
+		section->feeds[section->feeds_count] = feed;
+		section->feeds_count += 1;
 	}
 	return true;
 }
@@ -258,17 +254,12 @@ auto_updater_routine(void *dummy)
 	size_t i;
 	const struct timespec auto_updater_interval = {0, 500000000L}; // 0.5 seconds
 	while (stop_auto_updater_routine == false) {
+		time_t current_time = time(NULL);
 		for (i = 0; i < sections[0].feeds_count; ++i) {
-			if (sections[0].feeds[i]->update_period > 0) {
-				if ((sections[0].feeds[i]->update_iterator % sections[0].feeds[i]->update_period) == 0) {
-					update_feeds(sections[0].feeds + i, 1);
-				}
-				sections[0].feeds[i]->update_iterator += 1;
-			} else if ((sections[0].feeds[i]->update_period < 0) && (sections[0].update_period > 0)) {
-				if ((sections[0].feeds[i]->update_iterator % sections[0].update_period) == 0) {
-					update_feeds(sections[0].feeds + i, 1);
-				}
-				sections[0].feeds[i]->update_iterator += 1;
+			if ((sections[0].feeds[i]->update_period > 0)
+				&& (sections[0].feeds[i]->update_period < (current_time - sections[0].feeds[i]->download_date)))
+			{
+				update_feeds(sections[0].feeds + i, 1);
 			}
 		}
 		// Sleep for a total of 1 minute while checking if they want us to stop.
@@ -282,7 +273,7 @@ auto_updater_routine(void *dummy)
 bool
 start_auto_updater_if_necessary(void)
 {
-	if ((at_least_one_feed_has_positive_update_period == true) || (sections[0].update_period > 0)) {
+	if (at_least_one_feed_has_positive_update_period == true) {
 		if (pthread_create(&auto_updater_routine_thread, NULL, &auto_updater_routine, NULL) != 0) {
 			fputs("Failed to create auto updater thread!\n", stderr);
 			return false;
@@ -294,7 +285,7 @@ start_auto_updater_if_necessary(void)
 void
 finish_auto_updater_if_necessary(void)
 {
-	if ((at_least_one_feed_has_positive_update_period == true) || (sections[0].update_period > 0)) {
+	if (at_least_one_feed_has_positive_update_period == true) {
 		stop_auto_updater_routine = true;
 		pthread_join(auto_updater_routine_thread, NULL);
 	}

@@ -203,8 +203,8 @@ struct feed_entry {
 	struct string *name;
 	struct string *link;
 	int64_t unread_count;
+	int64_t download_date;
 	int64_t update_period;
-	int64_t update_iterator;
 	volatile bool *volatile did_update_just_finished;
 };
 
@@ -270,7 +270,7 @@ struct links_list {
 struct deserialize_stream;
 
 // See "sections.c" file for implementation.
-int64_t make_sure_section_exists(const struct string *section_name, int64_t update_period);
+int64_t make_sure_section_exists(const struct string *section_name);
 bool copy_feed_to_section(const struct feed_entry *feed, int64_t section_index);
 void refresh_unread_items_count_of_all_sections(void);
 bool purge_abandoned_feeds(void);

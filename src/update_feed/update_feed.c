@@ -111,6 +111,7 @@ undo:
 	} else if (status == DOWNLOAD_CANCELED) {
 		INFO("Download canceled.");
 	}
+	feed->download_date = data.feed.download_date;
 	pthread_mutex_unlock(&update_lock);
 	*feed->did_update_just_finished = true;
 	return NULL;

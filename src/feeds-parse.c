@@ -33,7 +33,7 @@ parse_feeds_file(void)
 	if (feeds_file_path == NULL) {
 		return false;
 	}
-	if (make_sure_section_exists(get_cfg_string(CFG_GLOBAL_SECTION_NAME), -1) != 0) {
+	if (make_sure_section_exists(get_cfg_string(CFG_GLOBAL_SECTION_NAME)) != 0) {
 		return false;
 	}
 	FILE *f = fopen(feeds_file_path, "r");
@@ -44,6 +44,7 @@ parse_feeds_file(void)
 	bool at_least_one_feed_was_added = false;
 	int64_t section_index = 0;
 	int64_t section_update_period = -1;
+	int64_t global_update_period = -1;
 	struct string *section_name = crtes(100);
 #define UPDATE_TIME_SIZE 17 // Allow less than 19 characters to not overflow int64_t.
 	char update_time[UPDATE_TIME_SIZE + 1];
@@ -83,10 +84,14 @@ parse_feeds_file(void)
 					fputs("Encountered an invalid section update period value!\n", stderr);
 					goto error;
 				}
+				section_update_period *= 60; // Convert to seconds.
 				while ((c != '\n') && (c != EOF)) { c = fgetc(f); }
 			}
 			trim_whitespace_from_string(section_name);
-			section_index = make_sure_section_exists(section_name, section_update_period);
+			section_index = make_sure_section_exists(section_name);
+			if (section_index == 0) {
+				global_update_period = section_update_period;
+			}
 			if (section_index < 0) { goto error; }
 			continue;
 		} else if (c == EOF) {
@@ -126,9 +131,14 @@ parse_feeds_file(void)
 				fputs("Encountered an invalid feed update period value!\n", stderr);
 				goto error;
 			}
+			feed.update_period *= 60; // Convert to seconds.
 		}
 		if (feed.update_period < 0) {
-			feed.update_period = section_update_period;
+			if (section_update_period < 0) {
+				feed.update_period = global_update_period;
+			} else {
+				feed.update_period = section_update_period;
+			}
 		}
 		if (copy_feed_to_section(&feed, section_index) == true) {
 			at_least_one_feed_was_added = true;

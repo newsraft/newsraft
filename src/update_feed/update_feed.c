@@ -85,6 +85,7 @@ update_feed_action(void *arg)
 
 undo:
 	pthread_mutex_lock(&update_lock);
+	feed->download_date = data.feed.download_date;
 	if (status == DOWNLOAD_SUCCEEDED) {
 		bool need_redraw = false;
 		int64_t new_unread_count = get_unread_items_count_of_the_feed(feed->link);
@@ -110,8 +111,8 @@ undo:
 		update_queue_failures += 1;
 	} else if (status == DOWNLOAD_CANCELED) {
 		INFO("Download canceled.");
+		db_set_download_date(feed->link, feed->download_date);
 	}
-	feed->download_date = data.feed.download_date;
 	pthread_mutex_unlock(&update_lock);
 	*feed->did_update_just_finished = true;
 	return NULL;

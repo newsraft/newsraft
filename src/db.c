@@ -259,3 +259,20 @@ db_get_string_from_feed_table(const struct string *url, const char *column, size
 	}
 	return NULL;
 }
+
+void
+db_set_download_date(const struct string *url, int64_t download_date)
+{
+	INFO("Setting download_date of %s to %" PRId64, url->ptr, download_date);
+	sqlite3_stmt *res = db_prepare("UPDATE feeds SET download_date=? WHERE feed_url=?", 50);
+	if (res != NULL) {
+		sqlite3_bind_int64(res, 1, download_date);
+		db_bind_string(res, 2, url);
+		if (sqlite3_step(res) == SQLITE_DONE) {
+			sqlite3_finalize(res);
+			return;
+		}
+		sqlite3_finalize(res);
+	}
+	FAIL("Failed to set download_date!");
+}

@@ -20,7 +20,7 @@ db_find_item_by_rowid(int64_t rowid)
 }
 
 static inline bool
-db_update_item_int(int64_t rowid, const char *column, size_t column_len, int value)
+db_set_item_int(int64_t rowid, const char *column, size_t column_len, int value)
 {
 	INFO("Updating column \"%s\" with integer \"%d\" of item with rowid \"%" PRId64 "\".", column, value, rowid);
 	char cmd[100];
@@ -44,25 +44,25 @@ db_update_item_int(int64_t rowid, const char *column, size_t column_len, int val
 bool
 db_mark_item_read(int64_t rowid)
 {
-	return db_update_item_int(rowid, "unread", 6, 0);
+	return db_set_item_int(rowid, "unread", 6, 0);
 }
 
 bool
 db_mark_item_unread(int64_t rowid)
 {
-	return db_update_item_int(rowid, "unread", 6, 1);
+	return db_set_item_int(rowid, "unread", 6, 1);
 }
 
 bool
 db_mark_item_important(int64_t rowid)
 {
-	return db_update_item_int(rowid, "important", 9, 1);
+	return db_set_item_int(rowid, "important", 9, 1);
 }
 
 bool
 db_mark_item_unimportant(int64_t rowid)
 {
-	return db_update_item_int(rowid, "important", 9, 0);
+	return db_set_item_int(rowid, "important", 9, 0);
 }
 
 int64_t

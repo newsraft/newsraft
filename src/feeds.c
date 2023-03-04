@@ -53,7 +53,7 @@ update_unread_items_count_of_all_feeds(void)
 }
 
 void
-mark_selected_feed_read(size_t view_sel)
+mark_feed_read(size_t view_sel)
 {
 	db_mark_all_items_in_feeds_as_read(&feeds[view_sel], 1);
 	update_unread_items_count(view_sel);
@@ -61,7 +61,7 @@ mark_selected_feed_read(size_t view_sel)
 }
 
 void
-mark_selected_feed_unread(size_t view_sel)
+mark_feed_unread(size_t view_sel)
 {
 	db_mark_all_items_in_feeds_as_unread(&feeds[view_sel], 1);
 	update_unread_items_count(view_sel);

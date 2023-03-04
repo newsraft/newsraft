@@ -81,24 +81,24 @@ free_list_menu(void)
 void
 initialize_settings_of_list_menus(void)
 {
-	menus[SECTIONS_MENU].read_action   = &mark_selected_section_read;
-	menus[SECTIONS_MENU].unread_action = &mark_selected_section_unread;
+	menus[SECTIONS_MENU].read_action   = &mark_section_read;
+	menus[SECTIONS_MENU].unread_action = &mark_section_unread;
 	menus[SECTIONS_MENU].get_args      = &get_section_entry_args;
 	menus[SECTIONS_MENU].paint_action  = &paint_section_entry;
 	menus[SECTIONS_MENU].hover_action  = NULL;
 	menus[SECTIONS_MENU].unread_state  = &unread_section_condition;
-	menus[FEEDS_MENU].read_action   = &mark_selected_feed_read;
-	menus[FEEDS_MENU].unread_action = &mark_selected_feed_unread;
+	menus[FEEDS_MENU].read_action   = &mark_feed_read;
+	menus[FEEDS_MENU].unread_action = &mark_feed_unread;
 	menus[FEEDS_MENU].get_args      = &get_feed_entry_args;
 	menus[FEEDS_MENU].paint_action  = &paint_feed_entry;
 	menus[FEEDS_MENU].hover_action  = NULL;
 	menus[FEEDS_MENU].unread_state  = &unread_feed_condition;
-	menus[ITEMS_MENU].read_action   = &mark_selected_item_read;
-	menus[ITEMS_MENU].unread_action = &mark_selected_item_unread;
+	menus[ITEMS_MENU].read_action   = &mark_item_read;
+	menus[ITEMS_MENU].unread_action = &mark_item_unread;
 	menus[ITEMS_MENU].get_args      = &get_item_entry_args;
 	menus[ITEMS_MENU].paint_action  = &paint_item_entry;
 	if (get_cfg_bool(CFG_MARK_ITEM_READ_ON_HOVER) == true) {
-		menus[ITEMS_MENU].hover_action = &mark_selected_item_read;
+		menus[ITEMS_MENU].hover_action = &mark_item_read;
 	} else {
 		menus[ITEMS_MENU].hover_action = NULL;
 	}

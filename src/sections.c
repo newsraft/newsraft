@@ -45,7 +45,7 @@ unread_section_condition(size_t index)
 }
 
 void
-mark_selected_section_read(size_t view_sel)
+mark_section_read(size_t view_sel)
 {
 	if (db_mark_all_items_in_feeds_as_read(sections[view_sel].feeds, sections[view_sel].feeds_count) == true) {
 		for (size_t i = 0; i < sections[view_sel].feeds_count; ++i) {
@@ -60,7 +60,7 @@ mark_selected_section_read(size_t view_sel)
 }
 
 void
-mark_selected_section_unread(size_t view_sel)
+mark_section_unread(size_t view_sel)
 {
 	if (db_mark_all_items_in_feeds_as_unread(sections[view_sel].feeds, sections[view_sel].feeds_count) == true) {
 		for (size_t i = 0; i < sections[view_sel].feeds_count; ++i) {
@@ -309,9 +309,9 @@ enter_sections_menu_loop(void)
 		if (handle_list_menu_navigation(cmd) == true) {
 			// Rest a little.
 		} else if (cmd == INPUT_MARK_READ_ALL) {
-			mark_selected_section_read(0);
+			mark_section_read(0);
 		} else if (cmd == INPUT_MARK_UNREAD_ALL) {
-			mark_selected_section_unread(0);
+			mark_section_unread(0);
 		} else if (cmd == INPUT_RELOAD) {
 			update_feeds(sections[*view_sel].feeds, sections[*view_sel].feeds_count);
 		} else if (cmd == INPUT_RELOAD_ALL) {

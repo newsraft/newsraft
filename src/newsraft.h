@@ -281,15 +281,15 @@ void free_sections(void);
 const struct format_arg *get_section_entry_args(size_t index);
 int paint_section_entry(size_t index);
 bool unread_section_condition(size_t index);
-void mark_selected_section_read(size_t view_sel);
-void mark_selected_section_unread(size_t view_sel);
+void mark_section_read(size_t view_sel);
+void mark_section_unread(size_t view_sel);
 
 // See "feeds-parse.c" file for implementation.
 bool parse_feeds_file(void);
 
 // See "feeds.c" file for implementation.
-void mark_selected_feed_read(size_t view_sel);
-void mark_selected_feed_unread(size_t view_sel);
+void mark_feed_read(size_t view_sel);
+void mark_feed_unread(size_t view_sel);
 input_cmd_id enter_feeds_menu_loop(struct feed_entry **new_feeds, size_t new_feeds_count);
 const struct format_arg *get_feed_entry_args(size_t index);
 int paint_feed_entry(size_t index);
@@ -316,8 +316,8 @@ void free_format_buffers(void);
 const struct wstring *do_format(const struct wstring *fmt, const struct format_arg *args);
 
 // See "items.c" file for implementation.
-void mark_selected_item_read(size_t view_sel);
-void mark_selected_item_unread(size_t view_sel);
+void mark_item_read(size_t view_sel);
+void mark_item_unread(size_t view_sel);
 const struct format_arg *get_item_entry_args(size_t index);
 int paint_item_entry(size_t index);
 bool unread_item_condition(size_t index);

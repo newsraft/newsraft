@@ -59,7 +59,7 @@ important_item_condition(size_t index)
 }
 
 void
-mark_selected_item_read(size_t view_sel)
+mark_item_read(size_t view_sel)
 {
 	if (items->ptr[view_sel].is_unread == true) {
 		if (db_mark_item_read(items->ptr[view_sel].rowid) == true) {
@@ -70,7 +70,7 @@ mark_selected_item_read(size_t view_sel)
 }
 
 void
-mark_selected_item_unread(size_t view_sel)
+mark_item_unread(size_t view_sel)
 {
 	if (items->ptr[view_sel].is_unread == false) {
 		if (db_mark_item_unread(items->ptr[view_sel].rowid) == true) {
@@ -81,7 +81,7 @@ mark_selected_item_unread(size_t view_sel)
 }
 
 static void
-mark_selected_item_important(size_t view_sel)
+mark_item_important(size_t view_sel)
 {
 	if (items->ptr[view_sel].is_important == false) {
 		if (db_mark_item_important(items->ptr[view_sel].rowid) == true) {
@@ -92,7 +92,7 @@ mark_selected_item_important(size_t view_sel)
 }
 
 static void
-mark_selected_item_unimportant(size_t view_sel)
+mark_item_unimportant(size_t view_sel)
 {
 	if (items->ptr[view_sel].is_important == true) {
 		if (db_mark_item_unimportant(items->ptr[view_sel].rowid) == true) {
@@ -171,9 +171,9 @@ enter_items_menu_loop(struct feed_entry **new_feeds, size_t new_feeds_count, con
 		} else if (cmd == INPUT_MARK_UNREAD_ALL) {
 			mark_all_items_unread(feeds, feeds_count);
 		} else if (cmd == INPUT_MARK_IMPORTANT) {
-			mark_selected_item_important(*view_sel);
+			mark_item_important(*view_sel);
 		} else if (cmd == INPUT_MARK_UNIMPORTANT) {
-			mark_selected_item_unimportant(*view_sel);
+			mark_item_unimportant(*view_sel);
 		} else if (cmd == INPUT_ENTER) {
 			cmd = enter_item_pager_view_loop(items->ptr, view_sel);
 			if (cmd == INPUT_QUIT_HARD) {

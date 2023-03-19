@@ -80,8 +80,8 @@ any commands with these links. Consider this *config* file:
 	_bind m exec mpv "%l"_++
 _bind f exec feh "%l"_
 
-With this you will be able to open any link in _mpv_ and _feh_ directly from
-your terminal! Isn't it awesome? It is freaking amazing!
+With this you will be able to open any link in *mpv*(1) and *feh*(1) directly
+from your terminal! Isn't it awesome? It is freaking amazing!
 
 Actually, I lied that there are only 4 menus. There are actually 5 of them, and
 the fifth secret menu is legendary as the greatest and the most useful menu in
@@ -519,7 +519,7 @@ Setting that forcibly makes the interface monochrome when set.
 
 # SEE ALSO
 
-*vi*(1), *sqlite3*(1), *strftime*(3), *libcurl*(3), *libcurl-env*(3)
+*vi*(1), *mpv*(1), *feh*(1), *sqlite3*(1), *strftime*(3), *libcurl*(3), *libcurl-env*(3)
 
 # BUGS
 

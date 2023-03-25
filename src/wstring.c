@@ -96,8 +96,7 @@ wcatss(struct wstring *dest, const struct wstring *src)
 bool
 wcatcs(struct wstring *dest, wchar_t c)
 {
-	wchar_t src[1] = {c};
-	return wcatas(dest, src, 1);
+	return wcatas(dest, &c, 1);
 }
 
 bool

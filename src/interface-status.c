@@ -22,7 +22,7 @@ write_last_status_message_to_status_window(void)
 }
 
 bool
-status_recreate(void)
+status_recreate_unprotected(void)
 {
 	if (status_window != NULL) {
 		delwin(status_window);

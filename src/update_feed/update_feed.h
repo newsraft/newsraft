@@ -53,6 +53,12 @@ struct stream_callback_data {
 	struct string *emptying_target;
 };
 
+// See "threading.c" file for implementation.
+bool initialize_update_threads(void);
+void branch_update_feed_action_into_thread(void *(*action)(void *arg), struct feed_entry *feed);
+void wait_for_all_threads_to_finish(void);
+void terminate_update_threads(void);
+
 enum download_status download_feed(const char *url, struct stream_callback_data *data);
 
 bool engage_xml_parser(struct stream_callback_data *data);

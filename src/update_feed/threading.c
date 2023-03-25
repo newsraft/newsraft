@@ -57,7 +57,7 @@ branch_update_feed_action_into_thread(void *(*action)(void *arg), struct feed_en
 }
 
 void
-wait_for_all_threads_to_finish(bool block_threading)
+wait_for_all_threads_to_finish(void)
 {
 	pthread_mutex_lock(&threads_lock);
 	for (size_t i = 0; i < threads_count; ++i) {
@@ -66,9 +66,6 @@ wait_for_all_threads_to_finish(bool block_threading)
 			threads[i].was_started = false;
 			threads[i].says_it_is_done = false;
 		}
-	}
-	if (block_threading == true) {
-		threads_count = 0;
 	}
 	pthread_mutex_unlock(&threads_lock);
 }

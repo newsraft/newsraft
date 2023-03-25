@@ -220,7 +220,7 @@ pause_list_menu(void)
 	clear();
 	refresh();
 	status_clean_unprotected();
-	status_recreate();
+	status_recreate_unprotected();
 	pthread_mutex_unlock(&interface_lock);
 }
 
@@ -233,7 +233,7 @@ resume_list_menu(void)
 	refresh();
 	redraw_list_menu_unprotected();
 	status_clean_unprotected();
-	status_recreate();
+	status_recreate_unprotected();
 	pthread_mutex_unlock(&interface_lock);
 }
 

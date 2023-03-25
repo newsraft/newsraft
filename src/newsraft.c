@@ -75,23 +75,22 @@ main(int argc, char **argv)
 	if (curses_init()                      == false) { error = 12; goto undo5;  }
 	if (adjust_list_menu()                 == false) { error = 13; goto undo6;  }
 	if (create_format_buffers()            == false) { error = 14; goto undo7;  }
-	if (status_recreate()                  == false) { error = 15; goto undo8;  }
+	if (status_recreate_unprotected()      == false) { error = 15; goto undo8;  }
 	if (allocate_status_messages_buffer()  == false) { error = 16; goto undo9;  }
-	if (counter_recreate()                 == false) { error = 17; goto undo9;  }
-	if (initialize_update_threads()        == false) { error = 18; goto undo10; }
-	if (curl_global_init(CURL_GLOBAL_DEFAULT)  != 0) { error = 19; goto undo11; }
+	if (counter_recreate_unprotected()     == false) { error = 17; goto undo9;  }
+	if (curl_global_init(CURL_GLOBAL_DEFAULT)  != 0) { error = 18; goto undo10; }
 	initialize_settings_of_list_menus();
 	refresh_unread_items_count_of_all_sections();
+	if (start_feed_updater()               == false) { error = 19; goto undo11; }
 	if (start_auto_updater_if_necessary()  == false) { error = 20; goto undo12; }
 
 	enter_sections_menu_loop();
 
 	finish_auto_updater_if_necessary();
-	wait_for_all_threads_to_finish(true);
 undo12:
-	curl_global_cleanup();
+	stop_feed_updater();
 undo11:
-	terminate_update_threads();
+	curl_global_cleanup();
 undo10:
 	counter_delete();
 undo9:

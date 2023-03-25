@@ -3,11 +3,11 @@
 static struct feed_entry **update_queue = NULL;
 static size_t update_queue_length = 0;
 static size_t update_queue_progress = 0;
-static size_t update_queue_failures;
+static size_t update_queue_failures = 0;
 
 static pthread_t queue_worker_thread;
-static bool queue_worker_is_active = false;
-static volatile bool queue_worker_is_asked_to_slow_down = false;
+static volatile bool queue_worker_is_asked_to_unlock = false;
+static volatile bool queue_worker_is_asked_to_terminate = false;
 
 static pthread_mutex_t queue_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t update_lock = PTHREAD_MUTEX_INITIALIZER;
@@ -119,62 +119,71 @@ undo:
 }
 
 static void *
-start_processing_queue(void *arg)
+queue_worker(void *arg)
 {
 	(void)arg;
-	const struct timespec delay_interval = {0, 100000000L}; // 0.1 seconds
-	update_queue_progress = 0;
-	update_queue_failures = 0;
+	const struct timespec delay_interval = {0, 367879441}; // 367.88 ms
 
-	prevent_status_cleaning();
-
-here_we_go_again:
-	while (update_queue_progress != update_queue_length) {
+	while (queue_worker_is_asked_to_terminate == false) {
 		pthread_mutex_lock(&queue_lock);
-		branch_update_feed_action_into_thread(&update_feed_action, update_queue[update_queue_progress]);
-		info_status("(%zu/%zu) Loading %s", update_queue_progress + 1, update_queue_length, update_queue[update_queue_progress]->link->ptr);
-		update_queue_progress += 1;
-		pthread_mutex_unlock(&queue_lock);
-		// Note to the future.
-		// We add a little delay here when they append items to the update queue
-		// to give the update_feeds function an opportunity to take over the
-		// queue_lock mutex to avoid blocking the user interface.
-		if (queue_worker_is_asked_to_slow_down == true) {
+		if (update_queue_progress == update_queue_length) {
+			pthread_mutex_unlock(&queue_lock);
 			nanosleep(&delay_interval, NULL);
+			continue;
 		}
-	}
-
-	wait_for_all_threads_to_finish(false);
-
-	pthread_mutex_lock(&queue_lock);
-	if (update_queue_progress != update_queue_length) {
-		// Something was added to the queue while the last feeds were updating.
+		prevent_status_cleaning();
+here_we_go_again:
+		while (queue_worker_is_asked_to_terminate == false) {
+			if (update_queue_progress == update_queue_length) {
+				break;
+			}
+			branch_update_feed_action_into_thread(&update_feed_action, update_queue[update_queue_progress]);
+			info_status("(%zu/%zu) Loading %s", update_queue_progress + 1, update_queue_length, update_queue[update_queue_progress]->link->ptr);
+			update_queue_progress += 1;
+			if (queue_worker_is_asked_to_unlock == true) {
+				// We unlock queue for a moment to let the user add new feeds to it.
+				pthread_mutex_unlock(&queue_lock);
+				nanosleep(&delay_interval, NULL);
+				pthread_mutex_lock(&queue_lock);
+			}
+		}
 		pthread_mutex_unlock(&queue_lock);
-		goto here_we_go_again;
-	}
-	queue_worker_is_active = false;
-	update_queue_length = 0;
-	update_queue_progress = 0;
-	free(update_queue);
-	update_queue = NULL;
-	tell_items_menu_to_regenerate();
-	allow_status_cleaning();
-	pthread_mutex_unlock(&queue_lock);
 
-	if (update_queue_failures != 0) {
-		fail_status("Failed to update %zu feeds (check out status history for more details)", update_queue_failures);
-	} else {
-		status_clean();
+		wait_for_all_threads_to_finish();
+
+		pthread_mutex_lock(&queue_lock);
+		if ((queue_worker_is_asked_to_terminate == false)
+			&& (update_queue_progress != update_queue_length))
+		{
+			// Something was added to the queue while the last feeds were updating.
+			goto here_we_go_again;
+		}
+
+		tell_items_menu_to_regenerate();
+		allow_status_cleaning();
+		if (update_queue_failures != 0) {
+			fail_status("Failed to update %zu feeds (check status history for details)", update_queue_failures);
+		} else {
+			status_clean();
+		}
+		free(update_queue);
+		update_queue = NULL;
+		update_queue_length = 0;
+		update_queue_progress = 0;
+		update_queue_failures = 0;
+		pthread_mutex_unlock(&queue_lock);
+		nanosleep(&delay_interval, NULL);
 	}
+
 	return NULL;
 }
 
 void
 update_feeds(struct feed_entry **feeds, size_t feeds_count)
 {
-	queue_worker_is_asked_to_slow_down = true;
+	queue_worker_is_asked_to_unlock = true;
 	pthread_mutex_lock(&queue_lock);
-	queue_worker_is_asked_to_slow_down = false;
+	queue_worker_is_asked_to_unlock = false;
 	struct feed_entry **temp = realloc(update_queue, sizeof(struct feed_entry *) * (update_queue_length + feeds_count));
 	if (temp != NULL) {
 		update_queue = temp;
@@ -183,15 +192,28 @@ update_feeds(struct feed_entry **feeds, size_t feeds_count)
 		}
 	}
 	info_status("(%zu/%zu) Loading %s", update_queue_progress + 1, update_queue_length, update_queue[update_queue_progress]->link->ptr);
-	if (queue_worker_is_active == false) {
-		static bool queue_worker_was_run_at_least_once = false;
-		if (queue_worker_was_run_at_least_once == true) {
-			pthread_join(queue_worker_thread, NULL);
-		} else {
-			queue_worker_was_run_at_least_once = true;
-		}
-		queue_worker_is_active = true;
-		pthread_create(&queue_worker_thread, NULL, &start_processing_queue, NULL);
-	}
 	pthread_mutex_unlock(&queue_lock);
+}
+
+bool
+start_feed_updater(void)
+{
+	if (initialize_update_threads() == false) {
+		return false;
+	}
+	if (pthread_create(&queue_worker_thread, NULL, &queue_worker, NULL) != 0) {
+		fputs("Failed to start feed updater!\n", stderr);
+		terminate_update_threads();
+		return false;
+	}
+	return true;
+}
+
+void
+stop_feed_updater(void)
+{
+	queue_worker_is_asked_to_terminate = true;
+	pthread_join(queue_worker_thread, NULL);
+	terminate_update_threads();
+	free(update_queue);
 }

@@ -93,10 +93,10 @@ resize_counter_action(void)
 	if (adjust_list_menu() == false) {
 		goto error;
 	}
-	if (status_recreate() == false) {
+	if (status_recreate_unprotected() == false) {
 		goto error;
 	}
-	if (counter_recreate() == false) {
+	if (counter_recreate_unprotected() == false) {
 		goto error;
 	}
 	redraw_list_menu_unprotected();

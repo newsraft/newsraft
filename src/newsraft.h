@@ -379,12 +379,6 @@ int enter_item_pager_view_loop(struct item_entry *items, const size_t *view_sel)
 // See "interface-pager-status.c" file for implementation.
 int enter_status_pager_view_loop(void);
 
-// See "threading.c" file for implementation.
-bool initialize_update_threads(void);
-void branch_update_feed_action_into_thread(void *(*action)(void *arg), struct feed_entry *feed);
-void wait_for_all_threads_to_finish(bool block_threading);
-void terminate_update_threads(void);
-
 // See "path.c" file for implementation.
 bool set_feeds_path(const char *path);
 bool set_config_path(const char *path);
@@ -443,7 +437,7 @@ bool assign_default_binds(void);
 
 // Functions related to window which displays status messages.
 // See "interface-status.c" file for implementation.
-bool status_recreate(void);
+bool status_recreate_unprotected(void);
 bool allocate_status_messages_buffer(void);
 void status_clean_unprotected(void);
 void status_clean(void);
@@ -455,7 +449,7 @@ struct string *generate_string_with_status_messages_for_pager(void);
 
 // Functions related to window which displays command counter.
 // See "interface-counter.c" file for implementation.
-bool counter_recreate(void);
+bool counter_recreate_unprotected(void);
 int read_counted_key_from_counter_window(uint32_t *count);
 void counter_delete(void);
 
@@ -528,6 +522,8 @@ void free_config(void);
 // Download, process and store new items of feed.
 // See "update_feed" directory for implementation.
 void update_feeds(struct feed_entry **feeds, size_t feeds_count);
+bool start_feed_updater(void);
+void stop_feed_updater(void);
 
 extern FILE *log_stream;
 extern size_t list_menu_height;

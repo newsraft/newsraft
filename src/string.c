@@ -108,8 +108,7 @@ catss(struct string *dest, const struct string *src)
 bool
 catcs(struct string *dest, char c)
 {
-	char src[1] = {c};
-	return catas(dest, src, 1);
+	return catas(dest, &c, 1);
 }
 
 bool

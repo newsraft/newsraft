@@ -12,7 +12,7 @@ newsraft - feed reader for terminal
 
 Newsraft is a small text based program for reading syndication feeds - it
 enables you to obtain content from many blogs and platforms and view all this
-via one single interface in an efficient and convenient manner.
+via one single interface in an efficient and streamlined manner.
 
 # OPTIONS
 

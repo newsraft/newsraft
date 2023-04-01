@@ -294,17 +294,20 @@ finish_auto_updater_if_necessary(void)
 void
 enter_sections_menu_loop(void)
 {
-	if (sections_count == 1) {
+	input_cmd_id cmd;
+	if (get_cfg_bool(CFG_SECTIONS_MENU_PARAMOUNT_EXPLORE) == true) {
+		cmd = enter_items_menu_loop(sections[0].feeds, sections[0].feeds_count, CFG_MENU_EXPLORE_ITEM_ENTRY_FORMAT);
+		if ((cmd == INPUT_QUIT_SOFT) || (cmd == INPUT_QUIT_HARD)) {
+			return;
+		}
+	} else if (sections_count == 1) {
 		enter_feeds_menu_loop(sections[0].feeds, sections[0].feeds_count);
 		return;
 	}
-
 	const size_t *view_sel = enter_list_menu(SECTIONS_MENU, sections_count, CFG_MENU_SECTION_ENTRY_FORMAT);
-
-	input_cmd_id cmd;
-	uint32_t count;
-	const struct wstring *macro;
 	while (true) {
+		uint32_t count;
+		const struct wstring *macro;
 		cmd = get_input_command(&count, &macro);
 		if (handle_list_menu_navigation(cmd) == true) {
 			// Rest a little.
@@ -321,11 +324,13 @@ enter_sections_menu_loop(void)
 			if (cmd == INPUT_QUIT_HARD) {
 				break;
 			}
-		} else if (cmd == INPUT_EXPLORE_MENU) {
+			enter_list_menu(SECTIONS_MENU, 0, 0);
+		} else if (cmd == INPUT_TOGGLE_EXPLORE_MODE) {
 			cmd = enter_items_menu_loop(sections[0].feeds, sections[0].feeds_count, CFG_MENU_EXPLORE_ITEM_ENTRY_FORMAT);
-			if (cmd == INPUT_QUIT_HARD) {
+			if ((cmd == INPUT_QUIT_SOFT) || (cmd == INPUT_QUIT_HARD)) {
 				break;
 			}
+			enter_list_menu(SECTIONS_MENU, 0, 0);
 		} else if (cmd == INPUT_STATUS_HISTORY_MENU) {
 			cmd = enter_status_pager_view_loop();
 			if (cmd == INPUT_QUIT_HARD) {

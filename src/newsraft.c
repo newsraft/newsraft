@@ -85,6 +85,7 @@ main(int argc, char **argv)
 	if (start_auto_updater_if_necessary()  == false) { error = 20; goto undo12; }
 
 	enter_sections_menu_loop();
+	clean_up_items_menu();
 
 	finish_auto_updater_if_necessary();
 undo12:

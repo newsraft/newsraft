@@ -2,7 +2,7 @@
 
 static struct feed_entry **feeds;
 static size_t feeds_count;
-static struct items_list *items;
+static struct items_list *items = NULL;
 static pthread_mutex_t items_lock = PTHREAD_MUTEX_INITIALIZER;
 static volatile bool item_menu_needs_to_regenerate = false;
 
@@ -125,6 +125,12 @@ mark_all_items_unread(struct feed_entry **feeds, size_t feeds_count)
 }
 
 void
+clean_up_items_menu(void)
+{
+	free_items_list(items);
+}
+
+void
 tell_items_menu_to_regenerate(void)
 {
 	int8_t menu_type = get_current_menu_type();
@@ -150,6 +156,7 @@ enter_items_menu_loop(struct feed_entry **new_feeds, size_t new_feeds_count, con
 {
 	feeds = new_feeds;
 	feeds_count = new_feeds_count;
+	free_items_list(items);
 	items = generate_items_list(feeds, feeds_count, SORT_BY_TIME_DESC);
 	if (items == NULL) {
 		// Error message written by generate_items_list.
@@ -196,6 +203,8 @@ enter_items_menu_loop(struct feed_entry **new_feeds, size_t new_feeds_count, con
 			run_command_with_specifiers(get_cfg_wstring(CFG_OPEN_IN_BROWSER_COMMAND), get_item_entry_args(*view_sel));
 		} else if (cmd == INPUT_COPY_TO_CLIPBOARD) {
 			copy_string_to_clipboard(items->ptr[*view_sel].url);
+		} else if ((cmd == INPUT_TOGGLE_EXPLORE_MODE) && (format_id == CFG_MENU_EXPLORE_ITEM_ENTRY_FORMAT)) {
+			break;
 		} else if ((cmd == INPUT_QUIT_SOFT) || (cmd == INPUT_QUIT_HARD)) {
 			break;
 		} else if (cmd == INPUT_SYSTEM_COMMAND) {
@@ -219,9 +228,6 @@ enter_items_menu_loop(struct feed_entry **new_feeds, size_t new_feeds_count, con
 			feeds[i]->unread_count = new_unread_count;
 		}
 	}
-
-	leave_list_menu(); // Leave before freeing to avoid potential use-after-frees.
-	free_items_list(items);
 
 	return cmd;
 }

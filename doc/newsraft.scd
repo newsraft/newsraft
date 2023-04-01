@@ -83,16 +83,14 @@ _bind f exec feh "%l"_
 With this you will be able to open any link in *mpv*(1) and *feh*(1) directly
 from your terminal! Isn't it awesome? It is freaking amazing!
 
-Actually, I lied that there are only 4 menus. There are actually 5 of them, and
-the fifth secret menu is legendary as the greatest and the most useful menu in
-feed readers history! This menu is known by the name of _explore menu_ and is
-invoked by pressing the *e* key in either _sections menu_ or _feeds menu_. What
-it does is truly miraculous - it gives you the list of feed item entries of all
-sections or feeds in the current scope. Open it in _sections menu_ and you will
-get all feed item entries you have in the database, open it in _feeds menu_ and
-you will get all feed item entries of feeds in this _feeds menu_. This menu may
-come in handy when you want to quickly scroll through all the news without
-switching between sections and feeds back and forth.
+For both _sections menu_ and _feeds menu_ there is a special view mode - explore
+mode. You can toggle this mode by pressing the *e* key in either _sections menu_
+or _feeds menu_. What it does is truly miraculous - it lists all the feed item
+entries in the current scope (i. e. explore mode in _sections menu_ will show
+you all the feed item entries in the database, while in _feeds menu_ it will
+show you all the feed item entries of feeds in the current _feeds menu_). This
+menu may come in handy when you want to quickly scroll through all the news
+without switching between sections and feeds back and forth.
 
 # CONFIGURATION
 
@@ -295,6 +293,12 @@ _menu-explore-item-entry-format_ (default: *" %u │ %d │ %-28.28O │ %o"*)
 	Format of the item list entries in explore mode. Specifiers are the same as
 	in _menu-item-entry-format_.
 
+_sections-menu-paramount-explore_ (default: *false*)
+	Enables explore mode in sections menu by default.
+
+_feeds-menu-paramount-explore_ (default: *false*)
+	Enables explore mode in feeds menu by default.
+
 _mark-item-read-on-hover_ (default: *false*)
 	Mark every item that gets selected as read.
 
@@ -462,7 +466,7 @@ _mark-read-all_ (default: *^D*)++
 _mark-unread-all_ (default: not set)++
 _mark-important_ (default: *i*)++
 _mark-unimportant_ (default: *I*)++
-_explore-menu_ (default: *e*)++
+_toggle-explore-mode_ (default: *e*)++
 _status-history-menu_ (default: *v*)++
 _open-in-browser_ (default: *o*)++
 _copy-to-clipboard_ (default: *y*, *c*)++

@@ -33,7 +33,7 @@ static const struct input_entry_match entries[] = {
 	{"mark-unread-all",                   INPUT_MARK_UNREAD_ALL                  },
 	{"mark-important",                    INPUT_MARK_IMPORTANT                   },
 	{"mark-unimportant",                  INPUT_MARK_UNIMPORTANT                 },
-	{"explore-menu",                      INPUT_EXPLORE_MENU                     },
+	{"toggle-explore-mode",               INPUT_TOGGLE_EXPLORE_MODE              },
 	{"status-history-menu",               INPUT_STATUS_HISTORY_MENU              },
 	{"open-in-browser",                   INPUT_OPEN_IN_BROWSER                  },
 	{"copy-to-clipboard",                 INPUT_COPY_TO_CLIPBOARD                },

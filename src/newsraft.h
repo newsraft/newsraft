@@ -67,6 +67,8 @@ enum {
 	CFG_MENU_FEED_ENTRY_FORMAT,
 	CFG_MENU_ITEM_ENTRY_FORMAT,
 	CFG_MENU_EXPLORE_ITEM_ENTRY_FORMAT,
+	CFG_SECTIONS_MENU_PARAMOUNT_EXPLORE,
+	CFG_FEEDS_MENU_PARAMOUNT_EXPLORE,
 	CFG_MARK_ITEM_READ_ON_HOVER,
 	CFG_ANALYZE_DATABASE_ON_STARTUP,
 	CFG_CLEAN_DATABASE_ON_STARTUP,
@@ -108,7 +110,7 @@ enum {
 	INPUT_MARK_UNREAD_ALL,
 	INPUT_MARK_IMPORTANT,
 	INPUT_MARK_UNIMPORTANT,
-	INPUT_EXPLORE_MENU,
+	INPUT_TOGGLE_EXPLORE_MODE,
 	INPUT_STATUS_HISTORY_MENU,
 	INPUT_OPEN_IN_BROWSER,
 	INPUT_COPY_TO_CLIPBOARD,
@@ -305,7 +307,6 @@ void expose_all_visible_entries_of_the_list_menu(void);
 void redraw_list_menu_unprotected(void);
 const size_t *enter_list_menu(int8_t menu_index, size_t new_entries_count, config_entry_id format_id);
 void reset_list_menu_unprotected(size_t new_entries_count);
-void leave_list_menu(void);
 void pause_list_menu(void);
 void resume_list_menu(void);
 bool handle_list_menu_navigation(input_cmd_id cmd);
@@ -322,6 +323,7 @@ const struct format_arg *get_item_entry_args(size_t index);
 int paint_item_entry(size_t index);
 bool unread_item_condition(size_t index);
 bool important_item_condition(size_t index);
+void clean_up_items_menu(void);
 void tell_items_menu_to_regenerate(void);
 input_cmd_id enter_items_menu_loop(struct feed_entry **feeds, size_t feeds_count, config_entry_id format_id);
 

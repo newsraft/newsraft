@@ -28,7 +28,6 @@ static size_t scrolloff;
 
 static struct list_menu_settings menus[MENUS_COUNT];
 static struct list_menu_settings *menu = menus; // Selected menu.
-static struct list_menu_settings *prev_menu = menus; // Previously selected menu.
 static volatile bool list_menu_is_paused = false;
 
 int8_t
@@ -176,13 +175,16 @@ const size_t *
 enter_list_menu(int8_t menu_index, size_t new_entries_count, config_entry_id format_id)
 {
 	pthread_mutex_lock(&interface_lock);
-	prev_menu = menu;
 	menu = menus + menu_index;
-	menu->entries_count = new_entries_count;
-	menu->view_sel = 0;
-	menu->view_min = 0;
-	menu->entry_format = get_cfg_wstring(format_id);
-	status_clean_unprotected();
+	if (new_entries_count != 0) {
+		menu->entries_count = new_entries_count;
+		menu->view_sel = 0;
+		menu->view_min = 0;
+		menu->entry_format = get_cfg_wstring(format_id);
+	}
+	if (menu_index == SECTIONS_MENU) {
+		refresh_unread_items_count_of_all_sections();
+	}
 	redraw_list_menu_unprotected();
 	pthread_mutex_unlock(&interface_lock);
 	return &(menu->view_sel);
@@ -197,19 +199,6 @@ reset_list_menu_unprotected(size_t new_entries_count)
 	}
 	menu->entries_count = new_entries_count;
 	redraw_list_menu_unprotected();
-}
-
-void
-leave_list_menu(void)
-{
-	pthread_mutex_lock(&interface_lock);
-	menu = menu == menus + FEEDS_MENU ? menus : prev_menu;
-	if (menu == menus) {
-		refresh_unread_items_count_of_all_sections();
-	}
-	status_clean_unprotected();
-	redraw_list_menu_unprotected();
-	pthread_mutex_unlock(&interface_lock);
 }
 
 void

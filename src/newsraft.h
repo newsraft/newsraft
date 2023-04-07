@@ -223,9 +223,14 @@ struct item_entry {
 };
 
 struct items_list {
+	sqlite3_stmt *res;
+	struct string *query;
 	struct item_entry *ptr;
 	size_t len;
+	bool finished;
 	sorting_order sort;
+	struct feed_entry **feeds; // Just a pointer to parent feeds.
+	size_t feeds_count;
 };
 
 struct format_arg {
@@ -331,7 +336,8 @@ void tell_items_menu_to_regenerate(void);
 input_cmd_id enter_items_menu_loop(struct feed_entry **feeds, size_t feeds_count, config_entry_id format_id);
 
 // See "items-list.c" file for implementation.
-struct items_list *generate_items_list(struct feed_entry **feeds, size_t feeds_count, sorting_order order);
+struct items_list *create_items_list(struct feed_entry **feeds, size_t feeds_count, sorting_order order);
+void obtain_items_at_least_up_to_the_given_index(struct items_list *items, size_t index);
 bool change_sorting_order_of_items_list(struct items_list **items, struct feed_entry **feeds, size_t feeds_count, sorting_order order);
 void free_items_list(struct items_list *items);
 

@@ -22,7 +22,11 @@ static struct format_arg fmt_args[] = {
 bool
 items_list_moderator(size_t index)
 {
-	return ((items != NULL) && (index < items->len)) ? true : false;
+	if (items == NULL) {
+		return false;
+	}
+	obtain_items_at_least_up_to_the_given_index(items, index);
+	return index < items->len ? true : false;
 }
 
 const struct format_arg *
@@ -141,7 +145,7 @@ tell_items_menu_to_regenerate(void)
 {
 	int8_t menu_type = get_current_menu_type();
 	if (menu_type == ITEMS_MENU) {
-		struct items_list *new_items = generate_items_list(feeds, feeds_count, items->sort);
+		struct items_list *new_items = create_items_list(feeds, feeds_count, items->sort);
 		if (new_items != NULL) {
 			pthread_mutex_lock(&items_lock);
 			pthread_mutex_lock(&interface_lock);
@@ -163,9 +167,9 @@ enter_items_menu_loop(struct feed_entry **new_feeds, size_t new_feeds_count, con
 	feeds = new_feeds;
 	feeds_count = new_feeds_count;
 	free_items_list(items);
-	items = generate_items_list(feeds, feeds_count, SORT_BY_TIME_DESC);
+	items = create_items_list(feeds, feeds_count, SORT_BY_TIME_DESC);
 	if (items == NULL) {
-		// Error message written by generate_items_list.
+		// Error message written by create_items_list.
 		return INPUT_ERROR;
 	}
 

@@ -161,7 +161,7 @@ change_sorting_order_of_items_list(struct items_list **items, struct feed_entry 
 	pthread_mutex_lock(&interface_lock);
 	free_items_list(*items);
 	*items = new_items;
-	reset_list_menu_unprotected(new_items->len);
+	reset_list_menu_unprotected();
 	pthread_mutex_unlock(&interface_lock);
 	switch (order) {
 		case SORT_BY_TIME_DESC:  info_status("Sorted items by time (descending).");  break;

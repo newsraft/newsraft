@@ -12,6 +12,12 @@ static struct format_arg fmt_args[] = {
 	{L'\0', NULL, {.i = 0   }}, // terminator
 };
 
+bool
+feeds_list_moderator(size_t index)
+{
+	return index < feeds_count ? true : false;
+}
+
 const struct format_arg *
 get_feed_entry_args(size_t index)
 {
@@ -101,7 +107,7 @@ enter_feeds_menu_loop(struct feed_entry **new_feeds, size_t new_feeds_count)
 			return cmd;
 		}
 	}
-	const size_t *view_sel = enter_list_menu(FEEDS_MENU, feeds_count, CFG_MENU_FEED_ENTRY_FORMAT);
+	const size_t *view_sel = enter_list_menu(FEEDS_MENU, CFG_MENU_FEED_ENTRY_FORMAT, true);
 	while (true) {
 		uint32_t count;
 		const struct wstring *macro;
@@ -121,13 +127,13 @@ enter_feeds_menu_loop(struct feed_entry **new_feeds, size_t new_feeds_count)
 			if (cmd == INPUT_QUIT_HARD) {
 				break;
 			}
-			enter_list_menu(FEEDS_MENU, 0, 0);
+			enter_list_menu(FEEDS_MENU, 0, false);
 		} else if (cmd == INPUT_TOGGLE_EXPLORE_MODE) {
 			cmd = enter_items_menu_loop(feeds, feeds_count, CFG_MENU_EXPLORE_ITEM_ENTRY_FORMAT);
 			if ((cmd == INPUT_QUIT_SOFT) || (cmd == INPUT_QUIT_HARD)) {
 				break;
 			}
-			enter_list_menu(FEEDS_MENU, 0, 0);
+			enter_list_menu(FEEDS_MENU, 0, false);
 		} else if (cmd == INPUT_STATUS_HISTORY_MENU) {
 			cmd = enter_status_pager_view_loop();
 			if (cmd == INPUT_QUIT_HARD) {

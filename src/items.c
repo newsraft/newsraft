@@ -19,6 +19,12 @@ static struct format_arg fmt_args[] = {
 	{L'\0', NULL, {.i = 0   }}, // terminator
 };
 
+bool
+items_list_moderator(size_t index)
+{
+	return ((items != NULL) && (index < items->len)) ? true : false;
+}
+
 const struct format_arg *
 get_item_entry_args(size_t index)
 {
@@ -141,7 +147,7 @@ tell_items_menu_to_regenerate(void)
 			pthread_mutex_lock(&interface_lock);
 			free_items_list(items);
 			items = new_items;
-			reset_list_menu_unprotected(items->len);
+			reset_list_menu_unprotected();
 			pthread_mutex_unlock(&interface_lock);
 			pthread_mutex_unlock(&items_lock);
 		}
@@ -163,7 +169,7 @@ enter_items_menu_loop(struct feed_entry **new_feeds, size_t new_feeds_count, con
 		return INPUT_ERROR;
 	}
 
-	const size_t *view_sel = enter_list_menu(ITEMS_MENU, items->len, format_id);
+	const size_t *view_sel = enter_list_menu(ITEMS_MENU, format_id, true);
 
 	input_cmd_id cmd;
 	uint32_t count;

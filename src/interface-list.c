@@ -224,10 +224,7 @@ obtain_list_entries_count(void)
 {
 	pthread_mutex_lock(&interface_lock);
 	size_t i = 0;
-	while (true) {
-		if (menu->enumerator(i) == false) {
-			break;
-		}
+	while (menu->enumerator(i) == true) {
 		i += 1;
 	}
 	pthread_mutex_unlock(&interface_lock);
@@ -249,7 +246,7 @@ list_menu_change_view(size_t new_sel)
 
 	if ((new_sel + scrolloff) > menu->view_max) {
 		menu->view_max = new_sel + scrolloff;
-		while ((menu->view_max > 0) && (menu->enumerator(menu->view_max) == false)) {
+		while ((menu->view_max > list_menu_height) && (menu->enumerator(menu->view_max) == false)) {
 			menu->view_max -= 1;
 		}
 		menu->view_min = menu->view_max - (list_menu_height - 1);
@@ -296,43 +293,53 @@ handle_list_menu_navigation(input_cmd_id cmd)
 	} else if ((cmd == INPUT_SELECT_PREV) || (cmd == INPUT_JUMP_TO_PREV)) {
 		list_menu_change_view(menu->view_sel > 1 ? (menu->view_sel - 1) : 0);
 	} else if (cmd == INPUT_JUMP_TO_NEXT_UNREAD) {
-		size_t entries_count = obtain_list_entries_count();
-		for (size_t i = 1, j = menu->view_sel + 1; i < entries_count; ++i, ++j) {
-			j %= entries_count;
-			if (menu->unread_state(j) == true) {
-				list_menu_change_view(j);
-				break;
+		for (size_t i = menu->view_sel + 1, j = 0; j < 2; i = 0, ++j) {
+			while (menu->enumerator(i) == true) {
+				if (menu->unread_state(i) == true) {
+					list_menu_change_view(i);
+					j = 2;
+					break;
+				}
+				i += 1;
 			}
 		}
 	} else if (cmd == INPUT_JUMP_TO_PREV_UNREAD) {
-		size_t entries_count = obtain_list_entries_count();
-		for (size_t i = 1, j = menu->view_sel; i < entries_count; ++i, --j) {
-			if (j == 0) {
-				j = entries_count;
+		for (size_t i = menu->view_sel, j = 0; j < 2; ++j) {
+			while ((i > 0) && (menu->enumerator(i - 1) == true)) {
+				if (menu->unread_state(i - 1) == true) {
+					list_menu_change_view(i - 1);
+					j = 2;
+					break;
+				}
+				i -= 1;
 			}
-			if (menu->unread_state(j - 1) == true) {
-				list_menu_change_view(j - 1);
-				break;
+			if (j < 2) {
+				i = obtain_list_entries_count();
 			}
 		}
 	} else if ((cmd == INPUT_JUMP_TO_NEXT_IMPORTANT) && (menu - menus == ITEMS_MENU)) {
-		size_t entries_count = obtain_list_entries_count();
-		for (size_t i = 1, j = menu->view_sel + 1; i < entries_count; ++i, ++j) {
-			j %= entries_count;
-			if (important_item_condition(j) == true) {
-				list_menu_change_view(j);
-				break;
+		for (size_t i = menu->view_sel + 1, j = 0; j < 2; i = 0, ++j) {
+			while (menu->enumerator(i) == true) {
+				if (important_item_condition(i) == true) {
+					list_menu_change_view(i);
+					j = 2;
+					break;
+				}
+				i += 1;
 			}
 		}
 	} else if ((cmd == INPUT_JUMP_TO_PREV_IMPORTANT) && (menu - menus == ITEMS_MENU)) {
-		size_t entries_count = obtain_list_entries_count();
-		for (size_t i = 1, j = menu->view_sel; i < entries_count; ++i, --j) {
-			if (j == 0) {
-				j = entries_count;
+		for (size_t i = menu->view_sel, j = 0; j < 2; ++j) {
+			while ((i > 0) && (menu->enumerator(i - 1) == true)) {
+				if (important_item_condition(i - 1) == true) {
+					list_menu_change_view(i - 1);
+					j = 2;
+					break;
+				}
+				i -= 1;
 			}
-			if (important_item_condition(j - 1) == true) {
-				list_menu_change_view(j - 1);
-				break;
+			if (j < 2) {
+				i = obtain_list_entries_count();
 			}
 		}
 	} else if (cmd == INPUT_SELECT_NEXT_PAGE) {

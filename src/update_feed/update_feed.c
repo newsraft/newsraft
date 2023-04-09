@@ -188,10 +188,20 @@ update_feeds(struct feed_entry **feeds, size_t feeds_count)
 	if (temp != NULL) {
 		update_queue = temp;
 		for (size_t i = 0; i < feeds_count; ++i) {
-			update_queue[update_queue_length++] = feeds[i];
+			bool already_present_in_queue = false;
+			for (size_t j = 0; (j < update_queue_length) && (already_present_in_queue == false); ++j) {
+				if (feeds[i] == update_queue[j]) {
+					already_present_in_queue = true;
+				}
+			}
+			if (already_present_in_queue == false) {
+				update_queue[update_queue_length++] = feeds[i];
+			}
 		}
 	}
-	info_status("(%zu/%zu) Loading %s", update_queue_progress + 1, update_queue_length, update_queue[update_queue_progress]->link->ptr);
+	if (update_queue_progress < update_queue_length) {
+		info_status("(%zu/%zu) Loading %s", update_queue_progress + 1, update_queue_length, update_queue[update_queue_progress]->link->ptr);
+	}
 	pthread_mutex_unlock(&queue_lock);
 }
 

@@ -258,7 +258,7 @@ auto_updater_routine(void *dummy)
 {
 	(void)dummy;
 	size_t i;
-	const struct timespec auto_updater_interval = {0, 500000000L}; // 0.5 seconds
+	const struct timespec auto_updater_checkup_gap = {0, 200000000}; // 0.2 seconds
 	while (stop_auto_updater_routine == false) {
 		time_t current_time = time(NULL);
 		for (i = 0; i < sections[0].feeds_count; ++i) {
@@ -269,8 +269,8 @@ auto_updater_routine(void *dummy)
 			}
 		}
 		// Sleep for a total of 1 minute while checking if they want us to stop.
-		for (i = 0; (i < 120) && (stop_auto_updater_routine == false); ++i) {
-			nanosleep(&auto_updater_interval, NULL);
+		for (i = 0; (i < 300) && (stop_auto_updater_routine == false); ++i) {
+			nanosleep(&auto_updater_checkup_gap, NULL);
 		}
 	}
 	return NULL;

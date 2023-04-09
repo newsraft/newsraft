@@ -9,7 +9,6 @@ struct responsive_thread {
 
 static struct responsive_thread *threads = NULL;
 static size_t threads_count;
-static pthread_mutex_t threads_lock = PTHREAD_MUTEX_INITIALIZER;
 static const struct timespec update_routine_finish_check_period = {0, 10000000};
 
 bool
@@ -28,7 +27,6 @@ initialize_update_threads(void)
 void
 branch_update_feed_action_into_thread(void *(*action)(void *arg), struct feed_entry *feed)
 {
-	pthread_mutex_lock(&threads_lock);
 	while (true) {
 		for (size_t i = 0; i < threads_count; ++i) {
 			if (threads[i].was_started == false) {
@@ -36,7 +34,6 @@ branch_update_feed_action_into_thread(void *(*action)(void *arg), struct feed_en
 				threads[i].says_it_is_done = false;
 				feed->did_update_just_finished = &threads[i].says_it_is_done;
 				pthread_create(&(threads[i].thread), NULL, action, feed);
-				pthread_mutex_unlock(&threads_lock);
 				return;
 			}
 		}
@@ -53,13 +50,11 @@ branch_update_feed_action_into_thread(void *(*action)(void *arg), struct feed_en
 			}
 		}
 	}
-	pthread_mutex_unlock(&threads_lock);
 }
 
 void
 wait_for_all_threads_to_finish(void)
 {
-	pthread_mutex_lock(&threads_lock);
 	for (size_t i = 0; i < threads_count; ++i) {
 		if (threads[i].was_started == true) {
 			pthread_join(threads[i].thread, NULL);
@@ -67,7 +62,6 @@ wait_for_all_threads_to_finish(void)
 			threads[i].says_it_is_done = false;
 		}
 	}
-	pthread_mutex_unlock(&threads_lock);
 }
 
 void

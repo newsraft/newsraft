@@ -119,10 +119,10 @@ undo:
 }
 
 static void *
-queue_worker(void *arg)
+queue_worker(void *dummy)
 {
-	(void)arg;
-	const struct timespec delay_interval = {0, 367879441}; // 367.88 ms
+	(void)dummy;
+	const struct timespec delay_interval = {0, 200000000}; // 0.2 seconds
 
 	while (queue_worker_is_asked_to_terminate == false) {
 		pthread_mutex_lock(&queue_lock);

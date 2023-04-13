@@ -4,13 +4,13 @@
 CC           = cc
 CFLAGS       = -O3
 LDFLAGS      =
-CURL_LIBS    != pkg-config --libs libcurl  2>/dev/null || echo '-lcurl'
-CURSES_LIBS  != pkg-config --libs ncursesw 2>/dev/null || echo '-lncursesw'
-EXPAT_LIBS   != pkg-config --libs expat    2>/dev/null || echo '-lexpat'
-GUMBO_LIBS   != pkg-config --libs gumbo    2>/dev/null || echo '-lgumbo'
+CURL_LIBS    = `pkg-config --libs libcurl  2>/dev/null || echo '-lcurl'`
+CURSES_LIBS  = `pkg-config --libs ncursesw 2>/dev/null || echo '-lncursesw'`
+EXPAT_LIBS   = `pkg-config --libs expat    2>/dev/null || echo '-lexpat'`
+GUMBO_LIBS   = `pkg-config --libs gumbo    2>/dev/null || echo '-lgumbo'`
 PTHREAD_LIBS = -lpthread
-SQLITE_LIBS  != pkg-config --libs sqlite3  2>/dev/null || echo '-lsqlite3'
-YAJL_LIBS    != pkg-config --libs yajl     2>/dev/null || echo '-lyajl'
+SQLITE_LIBS  = `pkg-config --libs sqlite3  2>/dev/null || echo '-lsqlite3'`
+YAJL_LIBS    = `pkg-config --libs yajl     2>/dev/null || echo '-lyajl'`
 # for static linking
 #LDFLAGS      = -static
 #CURL_LIBS    = -lcurl -lbrotlidec -lbrotlienc -lbrotlicommon -lssl -lcrypto -lnghttp2 -lz

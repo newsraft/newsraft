@@ -201,9 +201,9 @@ enter_items_menu_loop(struct feed_entry **new_feeds, size_t new_feeds_count, con
 		} else if (cmd == INPUT_RELOAD_ALL) {
 			update_feeds(feeds, feeds_count);
 		} else if (cmd == INPUT_SORT_NEXT) {
-			change_sorting_order_of_items_list(&items, feeds, feeds_count, items->sort + 1);
+			change_sorting_order_of_items_list(&items, items->sort + 1);
 		} else if (cmd == INPUT_SORT_PREV) {
-			change_sorting_order_of_items_list(&items, feeds, feeds_count, items->sort - 1);
+			change_sorting_order_of_items_list(&items, items->sort - 1);
 		} else if (cmd == INPUT_STATUS_HISTORY_MENU) {
 			cmd = enter_status_pager_view_loop();
 			if (cmd == INPUT_QUIT_HARD) {

@@ -158,14 +158,14 @@ obtain_items_at_least_up_to_the_given_index(struct items_list *items, size_t ind
 }
 
 bool
-change_sorting_order_of_items_list(struct items_list **items, struct feed_entry **feeds, size_t feeds_count, sorting_order order)
+change_sorting_order_of_items_list(struct items_list **items, sorting_order order)
 {
 	if (order > SORT_BY_TITLE_ASC) {
 		order = SORT_BY_TIME_DESC;
 	} else if (order < 0) {
 		order = SORT_BY_TITLE_ASC;
 	}
-	struct items_list *new_items = create_items_list(feeds, feeds_count, order);
+	struct items_list *new_items = create_items_list((*items)->feeds, (*items)->feeds_count, order);
 	if (new_items == NULL) {
 		return false;
 	}

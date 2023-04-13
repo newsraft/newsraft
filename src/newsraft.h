@@ -338,7 +338,7 @@ input_cmd_id enter_items_menu_loop(struct feed_entry **feeds, size_t feeds_count
 // See "items-list.c" file for implementation.
 struct items_list *create_items_list(struct feed_entry **feeds, size_t feeds_count, sorting_order order);
 void obtain_items_at_least_up_to_the_given_index(struct items_list *items, size_t index);
-bool change_sorting_order_of_items_list(struct items_list **items, struct feed_entry **feeds, size_t feeds_count, sorting_order order);
+bool change_sorting_order_of_items_list(struct items_list **items, sorting_order order);
 void free_items_list(struct items_list *items);
 
 // Functions responsible for managing render blocks.

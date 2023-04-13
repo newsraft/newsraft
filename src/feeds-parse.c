@@ -43,8 +43,8 @@ parse_feeds_file(void)
 	}
 	bool at_least_one_feed_was_added = false;
 	int64_t section_index = 0;
-	int64_t section_update_period = -1;
 	int64_t global_update_period = -1;
+	int64_t section_update_period = -1;
 	struct string *section_name = crtes(100);
 #define UPDATE_TIME_SIZE 17 // Allow less than 19 characters to not overflow int64_t.
 	char update_time[UPDATE_TIME_SIZE + 1];
@@ -73,7 +73,7 @@ parse_feeds_file(void)
 			for (c = fgetc(f); (c != '{') && (c != '\n') && (c != EOF); c = fgetc(f)) {
 				if (catcs(section_name, c) == false) { goto error; }
 			}
-			section_update_period = -1;
+			section_update_period = global_update_period;
 			if (c == '{') {
 				update_time_len = 0;
 				for (c = fgetc(f); (update_time_len < UPDATE_TIME_SIZE) && (c != '}') && (c != '\n') && (c != EOF); c = fgetc(f)) {
@@ -100,7 +100,7 @@ parse_feeds_file(void)
 
 		empty_string(feed.name);
 		empty_string(feed.link);
-		feed.update_period = -1;
+		feed.update_period = section_update_period;
 
 		while (true) {
 			if (catcs(feed.link, c) == false) { goto error; }
@@ -132,13 +132,6 @@ parse_feeds_file(void)
 				goto error;
 			}
 			feed.update_period *= 60; // Convert to seconds.
-		}
-		if (feed.update_period < 0) {
-			if (section_update_period < 0) {
-				feed.update_period = global_update_period;
-			} else {
-				feed.update_period = section_update_period;
-			}
 		}
 		if (copy_feed_to_section(&feed, section_index) == true) {
 			at_least_one_feed_was_added = true;

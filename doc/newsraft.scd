@@ -360,16 +360,6 @@ _send-if-modified-since-header_ (default: *true*)
 	and resources, it will reject the download request. Disabling it is strongly
 	discouraged.
 
-_ssl-verify-host_ (default: *true*)
-	Verifies that the server certificate corresponds to its identity when a
-	secure connection is established. Connections with an invalid certificate
-	will fail. Disabling it is strongly discouraged.
-
-_ssl-verify-peer_ (default: *true*)
-	Verifies that the peer certificate corresponds to its identity when a
-	secure connection is established. Connections with an invalid certificate
-	will fail. Disabling it is strongly discouraged.
-
 # COLOR SETTINGS
 
 Color settings are the same settings as above, but they take a certain set of

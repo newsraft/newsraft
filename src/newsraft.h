@@ -69,6 +69,7 @@ enum {
 	CFG_MENU_EXPLORE_ITEM_ENTRY_FORMAT,
 	CFG_SECTIONS_MENU_PARAMOUNT_EXPLORE,
 	CFG_FEEDS_MENU_PARAMOUNT_EXPLORE,
+	CFG_INITIAL_UNREAD_FIRST_SORTING,
 	CFG_MARK_ITEM_READ_ON_HOVER,
 	CFG_ANALYZE_DATABASE_ON_STARTUP,
 	CFG_CLEAN_DATABASE_ON_STARTUP,
@@ -96,6 +97,7 @@ enum {
 	INPUT_JUMP_TO_PREV_IMPORTANT,
 	INPUT_SORT_NEXT,
 	INPUT_SORT_PREV,
+	INPUT_TOGGLE_UNREAD_FIRST_SORTING,
 	INPUT_ENTER,
 	INPUT_RELOAD,
 	INPUT_RELOAD_ALL,
@@ -227,6 +229,7 @@ struct items_list {
 	size_t len;
 	bool finished;
 	sorting_order sort;
+	bool show_unread_first;
 	struct feed_entry **feeds; // Just a pointer to parent feeds.
 	size_t feeds_count;
 };
@@ -334,9 +337,11 @@ void tell_items_menu_to_regenerate(void);
 input_cmd_id enter_items_menu_loop(struct feed_entry **feeds, size_t feeds_count, config_entry_id format_id);
 
 // See "items-list.c" file for implementation.
-struct items_list *create_items_list(struct feed_entry **feeds, size_t feeds_count, sorting_order order);
+struct items_list *create_items_list(struct feed_entry **feeds, size_t feeds_count, sorting_order order, bool unread_first);
+struct items_list *recreate_items_list(const struct items_list *items);
 void obtain_items_at_least_up_to_the_given_index(struct items_list *items, size_t index);
 bool change_sorting_order_of_items_list(struct items_list **items, sorting_order order);
+bool toggle_unread_first_sorting_of_items_list(struct items_list **items);
 void free_items_list(struct items_list *items);
 
 // Functions responsible for managing render blocks.

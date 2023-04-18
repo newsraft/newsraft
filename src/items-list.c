@@ -3,19 +3,28 @@
 #include "newsraft.h"
 
 static inline bool
-append_sorting_order_expression_to_query(struct string *query, sorting_order order)
+append_sorting_order_expression_to_query(struct string *query, sorting_order order, bool unread_first)
 {
+	catas(query, " ORDER BY ", 10);
+	if (unread_first == true) {
+		catas(query, "unread DESC, ", 13);
+	}
+	const char *aux_msg = unread_first == true ? ", unread first" : "";
 	switch (order) {
-		case SORT_BY_TIME_DESC:  return catas(query, " ORDER BY MAX(publication_date, update_date) DESC, rowid DESC", 61);
-		case SORT_BY_TIME_ASC:   return catas(query, " ORDER BY MAX(publication_date, update_date) ASC, rowid ASC", 59);
-		case SORT_BY_TITLE_DESC: return catas(query, " ORDER BY title DESC, rowid DESC", 32);
-		case SORT_BY_TITLE_ASC:  return catas(query, " ORDER BY title ASC, rowid ASC", 30);
+		case SORT_BY_TIME_DESC:  info_status("Sorted items by time (descending%s).",  aux_msg);
+			return catas(query, "MAX(publication_date, update_date) DESC, rowid DESC", 51);
+		case SORT_BY_TIME_ASC:   info_status("Sorted items by time (ascending%s).",   aux_msg);
+			return catas(query, "MAX(publication_date, update_date) ASC, rowid ASC", 49);
+		case SORT_BY_TITLE_DESC: info_status("Sorted items by title (descending%s).", aux_msg);
+			return catas(query, "title DESC, rowid DESC", 22);
+		case SORT_BY_TITLE_ASC:  info_status("Sorted items by title (ascending%s).",  aux_msg);
+			return catas(query, "title ASC, rowid ASC", 20);
 	}
 	return false;
 }
 
 static inline struct string *
-generate_search_query_string(size_t feeds_count, sorting_order order)
+generate_search_query_string(size_t feeds_count, sorting_order order, bool unread_first)
 {
 	struct string *query = crtas("SELECT rowid,feed_url,title,link,publication_date,update_date,unread,important FROM items WHERE feed_url=?", 106);
 	if (query == NULL) {
@@ -28,7 +37,7 @@ generate_search_query_string(size_t feeds_count, sorting_order order)
 			return NULL;
 		}
 	}
-	if (append_sorting_order_expression_to_query(query, order) == false) {
+	if (append_sorting_order_expression_to_query(query, order, unread_first) == false) {
 		free_string(query);
 		return NULL;
 	}
@@ -65,7 +74,7 @@ find_feed_entry_by_url(struct feed_entry **feeds, size_t feeds_count, const char
 }
 
 struct items_list *
-create_items_list(struct feed_entry **feeds, size_t feeds_count, sorting_order order)
+create_items_list(struct feed_entry **feeds, size_t feeds_count, sorting_order order, bool unread_first)
 {
 	INFO("Generating items list.");
 	if (feeds_count == 0) {
@@ -76,7 +85,8 @@ create_items_list(struct feed_entry **feeds, size_t feeds_count, sorting_order o
 		return NULL;
 	}
 	items->sort = order;
-	items->query = generate_search_query_string(feeds_count, items->sort);
+	items->show_unread_first = unread_first;
+	items->query = generate_search_query_string(feeds_count, items->sort, items->show_unread_first);
 	if (items->query == NULL) {
 		fail_status("Can't generate search query string!");
 		goto undo1;
@@ -100,6 +110,12 @@ undo2:
 undo1:
 	free(items);
 	return NULL;
+}
+
+struct items_list *
+recreate_items_list(const struct items_list *items)
+{
+	return create_items_list(items->feeds, items->feeds_count, items->sort, items->show_unread_first);
 }
 
 void
@@ -165,7 +181,8 @@ change_sorting_order_of_items_list(struct items_list **items, sorting_order orde
 	} else if (order < 0) {
 		order = SORT_BY_TITLE_ASC;
 	}
-	struct items_list *new_items = create_items_list((*items)->feeds, (*items)->feeds_count, order);
+	(*items)->sort = order;
+	struct items_list *new_items = recreate_items_list(*items);
 	if (new_items == NULL) {
 		return false;
 	}
@@ -174,11 +191,21 @@ change_sorting_order_of_items_list(struct items_list **items, sorting_order orde
 	*items = new_items;
 	reset_list_menu_unprotected();
 	pthread_mutex_unlock(&interface_lock);
-	switch (order) {
-		case SORT_BY_TIME_DESC:  info_status("Sorted items by time (descending).");  break;
-		case SORT_BY_TIME_ASC:   info_status("Sorted items by time (ascending).");   break;
-		case SORT_BY_TITLE_DESC: info_status("Sorted items by title (descending)."); break;
-		case SORT_BY_TITLE_ASC:  info_status("Sorted items by title (ascending).");  break;
+	return true;
+}
+
+bool
+toggle_unread_first_sorting_of_items_list(struct items_list **items)
+{
+	(*items)->show_unread_first = !(*items)->show_unread_first;
+	struct items_list *new_items = recreate_items_list(*items);
+	if (new_items == NULL) {
+		return false;
 	}
+	pthread_mutex_lock(&interface_lock);
+	free_items_list(*items);
+	*items = new_items;
+	reset_list_menu_unprotected();
+	pthread_mutex_unlock(&interface_lock);
 	return true;
 }

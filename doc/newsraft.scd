@@ -299,6 +299,9 @@ _sections-menu-paramount-explore_ (default: *false*)
 _feeds-menu-paramount-explore_ (default: *false*)
 	Enables explore mode in feeds menu by default.
 
+_initial-unread-first-sorting_ (default: *false*)
+	Enables unread first sorting in items menu by default.
+
 _mark-item-read-on-hover_ (default: *false*)
 	Mark every item that gets selected as read.
 
@@ -444,6 +447,7 @@ _jump-to-next-important_ (default: *p*)++
 _jump-to-prev-important_ (default: *P*)++
 _sorting-method-next_ (default: *s*)++
 _sorting-method-prev_ (default: *S*)++
+_toggle-unread-first-sorting_ (default: *u*)++
 _enter_ (default: *l*, *^J*, *KEY_RIGHT*, *KEY_ENTER*)++
 _reload_ (default: *r*)++
 _reload-all_ (default: *^R*)++

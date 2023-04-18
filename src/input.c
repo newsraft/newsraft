@@ -152,6 +152,7 @@ assign_default_binds(void)
 	if (assign_action_to_key("P",         1, INPUT_JUMP_TO_PREV_IMPORTANT)       == false) { goto fail; }
 	if (assign_action_to_key("s",         1, INPUT_SORT_NEXT)                    == false) { goto fail; }
 	if (assign_action_to_key("S",         1, INPUT_SORT_PREV)                    == false) { goto fail; }
+	if (assign_action_to_key("u",         1, INPUT_TOGGLE_UNREAD_FIRST_SORTING)  == false) { goto fail; }
 	if (assign_action_to_key("l",         1, INPUT_ENTER)                        == false) { goto fail; }
 	if (assign_action_to_key("^J",        2, INPUT_ENTER)                        == false) { goto fail; }
 	if (assign_action_to_key("KEY_RIGHT", 9, INPUT_ENTER)                        == false) { goto fail; }

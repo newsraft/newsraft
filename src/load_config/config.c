@@ -77,6 +77,7 @@ static struct config_entry config[] = {
 	{"menu-explore-item-entry-format",  CFG_WSTRING, {.w = {NULL, L" %u │ %d │ %-28.28O │ %o",    24}}},
 	{"sections-menu-paramount-explore", CFG_BOOL,    {.b = false}},
 	{"feeds-menu-paramount-explore",    CFG_BOOL,    {.b = false}},
+	{"initial-unread-first-sorting",    CFG_BOOL,    {.b = false}},
 	{"mark-item-read-on-hover",         CFG_BOOL,    {.b = false}},
 	{"analyze-database-on-startup",     CFG_BOOL,    {.b = true }},
 	{"clean-database-on-startup",       CFG_BOOL,    {.b = false}},

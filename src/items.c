@@ -145,7 +145,7 @@ tell_items_menu_to_regenerate(void)
 {
 	int8_t menu_type = get_current_menu_type();
 	if (menu_type == ITEMS_MENU) {
-		struct items_list *new_items = create_items_list(feeds, feeds_count, items->sort);
+		struct items_list *new_items = recreate_items_list(items);
 		if (new_items != NULL) {
 			pthread_mutex_lock(&items_lock);
 			pthread_mutex_lock(&interface_lock);
@@ -167,7 +167,7 @@ enter_items_menu_loop(struct feed_entry **new_feeds, size_t new_feeds_count, con
 	feeds = new_feeds;
 	feeds_count = new_feeds_count;
 	free_items_list(items);
-	items = create_items_list(feeds, feeds_count, SORT_BY_TIME_DESC);
+	items = create_items_list(feeds, feeds_count, SORT_BY_TIME_DESC, get_cfg_bool(CFG_INITIAL_UNREAD_FIRST_SORTING));
 	if (items == NULL) {
 		// Error message written by create_items_list.
 		return INPUT_ERROR;
@@ -204,6 +204,8 @@ enter_items_menu_loop(struct feed_entry **new_feeds, size_t new_feeds_count, con
 			change_sorting_order_of_items_list(&items, items->sort + 1);
 		} else if (cmd == INPUT_SORT_PREV) {
 			change_sorting_order_of_items_list(&items, items->sort - 1);
+		} else if (cmd == INPUT_TOGGLE_UNREAD_FIRST_SORTING) {
+			toggle_unread_first_sorting_of_items_list(&items);
 		} else if (cmd == INPUT_STATUS_HISTORY_MENU) {
 			cmd = enter_status_pager_view_loop();
 			if (cmd == INPUT_QUIT_HARD) {

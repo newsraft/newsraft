@@ -159,13 +159,6 @@ create_items_list(struct feed_entry **feeds, size_t feeds_count, sorting_order o
 		fail_status("Can't find any items associated with this!");
 		goto undo3;
 	}
-	const char *aux_msg = unread_first == true ? ", unread first" : "";
-	switch (items->sort) {
-		case SORT_BY_TIME_DESC:  info_status("Sorted items by time (descending%s).",  aux_msg); break;
-		case SORT_BY_TIME_ASC:   info_status("Sorted items by time (ascending%s).",   aux_msg); break;
-		case SORT_BY_TITLE_DESC: info_status("Sorted items by title (descending%s).", aux_msg); break;
-		case SORT_BY_TITLE_ASC:  info_status("Sorted items by title (ascending%s).",  aux_msg); break;
-	}
 	return items;
 undo3:
 	sqlite3_finalize(items->res);
@@ -180,6 +173,18 @@ struct items_list *
 recreate_items_list(const struct items_list *items)
 {
 	return create_items_list(items->feeds, items->feeds_count, items->sort, items->show_unread_first);
+}
+
+static inline void
+print_current_sorting_method_to_status(const struct items_list *items)
+{
+	const char *aux_msg = items->show_unread_first == true ? ", unread first" : "";
+	switch (items->sort) {
+		case SORT_BY_TIME_DESC:  info_status("Sorted items by time (descending%s).",  aux_msg); break;
+		case SORT_BY_TIME_ASC:   info_status("Sorted items by time (ascending%s).",   aux_msg); break;
+		case SORT_BY_TITLE_DESC: info_status("Sorted items by title (descending%s).", aux_msg); break;
+		case SORT_BY_TITLE_ASC:  info_status("Sorted items by title (ascending%s).",  aux_msg); break;
+	}
 }
 
 bool
@@ -200,6 +205,7 @@ change_sorting_order_of_items_list(struct items_list **items, sorting_order orde
 	*items = new_items;
 	reset_list_menu_unprotected();
 	pthread_mutex_unlock(&interface_lock);
+	print_current_sorting_method_to_status(*items);
 	return true;
 }
 
@@ -216,5 +222,6 @@ toggle_unread_first_sorting_of_items_list(struct items_list **items)
 	*items = new_items;
 	reset_list_menu_unprotected();
 	pthread_mutex_unlock(&interface_lock);
+	print_current_sorting_method_to_status(*items);
 	return true;
 }

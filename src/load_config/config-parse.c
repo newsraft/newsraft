@@ -104,7 +104,7 @@ process_bind_line(char *line, size_t line_len)
 			fprintf(stderr, "Action \"%s\" doesn't exist!\n", i);
 			return false;
 		}
-		return assign_action_to_key(line, key_len, cmd);
+		return bind_action_to_key(line, key_len, cmd);
 	}
 }
 

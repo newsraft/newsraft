@@ -46,22 +46,21 @@ tell_program_to_terminate_safely_and_quickly(int dummy)
 }
 
 static inline int64_t
-find_bind_by_its_key_name_or_create_it(const char *key_name, size_t key_name_len)
+find_bind_by_its_key_name_or_create_it(const char *key, size_t key_len)
 {
-	int64_t i;
-	for (i = 0; (size_t)i < binds_count; ++i) {
-		if ((key_name_len == binds[i].key->len) && (strncmp(key_name, binds[i].key->ptr, key_name_len) == 0)) {
+	for (size_t i = 0; i < binds_count; ++i) {
+		if ((key_len == binds[i].key->len) && (memcmp(key, binds[i].key->ptr, key_len) == 0)) {
 			return i;
 		}
 	}
 	struct input_binding *tmp = realloc(binds, sizeof(struct input_binding) * (binds_count + 1));
 	if (tmp != NULL) {
 		binds = tmp;
+		binds[binds_count].key = crtas(key, key_len);
+		binds[binds_count].cmdcmd = NULL; // Set to NULL to avoid freeing garbage later.
 		binds_count += 1;
-		binds[i].key = crtas(key_name, key_name_len);
-		binds[i].cmdcmd = NULL; // Set to NULL to avoid freeing garbage later.
-		if (binds[i].key != NULL) {
-			return i;
+		if (binds[binds_count - 1].key != NULL) {
+			return binds_count - 1;
 		}
 	}
 	fputs("Not enough memory to create another binding!\n", stderr);
@@ -69,7 +68,7 @@ find_bind_by_its_key_name_or_create_it(const char *key_name, size_t key_name_len
 }
 
 bool
-assign_action_to_key(const char *bind_key, size_t bind_key_len, input_cmd_id bind_cmd)
+bind_action_to_key(const char *bind_key, size_t bind_key_len, input_cmd_id bind_cmd)
 {
 	int64_t index = find_bind_by_its_key_name_or_create_it(bind_key, bind_key_len);
 	if (index == -1) {
@@ -131,52 +130,52 @@ free_binds(void)
 bool
 assign_default_binds(void)
 {
-	if (assign_action_to_key("j",         1, INPUT_SELECT_NEXT)                  == false) { goto fail; }
-	if (assign_action_to_key("KEY_DOWN",  8, INPUT_SELECT_NEXT)                  == false) { goto fail; }
-	if (assign_action_to_key("k",         1, INPUT_SELECT_PREV)                  == false) { goto fail; }
-	if (assign_action_to_key("KEY_UP",    6, INPUT_SELECT_PREV)                  == false) { goto fail; }
-	if (assign_action_to_key(" ",         1, INPUT_SELECT_NEXT_PAGE)             == false) { goto fail; }
-	if (assign_action_to_key("^F",        2, INPUT_SELECT_NEXT_PAGE)             == false) { goto fail; }
-	if (assign_action_to_key("KEY_NPAGE", 9, INPUT_SELECT_NEXT_PAGE)             == false) { goto fail; }
-	if (assign_action_to_key("^B",        2, INPUT_SELECT_PREV_PAGE)             == false) { goto fail; }
-	if (assign_action_to_key("KEY_PPAGE", 9, INPUT_SELECT_PREV_PAGE)             == false) { goto fail; }
-	if (assign_action_to_key("g",         1, INPUT_SELECT_FIRST)                 == false) { goto fail; }
-	if (assign_action_to_key("KEY_HOME",  8, INPUT_SELECT_FIRST)                 == false) { goto fail; }
-	if (assign_action_to_key("G",         1, INPUT_SELECT_LAST)                  == false) { goto fail; }
-	if (assign_action_to_key("KEY_END",   7, INPUT_SELECT_LAST)                  == false) { goto fail; }
-	if (assign_action_to_key("J",         1, INPUT_JUMP_TO_NEXT)                 == false) { goto fail; }
-	if (assign_action_to_key("K",         1, INPUT_JUMP_TO_PREV)                 == false) { goto fail; }
-	if (assign_action_to_key("n",         1, INPUT_JUMP_TO_NEXT_UNREAD)          == false) { goto fail; }
-	if (assign_action_to_key("N",         1, INPUT_JUMP_TO_PREV_UNREAD)          == false) { goto fail; }
-	if (assign_action_to_key("p",         1, INPUT_JUMP_TO_NEXT_IMPORTANT)       == false) { goto fail; }
-	if (assign_action_to_key("P",         1, INPUT_JUMP_TO_PREV_IMPORTANT)       == false) { goto fail; }
-	if (assign_action_to_key("s",         1, INPUT_SORT_NEXT)                    == false) { goto fail; }
-	if (assign_action_to_key("S",         1, INPUT_SORT_PREV)                    == false) { goto fail; }
-	if (assign_action_to_key("u",         1, INPUT_TOGGLE_UNREAD_FIRST_SORTING)  == false) { goto fail; }
-	if (assign_action_to_key("l",         1, INPUT_ENTER)                        == false) { goto fail; }
-	if (assign_action_to_key("^J",        2, INPUT_ENTER)                        == false) { goto fail; }
-	if (assign_action_to_key("KEY_RIGHT", 9, INPUT_ENTER)                        == false) { goto fail; }
-	if (assign_action_to_key("KEY_ENTER", 9, INPUT_ENTER)                        == false) { goto fail; }
-	if (assign_action_to_key("r",         1, INPUT_RELOAD)                       == false) { goto fail; }
-	if (assign_action_to_key("^R",        2, INPUT_RELOAD_ALL)                   == false) { goto fail; }
-	if (assign_action_to_key("d",         1, INPUT_MARK_READ_AND_JUMP_TO_NEXT)   == false) { goto fail; }
-	if (assign_action_to_key("D",         1, INPUT_MARK_UNREAD_AND_JUMP_TO_NEXT) == false) { goto fail; }
-	if (assign_action_to_key("^D",        2, INPUT_MARK_READ_ALL)                == false) { goto fail; }
-	if (assign_action_to_key("i",         1, INPUT_MARK_IMPORTANT)               == false) { goto fail; }
-	if (assign_action_to_key("I",         1, INPUT_MARK_UNIMPORTANT)             == false) { goto fail; }
-	if (assign_action_to_key("e",         1, INPUT_TOGGLE_EXPLORE_MODE)          == false) { goto fail; }
-	if (assign_action_to_key("v",         1, INPUT_STATUS_HISTORY_MENU)          == false) { goto fail; }
-	if (assign_action_to_key("o",         1, INPUT_OPEN_IN_BROWSER)              == false) { goto fail; }
-	if (assign_action_to_key("y",         1, INPUT_COPY_TO_CLIPBOARD)            == false) { goto fail; }
-	if (assign_action_to_key("c",         1, INPUT_COPY_TO_CLIPBOARD)            == false) { goto fail; }
-	if (assign_action_to_key("h",         1, INPUT_QUIT_SOFT)                    == false) { goto fail; }
-	if (assign_action_to_key("q",         1, INPUT_QUIT_SOFT)                    == false) { goto fail; }
-	if (assign_action_to_key("KEY_LEFT",  8, INPUT_QUIT_SOFT)                    == false) { goto fail; }
-	if (assign_action_to_key("KEY_BACKSPACE", 13, INPUT_QUIT_SOFT)               == false) { goto fail; }
-	if (assign_action_to_key("Q",         1, INPUT_QUIT_HARD)                    == false) { goto fail; }
+	if (bind_action_to_key("j",         1, INPUT_SELECT_NEXT)                  == false) { goto fail; }
+	if (bind_action_to_key("KEY_DOWN",  8, INPUT_SELECT_NEXT)                  == false) { goto fail; }
+	if (bind_action_to_key("k",         1, INPUT_SELECT_PREV)                  == false) { goto fail; }
+	if (bind_action_to_key("KEY_UP",    6, INPUT_SELECT_PREV)                  == false) { goto fail; }
+	if (bind_action_to_key(" ",         1, INPUT_SELECT_NEXT_PAGE)             == false) { goto fail; }
+	if (bind_action_to_key("^F",        2, INPUT_SELECT_NEXT_PAGE)             == false) { goto fail; }
+	if (bind_action_to_key("KEY_NPAGE", 9, INPUT_SELECT_NEXT_PAGE)             == false) { goto fail; }
+	if (bind_action_to_key("^B",        2, INPUT_SELECT_PREV_PAGE)             == false) { goto fail; }
+	if (bind_action_to_key("KEY_PPAGE", 9, INPUT_SELECT_PREV_PAGE)             == false) { goto fail; }
+	if (bind_action_to_key("g",         1, INPUT_SELECT_FIRST)                 == false) { goto fail; }
+	if (bind_action_to_key("KEY_HOME",  8, INPUT_SELECT_FIRST)                 == false) { goto fail; }
+	if (bind_action_to_key("G",         1, INPUT_SELECT_LAST)                  == false) { goto fail; }
+	if (bind_action_to_key("KEY_END",   7, INPUT_SELECT_LAST)                  == false) { goto fail; }
+	if (bind_action_to_key("J",         1, INPUT_JUMP_TO_NEXT)                 == false) { goto fail; }
+	if (bind_action_to_key("K",         1, INPUT_JUMP_TO_PREV)                 == false) { goto fail; }
+	if (bind_action_to_key("n",         1, INPUT_JUMP_TO_NEXT_UNREAD)          == false) { goto fail; }
+	if (bind_action_to_key("N",         1, INPUT_JUMP_TO_PREV_UNREAD)          == false) { goto fail; }
+	if (bind_action_to_key("p",         1, INPUT_JUMP_TO_NEXT_IMPORTANT)       == false) { goto fail; }
+	if (bind_action_to_key("P",         1, INPUT_JUMP_TO_PREV_IMPORTANT)       == false) { goto fail; }
+	if (bind_action_to_key("s",         1, INPUT_SORT_NEXT)                    == false) { goto fail; }
+	if (bind_action_to_key("S",         1, INPUT_SORT_PREV)                    == false) { goto fail; }
+	if (bind_action_to_key("u",         1, INPUT_TOGGLE_UNREAD_FIRST_SORTING)  == false) { goto fail; }
+	if (bind_action_to_key("l",         1, INPUT_ENTER)                        == false) { goto fail; }
+	if (bind_action_to_key("^J",        2, INPUT_ENTER)                        == false) { goto fail; }
+	if (bind_action_to_key("KEY_RIGHT", 9, INPUT_ENTER)                        == false) { goto fail; }
+	if (bind_action_to_key("KEY_ENTER", 9, INPUT_ENTER)                        == false) { goto fail; }
+	if (bind_action_to_key("r",         1, INPUT_RELOAD)                       == false) { goto fail; }
+	if (bind_action_to_key("^R",        2, INPUT_RELOAD_ALL)                   == false) { goto fail; }
+	if (bind_action_to_key("d",         1, INPUT_MARK_READ_AND_JUMP_TO_NEXT)   == false) { goto fail; }
+	if (bind_action_to_key("D",         1, INPUT_MARK_UNREAD_AND_JUMP_TO_NEXT) == false) { goto fail; }
+	if (bind_action_to_key("^D",        2, INPUT_MARK_READ_ALL)                == false) { goto fail; }
+	if (bind_action_to_key("i",         1, INPUT_MARK_IMPORTANT)               == false) { goto fail; }
+	if (bind_action_to_key("I",         1, INPUT_MARK_UNIMPORTANT)             == false) { goto fail; }
+	if (bind_action_to_key("e",         1, INPUT_TOGGLE_EXPLORE_MODE)          == false) { goto fail; }
+	if (bind_action_to_key("v",         1, INPUT_STATUS_HISTORY_MENU)          == false) { goto fail; }
+	if (bind_action_to_key("o",         1, INPUT_OPEN_IN_BROWSER)              == false) { goto fail; }
+	if (bind_action_to_key("y",         1, INPUT_COPY_TO_CLIPBOARD)            == false) { goto fail; }
+	if (bind_action_to_key("c",         1, INPUT_COPY_TO_CLIPBOARD)            == false) { goto fail; }
+	if (bind_action_to_key("h",         1, INPUT_QUIT_SOFT)                    == false) { goto fail; }
+	if (bind_action_to_key("q",         1, INPUT_QUIT_SOFT)                    == false) { goto fail; }
+	if (bind_action_to_key("KEY_LEFT",  8, INPUT_QUIT_SOFT)                    == false) { goto fail; }
+	if (bind_action_to_key("KEY_BACKSPACE", 13, INPUT_QUIT_SOFT)               == false) { goto fail; }
+	if (bind_action_to_key("Q",         1, INPUT_QUIT_HARD)                    == false) { goto fail; }
 	return true;
 fail:
-	fputs("Failed to assign default bindings!\n", stderr);
+	fputs("Failed to assign default binds!\n", stderr);
 	free_binds();
 	return false;
 }

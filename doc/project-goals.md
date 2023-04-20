@@ -20,13 +20,14 @@ brings many possibilities, but also introduces some significant limitations.
 
 #### Simpler command bindings
 
-You can bind any key to execute a command on the feed item with for example:
+Two lines below add the ability to open links in `mpv` to the feed reader (first
+line corresponds to Newsraft, second line corresponds to Newsboat). Newsboat
+requires you to first press the macro prefix key (`,` by default) to execute
+bound command, while Newsraft doesn't.
 
 ```
 bind m exec mpv "%l"
 ```
-
-No more stuff like:
 
 ```
 macro m set browser mpv; open-in-browser; set browser elinks

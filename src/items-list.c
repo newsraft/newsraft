@@ -9,35 +9,30 @@ append_sorting_order_expression_to_query(struct string *query, sorting_order ord
 	if (unread_first == true) {
 		catas(query, "unread DESC, ", 13);
 	}
-	const char *aux_msg = unread_first == true ? ", unread first" : "";
 	switch (order) {
-		case SORT_BY_TIME_DESC:  info_status("Sorted items by time (descending%s).",  aux_msg);
-			return catas(query, "MAX(publication_date, update_date) DESC, rowid DESC", 51);
-		case SORT_BY_TIME_ASC:   info_status("Sorted items by time (ascending%s).",   aux_msg);
-			return catas(query, "MAX(publication_date, update_date) ASC, rowid ASC", 49);
-		case SORT_BY_TITLE_DESC: info_status("Sorted items by title (descending%s).", aux_msg);
-			return catas(query, "title DESC, rowid DESC", 22);
-		case SORT_BY_TITLE_ASC:  info_status("Sorted items by title (ascending%s).",  aux_msg);
-			return catas(query, "title ASC, rowid ASC", 20);
+		case SORT_BY_TIME_DESC:  return catas(query, "MAX(publication_date, update_date) DESC, rowid DESC", 51);
+		case SORT_BY_TIME_ASC:   return catas(query, "MAX(publication_date, update_date) ASC, rowid ASC", 49);
+		case SORT_BY_TITLE_DESC: return catas(query, "title DESC, rowid DESC", 22);
+		case SORT_BY_TITLE_ASC:  return catas(query, "title ASC, rowid ASC", 20);
 	}
 	return false;
 }
 
 static inline struct string *
-generate_search_query_string(size_t feeds_count, sorting_order order, bool unread_first)
+generate_search_query_string(const struct items_list *items)
 {
 	struct string *query = crtas("SELECT rowid,feed_url,title,link,publication_date,update_date,unread,important FROM items WHERE feed_url=?", 106);
 	if (query == NULL) {
 		FAIL("Not enough memory for query string!");
 		return NULL;
 	}
-	for (size_t i = 1; i < feeds_count; ++i) {
+	for (size_t i = 1; i < items->feeds_count; ++i) {
 		if (catas(query, " OR feed_url=?", 14) == false) {
 			free_string(query);
 			return NULL;
 		}
 	}
-	if (append_sorting_order_expression_to_query(query, order, unread_first) == false) {
+	if (append_sorting_order_expression_to_query(query, items->sort, items->show_unread_first) == false) {
 		free_string(query);
 		return NULL;
 	}
@@ -71,51 +66,6 @@ find_feed_entry_by_url(struct feed_entry **feeds, size_t feeds_count, const char
 		}
 	}
 	return NULL;
-}
-
-struct items_list *
-create_items_list(struct feed_entry **feeds, size_t feeds_count, sorting_order order, bool unread_first)
-{
-	INFO("Generating items list.");
-	if (feeds_count == 0) {
-		return NULL;
-	}
-	struct items_list *items = malloc(sizeof(struct items_list));
-	if (items == NULL) {
-		return NULL;
-	}
-	items->sort = order;
-	items->show_unread_first = unread_first;
-	items->query = generate_search_query_string(feeds_count, items->sort, items->show_unread_first);
-	if (items->query == NULL) {
-		fail_status("Can't generate search query string!");
-		goto undo1;
-	}
-	items->res = db_prepare(items->query->ptr, items->query->len + 1);
-	if (items->res == NULL) {
-		fail_status("Can't prepare search query for action!");
-		goto undo2;
-	}
-	for (size_t i = 0; i < feeds_count; ++i) {
-		sqlite3_bind_text(items->res, i + 1, feeds[i]->link->ptr, feeds[i]->link->len, SQLITE_STATIC);
-	}
-	items->ptr = NULL;
-	items->len = 0;
-	items->finished = false;
-	items->feeds = feeds;
-	items->feeds_count = feeds_count;
-	return items;
-undo2:
-	free_string(items->query);
-undo1:
-	free(items);
-	return NULL;
-}
-
-struct items_list *
-recreate_items_list(const struct items_list *items)
-{
-	return create_items_list(items->feeds, items->feeds_count, items->sort, items->show_unread_first);
 }
 
 void
@@ -171,6 +121,65 @@ obtain_items_at_least_up_to_the_given_index(struct items_list *items, size_t ind
 
 		items->len += 1;
 	}
+}
+
+struct items_list *
+create_items_list(struct feed_entry **feeds, size_t feeds_count, sorting_order order, bool unread_first)
+{
+	INFO("Generating items list.");
+	if (feeds_count == 0) {
+		return NULL;
+	}
+	struct items_list *items = malloc(sizeof(struct items_list));
+	if (items == NULL) {
+		return NULL;
+	}
+	items->ptr = NULL;
+	items->len = 0;
+	items->finished = false;
+	items->sort = order;
+	items->show_unread_first = unread_first;
+	items->feeds = feeds;
+	items->feeds_count = feeds_count;
+	items->query = generate_search_query_string(items);
+	if (items->query == NULL) {
+		fail_status("Can't generate search query string!");
+		goto undo1;
+	}
+	items->res = db_prepare(items->query->ptr, items->query->len + 1);
+	if (items->res == NULL) {
+		fail_status("Can't prepare search query for action!");
+		goto undo2;
+	}
+	for (size_t i = 0; i < feeds_count; ++i) {
+		sqlite3_bind_text(items->res, i + 1, feeds[i]->link->ptr, feeds[i]->link->len, SQLITE_STATIC);
+	}
+	obtain_items_at_least_up_to_the_given_index(items, 0);
+	if (items->len < 1) {
+		fail_status("Can't find any items associated with this!");
+		goto undo3;
+	}
+	const char *aux_msg = unread_first == true ? ", unread first" : "";
+	switch (items->sort) {
+		case SORT_BY_TIME_DESC:  info_status("Sorted items by time (descending%s).",  aux_msg); break;
+		case SORT_BY_TIME_ASC:   info_status("Sorted items by time (ascending%s).",   aux_msg); break;
+		case SORT_BY_TITLE_DESC: info_status("Sorted items by title (descending%s).", aux_msg); break;
+		case SORT_BY_TITLE_ASC:  info_status("Sorted items by title (ascending%s).",  aux_msg); break;
+	}
+	return items;
+undo3:
+	sqlite3_finalize(items->res);
+undo2:
+	free_string(items->query);
+undo1:
+	free(items);
+	return NULL;
+}
+
+struct items_list *
+recreate_items_list(const struct items_list *items)
+{
+	return create_items_list(items->feeds, items->feeds_count, items->sort, items->show_unread_first);
 }
 
 bool

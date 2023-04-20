@@ -103,7 +103,7 @@ enter_feeds_menu_loop(struct feed_entry **new_feeds, size_t new_feeds_count)
 		}
 	} else if (feeds_count == 1) {
 		cmd = enter_items_menu_loop(feeds, 1, CFG_MENU_ITEM_ENTRY_FORMAT);
-		if (cmd != INPUT_ERROR) {
+		if (cmd != INPUT_ITEMS_MENU_WAS_NOT_CREATED) {
 			return cmd;
 		}
 	}
@@ -126,14 +126,16 @@ enter_feeds_menu_loop(struct feed_entry **new_feeds, size_t new_feeds_count)
 			cmd = enter_items_menu_loop(&feeds[*view_sel], 1, CFG_MENU_ITEM_ENTRY_FORMAT);
 			if (cmd == INPUT_QUIT_HARD) {
 				break;
+			} else if (cmd != INPUT_ITEMS_MENU_WAS_NOT_CREATED) {
+				enter_list_menu(FEEDS_MENU, 0, false);
 			}
-			enter_list_menu(FEEDS_MENU, 0, false);
 		} else if (cmd == INPUT_TOGGLE_EXPLORE_MODE) {
 			cmd = enter_items_menu_loop(feeds, feeds_count, CFG_MENU_EXPLORE_ITEM_ENTRY_FORMAT);
 			if ((cmd == INPUT_QUIT_SOFT) || (cmd == INPUT_QUIT_HARD)) {
 				break;
+			} else if (cmd != INPUT_ITEMS_MENU_WAS_NOT_CREATED) {
+				enter_list_menu(FEEDS_MENU, 0, false);
 			}
-			enter_list_menu(FEEDS_MENU, 0, false);
 		} else if (cmd == INPUT_STATUS_HISTORY_MENU) {
 			cmd = enter_status_pager_view_loop();
 			if (cmd == INPUT_QUIT_HARD) {

@@ -170,7 +170,7 @@ enter_items_menu_loop(struct feed_entry **new_feeds, size_t new_feeds_count, con
 	items = create_items_list(feeds, feeds_count, SORT_BY_TIME_DESC, get_cfg_bool(CFG_INITIAL_UNREAD_FIRST_SORTING));
 	if (items == NULL) {
 		// Error message written by create_items_list.
-		return INPUT_ERROR;
+		return INPUT_ITEMS_MENU_WAS_NOT_CREATED;
 	}
 
 	const size_t *view_sel = enter_list_menu(ITEMS_MENU, format_id, true);

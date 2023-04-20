@@ -8,10 +8,15 @@ Newsboat to Newsraft, it is advised to examine them.
 
 ## Differences from Newsboat
 
-#### Grouping of feeds into updatable sections instead of meta-feeds
+#### Grouping of feeds into sections instead of query feeds
 
-In Newsraft you can update multiple feeds grouped in one section, while in
-Newsboat it is impossible with meta-feeds due to their filtering purpose.
+Sections are needed to organize feeds in groups to be able to process them in
+bulk. They are like directories, but for feeds. You can update, explore and
+set auto updates for sections - this will all be applied to belonging feeds.
+
+This makes Newsraft very different from Newsboat as latter uses query feeds
+for that purpose which are based on the comprehensive filter language - it
+brings many possibilities, but also introduces some significant limitations.
 
 #### Simpler command bindings
 

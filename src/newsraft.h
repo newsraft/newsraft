@@ -446,7 +446,6 @@ input_cmd_id get_input_command(uint32_t *count, const struct wstring **macro_ptr
 void tell_program_to_terminate_safely_and_quickly(int dummy);
 bool bind_action_to_key(const char *bind_key, size_t bind_key_len, input_cmd_id bind_cmd);
 bool create_macro(const char *bind_key, size_t bind_key_len, const char *cmd, size_t cmd_len);
-void delete_action_from_key(const char *bind_key);
 void free_binds(void);
 bool assign_default_binds(void);
 
@@ -526,6 +525,7 @@ void log_stop(int error_code);
 
 // Parse config file, fill out config_data structure, bind keys to actions.
 // See "load_config" directory for implementation.
+bool parse_config_file(void);
 bool load_config(void);
 bool get_cfg_bool(config_entry_id i);
 size_t get_cfg_uint(config_entry_id i);

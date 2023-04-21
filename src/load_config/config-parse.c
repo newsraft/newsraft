@@ -109,9 +109,13 @@ process_bind_line(char *line, size_t line_len)
 }
 
 bool
-parse_config_file(const char *path)
+parse_config_file(void)
 {
-	FILE *f = fopen(path, "r");
+	const char *config_path = get_config_path();
+	if (config_path == NULL) {
+		return true; // Since the config file is optional, don't return an error.
+	}
+	FILE *f = fopen(config_path, "r");
 	if (f == NULL) {
 		fputs("Couldn't open config file!\n", stderr);
 		return false;
@@ -137,7 +141,7 @@ parse_config_file(const char *path)
 		type_len = 0;
 		do {
 			if (type_len == 6) {
-				goto invalid_line_type;
+				goto invalid_format;
 			}
 			type[type_len++] = c;
 			c = fgetc(f);
@@ -169,17 +173,20 @@ parse_config_file(const char *path)
 				goto error;
 			}
 		} else if (strncmp(type, "unbind", type_len) == 0) {
-			delete_action_from_key(line);
+			if (bind_action_to_key(line, line_len, INPUT_ERROR) == false) {
+				goto error;
+			}
 		} else {
-			goto invalid_line_type;
+			goto invalid_format;
 		}
 
 	}
 	fclose(f);
 	return true;
-invalid_line_type:
+invalid_format:
 	fputs("Incorrect line notation! Lines can only start with either \"set\", \"bind\" or \"unbind\"!\n", stderr);
 error:
+	fputs("Failed to parse config file!\n", stderr);
 	fclose(f);
 	return false;
 }

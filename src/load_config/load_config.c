@@ -4,14 +4,6 @@
 bool
 load_config(void)
 {
-	const char *config_path = get_config_path();
-	if (config_path != NULL) {
-		if (parse_config_file(config_path) == false) {
-			fputs("Failed to parse config file!\n", stderr);
-			return false;
-		}
-	}
-
 	const size_t preferred_threads = get_cfg_uint(CFG_UPDATE_THREADS_COUNT);
 	const long online_cpus = sysconf(_SC_NPROCESSORS_ONLN);
 	INFO("Sysconf value of _SC_NPROCESSORS_ONLN is %ld", online_cpus);

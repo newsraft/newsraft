@@ -98,25 +98,6 @@ create_macro(const char *bind_key, size_t bind_key_len, const char *cmd, size_t 
 }
 
 void
-delete_action_from_key(const char *bind_key)
-{
-	INFO("Deleting action from %s key.", bind_key);
-	for (size_t i = 0; i < binds_count; ++i) {
-		if (strcmp(bind_key, binds[i].key->ptr) == 0) {
-			binds_count -= 1;
-			free_string(binds[i].key);
-			free_wstring(binds[i].cmdcmd);
-			for (size_t j = i; j < binds_count; ++j) {
-				binds[j].key = binds[j + 1].key;
-				binds[j].cmd = binds[j + 1].cmd;
-				binds[j].cmdcmd = binds[j + 1].cmdcmd;
-			}
-			return;
-		}
-	}
-}
-
-void
 free_binds(void)
 {
 	INFO("Freeing key binds.");

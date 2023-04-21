@@ -13,8 +13,6 @@ enum config_type {
 
 config_entry_id find_config_entry_by_name(const char *name);
 
-bool parse_config_file(const char *path);
-
 bool obtain_useragent_string(struct string *ua);
 bool obtain_clipboard_command(struct string *cmd);
 

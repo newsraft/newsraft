@@ -166,6 +166,10 @@ redraw_list_menu_unprotected(void)
 		menu->view_max = menu->view_sel;
 		menu->view_min = menu->view_max - (list_menu_height - 1);
 	}
+	while (menu->view_max >= list_menu_height && menu->enumerator(menu->view_max) == false) {
+		menu->view_max -= 1;
+	}
+	menu->view_min = menu->view_max - (list_menu_height - 1);
 	expose_all_visible_entries_of_the_list_menu_unprotected();
 }
 
@@ -232,7 +236,7 @@ list_menu_change_view(struct list_menu_settings *m, size_t new_sel)
 
 	if (new_sel + scrolloff > m->view_max) {
 		m->view_max = new_sel + scrolloff;
-		while (m->view_max > list_menu_height && m->enumerator(m->view_max) == false) {
+		while (m->view_max >= list_menu_height && m->enumerator(m->view_max) == false) {
 			m->view_max -= 1;
 		}
 		m->view_min = m->view_max - (list_menu_height - 1);
@@ -380,7 +384,7 @@ pager_menu_change_view(size_t new_sel)
 	}
 	if (new_sel != menu->view_min) {
 		menu->view_max = new_sel + (list_menu_height - 1);
-		while (menu->view_max > list_menu_height && menu->enumerator(menu->view_max) == false) {
+		while (menu->view_max >= list_menu_height && menu->enumerator(menu->view_max) == false) {
 			menu->view_max -= 1;
 		}
 		menu->view_min = menu->view_max - (list_menu_height - 1);

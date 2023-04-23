@@ -4,7 +4,7 @@
 pthread_mutex_t interface_lock = PTHREAD_MUTEX_INITIALIZER;
 
 static bool
-obtain_terminal_size(void)
+obtain_list_menu_size(size_t *width, size_t *height)
 {
 	int terminal_width = getmaxx(stdscr);
 	if (terminal_width == ERR) {
@@ -31,8 +31,8 @@ obtain_terminal_size(void)
 
 	INFO("Obtained terminal size: %d width, %d height.", terminal_width, terminal_height);
 
-	list_menu_width = terminal_width;
-	list_menu_height = terminal_height - 1; // Subtract 1 because we have status window.
+	*width = terminal_width;
+	*height = terminal_height - 1; // Subtract 1 because we have status window.
 
 	return true;
 }
@@ -48,7 +48,7 @@ curses_init(void)
 		fputs("Can not disable line buffering and erase/kill character-processing!\n", stderr);
 		return false;
 	}
-	if (obtain_terminal_size() == false) {
+	if (obtain_list_menu_size(&list_menu_width, &list_menu_height) == false) {
 		fputs("Invalid terminal size obtained!\n", stderr);
 		return false;
 	}
@@ -74,7 +74,7 @@ curses_init(void)
 }
 
 input_cmd_id
-resize_counter_action(void)
+resize_handler(void)
 {
 	pthread_mutex_lock(&interface_lock);
 
@@ -83,7 +83,7 @@ resize_counter_action(void)
 	clear();
 	refresh();
 
-	if (obtain_terminal_size() == false) {
+	if (obtain_list_menu_size(&list_menu_width, &list_menu_height) == false) {
 		// Some really crazy resize happend. It is either a glitch or user
 		// deliberately trying to break something. This state is unusable anyways.
 		fputs("Don't flex around with me, okay?\n", stderr);
@@ -98,10 +98,25 @@ resize_counter_action(void)
 	if (counter_recreate_unprotected() == false) {
 		goto error;
 	}
+	if (get_current_menu_type() == PAGER_MENU) {
+		handle_pager_menu_navigation(INPUT_RESIZE);
+	}
 	redraw_list_menu_unprotected();
 	pthread_mutex_unlock(&interface_lock);
 	return INPUT_RESIZE;
 error:
 	pthread_mutex_unlock(&interface_lock);
 	return INPUT_QUIT_HARD;
+}
+
+bool
+call_resize_handler_if_current_list_menu_size_is_different_from_actual(void)
+{
+	size_t width = 0, height = 0;
+	obtain_list_menu_size(&width, &height);
+	if (width != list_menu_width || height != list_menu_height) {
+		resize_handler();
+		return true;
+	}
+	return false;
 }

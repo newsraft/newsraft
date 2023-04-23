@@ -98,12 +98,10 @@ enter_item_pager_view_loop(struct items_list *items, const size_t *view_sel)
 				cmd_args[0].value.s = links.ptr[count - 1].url->ptr;
 				if (cmd == INPUT_OPEN_IN_BROWSER) {
 					run_command_with_specifiers(get_cfg_wstring(CFG_OPEN_IN_BROWSER_COMMAND), cmd_args);
-					handle_pager_menu_navigation(INPUT_RESIZE);
 				} else if (cmd == INPUT_COPY_TO_CLIPBOARD) {
 					copy_string_to_clipboard(links.ptr[count - 1].url);
 				} else if (cmd == INPUT_SYSTEM_COMMAND) {
 					run_command_with_specifiers(macro, cmd_args);
-					handle_pager_menu_navigation(INPUT_RESIZE);
 				}
 			}
 		}

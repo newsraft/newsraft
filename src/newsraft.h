@@ -436,7 +436,8 @@ bool db_mark_all_items_in_feeds_as_unread(struct feed_entry **feeds, size_t feed
 
 // See "interface.c" file for implementation.
 bool curses_init(void);
-input_cmd_id resize_counter_action(void);
+input_cmd_id resize_handler(void);
+bool call_resize_handler_if_current_list_menu_size_is_different_from_actual(void);
 
 // Functions responsible for curses color pairs.
 // See "interface-colors.c" file for implementation.

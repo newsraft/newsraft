@@ -23,7 +23,7 @@ get_input_command(uint32_t *count, const struct wstring **macro_ptr)
 
 	int c = read_counted_key_from_counter_window(count);
 	if (c == KEY_RESIZE) {
-		return resize_counter_action();
+		return resize_handler();
 	}
 
 	const char *key = keyname(c);

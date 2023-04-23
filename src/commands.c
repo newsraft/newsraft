@@ -15,7 +15,15 @@ execute_system_command(const char *cmd)
 	curs_set(0);
 	pthread_mutex_unlock(&interface_lock);
 	// Resizing could be handled by the program running on top, so we have to catch up.
-	resize_counter_action();
+	if (call_resize_handler_if_current_list_menu_size_is_different_from_actual() == false) {
+		pthread_mutex_lock(&interface_lock);
+		clear();
+		refresh();
+		status_recreate_unprotected();
+		counter_recreate_unprotected();
+		redraw_list_menu_unprotected();
+		pthread_mutex_unlock(&interface_lock);
+	}
 	if (status == 0) {
 		status_clean();
 	} else {

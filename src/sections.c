@@ -315,7 +315,7 @@ enter_sections_menu_loop(void)
 		uint32_t count;
 		const struct wstring *macro;
 		cmd = get_input_command(&count, &macro);
-		if (handle_list_menu_navigation(cmd) == true) {
+		if (handle_list_menu_navigation(SECTIONS_MENU, cmd) == true) {
 			// Rest a little.
 		} else if (cmd == INPUT_MARK_READ_ALL) {
 			mark_section_read(0);
@@ -342,6 +342,7 @@ enter_sections_menu_loop(void)
 			if (cmd == INPUT_QUIT_HARD) {
 				break;
 			}
+			enter_list_menu(SECTIONS_MENU, 0, false);
 		} else if ((cmd == INPUT_QUIT_SOFT) || (cmd == INPUT_QUIT_HARD)) {
 			break;
 		}

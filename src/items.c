@@ -156,7 +156,7 @@ tell_items_menu_to_regenerate(void)
 			pthread_mutex_unlock(&items_lock);
 		}
 		item_menu_needs_to_regenerate = false;
-	} else if (menu_type == MENUS_COUNT) {
+	} else if (menu_type == PAGER_MENU) {
 		item_menu_needs_to_regenerate = true;
 	}
 }
@@ -181,7 +181,7 @@ enter_items_menu_loop(struct feed_entry **new_feeds, size_t new_feeds_count, con
 	while (true) {
 		cmd = get_input_command(&count, &macro);
 		pthread_mutex_lock(&items_lock);
-		if (handle_list_menu_navigation(cmd) == true) {
+		if (handle_list_menu_navigation(ITEMS_MENU, cmd) == true) {
 			// Rest a little.
 		} else if (cmd == INPUT_MARK_READ_ALL) {
 			mark_all_items_read(feeds, feeds_count);
@@ -192,10 +192,11 @@ enter_items_menu_loop(struct feed_entry **new_feeds, size_t new_feeds_count, con
 		} else if (cmd == INPUT_MARK_UNIMPORTANT) {
 			mark_item_unimportant(*view_sel);
 		} else if (cmd == INPUT_ENTER) {
-			cmd = enter_item_pager_view_loop(items->ptr, view_sel);
+			cmd = enter_item_pager_view_loop(items, view_sel);
 			if (cmd == INPUT_QUIT_HARD) {
 				break;
 			}
+			enter_list_menu(ITEMS_MENU, 0, false);
 		} else if (cmd == INPUT_RELOAD) {
 			update_feeds(&items->ptr[*view_sel].feed, 1);
 		} else if (cmd == INPUT_RELOAD_ALL) {
@@ -211,6 +212,7 @@ enter_items_menu_loop(struct feed_entry **new_feeds, size_t new_feeds_count, con
 			if (cmd == INPUT_QUIT_HARD) {
 				break;
 			}
+			enter_list_menu(ITEMS_MENU, 0, false);
 		} else if (cmd == INPUT_OPEN_IN_BROWSER) {
 			run_command_with_specifiers(get_cfg_wstring(CFG_OPEN_IN_BROWSER_COMMAND), get_item_entry_args(*view_sel));
 		} else if (cmd == INPUT_COPY_TO_CLIPBOARD) {

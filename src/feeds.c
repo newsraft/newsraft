@@ -112,7 +112,7 @@ enter_feeds_menu_loop(struct feed_entry **new_feeds, size_t new_feeds_count)
 		uint32_t count;
 		const struct wstring *macro;
 		cmd = get_input_command(&count, &macro);
-		if (handle_list_menu_navigation(cmd) == true) {
+		if (handle_list_menu_navigation(FEEDS_MENU, cmd) == true) {
 			// Rest a little.
 		} else if (cmd == INPUT_MARK_READ_ALL) {
 			mark_all_feeds_read();
@@ -141,6 +141,7 @@ enter_feeds_menu_loop(struct feed_entry **new_feeds, size_t new_feeds_count)
 			if (cmd == INPUT_QUIT_HARD) {
 				break;
 			}
+			enter_list_menu(FEEDS_MENU, 0, false);
 		} else if ((cmd == INPUT_QUIT_SOFT) || (cmd == INPUT_QUIT_HARD)) {
 			break;
 		}

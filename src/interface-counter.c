@@ -1,6 +1,5 @@
 #include <stdlib.h>
 #include <ctype.h>
-#include <curses.h>
 #include "newsraft.h"
 
 static WINDOW *counter_window = NULL;

@@ -1,5 +1,4 @@
 #include <stdlib.h>
-#include <curses.h>
 #include "newsraft.h"
 
 // Note to the future.
@@ -15,6 +14,7 @@ struct list_menu_settings {
 	void (*unread_action)(size_t index);
 	const struct format_arg *(*get_args)(size_t index);
 	int (*paint_action)(size_t index);
+	void (*write_action)(size_t index, WINDOW *w);
 	void (*hover_action)(size_t index);
 	bool (*unread_state)(size_t index);
 };
@@ -28,12 +28,11 @@ static size_t scrolloff;
 
 static struct list_menu_settings menus[MENUS_COUNT];
 static struct list_menu_settings *menu = menus; // Selected menu.
-static volatile bool list_menu_is_paused = false;
 
 int8_t
 get_current_menu_type(void)
 {
-	return list_menu_is_paused == true ? MENUS_COUNT : menu - menus;
+	return menu - menus;
 }
 
 bool
@@ -77,6 +76,15 @@ free_list_menu(void)
 	free(windows);
 }
 
+static void
+regular_list_menu_writer(size_t index, WINDOW *w)
+{
+	if (menu->enumerator(index) == true) {
+		waddnwstr(w, do_format(menu->entry_format, menu->get_args(index))->ptr, list_menu_width);
+		wbkgd(w, get_color_pair(menu->paint_action(index)) | (index == menu->view_sel ? A_REVERSE : 0));
+	}
+}
+
 void
 initialize_settings_of_list_menus(void)
 {
@@ -85,6 +93,7 @@ initialize_settings_of_list_menus(void)
 	menus[SECTIONS_MENU].unread_action = &mark_section_unread;
 	menus[SECTIONS_MENU].get_args      = &get_section_entry_args;
 	menus[SECTIONS_MENU].paint_action  = &paint_section_entry;
+	menus[SECTIONS_MENU].write_action  = &regular_list_menu_writer;
 	menus[SECTIONS_MENU].hover_action  = NULL;
 	menus[SECTIONS_MENU].unread_state  = &unread_section_condition;
 	menus[FEEDS_MENU].enumerator    = &feeds_list_moderator;
@@ -92,6 +101,7 @@ initialize_settings_of_list_menus(void)
 	menus[FEEDS_MENU].unread_action = &mark_feed_unread;
 	menus[FEEDS_MENU].get_args      = &get_feed_entry_args;
 	menus[FEEDS_MENU].paint_action  = &paint_feed_entry;
+	menus[FEEDS_MENU].write_action  = &regular_list_menu_writer;
 	menus[FEEDS_MENU].hover_action  = NULL;
 	menus[FEEDS_MENU].unread_state  = &unread_feed_condition;
 	menus[ITEMS_MENU].enumerator    = &items_list_moderator;
@@ -99,12 +109,15 @@ initialize_settings_of_list_menus(void)
 	menus[ITEMS_MENU].unread_action = &mark_item_unread;
 	menus[ITEMS_MENU].get_args      = &get_item_entry_args;
 	menus[ITEMS_MENU].paint_action  = &paint_item_entry;
+	menus[ITEMS_MENU].write_action  = &regular_list_menu_writer;
 	if (get_cfg_bool(CFG_MARK_ITEM_READ_ON_HOVER) == true) {
 		menus[ITEMS_MENU].hover_action = &mark_item_read;
 	} else {
 		menus[ITEMS_MENU].hover_action = NULL;
 	}
-	menus[ITEMS_MENU].unread_state = &unread_item_condition;
+	menus[ITEMS_MENU].unread_state  = &unread_item_condition;
+	menus[PAGER_MENU].enumerator    = &pager_menu_moderator;
+	menus[PAGER_MENU].write_action  = &pager_list_menu_writer;
 }
 
 static inline void
@@ -112,16 +125,10 @@ expose_entry_of_the_list_menu_unprotected(size_t index)
 {
 	WINDOW *w = windows[index - menu->view_min];
 	werase(w);
-	if (menu->enumerator(index) == true) {
-		mvwaddnwstr(w, 0, 0, do_format(menu->entry_format, menu->get_args(index))->ptr, list_menu_width);
-		if (index == menu->view_sel) {
-			wbkgd(w, get_color_pair(menu->paint_action(index)) | A_REVERSE);
-		} else {
-			wbkgd(w, get_color_pair(menu->paint_action(index)));
-		}
-	} else {
-		wbkgd(w, A_NORMAL);
-	}
+	wmove(w, 0, 0);
+	wbkgd(w, A_NORMAL);
+	wattrset(w, A_NORMAL);
+	menu->write_action(index, w);
 	wrefresh(w);
 }
 
@@ -129,7 +136,7 @@ void
 expose_entry_of_the_list_menu(size_t index)
 {
 	pthread_mutex_lock(&interface_lock);
-	if ((list_menu_is_paused == false) && (index >= menu->view_min) && (index <= menu->view_max)) {
+	if (index >= menu->view_min && index <= menu->view_max) {
 		expose_entry_of_the_list_menu_unprotected(index);
 	}
 	pthread_mutex_unlock(&interface_lock);
@@ -138,10 +145,8 @@ expose_entry_of_the_list_menu(size_t index)
 static inline void
 expose_all_visible_entries_of_the_list_menu_unprotected(void)
 {
-	if (list_menu_is_paused == false) {
-		for (size_t i = menu->view_min; i <= menu->view_max; ++i) {
-			expose_entry_of_the_list_menu_unprotected(i);
-		}
+	for (size_t i = menu->view_min; i <= menu->view_max; ++i) {
+		expose_entry_of_the_list_menu_unprotected(i);
 	}
 }
 
@@ -156,14 +161,12 @@ expose_all_visible_entries_of_the_list_menu(void)
 void
 redraw_list_menu_unprotected(void)
 {
-	if (list_menu_is_paused == false) {
-		menu->view_max = menu->view_min + (list_menu_height - 1);
-		if (menu->view_sel > menu->view_max) {
-			menu->view_max = menu->view_sel;
-			menu->view_min = menu->view_max - (list_menu_height - 1);
-		}
-		expose_all_visible_entries_of_the_list_menu_unprotected();
+	menu->view_max = menu->view_min + (list_menu_height - 1);
+	if (menu->view_sel > menu->view_max) {
+		menu->view_max = menu->view_sel;
+		menu->view_min = menu->view_max - (list_menu_height - 1);
 	}
+	expose_all_visible_entries_of_the_list_menu_unprotected();
 }
 
 const size_t *
@@ -195,85 +198,73 @@ reset_list_menu_unprotected(void)
 	redraw_list_menu_unprotected();
 }
 
-void
-pause_list_menu(void)
-{
-	pthread_mutex_lock(&interface_lock);
-	list_menu_is_paused = true;
-	clear();
-	refresh();
-	status_clean_unprotected();
-	status_recreate_unprotected();
-	pthread_mutex_unlock(&interface_lock);
-}
-
-void
-resume_list_menu(void)
-{
-	pthread_mutex_lock(&interface_lock);
-	list_menu_is_paused = false;
-	clear();
-	refresh();
-	redraw_list_menu_unprotected();
-	status_clean_unprotected();
-	status_recreate_unprotected();
-	pthread_mutex_unlock(&interface_lock);
-}
-
 static size_t
-obtain_list_entries_count(void)
+obtain_list_entries_count_unprotected(struct list_menu_settings *m)
 {
-	pthread_mutex_lock(&interface_lock);
 	size_t i = 0;
-	while (menu->enumerator(i) == true) {
+	while (m->enumerator(i) == true) {
 		i += 1;
 	}
-	pthread_mutex_unlock(&interface_lock);
 	return i;
 }
 
+static size_t
+obtain_list_entries_count(struct list_menu_settings *m)
+{
+	pthread_mutex_lock(&interface_lock);
+	size_t count = obtain_list_entries_count_unprotected(m);
+	pthread_mutex_unlock(&interface_lock);
+	return count;
+}
+
 static void
-list_menu_change_view(size_t new_sel)
+list_menu_change_view(struct list_menu_settings *m, size_t new_sel)
 {
 	pthread_mutex_lock(&interface_lock);
 
-	while ((menu->enumerator(new_sel) == false) && (new_sel > 0)) {
+	while (m->enumerator(new_sel) == false && new_sel > 0) {
 		new_sel -= 1;
 	}
-	if (menu->enumerator(new_sel) == false) {
+	if (m->enumerator(new_sel) == false) {
 		pthread_mutex_unlock(&interface_lock);
 		return;
 	}
 
-	if ((new_sel + scrolloff) > menu->view_max) {
-		menu->view_max = new_sel + scrolloff;
-		while ((menu->view_max > list_menu_height) && (menu->enumerator(menu->view_max) == false)) {
-			menu->view_max -= 1;
+	if (new_sel + scrolloff > m->view_max) {
+		m->view_max = new_sel + scrolloff;
+		while (m->view_max > list_menu_height && m->enumerator(m->view_max) == false) {
+			m->view_max -= 1;
 		}
-		menu->view_min = menu->view_max - (list_menu_height - 1);
-		menu->view_sel = new_sel;
-		expose_all_visible_entries_of_the_list_menu_unprotected();
-	} else if ((new_sel >= scrolloff) && ((new_sel - scrolloff) < menu->view_min)) {
-		menu->view_min = new_sel - scrolloff;
-		menu->view_max = menu->view_min + (list_menu_height - 1);
-		menu->view_sel = new_sel;
-		expose_all_visible_entries_of_the_list_menu_unprotected();
-	} else if (new_sel < menu->view_min) {
-		menu->view_min = new_sel < scrolloff ? 0 : new_sel - scrolloff;
-		menu->view_max = menu->view_min + (list_menu_height - 1);
-		menu->view_sel = new_sel;
-		expose_all_visible_entries_of_the_list_menu_unprotected();
-	} else if (new_sel != menu->view_sel) {
-		if (list_menu_is_paused == true) {
-			menu->view_sel = new_sel;
+		m->view_min = m->view_max - (list_menu_height - 1);
+		m->view_sel = new_sel;
+		if (m == menu) {
+			expose_all_visible_entries_of_the_list_menu_unprotected();
+		}
+	} else if ((new_sel >= scrolloff) && ((new_sel - scrolloff) < m->view_min)) {
+		m->view_min = new_sel - scrolloff;
+		m->view_max = m->view_min + (list_menu_height - 1);
+		m->view_sel = new_sel;
+		if (m == menu) {
+			expose_all_visible_entries_of_the_list_menu_unprotected();
+		}
+	} else if (new_sel < m->view_min) {
+		m->view_min = new_sel < scrolloff ? 0 : new_sel - scrolloff;
+		m->view_max = m->view_min + (list_menu_height - 1);
+		m->view_sel = new_sel;
+		if (m == menu) {
+			expose_all_visible_entries_of_the_list_menu_unprotected();
+		}
+	} else if (new_sel != m->view_sel) {
+		if (m == menu) {
+			WINDOW *w = windows[m->view_sel - m->view_min];
+			wbkgd(w, get_color_pair(m->paint_action(m->view_sel)));
+			wrefresh(w);
+			m->view_sel = new_sel;
+			w = windows[m->view_sel - m->view_min];
+			wbkgd(w, get_color_pair(m->paint_action(m->view_sel)) | A_REVERSE);
+			wrefresh(w);
 		} else {
-			WINDOW *w = windows[menu->view_sel - menu->view_min];
-			wbkgd(w, get_color_pair(menu->paint_action(menu->view_sel)));
-			wrefresh(w);
-			menu->view_sel = new_sel;
-			w = windows[menu->view_sel - menu->view_min];
-			wbkgd(w, get_color_pair(menu->paint_action(menu->view_sel)) | A_REVERSE);
-			wrefresh(w);
+			m->view_sel = new_sel;
 		}
 	}
 
@@ -281,23 +272,24 @@ list_menu_change_view(size_t new_sel)
 
 	// We have to perform the hover action only after unlocking the interface
 	// lock because the hover actions are already thread-safe functions.
-	if (menu->hover_action != NULL) {
-		menu->hover_action(menu->view_sel);
+	if (m->hover_action != NULL) {
+		m->hover_action(m->view_sel);
 	}
 }
 
 bool
-handle_list_menu_navigation(input_cmd_id cmd)
+handle_list_menu_navigation(uint8_t menu_id, input_cmd_id cmd)
 {
-	if ((cmd == INPUT_SELECT_NEXT) || (cmd == INPUT_JUMP_TO_NEXT)) {
-		list_menu_change_view(menu->view_sel + 1);
-	} else if ((cmd == INPUT_SELECT_PREV) || (cmd == INPUT_JUMP_TO_PREV)) {
-		list_menu_change_view(menu->view_sel > 1 ? (menu->view_sel - 1) : 0);
+	struct list_menu_settings *m = &menus[menu_id];
+	if (cmd == INPUT_SELECT_NEXT || cmd == INPUT_JUMP_TO_NEXT) {
+		list_menu_change_view(m, m->view_sel + 1);
+	} else if (cmd == INPUT_SELECT_PREV || cmd == INPUT_JUMP_TO_PREV) {
+		list_menu_change_view(m, m->view_sel > 1 ? m->view_sel - 1 : 0);
 	} else if (cmd == INPUT_JUMP_TO_NEXT_UNREAD) {
-		for (size_t i = menu->view_sel + 1, j = 0; j < 2; i = 0, ++j) {
-			while (menu->enumerator(i) == true) {
-				if (menu->unread_state(i) == true) {
-					list_menu_change_view(i);
+		for (size_t i = m->view_sel + 1, j = 0; j < 2; i = 0, ++j) {
+			while (m->enumerator(i) == true) {
+				if (m->unread_state(i) == true) {
+					list_menu_change_view(m, i);
 					j = 2;
 					break;
 				}
@@ -305,65 +297,116 @@ handle_list_menu_navigation(input_cmd_id cmd)
 			}
 		}
 	} else if (cmd == INPUT_JUMP_TO_PREV_UNREAD) {
-		for (size_t i = menu->view_sel, j = 0; j < 2; ++j) {
-			while ((i > 0) && (menu->enumerator(i - 1) == true)) {
-				if (menu->unread_state(i - 1) == true) {
-					list_menu_change_view(i - 1);
+		for (size_t i = m->view_sel, j = 0; j < 2; ++j) {
+			while ((i > 0) && (m->enumerator(i - 1) == true)) {
+				if (m->unread_state(i - 1) == true) {
+					list_menu_change_view(m, i - 1);
 					j = 2;
 					break;
 				}
 				i -= 1;
 			}
 			if (j < 2) {
-				i = obtain_list_entries_count();
+				i = obtain_list_entries_count(m);
 			}
 		}
-	} else if ((cmd == INPUT_JUMP_TO_NEXT_IMPORTANT) && (menu - menus == ITEMS_MENU)) {
-		for (size_t i = menu->view_sel + 1, j = 0; j < 2; i = 0, ++j) {
-			while (menu->enumerator(i) == true) {
+	} else if (cmd == INPUT_JUMP_TO_NEXT_IMPORTANT && menu_id == ITEMS_MENU) {
+		for (size_t i = m->view_sel + 1, j = 0; j < 2; i = 0, ++j) {
+			while (m->enumerator(i) == true) {
 				if (important_item_condition(i) == true) {
-					list_menu_change_view(i);
+					list_menu_change_view(m, i);
 					j = 2;
 					break;
 				}
 				i += 1;
 			}
 		}
-	} else if ((cmd == INPUT_JUMP_TO_PREV_IMPORTANT) && (menu - menus == ITEMS_MENU)) {
-		for (size_t i = menu->view_sel, j = 0; j < 2; ++j) {
-			while ((i > 0) && (menu->enumerator(i - 1) == true)) {
+	} else if (cmd == INPUT_JUMP_TO_PREV_IMPORTANT && menu_id == ITEMS_MENU) {
+		for (size_t i = m->view_sel, j = 0; j < 2; ++j) {
+			while (i > 0 && m->enumerator(i - 1) == true) {
 				if (important_item_condition(i - 1) == true) {
-					list_menu_change_view(i - 1);
+					list_menu_change_view(m, i - 1);
 					j = 2;
 					break;
 				}
 				i -= 1;
 			}
 			if (j < 2) {
-				i = obtain_list_entries_count();
+				i = obtain_list_entries_count(m);
 			}
 		}
 	} else if (cmd == INPUT_SELECT_NEXT_PAGE) {
-		list_menu_change_view(menu->view_sel + list_menu_height);
+		list_menu_change_view(m, m->view_sel + list_menu_height);
 	} else if (cmd == INPUT_SELECT_PREV_PAGE) {
-		list_menu_change_view(menu->view_sel > list_menu_height ? (menu->view_sel - list_menu_height) : 0);
+		list_menu_change_view(m, m->view_sel > list_menu_height ? m->view_sel - list_menu_height : 0);
 	} else if (cmd == INPUT_SELECT_FIRST) {
-		list_menu_change_view(0);
+		list_menu_change_view(m, 0);
 	} else if (cmd == INPUT_SELECT_LAST) {
-		list_menu_change_view(obtain_list_entries_count());
+		list_menu_change_view(m, obtain_list_entries_count(m));
 	} else if (cmd == INPUT_MARK_READ) {
-		menu->read_action(menu->view_sel);
+		m->read_action(m->view_sel);
 	} else if (cmd == INPUT_MARK_READ_AND_JUMP_TO_NEXT) {
-		menu->read_action(menu->view_sel);
-		handle_list_menu_navigation(INPUT_SELECT_NEXT);
+		m->read_action(m->view_sel);
+		handle_list_menu_navigation(menu_id, INPUT_SELECT_NEXT);
 	} else if (cmd == INPUT_MARK_READ_AND_JUMP_TO_NEXT_UNREAD) {
-		menu->read_action(menu->view_sel);
-		handle_list_menu_navigation(INPUT_JUMP_TO_NEXT_UNREAD);
+		m->read_action(m->view_sel);
+		handle_list_menu_navigation(menu_id, INPUT_JUMP_TO_NEXT_UNREAD);
 	} else if (cmd == INPUT_MARK_UNREAD) {
-		menu->unread_action(menu->view_sel);
+		m->unread_action(m->view_sel);
 	} else if (cmd == INPUT_MARK_UNREAD_AND_JUMP_TO_NEXT) {
-		menu->unread_action(menu->view_sel);
-		handle_list_menu_navigation(INPUT_SELECT_NEXT);
+		m->unread_action(m->view_sel);
+		handle_list_menu_navigation(menu_id, INPUT_SELECT_NEXT);
+	} else {
+		return false;
+	}
+	return true;
+}
+
+static void
+pager_menu_change_view(size_t new_sel)
+{
+	pthread_mutex_lock(&interface_lock);
+
+	while (menu->enumerator(new_sel) == false && new_sel > 0) {
+		new_sel -= 1;
+	}
+	if (menu->enumerator(new_sel) == false) {
+		pthread_mutex_unlock(&interface_lock);
+		return;
+	}
+	size_t entries_count = obtain_list_entries_count_unprotected(menu);
+	if (entries_count - new_sel < list_menu_height) {
+		new_sel = entries_count > list_menu_height ? entries_count - list_menu_height : 0;
+	}
+	if (new_sel != menu->view_min) {
+		menu->view_max = new_sel + (list_menu_height - 1);
+		while (menu->view_max > list_menu_height && menu->enumerator(menu->view_max) == false) {
+			menu->view_max -= 1;
+		}
+		menu->view_min = menu->view_max - (list_menu_height - 1);
+		expose_all_visible_entries_of_the_list_menu_unprotected();
+	}
+
+	pthread_mutex_unlock(&interface_lock);
+}
+
+bool
+handle_pager_menu_navigation(input_cmd_id cmd)
+{
+	if (cmd == INPUT_SELECT_NEXT || cmd == INPUT_ENTER) {
+		pager_menu_change_view(menu->view_min + 1);
+	} else if (cmd == INPUT_SELECT_PREV) {
+		pager_menu_change_view(menu->view_min > 0 ? menu->view_min - 1 : 0);
+	} else if (cmd == INPUT_SELECT_NEXT_PAGE) {
+		pager_menu_change_view(menu->view_min + list_menu_height);
+	} else if (cmd == INPUT_SELECT_PREV_PAGE) {
+		pager_menu_change_view(menu->view_min > list_menu_height ? menu->view_min - list_menu_height : 0);
+	} else if (cmd == INPUT_SELECT_FIRST) {
+		pager_menu_change_view(0);
+	} else if (cmd == INPUT_SELECT_LAST) {
+		pager_menu_change_view(obtain_list_entries_count(menu));
+	} else if (cmd == INPUT_RESIZE) {
+		reset_pager_menu();
 	} else {
 		return false;
 	}

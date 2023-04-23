@@ -1,6 +1,5 @@
 #include <stdlib.h>
 #include <string.h>
-#include <curses.h>
 #include "newsraft.h"
 
 struct input_binding {

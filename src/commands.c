@@ -1,5 +1,4 @@
 #include <stdlib.h>
-#include <curses.h>
 #include "newsraft.h"
 
 static inline void

@@ -8,6 +8,7 @@
 #include <wchar.h>
 #include <pthread.h>
 #include <sqlite3.h>
+#include <curses.h>
 
 #ifndef NEWSRAFT_VERSION
 #define NEWSRAFT_VERSION "0.17"
@@ -161,7 +162,8 @@ enum {
 	SECTIONS_MENU,
 	FEEDS_MENU,
 	ITEMS_MENU,
-	MENUS_COUNT
+	PAGER_MENU,
+	MENUS_COUNT,
 };
 
 typedef int8_t sorting_order; // Need negative numbers somewhere.
@@ -316,9 +318,8 @@ void expose_all_visible_entries_of_the_list_menu(void);
 void redraw_list_menu_unprotected(void);
 const size_t *enter_list_menu(int8_t menu_index, config_entry_id format_id, bool do_reset);
 void reset_list_menu_unprotected(void);
-void pause_list_menu(void);
-void resume_list_menu(void);
-bool handle_list_menu_navigation(input_cmd_id cmd);
+bool handle_list_menu_navigation(uint8_t menu_id, input_cmd_id cmd);
+bool handle_pager_menu_navigation(input_cmd_id cmd);
 
 // See "format.c" file for implementation.
 bool create_format_buffers(void);
@@ -385,11 +386,13 @@ void free_links_list(const struct links_list *links);
 struct string *deserialize_persons_string(const char *src, const char *person_type);
 
 // See "interface-pager.c" file for implementation.
+bool pager_menu_moderator(size_t index);
+void pager_list_menu_writer(size_t index, WINDOW *w);
 bool start_pager_menu(struct render_blocks_list *new_blocks);
-bool handle_pager_menu_navigation(input_cmd_id cmd);
+bool reset_pager_menu(void);
 
 // See "interface-pager-item.c" file for implementation.
-int enter_item_pager_view_loop(struct item_entry *items, const size_t *view_sel);
+int enter_item_pager_view_loop(struct items_list *items, const size_t *view_sel);
 
 // See "interface-pager-status.c" file for implementation.
 int enter_status_pager_view_loop(void);

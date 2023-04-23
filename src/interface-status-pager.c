@@ -23,6 +23,7 @@ enter_status_pager_view_loop(void)
 		free_wstring(wmessages);
 		return INPUT_ERROR;
 	}
+	enter_list_menu(PAGER_MENU, CFG_MENU_SECTION_ENTRY_FORMAT, true);
 	input_cmd_id cmd;
 	uint32_t count;
 	const struct wstring *macro;

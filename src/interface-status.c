@@ -1,5 +1,4 @@
 #include <stdlib.h>
-#include <curses.h>
 #include "newsraft.h"
 
 struct status_message {

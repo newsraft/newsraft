@@ -53,19 +53,15 @@ error:
 }
 
 int
-enter_item_pager_view_loop(struct item_entry *items, const size_t *view_sel)
+enter_item_pager_view_loop(struct items_list *items, const size_t *view_sel)
 {
 	struct render_blocks_list blocks;
 	struct links_list links;
-	input_cmd_id cmd;
-	uint32_t count;
-	const struct wstring *macro;
-	size_t current_sel;
 	while (true) {
-		INFO("Trying to view an item with the rowid %" PRId64 "...", items[*view_sel].rowid);
+		INFO("Trying to view an item with the rowid %" PRId64 "...", items->ptr[*view_sel].rowid);
 		memset(&blocks, 0, sizeof(struct render_blocks_list));
 		memset(&links, 0, sizeof(struct links_list));
-		if (populate_render_blocks_list_with_data_from_item(items + *view_sel, &blocks, &links) == false) {
+		if (populate_render_blocks_list_with_data_from_item(items->ptr + *view_sel, &blocks, &links) == false) {
 			return INPUT_ERROR;
 		}
 		if (start_pager_menu(&blocks) == false) {
@@ -73,10 +69,13 @@ enter_item_pager_view_loop(struct item_entry *items, const size_t *view_sel)
 			free_links_list(&links);
 			return INPUT_ERROR;
 		}
-		db_mark_item_read(items[*view_sel].rowid);
-		items[*view_sel].is_unread = false;
+		db_mark_item_read(items->ptr[*view_sel].rowid);
+		items->ptr[*view_sel].is_unread = false;
+		enter_list_menu(PAGER_MENU, CFG_MENU_SECTION_ENTRY_FORMAT, true);
 		while (true) {
-			cmd = get_input_command(&count, &macro);
+			uint32_t count;
+			const struct wstring *macro;
+			input_cmd_id cmd = get_input_command(&count, &macro);
 			if (handle_pager_menu_navigation(cmd) == true) {
 				// Rest a little.
 			} else if ((cmd == INPUT_JUMP_TO_NEXT)
@@ -86,8 +85,8 @@ enter_item_pager_view_loop(struct item_entry *items, const size_t *view_sel)
 				|| (cmd == INPUT_JUMP_TO_NEXT_IMPORTANT)
 				|| (cmd == INPUT_JUMP_TO_PREV_IMPORTANT))
 			{
-				current_sel = *view_sel;
-				handle_list_menu_navigation(cmd);
+				size_t current_sel = *view_sel;
+				handle_list_menu_navigation(ITEMS_MENU, cmd);
 				if (current_sel != *view_sel) {
 					break;
 				}

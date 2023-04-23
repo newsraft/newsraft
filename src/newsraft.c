@@ -1,6 +1,5 @@
 #include <locale.h>
 #include <unistd.h>
-#include <curses.h>
 #include <curl/curl.h>
 #include "newsraft.h"
 

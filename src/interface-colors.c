@@ -1,4 +1,3 @@
-#include <curses.h>
 #include "newsraft.h"
 
 static bool paint_it_black = true;

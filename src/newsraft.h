@@ -446,8 +446,7 @@ unsigned int get_color_pair(config_entry_id id);
 
 // Functions responsible for handling input and bindings.
 // See "input.c" file for implementation.
-input_cmd_id get_input_command(uint32_t *count, const struct wstring **macro_ptr);
-void tell_program_to_terminate_safely_and_quickly(int dummy);
+input_cmd_id find_bind_associated_with_key(int key, const struct wstring **macro_ptr);
 bool bind_action_to_key(const char *bind_key, size_t bind_key_len, input_cmd_id bind_cmd);
 bool create_macro(const char *bind_key, size_t bind_key_len, const char *cmd, size_t cmd_len);
 void free_binds(void);
@@ -468,7 +467,8 @@ struct string *generate_string_with_status_messages_for_pager(void);
 // Functions related to window which displays command counter.
 // See "interface-counter.c" file for implementation.
 bool counter_recreate_unprotected(void);
-int read_counted_key_from_counter_window(uint32_t *count);
+void tell_program_to_terminate_safely_and_quickly(int dummy);
+input_cmd_id get_input_command(uint32_t *count, const struct wstring **macro_ptr);
 void counter_delete(void);
 
 // Functions related to executing system commands.

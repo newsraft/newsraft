@@ -12,6 +12,8 @@ static char count_buf[10];
 static uint8_t count_buf_len = 0;
 static const struct timespec input_polling_period = {0, 4000000}; // 0.004 seconds
 
+static volatile bool they_want_us_to_terminate = false;
+
 static inline void
 counter_update_unprotected(void)
 {
@@ -42,8 +44,15 @@ counter_recreate_unprotected(void)
 	return true;
 }
 
-int
-read_counted_key_from_counter_window(uint32_t *count)
+void
+tell_program_to_terminate_safely_and_quickly(int dummy)
+{
+	(void)dummy;
+	they_want_us_to_terminate = true;
+}
+
+input_cmd_id
+get_input_command(uint32_t *count, const struct wstring **macro_ptr)
 {
 	int c;
 	while (true) {
@@ -54,7 +63,10 @@ read_counted_key_from_counter_window(uint32_t *count)
 			pthread_mutex_lock(&interface_lock);
 			c = wgetch(counter_window);
 			pthread_mutex_unlock(&interface_lock);
-			if (c == ERR) {
+			if (they_want_us_to_terminate == true) {
+				INFO("Received a signal which is asking us to terminate the program.");
+				return INPUT_QUIT_HARD;
+			} else if (c == ERR) {
 				nanosleep(&input_polling_period, NULL);
 			} else {
 				break;
@@ -62,7 +74,7 @@ read_counted_key_from_counter_window(uint32_t *count)
 		}
 		INFO("Received \"%c\" character with %d key code.", c, c);
 		if (c == KEY_RESIZE) {
-			return c;
+			return resize_handler();
 		} else if (isdigit(c) == 0) {
 			count_buf[count_buf_len] = '\0';
 			if (sscanf(count_buf, "%" SCNu32, count) != 1) {
@@ -72,7 +84,7 @@ read_counted_key_from_counter_window(uint32_t *count)
 			pthread_mutex_lock(&interface_lock);
 			counter_update_unprotected();
 			pthread_mutex_unlock(&interface_lock);
-			return c;
+			return find_bind_associated_with_key(c, macro_ptr);
 		}
 		count_buf_len %= 9;
 		count_buf[count_buf_len++] = c;

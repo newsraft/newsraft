@@ -11,37 +11,19 @@ struct input_binding {
 static struct input_binding *binds = NULL;
 static size_t binds_count = 0;
 
-static volatile bool they_want_us_to_terminate = false;
-
 input_cmd_id
-get_input_command(uint32_t *count, const struct wstring **macro_ptr)
+find_bind_associated_with_key(int key, const struct wstring **macro_ptr)
 {
-	if (they_want_us_to_terminate == true) {
-		INFO("Received a signal which is asking us to terminate the program.");
-		return INPUT_QUIT_HARD;
-	}
-
-	int c = read_counted_key_from_counter_window(count);
-	if (c == KEY_RESIZE) {
-		return resize_handler();
-	}
-
-	const char *key = keyname(c);
-	for (size_t i = 0; i < binds_count; ++i) {
-		if (strcmp(key, binds[i].key->ptr) == 0) {
-			*macro_ptr = binds[i].cmdcmd;
-			return binds[i].cmd;
+	const char *name = keyname(key);
+	if (name != NULL) {
+		for (size_t i = 0; i < binds_count; ++i) {
+			if (strcmp(name, binds[i].key->ptr) == 0) {
+				*macro_ptr = binds[i].cmdcmd;
+				return binds[i].cmd;
+			}
 		}
 	}
-
 	return INPUT_ERROR; // No command matched with this key.
-}
-
-void
-tell_program_to_terminate_safely_and_quickly(int dummy)
-{
-	(void)dummy;
-	they_want_us_to_terminate = true;
 }
 
 static inline int64_t

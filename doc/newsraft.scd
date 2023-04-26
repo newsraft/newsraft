@@ -250,10 +250,10 @@ _proxy-password_ (default: *""*)
 _global-section-name_ (default: *Global*)
 	Name of the section that contains all feeds.
 
-_item-formation-order_ (default: *feed,title,authors,published,updated,max-content*)
+_item-formation-order_ (default: *feed,title,authors,date,max-content*)
 	Sets the order in which the data of item entry is formed for viewing in a
-	pager. Possible fields are: *feed*, *title*, *link*, *published*, *updated*,
-	*authors*, *contributors*, *editors* and *max-content*.
+	pager. Possible fields are: *feed*, *title*, *link*, *date*, *authors*,
+	*contributors*, *editors* and *max-content*.
 
 _content-date-format_ (default: *%a, %d %b %Y %H:%M:%S %z*)
 	Date format in the content view. Specifier values correspond to the

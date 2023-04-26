@@ -64,25 +64,28 @@ static bool
 append_date(struct render_blocks_list *blocks, const struct item_entry *item, sqlite3_stmt *res, const struct data_entry *entry)
 {
 	(void)res;
-	int64_t date = entry->tooltip[0] == 'P' ? item->pub_date : item->upd_date;
-	if (date == 0) {
-		return true; // It is not an error because this item simply does not have this date set.
+	if (item->pub_date == 0 && item->upd_date == 0) {
+		return true; // It's not an error because this item simply doesn't have date set.
 	}
-	struct string *date_str = get_config_date_str(date, CFG_CONTENT_DATE_FORMAT);
-	if (date_str != NULL) {
-		struct string *date_entry = crtas(entry->tooltip, entry->tooltip_len);
-		if (date_entry != NULL) {
-			if (catss(date_entry, date_str) == true) {
-				if (join_render_block(blocks, date_entry->ptr, date_entry->len, TEXT_RAW) == true) {
-					free_string(date_str);
-					free_string(date_entry);
-					return true;
-				}
-			}
-			free_string(date_entry);
-		}
+	struct string *date_entry = crtas(entry->tooltip, entry->tooltip_len);
+	struct string *date_str = get_config_date_str(item->pub_date == 0 ? item->upd_date : item->pub_date, CFG_CONTENT_DATE_FORMAT);
+	if (date_entry == NULL || date_str == NULL) goto error;
+	if (item->pub_date != 0 && item->upd_date != 0 && item->pub_date != item->upd_date) {
+		if (catss(date_entry, date_str) == false) goto error;
+		if (catas(date_entry, " (updated ", 10) == false) goto error;
 		free_string(date_str);
+		date_str = get_config_date_str(item->upd_date, CFG_CONTENT_DATE_FORMAT);
+		if (date_str == NULL) goto error;
+		if (catcs(date_str, ')') == false) goto error;
 	}
+	if (catss(date_entry, date_str) == false) goto error;
+	if (join_render_block(blocks, date_entry->ptr, date_entry->len, TEXT_RAW) == false) goto error;
+	free_string(date_entry);
+	free_string(date_str);
+	return true;
+error:
+	free_string(date_entry);
+	free_string(date_str);
 	return false;
 }
 
@@ -157,8 +160,7 @@ static const struct data_entry entries[] = {
 	{"feed",         "Feed: ",          6, &append_feed_line},
 	{"title",        "Title: ",         7, &append_line},
 	{"link",         "Link: ",          6, &append_line},
-	{"published",    "Published: ",    11, &append_date},
-	{"updated",      "Updated: ",       9, &append_date},
+	{"date",         "Date: ",          6, &append_date},
 	{"authors",      "Authors: ",       9, &append_persons},
 	{"contributors", "Contributors: ", 14, &append_persons},
 	{"editors",      "Editors: ",       9, &append_persons},

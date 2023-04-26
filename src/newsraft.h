@@ -321,6 +321,12 @@ void reset_list_menu_unprotected(void);
 bool handle_list_menu_navigation(uint8_t menu_id, input_cmd_id cmd);
 bool handle_pager_menu_navigation(input_cmd_id cmd);
 
+// See "interface-list-pager.c" file for implementation.
+bool pager_menu_moderator(size_t index);
+void pager_list_menu_writer(size_t index, WINDOW *w);
+bool start_pager_menu(struct render_blocks_list *new_blocks);
+bool reset_pager_menu(void);
+
 // See "format.c" file for implementation.
 bool create_format_buffers(void);
 void free_format_buffers(void);
@@ -345,6 +351,9 @@ void obtain_items_at_least_up_to_the_given_index(struct items_list *items, size_
 bool change_sorting_order_of_items_list(struct items_list **items, sorting_order order);
 bool toggle_unread_first_sorting_of_items_list(struct items_list **items);
 void free_items_list(struct items_list *items);
+
+// See "items-pager.c" file for implementation.
+int enter_item_pager_view_loop(struct items_list *items, const size_t *view_sel);
 
 // Functions responsible for managing render blocks.
 // Render block is a piece of text in a single format. A list of render blocks
@@ -384,18 +393,6 @@ void free_links_list(const struct links_list *links);
 
 // See "items-metadata-persons.c" file for implementation.
 struct string *deserialize_persons_string(const char *src, const char *person_type);
-
-// See "interface-pager.c" file for implementation.
-bool pager_menu_moderator(size_t index);
-void pager_list_menu_writer(size_t index, WINDOW *w);
-bool start_pager_menu(struct render_blocks_list *new_blocks);
-bool reset_pager_menu(void);
-
-// See "interface-pager-item.c" file for implementation.
-int enter_item_pager_view_loop(struct items_list *items, const size_t *view_sel);
-
-// See "interface-pager-status.c" file for implementation.
-int enter_status_pager_view_loop(void);
 
 // See "path.c" file for implementation.
 bool set_feeds_path(const char *path);
@@ -439,18 +436,18 @@ bool curses_init(void);
 input_cmd_id resize_handler(void);
 bool call_resize_handler_if_current_list_menu_size_is_different_from_actual(void);
 
+// Functions related to window which reads user input and displays command
+// counter (prefix number before command).
+// See "interface-input.c" file for implementation.
+bool counter_recreate_unprotected(void);
+void tell_program_to_terminate_safely_and_quickly(int dummy);
+input_cmd_id get_input_command(uint32_t *count, const struct wstring **macro_ptr);
+void counter_delete(void);
+
 // Functions responsible for curses color pairs.
 // See "interface-colors.c" file for implementation.
 bool create_color_pairs(void);
 unsigned int get_color_pair(config_entry_id id);
-
-// Functions responsible for handling input and bindings.
-// See "input.c" file for implementation.
-input_cmd_id find_bind_associated_with_key(int key, const struct wstring **macro_ptr);
-bool bind_action_to_key(const char *bind_key, size_t bind_key_len, input_cmd_id bind_cmd);
-bool create_macro(const char *bind_key, size_t bind_key_len, const char *cmd, size_t cmd_len);
-void free_binds(void);
-bool assign_default_binds(void);
 
 // Functions related to window which displays status messages.
 // See "interface-status.c" file for implementation.
@@ -464,12 +461,16 @@ void status_write(config_entry_id color, const char *format, ...);
 void status_delete(void);
 struct string *generate_string_with_status_messages_for_pager(void);
 
-// Functions related to window which displays command counter.
-// See "interface-counter.c" file for implementation.
-bool counter_recreate_unprotected(void);
-void tell_program_to_terminate_safely_and_quickly(int dummy);
-input_cmd_id get_input_command(uint32_t *count, const struct wstring **macro_ptr);
-void counter_delete(void);
+// See "interface-status-pager.c" file for implementation.
+int enter_status_pager_view_loop(void);
+
+// Functions responsible for managing of key bindings.
+// See "binds.c" file for implementation.
+input_cmd_id find_bind_associated_with_key(int key, const struct wstring **macro_ptr);
+bool bind_action_to_key(const char *bind_key, size_t bind_key_len, input_cmd_id bind_cmd);
+bool create_macro(const char *bind_key, size_t bind_key_len, const char *cmd, size_t cmd_len);
+void free_binds(void);
+bool assign_default_binds(void);
 
 // Functions related to executing system commands.
 // See "commands.c" file for implementation.

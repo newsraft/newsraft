@@ -282,7 +282,7 @@ list_menu_change_view(struct list_menu_settings *m, size_t new_sel)
 }
 
 bool
-handle_list_menu_navigation(uint8_t menu_id, input_cmd_id cmd)
+handle_list_menu_control(uint8_t menu_id, input_cmd_id cmd, const struct wstring *arg)
 {
 	struct list_menu_settings *m = &menus[menu_id];
 	if (cmd == INPUT_SELECT_NEXT || cmd == INPUT_JUMP_TO_NEXT) {
@@ -351,15 +351,17 @@ handle_list_menu_navigation(uint8_t menu_id, input_cmd_id cmd)
 		m->read_action(m->view_sel);
 	} else if (cmd == INPUT_MARK_READ_AND_JUMP_TO_NEXT) {
 		m->read_action(m->view_sel);
-		handle_list_menu_navigation(menu_id, INPUT_SELECT_NEXT);
+		handle_list_menu_control(menu_id, INPUT_SELECT_NEXT, NULL);
 	} else if (cmd == INPUT_MARK_READ_AND_JUMP_TO_NEXT_UNREAD) {
 		m->read_action(m->view_sel);
-		handle_list_menu_navigation(menu_id, INPUT_JUMP_TO_NEXT_UNREAD);
+		handle_list_menu_control(menu_id, INPUT_JUMP_TO_NEXT_UNREAD, NULL);
 	} else if (cmd == INPUT_MARK_UNREAD) {
 		m->unread_action(m->view_sel);
 	} else if (cmd == INPUT_MARK_UNREAD_AND_JUMP_TO_NEXT) {
 		m->unread_action(m->view_sel);
-		handle_list_menu_navigation(menu_id, INPUT_SELECT_NEXT);
+		handle_list_menu_control(menu_id, INPUT_SELECT_NEXT, NULL);
+	} else if (cmd == INPUT_SYSTEM_COMMAND) {
+		run_command_with_specifiers(arg, m->get_args(m->view_sel));
 	} else {
 		return false;
 	}
@@ -395,7 +397,7 @@ pager_menu_change_view(size_t new_sel)
 }
 
 bool
-handle_pager_menu_navigation(input_cmd_id cmd)
+handle_pager_menu_control(input_cmd_id cmd)
 {
 	if (cmd == INPUT_SELECT_NEXT || cmd == INPUT_ENTER) {
 		pager_menu_change_view(menu->view_min + 1);

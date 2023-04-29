@@ -99,7 +99,7 @@ resize_handler(void)
 		goto error;
 	}
 	if (get_current_menu_type() == PAGER_MENU) {
-		handle_pager_menu_navigation(INPUT_RESIZE);
+		handle_pager_menu_control(INPUT_RESIZE);
 	}
 	redraw_list_menu_unprotected();
 	pthread_mutex_unlock(&interface_lock);

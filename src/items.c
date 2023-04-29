@@ -181,7 +181,7 @@ enter_items_menu_loop(struct feed_entry **new_feeds, size_t new_feeds_count, con
 	while (true) {
 		cmd = get_input_command(&count, &macro);
 		pthread_mutex_lock(&items_lock);
-		if (handle_list_menu_navigation(ITEMS_MENU, cmd) == true) {
+		if (handle_list_menu_control(ITEMS_MENU, cmd, macro) == true) {
 			// Rest a little.
 		} else if (cmd == INPUT_MARK_READ_ALL) {
 			mark_all_items_read(feeds, feeds_count);
@@ -221,8 +221,6 @@ enter_items_menu_loop(struct feed_entry **new_feeds, size_t new_feeds_count, con
 			break;
 		} else if ((cmd == INPUT_QUIT_SOFT) || (cmd == INPUT_QUIT_HARD)) {
 			break;
-		} else if (cmd == INPUT_SYSTEM_COMMAND) {
-			run_command_with_specifiers(macro, get_item_entry_args(*view_sel));
 		}
 		pthread_mutex_unlock(&items_lock);
 		if (item_menu_needs_to_regenerate == true) {

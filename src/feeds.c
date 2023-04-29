@@ -112,7 +112,7 @@ enter_feeds_menu_loop(struct feed_entry **new_feeds, size_t new_feeds_count)
 		uint32_t count;
 		const struct wstring *macro;
 		cmd = get_input_command(&count, &macro);
-		if (handle_list_menu_navigation(FEEDS_MENU, cmd) == true) {
+		if (handle_list_menu_control(FEEDS_MENU, cmd, macro) == true) {
 			// Rest a little.
 		} else if (cmd == INPUT_MARK_READ_ALL) {
 			mark_all_feeds_read();

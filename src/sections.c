@@ -315,7 +315,7 @@ enter_sections_menu_loop(void)
 		uint32_t count;
 		const struct wstring *macro;
 		cmd = get_input_command(&count, &macro);
-		if (handle_list_menu_navigation(SECTIONS_MENU, cmd) == true) {
+		if (handle_list_menu_control(SECTIONS_MENU, cmd, macro) == true) {
 			// Rest a little.
 		} else if (cmd == INPUT_MARK_READ_ALL) {
 			mark_section_read(0);

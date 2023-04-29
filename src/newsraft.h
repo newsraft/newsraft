@@ -318,8 +318,8 @@ void expose_all_visible_entries_of_the_list_menu(void);
 void redraw_list_menu_unprotected(void);
 const size_t *enter_list_menu(int8_t menu_index, config_entry_id format_id, bool do_reset);
 void reset_list_menu_unprotected(void);
-bool handle_list_menu_navigation(uint8_t menu_id, input_cmd_id cmd);
-bool handle_pager_menu_navigation(input_cmd_id cmd);
+bool handle_list_menu_control(uint8_t menu_id, input_cmd_id cmd, const struct wstring *arg);
+bool handle_pager_menu_control(input_cmd_id cmd);
 
 // See "interface-list-pager.c" file for implementation.
 bool pager_menu_moderator(size_t index);

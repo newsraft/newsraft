@@ -76,7 +76,7 @@ enter_item_pager_view_loop(struct items_list *items, const size_t *view_sel)
 			uint32_t count;
 			const struct wstring *macro;
 			input_cmd_id cmd = get_input_command(&count, &macro);
-			if (handle_pager_menu_navigation(cmd) == true) {
+			if (handle_pager_menu_control(cmd) == true) {
 				// Rest a little.
 			} else if ((cmd == INPUT_JUMP_TO_NEXT)
 				|| (cmd == INPUT_JUMP_TO_PREV)
@@ -86,7 +86,7 @@ enter_item_pager_view_loop(struct items_list *items, const size_t *view_sel)
 				|| (cmd == INPUT_JUMP_TO_PREV_IMPORTANT))
 			{
 				size_t current_sel = *view_sel;
-				handle_list_menu_navigation(ITEMS_MENU, cmd);
+				handle_list_menu_control(ITEMS_MENU, cmd, NULL);
 				if (current_sel != *view_sel) {
 					break;
 				}

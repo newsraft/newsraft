@@ -29,7 +29,7 @@ enter_status_pager_view_loop(void)
 	const struct wstring *macro;
 	while (true) {
 		cmd = get_input_command(&count, &macro);
-		if (handle_pager_menu_navigation(cmd) == true) {
+		if (handle_pager_menu_control(cmd) == true) {
 			// Rest a little.
 		} else if ((cmd == INPUT_QUIT_SOFT) || (cmd == INPUT_QUIT_HARD)) {
 			break;

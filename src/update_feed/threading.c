@@ -9,7 +9,7 @@ struct responsive_thread {
 
 static struct responsive_thread *threads = NULL;
 static size_t threads_count;
-static const struct timespec update_routine_finish_check_period = {0, 10000000};
+static const struct timespec update_routine_finish_check_period = {0, 10000000}; // 0.01 seconds
 
 bool
 initialize_update_threads(void)
@@ -52,20 +52,24 @@ branch_update_feed_action_into_thread(void *(*action)(void *arg), struct feed_en
 	}
 }
 
-void
-wait_for_all_threads_to_finish(void)
+bool
+at_least_one_thread_is_running(void)
 {
 	for (size_t i = 0; i < threads_count; ++i) {
-		if (threads[i].was_started == true) {
-			pthread_join(threads[i].thread, NULL);
-			threads[i].was_started = false;
-			threads[i].says_it_is_done = false;
+		if (threads[i].was_started == true && threads[i].says_it_is_done == false) {
+			return true;
 		}
 	}
+	return false;
 }
 
 void
 terminate_update_threads(void)
 {
+	for (size_t i = 0; i < threads_count; ++i) {
+		if (threads[i].was_started == true) {
+			pthread_join(threads[i].thread, NULL);
+		}
+	}
 	free(threads);
 }

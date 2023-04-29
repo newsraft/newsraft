@@ -133,10 +133,7 @@ queue_worker(void *dummy)
 		}
 		prevent_status_cleaning();
 here_we_go_again:
-		while (queue_worker_is_asked_to_terminate == false) {
-			if (update_queue_progress == update_queue_length) {
-				break;
-			}
+		while (queue_worker_is_asked_to_terminate == false && update_queue_progress != update_queue_length) {
 			branch_update_feed_action_into_thread(&update_feed_action, update_queue[update_queue_progress]);
 			info_status("(%zu/%zu) Loading %s", update_queue_progress + 1, update_queue_length, update_queue[update_queue_progress]->link->ptr);
 			update_queue_progress += 1;
@@ -149,7 +146,9 @@ here_we_go_again:
 		}
 		pthread_mutex_unlock(&queue_lock);
 
-		wait_for_all_threads_to_finish();
+		while (update_queue_progress == update_queue_length && at_least_one_thread_is_running() == true) {
+			nanosleep(&delay_interval, NULL);
+		}
 
 		pthread_mutex_lock(&queue_lock);
 		if ((queue_worker_is_asked_to_terminate == false)

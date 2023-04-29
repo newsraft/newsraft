@@ -56,7 +56,7 @@ struct stream_callback_data {
 // See "threading.c" file for implementation.
 bool initialize_update_threads(void);
 void branch_update_feed_action_into_thread(void *(*action)(void *arg), struct feed_entry *feed);
-void wait_for_all_threads_to_finish(void);
+bool at_least_one_thread_is_running(void);
 void terminate_update_threads(void);
 
 enum download_status download_feed(const char *url, struct stream_callback_data *data);

@@ -89,7 +89,7 @@ or _feeds menu_. What it does is truly miraculous - it lists all the feed item
 entries in the current scope (i. e. explore mode in _sections menu_ will show
 you all the feed item entries in the database, while in _feeds menu_ it will
 show you all the feed item entries of feeds in the current _feeds menu_). This
-menu may come in handy when you want to quickly scroll through all the news
+mode may come in handy when you want to quickly scroll through all the news
 without switching between sections and feeds back and forth.
 
 # CONFIGURATION
@@ -140,7 +140,7 @@ every *30* minutes, _feed3_ will update every *10* minutes, _feed4_ will update
 every *20* minutes, _feed5_ will update every *60* minutes and _feed6_ will
 never update automatically.
 
-If you want to just automatically update all feeds then you should set an auto
+If you just want to automatically update all feeds then you should set an auto
 update counter for *Global* section, but before doing so, think about what load
 can be exerted on a servers by frequent downloads from a large number of users.
 Going for a small auto update counter on *Global* section will most likely
@@ -169,11 +169,11 @@ the *ACTIONS* section. Format of these lines is as follows:
 
 	*bind* key _action_
 
-There is also a way to assign command bindings. When a key with a command
-binding assigned is pressed while feed item is selected, the specifiers in the
-_command_ are replaced with the corresponding feed item values and the command
-is executed. You can find which specifiers are available in the description of
-the _menu-item-entry-format_ setting. Format of these lines is as follows:
+There is also a way to assign command bindings. When a key with assigned command
+binding is pressed, the specifiers in the _command_ are replaced with values of
+the corresponding entry and the command is executed. You can find which
+specifiers are available in the description of the _menu-item-entry-format_
+setting. Format of these lines is as follows:
 
 	*bind* key *exec* _command_
 
@@ -209,7 +209,7 @@ Search precedence:
 _scrolloff_ (default: *0*)
 	Minimal number of list menu entries to keep above and below the selected
 	entry. If you set it to a very large value the selected entry will always be
-	in the middle of the list menu (except at the start or end of the list menu).
+	in the middle of the list menu (except for start and end of the list menu).
 
 _items-count-limit_ (default: *0*)
 	Maximum number of items stored in one feed. Zero disables the limit.

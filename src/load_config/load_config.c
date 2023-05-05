@@ -8,34 +8,29 @@ get_number_of_processors(void)
 		"sysctl -n hw.ncpu 2>/dev/null",
 		"getconf _NPROCESSORS_ONLN 2>/dev/null",
 		"grep -c ^processor /proc/cpuinfo 2>/dev/null",
-		NULL,
+		NULL
 	};
-	size_t cpus = 0;
+	size_t cores = 0;
 	for (const char **i = cmds; i != NULL; ++i) {
 		FILE *p = popen(*i, "r");
 		if (p != NULL) {
-			fscanf(p, "%zu", &cpus);
-			INFO("Number of processors from %s is %zu", *i, cpus);
+			fscanf(p, "%zu", &cores);
+			INFO("Number of processors from %s is %zu", *i, cores);
 			pclose(p);
-		}
-		if (cpus > 0) {
-			return cpus;
+			if (cores > 0) {
+				return MIN(cores, 32); // Don't allow more than 32 threads!
+			}
 		}
 	}
-	return 0;
+	return 1;
 }
 
 bool
 load_config(void)
 {
-	const size_t preferred_threads = get_cfg_uint(CFG_UPDATE_THREADS_COUNT);
-	const size_t online_cpus = get_number_of_processors();
-	const size_t real_threads = online_cpus > 1 ? online_cpus : 1;
-	if (preferred_threads == 0) {
-		set_cfg_uint(CFG_UPDATE_THREADS_COUNT, real_threads);
-	} else {
-		set_cfg_uint(CFG_UPDATE_THREADS_COUNT, MIN(preferred_threads, real_threads));
-	}
+	const size_t threads_count = get_cfg_uint(CFG_UPDATE_THREADS_COUNT);
+	const size_t cores_count = get_number_of_processors();
+	set_cfg_uint(CFG_UPDATE_THREADS_COUNT, threads_count == 0 ? cores_count : MIN(threads_count, cores_count));
 
 	if (assign_default_values_to_null_config_strings() == false) {
 		fputs("Failed to assign default values to NULL config strings!\n", stderr);

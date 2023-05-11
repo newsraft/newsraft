@@ -10,7 +10,7 @@ static WINDOW *counter_window = NULL;
 // 9 (max length of input) + 1 (terminator) = 10
 static char count_buf[10];
 static uint8_t count_buf_len = 0;
-static const struct timespec input_polling_period = {0, 4000000}; // 0.004 seconds
+static const struct timespec input_polling_period = {0, 30000000}; // 0.03 seconds
 
 static volatile bool they_want_us_to_terminate = false;
 

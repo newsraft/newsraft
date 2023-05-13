@@ -244,15 +244,18 @@ list_menu_change_view(struct list_menu_settings *m, size_t new_sel)
 		if (m == menu) {
 			expose_all_visible_entries_of_the_list_menu_unprotected();
 		}
-	} else if ((new_sel >= scrolloff) && ((new_sel - scrolloff) < m->view_min)) {
-		m->view_min = new_sel - scrolloff;
-		m->view_max = m->view_min + (list_menu_height - 1);
-		m->view_sel = new_sel;
-		if (m == menu) {
-			expose_all_visible_entries_of_the_list_menu_unprotected();
+	} else if (((new_sel >= scrolloff) && (new_sel - scrolloff < m->view_min))
+		|| ((new_sel < scrolloff) && (m->view_min > 0)))
+	{
+		if (new_sel >= scrolloff) {
+			m->view_min = new_sel - scrolloff;
+			if ((scrolloff == list_menu_height / 2) && (list_menu_height % 2 == 0)) {
+				// Makes scrolling with huge scrolloff work consistently in both direcetions.
+				m->view_min += 1;
+			}
+		} else {
+			m->view_min = 0;
 		}
-	} else if (new_sel < m->view_min) {
-		m->view_min = new_sel < scrolloff ? 0 : new_sel - scrolloff;
 		m->view_max = m->view_min + (list_menu_height - 1);
 		m->view_sel = new_sel;
 		if (m == menu) {

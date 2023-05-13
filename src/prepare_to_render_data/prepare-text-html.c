@@ -245,6 +245,7 @@ static const struct html_element_preparer preparers[] = {
 	{GUMBO_TAG_STYLE,    NULL,                  NULL},
 	{GUMBO_TAG_SCRIPT,   NULL,                  NULL},
 	{GUMBO_TAG_CANVAS,   NULL,                  NULL},
+	{GUMBO_TAG_META,     NULL,                  NULL},
 	{GUMBO_TAG_UNKNOWN,  NULL,                  NULL},
 };
 

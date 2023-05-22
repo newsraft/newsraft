@@ -11,7 +11,7 @@ struct html_data {
 };
 
 struct html_element_preparer {
-	const GumboTag tag_id;
+	const GumboTag tag;
 	void (*start_handler)(struct string *, struct html_data *, GumboVector *);
 	void (*end_handler)(struct string *, struct html_data *, GumboVector *);
 };
@@ -207,6 +207,14 @@ abbr_handler(struct string *text, struct html_data *data, GumboVector *attrs)
 	}
 }
 
+static void
+svg_handler(struct string *text, struct html_data *data, GumboVector *attrs)
+{
+	(void)data;
+	(void)attrs;
+	catas(text, " [svg image]", 12); // Inform the user that svg image should be there.
+}
+
 // Elements without handlers (both handlers are set to NULL), will simply
 // be ignored and the text in them will be displayed without any changes.
 static const struct html_element_preparer preparers[] = {
@@ -244,6 +252,7 @@ static const struct html_element_preparer preparers[] = {
 	{GUMBO_TAG_APPLET,   NULL,                  NULL},
 	{GUMBO_TAG_STYLE,    NULL,                  NULL},
 	{GUMBO_TAG_SCRIPT,   NULL,                  NULL},
+	{GUMBO_TAG_SVG,      &svg_handler,          NULL},
 	{GUMBO_TAG_CANVAS,   NULL,                  NULL},
 	{GUMBO_TAG_META,     NULL,                  NULL},
 	{GUMBO_TAG_UNKNOWN,  NULL,                  NULL},
@@ -254,12 +263,12 @@ dump_html(GumboNode *node, struct string *text, struct html_data *data)
 {
 	if (node->type == GUMBO_NODE_ELEMENT) {
 		size_t i;
-		for (i = 0; preparers[i].tag_id != GUMBO_TAG_UNKNOWN; ++i) {
-			if (preparers[i].tag_id == node->v.element.tag) {
+		for (i = 0; preparers[i].tag != GUMBO_TAG_UNKNOWN; ++i) {
+			if (preparers[i].tag == node->v.element.tag) {
 				break;
 			}
 		}
-		if (preparers[i].tag_id == GUMBO_TAG_UNKNOWN) {
+		if (preparers[i].tag == GUMBO_TAG_UNKNOWN) {
 			catas(text, node->v.element.original_tag.data, node->v.element.original_tag.length);
 			for (size_t j = 0; j < node->v.element.children.length; ++j) {
 				dump_html(node->v.element.children.data[j], text, data);
@@ -269,8 +278,11 @@ dump_html(GumboNode *node, struct string *text, struct html_data *data)
 			if (preparers[i].start_handler != NULL) {
 				preparers[i].start_handler(text, data, &node->v.element.attributes);
 			}
-			// We don't descent into style and script elements at all.
-			if ((preparers[i].tag_id != GUMBO_TAG_STYLE) && (preparers[i].tag_id != GUMBO_TAG_SCRIPT)) {
+			// Don't descend into elements which are illegible.
+			if ((preparers[i].tag != GUMBO_TAG_STYLE)
+				&& (preparers[i].tag != GUMBO_TAG_SCRIPT)
+				&& (preparers[i].tag != GUMBO_TAG_SVG))
+			{
 				for (size_t j = 0; j < node->v.element.children.length; ++j) {
 					dump_html(node->v.element.children.data[j], text, data);
 				}

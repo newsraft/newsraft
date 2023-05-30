@@ -227,17 +227,17 @@ generate_link_list_string_for_pager(const struct links_list *links)
 {
 	struct string *str = crtas("Links:", 6);
 	if (str == NULL) {
-		return false;
+		return NULL;
 	}
 #define LINK_PREFIX_SIZE 30
 	// For the link prefix we need at minimum 29 bytes, because:
-	// 1 newline         1  ascii character    1  byte
-	// 1 bracket         1  ascii character    1  byte
-	// 1 size_t integer  20 ascii characters   20 bytes
-	// 1 bracket         1  ascii character    1  byte
-	// 1 colon           1  ascii character    1  byte
-	// 1 nbsp            1  unicode character  4  bytes
-	// 1 terminator      1  ascii character    1  byte
+	// 1 newline        |  1 ascii character   | 1 byte
+	// 1 bracket        |  1 ascii character   | 1 byte
+	// 1 size_t integer | 20 ascii characters  | 20 bytes
+	// 1 bracket        |  1 ascii character   | 1 byte
+	// 1 colon          |  1 ascii character   | 1 byte
+	// 1 nbsp           |  1 unicode character | 4 bytes
+	// 1 terminator     |  1 ascii character   | 1 byte
 	char prefix[LINK_PREFIX_SIZE];
 	int prefix_len;
 	bool parentheses_are_open;

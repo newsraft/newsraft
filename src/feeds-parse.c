@@ -57,7 +57,7 @@ parse_feeds_file(void)
 		goto error;
 	}
 
-	char c;
+	int c;
 	// This is line-by-line file processing loop:
 	// one iteration of loop results in one processed line.
 	while (true) {

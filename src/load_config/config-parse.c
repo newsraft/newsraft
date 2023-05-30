@@ -122,7 +122,7 @@ parse_config_file(void)
 	}
 	char type[6], line[CONFIG_LINE_SIZE + 1];
 	size_t type_len, line_len;
-	char c;
+	int c;
 	// This is line-by-line file processing loop:
 	// one iteration of loop results in one processed line.
 	while (true) {

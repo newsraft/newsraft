@@ -11,7 +11,7 @@
 #include <curses.h>
 
 #ifndef NEWSRAFT_VERSION
-#define NEWSRAFT_VERSION "0.18"
+#define NEWSRAFT_VERSION "0.19"
 #endif
 
 #define ISWHITESPACE(A) (((A)==' ')||((A)=='\n')||((A)=='\t')||((A)=='\v')||((A)=='\f')||((A)=='\r'))

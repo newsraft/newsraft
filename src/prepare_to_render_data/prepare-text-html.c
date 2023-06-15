@@ -8,13 +8,55 @@ struct html_data {
 	struct links_list *links;
 	struct string **abbrs;
 	size_t abbrs_len;
+	bool in_pre_element;
+	size_t list_depth;
 };
 
 struct html_element_preparer {
 	const GumboTag tag;
 	void (*start_handler)(struct string *, struct html_data *, GumboVector *);
 	void (*end_handler)(struct string *, struct html_data *, GumboVector *);
+	const uint8_t newlines_before;
+	const uint8_t newlines_after;
+	const char *prefix;
+	const char *suffix;
 };
+
+static void
+provide_newlines(struct string *text, size_t count)
+{
+	bool in_tag = false;
+	size_t i = text->len, close_pos = 0; // Initialize to shut the compiler.
+	while (i > 0) {
+		if (ISWHITESPACE(text->ptr[i - 1])) {
+			// nop
+		} else if (text->ptr[i - 1] == '>') {
+			close_pos = i - 1;
+			in_tag = true;
+		} else if (text->ptr[i - 1] == '<' && in_tag == true) {
+			size_t tag_name_pos = i;
+			size_t tag_name_len = close_pos - tag_name_pos;
+			if (tag_name_len == 2) {
+				if (text->ptr[tag_name_pos] == 'b' && text->ptr[tag_name_pos + 1] == 'r') {
+					count = count > 0 ? count - 1 : 0;
+				} else if (text->ptr[tag_name_pos] == 'l' && text->ptr[tag_name_pos + 1] == 'i') {
+					return; // Don't pollute beginning of list entries.
+				} else if (text->ptr[tag_name_pos] == 'h' && text->ptr[tag_name_pos + 1] == 'r') {
+					break; // <hr> will be expanded to text during rendering.
+				}
+			}
+			in_tag = false;
+		} else if (in_tag == false) {
+			break;
+		}
+		i -= 1;
+	}
+	if (i != 0) {
+		for (i = 0; i < count; ++i) {
+			catas(text, "<br>", 4);
+		}
+	}
+}
 
 static const char *
 get_value_of_xml_attribute(GumboVector *attrs, const char *attr_name)
@@ -24,35 +66,19 @@ get_value_of_xml_attribute(GumboVector *attrs, const char *attr_name)
 }
 
 static void
-sup_handler(struct string *text, struct html_data *data, GumboVector *attrs)
+pre_in_handler(struct string *text, struct html_data *data, GumboVector *attrs)
 {
-	(void)data;
+	(void)text;
 	(void)attrs;
-	catcs(text, '^');
+	data->in_pre_element = true;
 }
 
 static void
-q_handler(struct string *text, struct html_data *data, GumboVector *attrs)
+pre_out_handler(struct string *text, struct html_data *data, GumboVector *attrs)
 {
-	(void)data;
+	(void)text;
 	(void)attrs;
-	catcs(text, '"');
-}
-
-static void
-button_start_handler(struct string *text, struct html_data *data, GumboVector *attrs)
-{
-	(void)data;
-	(void)attrs;
-	catcs(text, '[');
-}
-
-static void
-button_end_handler(struct string *text, struct html_data *data, GumboVector *attrs)
-{
-	(void)data;
-	(void)attrs;
-	catcs(text, ']');
+	data->in_pre_element = false;
 }
 
 static void
@@ -208,54 +234,93 @@ abbr_handler(struct string *text, struct html_data *data, GumboVector *attrs)
 }
 
 static void
-svg_handler(struct string *text, struct html_data *data, GumboVector *attrs)
+ul_in_handler(struct string *text, struct html_data *data, GumboVector *attrs)
 {
-	(void)data;
 	(void)attrs;
-	catas(text, " [svg image]", 12); // Inform the user that svg image should be there.
+	provide_newlines(text, data->list_depth == 0 ? 2 : 1);
+	data->list_depth += 1;
+}
+
+static void
+ul_out_handler(struct string *text, struct html_data *data, GumboVector *attrs)
+{
+	(void)attrs;
+	if (data->list_depth > 0) data->list_depth -= 1;
+	provide_newlines(text, data->list_depth == 0 ? 2 : 1);
 }
 
 // Elements without handlers (both handlers are set to NULL), will simply
 // be ignored and the text in them will be displayed without any changes.
 static const struct html_element_preparer preparers[] = {
-	{GUMBO_TAG_SPAN,     NULL,                  NULL},
-	{GUMBO_TAG_A,        NULL,                  &a_handler},
-	{GUMBO_TAG_SUP,      &sup_handler,          NULL},
-	{GUMBO_TAG_IMG,      &img_handler,          NULL},
-	{GUMBO_TAG_IFRAME,   &iframe_handler,       NULL},
-	{GUMBO_TAG_EMBED,    &embed_handler,        NULL},
-	{GUMBO_TAG_SOURCE,   &source_handler,       NULL},
-	{GUMBO_TAG_OBJECT,   &object_handler,       NULL},
-	{GUMBO_TAG_ABBR,     NULL,                  &abbr_handler},
-	{GUMBO_TAG_Q,        &q_handler,            &q_handler},
-	{GUMBO_TAG_CODE,     NULL,                  NULL},
-	{GUMBO_TAG_TT,       NULL,                  NULL},
-	{GUMBO_TAG_SAMP,     NULL,                  NULL},
-	{GUMBO_TAG_KBD,      NULL,                  NULL},
-	{GUMBO_TAG_CITE,     NULL,                  NULL},
-	{GUMBO_TAG_TIME,     NULL,                  NULL},
-	{GUMBO_TAG_FONT,     NULL,                  NULL},
-	{GUMBO_TAG_BASEFONT, NULL,                  NULL},
+	{GUMBO_TAG_P,          NULL,            NULL,             2, 2, NULL,   NULL},
+	{GUMBO_TAG_SPAN,       NULL,            NULL,             0, 0, NULL,   NULL},
+	{GUMBO_TAG_A,          NULL,            &a_handler,       0, 0, NULL,   NULL},
+	{GUMBO_TAG_H1,         NULL,            NULL,             3, 2, "<h1>", "</h1>"},
+	{GUMBO_TAG_H2,         NULL,            NULL,             3, 2, "<h2>", "</h2>"},
+	{GUMBO_TAG_H3,         NULL,            NULL,             3, 2, "<h3>", "</h3>"},
+	{GUMBO_TAG_H4,         NULL,            NULL,             3, 2, "<h4>", "</h4>"},
+	{GUMBO_TAG_H5,         NULL,            NULL,             3, 2, "<h5>", "</h5>"},
+	{GUMBO_TAG_H6,         NULL,            NULL,             3, 2, "<h6>", "</h6>"},
+	{GUMBO_TAG_LI,         NULL,            NULL,             1, 1, "<li>", "</li>"},
+	{GUMBO_TAG_UL,         &ul_in_handler,  &ul_out_handler,  0, 0, "<ul>", "</ul>"},
+	{GUMBO_TAG_OL,         &ul_in_handler,  &ul_out_handler,  0, 0, "<ol>", "</ol>"},
+	{GUMBO_TAG_PRE,        &pre_in_handler, &pre_out_handler, 1, 1, NULL,   NULL},
+	{GUMBO_TAG_HR,         NULL,            NULL,             1, 1, "<hr>", NULL},
+	{GUMBO_TAG_DT,         NULL,            NULL,             1, 1, NULL,   NULL},
+	{GUMBO_TAG_DIV,        NULL,            NULL,             1, 1, NULL,   NULL},
+	{GUMBO_TAG_CENTER,     NULL,            NULL,             1, 1, NULL,   NULL},
+	{GUMBO_TAG_MAIN,       NULL,            NULL,             1, 1, NULL,   NULL},
+	{GUMBO_TAG_ARTICLE,    NULL,            NULL,             1, 1, NULL,   NULL},
+	{GUMBO_TAG_SUMMARY,    NULL,            NULL,             1, 1, NULL,   NULL},
+	{GUMBO_TAG_DETAILS,    NULL,            NULL,             2, 2, NULL,   NULL},
+	{GUMBO_TAG_ADDRESS,    NULL,            NULL,             1, 1, NULL,   NULL},
+	{GUMBO_TAG_FIGURE,     NULL,            NULL,             2, 2, "<figure>",     "</figure>"},
+	{GUMBO_TAG_BLOCKQUOTE, NULL,            NULL,             2, 2, "<blockquote>", "</blockquote>"},
+	{GUMBO_TAG_FIGCAPTION, NULL,            NULL,             1, 1, NULL,   NULL},
+	{GUMBO_TAG_SECTION,    NULL,            NULL,             1, 1, NULL,   NULL},
+	{GUMBO_TAG_FOOTER,     NULL,            NULL,             1, 1, NULL,   NULL},
+	{GUMBO_TAG_OPTION,     NULL,            NULL,             1, 1, NULL,   NULL},
+	{GUMBO_TAG_FORM,       NULL,            NULL,             1, 1, NULL,   NULL},
+	{GUMBO_TAG_ASIDE,      NULL,            NULL,             1, 1, NULL,   NULL},
+	{GUMBO_TAG_NAV,        NULL,            NULL,             1, 1, NULL,   NULL},
+	{GUMBO_TAG_DL,         NULL,            NULL,             2, 2, NULL,   NULL},
+	{GUMBO_TAG_DD,         NULL,            NULL,             1, 1, "<dd>", "</dd>"},
+	{GUMBO_TAG_SUP,        NULL,            NULL,             0, 0, "^",    NULL},
+	{GUMBO_TAG_IMG,        &img_handler,    NULL,             0, 0, NULL,   NULL},
+	{GUMBO_TAG_IFRAME,     &iframe_handler, NULL,             0, 0, NULL,   NULL},
+	{GUMBO_TAG_EMBED,      &embed_handler,  NULL,             0, 0, NULL,   NULL},
+	{GUMBO_TAG_SOURCE,     &source_handler, NULL,             0, 0, NULL,   NULL},
+	{GUMBO_TAG_OBJECT,     &object_handler, NULL,             0, 0, NULL,   NULL},
+	{GUMBO_TAG_ABBR,       NULL,            &abbr_handler,    0, 0, NULL,   NULL},
+	{GUMBO_TAG_Q,          NULL,            NULL,             0, 0, "\"",   "\""},
+	{GUMBO_TAG_CODE,       NULL,            NULL,             0, 0, NULL,   NULL},
+	{GUMBO_TAG_TT,         NULL,            NULL,             0, 0, NULL,   NULL},
+	{GUMBO_TAG_SAMP,       NULL,            NULL,             0, 0, NULL,   NULL},
+	{GUMBO_TAG_KBD,        NULL,            NULL,             0, 0, NULL,   NULL},
+	{GUMBO_TAG_CITE,       NULL,            NULL,             0, 0, NULL,   NULL},
+	{GUMBO_TAG_TIME,       NULL,            NULL,             0, 0, NULL,   NULL},
+	{GUMBO_TAG_FONT,       NULL,            NULL,             0, 0, NULL,   NULL},
+	{GUMBO_TAG_BASEFONT,   NULL,            NULL,             0, 0, NULL,   NULL},
 	// As of 2022.07.08, Gumbo doesn't support <picture> tags.
-	//{GUMBO_TAG_PICTURE,  NULL,                  NULL},
-	{GUMBO_TAG_AUDIO,    &audio_handler,        NULL},
-	{GUMBO_TAG_VIDEO,    &video_handler,        NULL},
-	{GUMBO_TAG_LABEL,    NULL,                  NULL},
-	{GUMBO_TAG_TEXTAREA, NULL,                  NULL},
-	{GUMBO_TAG_THEAD,    NULL,                  NULL},
-	{GUMBO_TAG_TBODY,    NULL,                  NULL},
-	{GUMBO_TAG_TFOOT,    NULL,                  NULL},
-	{GUMBO_TAG_WBR,      NULL,                  NULL},
-	{GUMBO_TAG_NOSCRIPT, NULL,                  NULL},
-	{GUMBO_TAG_BUTTON,   &button_start_handler, &button_end_handler},
-	{GUMBO_TAG_DATA,     NULL,                  NULL},
-	{GUMBO_TAG_APPLET,   NULL,                  NULL},
-	{GUMBO_TAG_STYLE,    NULL,                  NULL},
-	{GUMBO_TAG_SCRIPT,   NULL,                  NULL},
-	{GUMBO_TAG_SVG,      &svg_handler,          NULL},
-	{GUMBO_TAG_CANVAS,   NULL,                  NULL},
-	{GUMBO_TAG_META,     NULL,                  NULL},
-	{GUMBO_TAG_UNKNOWN,  NULL,                  NULL},
+	//{GUMBO_TAG_PICTURE,    NULL,            NULL,             0, 0, NULL,   NULL},
+	{GUMBO_TAG_AUDIO,      &audio_handler,  NULL,             0, 0, NULL,   NULL},
+	{GUMBO_TAG_VIDEO,      &video_handler,  NULL,             0, 0, NULL,   NULL},
+	{GUMBO_TAG_LABEL,      NULL,            NULL,             0, 0, NULL,   NULL},
+	{GUMBO_TAG_TEXTAREA,   NULL,            NULL,             0, 0, NULL,   NULL},
+	{GUMBO_TAG_THEAD,      NULL,            NULL,             0, 0, NULL,   NULL},
+	{GUMBO_TAG_TBODY,      NULL,            NULL,             0, 0, NULL,   NULL},
+	{GUMBO_TAG_TFOOT,      NULL,            NULL,             0, 0, NULL,   NULL},
+	{GUMBO_TAG_WBR,        NULL,            NULL,             0, 0, NULL,   NULL},
+	{GUMBO_TAG_NOSCRIPT,   NULL,            NULL,             0, 0, NULL,   NULL},
+	{GUMBO_TAG_BUTTON,     NULL,            NULL,             0, 0, "[ ",   " ]"},
+	{GUMBO_TAG_DATA,       NULL,            NULL,             0, 0, NULL,   NULL},
+	{GUMBO_TAG_APPLET,     NULL,            NULL,             0, 0, NULL,   NULL},
+	{GUMBO_TAG_STYLE,      NULL,            NULL,             0, 0, NULL,   NULL},
+	{GUMBO_TAG_SCRIPT,     NULL,            NULL,             0, 0, NULL,   NULL},
+	{GUMBO_TAG_SVG,        NULL,            NULL,             0, 0, NULL,   " [svg image]"},
+	{GUMBO_TAG_CANVAS,     NULL,            NULL,             0, 0, NULL,   NULL},
+	{GUMBO_TAG_META,       NULL,            NULL,             0, 0, NULL,   NULL},
+	{GUMBO_TAG_UNKNOWN,    NULL,            NULL,             0, 0, NULL,   NULL},
 };
 
 static void
@@ -275,8 +340,14 @@ dump_html(GumboNode *node, struct string *text, struct html_data *data)
 			}
 			catas(text, node->v.element.original_end_tag.data, node->v.element.original_end_tag.length);
 		} else {
+			if (preparers[i].newlines_before > 0) {
+				provide_newlines(text, preparers[i].newlines_before);
+			}
 			if (preparers[i].start_handler != NULL) {
 				preparers[i].start_handler(text, data, &node->v.element.attributes);
+			}
+			if (preparers[i].prefix != NULL) {
+				catas(text, preparers[i].prefix, strlen(preparers[i].prefix));
 			}
 			// Don't descend into elements which are illegible.
 			if ((preparers[i].tag != GUMBO_TAG_STYLE)
@@ -287,15 +358,35 @@ dump_html(GumboNode *node, struct string *text, struct html_data *data)
 					dump_html(node->v.element.children.data[j], text, data);
 				}
 			}
+			if (preparers[i].suffix != NULL) {
+				catas(text, preparers[i].suffix, strlen(preparers[i].suffix));
+			}
 			if (preparers[i].end_handler != NULL) {
 				preparers[i].end_handler(text, data, &node->v.element.attributes);
+			}
+			if (preparers[i].newlines_after > 0) {
+				provide_newlines(text, preparers[i].newlines_after);
 			}
 		}
 	} else if ((node->type == GUMBO_NODE_TEXT)
 		|| (node->type == GUMBO_NODE_CDATA)
 		|| (node->type == GUMBO_NODE_WHITESPACE))
 	{
-		catas(text, node->v.text.original_text.data, node->v.text.original_text.length);
+		if (data->in_pre_element == false) {
+			catas(text, node->v.text.original_text.data, node->v.text.original_text.length);
+		} else {
+			for (size_t j = 0; j < node->v.text.original_text.length; ++j) {
+				if (node->v.text.original_text.data[j] == ' ') {
+					catas(text, "&nbsp;", 6);
+				} else if (node->v.text.original_text.data[j] == '\n') {
+					catas(text, "<br>", 4);
+				} else if (node->v.text.original_text.data[j] == '\t') {
+					catas(text, "&nbsp;&nbsp;&nbsp;&nbsp;", 24);
+				} else {
+					catcs(text, node->v.text.original_text.data[j]);
+				}
+			}
+		}
 	}
 }
 
@@ -329,7 +420,7 @@ prepare_to_render_text_html(const struct wstring *wide_src, struct links_list *l
 		free_string(src);
 		return NULL;
 	}
-	struct html_data data = {links, NULL, 0};
+	struct html_data data = {links, NULL, 0, false, 0};
 	dump_html(output->root, text, &data);
 	struct wstring *wtext = convert_string_to_wstring(text);
 	gumbo_destroy_output(&kGumboDefaultOptions, output);

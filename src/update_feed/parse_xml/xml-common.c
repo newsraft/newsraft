@@ -51,6 +51,11 @@ generic_guid_end(struct stream_callback_data *data)
 		if (crtss_or_cpyss(&data->feed.item->guid, data->text) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
+		if (data->feed.item->guid_is_url == true && data->feed.item->url == NULL) {
+			if (crtss_or_cpyss(&data->feed.item->url, data->text) == false) {
+				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
+			}
+		}
 	}
 	return PARSE_OKAY;
 }

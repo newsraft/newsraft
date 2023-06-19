@@ -10,6 +10,16 @@
 // https://web.archive.org/web/20210411040907/http://inamidst.com/rss1.1/
 
 static int8_t
+rss_guid_start(struct stream_callback_data *data, const XML_Char **attrs)
+{
+	const char *is_perma_link = get_value_of_attribute_key(attrs, "isPermaLink");
+	if (is_perma_link != NULL && strcmp(is_perma_link, "true") == 0) {
+		data->feed.item->guid_is_url = true;
+	}
+	return PARSE_OKAY;
+}
+
+static int8_t
 link_end(struct stream_callback_data *data)
 {
 	if (data->path[data->depth] == GENERIC_ITEM) {
@@ -216,7 +226,7 @@ source_end(struct stream_callback_data *data)
 
 const struct xml_element_handler xml_rss_handlers[] = {
 	{"item",           GENERIC_ITEM,    &generic_item_starter, &generic_item_ender},
-	{"guid",           XML_UNKNOWN_POS, NULL,                  &generic_guid_end},
+	{"guid",           XML_UNKNOWN_POS, &rss_guid_start,       &generic_guid_end},
 	{"title",          XML_UNKNOWN_POS, NULL,                  &generic_title_end},
 	{"link",           XML_UNKNOWN_POS, NULL,                  &link_end},
 	{"description",    XML_UNKNOWN_POS, NULL,                  &generic_html_content_end},

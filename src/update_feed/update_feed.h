@@ -20,6 +20,7 @@ struct getfeed_item {
 	struct string *extras;
 	int64_t publication_date; // Publication date in seconds since the Epoch (0 means unset).
 	int64_t update_date; // Update date in seconds since the Epoch (0 means unset).
+	bool guid_is_url;
 	struct getfeed_item *next;
 };
 

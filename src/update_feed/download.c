@@ -207,7 +207,7 @@ download_feed(const char *url, struct stream_callback_data *data)
 		curl_easy_cleanup(curl);
 		return DOWNLOAD_FAILED;
 	}
-	char curl_errbuf[CURL_ERROR_SIZE] = "";
+	char curl_errbuf[CURL_ERROR_SIZE] = {0};
 	if (prepare_curl_for_performance(curl, url, headers, data, curl_errbuf) == false) {
 		curl_slist_free_all(headers);
 		curl_easy_cleanup(curl);
@@ -225,20 +225,6 @@ download_feed(const char *url, struct stream_callback_data *data)
 	curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response);
 	INFO("Curl response code: %ld", response);
 
-	if (res != CURLE_OK) {
-		WARN("Curl error number string: %s", curl_easy_strerror(res));
-		WARN("Curl error buffer string: %s", curl_errbuf);
-		curl_slist_free_all(headers);
-		curl_easy_cleanup(curl);
-		if (response == 429) {
-			info_status("The server rejected the download because updates are too frequent.");
-			return DOWNLOAD_CANCELED;
-		} else {
-			fail_status("The server which keeps the feed returned %ld status code!", response);
-		}
-		return DOWNLOAD_FAILED;
-	}
-
 	curl_slist_free_all(headers);
 	curl_easy_cleanup(curl);
 
@@ -249,6 +235,17 @@ download_feed(const char *url, struct stream_callback_data *data)
 		// 1) server's ETag header is equal to our If-None-Match header;
 		// 2) server's Last-Modified header is equal to our If-Modified-Since header.
 		return DOWNLOAD_CANCELED;
+	} else if (response == 429) {
+		info_status("The server rejected the download because updates are too frequent.");
+		return DOWNLOAD_CANCELED;
+	}
+
+	if (res != CURLE_OK) {
+		fail_status("Curl error: %s; %s", curl_easy_strerror(res), curl_errbuf);
+		if (response != 0) {
+			fail_status("The server which keeps the feed returned %ld status code!", response);
+		}
+		return DOWNLOAD_FAILED;
 	}
 
 	return DOWNLOAD_SUCCEEDED;

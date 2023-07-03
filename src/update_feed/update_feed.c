@@ -6,7 +6,6 @@ static size_t update_queue_progress = 0;
 static size_t update_queue_failures = 0;
 
 static pthread_t queue_worker_thread;
-static volatile bool queue_worker_is_asked_to_unlock = false;
 static volatile bool queue_worker_is_asked_to_terminate = false;
 
 static pthread_mutex_t queue_lock = PTHREAD_MUTEX_INITIALIZER;
@@ -125,24 +124,20 @@ queue_worker(void *dummy)
 	const struct timespec delay_interval = {0, 200000000}; // 0.2 seconds
 
 	while (queue_worker_is_asked_to_terminate == false) {
-		pthread_mutex_lock(&queue_lock);
-		if (update_queue_progress == update_queue_length) {
-			pthread_mutex_unlock(&queue_lock);
+		if (update_queue_length == 0) {
 			nanosleep(&delay_interval, NULL);
 			continue;
 		}
 		prevent_status_cleaning();
+		pthread_mutex_lock(&queue_lock);
 here_we_go_again:
 		while (queue_worker_is_asked_to_terminate == false && update_queue_progress != update_queue_length) {
-			branch_update_feed_action_into_thread(&update_feed_action, update_queue[update_queue_progress]);
+			struct feed_entry *feed = update_queue[update_queue_progress];
+			pthread_mutex_unlock(&queue_lock);
+			branch_update_feed_action_into_thread(&update_feed_action, feed);
+			pthread_mutex_lock(&queue_lock);
 			info_status("(%zu/%zu) Loading %s", update_queue_progress + 1, update_queue_length, update_queue[update_queue_progress]->link->ptr);
 			update_queue_progress += 1;
-			if (queue_worker_is_asked_to_unlock == true) {
-				// We unlock queue for a moment to let the user add new feeds to it.
-				pthread_mutex_unlock(&queue_lock);
-				nanosleep(&delay_interval, NULL);
-				pthread_mutex_lock(&queue_lock);
-			}
 		}
 		pthread_mutex_unlock(&queue_lock);
 
@@ -180,9 +175,7 @@ here_we_go_again:
 void
 update_feeds(struct feed_entry **feeds, size_t feeds_count)
 {
-	queue_worker_is_asked_to_unlock = true;
 	pthread_mutex_lock(&queue_lock);
-	queue_worker_is_asked_to_unlock = false;
 	struct feed_entry **temp = realloc(update_queue, sizeof(struct feed_entry *) * (update_queue_length + feeds_count));
 	if (temp != NULL) {
 		update_queue = temp;

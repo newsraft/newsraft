@@ -342,7 +342,7 @@ bool unread_item_condition(size_t index);
 bool important_item_condition(size_t index);
 void clean_up_items_menu(void);
 void tell_items_menu_to_regenerate(void);
-input_cmd_id enter_items_menu_loop(struct feed_entry **feeds, size_t feeds_count, config_entry_id format_id);
+input_cmd_id enter_items_menu_loop(struct feed_entry **new_feeds, size_t new_feeds_count, bool is_explore_mode);
 
 // See "items-list.c" file for implementation.
 struct items_list *create_items_list(struct feed_entry **feeds, size_t feeds_count, sorting_order order, bool unread_first);

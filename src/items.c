@@ -162,7 +162,7 @@ tell_items_menu_to_regenerate(void)
 }
 
 input_cmd_id
-enter_items_menu_loop(struct feed_entry **new_feeds, size_t new_feeds_count, config_entry_id format_id)
+enter_items_menu_loop(struct feed_entry **new_feeds, size_t new_feeds_count, bool is_explore_mode)
 {
 	feeds = new_feeds;
 	feeds_count = new_feeds_count;
@@ -173,7 +173,7 @@ enter_items_menu_loop(struct feed_entry **new_feeds, size_t new_feeds_count, con
 		return INPUT_ITEMS_MENU_WAS_NOT_CREATED;
 	}
 
-	const size_t *view_sel = enter_list_menu(ITEMS_MENU, format_id, true);
+	const size_t *view_sel = enter_list_menu(ITEMS_MENU, is_explore_mode ? CFG_MENU_EXPLORE_ITEM_ENTRY_FORMAT : CFG_MENU_ITEM_ENTRY_FORMAT, true);
 
 	input_cmd_id cmd;
 	uint32_t count;
@@ -217,9 +217,9 @@ enter_items_menu_loop(struct feed_entry **new_feeds, size_t new_feeds_count, con
 			run_command_with_specifiers(get_cfg_wstring(CFG_OPEN_IN_BROWSER_COMMAND), get_item_entry_args(*view_sel));
 		} else if (cmd == INPUT_COPY_TO_CLIPBOARD) {
 			copy_string_to_clipboard(items->ptr[*view_sel].url);
-		} else if ((cmd == INPUT_TOGGLE_EXPLORE_MODE) && (format_id == CFG_MENU_EXPLORE_ITEM_ENTRY_FORMAT)) {
+		} else if (cmd == INPUT_TOGGLE_EXPLORE_MODE && is_explore_mode == true) {
 			break;
-		} else if ((cmd == INPUT_QUIT_SOFT) || (cmd == INPUT_QUIT_HARD)) {
+		} else if (cmd == INPUT_QUIT_SOFT || cmd == INPUT_QUIT_HARD) {
 			break;
 		}
 		pthread_mutex_unlock(&items_lock);

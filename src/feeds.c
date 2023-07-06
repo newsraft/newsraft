@@ -97,12 +97,12 @@ enter_feeds_menu_loop(struct feed_entry **new_feeds, size_t new_feeds_count)
 	feeds = new_feeds;
 	feeds_count = new_feeds_count;
 	if (get_cfg_bool(CFG_FEEDS_MENU_PARAMOUNT_EXPLORE) == true) {
-		cmd = enter_items_menu_loop(feeds, feeds_count, CFG_MENU_EXPLORE_ITEM_ENTRY_FORMAT);
+		cmd = enter_items_menu_loop(feeds, feeds_count, true);
 		if ((cmd == INPUT_QUIT_SOFT) || (cmd == INPUT_QUIT_HARD)) {
 			return cmd;
 		}
 	} else if (feeds_count == 1) {
-		cmd = enter_items_menu_loop(feeds, 1, CFG_MENU_ITEM_ENTRY_FORMAT);
+		cmd = enter_items_menu_loop(feeds, 1, false);
 		if (cmd != INPUT_ITEMS_MENU_WAS_NOT_CREATED) {
 			return cmd;
 		}
@@ -123,14 +123,14 @@ enter_feeds_menu_loop(struct feed_entry **new_feeds, size_t new_feeds_count)
 		} else if (cmd == INPUT_RELOAD_ALL) {
 			update_feeds(feeds, feeds_count);
 		} else if (cmd == INPUT_ENTER) {
-			cmd = enter_items_menu_loop(&feeds[*view_sel], 1, CFG_MENU_ITEM_ENTRY_FORMAT);
+			cmd = enter_items_menu_loop(&feeds[*view_sel], 1, false);
 			if (cmd == INPUT_QUIT_HARD) {
 				break;
 			} else if (cmd != INPUT_ITEMS_MENU_WAS_NOT_CREATED) {
 				enter_list_menu(FEEDS_MENU, 0, false);
 			}
 		} else if (cmd == INPUT_TOGGLE_EXPLORE_MODE) {
-			cmd = enter_items_menu_loop(feeds, feeds_count, CFG_MENU_EXPLORE_ITEM_ENTRY_FORMAT);
+			cmd = enter_items_menu_loop(feeds, feeds_count, true);
 			if ((cmd == INPUT_QUIT_SOFT) || (cmd == INPUT_QUIT_HARD)) {
 				break;
 			} else if (cmd != INPUT_ITEMS_MENU_WAS_NOT_CREATED) {

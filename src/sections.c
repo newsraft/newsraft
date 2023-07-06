@@ -302,7 +302,7 @@ enter_sections_menu_loop(void)
 {
 	input_cmd_id cmd;
 	if (get_cfg_bool(CFG_SECTIONS_MENU_PARAMOUNT_EXPLORE) == true) {
-		cmd = enter_items_menu_loop(sections[0].feeds, sections[0].feeds_count, CFG_MENU_EXPLORE_ITEM_ENTRY_FORMAT);
+		cmd = enter_items_menu_loop(sections[0].feeds, sections[0].feeds_count, true);
 		if ((cmd == INPUT_QUIT_SOFT) || (cmd == INPUT_QUIT_HARD)) {
 			return;
 		}
@@ -332,7 +332,7 @@ enter_sections_menu_loop(void)
 			}
 			enter_list_menu(SECTIONS_MENU, 0, false);
 		} else if (cmd == INPUT_TOGGLE_EXPLORE_MODE) {
-			cmd = enter_items_menu_loop(sections[0].feeds, sections[0].feeds_count, CFG_MENU_EXPLORE_ITEM_ENTRY_FORMAT);
+			cmd = enter_items_menu_loop(sections[0].feeds, sections[0].feeds_count, true);
 			if ((cmd == INPUT_QUIT_SOFT) || (cmd == INPUT_QUIT_HARD)) {
 				break;
 			}

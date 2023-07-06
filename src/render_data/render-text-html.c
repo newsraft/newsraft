@@ -142,30 +142,13 @@ remove_underlined_style(struct line *line)
 static const struct html_element_renderer renderers[] = {
 	{GUMBO_TAG_BR,         &br_handler,           NULL},
 	{GUMBO_TAG_B,          &add_bold_style,       &remove_bold_style},
-	{GUMBO_TAG_STRONG,     &add_bold_style,       &remove_bold_style},
-	{GUMBO_TAG_MARK,       &add_bold_style,       &remove_bold_style},
-	{GUMBO_TAG_BIG,        &add_bold_style,       &remove_bold_style},
 	{GUMBO_TAG_I,          &add_italic_style,     &remove_italic_style},
-	{GUMBO_TAG_EM,         &add_italic_style,     &remove_italic_style},
-	{GUMBO_TAG_VAR,        &add_italic_style,     &remove_italic_style},
-	{GUMBO_TAG_SMALL,      &add_italic_style,     &remove_italic_style},
-	{GUMBO_TAG_DFN,        &add_italic_style,     &remove_italic_style},
 	{GUMBO_TAG_U,          &add_underlined_style, &remove_underlined_style},
-	{GUMBO_TAG_INS,        &add_underlined_style, &remove_underlined_style},
 	{GUMBO_TAG_LI,         &li_handler,           NULL},
 	{GUMBO_TAG_UL,         &ul_start_handler,     &ul_end_handler},
 	{GUMBO_TAG_OL,         &ol_start_handler,     &ul_end_handler},
-	{GUMBO_TAG_H1,         &add_bold_style,       &remove_bold_style},
-	{GUMBO_TAG_H2,         &add_bold_style,       &remove_bold_style},
-	{GUMBO_TAG_H3,         &add_bold_style,       &remove_bold_style},
-	{GUMBO_TAG_H4,         &add_bold_style,       &remove_bold_style},
-	{GUMBO_TAG_H5,         &add_bold_style,       &remove_bold_style},
-	{GUMBO_TAG_H6,         &add_bold_style,       &remove_bold_style},
 	{GUMBO_TAG_HR,         &hr_handler,           NULL},
 	{GUMBO_TAG_FIGURE,     &indent_enter_handler, &indent_leave_handler},
-	{GUMBO_TAG_BLOCKQUOTE, &indent_enter_handler, &indent_leave_handler},
-	{GUMBO_TAG_DD,         &indent_enter_handler, &indent_leave_handler},
-	{GUMBO_TAG_TABLE,      NULL,                  NULL},
 	{GUMBO_TAG_UNKNOWN,    NULL,                  NULL},
 };
 
@@ -177,7 +160,9 @@ dump_html(GumboNode *node, struct line *line)
 		while ((renderers[i].tag_id != GUMBO_TAG_UNKNOWN) && (renderers[i].tag_id != node->v.element.tag)) {
 			i += 1;
 		}
-		if (renderers[i].tag_id == GUMBO_TAG_UNKNOWN) {
+		if (node->v.element.tag == GUMBO_TAG_TABLE) {
+			write_contents_of_html_table_node_to_text(line, node);
+		} else if (renderers[i].tag_id == GUMBO_TAG_UNKNOWN) {
 			struct wstring *tag = convert_array_to_wstring(node->v.element.original_tag.data, node->v.element.original_tag.length);
 			if (tag != NULL) {
 				line_string(line, tag->ptr);
@@ -191,8 +176,6 @@ dump_html(GumboNode *node, struct line *line)
 				line_string(line, tag->ptr);
 				free_wstring(tag);
 			}
-		} else if (renderers[i].tag_id == GUMBO_TAG_TABLE) {
-			write_contents_of_html_table_node_to_text(line, node);
 		} else {
 			if (renderers[i].start_handler != NULL) {
 				renderers[i].start_handler(line);

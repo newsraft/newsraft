@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include "newsraft.h"
 
 struct wstring *content = NULL;
@@ -66,6 +67,9 @@ bool
 reset_pager_menu(void)
 {
 	free_wstring(content);
+	free(blocks->hints);
+	blocks->hints = NULL;
+	blocks->hints_len = 0;
 	content = render_data(blocks);
 	if (content == NULL || content->len == 0) {
 		fail_status("Can't render content!");

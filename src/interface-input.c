@@ -56,26 +56,23 @@ get_input_command(uint32_t *count, const struct wstring **macro_ptr)
 {
 	int c;
 	while (true) {
-		while (true) {
-			// We can't read keys from stdscr via getch() function
-			// because calling it will bring stdscr on top of other
-			// windows and overlap them.
-			pthread_mutex_lock(&interface_lock);
-			c = wgetch(counter_window);
-			pthread_mutex_unlock(&interface_lock);
-			if (they_want_us_to_terminate == true) {
-				INFO("Received a signal which is asking us to terminate the program.");
-				return INPUT_QUIT_HARD;
-			} else if (c == ERR) {
-				nanosleep(&input_polling_period, NULL);
-			} else {
-				break;
-			}
+		// We can't read keys from stdscr via getch() function
+		// because calling it will bring stdscr on top of other
+		// windows and overlap them.
+		pthread_mutex_lock(&interface_lock);
+		c = wgetch(counter_window);
+		pthread_mutex_unlock(&interface_lock);
+		if (they_want_us_to_terminate == true) {
+			INFO("Received signal requesting termination of program.");
+			return INPUT_QUIT_HARD;
+		} else if (c == ERR) {
+			nanosleep(&input_polling_period, NULL);
+			continue;
+		} else if (c == KEY_RESIZE) {
+			return resize_handler();
 		}
 		INFO("Received \"%c\" character with %d key code.", c, c);
-		if (c == KEY_RESIZE) {
-			return resize_handler();
-		} else if (isdigit(c) == 0) {
+		if (isdigit(c) == 0) {
 			count_buf[count_buf_len] = '\0';
 			if (sscanf(count_buf, "%" SCNu32, count) != 1) {
 				*count = 1;

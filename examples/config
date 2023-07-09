@@ -1,4 +1,6 @@
 # This is an example of valid config file for Newsraft.
+# Note that config file is not required for Newsraft to work,
+# it's needed only for overriding default settings and expanding functionality.
 
 # Lines with # character at the beginning are comments,
 # they are completely ignored by the parser.

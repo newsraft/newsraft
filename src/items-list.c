@@ -156,7 +156,7 @@ create_items_list(struct feed_entry **feeds, size_t feeds_count, sorting_order o
 	}
 	obtain_items_at_least_up_to_the_given_index(items, 0);
 	if (items->len < 1) {
-		fail_status("Can't find any items associated with this!");
+		fail_status("Items not found. Make sure this feed is updated!");
 		goto undo3;
 	}
 	return items;

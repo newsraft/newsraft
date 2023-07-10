@@ -177,6 +177,11 @@ setting. Format of these lines is as follows:
 
 	*bind* key *exec* _command_
 
+Binding lines support assigning multiple actions to one key. Assigned actions
+must be separated with semicolon symbols, for example:
+
+	*bind* key _action1_; _action2_; *exec* _command1_; *exec* _command2_; _action5_
+
 In case you want to disable some binding which was set in Newsraft by default,
 you can use a line according to this format:
 
@@ -433,39 +438,68 @@ _color-list-section-unread-bg_ (default: *default*)
 
 # ACTIONS
 
-_select-next_ (default: *j*, *KEY_DOWN*)++
-_select-prev_ (default: *k*, *KEY_UP*)++
-_select-next-page_ (default: *space*, *^F*, *KEY_NPAGE*)++
-_select-prev-page_ (default: *^B*, *KEY_PPAGE*)++
-_select-first_ (default: *g*, *KEY_HOME*)++
-_select-last_ (default: *G*, *KEY_END*)++
-_jump-to-next_ (default: *J*)++
-_jump-to-prev_ (default: *K*)++
-_jump-to-next-unread_ (default: *n*)++
-_jump-to-prev-unread_ (default: *N*)++
-_jump-to-next-important_ (default: *p*)++
-_jump-to-prev-important_ (default: *P*)++
-_sorting-method-next_ (default: *s*)++
-_sorting-method-prev_ (default: *S*)++
-_toggle-unread-first-sorting_ (default: *u*)++
-_enter_ (default: *l*, *^J*, *KEY_RIGHT*, *KEY_ENTER*)++
-_reload_ (default: *r*)++
-_reload-all_ (default: *^R*)++
-_mark-read_ (default: not set)++
-_mark-read-and-jump-to-next_ (default: *d*)++
-_mark-read-and-jump-to-next-unread_ (default: not set)++
-_mark-unread_ (default: not set)++
-_mark-unread-and-jump-to-next_ (default: *D*)++
-_mark-read-all_ (default: *^D*)++
-_mark-unread-all_ (default: not set)++
-_mark-important_ (default: *i*)++
-_mark-unimportant_ (default: *I*)++
-_toggle-explore-mode_ (default: *e*)++
-_status-history-menu_ (default: *v*)++
-_open-in-browser_ (default: *o*)++
-_copy-to-clipboard_ (default: *y*, *c*)++
-_quit_ (default: *h*, *q*, *KEY_LEFT*, *KEY_BACKSPACE*)++
-_quit-hard_ (default: *Q*)
+|[ Keys
+:[ Actions
+|[ *j*, *KEY_DOWN*
+:[ _select-next_
+|[ *k*, *KEY_UP*
+:[ _select-prev_
+|[ *space*, *^F*, *KEY_NPAGE*
+:[ _select-next-page_
+|[ *^B*, *KEY_PPAGE*
+:[ _select-prev-page_
+|[ *g*, *KEY_HOME*
+:[ _select-first_
+|[ *G*, *KEY_END*
+:[ _select-last_
+|[ *J*
+:[ _jump-to-next_
+|[ *K*
+:[ _jump-to-prev_
+|[ *n*
+:[ _jump-to-next-unread_
+|[ *N*
+:[ _jump-to-prev-unread_
+|[ *p*
+:[ _jump-to-next-important_
+|[ *P*
+:[ _jump-to-prev-important_
+|[ *s*
+:[ _sorting-method-next_
+|[ *S*
+:[ _sorting-method-prev_
+|[ *u*
+:[ _toggle-unread-first-sorting_
+|[ *l*, *^J*, *KEY_RIGHT*, *KEY_ENTER*
+:[ _enter_
+|[ *r*
+:[ _reload_
+|[ *^R*
+:[ _reload-all_
+|[ *d*
+:[ _mark-read_; _jump-to-next_
+|[ *D*
+:[ _mark-unread_; _jump-to-next_
+|[ *^D*
+:[ _mark-read-all_
+|[ (not set)
+:[ _mark-unread-all_
+|[ *i*
+:[ _mark-important_
+|[ *I*
+:[ _mark-unimportant_
+|[ *e*
+:[ _toggle-explore-mode_
+|[ *v*
+:[ _status-history-menu_
+|[ *o*
+:[ _open-in-browser_
+|[ *y*, *c*
+:[ _copy-to-clipboard_
+|[ *h*, *q*, *KEY_LEFT*, *KEY_BACKSPACE*
+:[ _quit_
+|[ *Q*
+:[ _quit-hard_
 
 # FORMATS SUPPORT
 

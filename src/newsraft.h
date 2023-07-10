@@ -103,10 +103,7 @@ enum {
 	INPUT_RELOAD,
 	INPUT_RELOAD_ALL,
 	INPUT_MARK_READ,
-	INPUT_MARK_READ_AND_JUMP_TO_NEXT,
-	INPUT_MARK_READ_AND_JUMP_TO_NEXT_UNREAD,
 	INPUT_MARK_UNREAD,
-	INPUT_MARK_UNREAD_AND_JUMP_TO_NEXT,
 	INPUT_MARK_READ_ALL,
 	INPUT_MARK_UNREAD_ALL,
 	INPUT_MARK_IMPORTANT,
@@ -466,11 +463,12 @@ int enter_status_pager_view_loop(void);
 
 // Functions responsible for managing of key bindings.
 // See "binds.c" file for implementation.
-input_cmd_id find_bind_associated_with_key(int key, const struct wstring **macro_ptr);
-bool bind_action_to_key(const char *bind_key, size_t bind_key_len, input_cmd_id bind_cmd);
-bool create_macro(const char *bind_key, size_t bind_key_len, const char *cmd, size_t cmd_len);
-void free_binds(void);
+input_cmd_id get_action_of_bind(int key_code, size_t action_index, const struct wstring **macro_ptr);
+ssize_t create_empty_bind_or_clean_existing(const char *key_name, size_t key_name_len);
+bool attach_cmd_action_to_bind(ssize_t bind_index, input_cmd_id cmd_action);
+bool attach_exec_action_to_bind(ssize_t bind_index, const char *exec, size_t exec_len);
 bool assign_default_binds(void);
+void free_binds(void);
 
 // Functions related to executing system commands.
 // See "commands.c" file for implementation.

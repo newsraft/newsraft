@@ -352,17 +352,8 @@ handle_list_menu_control(uint8_t menu_id, input_cmd_id cmd, const struct wstring
 		list_menu_change_view(m, obtain_list_entries_count(m));
 	} else if (cmd == INPUT_MARK_READ) {
 		m->read_action(m->view_sel);
-	} else if (cmd == INPUT_MARK_READ_AND_JUMP_TO_NEXT) {
-		m->read_action(m->view_sel);
-		handle_list_menu_control(menu_id, INPUT_SELECT_NEXT, NULL);
-	} else if (cmd == INPUT_MARK_READ_AND_JUMP_TO_NEXT_UNREAD) {
-		m->read_action(m->view_sel);
-		handle_list_menu_control(menu_id, INPUT_JUMP_TO_NEXT_UNREAD, NULL);
 	} else if (cmd == INPUT_MARK_UNREAD) {
 		m->unread_action(m->view_sel);
-	} else if (cmd == INPUT_MARK_UNREAD_AND_JUMP_TO_NEXT) {
-		m->unread_action(m->view_sel);
-		handle_list_menu_control(menu_id, INPUT_SELECT_NEXT, NULL);
 	} else if (cmd == INPUT_SYSTEM_COMMAND) {
 		run_command_with_specifiers(arg, m->get_args(m->view_sel));
 	} else {

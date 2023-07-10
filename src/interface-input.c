@@ -54,7 +54,17 @@ tell_program_to_terminate_safely_and_quickly(int dummy)
 input_cmd_id
 get_input_command(uint32_t *count, const struct wstring **macro_ptr)
 {
-	int c;
+	static int c = 0;
+	static size_t queued_action_index = 0;
+	if (queued_action_index > 0) {
+		input_cmd_id next = get_action_of_bind(c, queued_action_index, macro_ptr);
+		if (next != INPUT_ERROR) {
+			queued_action_index += 1;
+			return next;
+		} else {
+			queued_action_index = 0;
+		}
+	}
 	while (true) {
 		// We can't read keys from stdscr via getch() function
 		// because calling it will bring stdscr on top of other
@@ -81,7 +91,8 @@ get_input_command(uint32_t *count, const struct wstring **macro_ptr)
 			pthread_mutex_lock(&interface_lock);
 			counter_update_unprotected();
 			pthread_mutex_unlock(&interface_lock);
-			return find_bind_associated_with_key(c, macro_ptr);
+			queued_action_index = 1;
+			return get_action_of_bind(c, 0, macro_ptr);
 		}
 		count_buf_len %= 9;
 		count_buf[count_buf_len++] = c;

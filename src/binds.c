@@ -2,80 +2,175 @@
 #include <string.h>
 #include "newsraft.h"
 
+struct binding_action {
+	input_cmd_id cmd;
+	struct wstring *exec;
+};
+
 struct input_binding {
 	struct string *key;
-	input_cmd_id cmd;
-	struct wstring *cmdcmd;
+	struct binding_action *actions;
+	size_t actions_count;
 };
 
 static struct input_binding *binds = NULL;
 static size_t binds_count = 0;
 
 input_cmd_id
-find_bind_associated_with_key(int key, const struct wstring **macro_ptr)
+get_action_of_bind(int key_code, size_t action_index, const struct wstring **macro_ptr)
 {
-	const char *name = keyname(key);
-	if (name != NULL) {
+	const char *key_name = keyname(key_code);
+	if (key_name != NULL) {
 		for (size_t i = 0; i < binds_count; ++i) {
-			if (strcmp(name, binds[i].key->ptr) == 0) {
-				*macro_ptr = binds[i].cmdcmd;
-				return binds[i].cmd;
+			if (strcmp(key_name, binds[i].key->ptr) == 0) {
+				if (action_index < binds[i].actions_count) {
+					*macro_ptr = binds[i].actions[action_index].exec;
+					return binds[i].actions[action_index].cmd;
+				}
+				break;
 			}
 		}
 	}
-	return INPUT_ERROR; // No command matched with this key.
+	return INPUT_ERROR;
 }
 
-static inline int64_t
-find_bind_by_its_key_name_or_create_it(const char *key, size_t key_len)
+ssize_t
+create_empty_bind_or_clean_existing(const char *key_name, size_t key_name_len)
 {
 	for (size_t i = 0; i < binds_count; ++i) {
-		if ((key_len == binds[i].key->len) && (memcmp(key, binds[i].key->ptr, key_len) == 0)) {
+		if (key_name_len == binds[i].key->len && memcmp(key_name, binds[i].key->ptr, key_name_len) == 0) {
+			for (size_t j = 0; j < binds[i].actions_count; ++j) {
+				free_wstring(binds[i].actions[j].exec);
+			}
+			free(binds[i].actions);
+			binds[i].actions = NULL;
+			binds[i].actions_count = 0;
 			return i;
 		}
 	}
 	struct input_binding *tmp = realloc(binds, sizeof(struct input_binding) * (binds_count + 1));
 	if (tmp != NULL) {
 		binds = tmp;
-		binds[binds_count].key = crtas(key, key_len);
-		binds[binds_count].cmdcmd = NULL; // Set to NULL to avoid freeing garbage later.
-		binds_count += 1;
-		if (binds[binds_count - 1].key != NULL) {
+		binds[binds_count].key = crtas(key_name, key_name_len);
+		binds[binds_count].actions = NULL;
+		binds[binds_count].actions_count = 0;
+		if (binds[binds_count].key != NULL) {
+			binds_count += 1;
 			return binds_count - 1;
 		}
 	}
-	fputs("Not enough memory to create another binding!\n", stderr);
+	fputs("Not enough memory for binding!\n", stderr);
 	return -1;
 }
 
-bool
-bind_action_to_key(const char *bind_key, size_t bind_key_len, input_cmd_id bind_cmd)
+static inline struct binding_action *
+attach_empty_action_to_bind(ssize_t bind_index)
 {
-	int64_t index = find_bind_by_its_key_name_or_create_it(bind_key, bind_key_len);
-	if (index == -1) {
-		return false;
+	struct binding_action *tmp = realloc(binds[bind_index].actions, sizeof(struct binding_action) * (binds[bind_index].actions_count + 1));
+	if (tmp != NULL) {
+		binds[bind_index].actions = tmp;
+		binds[bind_index].actions[binds[bind_index].actions_count].cmd = INPUT_ERROR;
+		binds[bind_index].actions[binds[bind_index].actions_count].exec = NULL;
+		binds[bind_index].actions_count += 1;
+		INFO("Attached empty action to %s key.", binds[bind_index].key->ptr);
+		return binds[bind_index].actions + binds[bind_index].actions_count - 1;
 	}
-	binds[index].cmd = bind_cmd;
-	INFO("Binded action %u to \"%s\" key.", bind_cmd, binds[index].key->ptr);
+	fputs("Not enough memory for binding!\n", stderr);
+	return NULL;
+}
+
+bool
+attach_cmd_action_to_bind(ssize_t bind_index, input_cmd_id cmd_action)
+{
+	struct binding_action *action = attach_empty_action_to_bind(bind_index);
+	if (action == NULL) return false;
+	action->cmd = cmd_action;
+	INFO("Set action to %u command.", cmd_action);
 	return true;
 }
 
 bool
-create_macro(const char *bind_key, size_t bind_key_len, const char *cmd, size_t cmd_len)
+attach_exec_action_to_bind(ssize_t bind_index, const char *exec, size_t exec_len)
 {
-	int64_t index = find_bind_by_its_key_name_or_create_it(bind_key, bind_key_len);
-	if (index == -1) {
+	struct binding_action *action = attach_empty_action_to_bind(bind_index);
+	if (action == NULL) return false;
+	action->exec = convert_array_to_wstring(exec, exec_len);
+	if (action->exec == NULL) {
+		fputs("Not enough memory for exec action!\n", stderr);
 		return false;
 	}
-	free_wstring(binds[index].cmdcmd);
-	binds[index].cmd = INPUT_SYSTEM_COMMAND;
-	binds[index].cmdcmd = convert_array_to_wstring(cmd, cmd_len);
-	if (binds[index].cmdcmd == NULL) {
-		fputs("Not enough memory for assigning a command to a new key!\n", stderr);
-		return false;
-	}
-	INFO("Binded command \"%s\" to \"%s\" key.", cmd, binds[index].key->ptr);
+	action->cmd = INPUT_SYSTEM_COMMAND;
+	INFO("Set action to \"%ls\" command.", action->exec->ptr);
 	return true;
+}
+
+static bool
+create_bind(const char *key_name, size_t key_name_len, input_cmd_id cmd_action)
+{
+	const ssize_t bind_index = create_empty_bind_or_clean_existing(key_name, key_name_len);
+	return bind_index >= 0 && attach_cmd_action_to_bind(bind_index, cmd_action) == true;
+}
+
+static bool
+create_bind2(const char *key_name, size_t key_name_len, input_cmd_id cmd_action, input_cmd_id cmd_action2)
+{
+	const ssize_t bind_index = create_empty_bind_or_clean_existing(key_name, key_name_len);
+	return bind_index >= 0
+		&& attach_cmd_action_to_bind(bind_index, cmd_action) == true
+		&& attach_cmd_action_to_bind(bind_index, cmd_action2) == true;
+}
+
+bool
+assign_default_binds(void)
+{
+	if (create_bind("j",         1, INPUT_SELECT_NEXT)                     == false) { goto fail; }
+	if (create_bind("KEY_DOWN",  8, INPUT_SELECT_NEXT)                     == false) { goto fail; }
+	if (create_bind("k",         1, INPUT_SELECT_PREV)                     == false) { goto fail; }
+	if (create_bind("KEY_UP",    6, INPUT_SELECT_PREV)                     == false) { goto fail; }
+	if (create_bind(" ",         1, INPUT_SELECT_NEXT_PAGE)                == false) { goto fail; }
+	if (create_bind("^F",        2, INPUT_SELECT_NEXT_PAGE)                == false) { goto fail; }
+	if (create_bind("KEY_NPAGE", 9, INPUT_SELECT_NEXT_PAGE)                == false) { goto fail; }
+	if (create_bind("^B",        2, INPUT_SELECT_PREV_PAGE)                == false) { goto fail; }
+	if (create_bind("KEY_PPAGE", 9, INPUT_SELECT_PREV_PAGE)                == false) { goto fail; }
+	if (create_bind("g",         1, INPUT_SELECT_FIRST)                    == false) { goto fail; }
+	if (create_bind("KEY_HOME",  8, INPUT_SELECT_FIRST)                    == false) { goto fail; }
+	if (create_bind("G",         1, INPUT_SELECT_LAST)                     == false) { goto fail; }
+	if (create_bind("KEY_END",   7, INPUT_SELECT_LAST)                     == false) { goto fail; }
+	if (create_bind("J",         1, INPUT_JUMP_TO_NEXT)                    == false) { goto fail; }
+	if (create_bind("K",         1, INPUT_JUMP_TO_PREV)                    == false) { goto fail; }
+	if (create_bind("n",         1, INPUT_JUMP_TO_NEXT_UNREAD)             == false) { goto fail; }
+	if (create_bind("N",         1, INPUT_JUMP_TO_PREV_UNREAD)             == false) { goto fail; }
+	if (create_bind("p",         1, INPUT_JUMP_TO_NEXT_IMPORTANT)          == false) { goto fail; }
+	if (create_bind("P",         1, INPUT_JUMP_TO_PREV_IMPORTANT)          == false) { goto fail; }
+	if (create_bind("s",         1, INPUT_SORT_NEXT)                       == false) { goto fail; }
+	if (create_bind("S",         1, INPUT_SORT_PREV)                       == false) { goto fail; }
+	if (create_bind("u",         1, INPUT_TOGGLE_UNREAD_FIRST_SORTING)     == false) { goto fail; }
+	if (create_bind("l",         1, INPUT_ENTER)                           == false) { goto fail; }
+	if (create_bind("^J",        2, INPUT_ENTER)                           == false) { goto fail; }
+	if (create_bind("KEY_RIGHT", 9, INPUT_ENTER)                           == false) { goto fail; }
+	if (create_bind("KEY_ENTER", 9, INPUT_ENTER)                           == false) { goto fail; }
+	if (create_bind("r",         1, INPUT_RELOAD)                          == false) { goto fail; }
+	if (create_bind("^R",        2, INPUT_RELOAD_ALL)                      == false) { goto fail; }
+	if (create_bind2("d",        1, INPUT_MARK_READ, INPUT_JUMP_TO_NEXT)   == false) { goto fail; }
+	if (create_bind2("D",        1, INPUT_MARK_UNREAD, INPUT_JUMP_TO_NEXT) == false) { goto fail; }
+	if (create_bind("^D",        2, INPUT_MARK_READ_ALL)                   == false) { goto fail; }
+	if (create_bind("i",         1, INPUT_MARK_IMPORTANT)                  == false) { goto fail; }
+	if (create_bind("I",         1, INPUT_MARK_UNIMPORTANT)                == false) { goto fail; }
+	if (create_bind("e",         1, INPUT_TOGGLE_EXPLORE_MODE)             == false) { goto fail; }
+	if (create_bind("v",         1, INPUT_STATUS_HISTORY_MENU)             == false) { goto fail; }
+	if (create_bind("o",         1, INPUT_OPEN_IN_BROWSER)                 == false) { goto fail; }
+	if (create_bind("y",         1, INPUT_COPY_TO_CLIPBOARD)               == false) { goto fail; }
+	if (create_bind("c",         1, INPUT_COPY_TO_CLIPBOARD)               == false) { goto fail; }
+	if (create_bind("h",         1, INPUT_QUIT_SOFT)                       == false) { goto fail; }
+	if (create_bind("q",         1, INPUT_QUIT_SOFT)                       == false) { goto fail; }
+	if (create_bind("KEY_LEFT",  8, INPUT_QUIT_SOFT)                       == false) { goto fail; }
+	if (create_bind("KEY_BACKSPACE", 13, INPUT_QUIT_SOFT)                  == false) { goto fail; }
+	if (create_bind("Q",         1, INPUT_QUIT_HARD)                       == false) { goto fail; }
+	return true;
+fail:
+	fputs("Failed to assign default binds!\n", stderr);
+	free_binds();
+	return false;
 }
 
 void
@@ -84,60 +179,10 @@ free_binds(void)
 	INFO("Freeing key binds.");
 	for (size_t i = 0; i < binds_count; ++i) {
 		free_string(binds[i].key);
-		free_wstring(binds[i].cmdcmd);
+		for (size_t j = 0; j < binds[i].actions_count; ++j) {
+			free_wstring(binds[i].actions[j].exec);
+		}
+		free(binds[i].actions);
 	}
 	free(binds);
-}
-
-bool
-assign_default_binds(void)
-{
-	if (bind_action_to_key("j",         1, INPUT_SELECT_NEXT)                  == false) { goto fail; }
-	if (bind_action_to_key("KEY_DOWN",  8, INPUT_SELECT_NEXT)                  == false) { goto fail; }
-	if (bind_action_to_key("k",         1, INPUT_SELECT_PREV)                  == false) { goto fail; }
-	if (bind_action_to_key("KEY_UP",    6, INPUT_SELECT_PREV)                  == false) { goto fail; }
-	if (bind_action_to_key(" ",         1, INPUT_SELECT_NEXT_PAGE)             == false) { goto fail; }
-	if (bind_action_to_key("^F",        2, INPUT_SELECT_NEXT_PAGE)             == false) { goto fail; }
-	if (bind_action_to_key("KEY_NPAGE", 9, INPUT_SELECT_NEXT_PAGE)             == false) { goto fail; }
-	if (bind_action_to_key("^B",        2, INPUT_SELECT_PREV_PAGE)             == false) { goto fail; }
-	if (bind_action_to_key("KEY_PPAGE", 9, INPUT_SELECT_PREV_PAGE)             == false) { goto fail; }
-	if (bind_action_to_key("g",         1, INPUT_SELECT_FIRST)                 == false) { goto fail; }
-	if (bind_action_to_key("KEY_HOME",  8, INPUT_SELECT_FIRST)                 == false) { goto fail; }
-	if (bind_action_to_key("G",         1, INPUT_SELECT_LAST)                  == false) { goto fail; }
-	if (bind_action_to_key("KEY_END",   7, INPUT_SELECT_LAST)                  == false) { goto fail; }
-	if (bind_action_to_key("J",         1, INPUT_JUMP_TO_NEXT)                 == false) { goto fail; }
-	if (bind_action_to_key("K",         1, INPUT_JUMP_TO_PREV)                 == false) { goto fail; }
-	if (bind_action_to_key("n",         1, INPUT_JUMP_TO_NEXT_UNREAD)          == false) { goto fail; }
-	if (bind_action_to_key("N",         1, INPUT_JUMP_TO_PREV_UNREAD)          == false) { goto fail; }
-	if (bind_action_to_key("p",         1, INPUT_JUMP_TO_NEXT_IMPORTANT)       == false) { goto fail; }
-	if (bind_action_to_key("P",         1, INPUT_JUMP_TO_PREV_IMPORTANT)       == false) { goto fail; }
-	if (bind_action_to_key("s",         1, INPUT_SORT_NEXT)                    == false) { goto fail; }
-	if (bind_action_to_key("S",         1, INPUT_SORT_PREV)                    == false) { goto fail; }
-	if (bind_action_to_key("u",         1, INPUT_TOGGLE_UNREAD_FIRST_SORTING)  == false) { goto fail; }
-	if (bind_action_to_key("l",         1, INPUT_ENTER)                        == false) { goto fail; }
-	if (bind_action_to_key("^J",        2, INPUT_ENTER)                        == false) { goto fail; }
-	if (bind_action_to_key("KEY_RIGHT", 9, INPUT_ENTER)                        == false) { goto fail; }
-	if (bind_action_to_key("KEY_ENTER", 9, INPUT_ENTER)                        == false) { goto fail; }
-	if (bind_action_to_key("r",         1, INPUT_RELOAD)                       == false) { goto fail; }
-	if (bind_action_to_key("^R",        2, INPUT_RELOAD_ALL)                   == false) { goto fail; }
-	if (bind_action_to_key("d",         1, INPUT_MARK_READ_AND_JUMP_TO_NEXT)   == false) { goto fail; }
-	if (bind_action_to_key("D",         1, INPUT_MARK_UNREAD_AND_JUMP_TO_NEXT) == false) { goto fail; }
-	if (bind_action_to_key("^D",        2, INPUT_MARK_READ_ALL)                == false) { goto fail; }
-	if (bind_action_to_key("i",         1, INPUT_MARK_IMPORTANT)               == false) { goto fail; }
-	if (bind_action_to_key("I",         1, INPUT_MARK_UNIMPORTANT)             == false) { goto fail; }
-	if (bind_action_to_key("e",         1, INPUT_TOGGLE_EXPLORE_MODE)          == false) { goto fail; }
-	if (bind_action_to_key("v",         1, INPUT_STATUS_HISTORY_MENU)          == false) { goto fail; }
-	if (bind_action_to_key("o",         1, INPUT_OPEN_IN_BROWSER)              == false) { goto fail; }
-	if (bind_action_to_key("y",         1, INPUT_COPY_TO_CLIPBOARD)            == false) { goto fail; }
-	if (bind_action_to_key("c",         1, INPUT_COPY_TO_CLIPBOARD)            == false) { goto fail; }
-	if (bind_action_to_key("h",         1, INPUT_QUIT_SOFT)                    == false) { goto fail; }
-	if (bind_action_to_key("q",         1, INPUT_QUIT_SOFT)                    == false) { goto fail; }
-	if (bind_action_to_key("KEY_LEFT",  8, INPUT_QUIT_SOFT)                    == false) { goto fail; }
-	if (bind_action_to_key("KEY_BACKSPACE", 13, INPUT_QUIT_SOFT)               == false) { goto fail; }
-	if (bind_action_to_key("Q",         1, INPUT_QUIT_HARD)                    == false) { goto fail; }
-	return true;
-fail:
-	fputs("Failed to assign default binds!\n", stderr);
-	free_binds();
-	return false;
 }

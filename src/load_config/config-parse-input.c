@@ -26,10 +26,7 @@ static const struct input_entry_match entries[] = {
 	{"reload",                            INPUT_RELOAD                           },
 	{"reload-all",                        INPUT_RELOAD_ALL                       },
 	{"mark-read",                         INPUT_MARK_READ                        },
-	{"mark-read-and-jump-to-next",        INPUT_MARK_READ_AND_JUMP_TO_NEXT       },
-	{"mark-read-and-jump-to-next-unread", INPUT_MARK_READ_AND_JUMP_TO_NEXT_UNREAD},
 	{"mark-unread",                       INPUT_MARK_UNREAD                      },
-	{"mark-unread-and-jump-to-next",      INPUT_MARK_UNREAD_AND_JUMP_TO_NEXT     },
 	{"mark-read-all",                     INPUT_MARK_READ_ALL                    },
 	{"mark-unread-all",                   INPUT_MARK_UNREAD_ALL                  },
 	{"mark-important",                    INPUT_MARK_IMPORTANT                   },
@@ -51,5 +48,6 @@ get_input_cmd_id_by_name(const char *name)
 			return entries[i].value;
 		}
 	}
+	fprintf(stderr, "Action \"%s\" doesn't exist!\n", name);
 	return INPUT_ERROR;
 }

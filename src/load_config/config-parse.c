@@ -73,7 +73,7 @@ error:
 }
 
 static inline bool
-process_bind_line(char *line, size_t line_len)
+process_bind_line(char *line)
 {
 	char *i = line;
 	size_t key_len = 0;
@@ -89,23 +89,43 @@ process_bind_line(char *line, size_t line_len)
 		*line = ' ';
 		key_len = 1;
 	}
-	while (ISWHITESPACE(*i)) {
-		i += 1;
+	ssize_t bind_index = create_empty_bind_or_clean_existing(line, key_len);
+	if (bind_index < 0) {
+		return false;
 	}
-	if ((strncmp(i, "exec", 4) == 0) && (ISWHITESPACE(i[4]))) {
-		i += 5;
+	while (true) {
 		while (ISWHITESPACE(*i)) {
 			i += 1;
 		}
-		return create_macro(line, key_len, i, line_len + line - i);
-	} else {
-		input_cmd_id cmd = get_input_cmd_id_by_name(i);
-		if (cmd == INPUT_ERROR) {
-			fprintf(stderr, "Action \"%s\" doesn't exist!\n", i);
-			return false;
+		char *border = strchr(i, ';');
+		if (border != NULL) {
+			if (border == i) {
+				i += 1;
+				continue;
+			}
+			*border = '\0';
 		}
-		return bind_action_to_key(line, key_len, cmd);
+		if ((strncmp(i, "exec", 4) == 0) && (ISWHITESPACE(i[4]))) {
+			i += 5;
+			while (ISWHITESPACE(*i)) {
+				i += 1;
+			}
+			if (attach_exec_action_to_bind(bind_index, i, strlen(i)) == false) {
+				return false;
+			}
+		} else {
+			input_cmd_id cmd = get_input_cmd_id_by_name(i);
+			if (cmd == INPUT_ERROR || attach_cmd_action_to_bind(bind_index, cmd) == false) {
+				return false;
+			}
+		}
+		if (border != NULL) {
+			i = border + 1;
+		} else {
+			break;
+		}
 	}
+	return true;
 }
 
 bool
@@ -169,11 +189,11 @@ parse_config_file(void)
 				goto error;
 			}
 		} else if (strncmp(type, "bind", type_len) == 0) {
-			if (process_bind_line(line, line_len) == false) {
+			if (process_bind_line(line) == false) {
 				goto error;
 			}
 		} else if (strncmp(type, "unbind", type_len) == 0) {
-			if (bind_action_to_key(line, line_len, INPUT_ERROR) == false) {
+			if (create_empty_bind_or_clean_existing(line, line_len) < 0) {
 				goto error;
 			}
 		} else {

@@ -6,14 +6,13 @@
 static inline bool
 process_set_line(char *line)
 {
-	char *i = line;
-	while (*i != '\0') {
+	char *i;
+	for (i = line; *i != '\0'; ++i) {
 		if (ISWHITESPACE(*i)) {
 			*i = '\0';
 			i += 1;
 			break;
 		}
-		i += 1;
 	}
 	config_entry_id id = find_config_entry_by_name(line);
 	if (id == CFG_ENTRIES_COUNT) {
@@ -75,17 +74,16 @@ error:
 static inline bool
 process_bind_line(char *line)
 {
-	char *i = line;
+	char *i;
 	size_t key_len = 0;
-	while (*i != '\0') {
+	for (i = line; *i != '\0'; ++i) {
 		if (ISWHITESPACE(*i)) {
 			key_len = i - line;
 			i += 1;
 			break;
 		}
-		i += 1;
 	}
-	if ((key_len == 5) && (strncmp("space", line, key_len) == 0)) {
+	if ((key_len == 5) && (memcmp(line, "space", 5) == 0)) {
 		*line = ' ';
 		key_len = 1;
 	}
@@ -97,6 +95,7 @@ process_bind_line(char *line)
 		while (ISWHITESPACE(*i)) {
 			i += 1;
 		}
+		if (*i == '\0') break;
 		char *border = strchr(i, ';');
 		if (border != NULL) {
 			if (border == i) {
@@ -119,11 +118,8 @@ process_bind_line(char *line)
 				return false;
 			}
 		}
-		if (border != NULL) {
-			i = border + 1;
-		} else {
-			break;
-		}
+		if (border == NULL) break;
+		i = border + 1;
 	}
 	return true;
 }

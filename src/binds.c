@@ -63,45 +63,33 @@ create_empty_bind_or_clean_existing(const char *key_name, size_t key_name_len)
 	return -1;
 }
 
-static inline struct binding_action *
-attach_empty_action_to_bind(ssize_t bind_index)
+static inline bool
+attach_action_to_bind(ssize_t bind_index, input_cmd_id cmd, struct wstring *exec)
 {
 	struct binding_action *tmp = realloc(binds[bind_index].actions, sizeof(struct binding_action) * (binds[bind_index].actions_count + 1));
 	if (tmp != NULL) {
 		binds[bind_index].actions = tmp;
-		binds[bind_index].actions[binds[bind_index].actions_count].cmd = INPUT_ERROR;
-		binds[bind_index].actions[binds[bind_index].actions_count].exec = NULL;
+		binds[bind_index].actions[binds[bind_index].actions_count].cmd = cmd;
+		binds[bind_index].actions[binds[bind_index].actions_count].exec = exec;
 		binds[bind_index].actions_count += 1;
-		INFO("Attached empty action to %s key.", binds[bind_index].key->ptr);
-		return binds[bind_index].actions + binds[bind_index].actions_count - 1;
+		INFO("Attached action: %14s, %zu, %2u, %ls", binds[bind_index].key->ptr, binds[bind_index].actions_count, cmd, exec == NULL ? L"none" : exec->ptr);
+		return true;
 	}
 	fputs("Not enough memory for binding!\n", stderr);
-	return NULL;
+	return false;
 }
 
 bool
 attach_cmd_action_to_bind(ssize_t bind_index, input_cmd_id cmd_action)
 {
-	struct binding_action *action = attach_empty_action_to_bind(bind_index);
-	if (action == NULL) return false;
-	action->cmd = cmd_action;
-	INFO("Set action to %u command.", cmd_action);
-	return true;
+	return attach_action_to_bind(bind_index, cmd_action, NULL);
 }
 
 bool
 attach_exec_action_to_bind(ssize_t bind_index, const char *exec, size_t exec_len)
 {
-	struct binding_action *action = attach_empty_action_to_bind(bind_index);
-	if (action == NULL) return false;
-	action->exec = convert_array_to_wstring(exec, exec_len);
-	if (action->exec == NULL) {
-		fputs("Not enough memory for exec action!\n", stderr);
-		return false;
-	}
-	action->cmd = INPUT_SYSTEM_COMMAND;
-	INFO("Set action to \"%ls\" command.", action->exec->ptr);
-	return true;
+	struct wstring *wstr = convert_array_to_wstring(exec, exec_len);
+	return wstr != NULL && attach_action_to_bind(bind_index, INPUT_SYSTEM_COMMAND, wstr);
 }
 
 static bool

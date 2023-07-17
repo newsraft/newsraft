@@ -176,10 +176,9 @@ enter_items_menu_loop(struct feed_entry **new_feeds, size_t new_feeds_count, boo
 	const size_t *view_sel = enter_list_menu(ITEMS_MENU, is_explore_mode ? CFG_MENU_EXPLORE_ITEM_ENTRY_FORMAT : CFG_MENU_ITEM_ENTRY_FORMAT, true);
 
 	input_cmd_id cmd;
-	uint32_t count;
 	const struct wstring *macro;
 	while (true) {
-		cmd = get_input_command(&count, &macro);
+		cmd = get_input_command(NULL, &macro);
 		pthread_mutex_lock(&items_lock);
 		if (handle_list_menu_control(ITEMS_MENU, cmd, macro) == true) {
 			// Rest a little.

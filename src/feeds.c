@@ -109,9 +109,8 @@ enter_feeds_menu_loop(struct feed_entry **new_feeds, size_t new_feeds_count)
 	}
 	const size_t *view_sel = enter_list_menu(FEEDS_MENU, CFG_MENU_FEED_ENTRY_FORMAT, true);
 	while (true) {
-		uint32_t count;
 		const struct wstring *macro;
-		cmd = get_input_command(&count, &macro);
+		cmd = get_input_command(NULL, &macro);
 		if (handle_list_menu_control(FEEDS_MENU, cmd, macro) == true) {
 			// Rest a little.
 		} else if (cmd == INPUT_MARK_READ_ALL) {

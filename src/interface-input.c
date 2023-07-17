@@ -84,7 +84,7 @@ get_input_command(uint32_t *count, const struct wstring **macro_ptr)
 		INFO("Received \"%c\" character with %d key code.", c, c);
 		if (isdigit(c) == 0) {
 			count_buf[count_buf_len] = '\0';
-			if (sscanf(count_buf, "%" SCNu32, count) != 1) {
+			if (count != NULL && sscanf(count_buf, "%" SCNu32, count) != 1) {
 				*count = 1;
 			}
 			count_buf_len = 0;

@@ -25,10 +25,9 @@ enter_status_pager_view_loop(void)
 	}
 	enter_list_menu(PAGER_MENU, CFG_MENU_SECTION_ENTRY_FORMAT, true);
 	input_cmd_id cmd;
-	uint32_t count;
 	const struct wstring *macro;
 	while (true) {
-		cmd = get_input_command(&count, &macro);
+		cmd = get_input_command(NULL, &macro);
 		if (handle_pager_menu_control(cmd) == true) {
 			// Rest a little.
 		} else if ((cmd == INPUT_QUIT_SOFT) || (cmd == INPUT_QUIT_HARD)) {

@@ -312,9 +312,8 @@ enter_sections_menu_loop(void)
 	}
 	const size_t *view_sel = enter_list_menu(SECTIONS_MENU, CFG_MENU_SECTION_ENTRY_FORMAT, true);
 	while (true) {
-		uint32_t count;
 		const struct wstring *macro;
-		cmd = get_input_command(&count, &macro);
+		cmd = get_input_command(NULL, &macro);
 		if (handle_list_menu_control(SECTIONS_MENU, cmd, macro) == true) {
 			// Rest a little.
 		} else if (cmd == INPUT_MARK_READ_ALL) {

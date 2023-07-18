@@ -16,6 +16,7 @@ static struct format_arg fmt_args[] = {
 	{L'L',  L"s", {.s = NULL}},
 	{L'T',  L"s", {.s = NULL}},
 	{L'O',  L"s", {.s = NULL}},
+	{L'D',  L"s", {.s = NULL}},
 	{L'\0', NULL, {.i = 0   }}, // terminator
 };
 
@@ -41,6 +42,7 @@ get_item_entry_args(size_t index)
 	fmt_args[6].value.s = items->ptr[index].feed->link->ptr;
 	fmt_args[7].value.s = items->ptr[index].feed->name ? items->ptr[index].feed->name->ptr : "";
 	fmt_args[8].value.s = items->ptr[index].feed->name ? items->ptr[index].feed->name->ptr : items->ptr[index].feed->link->ptr;
+	fmt_args[9].value.s = items->ptr[index].pub_date_str->ptr;
 	return fmt_args;
 }
 

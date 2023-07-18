@@ -220,6 +220,7 @@ struct item_entry {
 	int64_t pub_date;
 	int64_t upd_date;
 	struct string *date_str;
+	struct string *pub_date_str;
 };
 
 struct items_list {

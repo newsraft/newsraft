@@ -292,7 +292,8 @@ _menu-item-entry-format_ (default: *" %u │ %d │ %o"*)
 	- *o* - item title if set, item link otherwise;
 	- *L* - feed link;
 	- *T* - feed title;
-	- *O* - feed title if set, feed link otherwise.
+	- *O* - feed title if set, feed link otherwise;
+	- *D* - published date formatted according to _list-entry-date-format_.
 
 _menu-explore-item-entry-format_ (default: *" %u │ %d │ %-28.28O │ %o"*)
 	Format of the item list entries in explore mode. Specifiers are the same as

@@ -47,6 +47,7 @@ free_items_list(struct items_list *items)
 			free_string(items->ptr[i].title);
 			free_string(items->ptr[i].url);
 			free_string(items->ptr[i].date_str);
+			free_string(items->ptr[i].pub_date_str);
 		}
 		sqlite3_finalize(items->res);
 		free_string(items->query);
@@ -115,6 +116,7 @@ obtain_items_at_least_up_to_the_given_index(struct items_list *items, size_t ind
 			max_date = items->ptr[items->len].upd_date;
 		}
 		items->ptr[items->len].date_str = get_config_date_str(max_date, CFG_LIST_ENTRY_DATE_FORMAT);
+		items->ptr[items->len].pub_date_str = get_config_date_str(items->ptr[items->len].pub_date, CFG_LIST_ENTRY_DATE_FORMAT);
 
 		items->ptr[items->len].is_unread = sqlite3_column_int(items->res, 6); // unread
 		items->ptr[items->len].is_important = sqlite3_column_int(items->res, 7); // important

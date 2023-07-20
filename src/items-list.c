@@ -154,7 +154,7 @@ create_items_list(struct feed_entry **feeds, size_t feeds_count, sorting_order o
 		goto undo2;
 	}
 	for (size_t i = 0; i < feeds_count; ++i) {
-		sqlite3_bind_text(items->res, i + 1, feeds[i]->link->ptr, feeds[i]->link->len, SQLITE_STATIC);
+		db_bind_string(items->res, i + 1, feeds[i]->link);
 	}
 	obtain_items_at_least_up_to_the_given_index(items, 0);
 	if (items->len < 1) {

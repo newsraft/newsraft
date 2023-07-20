@@ -56,44 +56,37 @@ get_feeds_path(void)
 
 	FILE *f;
 	char *env_var = getenv("XDG_CONFIG_HOME");
-	size_t env_var_len;
 
 	// Order in which to look up a feeds file:
 	// 1. $XDG_CONFIG_HOME/newsraft/feeds
 	// 2. $HOME/.config/newsraft/feeds
 	// 3. $HOME/.newsraft/feeds
 
-	if (env_var != NULL) {
-		env_var_len = strlen(env_var);
-		if (env_var_len != 0) {
-			strcpy(feeds_file_path, env_var);
-			strcat(feeds_file_path, "/newsraft/feeds");
-			f = fopen(feeds_file_path, "r");
-			if (f != NULL) {
-				fclose(f);
-				return feeds_file_path; // 1
-			}
+	if (env_var != NULL && strlen(env_var) != 0) {
+		strcpy(feeds_file_path, env_var);
+		strcat(feeds_file_path, "/newsraft/feeds");
+		f = fopen(feeds_file_path, "r");
+		if (f != NULL) {
+			fclose(f);
+			return feeds_file_path; // 1
 		}
 	}
 
 	env_var = getenv("HOME");
-	if (env_var != NULL) {
-		env_var_len = strlen(env_var);
-		if (env_var_len != 0) {
-			strcpy(feeds_file_path, env_var);
-			strcat(feeds_file_path, "/.config/newsraft/feeds");
-			f = fopen(feeds_file_path, "r");
-			if (f != NULL) {
-				fclose(f);
-				return feeds_file_path; // 2
-			}
-			strcpy(feeds_file_path, env_var);
-			strcat(feeds_file_path, "/.newsraft/feeds");
-			f = fopen(feeds_file_path, "r");
-			if (f != NULL) {
-				fclose(f);
-				return feeds_file_path; // 3
-			}
+	if (env_var != NULL && strlen(env_var) != 0) {
+		strcpy(feeds_file_path, env_var);
+		strcat(feeds_file_path, "/.config/newsraft/feeds");
+		f = fopen(feeds_file_path, "r");
+		if (f != NULL) {
+			fclose(f);
+			return feeds_file_path; // 2
+		}
+		strcpy(feeds_file_path, env_var);
+		strcat(feeds_file_path, "/.newsraft/feeds");
+		f = fopen(feeds_file_path, "r");
+		if (f != NULL) {
+			fclose(f);
+			return feeds_file_path; // 3
 		}
 	}
 
@@ -110,44 +103,37 @@ get_config_path(void)
 
 	FILE *f;
 	char *env_var = getenv("XDG_CONFIG_HOME");
-	size_t env_var_len;
 
 	// Order in which to look up a config file:
 	// 1. $XDG_CONFIG_HOME/newsraft/config
 	// 2. $HOME/.config/newsraft/config
 	// 3. $HOME/.newsraft/config
 
-	if (env_var != NULL) {
-		env_var_len = strlen(env_var);
-		if (env_var_len != 0) {
-			strcpy(config_file_path, env_var);
-			strcat(config_file_path, "/newsraft/config");
-			f = fopen(config_file_path, "r");
-			if (f != NULL) {
-				fclose(f);
-				return config_file_path; // 1
-			}
+	if (env_var != NULL && strlen(env_var) != 0) {
+		strcpy(config_file_path, env_var);
+		strcat(config_file_path, "/newsraft/config");
+		f = fopen(config_file_path, "r");
+		if (f != NULL) {
+			fclose(f);
+			return config_file_path; // 1
 		}
 	}
 
 	env_var = getenv("HOME");
-	if (env_var != NULL) {
-		env_var_len = strlen(env_var);
-		if (env_var_len != 0) {
-			strcpy(config_file_path, env_var);
-			strcat(config_file_path, "/.config/newsraft/config");
-			f = fopen(config_file_path, "r");
-			if (f != NULL) {
-				fclose(f);
-				return config_file_path; // 2
-			}
-			strcpy(config_file_path, env_var);
-			strcat(config_file_path, "/.newsraft/config");
-			f = fopen(config_file_path, "r");
-			if (f != NULL) {
-				fclose(f);
-				return config_file_path; // 3
-			}
+	if (env_var != NULL && strlen(env_var) != 0) {
+		strcpy(config_file_path, env_var);
+		strcat(config_file_path, "/.config/newsraft/config");
+		f = fopen(config_file_path, "r");
+		if (f != NULL) {
+			fclose(f);
+			return config_file_path; // 2
+		}
+		strcpy(config_file_path, env_var);
+		strcat(config_file_path, "/.newsraft/config");
+		f = fopen(config_file_path, "r");
+		if (f != NULL) {
+			fclose(f);
+			return config_file_path; // 3
 		}
 	}
 
@@ -170,39 +156,33 @@ get_db_path(void)
 	FILE *f;
 
 	char *xdg_data_home_var = getenv("XDG_DATA_HOME");
-	size_t xdg_data_home_var_len = 0;
-	if (xdg_data_home_var != NULL) {
-		xdg_data_home_var_len = strlen(xdg_data_home_var);
-		if (xdg_data_home_var_len != 0) {
-			strcpy(db_file_path, xdg_data_home_var);
-			strcat(db_file_path, "/newsraft/newsraft.sqlite3");
-			f = fopen(db_file_path, "r");
-			if (f != NULL) {
-				fclose(f);
-				return db_file_path; // 1
-			}
+	size_t xdg_data_home_var_len = xdg_data_home_var != NULL ? strlen(xdg_data_home_var) : 0;
+	if (xdg_data_home_var != NULL && xdg_data_home_var_len != 0) {
+		strcpy(db_file_path, xdg_data_home_var);
+		strcat(db_file_path, "/newsraft/newsraft.sqlite3");
+		f = fopen(db_file_path, "r");
+		if (f != NULL) {
+			fclose(f);
+			return db_file_path; // 1
 		}
 	}
 
 	char *home_var = getenv("HOME");
-	size_t home_var_len = 0;
-	if (home_var != NULL) {
-		home_var_len = strlen(home_var);
-		if (home_var_len != 0) {
-			strcpy(db_file_path, home_var);
-			strcat(db_file_path, "/.local/share/newsraft/newsraft.sqlite3");
-			f = fopen(db_file_path, "r");
-			if (f != NULL) {
-				fclose(f);
-				return db_file_path; // 2
-			}
-			strcpy(db_file_path, home_var);
-			strcat(db_file_path, "/.newsraft/newsraft.sqlite3");
-			f = fopen(db_file_path, "r");
-			if (f != NULL) {
-				fclose(f);
-				return db_file_path; // 3
-			}
+	size_t home_var_len = home_var != NULL ? strlen(home_var) : 0;
+	if (home_var != NULL && home_var_len != 0) {
+		strcpy(db_file_path, home_var);
+		strcat(db_file_path, "/.local/share/newsraft/newsraft.sqlite3");
+		f = fopen(db_file_path, "r");
+		if (f != NULL) {
+			fclose(f);
+			return db_file_path; // 2
+		}
+		strcpy(db_file_path, home_var);
+		strcat(db_file_path, "/.newsraft/newsraft.sqlite3");
+		f = fopen(db_file_path, "r");
+		if (f != NULL) {
+			fclose(f);
+			return db_file_path; // 3
 		}
 	}
 
@@ -211,7 +191,7 @@ get_db_path(void)
 
 	DIR *d;
 
-	if ((xdg_data_home_var != NULL) && (xdg_data_home_var_len != 0)) {
+	if (xdg_data_home_var != NULL && xdg_data_home_var_len != 0) {
 		strcpy(db_file_path, xdg_data_home_var);
 		mkdir(db_file_path, 0777);
 		strcat(db_file_path, "/newsraft");
@@ -224,7 +204,7 @@ get_db_path(void)
 		} else {
 			fprintf(stderr, "Failed to create \"%s\" directory!\n", db_file_path);
 		}
-	} else if ((home_var != NULL) && (home_var_len != 0)) {
+	} else if (home_var != NULL && home_var_len != 0) {
 		strcpy(db_file_path, home_var);
 		mkdir(db_file_path, 0777);
 		strcat(db_file_path, "/.local");
@@ -242,7 +222,7 @@ get_db_path(void)
 			fprintf(stderr, "Failed to create \"%s\" directory!\n", db_file_path);
 		}
 	} else {
-		fputs("Neither XDG_DATA_HOME or HOME is set!\n", stderr);
+		fputs("Neither XDG_DATA_HOME nor HOME environment variables are set!\n", stderr);
 	}
 
 	fputs("Failed to get database file path!\n", stderr);

@@ -113,7 +113,7 @@ the name of the section must be specified. For example:
 Comment lines start with # character. These lines are completely ignored. For
 example:
 
-	_# You will gain from using it, for sure._
+	_# Look closely. The beautiful may be small._
 
 Both feed and section lines allow you to set an auto update counter at the end,
 which will force section or feed related to this line to be automatically
@@ -190,7 +190,7 @@ you can use a line according to this format:
 Comment lines start with # character. These lines are completely ignored. For
 example:
 
-	_# Look closely, the beautiful may be small._
+	_# Good design is as little design as possible._
 
 Search precedence:
 . _$XDG_CONFIG_HOME_/newsraft/config
@@ -269,31 +269,31 @@ _list-entry-date-format_ (default: *%b %d*)
 	*strftime*(3) format.
 
 _menu-section-entry-format_ (default: *%5.0u @ %t*)
-	Format of the section list entries. Specifiers are as follows:
-	- *n* - index number;
-	- *u* - unread items count;
-	- *t* - section title.
+	Format of the section list entries. Specifiers are as follows:++
+*n*	index number;++
+*u*	unread items count;++
+*t*	section title.
 
 _menu-feed-entry-format_ (default: *%5.0u │ %o*)
-	Format of the feed list entries. Specifiers are as follows:
-	- *n* - index number;
-	- *u* - unread items count;
-	- *l* - feed link;
-	- *t* - feed title;
-	- *o* - feed title if set, feed link otherwise.
+	Format of the feed list entries. Specifiers are as follows:++
+*n*	index number;++
+*u*	unread items count;++
+*l*	feed link;++
+*t*	feed title;++
+*o*	feed title if set, feed link otherwise.
 
 _menu-item-entry-format_ (default: *" %u │ %d │ %o"*)
-	Format of the item list entries. Specifiers are as follows:
-	- *n* - index number;
-	- *u* - "N" if item is unread, " " otherwise;
-	- *d* - update date formatted according to _list-entry-date-format_;
-	- *l* - item link;
-	- *t* - item title;
-	- *o* - item title if set, item link otherwise;
-	- *L* - feed link;
-	- *T* - feed title;
-	- *O* - feed title if set, feed link otherwise;
-	- *D* - published date formatted according to _list-entry-date-format_.
+	Format of the item list entries. Specifiers are as follows:++
+*n*	index number;++
+*u*	"N" if item is unread, " " otherwise;++
+*d*	update date formatted according to _list-entry-date-format_;++
+*D*	publication date formatted according to _list-entry-date-format_;++
+*l*	item link;++
+*t*	item title;++
+*o*	item title if set, item link otherwise;++
+*L*	feed link;++
+*T*	feed title;++
+*O*	feed title if set, feed link otherwise.
 
 _menu-explore-item-entry-format_ (default: *" %u │ %d │ %-28.28O │ %o"*)
 	Format of the item list entries in explore mode. Specifiers are the same as

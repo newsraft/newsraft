@@ -10,13 +10,13 @@ static struct format_arg fmt_args[] = {
 	{L'n',  L"d", {.i = 0   }},
 	{L'u',  L"c", {.c = '\0'}},
 	{L'd',  L"s", {.s = NULL}},
+	{L'D',  L"s", {.s = NULL}},
 	{L'l',  L"s", {.s = NULL}},
 	{L't',  L"s", {.s = NULL}},
 	{L'o',  L"s", {.s = NULL}},
 	{L'L',  L"s", {.s = NULL}},
 	{L'T',  L"s", {.s = NULL}},
 	{L'O',  L"s", {.s = NULL}},
-	{L'D',  L"s", {.s = NULL}},
 	{L'\0', NULL, {.i = 0   }}, // terminator
 };
 
@@ -36,13 +36,13 @@ get_item_entry_args(size_t index)
 	fmt_args[0].value.i = index + 1;
 	fmt_args[1].value.c = items->ptr[index].is_unread == true ? 'N' : ' ';
 	fmt_args[2].value.s = items->ptr[index].date_str->ptr;
-	fmt_args[3].value.s = items->ptr[index].url->ptr;
-	fmt_args[4].value.s = items->ptr[index].title ? items->ptr[index].title->ptr : "";
-	fmt_args[5].value.s = items->ptr[index].title ? items->ptr[index].title->ptr : items->ptr[index].url->ptr;
-	fmt_args[6].value.s = items->ptr[index].feed->link->ptr;
-	fmt_args[7].value.s = items->ptr[index].feed->name ? items->ptr[index].feed->name->ptr : "";
-	fmt_args[8].value.s = items->ptr[index].feed->name ? items->ptr[index].feed->name->ptr : items->ptr[index].feed->link->ptr;
-	fmt_args[9].value.s = items->ptr[index].pub_date_str->ptr;
+	fmt_args[3].value.s = items->ptr[index].pub_date_str->ptr;
+	fmt_args[4].value.s = items->ptr[index].url->ptr;
+	fmt_args[5].value.s = items->ptr[index].title ? items->ptr[index].title->ptr : "";
+	fmt_args[6].value.s = items->ptr[index].title ? items->ptr[index].title->ptr : items->ptr[index].url->ptr;
+	fmt_args[7].value.s = items->ptr[index].feed->link->ptr;
+	fmt_args[8].value.s = items->ptr[index].feed->name ? items->ptr[index].feed->name->ptr : "";
+	fmt_args[9].value.s = items->ptr[index].feed->name ? items->ptr[index].feed->name->ptr : items->ptr[index].feed->link->ptr;
 	return fmt_args;
 }
 

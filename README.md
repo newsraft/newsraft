@@ -14,7 +14,7 @@ counterpart. The design differences between these projects are mentioned in the
 |--------------------------------------------------------------------|-----------|------------------------|
 | [curl](https://curl.se)                                            | >= 7.87.0 | required               |
 | [expat](https://github.com/libexpat/libexpat)                      | >= 2.4.8  | required               |
-| [gumbo](https://github.com/google/gumbo-parser)                    | >= 0.10.1 | required               |
+| [gumbo-parser](https://codeberg.org/grisha/gumbo-parser)           | >= 0.11.0 | required               |
 | [ncursesw](https://invisible-island.net/ncurses)                   | >= 6.2    | required               |
 | [sqlite](https://www.sqlite.org)                                   | >= 3.36.0 | required               |
 | [yajl](https://github.com/lloyd/yajl)                              | >= 2.1.0  | required               |

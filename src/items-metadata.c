@@ -28,7 +28,7 @@ append_feed_line(struct render_blocks_list *blocks, const struct item_entry *ite
 		}
 	}
 	inlinefy_string(data);
-	if (join_render_block(blocks, data->ptr, data->len, TEXT_RAW) == false) {
+	if (join_render_block(blocks, data->ptr, data->len, TEXT_RAW, 1) == false) {
 		goto error;
 	}
 	free_string(data);
@@ -50,7 +50,7 @@ append_line(struct render_blocks_list *blocks, const struct item_entry *item, sq
 	if (data != NULL) {
 		if (catss(data, text) == true) {
 			inlinefy_string(data);
-			if (join_render_block(blocks, data->ptr, data->len, TEXT_RAW) == true) {
+			if (join_render_block(blocks, data->ptr, data->len, TEXT_RAW, 1) == true) {
 				free_string(data);
 				return true;
 			}
@@ -79,7 +79,7 @@ append_date(struct render_blocks_list *blocks, const struct item_entry *item, sq
 		if (catcs(date_str, ')') == false) goto error;
 	}
 	if (catss(date_entry, date_str) == false) goto error;
-	if (join_render_block(blocks, date_entry->ptr, date_entry->len, TEXT_RAW) == false) goto error;
+	if (join_render_block(blocks, date_entry->ptr, date_entry->len, TEXT_RAW, 1) == false) goto error;
 	free_string(date_entry);
 	free_string(date_str);
 	return true;
@@ -108,7 +108,7 @@ append_persons(struct render_blocks_list *blocks, const struct item_entry *item,
 	struct string *block_text = crtas(entry->tooltip, entry->tooltip_len);
 	if (block_text != NULL) {
 		if (catss(block_text, persons) == true) {
-			if (join_render_block(blocks, block_text->ptr, block_text->len, TEXT_RAW) == true) {
+			if (join_render_block(blocks, block_text->ptr, block_text->len, TEXT_RAW, 1) == true) {
 				free_string(persons);
 				free_string(block_text);
 				return true;
@@ -143,8 +143,7 @@ append_max_content(struct render_blocks_list *blocks, const struct item_entry *i
 		}
 	}
 	if (text->len != 0) {
-		join_render_separator(blocks);
-		if (join_render_block(blocks, text->ptr, text->len, type) == false) {
+		if (join_render_block(blocks, text->ptr, text->len, type, 2) == false) {
 			goto error;
 		}
 	}

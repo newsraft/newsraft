@@ -2,7 +2,7 @@
 #include "newsraft.h"
 
 bool
-join_render_block(struct render_blocks_list *blocks, const char *content, size_t content_len, render_block_format content_type)
+join_render_block(struct render_blocks_list *blocks, const char *content, size_t content_len, render_block_format content_type, size_t separators_count)
 {
 	void *tmp = realloc(blocks->ptr, sizeof(struct render_block) * (blocks->len + 1));
 	if (tmp == NULL) {
@@ -13,18 +13,13 @@ join_render_block(struct render_blocks_list *blocks, const char *content, size_t
 	if (blocks->ptr[blocks->len].content == NULL) {
 		return false;
 	}
+	if (blocks->len > 0) {
+		blocks->ptr[blocks->len - 1].separators_count = separators_count;
+	}
 	blocks->ptr[blocks->len].content_type = content_type;
-	blocks->ptr[blocks->len].separators_count = 1;
+	blocks->ptr[blocks->len].separators_count = 0;
 	blocks->len += 1;
 	return true;
-}
-
-void
-join_render_separator(struct render_blocks_list *blocks)
-{
-	if (blocks->len > 0) {
-		blocks->ptr[blocks->len - 1].separators_count += 1;
-	}
 }
 
 void

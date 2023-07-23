@@ -358,8 +358,7 @@ int enter_item_pager_view_loop(struct items_list *items, const size_t *view_sel)
 // is passed to render_data function which processes them based on their types
 // and generates a single plain text buffer for a pager to display.
 // See "render-block.c" file for implementation.
-bool join_render_block(struct render_blocks_list *blocks, const char *content, size_t content_len, render_block_format content_type);
-void join_render_separator(struct render_blocks_list *blocks);
+bool join_render_block(struct render_blocks_list *blocks, const char *content, size_t content_len, render_block_format content_type, size_t separators_count);
 void free_render_blocks(struct render_blocks_list *blocks);
 
 // Here we extract links from texts of render_block entries into links_list and

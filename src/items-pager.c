@@ -13,8 +13,7 @@ join_links_render_block(struct render_blocks_list *blocks, struct links_list *li
 	if (str == NULL) {
 		return false;
 	}
-	join_render_separator(blocks);
-	join_render_block(blocks, str->ptr, str->len, TEXT_RAW);
+	join_render_block(blocks, str->ptr, str->len, TEXT_RAW, 2);
 	free_string(str);
 	return true;
 }

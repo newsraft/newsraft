@@ -72,14 +72,14 @@ error:
 }
 
 static inline bool
-process_bind_line(char *line)
+process_bind_or_unbind_line(char *line)
 {
-	char *i;
+	char *i = line;
 	size_t key_len = 0;
-	for (i = line; *i != '\0'; ++i) {
-		if (ISWHITESPACE(*i)) {
+	for (; ; ++i) {
+		if (ISWHITESPACE(*i) || *i == '\0') {
 			key_len = i - line;
-			i += 1;
+			if (*i != '\0') i += 1;
 			break;
 		}
 	}
@@ -92,17 +92,17 @@ process_bind_line(char *line)
 		return false;
 	}
 	while (true) {
-		while (ISWHITESPACE(*i)) {
+		while (ISWHITESPACE(*i) || *i == ';') {
 			i += 1;
 		}
 		if (*i == '\0') break;
 		char *border = strchr(i, ';');
 		if (border != NULL) {
-			if (border == i) {
-				i += 1;
-				continue;
-			}
 			*border = '\0';
+			// Remove whitespace before semicolon.
+			for (char *j = border - 1; ISWHITESPACE(*j); --j) {
+				*j = '\0';
+			}
 		}
 		if ((strncmp(i, "exec", 4) == 0) && (ISWHITESPACE(i[4]))) {
 			i += 5;
@@ -184,12 +184,8 @@ parse_config_file(void)
 			if (process_set_line(line) == false) {
 				goto error;
 			}
-		} else if (strncmp(type, "bind", type_len) == 0) {
-			if (process_bind_line(line) == false) {
-				goto error;
-			}
-		} else if (strncmp(type, "unbind", type_len) == 0) {
-			if (create_empty_bind_or_clean_existing(line, line_len) < 0) {
+		} else if (strncmp(type, "bind", type_len) == 0 || strncmp(type, "unbind", type_len) == 0) {
+			if (process_bind_or_unbind_line(line) == false) {
 				goto error;
 			}
 		} else {

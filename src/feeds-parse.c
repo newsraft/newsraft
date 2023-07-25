@@ -13,15 +13,16 @@ remove_trailing_slashes_from_string(struct string *str)
 static inline bool
 check_url_for_validity(const struct string *url)
 {
-	if ((strncmp(url->ptr, "http://", 7) != 0)
-		&& (strncmp(url->ptr, "https://", 8) != 0)
-		&& (strncmp(url->ptr, "ftp://", 6) != 0)
-		&& (strncmp(url->ptr, "gopher://", 9) != 0)
-		&& (strncmp(url->ptr, "file://", 7) != 0))
+	if (strncmp(url->ptr, "http://", 7) != 0
+		&& strncmp(url->ptr, "https://", 8) != 0
+		&& strncmp(url->ptr, "ftp://", 6) != 0
+		&& strncmp(url->ptr, "file://", 7) != 0
+		&& strncmp(url->ptr, "gopher://", 9) != 0
+		&& strncmp(url->ptr, "gophers://", 10) != 0)
 	{
 		fprintf(stderr, "Stumbled across an invalid URL: \"%s\"!\n", url->ptr);
 		fputs("Every feed URL must start with a protocol scheme like \"http://\".\n", stderr);
-		fputs("Supported protocol schemes are http, https, ftp, gopher and file.\n", stderr);
+		fputs("Supported protocol schemes are http, https, ftp, file, gopher and gophers.\n", stderr);
 		return false;
 	}
 	return true;

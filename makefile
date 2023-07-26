@@ -4,6 +4,7 @@
 CC           = cc
 CFLAGS       = -O3
 LDFLAGS      =
+CFLAGS_CURSES = `pkg-config --cflags ncursesw 2>/dev/null`
 CURL_LIBS    = `pkg-config --libs libcurl  2>/dev/null || echo '-lcurl'`
 CURSES_LIBS  = `pkg-config --libs ncursesw 2>/dev/null || echo '-lncursesw'`
 EXPAT_LIBS   = `pkg-config --libs expat    2>/dev/null || echo '-lexpat'`
@@ -14,6 +15,7 @@ YAJL_LIBS    = `pkg-config --libs yajl     2>/dev/null || echo '-lyajl'`
 # for static linking
 #LDFLAGS      = -static
 #CURL_LIBS    = -lcurl -lbrotlidec -lbrotlienc -lbrotlicommon -lssl -lcrypto -lnghttp2 -lz
+CFLAGS_LIBS  = $(CFLAGS_CURSES)
 LDLIBS       = $(CURL_LIBS) $(CURSES_LIBS) $(EXPAT_LIBS) $(GUMBO_LIBS) $(PTHREAD_LIBS) $(SQLITE_LIBS) $(YAJL_LIBS)
 DESTDIR      =
 PREFIX       = /usr/local
@@ -39,12 +41,12 @@ install-examples:
 	install -Dm644 examples/config $(DESTDIR)$(EXAMPLES_DIR)/config
 
 newsraft: $(OBJECTS)
-	$(CC) -std=c99 $(CFLAGS) $(LDFLAGS) -o $@ $(OBJECTS) $(LDLIBS)
+	$(CC) -std=c99 $(CFLAGS) $(CFLAGS_LIBS) $(LDFLAGS) -o $@ $(OBJECTS) $(LDLIBS)
 
 doc: newsraft.1
 
 .c.o:
-	$(CC) -std=c99 $(CFLAGS) -Isrc -D_XOPEN_SOURCE=700 -D_XOPEN_SOURCE_EXTENDED -c -o $@ $<
+	$(CC) -std=c99 $(CFLAGS) $(CFLAGS_LIBS) -Isrc -D_XOPEN_SOURCE=700 -D_XOPEN_SOURCE_EXTENDED -c -o $@ $<
 
 newsraft.1: doc/newsraft.scd
 	scdoc < doc/newsraft.scd > newsraft.1 || true

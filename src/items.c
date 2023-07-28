@@ -3,8 +3,7 @@
 static struct feed_entry **feeds;
 static size_t feeds_count;
 static struct items_list *items = NULL;
-static pthread_mutex_t items_lock = PTHREAD_MUTEX_INITIALIZER;
-static volatile bool item_menu_needs_to_regenerate = false;
+static volatile bool items_menu_needs_to_regenerate = false;
 
 static struct format_arg fmt_args[] = {
 	{L'n',  L"d", {.i = 0   }},
@@ -145,22 +144,8 @@ clean_up_items_menu(void)
 void
 tell_items_menu_to_regenerate(void)
 {
-	int8_t menu_type = get_current_menu_type();
-	if (menu_type == ITEMS_MENU) {
-		struct items_list *new_items = recreate_items_list(items);
-		if (new_items != NULL) {
-			pthread_mutex_lock(&items_lock);
-			pthread_mutex_lock(&interface_lock);
-			free_items_list(items);
-			items = new_items;
-			reset_list_menu_unprotected();
-			pthread_mutex_unlock(&interface_lock);
-			pthread_mutex_unlock(&items_lock);
-		}
-		item_menu_needs_to_regenerate = false;
-	} else if (menu_type == PAGER_MENU) {
-		item_menu_needs_to_regenerate = true;
-	}
+	items_menu_needs_to_regenerate = true;
+	imitate_input_command(INPUT_ERROR);
 }
 
 input_cmd_id
@@ -168,6 +153,7 @@ enter_items_menu_loop(struct feed_entry **new_feeds, size_t new_feeds_count, boo
 {
 	feeds = new_feeds;
 	feeds_count = new_feeds_count;
+	items_menu_needs_to_regenerate = false;
 	free_items_list(items);
 	items = create_items_list(feeds, feeds_count, SORT_BY_TIME_DESC, get_cfg_bool(CFG_INITIAL_UNREAD_FIRST_SORTING));
 	if (items == NULL) {
@@ -181,7 +167,17 @@ enter_items_menu_loop(struct feed_entry **new_feeds, size_t new_feeds_count, boo
 	const struct wstring *macro;
 	while (true) {
 		cmd = get_input_command(NULL, &macro);
-		pthread_mutex_lock(&items_lock);
+		if (items_menu_needs_to_regenerate == true) {
+			items_menu_needs_to_regenerate = false;
+			struct items_list *new = recreate_items_list(items);
+			if (new != NULL) {
+				pthread_mutex_lock(&interface_lock);
+				free_items_list(items);
+				items = new;
+				reset_list_menu_unprotected();
+				pthread_mutex_unlock(&interface_lock);
+			}
+		}
 		if (handle_list_menu_control(ITEMS_MENU, cmd, macro) == true) {
 			// Rest a little.
 		} else if (cmd == INPUT_MARK_READ_ALL) {
@@ -223,13 +219,7 @@ enter_items_menu_loop(struct feed_entry **new_feeds, size_t new_feeds_count, boo
 		} else if (cmd == INPUT_QUIT_SOFT || cmd == INPUT_QUIT_HARD) {
 			break;
 		}
-		pthread_mutex_unlock(&items_lock);
-		if (item_menu_needs_to_regenerate == true) {
-			tell_items_menu_to_regenerate();
-		}
 	}
-	// Since we exit the loop only through break, double unlock can't occur.
-	pthread_mutex_unlock(&items_lock);
 
 	// Get new feeds' unread counts before leaving list menu so that when we
 	// calculate sections' unread counts in leave_list_menu() it gets the

@@ -13,6 +13,8 @@ static uint8_t count_buf_len = 0;
 static const struct timespec input_polling_period = {0, 30000000}; // 0.03 seconds
 
 static volatile bool they_want_us_to_terminate = false;
+static volatile bool they_want_us_to_imitate = false;
+static volatile input_cmd_id imitated_command_value;
 
 static inline void
 counter_update_unprotected(void)
@@ -51,6 +53,13 @@ tell_program_to_terminate_safely_and_quickly(int dummy)
 	they_want_us_to_terminate = true;
 }
 
+void
+imitate_input_command(input_cmd_id cmd)
+{
+	imitated_command_value = cmd;
+	they_want_us_to_imitate = true;
+}
+
 input_cmd_id
 get_input_command(uint32_t *count, const struct wstring **macro_ptr)
 {
@@ -65,17 +74,18 @@ get_input_command(uint32_t *count, const struct wstring **macro_ptr)
 			queued_action_index = 0;
 		}
 	}
-	while (true) {
+	while (they_want_us_to_terminate == false) {
 		// We can't read keys from stdscr via getch() function
 		// because calling it will bring stdscr on top of other
 		// windows and overlap them.
 		pthread_mutex_lock(&interface_lock);
 		c = wgetch(counter_window);
 		pthread_mutex_unlock(&interface_lock);
-		if (they_want_us_to_terminate == true) {
-			INFO("Received signal requesting termination of program.");
-			return INPUT_QUIT_HARD;
-		} else if (c == ERR) {
+		if (c == ERR) {
+			if (they_want_us_to_imitate == true) {
+				they_want_us_to_imitate = false;
+				return imitated_command_value;
+			}
 			nanosleep(&input_polling_period, NULL);
 			continue;
 		} else if (c == KEY_RESIZE) {
@@ -100,6 +110,8 @@ get_input_command(uint32_t *count, const struct wstring **macro_ptr)
 		counter_update_unprotected();
 		pthread_mutex_unlock(&interface_lock);
 	}
+	INFO("Received signal requesting termination of program.");
+	return INPUT_QUIT_HARD;
 }
 
 void

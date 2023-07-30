@@ -1,6 +1,9 @@
 #include <stdlib.h>
 #include "newsraft.h"
 
+bool search_mode_is_enabled = false;
+struct string *search_mode_text_input = NULL;
+
 pthread_mutex_t interface_lock = PTHREAD_MUTEX_INITIALIZER;
 
 static bool

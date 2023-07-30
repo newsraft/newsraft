@@ -19,24 +19,23 @@ append_sorting_order_expression_to_query(struct string *query, sorting_order ord
 }
 
 static inline struct string *
-generate_search_query_string(const struct items_list *items)
+generate_search_query_string(const struct items_list *items, const struct string *search_filter)
 {
-	struct string *query = crtas("SELECT rowid,feed_url,title,link,publication_date,update_date,unread,important FROM items WHERE feed_url=?", 106);
-	if (query == NULL) {
-		FAIL("Not enough memory for query string!");
-		return NULL;
-	}
+	struct string *q = crtas("SELECT rowid,feed_url,title,link,publication_date,update_date,unread,important FROM items WHERE (feed_url=?", 107);
+	if (q == NULL) goto error;
 	for (size_t i = 1; i < items->feeds_count; ++i) {
-		if (catas(query, " OR feed_url=?", 14) == false) {
-			free_string(query);
-			return NULL;
-		}
+		if (catas(q, " OR feed_url=?", 14) == false) goto error;
 	}
-	if (append_sorting_order_expression_to_query(query, items->sort, items->show_unread_first) == false) {
-		free_string(query);
-		return NULL;
+	if (catcs(q, ')') == false) goto error;
+	if (search_filter != NULL && search_filter->len > 0) {
+		if (catas(q, " AND (title LIKE '%' || ? || '%')", 33) == false) goto error;
 	}
-	return query;
+	if (append_sorting_order_expression_to_query(q, items->sort, items->show_unread_first) == false) goto error;
+	return q;
+error:
+	FAIL("Not enough memory for query string!");
+	free_string(q);
+	return NULL;
 }
 
 void
@@ -51,6 +50,7 @@ free_items_list(struct items_list *items)
 		}
 		sqlite3_finalize(items->res);
 		free_string(items->query);
+		free_string(items->search_filter);
 		free(items->ptr);
 		free(items);
 	}
@@ -126,7 +126,7 @@ obtain_items_at_least_up_to_the_given_index(struct items_list *items, size_t ind
 }
 
 struct items_list *
-create_items_list(struct feed_entry **feeds, size_t feeds_count, sorting_order order, bool unread_first)
+create_items_list(struct feed_entry **feeds, size_t feeds_count, sorting_order order, bool unread_first, const struct string *search_filter)
 {
 	INFO("Generating items list.");
 	if (feeds_count == 0) {
@@ -143,7 +143,8 @@ create_items_list(struct feed_entry **feeds, size_t feeds_count, sorting_order o
 	items->show_unread_first = unread_first;
 	items->feeds = feeds;
 	items->feeds_count = feeds_count;
-	items->query = generate_search_query_string(items);
+	items->search_filter = search_filter == NULL ? NULL : crtss(search_filter);
+	items->query = generate_search_query_string(items, items->search_filter);
 	if (items->query == NULL) {
 		fail_status("Can't generate search query string!");
 		goto undo1;
@@ -156,9 +157,16 @@ create_items_list(struct feed_entry **feeds, size_t feeds_count, sorting_order o
 	for (size_t i = 0; i < feeds_count; ++i) {
 		db_bind_string(items->res, i + 1, feeds[i]->link);
 	}
+	if (items->search_filter != NULL && items->search_filter->len > 0) {
+		db_bind_string(items->res, feeds_count + 1, items->search_filter);
+	}
 	obtain_items_at_least_up_to_the_given_index(items, 0);
 	if (items->len < 1) {
-		fail_status("Items not found. Make sure this feed is updated!");
+		if (items->search_filter != NULL && items->search_filter->len > 0) {
+			fail_status("Items not found. Search query didn't get any matches!");
+		} else {
+			fail_status("Items not found. Make sure this feed is updated!");
+		}
 		goto undo3;
 	}
 	return items;
@@ -167,14 +175,24 @@ undo3:
 undo2:
 	free_string(items->query);
 undo1:
+	free_string(items->search_filter);
 	free(items);
 	return NULL;
 }
 
-struct items_list *
-recreate_items_list(const struct items_list *items)
+bool
+replace_items_list_with_empty_one(struct items_list **items)
 {
-	return create_items_list(items->feeds, items->feeds_count, items->sort, items->show_unread_first);
+	struct items_list *new_items = create_items_list((*items)->feeds, (*items)->feeds_count, (*items)->sort, (*items)->show_unread_first, (*items)->search_filter);
+	if (new_items == NULL) {
+		return false;
+	}
+	pthread_mutex_lock(&interface_lock);
+	free_items_list(*items);
+	*items = new_items;
+	reset_list_menu_unprotected();
+	pthread_mutex_unlock(&interface_lock);
+	return true;
 }
 
 static inline void
@@ -189,7 +207,7 @@ print_current_sorting_method_to_status(const struct items_list *items)
 	}
 }
 
-bool
+void
 change_sorting_order_of_items_list(struct items_list **items, sorting_order order)
 {
 	if (order > SORT_BY_TITLE_ASC) {
@@ -198,32 +216,27 @@ change_sorting_order_of_items_list(struct items_list **items, sorting_order orde
 		order = SORT_BY_TITLE_ASC;
 	}
 	(*items)->sort = order;
-	struct items_list *new_items = recreate_items_list(*items);
-	if (new_items == NULL) {
-		return false;
-	}
-	pthread_mutex_lock(&interface_lock);
-	free_items_list(*items);
-	*items = new_items;
-	reset_list_menu_unprotected();
-	pthread_mutex_unlock(&interface_lock);
+	replace_items_list_with_empty_one(items);
 	print_current_sorting_method_to_status(*items);
-	return true;
 }
 
-bool
+void
 toggle_unread_first_sorting_of_items_list(struct items_list **items)
 {
 	(*items)->show_unread_first = !(*items)->show_unread_first;
-	struct items_list *new_items = recreate_items_list(*items);
-	if (new_items == NULL) {
-		return false;
-	}
-	pthread_mutex_lock(&interface_lock);
-	free_items_list(*items);
-	*items = new_items;
-	reset_list_menu_unprotected();
-	pthread_mutex_unlock(&interface_lock);
+	replace_items_list_with_empty_one(items);
 	print_current_sorting_method_to_status(*items);
-	return true;
+}
+
+void
+change_search_filter_of_items_list(struct items_list **items, const struct string *search_filter)
+{
+	struct string *prev_search_filter = (*items)->search_filter;
+	(*items)->search_filter = crtss(search_filter);
+	if (replace_items_list_with_empty_one(items) == true) {
+		free_string(prev_search_filter);
+	} else {
+		free_string((*items)->search_filter);
+		(*items)->search_filter = prev_search_filter;
+	}
 }

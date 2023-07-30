@@ -117,6 +117,7 @@ enum {
 	INPUT_RESIZE,
 	INPUT_SYSTEM_COMMAND,
 	INPUT_ERROR,
+	INPUT_APPLY_SEARCH_MODE_FILTER,
 	INPUT_ITEMS_MENU_WAS_NOT_CREATED,
 };
 
@@ -226,6 +227,7 @@ struct item_entry {
 struct items_list {
 	sqlite3_stmt *res;
 	struct string *query;
+	struct string *search_filter;
 	struct item_entry *ptr;
 	size_t len;
 	bool finished;
@@ -343,11 +345,12 @@ void tell_items_menu_to_regenerate(void);
 input_cmd_id enter_items_menu_loop(struct feed_entry **new_feeds, size_t new_feeds_count, bool is_explore_mode);
 
 // See "items-list.c" file for implementation.
-struct items_list *create_items_list(struct feed_entry **feeds, size_t feeds_count, sorting_order order, bool unread_first);
-struct items_list *recreate_items_list(const struct items_list *items);
+struct items_list *create_items_list(struct feed_entry **feeds, size_t feeds_count, sorting_order order, bool unread_first, const struct string *search_filter);
+bool replace_items_list_with_empty_one(struct items_list **items);
 void obtain_items_at_least_up_to_the_given_index(struct items_list *items, size_t index);
-bool change_sorting_order_of_items_list(struct items_list **items, sorting_order order);
-bool toggle_unread_first_sorting_of_items_list(struct items_list **items);
+void change_sorting_order_of_items_list(struct items_list **items, sorting_order order);
+void toggle_unread_first_sorting_of_items_list(struct items_list **items);
+void change_search_filter_of_items_list(struct items_list **items, const struct string *search_filter);
 void free_items_list(struct items_list *items);
 
 // See "items-pager.c" file for implementation.
@@ -449,6 +452,7 @@ unsigned int get_color_pair(config_entry_id id);
 
 // Functions related to window which displays status messages.
 // See "interface-status.c" file for implementation.
+void update_status_window_content(void);
 bool status_recreate_unprotected(void);
 bool allocate_status_messages_buffer(void);
 void status_clean_unprotected(void);
@@ -547,5 +551,7 @@ void stop_feed_updater(void);
 extern FILE *log_stream;
 extern size_t list_menu_height;
 extern size_t list_menu_width;
+extern bool search_mode_is_enabled;
+extern struct string *search_mode_text_input;
 extern pthread_mutex_t interface_lock;
 #endif // NEWSRAFT_H

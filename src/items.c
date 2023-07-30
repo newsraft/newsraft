@@ -155,7 +155,7 @@ enter_items_menu_loop(struct feed_entry **new_feeds, size_t new_feeds_count, boo
 	feeds_count = new_feeds_count;
 	items_menu_needs_to_regenerate = false;
 	free_items_list(items);
-	items = create_items_list(feeds, feeds_count, SORT_BY_TIME_DESC, get_cfg_bool(CFG_INITIAL_UNREAD_FIRST_SORTING));
+	items = create_items_list(feeds, feeds_count, SORT_BY_TIME_DESC, get_cfg_bool(CFG_INITIAL_UNREAD_FIRST_SORTING), NULL);
 	if (items == NULL) {
 		// Error message written by create_items_list.
 		return INPUT_ITEMS_MENU_WAS_NOT_CREATED;
@@ -166,18 +166,11 @@ enter_items_menu_loop(struct feed_entry **new_feeds, size_t new_feeds_count, boo
 	input_cmd_id cmd;
 	const struct wstring *macro;
 	while (true) {
-		cmd = get_input_command(NULL, &macro);
 		if (items_menu_needs_to_regenerate == true) {
 			items_menu_needs_to_regenerate = false;
-			struct items_list *new = recreate_items_list(items);
-			if (new != NULL) {
-				pthread_mutex_lock(&interface_lock);
-				free_items_list(items);
-				items = new;
-				reset_list_menu_unprotected();
-				pthread_mutex_unlock(&interface_lock);
-			}
+			replace_items_list_with_empty_one(&items);
 		}
+		cmd = get_input_command(NULL, &macro);
 		if (handle_list_menu_control(ITEMS_MENU, cmd, macro) == true) {
 			// Rest a little.
 		} else if (cmd == INPUT_MARK_READ_ALL) {
@@ -198,6 +191,8 @@ enter_items_menu_loop(struct feed_entry **new_feeds, size_t new_feeds_count, boo
 			update_feeds(&items->ptr[*view_sel].feed, 1);
 		} else if (cmd == INPUT_RELOAD_ALL) {
 			update_feeds(feeds, feeds_count);
+		} else if (cmd == INPUT_APPLY_SEARCH_MODE_FILTER) {
+			change_search_filter_of_items_list(&items, search_mode_text_input);
 		} else if (cmd == INPUT_SORT_NEXT) {
 			change_sorting_order_of_items_list(&items, items->sort + 1);
 		} else if (cmd == INPUT_SORT_PREV) {

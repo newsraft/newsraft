@@ -14,10 +14,26 @@ static size_t messages_len = 0;
 static size_t messages_lim = 0;
 
 static inline void
-write_last_status_message_to_status_window(void)
+update_status_window_content_unprotected(void)
 {
-	mvwaddnstr(status_window, 0, 0, messages[(messages_len - 1) % messages_lim].text->ptr, list_menu_width - 9);
-	wbkgd(status_window, get_color_pair(messages[(messages_len - 1) % messages_lim].color));
+	werase(status_window);
+	if (search_mode_is_enabled == true) {
+		mvwaddnstr(status_window, 0, 0, "/", 1);
+		mvwaddnstr(status_window, 0, 1, search_mode_text_input->ptr, list_menu_width - 10);
+		wbkgd(status_window, A_NORMAL);
+	} else if (status_window_is_clean == false) {
+		mvwaddnstr(status_window, 0, 0, messages[(messages_len - 1) % messages_lim].text->ptr, list_menu_width - 9);
+		wbkgd(status_window, get_color_pair(messages[(messages_len - 1) % messages_lim].color));
+	}
+	wrefresh(status_window);
+}
+
+void
+update_status_window_content(void)
+{
+	pthread_mutex_lock(&interface_lock);
+	update_status_window_content_unprotected();
+	pthread_mutex_unlock(&interface_lock);
 }
 
 bool
@@ -32,11 +48,7 @@ status_recreate_unprotected(void)
 		return false;
 	}
 	INFO("Created new status window.");
-	werase(status_window);
-	if (status_window_is_clean == false) {
-		write_last_status_message_to_status_window();
-	}
-	wrefresh(status_window);
+	update_status_window_content_unprotected();
 	return true;
 }
 
@@ -66,8 +78,10 @@ status_clean_unprotected(void)
 {
 	if (status_window_is_cleanable == true) {
 		status_window_is_clean = true;
-		werase(status_window);
-		wrefresh(status_window);
+		if (search_mode_is_enabled == false) {
+			werase(status_window);
+			wrefresh(status_window);
+		}
 	}
 }
 
@@ -104,9 +118,7 @@ status_write(config_entry_id color, const char *format, ...)
 	INFO("Printed status message: %s", messages[messages_len % messages_lim].text->ptr);
 	messages_len += 1;
 	status_window_is_clean = false;
-	werase(status_window);
-	write_last_status_message_to_status_window();
-	wrefresh(status_window);
+	update_status_window_content_unprotected();
 undo:
 	va_end(args);
 	pthread_mutex_unlock(&interface_lock);
@@ -136,11 +148,10 @@ generate_string_with_status_messages_for_pager(void)
 void
 status_delete(void)
 {
-	INFO("Freeing status messages.");
+	INFO("Freeing status field resources.");
 	for (size_t i = 0; i < messages_lim; ++i) {
 		free_string(messages[i].text);
 	}
 	free(messages);
-	INFO("Freeing status window.");
 	delwin(status_window);
 }

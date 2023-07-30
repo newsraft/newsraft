@@ -92,7 +92,26 @@ get_input_command(uint32_t *count, const struct wstring **macro_ptr)
 			return resize_handler();
 		}
 		INFO("Received \"%c\" character with %d key code.", c, c);
-		if (isdigit(c) == 0) {
+		if (search_mode_is_enabled == true) {
+			if (c == '\n' || c == 27) {
+				search_mode_is_enabled = false;
+				status_clean();
+				if (c == '\n') return INPUT_APPLY_SEARCH_MODE_FILTER;
+			} else if (c == 127) {
+				if (search_mode_text_input->len > 0) {
+					search_mode_text_input->len -= 1;
+					search_mode_text_input->ptr[search_mode_text_input->len] = '\0';
+					update_status_window_content();
+				}
+			} else {
+				catcs(search_mode_text_input, c);
+				update_status_window_content();
+			}
+		} else if (c == '/') {
+			crtas_or_cpyas(&search_mode_text_input, "", 0);
+			search_mode_is_enabled = true;
+			update_status_window_content();
+		} else if (isdigit(c) == 0) {
 			count_buf[count_buf_len] = '\0';
 			if (count != NULL && sscanf(count_buf, "%" SCNu32, count) != 1) {
 				*count = 1;
@@ -103,12 +122,13 @@ get_input_command(uint32_t *count, const struct wstring **macro_ptr)
 			pthread_mutex_unlock(&interface_lock);
 			queued_action_index = 1;
 			return get_action_of_bind(c, 0, macro_ptr);
+		} else {
+			count_buf_len %= 9;
+			count_buf[count_buf_len++] = c;
+			pthread_mutex_lock(&interface_lock);
+			counter_update_unprotected();
+			pthread_mutex_unlock(&interface_lock);
 		}
-		count_buf_len %= 9;
-		count_buf[count_buf_len++] = c;
-		pthread_mutex_lock(&interface_lock);
-		counter_update_unprotected();
-		pthread_mutex_unlock(&interface_lock);
 	}
 	INFO("Received signal requesting termination of program.");
 	return INPUT_QUIT_HARD;

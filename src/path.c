@@ -10,6 +10,8 @@
 // NEWSRAFT_CONFIG_DIR), because environment is intended for settings that are
 // valueable to many programs, not just a single one.
 
+// TODO: replace strcats with printfs because overflow may occur!
+
 #ifndef PATH_MAX
 #define PATH_MAX 4096
 #endif

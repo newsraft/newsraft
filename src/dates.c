@@ -20,7 +20,8 @@ get_config_date_str(int64_t date, config_entry_id format_index)
 		FAIL("Not enough memory for date string!");
 		return NULL;
 	}
-	size_t date_str_len = strftime(date_str->ptr, date_str->lim, format->ptr, localtime((time_t *)&date));
+	struct tm localtime_data;
+	size_t date_str_len = strftime(date_str->ptr, date_str->lim, format->ptr, localtime_r((time_t *)&date, &localtime_data));
 	if (date_str_len == 0) {
 		FAIL("Failed to create date string!");
 		free_string(date_str);

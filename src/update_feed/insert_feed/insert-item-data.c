@@ -55,7 +55,7 @@ db_insert_item(const struct string *feed_url, struct getfeed_item *item, int64_t
 	db_bind_string(s,     1 + ITEM_COLUMN_FEED_URL,         feed_url);
 	db_bind_string(s,     1 + ITEM_COLUMN_GUID,             item->guid);
 	db_bind_string(s,     1 + ITEM_COLUMN_TITLE,            item->title);
-	db_bind_string(s,     1 + ITEM_COLUMN_LINK,             item->url);
+	db_bind_string(s,     1 + ITEM_COLUMN_LINK,             (item->url == NULL || item->url->len == 0) && item->guid_is_url == true ? item->guid : item->url);
 	db_bind_string(s,     1 + ITEM_COLUMN_CONTENT,          item->content);
 	db_bind_string(s,     1 + ITEM_COLUMN_ATTACHMENTS,      item->attachments);
 	db_bind_string(s,     1 + ITEM_COLUMN_PERSONS,          item->persons);

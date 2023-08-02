@@ -12,9 +12,12 @@
 static int8_t
 rss_guid_start(struct stream_callback_data *data, const XML_Char **attrs)
 {
-	const char *is_perma_link = get_value_of_attribute_key(attrs, "isPermaLink");
-	if (is_perma_link != NULL && strcmp(is_perma_link, "true") == 0) {
-		data->feed.item->guid_is_url = true;
+	if (data->path[data->depth] == GENERIC_ITEM) {
+		data->feed.item->guid_is_url = true; // Default value is true.
+		const char *is_perma_link = get_value_of_attribute_key(attrs, "isPermaLink");
+		if (is_perma_link != NULL && strcmp(is_perma_link, "true") != 0) {
+			data->feed.item->guid_is_url = false;
+		}
 	}
 	return PARSE_OKAY;
 }

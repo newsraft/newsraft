@@ -240,12 +240,10 @@ struct items_list {
 
 struct format_arg {
 	const wchar_t specifier;
-	const wchar_t *const type_specifier;
+	const wchar_t type_specifier;
 	union {
 		int i;
-		char c;
-		char *s;
-		wchar_t *ls;
+		const char *s;
 	} value;
 };
 

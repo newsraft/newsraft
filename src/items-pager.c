@@ -2,8 +2,8 @@
 #include "newsraft.h"
 
 static struct format_arg cmd_args[] = {
-	{L'l',  L"s", {.s = NULL}},
-	{L'\0', NULL, {.i = 0}}, // terminator
+	{L'l',  L's',  {.s = NULL}},
+	{L'\0', L'\0', {.i = 0   }}, // terminator
 };
 
 static inline bool

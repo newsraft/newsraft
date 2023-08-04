@@ -17,10 +17,10 @@ static volatile bool stop_auto_updater_routine = false;
 static bool at_least_one_feed_has_positive_update_period = false;
 
 static struct format_arg fmt_args[] = {
-	{L'n',  L"d", {.i = 0   }},
-	{L'u',  L"d", {.i = 0   }},
-	{L't',  L"s", {.s = NULL}},
-	{L'\0', NULL, {.i = 0   }}, // terminator
+	{L'n',  L'd',  {.i = 0   }},
+	{L'u',  L'd',  {.i = 0   }},
+	{L't',  L's',  {.s = NULL}},
+	{L'\0', L'\0', {.i = 0   }}, // terminator
 };
 
 bool

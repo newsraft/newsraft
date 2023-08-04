@@ -59,27 +59,22 @@ do_format(const wchar_t *fmt, const struct format_arg *args)
 				if (wcpyas(tmp_buf, iter, specifier - iter) == false) {
 					return tmp_buf; // OOM
 				}
-				if (wcatas(tmp_buf, args[j].type_specifier, wcslen(args[j].type_specifier)) == false) {
+				if (wcatcs(tmp_buf, args[j].type_specifier) == false) {
 					return tmp_buf; // OOM
 				}
-				while (true) {
-					if (wcscmp(args[j].type_specifier, L"d") == 0) {
-						tmp_res = swprintf(fmt_buf->ptr + fmt_buf->len, fmt_buf->lim + 1 - fmt_buf->len, tmp_buf->ptr, args[j].value.i);
-					} else if (wcscmp(args[j].type_specifier, L"s") == 0) {
+				do {
+					if (args[j].type_specifier == L's') {
 						tmp_res = swprintf(fmt_buf->ptr + fmt_buf->len, fmt_buf->lim + 1 - fmt_buf->len, tmp_buf->ptr, args[j].value.s);
-					} else if (wcscmp(args[j].type_specifier, L"c") == 0) {
-						tmp_res = swprintf(fmt_buf->ptr + fmt_buf->len, fmt_buf->lim + 1 - fmt_buf->len, tmp_buf->ptr, args[j].value.c);
-					} else { // if (wcscmp(args[j].type_specifier, L"ls") == 0) {
-						tmp_res = swprintf(fmt_buf->ptr + fmt_buf->len, fmt_buf->lim + 1 - fmt_buf->len, tmp_buf->ptr, args[j].value.ls);
+					} else {
+						tmp_res = swprintf(fmt_buf->ptr + fmt_buf->len, fmt_buf->lim + 1 - fmt_buf->len, tmp_buf->ptr, args[j].value.i);
 					}
 					if (tmp_res != -1) {
 						fmt_buf->len += tmp_res;
 						fmt_buf->ptr[fmt_buf->len] = L'\0';
-						break;
 					} else if (increase_wstring_size(fmt_buf, 100) == false) {
 						return tmp_buf; // OOM
 					}
-				}
+				} while (tmp_res == -1);
 				break;
 			}
 			specifier += 1;

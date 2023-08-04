@@ -4,12 +4,12 @@ static struct feed_entry **feeds = NULL;
 static size_t feeds_count = 0;
 
 static struct format_arg fmt_args[] = {
-	{L'n',  L"d", {.i = 0   }},
-	{L'u',  L"d", {.i = 0   }},
-	{L'l',  L"s", {.s = NULL}},
-	{L't',  L"s", {.s = NULL}},
-	{L'o',  L"s", {.s = NULL}},
-	{L'\0', NULL, {.i = 0   }}, // terminator
+	{L'n',  L'd',  {.i = 0   }},
+	{L'u',  L'd',  {.i = 0   }},
+	{L'l',  L's',  {.s = NULL}},
+	{L't',  L's',  {.s = NULL}},
+	{L'o',  L's',  {.s = NULL}},
+	{L'\0', L'\0', {.i = 0   }}, // terminator
 };
 
 bool

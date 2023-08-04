@@ -43,7 +43,7 @@ generated in the project directory. Alternatively, you can try to read
 scdoc file which is the recipe for generating this man page.
 
 Examples on how to configure Newsraft are located in the
-[examples](https://codeberg.org/grisha/newsraft/src/branch/main/examples)
+[doc/examples](https://codeberg.org/grisha/newsraft/src/branch/main/doc/examples)
 directory.
 
 ## Contributing

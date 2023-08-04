@@ -42,8 +42,8 @@ install-doc: doc
 	install -Dm644 newsraft.1 $(DESTDIR)$(MANDIR)/man1/newsraft.1
 
 install-examples:
-	install -Dm644 examples/feeds $(DESTDIR)$(EXAMPLES_DIR)/feeds
-	install -Dm644 examples/config $(DESTDIR)$(EXAMPLES_DIR)/config
+	install -Dm644 doc/examples/feeds $(DESTDIR)$(EXAMPLES_DIR)/feeds
+	install -Dm644 doc/examples/config $(DESTDIR)$(EXAMPLES_DIR)/config
 
 newsraft: $(OBJECTS)
 	$(CC) -std=c99 $(CFLAGS) $(AUX_CFLAGS) $(LDFLAGS) -o $@ $(OBJECTS) $(LDLIBS)

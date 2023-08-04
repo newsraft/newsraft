@@ -52,7 +52,7 @@ copy_string_to_clipboard(const struct string *src)
 void
 run_command_with_specifiers(const struct wstring *wcmd_fmt, const struct format_arg *args)
 {
-	const struct wstring *wcmd = do_format(wcmd_fmt, args);
+	const struct wstring *wcmd = do_format(wcmd_fmt->ptr, args);
 	struct string *cmd = convert_wstring_to_string(wcmd);
 	if (cmd != NULL) {
 		execute_system_command(cmd->ptr);

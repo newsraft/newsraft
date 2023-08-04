@@ -80,7 +80,7 @@ static void
 regular_list_menu_writer(size_t index, WINDOW *w)
 {
 	if (menu->enumerator(index) == true) {
-		waddnwstr(w, do_format(menu->entry_format, menu->get_args(index))->ptr, list_menu_width);
+		waddnwstr(w, do_format(menu->entry_format->ptr, menu->get_args(index))->ptr, list_menu_width);
 		wbkgd(w, get_color_pair(menu->paint_action(index)) | (index == menu->view_sel ? A_REVERSE : 0));
 	}
 }

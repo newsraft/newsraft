@@ -26,12 +26,12 @@ free_format_buffers(void)
 }
 
 const struct wstring *
-do_format(const struct wstring *fmt, const struct format_arg *args)
+do_format(const wchar_t *fmt, const struct format_arg *args)
 {
 	const wchar_t *specifier;
 	int tmp_res;
 	empty_wstring(fmt_buf);
-	for (const wchar_t *iter = fmt->ptr; *iter != '\0';) {
+	for (const wchar_t *iter = fmt; *iter != '\0';) {
 		if (iter[0] != L'%') {
 			if (wcatcs(fmt_buf, *iter) == false) {
 				return tmp_buf; // OOM

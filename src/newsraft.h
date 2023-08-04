@@ -331,7 +331,7 @@ bool reset_pager_menu(void);
 // See "format.c" file for implementation.
 bool create_format_buffers(void);
 void free_format_buffers(void);
-const struct wstring *do_format(const struct wstring *fmt, const struct format_arg *args);
+const struct wstring *do_format(const wchar_t *fmt, const struct format_arg *args);
 
 // See "items.c" file for implementation.
 void mark_item_read(size_t view_sel);

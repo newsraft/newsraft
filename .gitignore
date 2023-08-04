@@ -1,6 +1,8 @@
 **/*.o
 newsraft
 newsraft.1
+tests/makefile
+tests/src
 tests/libnewsraft.so
 tests/a.out
 flog

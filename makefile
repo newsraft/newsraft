@@ -48,6 +48,9 @@ install-examples:
 newsraft: $(OBJECTS)
 	$(CC) -std=c99 $(CFLAGS) $(AUX_CFLAGS) $(LDFLAGS) -o $@ $(OBJECTS) $(LDLIBS)
 
+libnewsraft.so: $(OBJECTS)
+	$(CC) -std=c99 -shared $(CFLAGS) $(AUX_CFLAGS) $(LDFLAGS) -o $@ $(OBJECTS) $(LDLIBS)
+
 doc: newsraft.1
 
 .c.o:
@@ -57,10 +60,10 @@ newsraft.1: doc/newsraft.scd
 	scdoc < doc/newsraft.scd > newsraft.1 || true
 
 clean:
-	rm -f newsraft newsraft.1 vlog flog $(OBJECTS)
+	rm -rf newsraft newsraft.1 tests/makefile tests/src tests/libnewsraft.so tests/a.out flog vlog $(OBJECTS)
 
 check:
-	./tests/run-tests.sh
+	./tests/run-check.sh
 
 cppcheck:
 	find src -name "*.c" -exec cppcheck -q --enable=warning,performance,portability '{}' ';'

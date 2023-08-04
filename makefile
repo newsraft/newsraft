@@ -1,5 +1,5 @@
 .POSIX:
-.PHONY: all install install-newsraft install-doc install-examples doc clean cppcheck
+.PHONY: all install install-newsraft install-doc install-examples doc clean check cppcheck
 
 CC            = cc
 CFLAGS        = -O3
@@ -58,6 +58,9 @@ newsraft.1: doc/newsraft.scd
 
 clean:
 	rm -f newsraft newsraft.1 vlog flog $(OBJECTS)
+
+check:
+	./tests/run-tests.sh
 
 cppcheck:
 	find src -name "*.c" -exec cppcheck -q --enable=warning,performance,portability '{}' ';'

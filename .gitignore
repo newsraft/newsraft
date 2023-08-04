@@ -1,6 +1,8 @@
 **/*.o
 newsraft
 newsraft.1
+tests/libnewsraft.so
+tests/a.out
 flog
 vlog
 callgrind.out*

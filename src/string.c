@@ -41,7 +41,9 @@ crtas(const char *src_ptr, size_t src_len)
 		free(str);
 		return NULL;
 	}
-	memcpy(str->ptr, src_ptr, sizeof(char) * src_len);
+	if (src_ptr != NULL && src_len > 0) {
+		memcpy(str->ptr, src_ptr, sizeof(char) * src_len);
+	}
 	*(str->ptr + src_len) = '\0';
 	str->len = src_len;
 	str->lim = new_lim;
@@ -67,7 +69,9 @@ cpyas(struct string *dest, const char *src_ptr, size_t src_len)
 		dest->ptr = temp;
 		dest->lim = new_lim;
 	}
-	memcpy(dest->ptr, src_ptr, sizeof(char) * src_len);
+	if (src_ptr != NULL && src_len > 0) {
+		memcpy(dest->ptr, src_ptr, sizeof(char) * src_len);
+	}
 	*(dest->ptr + src_len) = '\0';
 	dest->len = src_len;
 	return true;
@@ -93,7 +97,9 @@ catas(struct string *dest, const char *src_ptr, size_t src_len)
 		dest->ptr = temp;
 		dest->lim = new_lim;
 	}
-	memcpy(dest->ptr + dest->len, src_ptr, sizeof(char) * src_len);
+	if (src_ptr != NULL && src_len > 0) {
+		memcpy(dest->ptr + dest->len, src_ptr, sizeof(char) * src_len);
+	}
 	*(dest->ptr + new_len) = '\0';
 	dest->len = new_len;
 	return true;

@@ -41,7 +41,9 @@ wcrtas(const wchar_t *src_ptr, size_t src_len)
 		free(wstr);
 		return NULL;
 	}
-	memcpy(wstr->ptr, src_ptr, sizeof(wchar_t) * src_len);
+	if (src_ptr != NULL && src_len > 0) {
+		memcpy(wstr->ptr, src_ptr, sizeof(wchar_t) * src_len);
+	}
 	*(wstr->ptr + src_len) = L'\0';
 	wstr->len = src_len;
 	wstr->lim = new_lim;
@@ -61,7 +63,9 @@ wcpyas(struct wstring *dest, const wchar_t *src_ptr, size_t src_len)
 		dest->ptr = temp;
 		dest->lim = new_lim;
 	}
-	memcpy(dest->ptr, src_ptr, sizeof(wchar_t) * src_len);
+	if (src_ptr != NULL && src_len > 0) {
+		memcpy(dest->ptr, src_ptr, sizeof(wchar_t) * src_len);
+	}
 	*(dest->ptr + src_len) = L'\0';
 	dest->len = src_len;
 	return true;
@@ -81,7 +85,9 @@ wcatas(struct wstring *dest, const wchar_t *src_ptr, size_t src_len)
 		dest->ptr = temp;
 		dest->lim = new_lim;
 	}
-	memcpy(dest->ptr + dest->len, src_ptr, sizeof(wchar_t) * src_len);
+	if (src_ptr != NULL && src_len > 0) {
+		memcpy(dest->ptr + dest->len, src_ptr, sizeof(wchar_t) * src_len);
+	}
 	*(dest->ptr + new_len) = L'\0';
 	dest->len = new_len;
 	return true;

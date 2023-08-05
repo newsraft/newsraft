@@ -23,10 +23,9 @@ static const char caret[2] = {DELIMITER, '^'};
 bool
 serialize_caret(struct string **target)
 {
-	if (*target != NULL) {
-		return catas(*target, caret, 2);
+	if (*target == NULL) {
+		*target = crtes(100);
 	}
-	*target = crtes(100);
 	return *target != NULL ? catas(*target, caret, 2) : false;
 }
 
@@ -73,12 +72,9 @@ serialize_array(struct string **target, const char *key, size_t key_len, const c
 }
 
 bool
-serialize_string(struct string **target, const char *key, size_t key_len, struct string *value)
+serialize_string(struct string **target, const char *key, size_t key_len, const struct string *value)
 {
-	if ((value == NULL) || (value->len == 0)) {
-		return true; // Ignore empty entries.
-	}
-	return serialize_array(target, key, key_len, value->ptr, value->len);
+	return value != NULL && value->len > 0 ? serialize_array(target, key, key_len, value->ptr, value->len) : true;
 }
 
 struct deserialize_stream *

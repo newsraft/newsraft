@@ -158,27 +158,16 @@ trim_whitespace_from_wstring(struct wstring *wstr)
 struct string *
 convert_wstring_to_string(const struct wstring *src)
 {
-	struct string *str = malloc(sizeof(struct string));
+	struct string *str = crtes(src->len * 5);
 	if (str == NULL) {
 		return NULL;
 	}
-	str->len = wcstombs(NULL, src->ptr, 0);
+	str->len = wcstombs(str->ptr, src->ptr, str->lim + 1);
 	if (str->len == (size_t)-1) {
-		free(str);
-		return NULL;
-	}
-	str->ptr = malloc(sizeof(char) * (str->len + 1));
-	if (str->ptr == NULL) {
-		free(str);
-		return NULL;
-	}
-	if (wcstombs(str->ptr, src->ptr, str->len + 1) == (size_t)-1) {
-		free(str->ptr);
-		free(str);
+		free_string(str);
 		return NULL;
 	}
 	str->ptr[str->len] = '\0';
-	str->lim = str->len;
 	return str;
 }
 

@@ -187,7 +187,7 @@ enter_list_menu(int8_t menu_index, config_entry_id format_id, bool do_reset)
 	if (menu_index == SECTIONS_MENU) {
 		refresh_unread_items_count_of_all_sections();
 	}
-	if (menu != prev_menu) {
+	if (do_reset == true || menu != prev_menu) {
 		status_clean_unprotected();
 		redraw_list_menu_unprotected();
 	}

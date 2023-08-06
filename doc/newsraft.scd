@@ -526,10 +526,16 @@ _JSON Feed_
 
 # ENVIRONMENT
 
-Since all Newsraft's interactions with the network occur through the
-*libcurl*(3) library, all environment variables taken into account by
-*libcurl*(3) can be set for Newsraft as well. You can learn more about the
-environment variables that *libcurl*(3) understands on *libcurl-env*(3).
+Newsraft's behavior depends on the environment variables set, however not all
+environment variables affect Newsraft directly - many environment variables
+affect libraries that Newsraft is built on. Thus, *ncurses*(3) and *libcurl*(3)
+recognize a large number of different environment variables which you can learn
+more about on *ncurses*(3) and *libcurl-env*(3) respectively.
+
+However, there is one significant *ncurses*(3) environment variable that is
+worth mentioning here - *ESCDELAY*. It sets delay for reading Escape key. It
+may surprise you that its default value is 1000 ms, which is well explained
+in *ncurses*(3), but many may prefer a value much less than that or even 0.
 
 ## XDG_CONFIG_HOME
 
@@ -561,7 +567,7 @@ Setting that forcibly makes the interface monochrome when set.
 
 # SEE ALSO
 
-*vi*(1), *mpv*(1), *feh*(1), *sqlite3*(1), *strftime*(3), *libcurl*(3), *libcurl-env*(3)
+*vi*(1), *mpv*(1), *feh*(1), *sqlite3*(1), *strftime*(3), *ncurses*(3), *libcurl*(3), *libcurl-env*(3)
 
 # BUGS
 

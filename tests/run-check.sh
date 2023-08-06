@@ -22,3 +22,4 @@ do
 	fails_count="$((fails_count + 1))"
 done
 echo "$okays_count/$tests_count TESTS PASSED"
+[ "$okays_count" = "$tests_count" ] || exit 1

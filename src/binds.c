@@ -149,6 +149,7 @@ assign_default_binds(void)
 	if (create_bind("o",         1, INPUT_OPEN_IN_BROWSER)                 == false) { goto fail; }
 	if (create_bind("y",         1, INPUT_COPY_TO_CLIPBOARD)               == false) { goto fail; }
 	if (create_bind("c",         1, INPUT_COPY_TO_CLIPBOARD)               == false) { goto fail; }
+	if (create_bind("/",         1, INPUT_START_SEARCH_INPUT)              == false) { goto fail; }
 	if (create_bind("h",         1, INPUT_QUIT_SOFT)                       == false) { goto fail; }
 	if (create_bind("q",         1, INPUT_QUIT_SOFT)                       == false) { goto fail; }
 	if (create_bind("KEY_LEFT",  8, INPUT_QUIT_SOFT)                       == false) { goto fail; }

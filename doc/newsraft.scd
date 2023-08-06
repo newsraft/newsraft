@@ -497,6 +497,8 @@ _color-list-section-unread-bg_ (default: *default*)
 :[ _open-in-browser_
 |[ *y*, *c*
 :[ _copy-to-clipboard_
+|[ */*
+:[ _start-search-input_
 |[ *h*, *q*, *KEY_LEFT*, *KEY_BACKSPACE*
 :[ _quit_
 |[ *Q*

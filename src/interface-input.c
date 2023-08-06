@@ -1,5 +1,4 @@
 #include <stdlib.h>
-#include <ctype.h>
 #include "newsraft.h"
 
 static WINDOW *counter_window = NULL;
@@ -107,27 +106,30 @@ get_input_command(uint32_t *count, const struct wstring **macro_ptr)
 				catcs(search_mode_text_input, c);
 				update_status_window_content();
 			}
-		} else if (c == '/') {
-			crtas_or_cpyas(&search_mode_text_input, "", 0);
-			search_mode_is_enabled = true;
-			update_status_window_content();
-		} else if (isdigit(c) == 0) {
-			count_buf[count_buf_len] = '\0';
-			if (count != NULL && sscanf(count_buf, "%" SCNu32, count) != 1) {
-				*count = 1;
-			}
-			count_buf_len = 0;
-			pthread_mutex_lock(&interface_lock);
-			counter_update_unprotected();
-			pthread_mutex_unlock(&interface_lock);
-			queued_action_index = 1;
-			return get_action_of_bind(c, 0, macro_ptr);
-		} else {
+		} else if (ISDIGIT(c)) {
 			count_buf_len %= 9;
 			count_buf[count_buf_len++] = c;
 			pthread_mutex_lock(&interface_lock);
 			counter_update_unprotected();
 			pthread_mutex_unlock(&interface_lock);
+		} else {
+			input_cmd_id cmd = get_action_of_bind(c, 0, macro_ptr);
+			if (cmd == INPUT_START_SEARCH_INPUT) {
+				crtas_or_cpyas(&search_mode_text_input, "", 0);
+				search_mode_is_enabled = true;
+				update_status_window_content();
+			} else {
+				count_buf[count_buf_len] = '\0';
+				if (count != NULL && sscanf(count_buf, "%" SCNu32, count) != 1) {
+					*count = 1;
+				}
+				count_buf_len = 0;
+				pthread_mutex_lock(&interface_lock);
+				counter_update_unprotected();
+				pthread_mutex_unlock(&interface_lock);
+				queued_action_index = 1;
+				return cmd;
+			}
 		}
 	}
 	INFO("Received signal requesting termination of program.");

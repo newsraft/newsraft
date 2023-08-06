@@ -92,6 +92,13 @@ show you all the feed item entries of feeds in the current _feeds menu_). This
 mode may come in handy when you want to quickly scroll through all the news
 without switching between sections and feeds back and forth.
 
+And for dessert, I'll tell you about search functionality. You can type */* in
+_items menu_ to start search input - enter the desired query here and press
+*Enter*. This will generate a new list of items based on given search query. To
+return to the original items list, you just need to make an empty search
+(press */* and *Enter* in sequence). Searching like that in _sections menu_ and
+_feeds menu_ will automatically enable explore mode and apply your search query.
+
 # CONFIGURATION
 
 ## FEEDS FILE

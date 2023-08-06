@@ -96,7 +96,7 @@ get_input_command(uint32_t *count, const struct wstring **macro_ptr)
 				search_mode_is_enabled = false;
 				status_clean();
 				if (c == '\n') return INPUT_APPLY_SEARCH_MODE_FILTER;
-			} else if (c == 127) {
+			} else if (c == KEY_BACKSPACE || c == KEY_DC || c == 127) {
 				if (search_mode_text_input->len > 0) {
 					search_mode_text_input->len -= 1;
 					search_mode_text_input->ptr[search_mode_text_input->len] = '\0';

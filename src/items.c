@@ -149,13 +149,13 @@ tell_items_menu_to_regenerate(void)
 }
 
 input_cmd_id
-enter_items_menu_loop(struct feed_entry **new_feeds, size_t new_feeds_count, bool is_explore_mode)
+enter_items_menu_loop(struct feed_entry **new_feeds, size_t new_feeds_count, bool is_explore_mode, const struct string *search_filter)
 {
 	feeds = new_feeds;
 	feeds_count = new_feeds_count;
 	items_menu_needs_to_regenerate = false;
 	free_items_list(items);
-	items = create_items_list(feeds, feeds_count, SORT_BY_TIME_DESC, get_cfg_bool(CFG_INITIAL_UNREAD_FIRST_SORTING), NULL);
+	items = create_items_list(feeds, feeds_count, SORT_BY_TIME_DESC, get_cfg_bool(CFG_INITIAL_UNREAD_FIRST_SORTING), search_filter);
 	if (items == NULL) {
 		// Error message written by create_items_list.
 		return INPUT_ITEMS_MENU_WAS_NOT_CREATED;

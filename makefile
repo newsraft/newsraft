@@ -20,7 +20,7 @@ PTHREAD_LIBS  = -lpthread
 # for static linking
 #LDFLAGS       = -static
 #CURL_LIBS     = -lcurl -lbrotlidec -lbrotlienc -lbrotlicommon -lssl -lcrypto -lnghttp2 -lz
-AUX_CFLAGS    = $(CURL_CFLAGS) $(CURSES_CFLAGS) $(EXPAT_CFLAGS) $(GUMBO_CFLAGS) $(SQLITE_CFLAGS) $(YAJL_CFLAGS)
+AUXCFLAGS     = $(CURL_CFLAGS) $(CURSES_CFLAGS) $(EXPAT_CFLAGS) $(GUMBO_CFLAGS) $(SQLITE_CFLAGS) $(YAJL_CFLAGS)
 LDLIBS        = $(CURL_LIBS) $(CURSES_LIBS) $(EXPAT_LIBS) $(GUMBO_LIBS) $(SQLITE_LIBS) $(YAJL_LIBS) $(PTHREAD_LIBS)
 DESTDIR       =
 PREFIX        = /usr/local
@@ -46,15 +46,15 @@ install-examples:
 	install -Dm644 doc/examples/config $(DESTDIR)$(EXAMPLES_DIR)/config
 
 newsraft: $(OBJECTS)
-	$(CC) -std=c99 $(CFLAGS) $(AUX_CFLAGS) $(LDFLAGS) -o $@ $(OBJECTS) $(LDLIBS)
+	$(CC) -std=c99 $(CFLAGS) $(AUXCFLAGS) $(LDFLAGS) -o $@ $(OBJECTS) $(LDLIBS)
 
 libnewsraft.so: $(OBJECTS)
-	$(CC) -std=c99 -shared $(CFLAGS) $(AUX_CFLAGS) $(LDFLAGS) -o $@ $(OBJECTS) $(LDLIBS)
+	$(CC) -std=c99 -shared $(CFLAGS) $(AUXCFLAGS) $(LDFLAGS) -o $@ $(OBJECTS) $(LDLIBS)
 
 doc: newsraft.1
 
 .c.o:
-	$(CC) -std=c99 $(CFLAGS) $(AUX_CFLAGS) -Isrc -D_XOPEN_SOURCE=700 -D_XOPEN_SOURCE_EXTENDED -c -o $@ $<
+	$(CC) -std=c99 $(CFLAGS) $(AUXCFLAGS) -Isrc -D_XOPEN_SOURCE=700 -D_XOPEN_SOURCE_EXTENDED -c -o $@ $<
 
 newsraft.1: doc/newsraft.scd
 	scdoc < doc/newsraft.scd > newsraft.1 || true

@@ -6,69 +6,65 @@
 // When allocating memory, we request more resources than necessary to reduce
 // the number of further realloc calls to expand wstring buffer.
 
+static inline bool
+wstr_set(struct wstring **dest, const wchar_t *src_ptr, size_t src_len, size_t src_lim)
+{
+	if (*dest == NULL) {
+		struct wstring *wstr = malloc(sizeof(struct wstring));
+		if (wstr == NULL) {
+			FAIL("Not enough memory to create wstring!");
+			return false;
+		}
+		wstr->ptr = malloc(sizeof(wchar_t) * (src_lim + 1));
+		if (wstr->ptr == NULL) {
+			FAIL("Not enough memory to populate wstring!");
+			free(wstr);
+			return false;
+		}
+		if (src_ptr != NULL && src_len > 0) {
+			memcpy(wstr->ptr, src_ptr, sizeof(wchar_t) * src_len);
+		}
+		*(wstr->ptr + src_len) = '\0';
+		wstr->len = src_len;
+		wstr->lim = src_lim;
+		*dest = wstr;
+	} else {
+		if (src_lim > (*dest)->lim) {
+			wchar_t *tmp = realloc((*dest)->ptr, sizeof(wchar_t) * (src_lim + 1));
+			if (tmp == NULL) {
+				FAIL("Not enough memory to set wstring!");
+				return false;
+			}
+			(*dest)->ptr = tmp;
+			(*dest)->lim = src_lim;
+		}
+		if (src_ptr != NULL && src_len > 0) {
+			memcpy((*dest)->ptr, src_ptr, sizeof(wchar_t) * src_len);
+		}
+		*((*dest)->ptr + src_len) = '\0';
+		(*dest)->len = src_len;
+	}
+	return true;
+}
+
 struct wstring *
 wcrtes(size_t desired_capacity)
 {
-	struct wstring *wstr = malloc(sizeof(struct wstring));
-	if (wstr == NULL) {
-		FAIL("Not enough memory for wstring structure!");
-		return NULL;
-	}
-	wstr->ptr = malloc(sizeof(wchar_t) * (desired_capacity + 1));
-	if (wstr->ptr == NULL) {
-		FAIL("Not enough memory for wstring pointer!");
-		free(wstr);
-		return NULL;
-	}
-	*wstr->ptr = L'\0';
-	wstr->len = 0;
-	wstr->lim = desired_capacity;
-	return wstr;
+	struct wstring *wstr = NULL;
+	return wstr_set(&wstr, NULL, 0, desired_capacity) == true ? wstr : NULL;
 }
 
 struct wstring *
 wcrtas(const wchar_t *src_ptr, size_t src_len)
 {
-	struct wstring *wstr = malloc(sizeof(struct wstring));
-	if (wstr == NULL) {
-		FAIL("Not enough memory for wstring structure!");
-		return NULL;
-	}
-	size_t new_lim = src_len * 2 + 67;
-	wstr->ptr = malloc(sizeof(wchar_t) * (new_lim + 1));
-	if (wstr->ptr == NULL) {
-		FAIL("Not enough memory for wstring pointer!");
-		free(wstr);
-		return NULL;
-	}
-	if (src_ptr != NULL && src_len > 0) {
-		memcpy(wstr->ptr, src_ptr, sizeof(wchar_t) * src_len);
-	}
-	*(wstr->ptr + src_len) = L'\0';
-	wstr->len = src_len;
-	wstr->lim = new_lim;
-	return wstr;
+	struct wstring *wstr = NULL;
+	return wstr_set(&wstr, src_ptr, src_len, src_len) == true ? wstr : NULL;
 }
 
 bool
 wcpyas(struct wstring *dest, const wchar_t *src_ptr, size_t src_len)
 {
-	if (src_len > dest->lim) {
-		size_t new_lim = src_len * 2 + 67;
-		wchar_t *temp = realloc(dest->ptr, sizeof(wchar_t) * (new_lim + 1));
-		if (temp == NULL) {
-			FAIL("Not enough memory for copying array to wstring!");
-			return false;
-		}
-		dest->ptr = temp;
-		dest->lim = new_lim;
-	}
-	if (src_ptr != NULL && src_len > 0) {
-		memcpy(dest->ptr, src_ptr, sizeof(wchar_t) * src_len);
-	}
-	*(dest->ptr + src_len) = L'\0';
-	dest->len = src_len;
-	return true;
+	return wstr_set(&dest, src_ptr, src_len, src_len);
 }
 
 bool

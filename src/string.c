@@ -6,48 +6,59 @@
 // When allocating memory, we request more resources than necessary to reduce
 // the number of further realloc calls to expand string buffer.
 
+static inline bool
+str_set(struct string **dest, const char *src_ptr, size_t src_len, size_t src_lim)
+{
+	if (*dest == NULL) {
+		struct string *str = malloc(sizeof(struct string));
+		if (str == NULL) {
+			FAIL("Not enough memory to create string!");
+			return false;
+		}
+		str->ptr = malloc(sizeof(char) * (src_lim + 1));
+		if (str->ptr == NULL) {
+			FAIL("Not enough memory to populate string!");
+			free(str);
+			return false;
+		}
+		if (src_ptr != NULL && src_len > 0) {
+			memcpy(str->ptr, src_ptr, sizeof(char) * src_len);
+		}
+		*(str->ptr + src_len) = '\0';
+		str->len = src_len;
+		str->lim = src_lim;
+		*dest = str;
+	} else {
+		if (src_lim > (*dest)->lim) {
+			char *tmp = realloc((*dest)->ptr, sizeof(char) * (src_lim + 1));
+			if (tmp == NULL) {
+				FAIL("Not enough memory to set string!");
+				return false;
+			}
+			(*dest)->ptr = tmp;
+			(*dest)->lim = src_lim;
+		}
+		if (src_ptr != NULL && src_len > 0) {
+			memcpy((*dest)->ptr, src_ptr, sizeof(char) * src_len);
+		}
+		*((*dest)->ptr + src_len) = '\0';
+		(*dest)->len = src_len;
+	}
+	return true;
+}
+
 struct string *
 crtes(size_t desired_capacity)
 {
-	struct string *str = malloc(sizeof(struct string));
-	if (str == NULL) {
-		FAIL("Not enough memory for string structure!");
-		return NULL;
-	}
-	str->ptr = malloc(sizeof(char) * (desired_capacity + 1));
-	if (str->ptr == NULL) {
-		FAIL("Not enough memory for string pointer!");
-		free(str);
-		return NULL;
-	}
-	*str->ptr = '\0';
-	str->len = 0;
-	str->lim = desired_capacity;
-	return str;
+	struct string *str = NULL;
+	return str_set(&str, NULL, 0, desired_capacity) == true ? str : NULL;
 }
 
 struct string *
 crtas(const char *src_ptr, size_t src_len)
 {
-	struct string *str = malloc(sizeof(struct string));
-	if (str == NULL) {
-		FAIL("Not enough memory for string structure!");
-		return NULL;
-	}
-	size_t new_lim = src_len * 2 + 67;
-	str->ptr = malloc(sizeof(char) * (new_lim + 1));
-	if (str->ptr == NULL) {
-		FAIL("Not enough memory for string pointer!");
-		free(str);
-		return NULL;
-	}
-	if (src_ptr != NULL && src_len > 0) {
-		memcpy(str->ptr, src_ptr, sizeof(char) * src_len);
-	}
-	*(str->ptr + src_len) = '\0';
-	str->len = src_len;
-	str->lim = new_lim;
-	return str;
+	struct string *str = NULL;
+	return str_set(&str, src_ptr, src_len, src_len) == true ? str : NULL;
 }
 
 struct string *
@@ -59,28 +70,13 @@ crtss(const struct string *src)
 bool
 cpyas(struct string *dest, const char *src_ptr, size_t src_len)
 {
-	if (src_len > dest->lim) {
-		size_t new_lim = src_len * 2 + 67;
-		char *temp = realloc(dest->ptr, sizeof(char) * (new_lim + 1));
-		if (temp == NULL) {
-			FAIL("Not enough memory for copying array to string!");
-			return false;
-		}
-		dest->ptr = temp;
-		dest->lim = new_lim;
-	}
-	if (src_ptr != NULL && src_len > 0) {
-		memcpy(dest->ptr, src_ptr, sizeof(char) * src_len);
-	}
-	*(dest->ptr + src_len) = '\0';
-	dest->len = src_len;
-	return true;
+	return str_set(&dest, src_ptr, src_len, src_len);
 }
 
 bool
 cpyss(struct string *dest, const struct string *src)
 {
-	return cpyas(dest, src->ptr, src->len);
+	return str_set(&dest, src->ptr, src->len, src->len);
 }
 
 bool
@@ -120,20 +116,13 @@ catcs(struct string *dest, char c)
 bool
 crtas_or_cpyas(struct string **dest, const char *src_ptr, size_t src_len)
 {
-	if (*dest != NULL) {
-		return cpyas(*dest, src_ptr, src_len);
-	}
-	*dest = crtas(src_ptr, src_len);
-	if (*dest == NULL) {
-		return false;
-	}
-	return true;
+	return str_set(dest, src_ptr, src_len, src_len);
 }
 
 bool
 crtss_or_cpyss(struct string **dest, const struct string *src)
 {
-	return crtas_or_cpyas(dest, src->ptr, src->len);
+	return str_set(dest, src->ptr, src->len, src->len);
 }
 
 bool

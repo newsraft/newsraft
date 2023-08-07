@@ -6,7 +6,7 @@
 // When allocating memory, we request more resources than necessary to reduce
 // the number of further realloc calls to expand wstring buffer.
 
-static inline bool
+bool
 wstr_set(struct wstring **dest, const wchar_t *src_ptr, size_t src_len, size_t src_lim)
 {
 	if (*dest == NULL) {

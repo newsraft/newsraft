@@ -29,6 +29,8 @@ static size_t scrolloff;
 static struct list_menu_settings menus[MENUS_COUNT];
 static struct list_menu_settings *menu = menus; // Selected menu.
 
+static struct wstring *list_fmtout = NULL;
+
 int8_t
 get_current_menu_type(void)
 {
@@ -61,6 +63,9 @@ adjust_list_menu(void)
 	if (scrolloff > (list_menu_height / 2)) {
 		scrolloff = list_menu_height / 2;
 	}
+	if (wstr_set(&list_fmtout, NULL, 0, 200) == false) {
+		goto error;
+	}
 	return true;
 error:
 	FAIL("Not enough memory for adjusting list menu!");
@@ -74,13 +79,15 @@ free_list_menu(void)
 		delwin(windows[i]);
 	}
 	free(windows);
+	free_wstring(list_fmtout);
 }
 
 static void
 regular_list_menu_writer(size_t index, WINDOW *w)
 {
 	if (menu->enumerator(index) == true) {
-		waddnwstr(w, do_format(menu->entry_format->ptr, menu->get_args(index))->ptr, list_menu_width);
+		do_format(list_fmtout, menu->entry_format->ptr, menu->get_args(index));
+		waddnwstr(w, list_fmtout->ptr, list_menu_width);
 		wbkgd(w, get_color_pair(menu->paint_action(index)) | (index == menu->view_sel ? A_REVERSE : 0));
 	}
 }

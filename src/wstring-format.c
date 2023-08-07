@@ -1,47 +1,27 @@
 #include <ctype.h>
+#include <string.h>
 #include "newsraft.h"
 
-static struct wstring *fmt_buf;
-static struct wstring *tmp_buf;
-
-bool
-create_format_buffers(void)
-{
-	fmt_buf = wcrtes(1000);
-	tmp_buf = wcrtes(100);
-	if ((fmt_buf == NULL) || (tmp_buf == NULL)) {
-		fputs("Not enough memory for format buffers!\n", stderr);
-		free_wstring(fmt_buf);
-		free_wstring(tmp_buf);
-		return false;
-	}
-	return true;
-}
+#define FORMAT_TMP_BUF_SIZE 200
 
 void
-free_format_buffers(void)
+do_format(struct wstring *dest, const wchar_t *fmt, const struct format_arg *args)
 {
-	free_wstring(fmt_buf);
-	free_wstring(tmp_buf);
-}
-
-const struct wstring *
-do_format(const wchar_t *fmt, const struct format_arg *args)
-{
+	wchar_t tmp_buf[FORMAT_TMP_BUF_SIZE + 2];
 	const wchar_t *specifier;
 	int tmp_res;
-	empty_wstring(fmt_buf);
+	empty_wstring(dest);
 	for (const wchar_t *iter = fmt; *iter != '\0';) {
 		if (iter[0] != L'%') {
-			if (wcatcs(fmt_buf, *iter) == false) {
-				return tmp_buf; // OOM
+			if (wcatcs(dest, *iter) == false) {
+				return;
 			}
 			iter += 1;
 			continue;
 		} else if (iter[1] == L'%') {
 			// iter[0] and iter[1] are percent signs.
-			if (wcatcs(fmt_buf, L'%') == false) {
-				return tmp_buf; // OOM
+			if (wcatcs(dest, L'%') == false) {
+				return;
 			}
 			iter += 2;
 			continue;
@@ -56,23 +36,23 @@ do_format(const wchar_t *fmt, const struct format_arg *args)
 				if (specifier[0] != args[j].specifier) {
 					continue;
 				}
-				if (wcpyas(tmp_buf, iter, specifier - iter) == false) {
-					return tmp_buf; // OOM
+				if (specifier - iter > FORMAT_TMP_BUF_SIZE) {
+					return;
 				}
-				if (wcatcs(tmp_buf, args[j].type_specifier) == false) {
-					return tmp_buf; // OOM
-				}
+				memcpy(tmp_buf, iter, sizeof(wchar_t) * (specifier - iter));
+				tmp_buf[specifier - iter] = args[j].type_specifier;
+				tmp_buf[specifier - iter + 1] = L'\0';
 				do {
 					if (args[j].type_specifier == L's') {
-						tmp_res = swprintf(fmt_buf->ptr + fmt_buf->len, fmt_buf->lim + 1 - fmt_buf->len, tmp_buf->ptr, args[j].value.s);
+						tmp_res = swprintf(dest->ptr + dest->len, dest->lim + 1 - dest->len, tmp_buf, args[j].value.s);
 					} else {
-						tmp_res = swprintf(fmt_buf->ptr + fmt_buf->len, fmt_buf->lim + 1 - fmt_buf->len, tmp_buf->ptr, args[j].value.i);
+						tmp_res = swprintf(dest->ptr + dest->len, dest->lim + 1 - dest->len, tmp_buf, args[j].value.i);
 					}
 					if (tmp_res != -1) {
-						fmt_buf->len += tmp_res;
-						fmt_buf->ptr[fmt_buf->len] = L'\0';
-					} else if (increase_wstring_size(fmt_buf, 100) == false) {
-						return tmp_buf; // OOM
+						dest->len += tmp_res;
+						dest->ptr[dest->len] = L'\0';
+					} else if (increase_wstring_size(dest, 100) == false) {
+						return;
 					}
 				} while (tmp_res == -1);
 				break;
@@ -82,5 +62,4 @@ do_format(const wchar_t *fmt, const struct format_arg *args)
 		}
 		iter = specifier;
 	}
-	return fmt_buf;
 }

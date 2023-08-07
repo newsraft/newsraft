@@ -328,9 +328,7 @@ bool start_pager_menu(struct render_blocks_list *new_blocks);
 bool reset_pager_menu(void);
 
 // See "format.c" file for implementation.
-bool create_format_buffers(void);
-void free_format_buffers(void);
-const struct wstring *do_format(const wchar_t *fmt, const struct format_arg *args);
+void do_format(struct wstring *dest, const wchar_t *fmt, const struct format_arg *args);
 
 // See "items.c" file for implementation.
 void mark_item_read(size_t view_sel);
@@ -509,6 +507,7 @@ const struct string *get_next_entry_from_deserialize_stream(struct deserialize_s
 void close_deserialize_stream(struct deserialize_stream *stream);
 
 // See "wstring.c" file for implementation.
+bool wstr_set(struct wstring **dest, const wchar_t *src_ptr, size_t src_len, size_t src_lim);
 struct wstring *wcrtes(size_t desired_capacity);
 struct wstring *wcrtas(const wchar_t *src_ptr, size_t src_len);
 bool wcpyas(struct wstring *dest, const wchar_t *src_ptr, size_t src_len);

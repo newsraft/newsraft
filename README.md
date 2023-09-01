@@ -8,6 +8,17 @@ counterpart. The design differences between these projects are mentioned in the
 
 ![Newsraft in action](doc/newsraft.png)
 
+## Features
+
+* Parallel downloads
+* Section-based feeds grouping
+* Opening links in any program
+* Viewing news from all feeds with explore mode
+* Automatic updates for feeds and sections
+* Multiple actions key bindings
+* Text search by news titles
+* Interactive interface for viewing news content
+
 ## Dependencies
 
 | Name                                                               | Version   | Necessity              |

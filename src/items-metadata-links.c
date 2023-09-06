@@ -3,76 +3,38 @@
 #include <curl/curl.h>
 #include "newsraft.h"
 
-static inline struct string *
-convert_bytes_to_human_readable_size_string(const char *value)
+static inline int
+convert_bytes_to_human_readable_size_string(char *dest, size_t dest_size, const char *value)
 {
-	float size;
-	if (sscanf(value, "%f", &size) != 1) {
-		FAIL("Can't convert \"%s\" string to float!", value);
-		return NULL;
+	float size = -1;
+	if (sscanf(value, "%f", &size) != 1 || size < 0) {
+		FAIL("Failed to convert \"%s\" to size number!", value);
+		return 0;
 	}
-	if (size < 0) {
-		FAIL("Number of bytes turned out to be negative!");
-		return NULL;
-	}
-	// longest float integral part (40) +
-	// point (1) +
-	// two digits after point (2) +
-	// space (1) +
-	// longest name of data measure (5) +
-	// null terminator (1) +
-	// for luck (50) = 100
-	char human_readable[100];
-	int length;
 	if (size < 1100) {
-		length = sprintf(human_readable, "%.0f bytes", size);
+		return snprintf(dest, dest_size, "%.0f bytes", size);
 	} else if (size < 1100000) {
-		length = sprintf(human_readable, "%.1f KB", size / 1000);
+		return snprintf(dest, dest_size, "%.1f KB", size / 1000);
 	} else if (size < 1100000000) {
-		length = sprintf(human_readable, "%.1f MB", size / 1000000);
-	} else {
-		length = sprintf(human_readable, "%.2f GB", size / 1000000000);
+		return snprintf(dest, dest_size, "%.1f MB", size / 1000000);
 	}
-	if (length < 4) {
-		FAIL("Failed to write size string to buffer!");
-		return NULL;
-	}
-	return crtas(human_readable, length);
+	return snprintf(dest, dest_size, "%.2f GB", size / 1000000000);
 }
 
-static inline struct string *
-convert_seconds_to_human_readable_duration_string(const char *value)
+static inline int
+convert_seconds_to_human_readable_duration_string(char *dest, size_t dest_size, const char *value)
 {
-	float duration;
-	if (sscanf(value, "%f", &duration) != 1) {
-		FAIL("Can't convert \"%s\" string to float!", value);
-		return NULL;
+	float duration = -1;
+	if (sscanf(value, "%f", &duration) != 1 || duration < 0) {
+		FAIL("Failed to convert \"%s\" to duration number!", value);
+		return 0;
 	}
-	if (duration < 0) {
-		FAIL("Number of seconds turned out to be negative!");
-		return NULL;
-	}
-	// longest float integral part (40) +
-	// point (1) +
-	// one digit after point (1) +
-	// space (1) +
-	// longest name of data measure (7) +
-	// null terminator (1) +
-	// for luck (50) = 101
-	char human_readable[101];
-	int length;
 	if (duration < 90) {
-		length = sprintf(human_readable, "%.0f seconds", duration);
+		return snprintf(dest, dest_size, "%.0f seconds", duration);
 	} else if (duration < 4000) {
-		length = sprintf(human_readable, "%.1f minutes", duration / 60);
-	} else {
-		length = sprintf(human_readable, "%.1f hours", duration / 3600);
+		return snprintf(dest, dest_size, "%.1f minutes", duration / 60);
 	}
-	if (length < 7) {
-		FAIL("Failed to write duration string to buffer!");
-		return NULL;
-	}
-	return crtas(human_readable, length);
+	return snprintf(dest, dest_size, "%.1f hours", duration / 3600);
 }
 
 // Return codes correspond to:
@@ -241,7 +203,9 @@ generate_link_list_string_for_pager(const struct links_list *links)
 	char prefix[LINK_PREFIX_SIZE];
 	int prefix_len;
 	bool parentheses_are_open;
-	struct string *readable_string = NULL;
+#define CONVERT_OUT_SIZE 200
+	char convert_out[CONVERT_OUT_SIZE];
+	int convert_len;
 	for (size_t i = 0; i < links->len; ++i) {
 		if ((links->ptr[i].url == NULL) || (links->ptr[i].url->len == 0)) {
 			continue;
@@ -265,17 +229,11 @@ generate_link_list_string_for_pager(const struct links_list *links)
 			&& (links->ptr[i].size->len != 0)
 			&& (strcmp(links->ptr[i].size->ptr, "0") != 0))
 		{
-			readable_string = convert_bytes_to_human_readable_size_string(links->ptr[i].size->ptr);
-			if (readable_string != NULL) {
-				if (parentheses_are_open == true) {
-					if (catas(str, ", size: ", 8) == false) { goto error; }
-				} else {
-					parentheses_are_open = true;
-					if (catas(str, " (size: ", 8) == false) { goto error; }
-				}
-				if (catss(str, readable_string) == false) { goto error; }
-				free_string(readable_string);
-				readable_string = NULL;
+			convert_len = convert_bytes_to_human_readable_size_string(convert_out, CONVERT_OUT_SIZE, links->ptr[i].size->ptr);
+			if (convert_len > 0 && convert_len < CONVERT_OUT_SIZE) {
+				if (catas(str, parentheses_are_open ? ", size: " : " (size: ", 8) == false) { goto error; }
+				if (catas(str, convert_out, convert_len) == false) { goto error; }
+				parentheses_are_open = true;
 			}
 		}
 
@@ -283,17 +241,11 @@ generate_link_list_string_for_pager(const struct links_list *links)
 			&& (links->ptr[i].duration->len != 0)
 			&& (strcmp(links->ptr[i].duration->ptr, "0") != 0))
 		{
-			readable_string = convert_seconds_to_human_readable_duration_string(links->ptr[i].duration->ptr);
-			if (readable_string != NULL) {
-				if (parentheses_are_open == true) {
-					if (catas(str, ", duration: ", 12) == false) { goto error; }
-				} else {
-					parentheses_are_open = true;
-					if (catas(str, " (duration: ", 12) == false) { goto error; }
-				}
-				if (catss(str, readable_string) == false) { goto error; }
-				free_string(readable_string);
-				readable_string = NULL;
+			convert_len = convert_seconds_to_human_readable_duration_string(convert_out, CONVERT_OUT_SIZE, links->ptr[i].duration->ptr);
+			if (convert_len > 0 && convert_len < CONVERT_OUT_SIZE) {
+				if (catas(str, parentheses_are_open ? ", duration: " : " (duration: ", 12) == false) { goto error; }
+				if (catas(str, convert_out, convert_len) == false) { goto error; }
+				parentheses_are_open = true;
 			}
 		}
 
@@ -303,7 +255,6 @@ generate_link_list_string_for_pager(const struct links_list *links)
 	}
 	return str;
 error:
-	free_string(readable_string);
 	free_string(str);
 	return NULL;
 }

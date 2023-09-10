@@ -234,22 +234,22 @@ convert_array_to_wstring(const char *src_ptr, size_t src_len)
 }
 
 void
-inlinefy_string(struct string *title)
+inlinefy_string(struct string *str)
 {
 	char *i, *j;
-	// Replace newlines and tabs with spaces.
-	for (i = title->ptr; *i != '\0'; ++i) {
-		if ((*i == '\n') || (*i == '\t')) {
+	// Replace whitespace with spaces.
+	for (i = str->ptr; *i != '\0'; ++i) {
+		if (*i == '\n' || *i == '\t' || *i == '\r' || *i == '\f' || *i == '\v') {
 			*i = ' ';
 		}
 	}
 	// Replace repeated spaces with a single one.
-	for (i = title->ptr; *i != '\0'; ++i) {
+	for (i = str->ptr; *i != '\0'; ++i) {
 		if ((*i == ' ') && (*(i + 1) == ' ')) {
 			for (j = i; *j != '\0'; ++j) {
 				*j = *(j + 1);
 			}
-			title->len -= 1;
+			str->len -= 1;
 			i -= 1;
 		}
 	}

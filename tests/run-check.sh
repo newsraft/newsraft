@@ -8,18 +8,19 @@ make CFLAGS='-O3 -fPIC' libnewsraft.so
 tests_count=0
 okays_count=0
 fails_count=0
-for test_source in *.c
+echo
+for test_file in *.c
 do
 	tests_count="$((tests_count + 1))"
-	if cc "$test_source" -Isrc -L. -l:libnewsraft.so; then
-		if env LD_LIBRARY_PATH=. ./a.out; then
-			echo "[OKAY] $test_source"
-			okays_count="$((okays_count + 1))"
-			continue
-		fi
+	if cc -Isrc -L. "$test_file" -l:libnewsraft.so && env LD_LIBRARY_PATH=. ./a.out; then
+		echo "[OKAY] $test_file"
+		okays_count="$((okays_count + 1))"
+	else
+		echo "[FAIL] $test_file"
+		fails_count="$((fails_count + 1))"
 	fi
-	echo "[FAIL] $test_source"
-	fails_count="$((fails_count + 1))"
 done
+echo
 echo "$okays_count/$tests_count TESTS PASSED"
+echo
 [ "$okays_count" = "$tests_count" ] || exit 1

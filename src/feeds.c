@@ -127,11 +127,11 @@ enter_feeds_menu_loop(struct feed_entry **new_feeds, size_t new_feeds_count)
 			enter_list_menu(FEEDS_MENU, 0, false);
 		} else if (cmd == INPUT_TOGGLE_EXPLORE_MODE) {
 			cmd = enter_items_menu_loop(feeds, feeds_count, true, NULL);
-			if (cmd == INPUT_QUIT_SOFT || cmd == INPUT_QUIT_HARD) break;
+			if (cmd == INPUT_QUIT_HARD) break;
 			enter_list_menu(FEEDS_MENU, 0, false);
 		} else if (cmd == INPUT_APPLY_SEARCH_MODE_FILTER) {
 			cmd = enter_items_menu_loop(feeds, feeds_count, true, search_mode_text_input);
-			if (cmd == INPUT_QUIT_SOFT || cmd == INPUT_QUIT_HARD) break;
+			if (cmd == INPUT_QUIT_HARD) break;
 			enter_list_menu(FEEDS_MENU, 0, false);
 		} else if (cmd == INPUT_STATUS_HISTORY_MENU) {
 			cmd = enter_status_pager_view_loop();

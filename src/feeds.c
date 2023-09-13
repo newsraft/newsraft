@@ -3,7 +3,7 @@
 static struct feed_entry **feeds = NULL;
 static size_t feeds_count = 0;
 
-static struct format_arg fmt_args[] = {
+static struct format_arg feeds_fmt_args[] = {
 	{L'n',  L'd',  {.i = 0   }},
 	{L'u',  L'd',  {.i = 0   }},
 	{L'l',  L's',  {.s = NULL}},
@@ -21,12 +21,12 @@ feeds_list_moderator(size_t index)
 const struct format_arg *
 get_feed_entry_args(size_t index)
 {
-	fmt_args[0].value.i = index + 1;
-	fmt_args[1].value.i = feeds[index]->unread_count;
-	fmt_args[2].value.s = feeds[index]->link->ptr;
-	fmt_args[3].value.s = feeds[index]->name ? feeds[index]->name->ptr : "";
-	fmt_args[4].value.s = feeds[index]->name ? feeds[index]->name->ptr : feeds[index]->link->ptr;
-	return fmt_args;
+	feeds_fmt_args[0].value.i = index + 1;
+	feeds_fmt_args[1].value.i = feeds[index]->unread_count;
+	feeds_fmt_args[2].value.s = feeds[index]->link->ptr;
+	feeds_fmt_args[3].value.s = feeds[index]->name ? feeds[index]->name->ptr : "";
+	feeds_fmt_args[4].value.s = feeds[index]->name ? feeds[index]->name->ptr : feeds[index]->link->ptr;
+	return feeds_fmt_args;
 }
 
 int

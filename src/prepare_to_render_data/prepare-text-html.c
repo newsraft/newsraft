@@ -332,7 +332,7 @@ static const struct html_element_preparer preparers[] = {
 };
 
 static void
-dump_html(GumboNode *node, struct string *text, struct html_data *data)
+prepare_html(GumboNode *node, struct string *text, struct html_data *data)
 {
 	if (node->type == GUMBO_NODE_ELEMENT) {
 		size_t i;
@@ -344,7 +344,7 @@ dump_html(GumboNode *node, struct string *text, struct html_data *data)
 		if (preparers[i].tag == GUMBO_TAG_UNKNOWN) {
 			catas(text, node->v.element.original_tag.data, node->v.element.original_tag.length);
 			for (size_t j = 0; j < node->v.element.children.length; ++j) {
-				dump_html(node->v.element.children.data[j], text, data);
+				prepare_html(node->v.element.children.data[j], text, data);
 			}
 			catas(text, node->v.element.original_end_tag.data, node->v.element.original_end_tag.length);
 		} else {
@@ -363,7 +363,7 @@ dump_html(GumboNode *node, struct string *text, struct html_data *data)
 				&& (preparers[i].tag != GUMBO_TAG_SVG))
 			{
 				for (size_t j = 0; j < node->v.element.children.length; ++j) {
-					dump_html(node->v.element.children.data[j], text, data);
+					prepare_html(node->v.element.children.data[j], text, data);
 				}
 			}
 			if (preparers[i].suffix != NULL) {
@@ -429,7 +429,7 @@ prepare_to_render_text_html(const struct wstring *wide_src, struct links_list *l
 		return NULL;
 	}
 	struct html_data data = {links, NULL, 0, false, 0};
-	dump_html(output->root, text, &data);
+	prepare_html(output->root, text, &data);
 	struct wstring *wtext = convert_string_to_wstring(text);
 	gumbo_destroy_output(&kGumboDefaultOptions, output);
 	free_abbrs(&data);

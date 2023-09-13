@@ -16,7 +16,7 @@ static pthread_t auto_updater_routine_thread;
 static volatile bool stop_auto_updater_routine = false;
 static bool at_least_one_feed_has_positive_update_period = false;
 
-static struct format_arg fmt_args[] = {
+static struct format_arg sections_fmt_args[] = {
 	{L'n',  L'd',  {.i = 0   }},
 	{L'u',  L'd',  {.i = 0   }},
 	{L't',  L's',  {.s = NULL}},
@@ -32,10 +32,10 @@ sections_list_moderator(size_t index)
 const struct format_arg *
 get_section_entry_args(size_t index)
 {
-	fmt_args[0].value.i = index + 1;
-	fmt_args[1].value.i = sections[index].unread_count;
-	fmt_args[2].value.s = sections[index].name->ptr;
-	return fmt_args;
+	sections_fmt_args[0].value.i = index + 1;
+	sections_fmt_args[1].value.i = sections[index].unread_count;
+	sections_fmt_args[2].value.s = sections[index].name->ptr;
+	return sections_fmt_args;
 }
 
 int

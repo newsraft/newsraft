@@ -153,7 +153,7 @@ static const struct html_element_renderer renderers[] = {
 };
 
 static void
-dump_html(GumboNode *node, struct line *line)
+render_html(GumboNode *node, struct line *line)
 {
 	if (node->type == GUMBO_NODE_ELEMENT) {
 		size_t i = 0;
@@ -169,7 +169,7 @@ dump_html(GumboNode *node, struct line *line)
 				free_wstring(tag);
 			}
 			for (size_t j = 0; j < node->v.element.children.length; ++j) {
-				dump_html(node->v.element.children.data[j], line);
+				render_html(node->v.element.children.data[j], line);
 			}
 			tag = convert_array_to_wstring(node->v.element.original_end_tag.data, node->v.element.original_end_tag.length);
 			if (tag != NULL) {
@@ -181,7 +181,7 @@ dump_html(GumboNode *node, struct line *line)
 				renderers[i].start_handler(line);
 			}
 			for (size_t j = 0; j < node->v.element.children.length; ++j) {
-				dump_html(node->v.element.children.data[j], line);
+				render_html(node->v.element.children.data[j], line);
 			}
 			if (renderers[i].end_handler != NULL) {
 				renderers[i].end_handler(line);
@@ -223,7 +223,7 @@ render_text_html(struct line *line, const struct wstring *source)
 		free_string(str);
 		return false;
 	}
-	dump_html(output->root, line);
+	render_html(output->root, line);
 	gumbo_destroy_output(&kGumboDefaultOptions, output);
 	free_string(str);
 	return true;

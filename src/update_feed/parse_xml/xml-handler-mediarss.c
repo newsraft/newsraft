@@ -17,7 +17,7 @@
 // to reflect in the database and requires various sophistications.
 
 static int8_t
-content_start(struct stream_callback_data *data, const XML_Char **attrs)
+mediarss_content_start(struct stream_callback_data *data, const XML_Char **attrs)
 {
 	const char *attr = get_value_of_attribute_key(attrs, "url");
 	if (attr == NULL) {
@@ -135,10 +135,10 @@ description_end(struct stream_callback_data *data)
 }
 
 const struct xml_element_handler xml_mediarss_handlers[] = {
-	{"content",     MEDIARSS_CONTENT, &content_start,         NULL},
-	{"embed",       XML_UNKNOWN_POS,  &embed_or_player_start, NULL},
-	{"player",      XML_UNKNOWN_POS,  &embed_or_player_start, NULL},
-	{"peerLink",    XML_UNKNOWN_POS,  &peerlink_start,        NULL},
-	{"description", XML_UNKNOWN_POS,  &description_start,     &description_end},
-	{NULL,          XML_UNKNOWN_POS,  NULL,                   NULL},
+	{"content",     MEDIARSS_CONTENT, &mediarss_content_start, NULL},
+	{"embed",       XML_UNKNOWN_POS,  &embed_or_player_start,  NULL},
+	{"player",      XML_UNKNOWN_POS,  &embed_or_player_start,  NULL},
+	{"peerLink",    XML_UNKNOWN_POS,  &peerlink_start,         NULL},
+	{"description", XML_UNKNOWN_POS,  &description_start,      &description_end},
+	{NULL,          XML_UNKNOWN_POS,  NULL,                    NULL},
 };

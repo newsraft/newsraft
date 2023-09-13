@@ -155,7 +155,7 @@ error:
 }
 
 // ATTENTION! Maximal length of meta data entry name has to be reflected in MAX_METADATA_ENTRY_NAME_LENGTH.
-static const struct data_entry entries[] = {
+static const struct data_entry field_entries[] = {
 	{"feed",         "Feed: ",          6, &append_feed_line},
 	{"title",        "Title: ",         7, &append_line},
 	{"link",         "Link: ",          6, &append_line},
@@ -176,9 +176,9 @@ generate_render_blocks_based_on_item_data(struct render_blocks_list *blocks, con
 	const char *i = content_order->ptr;
 	while (true) {
 		if ((*i == ',') || (*i == '\0')) {
-			for (size_t j = 0; entries[j].field != NULL; ++j) {
-				if (strncmp(entry, entries[j].field, entry_len) == 0) {
-					if (entries[j].append_handler(blocks, item, res, entries + j) == false) {
+			for (size_t j = 0; field_entries[j].field != NULL; ++j) {
+				if (strncmp(entry, field_entries[j].field, entry_len) == 0) {
+					if (field_entries[j].append_handler(blocks, item, res, field_entries + j) == false) {
 						return false;
 					}
 					break;

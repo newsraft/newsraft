@@ -1,11 +1,9 @@
 #include "newsraft.h"
 
-static struct feed_entry **feeds;
-static size_t feeds_count;
 static struct items_list *items = NULL;
 static volatile bool items_menu_needs_to_regenerate = false;
 
-static struct format_arg fmt_args[] = {
+static struct format_arg items_fmt_args[] = {
 	{L'n',  L'd',  {.i = 0   }},
 	{L'u',  L's',  {.s = NULL}},
 	{L'd',  L's',  {.s = NULL}},
@@ -32,17 +30,17 @@ items_list_moderator(size_t index)
 const struct format_arg *
 get_item_entry_args(size_t index)
 {
-	fmt_args[0].value.i = index + 1;
-	fmt_args[1].value.s = items->ptr[index].is_unread == true ? "N" : " ";
-	fmt_args[2].value.s = items->ptr[index].date_str->ptr;
-	fmt_args[3].value.s = items->ptr[index].pub_date_str->ptr;
-	fmt_args[4].value.s = items->ptr[index].url->ptr;
-	fmt_args[5].value.s = items->ptr[index].title ? items->ptr[index].title->ptr : "";
-	fmt_args[6].value.s = items->ptr[index].title ? items->ptr[index].title->ptr : items->ptr[index].url->ptr;
-	fmt_args[7].value.s = items->ptr[index].feed->link->ptr;
-	fmt_args[8].value.s = items->ptr[index].feed->name ? items->ptr[index].feed->name->ptr : "";
-	fmt_args[9].value.s = items->ptr[index].feed->name ? items->ptr[index].feed->name->ptr : items->ptr[index].feed->link->ptr;
-	return fmt_args;
+	items_fmt_args[0].value.i = index + 1;
+	items_fmt_args[1].value.s = items->ptr[index].is_unread == true ? "N" : " ";
+	items_fmt_args[2].value.s = items->ptr[index].date_str->ptr;
+	items_fmt_args[3].value.s = items->ptr[index].pub_date_str->ptr;
+	items_fmt_args[4].value.s = items->ptr[index].url->ptr;
+	items_fmt_args[5].value.s = items->ptr[index].title ? items->ptr[index].title->ptr : "";
+	items_fmt_args[6].value.s = items->ptr[index].title ? items->ptr[index].title->ptr : items->ptr[index].url->ptr;
+	items_fmt_args[7].value.s = items->ptr[index].feed->link->ptr;
+	items_fmt_args[8].value.s = items->ptr[index].feed->name ? items->ptr[index].feed->name->ptr : "";
+	items_fmt_args[9].value.s = items->ptr[index].feed->name ? items->ptr[index].feed->name->ptr : items->ptr[index].feed->link->ptr;
+	return items_fmt_args;
 }
 
 int
@@ -149,10 +147,8 @@ tell_items_menu_to_regenerate(void)
 }
 
 input_cmd_id
-enter_items_menu_loop(struct feed_entry **new_feeds, size_t new_feeds_count, bool is_explore_mode, const struct string *search_filter)
+enter_items_menu_loop(struct feed_entry **feeds, size_t feeds_count, bool is_explore_mode, const struct string *search_filter)
 {
-	feeds = new_feeds;
-	feeds_count = new_feeds_count;
 	items_menu_needs_to_regenerate = false;
 	free_items_list(items);
 	items = create_items_list(feeds, feeds_count, SORT_BY_TIME_DESC, get_cfg_bool(CFG_INITIAL_UNREAD_FIRST_SORTING), search_filter);

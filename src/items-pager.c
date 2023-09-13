@@ -1,11 +1,6 @@
 #include <string.h>
 #include "newsraft.h"
 
-static struct format_arg cmd_args[] = {
-	{L'l',  L's',  {.s = NULL}},
-	{L'\0', L'\0', {.i = 0   }}, // terminator
-};
-
 static inline bool
 join_links_render_block(struct render_blocks_list *blocks, struct links_list *links)
 {
@@ -54,6 +49,10 @@ error:
 int
 enter_item_pager_view_loop(struct items_list *items, const size_t *view_sel)
 {
+	struct format_arg items_pager_fmt_args[] = {
+		{L'l',  L's',  {.s = NULL}},
+		{L'\0', L'\0', {.i = 0   }}, // terminator
+	};
 	struct render_blocks_list blocks;
 	struct links_list links;
 	while (true) {
@@ -94,13 +93,13 @@ enter_item_pager_view_loop(struct items_list *items, const size_t *view_sel)
 				free_links_list(&links);
 				return cmd;
 			} else if (cmd == INPUT_OPEN_IN_BROWSER && count > 0 && count <= links.len) {
-				cmd_args[0].value.s = links.ptr[count - 1].url->ptr;
-				run_command_with_specifiers(get_cfg_wstring(CFG_OPEN_IN_BROWSER_COMMAND), cmd_args);
+				items_pager_fmt_args[0].value.s = links.ptr[count - 1].url->ptr;
+				run_command_with_specifiers(get_cfg_wstring(CFG_OPEN_IN_BROWSER_COMMAND), items_pager_fmt_args);
 			} else if (cmd == INPUT_COPY_TO_CLIPBOARD && count > 0 && count <= links.len) {
 				copy_string_to_clipboard(links.ptr[count - 1].url);
 			} else if (cmd == INPUT_SYSTEM_COMMAND && count > 0 && count <= links.len) {
-				cmd_args[0].value.s = links.ptr[count - 1].url->ptr;
-				run_command_with_specifiers(macro, cmd_args);
+				items_pager_fmt_args[0].value.s = links.ptr[count - 1].url->ptr;
+				run_command_with_specifiers(macro, items_pager_fmt_args);
 			}
 		}
 		free_render_blocks(&blocks);

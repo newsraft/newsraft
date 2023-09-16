@@ -207,7 +207,7 @@ enter_items_menu_loop(struct feed_entry **feeds, size_t feeds_count, bool is_exp
 			copy_string_to_clipboard(items->ptr[*view_sel].url);
 		} else if (cmd == INPUT_TOGGLE_EXPLORE_MODE && is_explore_mode == true) {
 			break;
-		} else if (cmd == INPUT_QUIT_SOFT || cmd == INPUT_QUIT_HARD) {
+		} else if (cmd == INPUT_NAVIGATE_BACK || cmd == INPUT_QUIT_SOFT || cmd == INPUT_QUIT_HARD) {
 			break;
 		}
 	}

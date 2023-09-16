@@ -36,6 +36,7 @@ static const struct input_entry_match action_names_string_table[] = {
 	{"open-in-browser",                   INPUT_OPEN_IN_BROWSER            },
 	{"copy-to-clipboard",                 INPUT_COPY_TO_CLIPBOARD          },
 	{"start-search-input",                INPUT_START_SEARCH_INPUT         },
+	{"navigate-back",                     INPUT_NAVIGATE_BACK              },
 	{"quit",                              INPUT_QUIT_SOFT                  },
 	{"quit-hard",                         INPUT_QUIT_HARD                  },
 	{NULL,                                0                                },

@@ -506,7 +506,9 @@ _color-list-section-unread-bg_ (default: *default*)
 :[ _copy-to-clipboard_
 |[ */*
 :[ _start-search-input_
-|[ *h*, *q*, *KEY_LEFT*, *KEY_BACKSPACE*
+|[ *h*, *KEY_LEFT*, *KEY_BACKSPACE*
+:[ _navigate-back_
+|[ *q*
 :[ _quit_
 |[ *Q*
 :[ _quit-hard_

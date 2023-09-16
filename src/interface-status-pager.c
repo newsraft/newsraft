@@ -30,7 +30,7 @@ enter_status_pager_view_loop(void)
 		cmd = get_input_command(NULL, &macro);
 		if (handle_pager_menu_control(cmd) == true) {
 			// Rest a little.
-		} else if ((cmd == INPUT_QUIT_SOFT) || (cmd == INPUT_QUIT_HARD)) {
+		} else if (cmd == INPUT_NAVIGATE_BACK || cmd == INPUT_QUIT_SOFT || cmd == INPUT_QUIT_HARD) {
 			break;
 		}
 	}

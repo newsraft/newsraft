@@ -88,7 +88,7 @@ enter_item_pager_view_loop(struct items_list *items, const size_t *view_sel)
 				if (current_sel != *view_sel) {
 					break;
 				}
-			} else if ((cmd == INPUT_QUIT_SOFT) || (cmd == INPUT_QUIT_HARD)) {
+			} else if (cmd == INPUT_NAVIGATE_BACK || cmd == INPUT_QUIT_SOFT || cmd == INPUT_QUIT_HARD) {
 				free_render_blocks(&blocks);
 				free_links_list(&links);
 				return cmd;

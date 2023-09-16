@@ -98,7 +98,7 @@ enter_feeds_menu_loop(struct feed_entry **new_feeds, size_t new_feeds_count)
 	feeds_count = new_feeds_count;
 	if (get_cfg_bool(CFG_FEEDS_MENU_PARAMOUNT_EXPLORE) == true) {
 		cmd = enter_items_menu_loop(feeds, feeds_count, true, NULL);
-		if (cmd == INPUT_QUIT_SOFT || cmd == INPUT_QUIT_HARD) {
+		if (cmd == INPUT_NAVIGATE_BACK || cmd == INPUT_QUIT_SOFT || cmd == INPUT_QUIT_HARD) {
 			return cmd;
 		}
 	} else if (feeds_count == 1) {

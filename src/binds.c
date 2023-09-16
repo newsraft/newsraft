@@ -151,6 +151,7 @@ assign_default_binds(void)
 	if (create_bind("c",              1, INPUT_COPY_TO_CLIPBOARD)               == false) { goto fail; }
 	if (create_bind("/",              1, INPUT_START_SEARCH_INPUT)              == false) { goto fail; }
 	if (create_bind("h",              1, INPUT_NAVIGATE_BACK)                   == false) { goto fail; }
+	if (create_bind("^?",             2, INPUT_NAVIGATE_BACK)                   == false) { goto fail; }
 	if (create_bind("KEY_LEFT",       8, INPUT_NAVIGATE_BACK)                   == false) { goto fail; }
 	if (create_bind("KEY_BACKSPACE", 13, INPUT_NAVIGATE_BACK)                   == false) { goto fail; }
 	if (create_bind("q",              1, INPUT_QUIT_SOFT)                       == false) { goto fail; }

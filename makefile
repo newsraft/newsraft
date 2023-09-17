@@ -1,5 +1,5 @@
 .POSIX:
-.PHONY: all install install-newsraft install-doc install-examples doc clean check cppcheck
+.PHONY: all install install-newsraft install-doc install-examples doc clean check cppcheck clang-tidy
 
 CC            = cc
 CFLAGS        = -O3
@@ -61,3 +61,6 @@ check:
 
 cppcheck:
 	find src -name "*.c" -exec cppcheck -q --enable=warning,performance,portability '{}' ';'
+
+clang-tidy:
+	clang-tidy --checks='-clang-analyzer-security.insecureAPI.*' $$(find src -name '*.c') -- -Isrc -D_XOPEN_SOURCE=700 -D_XOPEN_SOURCE_EXTENDED

@@ -118,7 +118,7 @@ expand_last_row_in_html_table_by_one_cell(struct html_table *table, GumboVector 
 	if (last_row->cells_count > table->columns_count) {
 		int64_t prev_columns_count = table->columns_count;
 		table->columns_count = last_row->cells_count;
-		size_t *tmp2 = realloc(table->column_widths, sizeof(int64_t) * table->columns_count);
+		size_t *tmp2 = realloc(table->column_widths, sizeof(size_t) * table->columns_count);
 		if (tmp2 != NULL) {
 			table->column_widths = tmp2;
 			for (i = prev_columns_count; i < table->columns_count; ++i) {

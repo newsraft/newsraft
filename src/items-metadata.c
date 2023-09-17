@@ -131,14 +131,14 @@ append_max_content(struct render_blocks_list *blocks, const struct item_entry *i
 		return false;
 	}
 	render_block_format type = TEXT_PLAIN;
-	if (get_largest_piece_from_item_content(content, text, &type) == false) {
+	if (get_largest_piece_from_item_content(content, &text, &type) == false) {
 		goto error;
 	}
 	if (text->len == 0) {
 		// There were no texts in the content, let's try to search in
 		// the descriptions for item's attachments.
 		const char *attachments = (char *)sqlite3_column_text(res, ITEM_COLUMN_ATTACHMENTS);
-		if (get_largest_piece_from_item_attachments(attachments, text, &type) == false) {
+		if (get_largest_piece_from_item_attachments(attachments, &text, &type) == false) {
 			goto error;
 		}
 	}

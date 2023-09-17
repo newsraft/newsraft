@@ -97,7 +97,7 @@ undo:
 			struct string *title = db_get_string_from_feed_table(feed->link, "title", 5);
 			if (title != NULL) {
 				inlinefy_string(title);
-				crtss_or_cpyss(&feed->name, title);
+				cpyss(&feed->name, title);
 				free_string(title);
 				need_redraw = true;
 			}

@@ -115,7 +115,7 @@ get_input_command(uint32_t *count, const struct wstring **macro_ptr)
 		} else {
 			input_cmd_id cmd = get_action_of_bind(c, 0, macro_ptr);
 			if (cmd == INPUT_START_SEARCH_INPUT) {
-				crtas_or_cpyas(&search_mode_text_input, "", 0);
+				cpyas(&search_mode_text_input, "", 0);
 				search_mode_is_enabled = true;
 				update_status_window_content();
 			} else {

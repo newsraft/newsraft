@@ -18,7 +18,7 @@ main(void)
 {
 	struct string *str = crtes(100);
 	for (size_t i = 0; test_cases[i][0] != NULL; ++i) {
-		cpyas(str, test_cases[i][1], strlen(test_cases[i][1]));
+		cpyas(&str, test_cases[i][1], strlen(test_cases[i][1]));
 		trim_whitespace_from_string(str);
 		if (strcmp(str->ptr, test_cases[i][0]) != 0) {
 			free_string(str);

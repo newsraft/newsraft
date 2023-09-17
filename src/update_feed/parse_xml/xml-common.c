@@ -48,7 +48,7 @@ int8_t
 generic_guid_end(struct stream_callback_data *data)
 {
 	if (data->path[data->depth] == GENERIC_ITEM) {
-		if (crtss_or_cpyss(&data->feed.item->guid, data->text) == false) {
+		if (cpyss(&data->feed.item->guid, data->text) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	}
@@ -59,11 +59,11 @@ int8_t
 generic_title_end(struct stream_callback_data *data)
 {
 	if (data->path[data->depth] == GENERIC_ITEM) {
-		if (crtss_or_cpyss(&data->feed.item->title, data->text) == false) {
+		if (cpyss(&data->feed.item->title, data->text) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	} else if (data->path[data->depth] == GENERIC_FEED) {
-		if (crtss_or_cpyss(&data->feed.title, data->text) == false) {
+		if (cpyss(&data->feed.title, data->text) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	}

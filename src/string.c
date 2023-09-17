@@ -68,15 +68,15 @@ crtss(const struct string *src)
 }
 
 bool
-cpyas(struct string *dest, const char *src_ptr, size_t src_len)
+cpyas(struct string **dest, const char *src_ptr, size_t src_len)
 {
-	return str_set(&dest, src_ptr, src_len, src_len);
+	return str_set(dest, src_ptr, src_len, src_len);
 }
 
 bool
-cpyss(struct string *dest, const struct string *src)
+cpyss(struct string **dest, const struct string *src)
 {
-	return str_set(&dest, src->ptr, src->len, src->len);
+	return str_set(dest, src->ptr, src->len, src->len);
 }
 
 bool
@@ -111,18 +111,6 @@ bool
 catcs(struct string *dest, char c)
 {
 	return catas(dest, &c, 1);
-}
-
-bool
-crtas_or_cpyas(struct string **dest, const char *src_ptr, size_t src_len)
-{
-	return str_set(dest, src_ptr, src_len, src_len);
-}
-
-bool
-crtss_or_cpyss(struct string **dest, const struct string *src)
-{
-	return str_set(dest, src->ptr, src->len, src->len);
 }
 
 bool

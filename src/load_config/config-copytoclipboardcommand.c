@@ -2,7 +2,7 @@
 #include "load_config/load_config.h"
 
 bool
-obtain_clipboard_command(struct string *cmd)
+obtain_clipboard_command(struct string **cmd)
 {
 	if (getenv("WAYLAND_DISPLAY") != NULL) {
 		if (cpyas(cmd, "wl-copy", 7) == false) {

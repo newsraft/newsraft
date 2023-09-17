@@ -18,7 +18,7 @@ fnv_1a_string(struct string **target, const char *src)
 		hash = (hash ^ str[k++]) * 109951183333LLU;
 	}
 	str[str_len] = '\0';
-	return crtas_or_cpyas(target, str, str_len);
+	return cpyas(target, str, str_len);
 }
 
 bool
@@ -88,11 +88,11 @@ insert_item_data(const struct string *feed_url, struct getfeed_item *item)
 	// Create guid if it was not set.
 	if ((item->guid == NULL) || (item->guid->len == 0)) {
 		if ((item->url != NULL) && (item->url->len != 0)) {
-			if (crtss_or_cpyss(&item->guid, item->url) == false) {
+			if (cpyss(&item->guid, item->url) == false) {
 				return false;
 			}
 		} else if ((item->title != NULL) && (item->title->len != 0)) {
-			if (crtss_or_cpyss(&item->guid, item->title) == false) {
+			if (cpyss(&item->guid, item->title) == false) {
 				return false;
 			}
 		} else if ((item->content != NULL) && (item->content->len != 0)) {

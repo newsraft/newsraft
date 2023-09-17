@@ -22,11 +22,11 @@ link_start(struct stream_callback_data *data, const XML_Char **attrs)
 	if ((rel == NULL) || (strcmp(rel, "alternate") == 0)) {
 		// Default value of rel is alternate.
 		if (data->path[data->depth] == GENERIC_ITEM) {
-			if (crtas_or_cpyas(&data->feed.item->url, attr, attr_len) == false) {
+			if (cpyas(&data->feed.item->url, attr, attr_len) == false) {
 				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			}
 		} else if (data->path[data->depth] == GENERIC_FEED) {
-			if (crtas_or_cpyas(&data->feed.url, attr, attr_len) == false) {
+			if (cpyas(&data->feed.url, attr, attr_len) == false) {
 				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			}
 		}

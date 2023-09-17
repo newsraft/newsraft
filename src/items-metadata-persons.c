@@ -92,19 +92,19 @@ deserialize_persons_string(const char *src, const char *person_type)
 			}
 			empty_person(&person);
 		} else if (strncmp(field->ptr, "type=", 5) == 0) {
-			if (cpyas(person.type, field->ptr + 5, field->len - 5) == false) {
+			if (cpyas(&person.type, field->ptr + 5, field->len - 5) == false) {
 				goto error;
 			}
 		} else if (strncmp(field->ptr, "name=", 5) == 0) {
-			if (cpyas(person.name, field->ptr + 5, field->len - 5) == false) {
+			if (cpyas(&person.name, field->ptr + 5, field->len - 5) == false) {
 				goto error;
 			}
 		} else if (strncmp(field->ptr, "email=", 6) == 0) {
-			if (cpyas(person.email, field->ptr + 6, field->len - 6) == false) {
+			if (cpyas(&person.email, field->ptr + 6, field->len - 6) == false) {
 				goto error;
 			}
 		} else if (strncmp(field->ptr, "url=", 4) == 0) {
-			if (cpyas(person.url, field->ptr + 4, field->len - 4) == false) {
+			if (cpyas(&person.url, field->ptr + 4, field->len - 4) == false) {
 				goto error;
 			}
 		}

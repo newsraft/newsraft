@@ -30,11 +30,11 @@ static inline int
 feed_string_handler(struct stream_callback_data *data, const char *val, size_t len)
 {
 	if (strcmp(data->text->ptr, "home_page_url") == 0) {
-		if (crtas_or_cpyas(&data->feed.url, val, len) == false) {
+		if (cpyas(&data->feed.url, val, len) == false) {
 			return 0;
 		}
 	} else if (strcmp(data->text->ptr, "title") == 0) {
-		if (crtas_or_cpyas(&data->feed.title, val, len) == false) {
+		if (cpyas(&data->feed.title, val, len) == false) {
 			return 0;
 		}
 	} else if (strcmp(data->text->ptr, "description") == 0) {
@@ -55,15 +55,15 @@ item_string_handler(struct stream_callback_data *data, const char *val, size_t l
 		return 1;
 	}
 	if (strcmp(data->text->ptr, "id") == 0) {
-		if (crtas_or_cpyas(&data->feed.item->guid, val, len) == false) {
+		if (cpyas(&data->feed.item->guid, val, len) == false) {
 			return 0;
 		}
 	} else if (strcmp(data->text->ptr, "url") == 0) {
-		if (crtas_or_cpyas(&data->feed.item->url, val, len) == false) {
+		if (cpyas(&data->feed.item->url, val, len) == false) {
 			return 0;
 		}
 	} else if (strcmp(data->text->ptr, "title") == 0) {
-		if (crtas_or_cpyas(&data->feed.item->title, val, len) == false) {
+		if (cpyas(&data->feed.item->title, val, len) == false) {
 			return 0;
 		}
 	} else if (strcmp(data->text->ptr, "content_html") == 0) {
@@ -255,7 +255,7 @@ static int
 map_key_handler(void *ctx, const unsigned char *key, size_t key_len)
 {
 	struct stream_callback_data *data = ctx;
-	bool success = cpyas(data->text, (char *)key, key_len);
+	bool success = cpyas(&data->text, (char *)key, key_len);
 	INFO("Stumbled upon key: %s", data->text->ptr);
 	return success;
 }

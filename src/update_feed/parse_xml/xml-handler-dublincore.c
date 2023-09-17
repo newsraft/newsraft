@@ -5,13 +5,13 @@ title_end(struct stream_callback_data *data)
 {
 	if (data->in_item == true) {
 		if ((data->feed.item->title == NULL) || (data->feed.item->title->len == 0)) {
-			if (crtss_or_cpyss(&data->feed.item->title, data->text) == false) {
+			if (cpyss(&data->feed.item->title, data->text) == false) {
 				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			}
 		}
 	} else {
 		if ((data->feed.title == NULL) || (data->feed.title->len == 0)) {
-			if (crtss_or_cpyss(&data->feed.title, data->text) == false) {
+			if (cpyss(&data->feed.title, data->text) == false) {
 				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			}
 		}

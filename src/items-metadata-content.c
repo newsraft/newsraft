@@ -10,7 +10,7 @@ get_content_type_by_string(const char *type)
 static bool
 get_largest_text_piece_from_item_serialized_data(
 	const char *data,
-	struct string *text,
+	struct string **text,
 	render_block_format *type,
 	const char *text_prefix,
 	size_t text_prefix_len,
@@ -29,7 +29,7 @@ get_largest_text_piece_from_item_serialized_data(
 	const struct string *entry = get_next_entry_from_deserialize_stream(stream);
 	while (entry != NULL) {
 		if (strcmp(entry->ptr, "^") == 0) {
-			if (temp_text->len > text->len) {
+			if (temp_text->len > (*text)->len) {
 				if (cpyss(text, temp_text) == false) {
 					goto error;
 				}
@@ -40,13 +40,13 @@ get_largest_text_piece_from_item_serialized_data(
 		} else if (strncmp(entry->ptr, type_prefix, type_prefix_len) == 0) {
 			temp_type = get_content_type_by_string(entry->ptr + type_prefix_len);
 		} else if (strncmp(entry->ptr, text_prefix, text_prefix_len) == 0) {
-			if (cpyas(temp_text, entry->ptr + text_prefix_len, entry->len - text_prefix_len) == false) {
+			if (cpyas(&temp_text, entry->ptr + text_prefix_len, entry->len - text_prefix_len) == false) {
 				goto error;
 			}
 		}
 		entry = get_next_entry_from_deserialize_stream(stream);
 	}
-	if (temp_text->len > text->len) {
+	if (temp_text->len > (*text)->len) {
 		if (cpyss(text, temp_text) == false) {
 			goto error;
 		}
@@ -62,13 +62,13 @@ error:
 }
 
 bool
-get_largest_piece_from_item_content(const char *content, struct string *text, render_block_format *type)
+get_largest_piece_from_item_content(const char *content, struct string **text, render_block_format *type)
 {
 	return get_largest_text_piece_from_item_serialized_data(content, text, type, "text=", 5, "type=", 5);
 }
 
 bool
-get_largest_piece_from_item_attachments(const char *attachments, struct string *text, render_block_format *type)
+get_largest_piece_from_item_attachments(const char *attachments, struct string **text, render_block_format *type)
 {
 	return get_largest_text_piece_from_item_serialized_data(attachments, text, type, "description_text=", 17, "description_type=", 17);
 }

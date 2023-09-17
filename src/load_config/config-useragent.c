@@ -3,25 +3,25 @@
 #include "load_config/load_config.h"
 
 bool
-obtain_useragent_string(struct string *ua)
+obtain_useragent_string(struct string **ua)
 {
 	if (cpyas(ua, "newsraft/", 9) == false) {
 		goto error;
 	}
-	if (catas(ua, NEWSRAFT_VERSION, strlen(NEWSRAFT_VERSION)) == false) {
+	if (catas(*ua, NEWSRAFT_VERSION, strlen(NEWSRAFT_VERSION)) == false) {
 		goto error;
 	}
 	struct utsname sys_data;
 	if (uname(&sys_data) == 0) {
 		size_t sysname_len = strlen(sys_data.sysname);
 		if (sysname_len != 0) {
-			if (catas(ua, " (", 2) == false) {
+			if (catas(*ua, " (", 2) == false) {
 				goto error;
 			}
-			if (catas(ua, sys_data.sysname, sysname_len) == false) {
+			if (catas(*ua, sys_data.sysname, sysname_len) == false) {
 				goto error;
 			}
-			if (catcs(ua, ')') == false) {
+			if (catcs(*ua, ')') == false) {
 				goto error;
 			}
 		}

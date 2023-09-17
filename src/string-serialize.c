@@ -107,12 +107,12 @@ get_next_entry_from_deserialize_stream(struct deserialize_stream *stream)
 		return NULL;
 	}
 	if (stream->delimiter_pos == NULL) {
-		if (cpyas(stream->entry, stream->prev_delimiter_pos + 1, strlen(stream->prev_delimiter_pos + 1)) == false) {
+		if (cpyas(&stream->entry, stream->prev_delimiter_pos + 1, strlen(stream->prev_delimiter_pos + 1)) == false) {
 			return NULL;
 		}
 		stream->prev_delimiter_pos = NULL;
 	} else {
-		if (cpyas(stream->entry, stream->prev_delimiter_pos + 1, stream->delimiter_pos - stream->prev_delimiter_pos - 1) == false) {
+		if (cpyas(&stream->entry, stream->prev_delimiter_pos + 1, stream->delimiter_pos - stream->prev_delimiter_pos - 1) == false) {
 			return NULL;
 		}
 		stream->prev_delimiter_pos = stream->delimiter_pos;

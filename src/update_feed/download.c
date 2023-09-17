@@ -105,7 +105,7 @@ header_callback(char *contents, size_t length, size_t nmemb, void *userdata)
 		struct string *etag = crtas(header->ptr + 5, header->len - 5);
 		if (etag != NULL) {
 			trim_whitespace_from_string(etag);
-			crtss_or_cpyss(&feed->http_header_etag, etag);
+			cpyss(&feed->http_header_etag, etag);
 			free_string(etag);
 		}
 	} else if (strncasecmp(header->ptr, "Last-Modified: ", 15) == 0) {

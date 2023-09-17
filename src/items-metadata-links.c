@@ -146,19 +146,19 @@ append_attachments(struct links_list *links, sqlite3_stmt *res)
 			add_another_link_to_trim_link_list(links, &another_link);
 			memset(&another_link, 0, sizeof(struct link));
 		} else if (strncmp(entry->ptr, "url=", 4) == 0) {
-			if (crtas_or_cpyas(&another_link.url, entry->ptr + 4, entry->len - 4) == false) {
+			if (cpyas(&another_link.url, entry->ptr + 4, entry->len - 4) == false) {
 				goto error;
 			}
 		} else if (strncmp(entry->ptr, "type=", 5) == 0) {
-			if (crtas_or_cpyas(&another_link.type, entry->ptr + 5, entry->len - 5) == false) {
+			if (cpyas(&another_link.type, entry->ptr + 5, entry->len - 5) == false) {
 				goto error;
 			}
 		} else if (strncmp(entry->ptr, "size=", 5) == 0) {
-			if (crtas_or_cpyas(&another_link.size, entry->ptr + 5, entry->len - 5) == false) {
+			if (cpyas(&another_link.size, entry->ptr + 5, entry->len - 5) == false) {
 				goto error;
 			}
 		} else if (strncmp(entry->ptr, "duration=", 9) == 0) {
-			if (crtas_or_cpyas(&another_link.duration, entry->ptr + 9, entry->len - 9) == false) {
+			if (cpyas(&another_link.duration, entry->ptr + 9, entry->len - 9) == false) {
 				goto error;
 			}
 		}
@@ -292,7 +292,7 @@ complete_urls_of_links(struct links_list *links, const struct string *feed_url)
 			continue; // This URL is broken, leave it alone.
 		}
 		INFO("Completed \"%s\" to \"%s\".", links->ptr[i].url->ptr, url);
-		if (cpyas(links->ptr[i].url, url, strlen(url)) == false) {
+		if (cpyas(&links->ptr[i].url, url, strlen(url)) == false) {
 			curl_free(url);
 			curl_url_cleanup(h);
 			return false;

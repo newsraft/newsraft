@@ -5,7 +5,7 @@ struct config_string {
 	struct string *actual;
 	const char *const primary;
 	const size_t primary_len;
-	bool (*auto_handler)(struct string *);
+	bool (*auto_handler)(struct string **);
 };
 
 struct config_wstring {
@@ -131,7 +131,7 @@ assign_calculated_values_to_auto_config_strings(void)
 		if ((config[i].type == CFG_STRING)
 			&& (config[i].value.s.auto_handler != NULL)
 			&& (strcmp(config[i].value.s.actual->ptr, "auto") == 0)
-			&& (config[i].value.s.auto_handler(config[i].value.s.actual) == false))
+			&& (config[i].value.s.auto_handler(&config[i].value.s.actual) == false))
 		{
 			return false;
 		}
@@ -203,7 +203,7 @@ set_cfg_color_attribute(config_entry_id i, unsigned int attribute)
 bool
 set_cfg_string(config_entry_id i, const char *src_ptr, size_t src_len)
 {
-	return crtas_or_cpyas(&config[i].value.s.actual, src_ptr, src_len);
+	return cpyas(&config[i].value.s.actual, src_ptr, src_len);
 }
 
 bool
@@ -213,14 +213,8 @@ set_cfg_wstring(config_entry_id i, const char *src_ptr, size_t src_len)
 	if (wstr == NULL) {
 		return false;
 	}
-	if (config[i].value.w.actual == NULL) {
-		config[i].value.w.actual = wstr;
-		return true;
-	} else if (wcpyas(config[i].value.w.actual, wstr->ptr, wstr->len) == false) {
-		free_wstring(wstr);
-		return false;
-	}
-	free_wstring(wstr);
+	free_wstring(config[i].value.w.actual);
+	config[i].value.w.actual = wstr;
 	return true;
 }
 

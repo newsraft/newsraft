@@ -26,11 +26,11 @@ static int8_t
 link_end(struct stream_callback_data *data)
 {
 	if (data->path[data->depth] == GENERIC_ITEM) {
-		if (crtss_or_cpyss(&data->feed.item->url, data->text) == false) {
+		if (cpyss(&data->feed.item->url, data->text) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	} else if (data->path[data->depth] == GENERIC_FEED) {
-		if (crtss_or_cpyss(&data->feed.url, data->text) == false) {
+		if (cpyss(&data->feed.url, data->text) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	}

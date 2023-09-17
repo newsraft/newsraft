@@ -380,8 +380,8 @@ struct wstring *render_data(struct render_blocks_list *blocks);
 bool generate_render_blocks_based_on_item_data(struct render_blocks_list *blocks, const struct item_entry *item, sqlite3_stmt *res);
 
 // See "items-metadata-content.c" file for implementation.
-bool get_largest_piece_from_item_content(const char *content, struct string *text, render_block_format *type);
-bool get_largest_piece_from_item_attachments(const char *attachments, struct string *text, render_block_format *type);
+bool get_largest_piece_from_item_content(const char *content, struct string **text, render_block_format *type);
+bool get_largest_piece_from_item_attachments(const char *attachments, struct string **text, render_block_format *type);
 
 // See "items-metadata-links.c" file for implementation.
 int64_t add_another_url_to_trim_links_list(struct links_list *links, const char *url, size_t url_len);
@@ -483,13 +483,11 @@ void run_command_with_specifiers(const struct wstring *wcmd_fmt, const struct fo
 struct string *crtes(size_t desired_capacity);
 struct string *crtas(const char *src_ptr, size_t src_len);
 struct string *crtss(const struct string *src);
-bool cpyas(struct string *dest, const char *src_ptr, size_t src_len);
-bool cpyss(struct string *dest, const struct string *src);
+bool cpyas(struct string **dest, const char *src_ptr, size_t src_len);
+bool cpyss(struct string **dest, const struct string *src);
 bool catas(struct string *dest, const char *src_ptr, size_t src_len);
 bool catss(struct string *dest, const struct string *src);
 bool catcs(struct string *dest, char c);
-bool crtas_or_cpyas(struct string **dest, const char *src_ptr, size_t src_len);
-bool crtss_or_cpyss(struct string **dest, const struct string *src);
 bool string_vprintf(struct string *dest, const char *format, va_list args);
 bool string_printf(struct string *dest, const char *format, ...);
 void empty_string(struct string *dest);
@@ -511,7 +509,6 @@ void close_deserialize_stream(struct deserialize_stream *stream);
 bool wstr_set(struct wstring **dest, const wchar_t *src_ptr, size_t src_len, size_t src_lim);
 struct wstring *wcrtes(size_t desired_capacity);
 struct wstring *wcrtas(const wchar_t *src_ptr, size_t src_len);
-bool wcpyas(struct wstring *dest, const wchar_t *src_ptr, size_t src_len);
 bool wcatas(struct wstring *dest, const wchar_t *src_ptr, size_t src_len);
 bool wcatss(struct wstring *dest, const struct wstring *src);
 bool wcatcs(struct wstring *dest, wchar_t c);

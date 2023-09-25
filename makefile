@@ -1,5 +1,5 @@
 .POSIX:
-.PHONY: all install install-newsraft install-man install-examples man clean check cppcheck clang-tidy
+.PHONY: all install install-newsraft install-man install-examples man html clean check cppcheck clang-tidy
 
 CC            = cc
 CFLAGS        = -O3
@@ -50,6 +50,9 @@ libnewsraft.so:
 
 man:
 	scdoc < doc/newsraft.scd > doc/newsraft.1
+
+html:
+	mandoc -T html ./doc/newsraft.1 > doc/newsraft.html
 
 clean:
 	rm -rf newsraft tests/makefile tests/src tests/libnewsraft.so tests/a.out flog vlog

@@ -35,17 +35,18 @@ update_feed_action(void *arg)
 	data.feed.download_date = time(NULL);
 	if (data.feed.download_date <= 0) {
 		FAIL("Failed to obtain system time!");
-		goto undo;
+		goto finish;
 	}
+	feed->download_date = data.feed.download_date;
 
 	if (get_cfg_bool(CFG_RESPECT_EXPIRES_HEADER) == true) {
 		int64_t expires_date = db_get_date_from_feeds_table(feed->link, "http_header_expires", 19);
 		if (expires_date < 0) {
-			goto undo;
+			goto finish;
 		} else if ((expires_date > 0) && (data.feed.download_date < expires_date)) {
 			INFO("Aborting update because content hasn't expired yet.");
 			status = DOWNLOAD_CANCELED;
-			goto undo;
+			goto finish;
 		}
 	}
 
@@ -53,18 +54,18 @@ update_feed_action(void *arg)
 		int64_t ttl = db_get_date_from_feeds_table(feed->link, "time_to_live", 12);
 		int64_t prev_download_date = db_get_date_from_feeds_table(feed->link, "download_date", 13);
 		if ((ttl < 0) || (prev_download_date < 0)) {
-			goto undo;
+			goto finish;
 		} else if ((ttl > 0) && (prev_download_date > 0) && ((prev_download_date + ttl) > data.feed.download_date)) {
 			INFO("Aborting update because content hasn't died yet.");
 			status = DOWNLOAD_CANCELED;
-			goto undo;
+			goto finish;
 		}
 	}
 
 	if (get_cfg_bool(CFG_SEND_IF_MODIFIED_SINCE_HEADER) == true) {
 		data.feed.http_header_last_modified = db_get_date_from_feeds_table(feed->link, "http_header_last_modified", 25);
 		if (data.feed.http_header_last_modified < 0) {
-			goto undo;
+			goto finish;
 		}
 	}
 
@@ -74,17 +75,14 @@ update_feed_action(void *arg)
 
 	status = download_feed(feed->link->ptr, &data);
 
+finish:
+	pthread_mutex_lock(&update_lock);
 	if (status == DOWNLOAD_SUCCEEDED) {
 		if (insert_feed(feed->link, &data.feed) == false) {
 			status = DOWNLOAD_FAILED;
 		}
 	}
-
 	free_feed(&data.feed);
-
-undo:
-	pthread_mutex_lock(&update_lock);
-	feed->download_date = data.feed.download_date;
 	if (status == DOWNLOAD_SUCCEEDED) {
 		bool need_redraw = false;
 		int64_t new_unread_count = get_unread_items_count_of_the_feed(feed->link);

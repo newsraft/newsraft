@@ -146,16 +146,6 @@ string_vprintf(struct string *dest, const char *format, va_list args)
 	return true;
 }
 
-bool
-string_printf(struct string *dest, const char *format, ...)
-{
-	va_list args;
-	va_start(args, format);
-	bool result = string_vprintf(dest, format, args);
-	va_end(args);
-	return result;
-}
-
 void
 empty_string(struct string *dest)
 {

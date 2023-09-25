@@ -1,12 +1,8 @@
 #include "update_feed/insert_feed/insert_feed.h"
 
-static pthread_mutex_t database_lock = PTHREAD_MUTEX_INITIALIZER;
-
 bool
 insert_feed(const struct string *url, struct getfeed_feed *feed)
 {
-	pthread_mutex_lock(&database_lock);
-
 	if (db_begin_transaction() == false) {
 		goto error;
 	}
@@ -36,10 +32,8 @@ insert_feed(const struct string *url, struct getfeed_feed *feed)
 		goto error;
 	}
 
-	pthread_mutex_unlock(&database_lock);
 	return true;
 error:
 	db_rollback_transaction();
-	pthread_mutex_unlock(&database_lock);
 	return false;
 }

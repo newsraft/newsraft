@@ -101,25 +101,25 @@ add_url_mark(struct links_list *links, struct string *text, const char *url, con
 	}
 
 	// Add link mark to HTML content.
-	struct string *url_mark = crtes(50);
-	if (url_mark == NULL) {
+	char index[100];
+	int index_len = snprintf(index, 100, "%" PRId64, url_index + 1);
+	if (index_len < 1 || index_len > 99) {
 		return;
 	}
-	if (type == NULL) {
-		if (title == NULL) {
-			string_printf(url_mark, " [%" PRId64 "]", url_index + 1);
-		} else {
-			string_printf(url_mark, " [%" PRId64 ", \"%s\"]", url_index + 1, title);
+	catas(text, " [", 2);
+	catas(text, index, index_len);
+	if (type != NULL || title != NULL) {
+		catas(text, ", ", 2);
+		if (type != NULL) {
+			catas(text, type, strlen(type));
 		}
-	} else {
-		if (title == NULL) {
-			string_printf(url_mark, " [%" PRId64 ", %s]", url_index + 1, type);
-		} else {
-			string_printf(url_mark, " [%" PRId64 ", %s \"%s\"]", url_index + 1, type, title);
+		if (title != NULL) {
+			type == NULL ? catas(text, "\"", 1) : catas(text, " \"", 2);
+			catas(text, title, strlen(title));
+			catas(text, "\"", 1);
 		}
 	}
-	catss(text, url_mark);
-	free_string(url_mark);
+	catas(text, "]", 1);
 }
 
 static void
@@ -128,10 +128,7 @@ a_handler(struct string *text, struct html_data *data, GumboVector *attrs)
 	const char *url = get_value_of_xml_attribute(attrs, "href");
 	const char *type = get_value_of_xml_attribute(attrs, "type");
 	const char *title = get_value_of_xml_attribute(attrs, "title");
-	if ((title != NULL) && (strlen(title) == 0)) {
-		title = NULL;
-	}
-	add_url_mark(data->links, text, url, type, title);
+	add_url_mark(data->links, text, url, type, title != NULL && strlen(title) == 0 ? NULL : title);
 }
 
 static void
@@ -141,11 +138,8 @@ img_handler(struct string *text, struct html_data *data, GumboVector *attrs)
 	const char *title = get_value_of_xml_attribute(attrs, "title");
 	if ((title == NULL) || (strlen(title) == 0)) {
 		title = get_value_of_xml_attribute(attrs, "alt");
-		if ((title != NULL) && (strlen(title) == 0)) {
-			title = NULL;
-		}
 	}
-	add_url_mark(data->links, text, url, "image", title);
+	add_url_mark(data->links, text, url, "image", title != NULL && strlen(title) == 0 ? NULL : title);
 }
 
 static void
@@ -155,11 +149,8 @@ iframe_handler(struct string *text, struct html_data *data, GumboVector *attrs)
 	const char *title = get_value_of_xml_attribute(attrs, "title");
 	if ((title == NULL) || (strlen(title) == 0)) {
 		title = get_value_of_xml_attribute(attrs, "name");
-		if ((title != NULL) && (strlen(title) == 0)) {
-			title = NULL;
-		}
 	}
-	add_url_mark(data->links, text, url, "iframe", title);
+	add_url_mark(data->links, text, url, "iframe", title != NULL && strlen(title) == 0 ? NULL : title);
 }
 
 static void
@@ -167,10 +158,7 @@ embed_handler(struct string *text, struct html_data *data, GumboVector *attrs)
 {
 	const char *url = get_value_of_xml_attribute(attrs, "src");
 	const char *type = get_value_of_xml_attribute(attrs, "type");
-	if (type == NULL) {
-		type = "embed";
-	}
-	add_url_mark(data->links, text, url, type, NULL);
+	add_url_mark(data->links, text, url, type == NULL ? "embed" : type, NULL);
 }
 
 static void

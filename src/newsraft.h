@@ -489,7 +489,6 @@ bool catas(struct string *dest, const char *src_ptr, size_t src_len);
 bool catss(struct string *dest, const struct string *src);
 bool catcs(struct string *dest, char c);
 bool string_vprintf(struct string *dest, const char *format, va_list args);
-bool string_printf(struct string *dest, const char *format, ...);
 void empty_string(struct string *dest);
 void free_string(struct string *str);
 void trim_whitespace_from_string(struct string *str);

@@ -1,5 +1,5 @@
 .POSIX:
-.PHONY: all install install-newsraft install-doc install-examples doc clean check cppcheck clang-tidy
+.PHONY: all install install-newsraft install-man install-examples man clean check cppcheck clang-tidy
 
 CC            = cc
 CFLAGS        = -O3
@@ -28,15 +28,15 @@ BINDIR        = $(PREFIX)/bin
 MANDIR        = $(PREFIX)/share/man
 EXAMPLES_DIR  = $(PREFIX)/share/newsraft/examples
 
-all: newsraft doc
+all: newsraft
 
-install: install-newsraft install-doc install-examples
+install: install-newsraft install-man install-examples
 
 install-newsraft: newsraft
 	install -Dm755 newsraft $(DESTDIR)$(BINDIR)/newsraft
 
-install-doc: doc
-	install -Dm644 newsraft.1 $(DESTDIR)$(MANDIR)/man1/newsraft.1
+install-man:
+	install -Dm644 doc/newsraft.1 $(DESTDIR)$(MANDIR)/man1/newsraft.1
 
 install-examples:
 	install -Dm644 doc/examples/feeds $(DESTDIR)$(EXAMPLES_DIR)/feeds
@@ -48,13 +48,11 @@ newsraft:
 libnewsraft.so:
 	$(CC) -std=c99 -shared $(CFLAGS) $(AUXCFLAGS) -Isrc -D_XOPEN_SOURCE=700 -D_XOPEN_SOURCE_EXTENDED $(LDFLAGS) -o $@ src/newsraft.c $(LDLIBS)
 
-doc: newsraft.1
-
-newsraft.1: doc/newsraft.scd
-	scdoc < doc/newsraft.scd > newsraft.1 || true
+man:
+	scdoc < doc/newsraft.scd > doc/newsraft.1
 
 clean:
-	rm -rf newsraft newsraft.1 tests/makefile tests/src tests/libnewsraft.so tests/a.out flog vlog
+	rm -rf newsraft tests/makefile tests/src tests/libnewsraft.so tests/a.out flog vlog
 
 check:
 	./tests/run-check.sh

@@ -47,11 +47,10 @@ from source. Detailed instructions for different platforms are described in
 
 ## Learning more
 
-The essential source of information about Newsraft is its man page. If you've
-built Newsraft from source with scdoc dependency, the man page should've been
-generated in the project directory. Alternatively, you can try to read
-[doc/newsraft.scd](https://codeberg.org/grisha/newsraft/src/branch/main/doc/newsraft.scd)
-scdoc file which is the recipe for generating this man page.
+The essential source of information about Newsraft is its
+[man page](https://codeberg.org/grisha/newsraft/src/branch/main/doc/newsraft.1)
+(if you already have Newsraft installed, you can open it with the `man newsraft` command).
+Alternatively you can read the HTML version of this man page [here](https://txgk.ru/newsraft.html).
 
 Examples on how to configure Newsraft are located in the
 [doc/examples](https://codeberg.org/grisha/newsraft/src/branch/main/doc/examples)

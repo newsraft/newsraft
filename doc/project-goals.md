@@ -1,10 +1,10 @@
 ## Project goals
 
 Main objective of the Newsraft program is to do almost everything
-[Newsboat](https://newsboat.org) does, but simpler. Due to the project's
-endeavor to be simple, some design choices were made differently than in
-Newsboat. The main differences are listed below, so if you wanted to switch from
-Newsboat to Newsraft, it is advised to examine them.
+[Newsboat](https://newsboat.org) does, but simpler. Due to this endeavor, some
+design choices were made differently than in Newsboat. The main differences are
+listed below, so if you wanted to switch from Newsboat to Newsraft, it is
+advised to examine them.
 
 ## Differences from Newsboat
 
@@ -16,7 +16,10 @@ set auto updates for sections - this will all be applied to belonging feeds.
 
 This makes Newsraft very different from Newsboat as latter uses query feeds
 for that purpose which are based on the comprehensive filter language - it
-brings many possibilities, but also introduces some significant limitations.
+brings many possibilities, but also introduces some significant limitations
+(for example, query feeds
+[can't be reloaded](https://github.com/newsboat/newsboat/issues/978) and they
+have to be constantly populated which may be pretty slow for hundreds of feeds).
 
 #### Simpler command bindings
 
@@ -54,16 +57,14 @@ feeds at once, while in Newsraft you can set auto update counters (numbers in
 curly braces below) for separate sections and feeds like that:
 
 ```
-http://example.org/feed1.xml
-http://example.org/feed2.xml {30}
+http://example.org/feed1.xml "Weather" {60}
+http://example.org/feed2.xml "Forum notifications" {30}
+http://example.org/feed3.xml "Phonk"
 
-@ Replies {20}
-http://example.org/feed3.xml {10}
-http://example.org/feed4.xml "Forum notifications"
-
-@ News {60}
-http://example.org/feed5.xml
-http://example.org/feed6.xml "Local weather" {0}
+@ News {30}
+http://example.org/feed4.xml "Tech news"
+http://example.org/feed5.xml "World news" {0}
+http://example.org/feed6.xml "Releases" {1440}
 ```
 
 With this you are able to update the feeds that are very important to you more

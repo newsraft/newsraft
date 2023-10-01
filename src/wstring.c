@@ -96,15 +96,17 @@ wcatcs(struct wstring *dest, wchar_t c)
 }
 
 bool
-increase_wstring_size(struct wstring *dest, size_t expansion)
+make_sure_there_is_enough_space_in_wstring(struct wstring *dest, size_t need_space)
 {
-	size_t new_lim = dest->lim + expansion;
-	wchar_t *new_ptr = realloc(dest->ptr, sizeof(wchar_t) * (new_lim + 1));
-	if (new_ptr == NULL) {
-		return false;
+	if (need_space > dest->lim - dest->len) {
+		const size_t new_lim = dest->len + need_space;
+		wchar_t *new_ptr = realloc(dest->ptr, sizeof(wchar_t) * (new_lim + 1));
+		if (new_ptr == NULL) {
+			return false;
+		}
+		dest->ptr = new_ptr;
+		dest->lim = new_lim;
 	}
-	dest->ptr = new_ptr;
-	dest->lim = new_lim;
 	return true;
 }
 

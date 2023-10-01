@@ -33,38 +33,23 @@ main(void)
 		{L'\0', L'\0', {.i = 0                             }},
 	};
 
-	do_format(w, L"%n%l%f", args);
-	if (wcscmp(w->ptr, L"567Se7en38395629") != 0) goto error;
-
-	do_format(w, L"%v%%%p", args);
-	if (wcscmp(w->ptr, L"Wag the Dog%The Green Mile") != 0) goto error;
-
-	do_format(w, L"%%%d%%", args);
-	if (wcscmp(w->ptr, L"%The Usual Suspects%") != 0) goto error;
-
-	do_format(w, L"%m%", args);
-	if (wcscmp(w->ptr, L"Остров сокровищ") != 0) goto error;
-
-	do_format(w, L"%%%%%%%%%", args);
-	if (wcscmp(w->ptr, L"%%%%") != 0) goto error;
-
-	do_format(w, L" %q %w ", args);
-	if (wcscmp(w->ptr, L" Big Брат ") != 0) goto error;
-
-	do_format(w, L" %q%%w ", args);
-	if (wcscmp(w->ptr, L" Big%w ") != 0) goto error;
-
-	do_format(w, L"%s %h %n", args);
-	if (wcscmp(w->ptr, L"伍六七 英雄 567") != 0) goto error;
-
-	do_format(w, L"%bгыгы%f", args);
-	if (wcscmp(w->ptr, L"Shrekгыгы38395629") != 0) goto error;
-
-	do_format(w, L"гугу%t%w", args);
-	if (wcscmp(w->ptr, L"гугуCarsБрат") != 0) goto error;
-
-	do_format(w, L"%a%qгого", args);
-	if (wcscmp(w->ptr, L"ScarfaceBigгого") != 0) goto error;
+	do_format(w, L"%n%l%f",    args); if (wcscmp(w->ptr, L"567Se7en38395629")           != 0) goto error;
+	do_format(w, L"%v%%%p",    args); if (wcscmp(w->ptr, L"Wag the Dog%The Green Mile") != 0) goto error;
+	do_format(w, L"%%%d%%",    args); if (wcscmp(w->ptr, L"%The Usual Suspects%")       != 0) goto error;
+	do_format(w, L"%m%",       args); if (wcscmp(w->ptr, L"Остров сокровищ")            != 0) goto error;
+	do_format(w, L"%%%%%%%%%", args); if (wcscmp(w->ptr, L"%%%%")                       != 0) goto error;
+	do_format(w, L" %q %w ",   args); if (wcscmp(w->ptr, L" Big Брат ")                 != 0) goto error;
+	do_format(w, L" %q%%w ",   args); if (wcscmp(w->ptr, L" Big%w ")                    != 0) goto error;
+	do_format(w, L"%s %h %n",  args); if (wcscmp(w->ptr, L"伍六七 英雄 567")            != 0) goto error;
+	do_format(w, L"%bгыгы%f",  args); if (wcscmp(w->ptr, L"Shrekгыгы38395629")          != 0) goto error;
+	do_format(w, L"гугу%t%w",  args); if (wcscmp(w->ptr, L"гугуCarsБрат")               != 0) goto error;
+	do_format(w, L"%a%qгого",  args); if (wcscmp(w->ptr, L"ScarfaceBigгого")            != 0) goto error;
+	do_format(w, L"%13e",      args); if (wcscmp(w->ptr, L"Алёша Попович")              != 0) goto error;
+	do_format(w, L"%-13e",     args); if (wcscmp(w->ptr, L"Алёша Попович")              != 0) goto error;
+	do_format(w, L"%10s",      args); if (wcscmp(w->ptr, L"    伍六七")                 != 0) goto error;
+	do_format(w, L"%-10s",     args); if (wcscmp(w->ptr, L"伍六七    ")                 != 0) goto error;
+	do_format(w, L"%3h",       args); if (wcscmp(w->ptr, L" 英")                        != 0) goto error;
+	do_format(w, L"%-3h",      args); if (wcscmp(w->ptr, L"英 ")                        != 0) goto error;
 
 	free_wstring(w);
 	return 0;

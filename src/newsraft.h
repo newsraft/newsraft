@@ -511,7 +511,7 @@ struct wstring *wcrtas(const wchar_t *src_ptr, size_t src_len);
 bool wcatas(struct wstring *dest, const wchar_t *src_ptr, size_t src_len);
 bool wcatss(struct wstring *dest, const struct wstring *src);
 bool wcatcs(struct wstring *dest, wchar_t c);
-bool increase_wstring_size(struct wstring *dest, size_t expansion);
+bool make_sure_there_is_enough_space_in_wstring(struct wstring *dest, size_t need_space);
 void empty_wstring(struct wstring *dest);
 void free_wstring(struct wstring *wstr);
 void trim_whitespace_from_wstring(struct wstring *wstr);

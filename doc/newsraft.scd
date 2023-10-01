@@ -302,7 +302,7 @@ _menu-item-entry-format_ (default: *" %u │ %d │ %o"*)
 *T*	feed title;++
 *O*	feed title if set, feed link otherwise.
 
-_menu-explore-item-entry-format_ (default: *" %u │ %d │ %-28.28O │ %o"*)
+_menu-explore-item-entry-format_ (default: *" %u │ %d │ %-28O │ %o"*)
 	Format of the item list entries in explore mode. Specifiers are the same as
 	in _menu-item-entry-format_.
 

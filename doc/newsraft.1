@@ -5,7 +5,7 @@
 .nh
 .ad l
 .\" Begin generated content:
-.TH "NEWSRAFT" "1" "2023-10-01"
+.TH "NEWSRAFT" "1" "2023-10-02"
 .P
 .SH NAME
 .P
@@ -152,31 +152,31 @@ example:
 \fI# Look closely.\& The beautiful may be small.\&\fR
 .P
 .RE
-Both feed and section lines allow you to set an auto update counter at the end,
+Both feed and section lines allow you to set an auto update timer at the end,
 which will force section or feed related to this line to be automatically
 updated at a certain frequency.\& The period of automatic updates is specified in
-minutes and must be enclosed in curly braces.\& If you set an auto update counter
-for a feed that belongs to a section with an auto update counter set, then the
-auto update counter of the feed will take precedence.\& Auto update counter of \fB0\fR
+minutes and must be enclosed in square brackets.\& If you set an auto update timer
+for a feed that belongs to a section with an auto update timer set, then the
+auto update timer of the feed will take precedence.\& Auto update timer of \fB0\fR
 disables automatic updates.\& Let'\&s walk through a small example and see how it
 all works.\& Consider this \fBfeeds\fR file:
 .P
 .RS 4
 \fIhttp://example.\&org/feed1.\&xml\fR
 .br
-\fIhttp://example.\&org/feed2.\&xml {30}\fR
+\fIhttp://example.\&org/feed2.\&xml [30]\fR
 .P
-\fI@ Replies {20}\fR
+\fI@ Replies [20]\fR
 .br
-\fIhttp://example.\&org/feed3.\&xml {10}\fR
+\fIhttp://example.\&org/feed3.\&xml [10]\fR
 .br
 \fIhttp://example.\&org/feed4.\&xml "Forum notifications"\fR
 .P
-\fI@ News {60}\fR
+\fI@ News [60]\fR
 .br
 \fIhttp://example.\&org/feed5.\&xml\fR
 .br
-\fIhttp://example.\&org/feed6.\&xml "Local weather" {0}\fR
+\fIhttp://example.\&org/feed6.\&xml "Local weather" [0]\fR
 .P
 .RE
 In this example, \fIfeed1\fR will never update automatically, \fIfeed2\fR will update
@@ -185,10 +185,10 @@ every \fB20\fR minutes, \fIfeed5\fR will update every \fB60\fR minutes and \fIfe
 never update automatically.\&
 .P
 If you just want to automatically update all feeds then you should set an auto
-update counter for \fBGlobal\fR section, but before doing so, think about what load
+update timer for \fBGlobal\fR section, but before doing so, think about what load
 can be exerted on a servers by frequent downloads from a large number of users.\&
-Going for a small auto update counter on \fBGlobal\fR section will most likely
-result in a waste of a lot of resources.\& You have been warned.\&
+Going for a small auto update timer on \fBGlobal\fR section will most likely result
+in a waste of a lot of resources.\& You have been warned.\&
 .P
 Search precedence:
 .RS 4

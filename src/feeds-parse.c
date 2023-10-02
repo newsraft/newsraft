@@ -54,7 +54,7 @@ parse_feeds_file(void)
 	struct feed_entry feed;
 	feed.name = crtes(100);
 	feed.link = crtes(200);
-	if ((section_name == NULL) || (feed.name == NULL) || (feed.link == NULL)) {
+	if (section_name == NULL || feed.name == NULL || feed.link == NULL) {
 		fputs("Not enough memory for parsing feeds file!\n", stderr);
 		goto error;
 	}
@@ -72,13 +72,13 @@ parse_feeds_file(void)
 			continue;
 		} else if (c == '@') { // Start a new section.
 			empty_string(section_name);
-			for (c = fgetc(f); (c != '{') && (c != '\n') && (c != EOF); c = fgetc(f)) {
+			for (c = fgetc(f); c != '[' && c != '{' && c != '\n' && c != EOF; c = fgetc(f)) {
 				if (catcs(section_name, c) == false) { goto error; }
 			}
 			section_update_period = global_update_period;
-			if (c == '{') {
+			if (c == '[' || c == '{') {
 				update_time_len = 0;
-				for (c = fgetc(f); (update_time_len < UPDATE_TIME_SIZE) && (c != '}') && (c != '\n') && (c != EOF); c = fgetc(f)) {
+				for (c = fgetc(f); update_time_len < UPDATE_TIME_SIZE && c != ']' && c != '}' && c != '\n' && c != EOF; c = fgetc(f)) {
 					update_time[update_time_len++] = c;
 				}
 				update_time[update_time_len] = '\0';
@@ -87,7 +87,7 @@ parse_feeds_file(void)
 					goto error;
 				}
 				section_update_period *= 60; // Convert to seconds.
-				while ((c != '\n') && (c != EOF)) { c = fgetc(f); }
+				while (c != '\n' && c != EOF) { c = fgetc(f); }
 			}
 			trim_whitespace_from_string(section_name);
 			section_index = make_sure_section_exists(section_name);
@@ -122,10 +122,10 @@ parse_feeds_file(void)
 				if (catcs(feed.name, c) == false) { goto error; }
 			}
 		}
-		while ((c != '{') && (c != '\n') && (c != EOF)) { c = fgetc(f); }
-		if (c == '{') {
+		while (c != '[' && c != '{' && c != '\n' && c != EOF) { c = fgetc(f); }
+		if (c == '[' || c == '{') {
 			update_time_len = 0;
-			for (c = fgetc(f); (update_time_len < UPDATE_TIME_SIZE) && (c != '}') && (c != '\n') && (c != EOF); c = fgetc(f)) {
+			for (c = fgetc(f); update_time_len < UPDATE_TIME_SIZE && c != ']' && c != '}' && c != '\n' && c != EOF; c = fgetc(f)) {
 				update_time[update_time_len++] = c;
 			}
 			update_time[update_time_len] = '\0';
@@ -142,7 +142,7 @@ parse_feeds_file(void)
 			goto error;
 		}
 
-		while ((c != '\n') && (c != EOF)) { c = fgetc(f); }
+		while (c != '\n' && c != EOF) { c = fgetc(f); }
 	}
 
 	if (at_least_one_feed_was_added == false) {

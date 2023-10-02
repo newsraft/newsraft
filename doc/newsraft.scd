@@ -122,25 +122,25 @@ example:
 
 	_# Look closely. The beautiful may be small._
 
-Both feed and section lines allow you to set an auto update counter at the end,
+Both feed and section lines allow you to set an auto update timer at the end,
 which will force section or feed related to this line to be automatically
 updated at a certain frequency. The period of automatic updates is specified in
-minutes and must be enclosed in curly braces. If you set an auto update counter
-for a feed that belongs to a section with an auto update counter set, then the
-auto update counter of the feed will take precedence. Auto update counter of *0*
+minutes and must be enclosed in square brackets. If you set an auto update timer
+for a feed that belongs to a section with an auto update timer set, then the
+auto update timer of the feed will take precedence. Auto update timer of *0*
 disables automatic updates. Let's walk through a small example and see how it
 all works. Consider this *feeds* file:
 
 	_http://example.org/feed1.xml_++
-_http://example.org/feed2.xml {30}_
+_http://example.org/feed2.xml [30]_
 
-	_@ Replies {20}_++
-_http://example.org/feed3.xml {10}_++
+	_@ Replies [20]_++
+_http://example.org/feed3.xml [10]_++
 _http://example.org/feed4.xml "Forum notifications"_
 
-	_@ News {60}_++
+	_@ News [60]_++
 _http://example.org/feed5.xml_++
-_http://example.org/feed6.xml "Local weather" {0}_
+_http://example.org/feed6.xml "Local weather" [0]_
 
 In this example, _feed1_ will never update automatically, _feed2_ will update
 every *30* minutes, _feed3_ will update every *10* minutes, _feed4_ will update
@@ -148,10 +148,10 @@ every *20* minutes, _feed5_ will update every *60* minutes and _feed6_ will
 never update automatically.
 
 If you just want to automatically update all feeds then you should set an auto
-update counter for *Global* section, but before doing so, think about what load
+update timer for *Global* section, but before doing so, think about what load
 can be exerted on a servers by frequent downloads from a large number of users.
-Going for a small auto update counter on *Global* section will most likely
-result in a waste of a lot of resources. You have been warned.
+Going for a small auto update timer on *Global* section will most likely result
+in a waste of a lot of resources. You have been warned.
 
 Search precedence:
 . _$XDG_CONFIG_HOME_/newsraft/feeds

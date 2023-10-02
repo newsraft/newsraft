@@ -50,21 +50,21 @@ Newsraft uses streaming parsers to process feeds, while Newsboat uses DOM
 parsers. Also Newsraft takes simpler approach to data structures, which also
 gives a small performance boost.
 
-#### Flexible automatic feed updates
+#### Flexible automatic updates
 
 In Newsboat you have settings for automatic updates but they are applied to all
-feeds at once, while in Newsraft you can set auto update counters (numbers in
-curly braces below) for separate sections and feeds like that:
+feeds at once, while in Newsraft you can set auto update timers (numbers in
+square brackets down below) for separate sections and feeds like that:
 
 ```
-http://example.org/feed1.xml "Weather" {60}
-http://example.org/feed2.xml "Forum notifications" {30}
+http://example.org/feed1.xml "Weather" [60]
+http://example.org/feed2.xml "Forum notifications" [30]
 http://example.org/feed3.xml "Phonk"
 
-@ News {30}
+@ News [30]
 http://example.org/feed4.xml "Tech news"
-http://example.org/feed5.xml "World news" {0}
-http://example.org/feed6.xml "Releases" {1440}
+http://example.org/feed5.xml "World news" [0]
+http://example.org/feed6.xml "Releases" [1440]
 ```
 
 With this you are able to update the feeds that are very important to you more

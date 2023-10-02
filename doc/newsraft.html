@@ -150,29 +150,29 @@
     ignored. For example:</p>
 <p class="Pp"></p>
 <div class="Bd-indent"><i># Look closely. The beautiful may be small.</i></div>
-<p class="Pp">Both feed and section lines allow you to set an auto update
-    counter at the end, which will force section or feed related to this line to
-    be automatically updated at a certain frequency. The period of automatic
-    updates is specified in minutes and must be enclosed in curly braces. If you
-    set an auto update counter for a feed that belongs to a section with an auto
-    update counter set, then the auto update counter of the feed will take
-    precedence. Auto update counter of <b>0</b> disables automatic updates.
-    Let's walk through a small example and see how it all works. Consider this
+<p class="Pp">Both feed and section lines allow you to set an auto update timer
+    at the end, which will force section or feed related to this line to be
+    automatically updated at a certain frequency. The period of automatic
+    updates is specified in minutes and must be enclosed in square brackets. If
+    you set an auto update timer for a feed that belongs to a section with an
+    auto update timer set, then the auto update timer of the feed will take
+    precedence. Auto update timer of <b>0</b> disables automatic updates. Let's
+    walk through a small example and see how it all works. Consider this
     <b>feeds</b> file:</p>
 <p class="Pp"></p>
 <div class="Bd-indent"><i>http://example.org/feed1.xml</i>
 <br/>
-<i>http://example.org/feed2.xml {30}</i>
-<p class="Pp"><i>@ Replies {20}</i>
+<i>http://example.org/feed2.xml [30]</i>
+<p class="Pp"><i>@ Replies [20]</i>
   <br/>
-  <i>http://example.org/feed3.xml {10}</i>
+  <i>http://example.org/feed3.xml [10]</i>
   <br/>
   <i>http://example.org/feed4.xml &quot;Forum notifications&quot;</i></p>
-<p class="Pp"><i>@ News {60}</i>
+<p class="Pp"><i>@ News [60]</i>
   <br/>
   <i>http://example.org/feed5.xml</i>
   <br/>
-  <i>http://example.org/feed6.xml &quot;Local weather&quot; {0}</i></p>
+  <i>http://example.org/feed6.xml &quot;Local weather&quot; [0]</i></p>
 </div>
 <p class="Pp">In this example, <i>feed1</i> will never update automatically,
     <i>feed2</i> will update every <b>30</b> minutes, <i>feed3</i> will update
@@ -180,9 +180,9 @@
     <i>feed5</i> will update every <b>60</b> minutes and <i>feed6</i> will never
     update automatically.</p>
 <p class="Pp">If you just want to automatically update all feeds then you should
-    set an auto update counter for <b>Global</b> section, but before doing so,
+    set an auto update timer for <b>Global</b> section, but before doing so,
     think about what load can be exerted on a servers by frequent downloads from
-    a large number of users. Going for a small auto update counter on
+    a large number of users. Going for a small auto update timer on
     <b>Global</b> section will most likely result in a waste of a lot of
     resources. You have been warned.</p>
 <p class="Pp">Search precedence:</p>
@@ -696,7 +696,7 @@
 </div>
 <table class="foot">
   <tr>
-    <td class="foot-date">2023-10-01</td>
+    <td class="foot-date">2023-10-02</td>
     <td class="foot-os"></td>
   </tr>
 </table>

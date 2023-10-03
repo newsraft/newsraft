@@ -33,14 +33,17 @@ all: newsraft
 install: install-newsraft install-man install-examples
 
 install-newsraft: newsraft
-	install -Dm755 newsraft $(DESTDIR)$(BINDIR)/newsraft
+	mkdir -p $(DESTDIR)$(BINDIR)
+	install -m755 newsraft $(DESTDIR)$(BINDIR)/.
 
 install-man:
-	install -Dm644 doc/newsraft.1 $(DESTDIR)$(MANDIR)/man1/newsraft.1
+	mkdir -p $(DESTDIR)$(MANDIR)/man1
+	install -m644 doc/newsraft.1 $(DESTDIR)$(MANDIR)/man1/.
 
 install-examples:
-	install -Dm644 doc/examples/feeds $(DESTDIR)$(EXAMPLES_DIR)/feeds
-	install -Dm644 doc/examples/config $(DESTDIR)$(EXAMPLES_DIR)/config
+	mkdir -p $(DESTDIR)$(EXAMPLES_DIR)
+	install -m644 doc/examples/feeds $(DESTDIR)$(EXAMPLES_DIR)/.
+	install -m644 doc/examples/config $(DESTDIR)$(EXAMPLES_DIR)/.
 
 newsraft:
 	$(CC) -std=c99 $(CFLAGS) $(AUXCFLAGS) -Isrc -D_XOPEN_SOURCE=700 -D_XOPEN_SOURCE_EXTENDED $(LDFLAGS) -o $@ src/newsraft.c $(LDLIBS)

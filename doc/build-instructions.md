@@ -1,13 +1,13 @@
 ## Obtaining dependencies
 
-| Operating system | Command                                                                                                 |
-|------------------|---------------------------------------------------------------------------------------------------------|
-| Alpine Linux     | `apk add curl-dev expat-dev gumbo-parser-dev ncurses-dev scdoc sqlite-dev yajl-dev`                     |
-| Arch Linux       | `pacman -S curl expat gumbo-parser ncurses scdoc sqlite yajl`                                           |
-| Source Mage      | `cast curl expat gumbo-parser ncurses scdoc sqlite yajl`                                                |
-| Ubuntu           | `apt install curl expat libgumbo-dev libncursesw6 scdoc libsqlite3-dev libyajl-dev`                     |
-| Void Linux       | `xbps-install libcurl-devel expat-devel gumbo-parser-devel ncurses-devel scdoc sqlite-devel yajl-devel` |
-| OpenBSD          | `pkg_add curl gumbo scdoc sqlite libyajl`                                                               |
+| Operating system | Command                                                                                           |
+|------------------|---------------------------------------------------------------------------------------------------|
+| Alpine Linux     | `apk add curl-dev expat-dev gumbo-parser-dev ncurses-dev sqlite-dev yajl-dev`                     |
+| Arch Linux       | `pacman -S curl expat gumbo-parser ncurses sqlite yajl`                                           |
+| Source Mage      | `cast curl expat gumbo-parser ncurses sqlite yajl`                                                |
+| Ubuntu           | `apt install curl expat libgumbo-dev libncursesw6 libsqlite3-dev libyajl-dev`                     |
+| Void Linux       | `xbps-install libcurl-devel expat-devel gumbo-parser-devel ncurses-devel sqlite-devel yajl-devel` |
+| OpenBSD          | `pkg_add curl gumbo sqlite libyajl`                                                               |
 
 ## Compilation
 
@@ -22,10 +22,6 @@
 
 ```
 ./newsraft
-```
-
-```
-man ./newsraft.1
 ```
 
 ## Installing (run as root)

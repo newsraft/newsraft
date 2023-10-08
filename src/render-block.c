@@ -29,5 +29,4 @@ free_render_blocks(struct render_blocks_list *blocks)
 		free_wstring(blocks->ptr[i].content);
 	}
 	free(blocks->ptr);
-	free(blocks->hints);
 }

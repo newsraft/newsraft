@@ -255,16 +255,25 @@ struct render_block {
 	size_t separators_count;
 };
 
+struct render_blocks_list {
+	struct render_block *ptr;
+	size_t len;
+};
+
 struct format_hint {
 	format_hint_mask value;
 	size_t pos;
 };
 
-struct render_blocks_list {
-	struct render_block *ptr;
-	size_t len;
+struct render_line {
+	struct wstring *ws;
 	struct format_hint *hints;
 	size_t hints_len;
+};
+
+struct render_result {
+	struct render_line *lines;
+	size_t lines_len;
 };
 
 struct link {
@@ -326,7 +335,7 @@ bool handle_pager_menu_control(input_cmd_id cmd);
 bool pager_menu_moderator(size_t index);
 void pager_list_menu_writer(size_t index, WINDOW *w);
 bool start_pager_menu(struct render_blocks_list *new_blocks);
-bool reset_pager_menu(void);
+bool refresh_pager_menu(void);
 
 // See "format.c" file for implementation.
 void do_format(struct wstring *dest, const wchar_t *fmt, const struct format_arg *args);
@@ -371,10 +380,8 @@ void free_render_blocks(struct render_blocks_list *blocks);
 // See "prepare_to_render_data" directory for implementation.
 bool prepare_to_render_data(struct render_blocks_list *blocks, struct links_list *links);
 
-// Convert render blocks to one big string that can be written to pad window
-// without additional splitting into lines or any other processing.
 // See "render_data" directory for implementation.
-struct wstring *render_data(struct render_blocks_list *blocks);
+bool render_data(struct render_result *result, struct render_blocks_list *blocks);
 
 // See "items-metadata.c" file for implementation.
 bool generate_render_blocks_based_on_item_data(struct render_blocks_list *blocks, const struct item_entry *item, sqlite3_stmt *res);

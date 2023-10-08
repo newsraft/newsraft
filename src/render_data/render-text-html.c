@@ -106,37 +106,37 @@ indent_leave_handler(struct line *line)
 static void
 add_bold_style(struct line *line)
 {
-	append_format_hint_to_line(line, FORMAT_BOLD_BEGIN);
+	line_style(line, FORMAT_BOLD_BEGIN);
 }
 
 static void
 remove_bold_style(struct line *line)
 {
-	append_format_hint_to_line(line, FORMAT_BOLD_END);
+	line_style(line, FORMAT_BOLD_END);
 }
 
 static void
 add_italic_style(struct line *line)
 {
-	append_format_hint_to_line(line, FORMAT_ITALIC_BEGIN);
+	line_style(line, FORMAT_ITALIC_BEGIN);
 }
 
 static void
 remove_italic_style(struct line *line)
 {
-	append_format_hint_to_line(line, FORMAT_ITALIC_END);
+	line_style(line, FORMAT_ITALIC_END);
 }
 
 static void
 add_underlined_style(struct line *line)
 {
-	append_format_hint_to_line(line, FORMAT_UNDERLINED_BEGIN);
+	line_style(line, FORMAT_UNDERLINED_BEGIN);
 }
 
 static void
 remove_underlined_style(struct line *line)
 {
-	append_format_hint_to_line(line, FORMAT_UNDERLINED_END);
+	line_style(line, FORMAT_UNDERLINED_END);
 }
 
 static const struct html_element_renderer renderers[] = {
@@ -196,8 +196,8 @@ render_html(GumboNode *node, struct line *line)
 			for (const wchar_t *i = wstr->ptr; *i != L'\0'; ++i) {
 				if (!ISWIDEWHITESPACE(*i)) {
 					line_char(line, *i);
-				} else if (line->target->len > 0) {
-					if (!ISWIDEWHITESPACE(line->target->ptr[line->target->len - 1])) {
+				} else if (LAST_LINE.ws->len > 0) {
+					if (!ISWIDEWHITESPACE(LAST_LINE.ws->ptr[LAST_LINE.ws->len - 1])) {
 						line_char(line, L' ');
 					}
 				}

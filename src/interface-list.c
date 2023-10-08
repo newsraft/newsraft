@@ -416,7 +416,7 @@ handle_pager_menu_control(input_cmd_id cmd)
 	} else if (cmd == INPUT_SELECT_LAST) {
 		pager_menu_change_view(obtain_list_entries_count(menu));
 	} else if (cmd == INPUT_RESIZE) {
-		reset_pager_menu();
+		refresh_pager_menu();
 	} else {
 		return false;
 	}

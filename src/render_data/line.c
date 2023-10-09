@@ -31,13 +31,17 @@ line_char(struct line *line, wchar_t c)
 	if (c == L'\n') {
 		return line_bump(line);
 	}
+	const int c_width = wcwidth(c);
+	if (c_width < 1) {
+		return true; // Ignore invalid characters.
+	}
 	if (LAST_LINE.ws->len == 0) {
-		size_t indent_size = line->indent + 1 < line->lim ? line->indent : line->lim - 2;
+		size_t indent_size = line->indent < line->lim ? line->indent : line->lim - 1;
 		for (size_t i = 0; i < indent_size; ++i) {
 			wcatcs(LAST_LINE.ws, L' ');
 		}
 	}
-	if (LAST_LINE.ws->len + 1 < line->lim) {
+	if (wcswidth(LAST_LINE.ws->ptr, LAST_LINE.ws->len) + c_width <= (int)line->lim) {
 		wcatcs(LAST_LINE.ws, c);
 		if (c == L' ') {
 			line->pin = LAST_LINE.ws->len - 1;
@@ -49,12 +53,11 @@ line_char(struct line *line, wchar_t c)
 		line_char(line, c);
 	} else {
 		wcatcs(LAST_LINE.ws, c);
-		struct wstring *cut = wcrtas(LAST_LINE.ws->ptr + line->pin + 1, wcslen(LAST_LINE.ws->ptr + line->pin + 1));
+		const wchar_t *cut = LAST_LINE.ws->ptr + line->pin + 1;
 		LAST_LINE.ws->ptr[line->pin] = L'\0';
 		LAST_LINE.ws->len = line->pin;
 		line_bump(line);
-		line_string(line, cut->ptr);
-		free_wstring(cut);
+		line_string(line, cut);
 	}
 	return true; // TODO: check for errors?
 }

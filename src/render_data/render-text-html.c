@@ -36,7 +36,7 @@ hr_handler(struct line *line)
 {
 	size_t temp_indent = line->indent;
 	line->indent = 0;
-	for (size_t i = 1; i < line->lim; ++i) {
+	for (size_t i = 0; i < line->lim; ++i) {
 		line_char(line, L'─');
 	}
 	line->indent = temp_indent;

@@ -18,7 +18,7 @@ remove_trailing_empty_lines(struct render_result *r)
 bool
 render_data(struct render_result *result, struct render_blocks_list *blocks)
 {
-	struct line line = {.target = result, .lim = list_menu_width + 1};
+	struct line line = {.target = result, .lim = list_menu_width};
 	line_bump(&line); // Add first line to line processor.
 	for (size_t i = 0; i < blocks->len; ++i) {
 		line.pin = SIZE_MAX;

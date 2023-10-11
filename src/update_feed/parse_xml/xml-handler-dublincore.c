@@ -1,7 +1,7 @@
 #include "update_feed/parse_xml/parse_xml_feed.h"
 
 static int8_t
-title_end(struct stream_callback_data *data)
+dublincore_title_end(struct stream_callback_data *data)
 {
 	if (data->in_item == true) {
 		if ((data->feed.item->title == NULL) || (data->feed.item->title->len == 0)) {
@@ -20,7 +20,18 @@ title_end(struct stream_callback_data *data)
 }
 
 static int8_t
-creator_end(struct stream_callback_data *data)
+dublincore_date_end(struct stream_callback_data *data)
+{
+	if (data->in_item == true) {
+		data->feed.item->update_date = parse_date_rfc3339(data->text->ptr);
+	} else {
+		data->feed.update_date = parse_date_rfc3339(data->text->ptr);
+	}
+	return PARSE_OKAY;
+}
+
+static int8_t
+dublincore_creator_end(struct stream_callback_data *data)
 {
 	if (data->in_item == true) {
 		if (serialize_caret(&data->feed.item->persons) == false) {
@@ -47,7 +58,7 @@ creator_end(struct stream_callback_data *data)
 }
 
 static int8_t
-contributor_end(struct stream_callback_data *data)
+dublincore_contributor_end(struct stream_callback_data *data)
 {
 	if (data->in_item == true) {
 		if (serialize_caret(&data->feed.item->persons) == false) {
@@ -74,10 +85,11 @@ contributor_end(struct stream_callback_data *data)
 }
 
 const struct xml_element_handler xml_dublincore_handlers[] = {
-	{"title",       XML_UNKNOWN_POS, NULL, &title_end},
+	{"title",       XML_UNKNOWN_POS, NULL, &dublincore_title_end},
 	{"description", XML_UNKNOWN_POS, NULL, &generic_plain_content_end},
-	{"creator",     XML_UNKNOWN_POS, NULL, &creator_end},
-	{"contributor", XML_UNKNOWN_POS, NULL, &contributor_end},
+	{"date",        XML_UNKNOWN_POS, NULL, &dublincore_date_end},
+	{"creator",     XML_UNKNOWN_POS, NULL, &dublincore_creator_end},
+	{"contributor", XML_UNKNOWN_POS, NULL, &dublincore_contributor_end},
 	{"subject",     XML_UNKNOWN_POS, NULL, &generic_category_end},
 	{NULL,          XML_UNKNOWN_POS, NULL, NULL},
 };

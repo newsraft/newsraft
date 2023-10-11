@@ -18,7 +18,7 @@ get_number_of_processors(void)
 			INFO("Number of processors from %s is %zu", *i, cores);
 			pclose(p);
 			if (cores > 0) {
-				return MIN(cores, 32); // Don't allow more than 32 threads!
+				return cores;
 			}
 		}
 	}
@@ -30,7 +30,7 @@ load_config(void)
 {
 	const size_t threads_count = get_cfg_uint(CFG_UPDATE_THREADS_COUNT);
 	const size_t cores_count = get_number_of_processors();
-	set_cfg_uint(CFG_UPDATE_THREADS_COUNT, threads_count == 0 ? cores_count : MIN(threads_count, cores_count));
+	set_cfg_uint(CFG_UPDATE_THREADS_COUNT, MIN(threads_count > 0 ? threads_count : cores_count * 10, 100));
 
 	if (assign_default_values_to_null_config_strings() == false) {
 		fputs("Failed to assign default values to NULL config strings!\n", stderr);

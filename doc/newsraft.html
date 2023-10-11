@@ -267,12 +267,10 @@
   the limit.</div>
 <p class="Pp"><i>update-threads-count</i> (default: <b>0</b>)</p>
 <div class="Bd-indent">Maximum number of update processes running
-  simultaneously. If set to zero, value of the setting is set to the number of
-  CPU cores available. You may want to set this setting to a lower value in
-  cases of a slow network connection where parallel downloads can slow down the
-  update process. If set to a value greater than the number of CPU cores
-  available, it will be implicitly reduced to the number of CPU cores to avoid
-  performance issues.</div>
+  simultaneously. If set to zero, the setting value will be set to ten times the
+  number of available CPU cores. However, the setting value will never exceed
+  <b>100</b>. You might want to set this setting to a lower value if you have a
+  poor network connection causing slowdowns due to overloading.</div>
 <p class="Pp"><i>open-in-browser-command</i> (default: <b>${BROWSER:-xdg-open}
     &quot;%l&quot;</b>)</p>
 <div class="Bd-indent">Shell command for opening URL in a web browser. The URL
@@ -696,7 +694,7 @@
 </div>
 <table class="foot">
   <tr>
-    <td class="foot-date">2023-10-02</td>
+    <td class="foot-date">2023-10-11</td>
     <td class="foot-os"></td>
   </tr>
 </table>

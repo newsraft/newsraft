@@ -227,12 +227,11 @@ _items-count-limit_ (default: *0*)
 	Maximum number of items stored in one feed. Zero disables the limit.
 
 _update-threads-count_ (default: *0*)
-	Maximum number of update processes running simultaneously. If set to zero,
-	value of the setting is set to the number of CPU cores available. You may want
-	to set this setting to a lower value in cases of a slow network connection
-	where parallel downloads can slow down the update process. If set to a value
-	greater than the number of CPU cores available, it will be implicitly reduced
-	to the number of CPU cores to avoid performance issues.
+	Maximum number of update processes running simultaneously. If set to zero, the
+	setting value will be set to ten times the number of available CPU cores.
+	However, the setting value will never exceed *100*. You might want to set this
+	setting to a lower value if you have a poor network connection causing
+	slowdowns due to overloading.
 
 _open-in-browser-command_ (default: *${BROWSER:-xdg-open} "%l"*)
 	Shell command for opening URL in a web browser. The URL to be opened is put

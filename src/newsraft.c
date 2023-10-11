@@ -67,6 +67,8 @@
 #include "wstring.c"
 #include "wstring-format.c"
 
+volatile bool they_want_us_to_terminate = false;
+
 static inline void
 print_usage(void)
 {
@@ -146,13 +148,11 @@ main(int argc, char **argv)
 	initialize_settings_of_list_menus();
 	refresh_unread_items_count_of_all_sections();
 	if (start_feed_updater()               == false) { error = 19; goto undo10; }
-	if (start_auto_updater_if_necessary()  == false) { error = 20; goto undo11; }
 
 	enter_sections_menu_loop();
 	clean_up_items_menu();
 
-	finish_auto_updater_if_necessary();
-undo11:
+	they_want_us_to_terminate = true;
 	stop_feed_updater();
 undo10:
 	curl_global_cleanup();

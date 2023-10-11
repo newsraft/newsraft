@@ -12,8 +12,6 @@ struct feed_section {
 static struct feed_section *sections = NULL;
 static size_t sections_count = 0;
 
-static pthread_t auto_updater_routine_thread;
-static volatile bool stop_auto_updater_routine = false;
 static bool at_least_one_feed_has_positive_update_period = false;
 
 static struct format_arg sections_fmt_args[] = {
@@ -253,47 +251,18 @@ free_sections(void)
 	free(sections);
 }
 
-static void *
-auto_updater_routine(void *dummy)
+void
+process_auto_updating_feeds(void)
 {
-	(void)dummy;
-	size_t i;
-	const struct timespec auto_updater_checkup_gap = {0, 200000000}; // 0.2 seconds
-	while (stop_auto_updater_routine == false) {
+	if (at_least_one_feed_has_positive_update_period == true) {
 		time_t current_time = time(NULL);
-		for (i = 0; i < sections[0].feeds_count; ++i) {
+		for (size_t i = 0; i < sections[0].feeds_count; ++i) {
 			if ((sections[0].feeds[i]->update_period > 0)
 				&& (sections[0].feeds[i]->update_period < (current_time - sections[0].feeds[i]->download_date)))
 			{
 				update_feeds(sections[0].feeds + i, 1);
 			}
 		}
-		// Sleep for a total of 1 minute while checking if they want us to stop.
-		for (i = 0; (i < 300) && (stop_auto_updater_routine == false); ++i) {
-			nanosleep(&auto_updater_checkup_gap, NULL);
-		}
-	}
-	return NULL;
-}
-
-bool
-start_auto_updater_if_necessary(void)
-{
-	if (at_least_one_feed_has_positive_update_period == true) {
-		if (pthread_create(&auto_updater_routine_thread, NULL, &auto_updater_routine, NULL) != 0) {
-			fputs("Failed to create auto updater thread!\n", stderr);
-			return false;
-		}
-	}
-	return true;
-}
-
-void
-finish_auto_updater_if_necessary(void)
-{
-	if (at_least_one_feed_has_positive_update_period == true) {
-		stop_auto_updater_routine = true;
-		pthread_join(auto_updater_routine_thread, NULL);
 	}
 }
 

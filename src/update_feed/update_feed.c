@@ -6,7 +6,6 @@ static size_t update_queue_progress = 0;
 static size_t update_queue_failures = 0;
 
 static pthread_t queue_worker_thread;
-static volatile bool queue_worker_is_asked_to_terminate = false;
 
 static pthread_mutex_t queue_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t update_lock = PTHREAD_MUTEX_INITIALIZER;
@@ -120,16 +119,22 @@ queue_worker(void *dummy)
 {
 	(void)dummy;
 	const struct timespec delay_interval = {0, 200000000}; // 0.2 seconds
+	const size_t sleeps_to_auto_update = 300;
+	size_t sleep_iter = 0;
 
-	while (queue_worker_is_asked_to_terminate == false) {
+	while (they_want_us_to_terminate == false) {
 		if (update_queue_length == 0) {
+			sleep_iter = (sleep_iter + 1) % sleeps_to_auto_update;
+			if (sleep_iter == 0) {
+				process_auto_updating_feeds();
+			}
 			nanosleep(&delay_interval, NULL);
 			continue;
 		}
 		prevent_status_cleaning();
 		pthread_mutex_lock(&queue_lock);
 here_we_go_again:
-		while (queue_worker_is_asked_to_terminate == false && update_queue_progress != update_queue_length) {
+		while (they_want_us_to_terminate == false && update_queue_progress != update_queue_length) {
 			struct feed_entry *feed = update_queue[update_queue_progress];
 			pthread_mutex_unlock(&queue_lock);
 			branch_update_feed_action_into_thread(&update_feed_action, feed);
@@ -144,9 +149,7 @@ here_we_go_again:
 		}
 
 		pthread_mutex_lock(&queue_lock);
-		if ((queue_worker_is_asked_to_terminate == false)
-			&& (update_queue_progress != update_queue_length))
-		{
+		if (they_want_us_to_terminate == false && update_queue_progress != update_queue_length) {
 			// Something was added to the queue while the last feeds were updating.
 			goto here_we_go_again;
 		}
@@ -212,7 +215,6 @@ start_feed_updater(void)
 void
 stop_feed_updater(void)
 {
-	queue_worker_is_asked_to_terminate = true;
 	pthread_join(queue_worker_thread, NULL);
 	terminate_update_threads();
 	free(update_queue);

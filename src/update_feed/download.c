@@ -87,7 +87,7 @@ parse_stream_callback(char *contents, size_t length, size_t nmemb, void *userdat
 			return CURL_WRITEFUNC_ERROR;
 		}
 	}
-	return real_size;
+	return they_want_us_to_terminate != true ? real_size : CURL_WRITEFUNC_ERROR;
 }
 
 static size_t

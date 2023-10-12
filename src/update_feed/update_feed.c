@@ -127,10 +127,10 @@ queue_worker(void *dummy)
 
 	while (they_want_us_to_terminate == false) {
 		if (update_queue_length == 0) {
-			sleep_iter = (sleep_iter + 1) % sleeps_to_auto_update;
 			if (sleep_iter == 0) {
 				process_auto_updating_feeds();
 			}
+			sleep_iter = (sleep_iter + 1) % sleeps_to_auto_update;
 			nanosleep(&delay_interval, NULL);
 			continue;
 		}

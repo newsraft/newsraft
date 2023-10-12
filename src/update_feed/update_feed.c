@@ -4,6 +4,7 @@ static struct feed_entry **update_queue = NULL;
 static size_t update_queue_length = 0;
 static size_t update_queue_progress = 0;
 static size_t update_queue_failures = 0;
+static size_t updates_finished = 0;
 
 static pthread_t queue_worker_thread;
 
@@ -109,6 +110,8 @@ finish:
 		INFO("Download canceled.");
 		db_set_download_date(feed->link, feed->download_date);
 	}
+	updates_finished += 1;
+	info_status("Feed updates completed: %zu/%zu", updates_finished, update_queue_length);
 	pthread_mutex_unlock(&update_lock);
 	*feed->did_update_just_finished = true;
 	return NULL;
@@ -139,7 +142,6 @@ here_we_go_again:
 			pthread_mutex_unlock(&queue_lock);
 			branch_update_feed_action_into_thread(&update_feed_action, feed);
 			pthread_mutex_lock(&queue_lock);
-			info_status("(%zu/%zu) Loading %s", update_queue_progress + 1, update_queue_length, update_queue[update_queue_progress]->link->ptr);
 			update_queue_progress += 1;
 		}
 		pthread_mutex_unlock(&queue_lock);
@@ -166,6 +168,7 @@ here_we_go_again:
 		update_queue_length = 0;
 		update_queue_progress = 0;
 		update_queue_failures = 0;
+		updates_finished = 0;
 		pthread_mutex_unlock(&queue_lock);
 		nanosleep(&delay_interval, NULL);
 	}
@@ -177,6 +180,7 @@ void
 update_feeds(struct feed_entry **feeds, size_t feeds_count)
 {
 	pthread_mutex_lock(&queue_lock);
+	size_t old_update_queue_length = update_queue_length;
 	struct feed_entry **temp = realloc(update_queue, sizeof(struct feed_entry *) * (update_queue_length + feeds_count));
 	if (temp != NULL) {
 		update_queue = temp;
@@ -192,8 +196,8 @@ update_feeds(struct feed_entry **feeds, size_t feeds_count)
 			}
 		}
 	}
-	if (update_queue_progress < update_queue_length) {
-		info_status("(%zu/%zu) Loading %s", update_queue_progress + 1, update_queue_length, update_queue[update_queue_progress]->link->ptr);
+	if (update_queue_length != old_update_queue_length) {
+		info_status("Feed updates completed: %zu/%zu", updates_finished, update_queue_length);
 	}
 	pthread_mutex_unlock(&queue_lock);
 }

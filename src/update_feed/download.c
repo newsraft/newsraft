@@ -57,7 +57,7 @@ parse_stream_callback(char *contents, size_t length, size_t nmemb, void *userdat
 	if (data->media_type == MEDIA_TYPE_UNKNOWN) {
 		for (size_t i = 0; i < real_size; ++i) {
 			if (contents[i] == '<') {
-				INFO("Found \"<\" character in the beginning of the stream - consider it to be XML data.");
+				INFO("The stream has \"<\" character in the beginning - engaging XML parser.");
 				if (engage_xml_parser(data) == false) {
 					FAIL("Failed to engage XML parser!");
 					return CURL_WRITEFUNC_ERROR;
@@ -65,7 +65,7 @@ parse_stream_callback(char *contents, size_t length, size_t nmemb, void *userdat
 				data->media_type = MEDIA_TYPE_XML;
 				break;
 			} else if (contents[i] == '{') {
-				INFO("Found \"{\" character in the beginning of the stream - consider it to be JSON data.");
+				INFO("The stream has \"{\" character in the beginning - engaging JSON parser.");
 				if (engage_json_parser(data) == false) {
 					FAIL("Failed to engage JSON parser!");
 					return CURL_WRITEFUNC_ERROR;
@@ -100,7 +100,7 @@ header_callback(char *contents, size_t length, size_t nmemb, void *userdata)
 		return 0;
 	}
 	trim_whitespace_from_string(header);
-	INFO("Found a header during download - %s", header->ptr);
+	INFO("Received header - %s", header->ptr);
 	if (strncasecmp(header->ptr, "ETag:", 5) == 0) {
 		struct string *etag = crtas(header->ptr + 5, header->len - 5);
 		if (etag != NULL) {

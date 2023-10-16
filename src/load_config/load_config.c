@@ -30,7 +30,7 @@ load_config(void)
 {
 	const size_t threads_count = get_cfg_uint(CFG_UPDATE_THREADS_COUNT);
 	const size_t cores_count = get_number_of_processors();
-	set_cfg_uint(CFG_UPDATE_THREADS_COUNT, MIN(threads_count > 0 ? threads_count : cores_count * 10, 100));
+	set_cfg_uint(CFG_UPDATE_THREADS_COUNT, MIN(threads_count > 0 ? threads_count : cores_count * 10, NEWSRAFT_THREADS_COUNT_LIMIT));
 
 	if (assign_default_values_to_null_config_strings() == false) {
 		fputs("Failed to assign default values to NULL config strings!\n", stderr);

@@ -1,5 +1,11 @@
 #include "update_feed/update_feed.h"
 
+struct responsive_thread {
+	pthread_t thread;
+	bool was_started;
+	volatile bool says_it_is_done;
+};
+
 static struct feed_entry **update_queue = NULL;
 static size_t update_queue_length = 0;
 static size_t update_queue_progress = 0;
@@ -7,6 +13,10 @@ static size_t update_queue_failures = 0;
 static size_t updates_finished = 0;
 
 static pthread_t queue_worker_thread;
+
+static struct responsive_thread worker_threads[NEWSRAFT_THREADS_COUNT_LIMIT];
+static size_t worker_threads_count;
+static const struct timespec worker_threads_check_period = {0, 10000000}; // 0.01 seconds
 
 static pthread_mutex_t queue_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t update_lock = PTHREAD_MUTEX_INITIALIZER;
@@ -29,7 +39,7 @@ update_feed_action(void *arg)
 {
 	struct feed_entry *feed = arg;
 
-	int8_t status = DOWNLOAD_FAILED;
+	download_status status = DOWNLOAD_FAILED;
 	struct stream_callback_data data = {0};
 
 	data.feed.download_date = time(NULL);
@@ -117,6 +127,41 @@ finish:
 	return NULL;
 }
 
+static void
+branch_update_feed_action_into_thread(struct feed_entry *feed)
+{
+	while (they_want_us_to_terminate == false) {
+		for (size_t i = 0; i < worker_threads_count; ++i) {
+			if (worker_threads[i].was_started == false) {
+				worker_threads[i].was_started = true;
+				worker_threads[i].says_it_is_done = false;
+				feed->did_update_just_finished = &worker_threads[i].says_it_is_done;
+				pthread_create(&(worker_threads[i].thread), NULL, &update_feed_action, feed);
+				return;
+			} else if (worker_threads[i].says_it_is_done == true) {
+				pthread_join(worker_threads[i].thread, NULL);
+				worker_threads[i].was_started = true;
+				worker_threads[i].says_it_is_done = false;
+				feed->did_update_just_finished = &worker_threads[i].says_it_is_done;
+				pthread_create(&(worker_threads[i].thread), NULL, &update_feed_action, feed);
+				return;
+			}
+		}
+		nanosleep(&worker_threads_check_period, NULL); // Add a little delay to give the CPU some rest.
+	}
+}
+
+static bool
+at_least_one_thread_is_running(void)
+{
+	for (size_t i = 0; i < worker_threads_count; ++i) {
+		if (worker_threads[i].was_started == true && worker_threads[i].says_it_is_done == false) {
+			return true;
+		}
+	}
+	return false;
+}
+
 static void *
 queue_worker(void *dummy)
 {
@@ -140,7 +185,7 @@ here_we_go_again:
 		while (they_want_us_to_terminate == false && update_queue_progress != update_queue_length) {
 			struct feed_entry *feed = update_queue[update_queue_progress];
 			pthread_mutex_unlock(&queue_lock);
-			branch_update_feed_action_into_thread(&update_feed_action, feed);
+			branch_update_feed_action_into_thread(feed);
 			pthread_mutex_lock(&queue_lock);
 			update_queue_progress += 1;
 		}
@@ -158,10 +203,10 @@ here_we_go_again:
 
 		tell_items_menu_to_regenerate();
 		allow_status_cleaning();
-		if (update_queue_failures != 0) {
-			fail_status("Failed to update %zu feeds (check status history for details)", update_queue_failures);
-		} else {
+		if (update_queue_failures == 0) {
 			status_clean();
+		} else {
+			fail_status("Failed to update %zu feeds (check status history for details)", update_queue_failures);
 		}
 		free(update_queue);
 		update_queue = NULL;
@@ -186,7 +231,7 @@ update_feeds(struct feed_entry **feeds, size_t feeds_count)
 		update_queue = temp;
 		for (size_t i = 0; i < feeds_count; ++i) {
 			bool already_present_in_queue = false;
-			for (size_t j = 0; (j < update_queue_length) && (already_present_in_queue == false); ++j) {
+			for (size_t j = 0; j < update_queue_length && already_present_in_queue == false; ++j) {
 				if (feeds[i] == update_queue[j]) {
 					already_present_in_queue = true;
 				}
@@ -205,12 +250,9 @@ update_feeds(struct feed_entry **feeds, size_t feeds_count)
 bool
 start_feed_updater(void)
 {
-	if (initialize_update_threads() == false) {
-		return false;
-	}
+	worker_threads_count = get_cfg_uint(CFG_UPDATE_THREADS_COUNT);
 	if (pthread_create(&queue_worker_thread, NULL, &queue_worker, NULL) != 0) {
 		fputs("Failed to start feed updater!\n", stderr);
-		terminate_update_threads();
 		return false;
 	}
 	return true;
@@ -220,6 +262,10 @@ void
 stop_feed_updater(void)
 {
 	pthread_join(queue_worker_thread, NULL);
-	terminate_update_threads();
+	for (size_t i = 0; i < worker_threads_count; ++i) {
+		if (worker_threads[i].was_started == true) {
+			pthread_join(worker_threads[i].thread, NULL);
+		}
+	}
 	free(update_queue);
 }

@@ -62,7 +62,6 @@
 #include "update_feed/parse_xml/xml-handler-rsscontent.c"
 #include "update_feed/parse_xml/xml-handler-xhtml.c"
 #include "update_feed/struct-item.c"
-#include "update_feed/threading.c"
 #include "update_feed/update_feed.c"
 #include "wstring.c"
 #include "wstring-format.c"

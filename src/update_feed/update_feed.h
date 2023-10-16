@@ -4,7 +4,8 @@
 #include <yajl/yajl_parse.h>
 #include "newsraft.h"
 
-enum download_status {
+typedef uint8_t download_status;
+enum {
 	DOWNLOAD_SUCCEEDED,
 	DOWNLOAD_CANCELED,
 	DOWNLOAD_FAILED,
@@ -54,13 +55,7 @@ struct stream_callback_data {
 	struct string *emptying_target;
 };
 
-// See "threading.c" file for implementation.
-bool initialize_update_threads(void);
-void branch_update_feed_action_into_thread(void *(*action)(void *arg), struct feed_entry *feed);
-bool at_least_one_thread_is_running(void);
-void terminate_update_threads(void);
-
-enum download_status download_feed(const char *url, struct stream_callback_data *data);
+download_status download_feed(const char *url, struct stream_callback_data *data);
 
 bool engage_xml_parser(struct stream_callback_data *data);
 void free_xml_parser(struct stream_callback_data *data);

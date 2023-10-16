@@ -193,7 +193,7 @@ prepare_curl_for_performance(CURL *curl, const char *url, struct curl_slist *hea
 	return true;
 }
 
-enum download_status
+download_status
 download_feed(const char *url, struct stream_callback_data *data)
 {
 	CURL *curl = curl_easy_init();

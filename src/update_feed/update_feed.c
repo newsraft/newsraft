@@ -83,7 +83,7 @@ update_feed_action(void *arg)
 		data.feed.http_header_etag = db_get_string_from_feed_table(feed->link, "http_header_etag", 16);
 	}
 
-	status = download_feed(feed->link->ptr, &data);
+	status = feed->link->ptr[0] == '$' ? execute_feed(feed->link, &data) : download_feed(feed->link->ptr, &data);
 
 finish:
 	pthread_mutex_lock(&update_lock);

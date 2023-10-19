@@ -47,6 +47,7 @@
 #include "string.c"
 #include "string-serialize.c"
 #include "update_feed/download.c"
+#include "update_feed/execute.c"
 #include "update_feed/insert_feed/insert_feed.c"
 #include "update_feed/insert_feed/insert-feed-data.c"
 #include "update_feed/insert_feed/insert-item-data.c"

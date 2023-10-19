@@ -43,14 +43,12 @@ parse_feeds_file(void)
 		fputs("Couldn't open feeds file!\n", stderr);
 		return false;
 	}
+	struct string *line = crtes(1000);
 	bool at_least_one_feed_was_added = false;
 	int64_t section_index = 0;
 	int64_t global_update_period = -1;
 	int64_t section_update_period = -1;
 	struct string *section_name = crtes(100);
-#define UPDATE_TIME_SIZE 17 // Allow less than 19 characters to not overflow int64_t.
-	char update_time[UPDATE_TIME_SIZE + 1];
-	size_t update_time_len;
 	struct feed_entry feed;
 	feed.name = crtes(100);
 	feed.link = crtes(200);
@@ -59,82 +57,82 @@ parse_feeds_file(void)
 		goto error;
 	}
 
-	int c;
-	// This is line-by-line file processing loop:
-	// one iteration of loop results in one processed line.
-	while (true) {
+	int c = '@';
+	while (c != EOF) {
 
-		// Get first non-whitespace character.
-		do { c = fgetc(f); } while (ISWHITESPACE(c));
+		empty_string(line);
+		for (c = fgetc(f); c != '\n' && c != EOF; c = fgetc(f)) {
+			catcs(line, c);
+		}
+		trim_whitespace_from_string(line);
 
-		if (c == '#') { // Skip a comment line.
-			do { c = fgetc(f); } while (c != '\n' && c != EOF);
-			continue;
-		} else if (c == '@') { // Start a new section.
-			empty_string(section_name);
-			for (c = fgetc(f); c != '[' && c != '{' && c != '\n' && c != EOF; c = fgetc(f)) {
-				if (catcs(section_name, c) == false) { goto error; }
+		if (line->len == 0 || line->ptr[0] == '#') continue; // Skip empty and comment lines.
+
+		// Negative value indicates that the timer should be inherited from the parent or set to zero.
+		long update_timer = -1;
+		if (line->ptr[line->len - 1] == ']' || line->ptr[line->len - 1] == '}') {
+			size_t close_pos = line->len - 1;
+			size_t start_pos = close_pos;
+			while (start_pos > 0 && line->ptr[start_pos - 1] != '[' && line->ptr[start_pos - 1] != '{') {
+				start_pos -= 1;
 			}
-			section_update_period = global_update_period;
-			if (c == '[' || c == '{') {
-				update_time_len = 0;
-				for (c = fgetc(f); update_time_len < UPDATE_TIME_SIZE && c != ']' && c != '}' && c != '\n' && c != EOF; c = fgetc(f)) {
-					update_time[update_time_len++] = c;
-				}
-				update_time[update_time_len] = '\0';
-				if (sscanf(update_time, "%" SCNd64, &section_update_period) != 1) {
-					fputs("Encountered an invalid section update period value!\n", stderr);
-					goto error;
-				}
-				section_update_period *= 60; // Convert to seconds.
-				while (c != '\n' && c != EOF) { c = fgetc(f); }
+			if (start_pos == 0) {
+				fputs("Update timer closing bracket is specified without an opening bracket!\n", stderr);
+				goto error;
 			}
+			if (sscanf(line->ptr + start_pos, "%ld", &update_timer) != 1 || update_timer < 0) {
+				fputs("Update timer set to the invalid value!\n", stderr);
+				goto error;
+			}
+			update_timer *= 60; // Convert to seconds.
+			if (start_pos < 2) {
+				fputs("Stumbled upon an invalid feed line!\n", stderr);
+				goto error;
+			}
+			line->len = start_pos - 2;
+			line->ptr[line->len] = '\0';
+			trim_whitespace_from_string(line);
+		}
+
+		if (line->ptr[0] == '@') { // Start of a new section.
+			cpyas(&section_name, line->ptr + 1, line->len - 1);
 			trim_whitespace_from_string(section_name);
+			section_update_period = update_timer > 0 ? update_timer : global_update_period;
 			section_index = make_sure_section_exists(section_name);
+			if (section_index < 0) goto error;
 			if (section_index == 0) {
 				global_update_period = section_update_period;
 			}
-			if (section_index < 0) { goto error; }
 			continue;
-		} else if (c == EOF) {
-			break;
 		}
 
 		empty_string(feed.name);
-		empty_string(feed.link);
-		feed.update_period = section_update_period;
-
-		while (true) {
-			if (catcs(feed.link, c) == false) { goto error; }
-			c = fgetc(f);
-			if (ISWHITESPACE(c) || c == EOF) { break; }
-		}
-		if (check_url_for_validity(feed.link) == false) {
-			goto error;
-		}
-		remove_trailing_slashes_from_string(feed.link);
-		while (ISWHITESPACEEXCEPTNEWLINE(c)) { c = fgetc(f); }
-		// process name
-		if (c == '"') {
-			while (true) {
-				c = fgetc(f);
-				if (c == '"' || c == '\n' || c == EOF) { break; }
-				if (catcs(feed.name, c) == false) { goto error; }
+		if (line->ptr[line->len - 1] == '"') {
+			size_t close_pos = line->len - 1;
+			size_t start_pos = close_pos;
+			while (start_pos > 0 && line->ptr[start_pos - 1] != '"') {
+				start_pos -= 1;
 			}
-		}
-		while (c != '[' && c != '{' && c != '\n' && c != EOF) { c = fgetc(f); }
-		if (c == '[' || c == '{') {
-			update_time_len = 0;
-			for (c = fgetc(f); update_time_len < UPDATE_TIME_SIZE && c != ']' && c != '}' && c != '\n' && c != EOF; c = fgetc(f)) {
-				update_time[update_time_len++] = c;
-			}
-			update_time[update_time_len] = '\0';
-			if (sscanf(update_time, "%" SCNd64, &feed.update_period) != 1) {
-				fputs("Encountered an invalid feed update period value!\n", stderr);
+			if (start_pos < 2) {
+				fputs("Stumbled upon an invalid feed line!\n", stderr);
 				goto error;
 			}
-			feed.update_period *= 60; // Convert to seconds.
+			line->ptr[close_pos] = '\0';
+			cpyas(&feed.name, line->ptr + start_pos, strlen(line->ptr + start_pos));
+			line->len = start_pos - 2;
+			line->ptr[line->len] = '\0';
+			trim_whitespace_from_string(line);
 		}
+
+		cpyss(&feed.link, line);
+		feed.update_period = update_timer > 0 ? update_timer : section_update_period;
+		remove_trailing_slashes_from_string(feed.link);
+		if (line->len < 4 || line->ptr[0] != '$' || line->ptr[1] != '(' || line->ptr[line->len - 1] != ')') {
+			if (check_url_for_validity(feed.link) == false) {
+				goto error;
+			}
+		}
+
 		if (copy_feed_to_section(&feed, section_index) == true) {
 			at_least_one_feed_was_added = true;
 		} else {
@@ -142,7 +140,6 @@ parse_feeds_file(void)
 			goto error;
 		}
 
-		while (c != '\n' && c != EOF) { c = fgetc(f); }
 	}
 
 	if (at_least_one_feed_was_added == false) {
@@ -150,12 +147,14 @@ parse_feeds_file(void)
 		goto error;
 	}
 
+	free_string(line);
 	free_string(section_name);
 	free_string(feed.link);
 	free_string(feed.name);
 	fclose(f);
 	return true;
 error:
+	free_string(line);
 	free_string(section_name);
 	free_string(feed.link);
 	free_string(feed.name);

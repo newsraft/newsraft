@@ -11,7 +11,7 @@
 // Thus resources and traffic will be saved. They call this "delta update".
 
 // Unknown type must have 0 value!
-enum media_type {
+enum {
 	MEDIA_TYPE_UNKNOWN = 0,
 	MEDIA_TYPE_XML,
 	MEDIA_TYPE_JSON,
@@ -76,7 +76,7 @@ parse_stream_callback(char *contents, size_t length, size_t nmemb, void *userdat
 		}
 	}
 	if (data->media_type == MEDIA_TYPE_XML) {
-		if (XML_Parse(data->xml_parser, contents, real_size, false) == XML_STATUS_ERROR) {
+		if (XML_Parse(data->xml_parser, contents, real_size, false) != XML_STATUS_OK) {
 			fail_status("XML parser ran into an error: %s", XML_ErrorString(XML_GetErrorCode(data->xml_parser)));
 			return CURL_WRITEFUNC_ERROR;
 		}

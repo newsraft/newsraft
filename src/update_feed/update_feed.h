@@ -56,6 +56,7 @@ struct stream_callback_data {
 };
 
 download_status download_feed(const char *url, struct stream_callback_data *data);
+download_status execute_feed(const struct string *cmd, struct stream_callback_data *data);
 
 bool engage_xml_parser(struct stream_callback_data *data);
 void free_xml_parser(struct stream_callback_data *data);

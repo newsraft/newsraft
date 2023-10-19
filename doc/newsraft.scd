@@ -112,12 +112,18 @@ example:
 
 	_https://example.org/feed.xml "Lorem Ipsum Blog"_
 
-Section lines start with @ character. After any number of whitespace characters,
+Generator lines start with a command enclosed in *$()*. These act just like feed
+lines but instead of fetching resources from a remote server they use the output
+of the specified command to obtain the content.
+
+	_$(cat ~/local-feed.xml) "Lorem Ipsum Blog"_
+
+Section lines start with *@* character. After any number of whitespace characters,
 the name of the section must be specified. For example:
 
 	_@ Software Releases_
 
-Comment lines start with # character. These lines are completely ignored. For
+Comment lines start with *#* character. These lines are completely ignored. For
 example:
 
 	_# Look closely. The beautiful may be small._
@@ -194,7 +200,7 @@ you can use a line according to this format:
 
 	*unbind* key
 
-Comment lines start with # character. These lines are completely ignored. For
+Comment lines start with *#* character. These lines are completely ignored. For
 example:
 
 	_# Good design is as little design as possible._

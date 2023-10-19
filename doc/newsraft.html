@@ -141,13 +141,20 @@
 <p class="Pp"></p>
 <div class="Bd-indent"><i>https://example.org/feed.xml &quot;Lorem Ipsum
   Blog&quot;</i></div>
-<p class="Pp">Section lines start with @ character. After any number of
+<p class="Pp">Generator lines start with a command enclosed in <b>$()</b>. These
+    act just like feed lines but instead of fetching resources from a remote
+    server they use the output of the specified command to obtain the
+  content.</p>
+<p class="Pp"></p>
+<div class="Bd-indent"><i>$(cat ~/local-feed.xml) &quot;Lorem Ipsum
+  Blog&quot;</i></div>
+<p class="Pp">Section lines start with <b>@</b> character. After any number of
     whitespace characters, the name of the section must be specified. For
     example:</p>
 <p class="Pp"></p>
 <div class="Bd-indent"><i>@ Software Releases</i></div>
-<p class="Pp">Comment lines start with # character. These lines are completely
-    ignored. For example:</p>
+<p class="Pp">Comment lines start with <b>#</b> character. These lines are
+    completely ignored. For example:</p>
 <p class="Pp"></p>
 <div class="Bd-indent"><i># Look closely. The beautiful may be small.</i></div>
 <p class="Pp">Both feed and section lines allow you to set an auto update timer
@@ -228,8 +235,8 @@
     by default, you can use a line according to this format:</p>
 <p class="Pp"></p>
 <div class="Bd-indent"><b>unbind</b> key</div>
-<p class="Pp">Comment lines start with # character. These lines are completely
-    ignored. For example:</p>
+<p class="Pp">Comment lines start with <b>#</b> character. These lines are
+    completely ignored. For example:</p>
 <p class="Pp"></p>
 <div class="Bd-indent"><i># Good design is as little design as
   possible.</i></div>
@@ -694,7 +701,7 @@
 </div>
 <table class="foot">
   <tr>
-    <td class="foot-date">2023-10-11</td>
+    <td class="foot-date">2023-10-19</td>
     <td class="foot-os"></td>
   </tr>
 </table>

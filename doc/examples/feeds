@@ -34,3 +34,9 @@ http://example.org/feed6.xml "Peter Peterson"
 # section, you must declare the beginning of the "Global" section:
 @ Global
 http://example.org/feed7.xml "Weather warnings"
+
+# You can subscribe to any feed you can get through a command. For
+# example, if you can get a Gemini atom feed with the program
+# 'gemget', then you might do this (note the silencing flags, so you
+# don't spook the terminal while newsraft is running).
+$(gemget -sq gemini://example.org/feed8.xml) "Reasons to use Gemini"

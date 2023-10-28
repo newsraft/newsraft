@@ -11,8 +11,7 @@ static char count_buf[10];
 static uint8_t count_buf_len = 0;
 static const struct timespec input_polling_period = {0, 30000000}; // 0.03 seconds
 
-static volatile bool they_want_us_to_imitate = false;
-static volatile input_cmd_id imitated_command_value;
+static volatile bool they_want_us_to_break_input = false;
 
 static inline void
 counter_update_unprotected(void)
@@ -51,13 +50,6 @@ tell_program_to_terminate_safely_and_quickly(int dummy)
 	they_want_us_to_terminate = true;
 }
 
-void
-imitate_input_command(input_cmd_id cmd)
-{
-	imitated_command_value = cmd;
-	they_want_us_to_imitate = true;
-}
-
 input_cmd_id
 get_input_command(uint32_t *count, const struct wstring **macro_ptr)
 {
@@ -80,9 +72,9 @@ get_input_command(uint32_t *count, const struct wstring **macro_ptr)
 		c = wgetch(counter_window);
 		pthread_mutex_unlock(&interface_lock);
 		if (c == ERR) {
-			if (they_want_us_to_imitate == true) {
-				they_want_us_to_imitate = false;
-				return imitated_command_value;
+			if (they_want_us_to_break_input == true) {
+				they_want_us_to_break_input = false;
+				return INPUT_ERROR;
 			}
 			nanosleep(&input_polling_period, NULL);
 			continue;
@@ -136,6 +128,12 @@ get_input_command(uint32_t *count, const struct wstring **macro_ptr)
 	}
 	INFO("Received signal requesting termination of program.");
 	return INPUT_QUIT_HARD;
+}
+
+void
+break_getting_input_command(void)
+{
+	they_want_us_to_break_input = true;
 }
 
 void

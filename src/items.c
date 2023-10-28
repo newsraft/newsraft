@@ -143,7 +143,7 @@ void
 tell_items_menu_to_regenerate(void)
 {
 	items_menu_needs_to_regenerate = true;
-	imitate_input_command(INPUT_ERROR);
+	break_getting_input_command();
 }
 
 input_cmd_id

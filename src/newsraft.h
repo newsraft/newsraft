@@ -448,8 +448,8 @@ bool call_resize_handler_if_current_list_menu_size_is_different_from_actual(void
 // See "interface-input.c" file for implementation.
 bool counter_recreate_unprotected(void);
 void tell_program_to_terminate_safely_and_quickly(int dummy);
-void imitate_input_command(input_cmd_id cmd);
 input_cmd_id get_input_command(uint32_t *count, const struct wstring **macro_ptr);
+void break_getting_input_command(void);
 void counter_delete(void);
 
 // Functions responsible for curses color pairs.

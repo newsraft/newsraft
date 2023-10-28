@@ -100,6 +100,9 @@ get_input_command(uint32_t *count, const struct wstring **macro_ptr)
 					search_mode_text_input->len -= 1;
 					search_mode_text_input->ptr[search_mode_text_input->len] = '\0';
 					update_status_window_content();
+				} else {
+					search_mode_is_enabled = false;
+					status_clean();
 				}
 			} else {
 				catcs(search_mode_text_input, c);

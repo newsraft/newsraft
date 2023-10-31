@@ -386,8 +386,9 @@ _send-if-modified-since-header_ (default: *true*)
 Color settings are the same settings as above, but they take a certain set of
 whitespace separated tokens for their values: one hue word and optional format
 attributes. Available tokens for hue are *default*, *black*, *red*, *green*,
-*yellow*, *blue*, *magenta*, *cyan* and *white*. Available tokens for format
-attributes are *bold*, *italic* and *underlined*.
+*yellow*, *blue*, *magenta*, *cyan*, *white* and *colorN*, where *N* is a number
+between 0 and 255. Available tokens for format attributes are *bold*, *italic*
+and *underlined*.
 
 _color-status-good-fg_ (default: *green*)
 	Text color of status area when reporting success.

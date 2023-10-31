@@ -11,7 +11,11 @@ create_color_pairs(void)
 		int bg = get_cfg_color(i * 2 + 1, &attributes[i]);
 		int fg = get_cfg_color(i * 2, &attributes[i]); // Set fg last because it bears the attributes.
 		if (init_pair(i + 1, fg, bg) == ERR) {
-			return false;
+			WARN("Failed to create color pair fg=%d bg=%d, making this pair in regular colors...", fg, bg);
+			if (init_pair(i + 1, -1, -1) == ERR) {
+				FAIL("Failed to set troubled color pair to regular colors!");
+				return false;
+			}
 		}
 	}
 	paint_it_black = false;

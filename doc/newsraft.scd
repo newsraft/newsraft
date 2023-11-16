@@ -230,10 +230,10 @@ _scrolloff_ (default: *0*)
 	in the middle of the list menu (except for start and end of the list menu).
 
 _items-count-limit_ (default: *0*)
-	Maximum number of items stored in one feed. Zero disables the limit.
+	Maximum number of items stored in one feed. Setting to *0* disables the limit.
 
 _update-threads-count_ (default: *0*)
-	Maximum number of updates running simultaneously. If set to zero, the setting
+	Maximum number of updates running simultaneously. If set to *0*, the setting
 	value will be set to the number of available CPU cores multiplied by *10*.
 	However, the setting value will never exceed *100*. You might want to set this
 	setting to a lower value if you have a poor network connection causing
@@ -334,16 +334,16 @@ _clean-database-on-startup_ (default: *false*)
 	This can significantly increase startup time.
 
 _download-timeout_ (default: *20*)
-	Maximum time in seconds that you allow Newsraft to download one feed. Zero
-	disables the limit.
+	Maximum time in seconds that you allow Newsraft to download one feed. Setting
+	to *0* disables the timeout.
 
 _download-speed-limit_ (default: *0*)
-	Maximum download speed in kilobytes per second (kB/s). Zero disables the
-	limit.
+	Maximum download speed in kilobytes per second (kB/s). Setting to *0* disables
+	the limit.
 
 _status-messages-count-limit_ (default: *1000*)
-	Maximum number of status messages stored in memory. If set to zero, status
-	messages history won't be stored in memory.
+	Maximum number of status messages stored in memory. If set to *0*, status
+	messages history will not be stored in memory.
 
 _send-user-agent-header_ (default: *true*)
 	Attach user-agent header to download requests. See _user-agent_ setting.

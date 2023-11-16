@@ -270,12 +270,12 @@
   entry will always be in the middle of the list menu (except for start and end
   of the list menu).</div>
 <p class="Pp"><i>items-count-limit</i> (default: <b>0</b>)</p>
-<div class="Bd-indent">Maximum number of items stored in one feed. Zero disables
-  the limit.</div>
+<div class="Bd-indent">Maximum number of items stored in one feed. Setting to
+  <b>0</b> disables the limit.</div>
 <p class="Pp"><i>update-threads-count</i> (default: <b>0</b>)</p>
 <div class="Bd-indent">Maximum number of updates running simultaneously. If set
-  to zero, the setting value will be set to the number of available CPU cores
-  multiplied by <b>10</b>. However, the setting value will never exceed
+  to <b>0</b>, the setting value will be set to the number of available CPU
+  cores multiplied by <b>10</b>. However, the setting value will never exceed
   <b>100</b>. You might want to set this setting to a lower value if you have a
   poor network connection causing slowdowns due to overloading.</div>
 <p class="Pp"><i>open-in-browser-command</i> (default: <b>${BROWSER:-xdg-open}
@@ -387,13 +387,13 @@
   time.</div>
 <p class="Pp"><i>download-timeout</i> (default: <b>20</b>)</p>
 <div class="Bd-indent">Maximum time in seconds that you allow Newsraft to
-  download one feed. Zero disables the limit.</div>
+  download one feed. Setting to <b>0</b> disables the timeout.</div>
 <p class="Pp"><i>download-speed-limit</i> (default: <b>0</b>)</p>
 <div class="Bd-indent">Maximum download speed in kilobytes per second (kB/s).
-  Zero disables the limit.</div>
+  Setting to <b>0</b> disables the limit.</div>
 <p class="Pp"><i>status-messages-count-limit</i> (default: <b>1000</b>)</p>
 <div class="Bd-indent">Maximum number of status messages stored in memory. If
-  set to zero, status messages history won't be stored in memory.</div>
+  set to <b>0</b>, status messages history will not be stored in memory.</div>
 <p class="Pp"><i>send-user-agent-header</i> (default: <b>true</b>)</p>
 <div class="Bd-indent">Attach user-agent header to download requests. See
   <i>user-agent</i> setting.</div>

@@ -359,12 +359,12 @@ in the middle of the list menu (except for start and end of the list menu).\&
 .RE
 \fIitems-count-limit\fR (default: \fB0\fR)
 .RS 4
-Maximum number of items stored in one feed.\& Zero disables the limit.\&
+Maximum number of items stored in one feed.\& Setting to \fB0\fR disables the limit.\&
 .P
 .RE
 \fIupdate-threads-count\fR (default: \fB0\fR)
 .RS 4
-Maximum number of updates running simultaneously.\& If set to zero, the setting
+Maximum number of updates running simultaneously.\& If set to \fB0\fR, the setting
 value will be set to the number of available CPU cores multiplied by \fB10\fR.\&
 However, the setting value will never exceed \fB100\fR.\& You might want to set this
 setting to a lower value if you have a poor network connection causing
@@ -523,20 +523,20 @@ This can significantly increase startup time.\&
 .RE
 \fIdownload-timeout\fR (default: \fB20\fR)
 .RS 4
-Maximum time in seconds that you allow Newsraft to download one feed.\& Zero
-disables the limit.\&
+Maximum time in seconds that you allow Newsraft to download one feed.\& Setting
+to \fB0\fR disables the timeout.\&
 .P
 .RE
 \fIdownload-speed-limit\fR (default: \fB0\fR)
 .RS 4
-Maximum download speed in kilobytes per second (kB/s).\& Zero disables the
-limit.\&
+Maximum download speed in kilobytes per second (kB/s).\& Setting to \fB0\fR disables
+the limit.\&
 .P
 .RE
 \fIstatus-messages-count-limit\fR (default: \fB1000\fR)
 .RS 4
-Maximum number of status messages stored in memory.\& If set to zero, status
-messages history won'\&t be stored in memory.\&
+Maximum number of status messages stored in memory.\& If set to \fB0\fR, status
+messages history will not be stored in memory.\&
 .P
 .RE
 \fIsend-user-agent-header\fR (default: \fBtrue\fR)

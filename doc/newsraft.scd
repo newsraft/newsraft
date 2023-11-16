@@ -333,7 +333,7 @@ _clean-database-on-startup_ (default: *false*)
 	It rebuilds the database file by packing it into a minimal amount of disk space.
 	This can significantly increase startup time.
 
-_download-timeout_ (default: *10*)
+_download-timeout_ (default: *20*)
 	Maximum time in seconds that you allow Newsraft to download one feed. Zero
 	disables the limit.
 

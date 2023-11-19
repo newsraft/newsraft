@@ -261,8 +261,8 @@ struct render_blocks_list {
 	struct render_block *ptr;
 	size_t len;
 	size_t links_block_index;
-	struct render_block *pre_links_block;
-	struct render_block *post_links_block;
+	struct string *pre_links_block;
+	struct string *post_links_block;
 };
 
 struct format_hint {
@@ -373,10 +373,8 @@ int enter_item_pager_view_loop(struct items_list *items, const size_t *view_sel)
 // is passed to render_data function which processes them based on their types
 // and generates a single plain text buffer for a pager to display.
 // See "render-block.c" file for implementation.
-struct render_block *create_render_block(const char *content, size_t content_len, render_block_format content_type, bool needs_trimming);
-bool join_render_block(struct render_blocks_list *blocks, const struct render_block *block);
+bool add_render_block(struct render_blocks_list *blocks, const char *content, size_t content_len, render_block_format content_type, bool needs_trimming);
 bool apply_links_render_blocks(struct render_blocks_list *blocks, const struct string *data);
-void free_render_block(struct render_block *block);
 void free_render_blocks(struct render_blocks_list *blocks);
 
 // Here we extract links from texts of render_block entries into links_list and

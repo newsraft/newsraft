@@ -1,22 +1,20 @@
 #include <string.h>
 #include "newsraft.h"
 
-static struct render_block *
+static struct string *
 block_str(const struct string *text)
 {
 	if (text != NULL && text->len > 0) {
 		struct string *data = crtss(text);
 		if (data != NULL) {
 			inlinefy_string(data);
-			struct render_block *block = create_render_block(data->ptr, data->len, TEXT_RAW, true);
-			free_string(data);
-			return block;
+			return data;
 		}
 	}
 	return NULL;
 }
 
-static struct render_block *
+static struct string *
 block_date(const struct item_entry *item)
 {
 	if (item->pub_date == 0 && item->upd_date == 0) {
@@ -34,29 +32,29 @@ block_date(const struct item_entry *item)
 		if (catcs(date_str, ')') == false) goto error;
 	}
 	if (catss(date_entry, date_str) == false) goto error;
-	struct render_block *block = block_str(date_entry);
+	struct string *data = block_str(date_entry);
 	free_string(date_entry);
 	free_string(date_str);
-	return block;
+	return data;
 error:
 	free_string(date_entry);
 	free_string(date_str);
 	return NULL;
 }
 
-static struct render_block *
+static struct string *
 block_persons(sqlite3_stmt *res)
 {
 	const char *serialized_persons = (char *)sqlite3_column_text(res, ITEM_COLUMN_PERSONS);
 	if (serialized_persons == NULL) return NULL;
 	struct string *persons = deserialize_persons_string(serialized_persons);
-	struct render_block *block = block_str(persons);
+	struct string *data = block_str(persons);
 	free_string(persons);
-	return block;
+	return data;
 }
 
-static struct render_block *
-block_max_content(sqlite3_stmt *res)
+static struct string *
+block_max_content(sqlite3_stmt *res, render_block_format *output_type)
 {
 	const char *content = (char *)sqlite3_column_text(res, ITEM_COLUMN_CONTENT);
 	struct string *text = crtes(50000);
@@ -76,9 +74,8 @@ block_max_content(sqlite3_stmt *res)
 		}
 	}
 	if (text->len > 0) {
-		struct render_block *block = create_render_block(text->ptr, text->len, type, true);
-		free_string(text);
-		return block;
+		*output_type = type;
+		return text;
 	}
 error:
 	free_string(text);
@@ -97,39 +94,42 @@ generate_render_blocks_based_on_item_data(struct render_blocks_list *blocks, con
 			entry[entry_len] = '\0';
 			char *percent_pos = strchr(entry, '%');
 			if (percent_pos == NULL) {
-				struct render_block *simple_block = create_render_block(entry, entry_len, TEXT_HTML, false);
-				join_render_block(blocks, simple_block);
-				free_render_block(simple_block);
-			} else {
-				const char *specifier_pos = percent_pos + 1;
-				char specifier = *specifier_pos;
+				add_render_block(blocks, entry, entry_len, TEXT_HTML, false);
+			} else if (*(percent_pos + 1) != '\0') {
 				*percent_pos = '\0';
-				struct render_block *block1 = create_render_block(entry, strlen(entry), TEXT_HTML, false);
-				struct render_block *block2 = NULL;
-				struct render_block *block3 = create_render_block(specifier_pos + 1, strlen(specifier_pos + 1), TEXT_HTML, false);
+				char specifier = *(percent_pos + 1);
 				if (specifier == 'L') {
 					// Blocks related to links list will be added later, in apply_links_render_blocks call.
 					// It's this way because links list content depends on what item content has.
 					blocks->links_block_index = blocks->len;
-					blocks->pre_links_block = block1;
-					blocks->post_links_block = block3;
+					cpyas(&blocks->pre_links_block, entry, strlen(entry));
+					cpyas(&blocks->post_links_block, percent_pos + 2, strlen(percent_pos + 2));
+				} else if (specifier == 'c') {
+					render_block_format type = TEXT_PLAIN;
+					struct string *content = block_max_content(res, &type);
+					if (content != NULL) {
+						add_render_block(blocks, entry, strlen(entry), TEXT_HTML, false);
+						add_render_block(blocks, content->ptr, content->len, type, true);
+						add_render_block(blocks, percent_pos + 2, strlen(percent_pos + 2), TEXT_HTML, false);
+						free_string(content);
+					}
 				} else {
+					struct string *value = NULL;
 					switch (specifier) {
-						case 'f': block2 = block_str(item->feed->name != NULL && item->feed->name->len != 0 ? item->feed->name : item->feed->link); break;
-						case 't': block2 = block_str(item->title); break;
-						case 'l': block2 = block_str(item->url);   break;
-						case 'd': block2 = block_date(item);       break;
-						case 'a': block2 = block_persons(res);     break;
-						case 'c': block2 = block_max_content(res); break;
+						case 'f': value = block_str(item->feed->name != NULL && item->feed->name->len != 0 ? item->feed->name : item->feed->link); break;
+						case 't': value = block_str(item->title); break;
+						case 'l': value = block_str(item->url);   break;
+						case 'd': value = block_date(item);       break;
+						case 'a': value = block_persons(res);     break;
 					}
-					if (block2 != NULL) {
-						join_render_block(blocks, block1);
-						join_render_block(blocks, block2);
-						join_render_block(blocks, block3);
+					if (value != NULL) {
+						struct string *text = crtas(entry, strlen(entry));
+						catss(text, value);
+						catas(text, percent_pos + 2, strlen(percent_pos + 2));
+						add_render_block(blocks, text->ptr, text->len, TEXT_HTML, false);
+						free_string(value);
+						free_string(text);
 					}
-					free_render_block(block1);
-					free_render_block(block2);
-					free_render_block(block3);
 				}
 			}
 			if (*i == '\0') break;

@@ -23,13 +23,13 @@ block_date(const struct item_entry *item)
 		return NULL;
 	}
 	struct string *date_entry = crtes(100);
-	struct string *date_str = get_config_date_str(item->pub_date == 0 ? item->upd_date : item->pub_date, CFG_CONTENT_DATE_FORMAT);
+	struct string *date_str = get_config_date_str(item->pub_date == 0 ? item->upd_date : item->pub_date, CFG_ITEM_CONTENT_DATE_FORMAT);
 	if (date_entry == NULL || date_str == NULL) goto error;
 	if (item->pub_date > 0 && item->upd_date > 0 && item->pub_date != item->upd_date) {
 		if (catss(date_entry, date_str) == false) goto error;
 		if (catas(date_entry, " (updated ", 10) == false) goto error;
 		free_string(date_str);
-		date_str = get_config_date_str(item->upd_date, CFG_CONTENT_DATE_FORMAT);
+		date_str = get_config_date_str(item->upd_date, CFG_ITEM_CONTENT_DATE_FORMAT);
 		if (date_str == NULL) goto error;
 		if (catcs(date_str, ')') == false) goto error;
 	}

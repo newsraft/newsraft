@@ -280,8 +280,8 @@ _item-content-format_ (default: *<b>Feed</b>: %f<br>|<b>Title</b>: %t<br>|<b>Lin
 *c*	item content;++
 *L*	item links list.
 
-_content-date-format_ (default: *%a, %d %b %Y %H:%M:%S %z*)
-	Date format in the content view. Specifier values correspond to the
+_item-content-date-format_ (default: *%a, %d %b %Y %H:%M:%S %z*)
+	Date format in the item's content. Specifier values correspond to the
 	*strftime*(3) format.
 
 _list-entry-date-format_ (default: *%b %d*)

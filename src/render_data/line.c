@@ -83,6 +83,10 @@ line_style(struct line *line, format_hint_mask hint)
 	for (size_t i = 0; i < LAST_LINE.hints_len; ++i) {
 		if (LAST_LINE.ws->len == LAST_LINE.hints[i].pos) {
 			LAST_LINE.hints[i].value |= hint;
+			// Force style on when explicitly enabling it.
+			if (hint & FORMAT_BOLD_BEGIN)       LAST_LINE.hints[i].value &= ~FORMAT_BOLD_END;
+			if (hint & FORMAT_UNDERLINED_BEGIN) LAST_LINE.hints[i].value &= ~FORMAT_UNDERLINED_END;
+			if (hint & FORMAT_ITALIC_BEGIN)     LAST_LINE.hints[i].value &= ~FORMAT_ITALIC_END;
 			return true;
 		}
 	}

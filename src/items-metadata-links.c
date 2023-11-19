@@ -187,7 +187,7 @@ populate_link_list_with_links_of_item(struct links_list *links, sqlite3_stmt *re
 struct string *
 generate_link_list_string_for_pager(const struct links_list *links)
 {
-	struct string *str = crtas("Links:", 6);
+	struct string *str = crtes(200);
 	if (str == NULL) {
 		return NULL;
 	}
@@ -212,7 +212,7 @@ generate_link_list_string_for_pager(const struct links_list *links)
 		}
 
 		// Non-breaking space below the parentheses! ---------> ( )
-		prefix_len = snprintf(prefix, LINK_PREFIX_SIZE, "\n[%zu]: ", i + 1);
+		prefix_len = snprintf(prefix, LINK_PREFIX_SIZE, "[%zu]: ", i + 1);
 		if ((prefix_len <= 0) || (catas(str, prefix, prefix_len) == false) || (catss(str, links->ptr[i].url) == false)) {
 			goto error;
 		}
@@ -249,9 +249,8 @@ generate_link_list_string_for_pager(const struct links_list *links)
 			}
 		}
 
-		if ((parentheses_are_open == true) && (catcs(str, ')') == false)) {
-			goto error;
-		}
+		if (parentheses_are_open == true && catcs(str, ')') == false) goto error;
+		if (catcs(str, '\n') == false) goto error;
 	}
 	return str;
 error:

@@ -303,12 +303,30 @@
 <div class="Bd-indent">Password for authentication with the proxy server.</div>
 <p class="Pp"><i>global-section-name</i> (default: <b>Global</b>)</p>
 <div class="Bd-indent">Name of the section that contains all feeds.</div>
-<p class="Pp"><i>item-formation-order</i> (default:
-    <b>feed,title,authors,date,max-content</b>)</p>
-<div class="Bd-indent">Sets the order in which the data of item entry is formed
-  for viewing in a pager. Possible fields are: <b>feed</b>, <b>title</b>,
-  <b>link</b>, <b>date</b>, <b>authors</b>, <b>contributors</b>, <b>editors</b>
-  and <b>max-content</b>.</div>
+<p class="Pp"><i>item-content-format</i> (default: <b>&lt;b&gt;Feed&lt;/b&gt;:
+    %f&lt;br&gt;|&lt;b&gt;Title&lt;/b&gt;: %t&lt;br&gt;|&lt;b&gt;Link&lt;/b&gt;:
+    %l&lt;br&gt;|&lt;b&gt;Date&lt;/b&gt;:
+    %d&lt;br&gt;|&lt;b&gt;Authors&lt;/b&gt;:
+    %a&lt;br&gt;|&lt;br&gt;%c&lt;br&gt;|&lt;br&gt;&lt;b&gt;Links&lt;/b&gt;:&lt;br&gt;%L</b>)</p>
+<div class="Bd-indent">Sets the format according to which the item's content
+  will be generated. The text in this format string is HTML formatted. Fields
+  are separated by <b>|</b> character. If an item doesn't have a value
+  corresponding to the specifier in the field, then the entire field will not be
+  shown. Specifiers are as follows:
+<br/>
+<b>f</b>	feed title if set, feed link otherwise;
+<br/>
+<b>t</b>	item title;
+<br/>
+<b>l</b>	item link;
+<br/>
+<b>d</b>	item date;
+<br/>
+<b>a</b>	item authors;
+<br/>
+<b>c</b>	item content;
+<br/>
+<b>L</b>	item links list.</div>
 <p class="Pp"><i>content-date-format</i> (default: <b>%a, %d %b %Y %H:%M:%S
     %z</b>)</p>
 <div class="Bd-indent">Date format in the content view. Specifier values
@@ -702,7 +720,7 @@
 </div>
 <table class="foot">
   <tr>
-    <td class="foot-date">2023-11-16</td>
+    <td class="foot-date">2023-11-19</td>
     <td class="foot-os"></td>
   </tr>
 </table>

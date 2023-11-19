@@ -5,7 +5,7 @@
 .nh
 .ad l
 .\" Begin generated content:
-.TH "NEWSRAFT" "1" "2023-11-16"
+.TH "NEWSRAFT" "1" "2023-11-19"
 .P
 .SH NAME
 .P
@@ -411,11 +411,26 @@ Password for authentication with the proxy server.\&
 Name of the section that contains all feeds.\&
 .P
 .RE
-\fIitem-formation-order\fR (default: \fBfeed,title,authors,date,max-content\fR)
+\fIitem-content-format\fR (default: \fB<b>Feed</b>: %f<br>|<b>Title</b>: %t<br>|<b>Link</b>: %l<br>|<b>Date</b>: %d<br>|<b>Authors</b>: %a<br>|<br>%c<br>|<br><b>Links</b>:<br>%L\fR)
 .RS 4
-Sets the order in which the data of item entry is formed for viewing in a
-pager.\& Possible fields are: \fBfeed\fR, \fBtitle\fR, \fBlink\fR, \fBdate\fR, \fBauthors\fR,
-\fBcontributors\fR, \fBeditors\fR and \fBmax-content\fR.\&
+Sets the format according to which the item'\&s content will be generated.\&
+The text in this format string is HTML formatted.\& Fields are separated by \fB|\fR
+character.\& If an item doesn'\&t have a value corresponding to the specifier in
+the field, then the entire field will not be shown.\& Specifiers are as follows:
+.br
+\fBf\fR	feed title if set, feed link otherwise;
+.br
+\fBt\fR	item title;
+.br
+\fBl\fR	item link;
+.br
+\fBd\fR	item date;
+.br
+\fBa\fR	item authors;
+.br
+\fBc\fR	item content;
+.br
+\fBL\fR	item links list.\&
 .P
 .RE
 \fIcontent-date-format\fR (default: \fB%a, %d %b %Y %H:%M:%S %z\fR)

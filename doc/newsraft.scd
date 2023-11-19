@@ -267,10 +267,18 @@ _proxy-password_ (default: *""*)
 _global-section-name_ (default: *Global*)
 	Name of the section that contains all feeds.
 
-_item-formation-order_ (default: *feed,title,authors,date,max-content*)
-	Sets the order in which the data of item entry is formed for viewing in a
-	pager. Possible fields are: *feed*, *title*, *link*, *date*, *authors*,
-	*contributors*, *editors* and *max-content*.
+_item-content-format_ (default: *<b>Feed</b>: %f<br>|<b>Title</b>: %t<br>|<b>Link</b>: %l<br>|<b>Date</b>: %d<br>|<b>Authors</b>: %a<br>|<br>%c<br>|<br><b>Links</b>:<br>%L*)
+	Sets the format according to which the item's content will be generated.
+	The text in this format string is HTML formatted. Fields are separated by *|*
+	character. If an item doesn't have a value corresponding to the specifier in
+	the field, then the entire field will not be shown. Specifiers are as follows:++
+*f*	feed title if set, feed link otherwise;++
+*t*	item title;++
+*l*	item link;++
+*d*	item date;++
+*a*	item authors;++
+*c*	item content;++
+*L*	item links list.
 
 _content-date-format_ (default: *%a, %d %b %Y %H:%M:%S %z*)
 	Date format in the content view. Specifier values correspond to the

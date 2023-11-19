@@ -17,8 +17,8 @@ enter_status_pager_view_loop(void)
 		return INPUT_ERROR;
 	}
 	free_string(messages);
-	struct render_block block = {wmessages, TEXT_PLAIN, 0};
-	struct render_blocks_list blocks = {&block, 1};
+	struct render_block block = {wmessages, TEXT_PLAIN, false};
+	struct render_blocks_list blocks = {&block, 1, 0, NULL, NULL};
 	if (start_pager_menu(&blocks) == false) {
 		free_wstring(wmessages);
 		return INPUT_ERROR;

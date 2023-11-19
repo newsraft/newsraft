@@ -63,7 +63,7 @@ enum {
 	CFG_PROXY_PASSWORD,
 	CFG_GLOBAL_SECTION_NAME,
 	CFG_USER_AGENT,
-	CFG_ITEM_FORMATION_ORDER,
+	CFG_ITEM_CONTENT_FORMAT,
 	CFG_CONTENT_DATE_FORMAT,
 	CFG_LIST_ENTRY_DATE_FORMAT,
 	CFG_OPEN_IN_BROWSER_COMMAND,
@@ -254,12 +254,15 @@ struct format_arg {
 struct render_block {
 	struct wstring *content;
 	render_block_format content_type;
-	size_t separators_count;
+	bool needs_trimming;
 };
 
 struct render_blocks_list {
 	struct render_block *ptr;
 	size_t len;
+	size_t links_block_index;
+	struct render_block *pre_links_block;
+	struct render_block *post_links_block;
 };
 
 struct format_hint {
@@ -370,7 +373,10 @@ int enter_item_pager_view_loop(struct items_list *items, const size_t *view_sel)
 // is passed to render_data function which processes them based on their types
 // and generates a single plain text buffer for a pager to display.
 // See "render-block.c" file for implementation.
-bool join_render_block(struct render_blocks_list *blocks, const char *content, size_t content_len, render_block_format content_type, size_t separators_count);
+struct render_block *create_render_block(const char *content, size_t content_len, render_block_format content_type, bool needs_trimming);
+bool join_render_block(struct render_blocks_list *blocks, const struct render_block *block);
+bool apply_links_render_blocks(struct render_blocks_list *blocks, const struct string *data);
+void free_render_block(struct render_block *block);
 void free_render_blocks(struct render_blocks_list *blocks);
 
 // Here we extract links from texts of render_block entries into links_list and
@@ -399,7 +405,7 @@ bool complete_urls_of_links(struct links_list *links, const struct string *feed_
 void free_links_list(const struct links_list *links);
 
 // See "items-metadata-persons.c" file for implementation.
-struct string *deserialize_persons_string(const char *src, const char *person_type);
+struct string *deserialize_persons_string(const char *src);
 
 // See "path.c" file for implementation.
 bool set_feeds_path(const char *path);

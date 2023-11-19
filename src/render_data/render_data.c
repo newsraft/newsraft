@@ -1,16 +1,18 @@
 #include "render_data.h"
 
 static inline void
-remove_trailing_empty_lines(struct render_result *r)
+remove_trailing_empty_lines_except_for_first_one(struct render_result *r)
 {
-	for (size_t i = r->lines_len; i > 0; --i) {
-		for (size_t j = 0; j < r->lines[i - 1].ws->len; ++j) {
-			if (!ISWIDEWHITESPACE(r->lines[i - 1].ws->ptr[j])) {
+	// Line processor expects there to be at least one line!
+	// That's why we always keep the first line.
+	for (size_t i = r->lines_len - 1; i > 0; --i) {
+		for (size_t j = 0; j < r->lines[i].ws->len; ++j) {
+			if (!ISWIDEWHITESPACE(r->lines[i].ws->ptr[j])) {
 				return;
 			}
 		}
-		free_wstring(r->lines[i - 1].ws);
-		free(r->lines[i - 1].hints);
+		free_wstring(r->lines[i].ws);
+		free(r->lines[i].hints);
 		r->lines_len -= 1;
 	}
 }
@@ -28,12 +30,11 @@ render_data(struct render_result *result, struct render_blocks_list *blocks)
 		} else { // TEXT_RAW || TEXT_PLAIN
 			line_string(&line, blocks->ptr[i].content->ptr);
 		}
-		remove_trailing_empty_lines(result);
-		line_style(&line, FORMAT_ALL_END);
-		for (size_t j = 0; j < blocks->ptr[i].separators_count; ++j) {
-			line_char(&line, L'\n');
+		if (blocks->ptr[i].needs_trimming == true) {
+			remove_trailing_empty_lines_except_for_first_one(result);
 		}
+		line_style(&line, FORMAT_ALL_END);
 	}
-	remove_trailing_empty_lines(result);
-	return result->lines_len > 0 ? true : false;
+	remove_trailing_empty_lines_except_for_first_one(result);
+	return result->lines_len > 1 ? true : false;
 }

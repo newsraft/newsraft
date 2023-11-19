@@ -1,76 +1,31 @@
 #include <string.h>
 #include "newsraft.h"
 
-#define MAX_METADATA_ENTRY_NAME_LENGTH 12 // Currently it is "contributors".
-
-struct data_entry {
-	const char *const field;   // Name of field to match in config_contents_meta_data.
-	const char *const tooltip; // String to write before entry data.
-	const size_t tooltip_len;
-	bool (*append_handler)(struct render_blocks_list *blocks, const struct item_entry *item, sqlite3_stmt *res, const struct data_entry *entry);
-};
-
-static bool
-append_feed_line(struct render_blocks_list *blocks, const struct item_entry *item, sqlite3_stmt *res, const struct data_entry *entry)
+static struct render_block *
+block_str(const struct string *text)
 {
-	(void)res;
-	struct string *data = crtas(entry->tooltip, entry->tooltip_len);
-	if (data == NULL) {
-		return false;
-	}
-	if ((item->feed->name != NULL) && (item->feed->name->len != 0)) {
-		if (catss(data, item->feed->name) == false) {
-			goto error;
-		}
-	} else {
-		if (catss(data, item->feed->link) == false) {
-			goto error;
-		}
-	}
-	inlinefy_string(data);
-	if (join_render_block(blocks, data->ptr, data->len, TEXT_RAW, 1) == false) {
-		goto error;
-	}
-	free_string(data);
-	return true;
-error:
-	free_string(data);
-	return false;
-}
-
-static bool
-append_line(struct render_blocks_list *blocks, const struct item_entry *item, sqlite3_stmt *res, const struct data_entry *entry)
-{
-	(void)res;
-	const struct string *text = entry->tooltip[0] == 'T' ? item->title : item->url;
-	if ((text == NULL) || (text->len == 0)) {
-		return true;
-	}
-	struct string *data = crtas(entry->tooltip, entry->tooltip_len);
-	if (data != NULL) {
-		if (catss(data, text) == true) {
+	if (text != NULL && text->len > 0) {
+		struct string *data = crtss(text);
+		if (data != NULL) {
 			inlinefy_string(data);
-			if (join_render_block(blocks, data->ptr, data->len, TEXT_RAW, 1) == true) {
-				free_string(data);
-				return true;
-			}
+			struct render_block *block = create_render_block(data->ptr, data->len, TEXT_RAW, true);
+			free_string(data);
+			return block;
 		}
-		free_string(data);
 	}
-	return false;
+	return NULL;
 }
 
-static bool
-append_date(struct render_blocks_list *blocks, const struct item_entry *item, sqlite3_stmt *res, const struct data_entry *entry)
+static struct render_block *
+block_date(const struct item_entry *item)
 {
-	(void)res;
 	if (item->pub_date == 0 && item->upd_date == 0) {
-		return true; // It's not an error because this item simply doesn't have date set.
+		return NULL;
 	}
-	struct string *date_entry = crtas(entry->tooltip, entry->tooltip_len);
+	struct string *date_entry = crtes(100);
 	struct string *date_str = get_config_date_str(item->pub_date == 0 ? item->upd_date : item->pub_date, CFG_CONTENT_DATE_FORMAT);
 	if (date_entry == NULL || date_str == NULL) goto error;
-	if (item->pub_date != 0 && item->upd_date != 0 && item->pub_date != item->upd_date) {
+	if (item->pub_date > 0 && item->upd_date > 0 && item->pub_date != item->upd_date) {
 		if (catss(date_entry, date_str) == false) goto error;
 		if (catas(date_entry, " (updated ", 10) == false) goto error;
 		free_string(date_str);
@@ -79,56 +34,34 @@ append_date(struct render_blocks_list *blocks, const struct item_entry *item, sq
 		if (catcs(date_str, ')') == false) goto error;
 	}
 	if (catss(date_entry, date_str) == false) goto error;
-	if (join_render_block(blocks, date_entry->ptr, date_entry->len, TEXT_RAW, 1) == false) goto error;
+	struct render_block *block = block_str(date_entry);
 	free_string(date_entry);
 	free_string(date_str);
-	return true;
+	return block;
 error:
 	free_string(date_entry);
 	free_string(date_str);
-	return false;
+	return NULL;
 }
 
-static bool
-append_persons(struct render_blocks_list *blocks, const struct item_entry *item, sqlite3_stmt *res, const struct data_entry *entry)
+static struct render_block *
+block_persons(sqlite3_stmt *res)
 {
-	(void)item;
 	const char *serialized_persons = (char *)sqlite3_column_text(res, ITEM_COLUMN_PERSONS);
-	if (serialized_persons == NULL) {
-		return true; // Ignore empty persons >:-D
-	}
-	char type[100]; // Entry field name without the last letter.
-	strcpy(type, entry->field);
-	type[strlen(entry->field) - 1] = '\0';
-	struct string *persons = deserialize_persons_string(serialized_persons, type);
-	if ((persons == NULL) || (persons->len == 0)) {
-		free_string(persons);
-		return true; // There is nothing here that we were looking for.
-	}
-	struct string *block_text = crtas(entry->tooltip, entry->tooltip_len);
-	if (block_text != NULL) {
-		if (catss(block_text, persons) == true) {
-			if (join_render_block(blocks, block_text->ptr, block_text->len, TEXT_RAW, 1) == true) {
-				free_string(persons);
-				free_string(block_text);
-				return true;
-			}
-		}
-		free_string(block_text);
-	}
+	if (serialized_persons == NULL) return NULL;
+	struct string *persons = deserialize_persons_string(serialized_persons);
+	struct render_block *block = block_str(persons);
 	free_string(persons);
-	return false;
+	return block;
 }
 
-static bool
-append_max_content(struct render_blocks_list *blocks, const struct item_entry *item, sqlite3_stmt *res, const struct data_entry *entry)
+static struct render_block *
+block_max_content(sqlite3_stmt *res)
 {
-	(void)item;
-	(void)entry;
 	const char *content = (char *)sqlite3_column_text(res, ITEM_COLUMN_CONTENT);
 	struct string *text = crtes(50000);
 	if (text == NULL) {
-		return false;
+		return NULL;
 	}
 	render_block_format type = TEXT_PLAIN;
 	if (get_largest_piece_from_item_content(content, &text, &type) == false) {
@@ -142,56 +75,68 @@ append_max_content(struct render_blocks_list *blocks, const struct item_entry *i
 			goto error;
 		}
 	}
-	if (text->len != 0) {
-		if (join_render_block(blocks, text->ptr, text->len, type, 2) == false) {
-			goto error;
-		}
+	if (text->len > 0) {
+		struct render_block *block = create_render_block(text->ptr, text->len, type, true);
+		free_string(text);
+		return block;
 	}
-	free_string(text);
-	return true;
 error:
 	free_string(text);
-	return false;
+	return NULL;
 }
-
-// ATTENTION! Maximal length of meta data entry name has to be reflected in MAX_METADATA_ENTRY_NAME_LENGTH.
-static const struct data_entry field_entries[] = {
-	{"feed",         "Feed: ",          6, &append_feed_line},
-	{"title",        "Title: ",         7, &append_line},
-	{"link",         "Link: ",          6, &append_line},
-	{"date",         "Date: ",          6, &append_date},
-	{"authors",      "Authors: ",       9, &append_persons},
-	{"contributors", "Contributors: ", 14, &append_persons},
-	{"editors",      "Editors: ",       9, &append_persons},
-	{"max-content",  NULL,              0, &append_max_content},
-	{NULL,           NULL,              0, NULL},
-};
 
 bool
 generate_render_blocks_based_on_item_data(struct render_blocks_list *blocks, const struct item_entry *item, sqlite3_stmt *res)
 {
-	char entry[MAX_METADATA_ENTRY_NAME_LENGTH + 1];
+#define MAX_ENTRY_LENGTH 1000
+	char entry[MAX_ENTRY_LENGTH + 10];
 	size_t entry_len = 0;
-	const struct string *content_order = get_cfg_string(CFG_ITEM_FORMATION_ORDER);
-	const char *i = content_order->ptr;
-	while (true) {
-		if ((*i == ',') || (*i == '\0')) {
-			for (size_t j = 0; field_entries[j].field != NULL; ++j) {
-				if (strncmp(entry, field_entries[j].field, entry_len) == 0) {
-					if (field_entries[j].append_handler(blocks, item, res, field_entries + j) == false) {
-						return false;
+	const struct string *content_order = get_cfg_string(CFG_ITEM_CONTENT_FORMAT);
+	for (const char *i = content_order->ptr; ; ++i) {
+		if (*i == '|' || *i == '\0') {
+			entry[entry_len] = '\0';
+			char *percent_pos = strchr(entry, '%');
+			if (percent_pos == NULL) {
+				struct render_block *simple_block = create_render_block(entry, entry_len, TEXT_HTML, false);
+				join_render_block(blocks, simple_block);
+				free_render_block(simple_block);
+			} else {
+				const char *specifier_pos = percent_pos + 1;
+				char specifier = *specifier_pos;
+				*percent_pos = '\0';
+				struct render_block *block1 = create_render_block(entry, strlen(entry), TEXT_HTML, false);
+				struct render_block *block2 = NULL;
+				struct render_block *block3 = create_render_block(specifier_pos + 1, strlen(specifier_pos + 1), TEXT_HTML, false);
+				if (specifier == 'L') {
+					// Blocks related to links list will be added later, in apply_links_render_blocks call.
+					// It's this way because links list content depends on what item content has.
+					blocks->links_block_index = blocks->len;
+					blocks->pre_links_block = block1;
+					blocks->post_links_block = block3;
+				} else {
+					switch (specifier) {
+						case 'f': block2 = block_str(item->feed->name != NULL && item->feed->name->len != 0 ? item->feed->name : item->feed->link); break;
+						case 't': block2 = block_str(item->title); break;
+						case 'l': block2 = block_str(item->url);   break;
+						case 'd': block2 = block_date(item);       break;
+						case 'a': block2 = block_persons(res);     break;
+						case 'c': block2 = block_max_content(res); break;
 					}
-					break;
+					if (block2 != NULL) {
+						join_render_block(blocks, block1);
+						join_render_block(blocks, block2);
+						join_render_block(blocks, block3);
+					}
+					free_render_block(block1);
+					free_render_block(block2);
+					free_render_block(block3);
 				}
 			}
-			if (*i == '\0') {
-				break;
-			}
+			if (*i == '\0') break;
 			entry_len = 0;
-		} else if (entry_len != MAX_METADATA_ENTRY_NAME_LENGTH) {
+		} else if (entry_len < MAX_ENTRY_LENGTH) {
 			entry[entry_len++] = *i;
 		}
-		++i;
 	}
 	return true;
 }

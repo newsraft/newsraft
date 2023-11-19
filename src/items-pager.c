@@ -2,18 +2,6 @@
 #include "newsraft.h"
 
 static inline bool
-join_links_render_block(struct render_blocks_list *blocks, struct links_list *links)
-{
-	struct string *str = generate_link_list_string_for_pager(links);
-	if (str == NULL) {
-		return false;
-	}
-	join_render_block(blocks, str->ptr, str->len, TEXT_RAW, 2);
-	free_string(str);
-	return true;
-}
-
-static inline bool
 populate_render_blocks_list_with_data_from_item(const struct item_entry *item, struct render_blocks_list *blocks, struct links_list *links)
 {
 	sqlite3_stmt *res = db_find_item_by_rowid(item->rowid);
@@ -29,13 +17,19 @@ populate_render_blocks_list_with_data_from_item(const struct item_entry *item, s
 	if (prepare_to_render_data(blocks, links) == false) {
 		goto error;
 	}
-	if (links->len != 0) {
+	if (links->len > 0) {
 		if (complete_urls_of_links(links, item->feed->link) == false) {
 			goto error;
 		}
-		if (join_links_render_block(blocks, links) == false) {
+		struct string *str = generate_link_list_string_for_pager(links);
+		if (str == NULL) {
 			goto error;
 		}
+		if (apply_links_render_blocks(blocks, str) == false) {
+			free_string(str);
+			goto error;
+		}
+		free_string(str);
 	}
 	sqlite3_finalize(res);
 	return true;

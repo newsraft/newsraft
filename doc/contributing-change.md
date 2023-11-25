@@ -7,7 +7,7 @@ Since this project is designed to be very stable and maintainable over a long
 time, every decision will be annoyingly thought out and meticulously tested.
 So in order to not waste our precious time, make sure that the proposed
 functionality doesn't conflict with the goals of the project (see
-[doc/project-goals.md](https://codeberg.org/grisha/newsraft/src/branch/main/doc/project-goals.md))
+[doc/project-goals.md](https://codeberg.org/newsraft/newsraft/src/branch/main/doc/project-goals.md))
 and its source code conforms to C99 language standard and project's code
 guidelines (see below).
 

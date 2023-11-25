@@ -4,7 +4,7 @@ Newsraft is a [feed reader](https://en.wikipedia.org/wiki/News_aggregator) with
 [ncurses](https://en.wikipedia.org/wiki/Ncurses) user interface. It is greatly
 inspired by [Newsboat](https://www.newsboat.org) and tries to be its lightweight
 counterpart. Notable design differences between these projects are listed in the
-[doc/project-goals.md](https://codeberg.org/grisha/newsraft/src/branch/main/doc/project-goals.md).
+[doc/project-goals.md](https://codeberg.org/newsraft/newsraft/src/branch/main/doc/project-goals.md).
 
 ![Newsraft in action](doc/newsraft.png)
 
@@ -43,26 +43,26 @@ package manager.
 
 If your package repository doesn't provide Newsraft package, you can build it
 from source. Detailed instructions for different platforms are described in
-[doc/build-instructions.md](https://codeberg.org/grisha/newsraft/src/branch/main/doc/build-instructions.md).
+[doc/build-instructions.md](https://codeberg.org/newsraft/newsraft/src/branch/main/doc/build-instructions.md).
 
 ## Learning more
 
 The essential source of information about Newsraft is its
-[man page](https://codeberg.org/grisha/newsraft/src/branch/main/doc/newsraft.1)
+[man page](https://codeberg.org/newsraft/newsraft/src/branch/main/doc/newsraft.1)
 (if you already have Newsraft installed, you can open it with the `man newsraft` command).
 Alternatively you can read the HTML version of this man page [here](https://txgk.ru/newsraft.html).
 
 Examples on how to configure Newsraft are located in the
-[doc/examples](https://codeberg.org/grisha/newsraft/src/branch/main/doc/examples)
+[doc/examples](https://codeberg.org/newsraft/newsraft/src/branch/main/doc/examples)
 directory.
 
 ## Contributing
 
-Reporting bugs: [doc/contributing-report.md](https://codeberg.org/grisha/newsraft/src/branch/main/doc/contributing-report.md)
+Reporting bugs: [doc/contributing-report.md](https://codeberg.org/newsraft/newsraft/src/branch/main/doc/contributing-report.md)
 
-Making changes: [doc/contributing-change.md](https://codeberg.org/grisha/newsraft/src/branch/main/doc/contributing-change.md)
+Making changes: [doc/contributing-change.md](https://codeberg.org/newsraft/newsraft/src/branch/main/doc/contributing-change.md)
 
 ## Copying
 
 Newsraft is distributed under the terms of the
-[ISC license](https://codeberg.org/grisha/newsraft/src/branch/main/doc/license.txt).
+[ISC license](https://codeberg.org/newsraft/newsraft/src/branch/main/doc/license.txt).

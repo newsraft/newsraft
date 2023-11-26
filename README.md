@@ -16,6 +16,7 @@ counterpart. Notable design differences between these projects are listed in the
 * Viewing news from all feeds with explore mode
 * Automatic updates for feeds and sections
 * Multiple actions key bindings
+* Support for feed generating scripts
 * Text search by news titles
 * Interactive interface for viewing news content
 

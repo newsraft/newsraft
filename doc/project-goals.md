@@ -81,7 +81,7 @@ lines of code count is around 40k, while Newsraft's is around 9k.
 #### Omitted functionality
 
 Some features will never be landed in Newsraft just because of its goal to be
-simpler and lighter than Newsboat. Notably, feed entries filtering, feed
-transformations, podcasts management and integration with third-party services
-are bypassed by Newsraft. You should consider using Newsboat if you need any of
-these, because it does a fairly good job at implementing it all together.
+simpler and lighter than Newsboat. Notably, feed entries filtering, podcasts
+management and integration with third-party services are bypassed by Newsraft.
+You should consider using Newsboat if you need any of these, because it does a
+fairly good job at implementing it all together.

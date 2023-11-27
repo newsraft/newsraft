@@ -104,7 +104,7 @@ _feeds menu_ will automatically enable explore mode and apply your search query.
 ## FEEDS FILE
 
 This file contains feed entries that Newsraft will display and process. There
-are 3 types of lines in *feeds* file.
+are 4 types of lines in *feeds* file.
 
 Feed lines start with a URL. After at least one whitespace character, the name
 of the feed may be specified - it must be enclosed in double quotes. For

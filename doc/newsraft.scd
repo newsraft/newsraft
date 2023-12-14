@@ -246,10 +246,9 @@ _open-in-browser-command_ (default: *${BROWSER:-xdg-open} "%l"*)
 _copy-to-clipboard-command_ (default: *auto*)
 	Shell command for copying text to clipboard. All copied data is sent to the
 	standard input of the command. If it is set to *"auto"*, then Newsraft will
-	set the setting value depending on the environment variables: *"wl-copy"*
-	command will be set if environment variable WAYLAND_DISPLAY is present and
-	*"xclip -selection clipboard"* command will be set if environment variable
-	DISPLAY is present, otherwise *"false"* command will be set.
+	set the setting value to *"pbcopy"* if on macOS, *"wl-copy"* if the
+	environment variable WAYLAND_DISPLAY is set, *"xclip -selection clipboard"*
+	if the environment variable DISPLAY is set, and *"false"* otherwise.
 
 _proxy_ (default: *""*)
 	Sets the proxy to use for the network requests. It must be either a hostname

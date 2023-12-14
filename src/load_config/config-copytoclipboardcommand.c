@@ -4,6 +4,12 @@
 bool
 obtain_clipboard_command(struct string **cmd)
 {
+#ifdef __APPLE__
+	if(cpyas(cmd, "pbcopy", 6) == false) {
+		goto error;
+	}
+	return true;
+#endif
 	if (getenv("WAYLAND_DISPLAY") != NULL) {
 		if (cpyas(cmd, "wl-copy", 7) == false) {
 			goto error;

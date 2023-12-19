@@ -11,7 +11,7 @@ get_number_of_processors(void)
 		NULL
 	};
 	size_t cores = 0;
-	for (const char **i = cmds; i != NULL; ++i) {
+	for (const char **i = cmds; *i != NULL; ++i) {
 		FILE *p = popen(*i, "r");
 		if (p != NULL) {
 			fscanf(p, "%zu", &cores);

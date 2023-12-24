@@ -3,7 +3,7 @@
 #include <curl/curl.h>
 #include "newsraft.h"
 
-// find -name '*.c' | sed 's/^\.\///' | sort | sed 's/^/#include "/' | sed 's/$/"/'
+// find -name '*.c' | sed 's/^\.\///' | grep -v '^newsraft.c$' | sort | sed 's/^/#include "/' | sed 's/$/"/'
 #include "binds.c"
 #include "commands.c"
 #include "dates.c"
@@ -25,12 +25,11 @@
 #include "items-metadata-links.c"
 #include "items-metadata-persons.c"
 #include "items-pager.c"
+#include "load_config/config-auto.c"
 #include "load_config/config.c"
-#include "load_config/config-copytoclipboardcommand.c"
 #include "load_config/config-parse.c"
 #include "load_config/config-parse-colors.c"
 #include "load_config/config-parse-input.c"
-#include "load_config/config-useragent.c"
 #include "load_config/load_config.c"
 #include "log.c"
 #include "path.c"

@@ -11,6 +11,7 @@ static size_t update_queue_length = 0;
 static size_t update_queue_progress = 0;
 static size_t update_queue_failures = 0;
 static size_t updates_finished = 0;
+static size_t cumulative_new_items_count = 0;
 
 static pthread_t queue_worker_thread;
 
@@ -96,7 +97,10 @@ finish:
 	if (status == DOWNLOAD_SUCCEEDED) {
 		bool need_redraw = false;
 		int64_t new_unread_count = get_unread_items_count_of_the_feed(feed->link);
-		if ((new_unread_count >= 0) && (new_unread_count != feed->unread_count)) {
+		if (new_unread_count >= 0 && new_unread_count != feed->unread_count) {
+			if (new_unread_count > feed->unread_count) {
+				cumulative_new_items_count += new_unread_count - feed->unread_count;
+			}
 			feed->unread_count = new_unread_count;
 			refresh_unread_items_count_of_all_sections();
 			need_redraw = true;
@@ -208,12 +212,22 @@ here_we_go_again:
 		} else {
 			fail_status("Failed to update %zu feeds (check status history for details)", update_queue_failures);
 		}
+		if (cumulative_new_items_count > 0) {
+			struct format_arg notification_cmd_args[] = {
+				{L'q',  L'd',  {.i = cumulative_new_items_count}},
+				{L'\0', L'\0', {.i = 0 /* terminator */        }},
+			};
+			run_command_with_specifiers(get_cfg_wstring(CFG_NOTIFICATION_COMMAND), notification_cmd_args);
+		}
+
 		free(update_queue);
 		update_queue = NULL;
 		update_queue_length = 0;
 		update_queue_progress = 0;
 		update_queue_failures = 0;
 		updates_finished = 0;
+		cumulative_new_items_count = 0;
+
 		pthread_mutex_unlock(&queue_lock);
 		nanosleep(&delay_interval, NULL);
 	}

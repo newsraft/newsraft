@@ -67,6 +67,7 @@ enum {
 	CFG_ITEM_CONTENT_DATE_FORMAT,
 	CFG_LIST_ENTRY_DATE_FORMAT,
 	CFG_OPEN_IN_BROWSER_COMMAND,
+	CFG_NOTIFICATION_COMMAND,
 	CFG_MENU_SECTION_ENTRY_FORMAT,
 	CFG_MENU_FEED_ENTRY_FORMAT,
 	CFG_MENU_ITEM_ENTRY_FORMAT,
@@ -520,13 +521,13 @@ void close_deserialize_stream(struct deserialize_stream *stream);
 bool wstr_set(struct wstring **dest, const wchar_t *src_ptr, size_t src_len, size_t src_lim);
 struct wstring *wcrtes(size_t desired_capacity);
 struct wstring *wcrtas(const wchar_t *src_ptr, size_t src_len);
+bool wcpyas(struct wstring **dest, const wchar_t *src_ptr, size_t src_len);
 bool wcatas(struct wstring *dest, const wchar_t *src_ptr, size_t src_len);
 bool wcatss(struct wstring *dest, const struct wstring *src);
 bool wcatcs(struct wstring *dest, wchar_t c);
 bool make_sure_there_is_enough_space_in_wstring(struct wstring *dest, size_t need_space);
 void empty_wstring(struct wstring *dest);
 void free_wstring(struct wstring *wstr);
-void trim_whitespace_from_wstring(struct wstring *wstr);
 struct string *convert_wstring_to_string(const struct wstring *src);
 struct string *convert_warray_to_string(const wchar_t *src_ptr, size_t src_len);
 

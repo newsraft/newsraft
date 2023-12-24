@@ -13,11 +13,13 @@ enum config_type {
 
 config_entry_id find_config_entry_by_name(const char *name);
 
+// See "config-auto.c" file for implementation.
 bool obtain_useragent_string(struct string **ua);
 bool obtain_clipboard_command(struct string **cmd);
+bool obtain_notification_command(struct wstring **cmd);
 
-bool assign_default_values_to_null_config_strings(void);
-bool assign_calculated_values_to_auto_config_strings(void);
+bool assign_values_to_null_config_strings(void);
+bool assign_values_to_auto_config_strings(void);
 
 config_type_id get_cfg_type(config_entry_id i);
 void set_cfg_bool(config_entry_id i, bool value);

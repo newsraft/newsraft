@@ -62,6 +62,12 @@ wcrtas(const wchar_t *src_ptr, size_t src_len)
 }
 
 bool
+wcpyas(struct wstring **dest, const wchar_t *src_ptr, size_t src_len)
+{
+	return wstr_set(dest, src_ptr, src_len, src_len);
+}
+
+bool
 wcatas(struct wstring *dest, const wchar_t *src_ptr, size_t src_len)
 {
 	size_t new_len = dest->len + src_len;
@@ -123,27 +129,6 @@ free_wstring(struct wstring *wstr)
 	if (wstr != NULL) {
 		free(wstr->ptr);
 		free(wstr);
-	}
-}
-
-void
-trim_whitespace_from_wstring(struct wstring *wstr)
-{
-	if (wstr->len != 0) {
-		size_t left_edge = 0;
-		while (left_edge < wstr->len && ISWIDEWHITESPACE(*(wstr->ptr + left_edge))) {
-			++left_edge;
-		}
-		while (left_edge < wstr->len && ISWIDEWHITESPACE(*(wstr->ptr + wstr->len - 1))) {
-			wstr->len -= 1;
-		}
-		if (left_edge != 0) {
-			wstr->len -= left_edge;
-			for (size_t i = 0; i < wstr->len; ++i) {
-				*(wstr->ptr + i) = *(wstr->ptr + i + left_edge);
-			}
-		}
-		*(wstr->ptr + wstr->len) = L'\0';
 	}
 }
 

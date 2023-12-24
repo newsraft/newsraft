@@ -285,11 +285,18 @@
 <p class="Pp"><i>copy-to-clipboard-command</i> (default: <b>auto</b>)</p>
 <div class="Bd-indent">Shell command for copying text to clipboard. All copied
   data is sent to the standard input of the command. If it is set to
-  <b>&quot;auto&quot;</b>, then Newsraft will set the setting value depending on
-  the environment variables: <b>&quot;wl-copy&quot;</b> command will be set if
-  environment variable WAYLAND_DISPLAY is present and <b>&quot;xclip -selection
-  clipboard&quot;</b> command will be set if environment variable DISPLAY is
-  present, otherwise <b>&quot;false&quot;</b> command will be set.</div>
+  <b>&quot;auto&quot;</b>, then Newsraft will set the setting value to
+  <b>&quot;wl-copy&quot;</b> if environment variable WAYLAND_DISPLAY is set and
+  to <b>&quot;xclip -selection clipboard&quot;</b> if environment variable
+  DISPLAY is set. Systems on macOS will force setting value to
+  <b>&quot;pbcopy&quot;</b>. In other cases the setting value will be set to
+  <b>&quot;false&quot;</b>.</div>
+<p class="Pp"><i>notification-command</i> (default: <b>auto</b>)</p>
+<div class="Bd-indent">Shell command for invoking system notifications about new
+  news received. If it is set to <b>&quot;auto&quot;</b>, then Newsraft will set
+  the setting value to <b>&quot;notify-send 'Newsraft brought %q
+  news!'&quot;</b> for most Unix systems and to <b>&quot;osascript -e 'display
+  notification &quot;Newsraft brought %q news!&quot;'&quot;</b> for macOS.</div>
 <p class="Pp"><i>proxy</i> (default: <b>&quot;&quot;</b>)</p>
 <div class="Bd-indent">Sets the proxy to use for the network requests. It must
   be either a hostname or dotted numerical IPv4 address. To specify IPv6 address
@@ -718,7 +725,7 @@
 </div>
 <table class="foot">
   <tr>
-    <td class="foot-date">2023-11-27</td>
+    <td class="foot-date">2023-12-24</td>
     <td class="foot-os"></td>
   </tr>
 </table>

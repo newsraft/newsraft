@@ -12,6 +12,7 @@ struct config_wstring {
 	struct wstring *actual;
 	const wchar_t *const primary;
 	const size_t primary_len;
+	bool (*auto_handler)(struct wstring **);
 };
 
 struct config_color {
@@ -69,11 +70,12 @@ static struct config_entry config[] = {
 	{"item-content-format",             CFG_STRING,  {.s = {NULL, "<b>Feed</b>: %f<br>|<b>Title</b>: %t<br>|<b>Date</b>: %d<br>|<br>%c<br>|<br><b>Links</b>:<br>%L", 95, NULL}}},
 	{"item-content-date-format",        CFG_STRING,  {.s = {NULL, "%a, %d %b %Y %H:%M:%S %z",  24, NULL}}},
 	{"list-entry-date-format",          CFG_STRING,  {.s = {NULL, "%b %d",                      5, NULL}}},
-	{"open-in-browser-command",         CFG_WSTRING, {.w = {NULL, L"${BROWSER:-xdg-open} \"%l\"", 25}}},
-	{"menu-section-entry-format",       CFG_WSTRING, {.w = {NULL, L"%5.0u @ %t",                  10}}},
-	{"menu-feed-entry-format",          CFG_WSTRING, {.w = {NULL, L"%5.0u │ %o",                  10}}},
-	{"menu-item-entry-format",          CFG_WSTRING, {.w = {NULL, L" %u │ %d │ %o",               13}}},
-	{"menu-explore-item-entry-format",  CFG_WSTRING, {.w = {NULL, L" %u │ %d │ %-28O │ %o",       21}}},
+	{"open-in-browser-command",         CFG_WSTRING, {.w = {NULL, L"${BROWSER:-xdg-open} \"%l\"", 25, NULL}}},
+	{"notification-command",            CFG_WSTRING, {.w = {NULL, L"auto",                         4, &obtain_notification_command}}},
+	{"menu-section-entry-format",       CFG_WSTRING, {.w = {NULL, L"%5.0u @ %t",                  10, NULL}}},
+	{"menu-feed-entry-format",          CFG_WSTRING, {.w = {NULL, L"%5.0u │ %o",                  10, NULL}}},
+	{"menu-item-entry-format",          CFG_WSTRING, {.w = {NULL, L" %u │ %d │ %o",               13, NULL}}},
+	{"menu-explore-item-entry-format",  CFG_WSTRING, {.w = {NULL, L" %u │ %d │ %-28O │ %o",       21, NULL}}},
 	{"sections-menu-paramount-explore", CFG_BOOL,    {.b = false}},
 	{"feeds-menu-paramount-explore",    CFG_BOOL,    {.b = false}},
 	{"initial-unread-first-sorting",    CFG_BOOL,    {.b = false}},
@@ -100,23 +102,17 @@ find_config_entry_by_name(const char *name)
 }
 
 bool
-assign_default_values_to_null_config_strings(void)
+assign_values_to_null_config_strings(void)
 {
-	INFO("Assigning default values to NULL config strings.");
+	INFO("Assigning values to NULL config strings.");
 	for (config_entry_id i = 0; config[i].name != NULL; ++i) {
-		if (config[i].type == CFG_STRING) {
-			if (config[i].value.s.actual == NULL) {
-				config[i].value.s.actual = crtas(config[i].value.s.primary, config[i].value.s.primary_len);
-				if (config[i].value.s.actual == NULL) {
-					return false;
-				}
+		if (config[i].type == CFG_STRING && config[i].value.s.actual == NULL) {
+			if (cpyas(&config[i].value.s.actual, config[i].value.s.primary, config[i].value.s.primary_len) == false) {
+				return false;
 			}
-		} else if (config[i].type == CFG_WSTRING) {
-			if (config[i].value.w.actual == NULL) {
-				config[i].value.w.actual = wcrtas(config[i].value.w.primary, config[i].value.w.primary_len);
-				if (config[i].value.w.actual == NULL) {
-					return false;
-				}
+		} else if (config[i].type == CFG_WSTRING && config[i].value.w.actual == NULL) {
+			if (wcpyas(&config[i].value.w.actual, config[i].value.w.primary, config[i].value.w.primary_len) == false) {
+				return false;
 			}
 		}
 	}
@@ -124,15 +120,23 @@ assign_default_values_to_null_config_strings(void)
 }
 
 bool
-assign_calculated_values_to_auto_config_strings(void)
+assign_values_to_auto_config_strings(void)
 {
-	INFO("Assigning calculated values to auto config strings.");
+	INFO("Assigning values to auto config strings.");
 	for (config_entry_id i = 0; config[i].name != NULL; ++i) {
 		if ((config[i].type == CFG_STRING)
 			&& (config[i].value.s.auto_handler != NULL)
 			&& (strcmp(config[i].value.s.actual->ptr, "auto") == 0)
 			&& (config[i].value.s.auto_handler(&config[i].value.s.actual) == false))
 		{
+			fprintf(stderr, "Failed to determine auto value for %s setting.\n", config[i].name);
+			return false;
+		} else if ((config[i].type == CFG_WSTRING)
+			&& (config[i].value.w.auto_handler != NULL)
+			&& (wcscmp(config[i].value.w.actual->ptr, L"auto") == 0)
+			&& (config[i].value.w.auto_handler(&config[i].value.w.actual) == false))
+		{
+			fprintf(stderr, "Failed to determine auto value for %s setting.\n", config[i].name);
 			return false;
 		}
 	}

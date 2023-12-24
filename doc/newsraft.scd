@@ -246,9 +246,16 @@ _open-in-browser-command_ (default: *${BROWSER:-xdg-open} "%l"*)
 _copy-to-clipboard-command_ (default: *auto*)
 	Shell command for copying text to clipboard. All copied data is sent to the
 	standard input of the command. If it is set to *"auto"*, then Newsraft will
-	set the setting value to *"pbcopy"* if on macOS, *"wl-copy"* if the
-	environment variable WAYLAND_DISPLAY is set, *"xclip -selection clipboard"*
-	if the environment variable DISPLAY is set, and *"false"* otherwise.
+	set the setting value to *"wl-copy"* if environment variable WAYLAND_DISPLAY
+	is set and to *"xclip -selection clipboard"* if environment variable DISPLAY
+	is set. Systems on macOS will force setting value to *"pbcopy"*. In other
+	cases the setting value will be set to *"false"*.
+
+_notification-command_ (default: *auto*)
+	Shell command for invoking system notifications about new news received. If
+	it is set to *"auto"*, then Newsraft will set the setting value to
+	*"notify-send 'Newsraft brought %q news!'"* for most Unix systems and to
+	*"osascript -e 'display notification "Newsraft brought %q news!"'"* for macOS.
 
 _proxy_ (default: *""*)
 	Sets the proxy to use for the network requests. It must be either a hostname

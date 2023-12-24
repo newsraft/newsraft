@@ -468,9 +468,9 @@ _color-list-section-unread-bg_ (default: *default*)
 
 |[ Keys
 :[ Actions
-|[ *j*, *KEY_DOWN*
+|[ *j*, *KEY_DOWN*, *^E*
 :[ _select-next_
-|[ *k*, *KEY_UP*
+|[ *k*, *KEY_UP*, *^Y*
 :[ _select-prev_
 |[ *space*, *^F*, *KEY_NPAGE*
 :[ _select-next-page_

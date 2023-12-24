@@ -112,9 +112,11 @@ bool
 assign_default_binds(void)
 {
 	if (create_bind("j",              1, INPUT_SELECT_NEXT)                     == false) { goto fail; }
-	if (create_bind("KEY_DOWN",       8, INPUT_SELECT_NEXT)                     == false) { goto fail; }
+	if (create_bind("KEY_DOWN",       8, INPUT_SELECT_NEXT) /* arrow down */    == false) { goto fail; }
+	if (create_bind("^E",             2, INPUT_SELECT_NEXT) /* scroll down */   == false) { goto fail; }
 	if (create_bind("k",              1, INPUT_SELECT_PREV)                     == false) { goto fail; }
-	if (create_bind("KEY_UP",         6, INPUT_SELECT_PREV)                     == false) { goto fail; }
+	if (create_bind("KEY_UP",         6, INPUT_SELECT_PREV) /* arrow up */      == false) { goto fail; }
+	if (create_bind("^Y",             2, INPUT_SELECT_PREV) /* scroll up */     == false) { goto fail; }
 	if (create_bind(" ",              1, INPUT_SELECT_NEXT_PAGE)                == false) { goto fail; }
 	if (create_bind("^F",             2, INPUT_SELECT_NEXT_PAGE)                == false) { goto fail; }
 	if (create_bind("KEY_NPAGE",      9, INPUT_SELECT_NEXT_PAGE)                == false) { goto fail; }
@@ -134,9 +136,9 @@ assign_default_binds(void)
 	if (create_bind("S",              1, INPUT_SORT_PREV)                       == false) { goto fail; }
 	if (create_bind("u",              1, INPUT_TOGGLE_UNREAD_FIRST_SORTING)     == false) { goto fail; }
 	if (create_bind("l",              1, INPUT_ENTER)                           == false) { goto fail; }
-	if (create_bind("^J",             2, INPUT_ENTER)                           == false) { goto fail; }
-	if (create_bind("KEY_RIGHT",      9, INPUT_ENTER)                           == false) { goto fail; }
-	if (create_bind("KEY_ENTER",      9, INPUT_ENTER)                           == false) { goto fail; }
+	if (create_bind("^J",             2, INPUT_ENTER) /* actual enter key */    == false) { goto fail; }
+	if (create_bind("KEY_RIGHT",      9, INPUT_ENTER) /* right arrow */         == false) { goto fail; }
+	if (create_bind("KEY_ENTER",      9, INPUT_ENTER) /* sus enter key */       == false) { goto fail; }
 	if (create_bind("r",              1, INPUT_RELOAD)                          == false) { goto fail; }
 	if (create_bind("^R",             2, INPUT_RELOAD_ALL)                      == false) { goto fail; }
 	if (create_bind2("d",             1, INPUT_MARK_READ, INPUT_JUMP_TO_NEXT)   == false) { goto fail; }
@@ -152,7 +154,7 @@ assign_default_binds(void)
 	if (create_bind("/",              1, INPUT_START_SEARCH_INPUT)              == false) { goto fail; }
 	if (create_bind("h",              1, INPUT_NAVIGATE_BACK)                   == false) { goto fail; }
 	if (create_bind("^?",             2, INPUT_NAVIGATE_BACK)                   == false) { goto fail; }
-	if (create_bind("KEY_LEFT",       8, INPUT_NAVIGATE_BACK)                   == false) { goto fail; }
+	if (create_bind("KEY_LEFT",       8, INPUT_NAVIGATE_BACK) /* left arrow */  == false) { goto fail; }
 	if (create_bind("KEY_BACKSPACE", 13, INPUT_NAVIGATE_BACK)                   == false) { goto fail; }
 	if (create_bind("q",              1, INPUT_QUIT_SOFT)                       == false) { goto fail; }
 	if (create_bind("Q",              1, INPUT_QUIT_HARD)                       == false) { goto fail; }

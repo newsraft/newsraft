@@ -60,10 +60,6 @@ process_set_line(char *line)
 		if (set_cfg_string(id, i, strlen(i)) == false) {
 			goto error;
 		}
-	} else if (type == CFG_WSTRING) {
-		if (set_cfg_wstring(id, i, strlen(i)) == false) {
-			goto error;
-		}
 	}
 	return true;
 error:

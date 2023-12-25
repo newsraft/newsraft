@@ -62,12 +62,6 @@ wcrtas(const wchar_t *src_ptr, size_t src_len)
 }
 
 bool
-wcpyas(struct wstring **dest, const wchar_t *src_ptr, size_t src_len)
-{
-	return wstr_set(dest, src_ptr, src_len, src_len);
-}
-
-bool
 wcatas(struct wstring *dest, const wchar_t *src_ptr, size_t src_len)
 {
 	size_t new_len = dest->len + src_len;

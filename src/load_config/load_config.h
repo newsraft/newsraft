@@ -8,26 +8,22 @@ enum config_type {
 	CFG_UINT,
 	CFG_COLOR,
 	CFG_STRING,
-	CFG_WSTRING,
 };
 
+// See "config.c" file for implementation.
 config_entry_id find_config_entry_by_name(const char *name);
-
-// See "config-auto.c" file for implementation.
-bool obtain_useragent_string(struct string **ua);
-bool obtain_clipboard_command(struct string **cmd);
-bool obtain_notification_command(struct wstring **cmd);
-
-bool assign_values_to_null_config_strings(void);
-bool assign_values_to_auto_config_strings(void);
-
+bool prepare_config_string_settings(void);
 config_type_id get_cfg_type(config_entry_id i);
 void set_cfg_bool(config_entry_id i, bool value);
 void set_cfg_uint(config_entry_id i, size_t value);
 void set_cfg_color_hue(config_entry_id i, int hue);
 void set_cfg_color_attribute(config_entry_id i, unsigned int attribute);
 bool set_cfg_string(config_entry_id i, const char *src_ptr, size_t src_len);
-bool set_cfg_wstring(config_entry_id i, const char *src_ptr, size_t src_len);
+
+// See "config-auto.c" file for implementation.
+bool obtain_useragent_string(struct string **ua);
+bool obtain_clipboard_command(struct string **cmd);
+bool obtain_notification_command(struct string **cmd);
 
 void log_config_settings(void);
 

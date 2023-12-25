@@ -521,7 +521,6 @@ void close_deserialize_stream(struct deserialize_stream *stream);
 bool wstr_set(struct wstring **dest, const wchar_t *src_ptr, size_t src_len, size_t src_lim);
 struct wstring *wcrtes(size_t desired_capacity);
 struct wstring *wcrtas(const wchar_t *src_ptr, size_t src_len);
-bool wcpyas(struct wstring **dest, const wchar_t *src_ptr, size_t src_len);
 bool wcatas(struct wstring *dest, const wchar_t *src_ptr, size_t src_len);
 bool wcatss(struct wstring *dest, const struct wstring *src);
 bool wcatcs(struct wstring *dest, wchar_t c);

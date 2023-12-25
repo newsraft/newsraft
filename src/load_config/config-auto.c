@@ -49,10 +49,10 @@ obtain_clipboard_command(struct string **cmd)
 }
 
 bool
-obtain_notification_command(struct wstring **cmd)
+obtain_notification_command(struct string **cmd)
 {
 #ifdef __APPLE__
-	return wcpyas(cmd, L"osascript -e 'display notification \"Newsraft brought %q news!\"'", 63);
+	return cpyas(cmd, "osascript -e 'display notification \"Newsraft brought %q news!\"'", 63);
 #endif
-	return wcpyas(cmd, L"notify-send 'Newsraft brought %q news!'", 39);
+	return cpyas(cmd, "notify-send 'Newsraft brought %q news!'", 39);
 }

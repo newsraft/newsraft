@@ -183,6 +183,10 @@ queue_worker(void *dummy)
 			nanosleep(&delay_interval, NULL);
 			continue;
 		}
+		if (db_begin_transaction() == false) {
+			nanosleep(&delay_interval, NULL);
+			continue;
+		}
 		prevent_status_cleaning();
 		pthread_mutex_lock(&queue_lock);
 here_we_go_again:
@@ -229,6 +233,10 @@ here_we_go_again:
 		cumulative_new_items_count = 0;
 
 		pthread_mutex_unlock(&queue_lock);
+		if (db_commit_transaction() == false) {
+			fail_status("Failed to commit changes to the database");
+			db_rollback_transaction();
+		}
 		nanosleep(&delay_interval, NULL);
 	}
 

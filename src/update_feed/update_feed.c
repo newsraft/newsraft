@@ -217,11 +217,14 @@ here_we_go_again:
 			fail_status("Failed to update %zu feeds (check status history for details)", update_queue_failures);
 		}
 		if (cumulative_new_items_count > 0) {
-			struct format_arg notification_cmd_args[] = {
-				{L'q',  L'd',  {.i = cumulative_new_items_count}},
-				{L'\0', L'\0', {.i = 0 /* terminator */        }},
-			};
-			run_command_with_specifiers(get_cfg_wstring(CFG_NOTIFICATION_COMMAND), notification_cmd_args);
+			const struct wstring *notification_cmd = get_cfg_wstring(CFG_NOTIFICATION_COMMAND);
+			if (notification_cmd != NULL && notification_cmd->len > 0) {
+				struct format_arg notification_cmd_args[] = {
+					{L'q',  L'd',  {.i = cumulative_new_items_count}},
+					{L'\0', L'\0', {.i = 0 /* terminator */        }},
+				};
+				run_command_with_specifiers(notification_cmd, notification_cmd_args);
+			}
 		}
 
 		free(update_queue);

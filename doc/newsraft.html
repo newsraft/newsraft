@@ -187,11 +187,19 @@
     <i>feed5</i> will update every <b>60</b> minutes and <i>feed6</i> will never
     update automatically.</p>
 <p class="Pp">If you just want to automatically update all feeds then you should
-    set an auto update timer for <b>Global</b> section, but before doing so,
-    think about what load can be exerted on a servers by frequent downloads from
-    a large number of users. Going for a small auto update timer on
+    set an auto update timer for <b>Global</b> section at the very beginning of
+    the file, but before doing so, think about what load can be exerted on a
+    servers by frequent downloads. Going for a small auto update timer on
     <b>Global</b> section will most likely result in a waste of a lot of
     resources. You have been warned.</p>
+<p class="Pp">In a similar to update timers fashion, capacity limits can be set
+    for feeds and sections. They make targeted feeds contain no more than a set
+    amount of news. Precedence rules are the same as for update timers. The only
+    difference is type of brackets used: they use curly brackets instead of
+    square ones. For example:</p>
+<p class="Pp"></p>
+<div class="Bd-indent"><i>http://example.org/feed.xml &quot;Politics&quot;
+  [1440] {100}</i></div>
 <p class="Pp">Search precedence:</p>
 <div class="Bd-indent">1.<i>$XDG_CONFIG_HOME</i>/newsraft/feeds</div>
 <div class="Bd-indent">2.<i>$HOME</i>/.config/newsraft/feeds</div>
@@ -725,7 +733,7 @@
 </div>
 <table class="foot">
   <tr>
-    <td class="foot-date">2023-12-24</td>
+    <td class="foot-date">2023-12-30</td>
     <td class="foot-os"></td>
   </tr>
 </table>

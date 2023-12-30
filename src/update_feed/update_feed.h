@@ -65,7 +65,7 @@ bool engage_json_parser(struct stream_callback_data *data);
 void free_json_parser(struct stream_callback_data *data);
 
 // See "insert_feed" directory for implementation.
-bool insert_feed(const struct string *url, struct getfeed_feed *feed);
+bool insert_feed(const struct feed_entry *feed, struct getfeed_feed *feed_data);
 
 // item bucket functions
 bool prepend_item(struct getfeed_item **head_item_ptr);

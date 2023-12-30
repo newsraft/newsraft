@@ -89,7 +89,7 @@ update_feed_action(void *arg)
 finish:
 	pthread_mutex_lock(&update_lock);
 	if (status == DOWNLOAD_SUCCEEDED) {
-		if (insert_feed(feed->link, &data.feed) == false) {
+		if (insert_feed(feed, &data.feed) == false) {
 			status = DOWNLOAD_FAILED;
 		}
 	}

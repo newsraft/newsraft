@@ -214,6 +214,7 @@ struct feed_entry {
 	int64_t unread_count;
 	int64_t download_date;
 	int64_t update_period;
+	int64_t capacity_limit;
 	volatile bool *volatile did_update_just_finished;
 };
 

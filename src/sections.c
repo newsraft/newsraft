@@ -123,7 +123,11 @@ copy_feed_to_global_section(const struct feed_entry *feed)
 	if (duplicate != NULL) {
 		return duplicate;
 	}
-	INFO("Copying feed %s with update time period %" PRId64 " to global section.", feed->link->ptr, feed->update_period);
+	INFO("Adding %s (update period = %" PRId64 ", capacity limit = %" PRId64 ") to global section.",
+		feed->link->ptr,
+		feed->update_period,
+		feed->capacity_limit
+	);
 	size_t feed_index = (sections[0].feeds_count)++;
 	struct feed_entry **temp = realloc(sections[0].feeds, sizeof(struct feed_entry *) * sections[0].feeds_count);
 	if (temp == NULL) {
@@ -153,9 +157,10 @@ copy_feed_to_global_section(const struct feed_entry *feed)
 	if (new_unread_count < 0) {
 		return NULL;
 	}
-	sections[0].feeds[feed_index]->unread_count = new_unread_count;
-	sections[0].feeds[feed_index]->download_date = db_get_date_from_feeds_table(feed->link, "download_date", 13);
-	sections[0].feeds[feed_index]->update_period = feed->update_period;
+	sections[0].feeds[feed_index]->unread_count   = new_unread_count;
+	sections[0].feeds[feed_index]->download_date  = db_get_date_from_feeds_table(feed->link, "download_date", 13);
+	sections[0].feeds[feed_index]->update_period  = feed->update_period;
+	sections[0].feeds[feed_index]->capacity_limit = feed->capacity_limit;
 	if (feed->update_period > 0) {
 		at_least_one_feed_has_positive_update_period = true;
 	}

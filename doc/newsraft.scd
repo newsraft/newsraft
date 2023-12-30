@@ -154,10 +154,17 @@ every *20* minutes, _feed5_ will update every *60* minutes and _feed6_ will
 never update automatically.
 
 If you just want to automatically update all feeds then you should set an auto
-update timer for *Global* section, but before doing so, think about what load
-can be exerted on a servers by frequent downloads from a large number of users.
-Going for a small auto update timer on *Global* section will most likely result
-in a waste of a lot of resources. You have been warned.
+update timer for *Global* section at the very beginning of the file, but before
+doing so, think about what load can be exerted on a servers by frequent
+downloads. Going for a small auto update timer on *Global* section will most
+likely result in a waste of a lot of resources. You have been warned.
+
+In a similar to update timers fashion, capacity limits can be set for feeds and
+sections. They make targeted feeds contain no more than a set amount of news.
+Precedence rules are the same as for update timers. The only difference is type
+of brackets used: they use curly brackets instead of square ones. For example:
+
+	_http://example.org/feed.xml "Politics" [1440] {100}_
 
 Search precedence:
 . _$XDG_CONFIG_HOME_/newsraft/feeds

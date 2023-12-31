@@ -87,7 +87,7 @@ regular_list_menu_writer(size_t index, WINDOW *w)
 {
 	if (menu->enumerator(index) == true) {
 		do_format(list_fmtout, menu->entry_format->ptr, menu->get_args(index));
-		waddnwstr(w, list_fmtout->ptr, list_menu_width);
+		waddwstr(w, list_fmtout->ptr);
 		wbkgd(w, get_color_pair(menu->paint_action(index)) | (index == menu->view_sel ? A_REVERSE : 0));
 	}
 }
@@ -136,7 +136,7 @@ expose_entry_of_the_list_menu_unprotected(size_t index)
 	wbkgd(w, A_NORMAL);
 	wattrset(w, A_NORMAL);
 	menu->write_action(index, w);
-	wrefresh(w);
+	wnoutrefresh(w);
 }
 
 void
@@ -145,6 +145,7 @@ expose_entry_of_the_list_menu(size_t index)
 	pthread_mutex_lock(&interface_lock);
 	if (index >= menu->view_min && index <= menu->view_max) {
 		expose_entry_of_the_list_menu_unprotected(index);
+		doupdate();
 	}
 	pthread_mutex_unlock(&interface_lock);
 }
@@ -155,6 +156,7 @@ expose_all_visible_entries_of_the_list_menu_unprotected(void)
 	for (size_t i = menu->view_min; i <= menu->view_max; ++i) {
 		expose_entry_of_the_list_menu_unprotected(i);
 	}
+	doupdate();
 }
 
 void
@@ -275,11 +277,12 @@ list_menu_change_view(struct list_menu_settings *m, size_t new_sel)
 		if (m == menu) {
 			WINDOW *w = windows[m->view_sel - m->view_min];
 			wbkgd(w, get_color_pair(m->paint_action(m->view_sel)));
-			wrefresh(w);
+			wnoutrefresh(w);
 			m->view_sel = new_sel;
 			w = windows[m->view_sel - m->view_min];
 			wbkgd(w, get_color_pair(m->paint_action(m->view_sel)) | A_REVERSE);
-			wrefresh(w);
+			wnoutrefresh(w);
+			doupdate();
 		} else {
 			m->view_sel = new_sel;
 		}

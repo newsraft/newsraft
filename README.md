@@ -1,10 +1,9 @@
 ## Description
 
 Newsraft is a [feed reader](https://en.wikipedia.org/wiki/News_aggregator) with
-[ncurses](https://en.wikipedia.org/wiki/Ncurses) user interface. It is greatly
+[ncurses](https://en.wikipedia.org/wiki/Ncurses) user interface. It's greatly
 inspired by [Newsboat](https://www.newsboat.org) and tries to be its lightweight
-counterpart. Notable design differences between these projects are listed in the
-[doc/project-goals.md](https://codeberg.org/newsraft/newsraft/src/branch/main/doc/project-goals.md).
+counterpart.
 
 ![Newsraft in action](doc/newsraft.png)
 
@@ -19,6 +18,8 @@ counterpart. Notable design differences between these projects are listed in the
 * Support for feed generating scripts
 * Text search by news titles
 * Interactive interface for viewing news content
+
+Check out [comparison of Newsraft and Newsboat](https://codeberg.org/newsraft/newsraft/src/branch/main/doc/comparison-newsboat.md).
 
 ## Dependencies
 

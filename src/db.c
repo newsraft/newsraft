@@ -27,18 +27,7 @@ db_init(void)
 	char *errmsg = NULL;
 	sqlite3_exec(db, "PRAGMA locking_mode = EXCLUSIVE;", NULL, NULL, &errmsg);
 	if (errmsg != NULL) {
-		fprintf(stderr, "Failed to set database locking mode to exclusive: %s!\n", errmsg);
-		goto error;
-	}
-	sqlite3_exec(db, "BEGIN EXCLUSIVE;", NULL, NULL, &errmsg);
-	if (errmsg != NULL) {
-		fprintf(stderr, "Failed to begin database exclusive locking mode: %s!\n", errmsg);
-		fputs("Probably there's other process currently working with this database.\n", stderr);
-		goto error;
-	}
-	sqlite3_exec(db, "COMMIT;", NULL, NULL, &errmsg);
-	if (errmsg != NULL) {
-		fprintf(stderr, "Failed to commit database exclusive locking mode: %s!\n", errmsg);
+		fprintf(stderr, "Failed to open database in exclusive locking mode: %s!\n", errmsg);
 		goto error;
 	}
 
@@ -94,12 +83,13 @@ db_init(void)
 		&errmsg
 	);
 	if (errmsg != NULL) {
-		fprintf(stderr, "Failed to initialize database: %s!\n", errmsg);
+		fprintf(stderr, "Failed to initialize database in exclusive locking mode: %s!\n", errmsg);
 		goto error;
 	}
 
 	return true;
 error:
+	fputs("Probably there's other process currently working with this database.\n", stderr);
 	sqlite3_free(errmsg);
 	sqlite3_close(db);
 	return false;

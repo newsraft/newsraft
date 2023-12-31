@@ -32,7 +32,7 @@ serialize_caret(struct string **target)
 bool
 serialize_array(struct string **target, const char *key, size_t key_len, const char *value, size_t value_len)
 {
-	if ((value == NULL) || (value_len == 0)) {
+	if (value == NULL || value_len == 0) {
 		return true; // Ignore empty entries.
 	}
 	if (*target == NULL) {
@@ -41,29 +41,18 @@ serialize_array(struct string **target, const char *key, size_t key_len, const c
 			return false;
 		}
 	}
-	if (catcs(*target, DELIMITER) == false) {
-		return false;
-	}
-	if (catas(*target, key, key_len) == false) {
-		return false;
-	}
-	if (catcs(*target, SEPARATOR) == false) {
-		return false;
-	}
+	if (catcs(*target, DELIMITER)        == false) return false;
+	if (catas(*target, key, key_len)     == false) return false;
+	if (catcs(*target, SEPARATOR)        == false) return false;
 	size_t old_len = (*target)->len;
-	if (catas(*target, value, value_len) == false) {
-		return false;
-	}
-	// Remove delimiter from string starting at where value was appended.
+	if (catas(*target, value, value_len) == false) return false;
+	// Make sure there's no delimiters in the serialized data!
 	for (char *i = (*target)->ptr + old_len; *i != '\0'; ++i) {
 		if (*i == DELIMITER) {
 			for (char *j = i; *j != '\0'; ++j) {
 				*j = *(j + 1);
 			}
 			(*target)->len -= 1;
-			// Since DELIMITER won't occur in 99.99999999999999% of cases
-			// it's actually more effective to put null-terminator when it
-			// occurs than to put it on every serialize_array call.
 			(*target)->ptr[(*target)->len] = '\0';
 			i -= 1;
 		}

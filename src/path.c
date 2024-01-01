@@ -92,7 +92,8 @@ get_feeds_path(void)
 		}
 	}
 
-	fputs("Can't find feeds file!\n", stderr);
+	fputs("Can't find feeds file! Newsraft requires it to function.\n", stderr);
+	fputs("A detailed description of the format of this file is provided in newsraft(1) man page.\n", stderr);
 	return NULL;
 }
 

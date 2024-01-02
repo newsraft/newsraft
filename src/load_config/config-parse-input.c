@@ -21,6 +21,7 @@ static const struct input_entry_match action_names_string_table[] = {
 	{"jump-to-prev-important",            INPUT_JUMP_TO_PREV_IMPORTANT     },
 	{"sorting-method-next",               INPUT_SORT_NEXT                  },
 	{"sorting-method-prev",               INPUT_SORT_PREV                  },
+	{"sorting-direction-toggle",          INPUT_SORT_DIRECTION_TOGGLE      },
 	{"toggle-unread-first-sorting",       INPUT_TOGGLE_UNREAD_FIRST_SORTING},
 	{"enter",                             INPUT_ENTER                      },
 	{"reload",                            INPUT_RELOAD                     },

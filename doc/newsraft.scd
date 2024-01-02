@@ -502,6 +502,8 @@ _color-list-section-unread-bg_ (default: *default*)
 :[ _sorting-method-next_
 |[ *S*
 :[ _sorting-method-prev_
+|[ *a*
+:[ _sorting-direction-toggle_
 |[ *u*
 :[ _toggle-unread-first-sorting_
 |[ *l*, *^J*, *KEY_RIGHT*, *KEY_ENTER*

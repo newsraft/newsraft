@@ -102,6 +102,7 @@ enum {
 	INPUT_JUMP_TO_PREV_IMPORTANT,
 	INPUT_SORT_NEXT,
 	INPUT_SORT_PREV,
+	INPUT_SORT_DIRECTION_TOGGLE,
 	INPUT_TOGGLE_UNREAD_FIRST_SORTING,
 	INPUT_ENTER,
 	INPUT_RELOAD,
@@ -170,14 +171,6 @@ enum {
 	MENUS_COUNT,
 };
 
-typedef int8_t sorting_order; // Need negative numbers somewhere.
-enum {
-	SORT_BY_TIME_DESC = 0,
-	SORT_BY_TIME_ASC,
-	SORT_BY_TITLE_DESC,
-	SORT_BY_TITLE_ASC,
-};
-
 typedef uint8_t render_block_format;
 enum {
 	TEXT_PLAIN,
@@ -238,7 +231,7 @@ struct items_list {
 	struct item_entry *ptr;
 	size_t len;
 	bool finished;
-	sorting_order sort;
+	int sort_order;
 	bool show_unread_first;
 	struct feed_entry **feeds; // Just a pointer to parent feeds.
 	size_t feeds_count;
@@ -359,10 +352,10 @@ void tell_items_menu_to_regenerate(void);
 input_cmd_id enter_items_menu_loop(struct feed_entry **new_feeds, size_t new_feeds_count, bool is_explore_mode, const struct string *search_filter);
 
 // See "items-list.c" file for implementation.
-struct items_list *create_items_list(struct feed_entry **feeds, size_t feeds_count, sorting_order order, bool unread_first, const struct string *search_filter);
+struct items_list *create_items_list(struct feed_entry **feeds, size_t feeds_count, int sort_order, bool unread_first, const struct string *search_filter);
 bool replace_items_list_with_empty_one(struct items_list **items);
 void obtain_items_at_least_up_to_the_given_index(struct items_list *items, size_t index);
-void change_sorting_order_of_items_list(struct items_list **items, sorting_order order);
+void change_items_list_sorting(struct items_list **items, int new_order);
 void toggle_unread_first_sorting_of_items_list(struct items_list **items);
 void change_search_filter_of_items_list(struct items_list **items, const struct string *search_filter);
 void free_items_list(struct items_list *items);

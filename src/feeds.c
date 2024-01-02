@@ -1,16 +1,19 @@
 #include <stdlib.h>
 #include "newsraft.h"
 
-enum {
-	FEEDS_SORT_ORIGINAL = 0,
-	FEEDS_SORT_BY_UNREAD_COUNT,
-	FEEDS_SORT_ALPHABETICAL,
+enum { // Even is ascending, odd is descending
+	FEEDS_SORT_BY_ORDER_ASC = 0,
+	FEEDS_SORT_BY_ORDER_DESC,
+	FEEDS_SORT_BY_UNREAD_COUNT_ASC,
+	FEEDS_SORT_BY_UNREAD_COUNT_DESC,
+	FEEDS_SORT_BY_ALPHABET_ASC,
+	FEEDS_SORT_BY_ALPHABET_DESC,
 	FEEDS_SORT_METHODS_COUNT,
 };
 
 static struct feed_entry **feeds = NULL;
 static size_t feeds_count = 0;
-static unsigned feeds_sorting = FEEDS_SORT_ORIGINAL;
+static int feeds_sorting = FEEDS_SORT_BY_ORDER_ASC;
 static struct feed_entry **original_feeds = NULL;
 
 static struct format_arg feeds_fmt_args[] = {
@@ -59,8 +62,8 @@ feeds_sort_original_comparison(const void *data1, const void *data2)
 		if (feed1 == original_feeds[i]) index1 = i;
 		if (feed2 == original_feeds[i]) index2 = i;
 	}
-	if (index1 > index2) return 1;
-	if (index1 < index2) return -1;
+	if (index1 > index2) return feeds_sorting & 1 ? -1 : 1;
+	if (index1 < index2) return feeds_sorting & 1 ? 1 : -1;
 	return 0;
 }
 
@@ -69,8 +72,8 @@ feeds_sort_by_unread_count_comparison(const void *data1, const void *data2)
 {
 	struct feed_entry *feed1 = *(struct feed_entry **)data1;
 	struct feed_entry *feed2 = *(struct feed_entry **)data2;
-	if (feed1->unread_count > feed2->unread_count) return -1;
-	if (feed1->unread_count < feed2->unread_count) return 1;
+	if (feed1->unread_count > feed2->unread_count) return feeds_sorting & 1 ? -1 : 1;
+	if (feed1->unread_count < feed2->unread_count) return feeds_sorting & 1 ? 1 : -1;
 	return feeds_sort_original_comparison(data1, data2);
 }
 
@@ -79,28 +82,31 @@ feeds_sort_alphabetical_comparison(const void *data1, const void *data2)
 {
 	struct feed_entry *feed1 = *(struct feed_entry **)data1;
 	struct feed_entry *feed2 = *(struct feed_entry **)data2;
-	return strcmp(feed1->name->ptr, feed2->name->ptr);
+	return strcmp(feed1->name->ptr, feed2->name->ptr) * (feeds_sorting & 1 ? -1 : 1);
 }
 
 static inline void
-feeds_sort(void)
+feeds_sort(int new_feeds_sorting, bool we_are_already_in_feeds_menu)
 {
+	feeds_sorting = new_feeds_sorting;
 	const char *sort_msg = NULL;
 	pthread_mutex_lock(&interface_lock);
-	switch (feeds_sorting) {
-		case FEEDS_SORT_ORIGINAL:
-			sort_msg = "Sorted feeds in original order";
+	switch (feeds_sorting & ~1) {
+		case FEEDS_SORT_BY_ORDER_ASC:
+			sort_msg = "Sorted feeds by original order";
 			qsort(feeds, feeds_count, sizeof(struct feed_entry *), &feeds_sort_original_comparison); break;
-		case FEEDS_SORT_BY_UNREAD_COUNT:
+		case FEEDS_SORT_BY_UNREAD_COUNT_ASC:
 			sort_msg = "Sorted feeds by unread count";
 			qsort(feeds, feeds_count, sizeof(struct feed_entry *), &feeds_sort_by_unread_count_comparison); break;
-		case FEEDS_SORT_ALPHABETICAL:
-			sort_msg = "Sorted feeds alphabetically";
+		case FEEDS_SORT_BY_ALPHABET_ASC:
+			sort_msg = "Sorted feeds by alphabet";
 			qsort(feeds, feeds_count, sizeof(struct feed_entry *), &feeds_sort_alphabetical_comparison); break;
 	}
 	pthread_mutex_unlock(&interface_lock);
-	expose_all_visible_entries_of_the_list_menu();
-	if (sort_msg != NULL) info_status(sort_msg);
+	if (we_are_already_in_feeds_menu == true) {
+		expose_all_visible_entries_of_the_list_menu();
+		if (sort_msg != NULL) info_status("%s (%s)", sort_msg, feeds_sorting & 1 ? "descending" : "ascending");
+	}
 }
 
 static inline void
@@ -158,8 +164,8 @@ enter_feeds_menu_loop(struct feed_entry **base_feeds, size_t base_feeds_count, s
 	memcpy(feeds_view, base_feeds, sizeof(struct feed_entry *) * base_feeds_count);
 	feeds = feeds_view;
 	feeds_count = base_feeds_count;
-	feeds_sorting = FEEDS_SORT_ORIGINAL;
 	original_feeds = base_feeds;
+	feeds_sort(FEEDS_SORT_BY_ORDER_ASC, false);
 
 	input_cmd_id cmd;
 	if (get_cfg_bool(CFG_FEEDS_MENU_PARAMOUNT_EXPLORE) == true) {
@@ -200,11 +206,11 @@ enter_feeds_menu_loop(struct feed_entry **base_feeds, size_t base_feeds_count, s
 			if (cmd == INPUT_QUIT_SOFT || cmd == INPUT_QUIT_HARD) break;
 			enter_list_menu(FEEDS_MENU, 0, false);
 		} else if (cmd == INPUT_SORT_NEXT) {
-			feeds_sorting = (feeds_sorting + 1) % FEEDS_SORT_METHODS_COUNT;
-			feeds_sort();
+			feeds_sort((feeds_sorting + 2) % FEEDS_SORT_METHODS_COUNT, true);
 		} else if (cmd == INPUT_SORT_PREV) {
-			feeds_sorting = feeds_sorting > 0 ? feeds_sorting - 1 : FEEDS_SORT_METHODS_COUNT - 1;
-			feeds_sort();
+			feeds_sort(feeds_sorting > 1 ? feeds_sorting - 2 : FEEDS_SORT_METHODS_COUNT - 2 + feeds_sorting % 2, true);
+		} else if (cmd == INPUT_SORT_DIRECTION_TOGGLE) {
+			feeds_sort(feeds_sorting ^ 1, true);
 		} else if (cmd == INPUT_STATUS_HISTORY_MENU) {
 			cmd = enter_status_pager_view_loop();
 			if (cmd == INPUT_QUIT_HARD) break;

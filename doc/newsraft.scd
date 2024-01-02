@@ -246,6 +246,14 @@ _update-threads-count_ (default: *0*)
 	setting to a lower value if you have a poor network connection causing
 	slowdowns due to overloading.
 
+_menu-feed-sorting_ (default: *none*)
+	Sorting order for the feeds menu. Available values: *unread-desc*,
+	*unread-asc*, *alphabet-desc*, *alphabet-asc*.
+
+_menu-item-sorting_ (default: *time-desc*)
+	Sorting order for the items menu. Available values: *time-desc*, *time-asc*,
+	*unread-desc*, *unread-asc*, *alphabet-desc*, *alphabet-asc*.
+
 _open-in-browser-command_ (default: *${BROWSER:-xdg-open} "%l"*)
 	Shell command for opening URL in a web browser. The URL to be opened is put
 	in place where *%l* specifier is located.
@@ -336,9 +344,6 @@ _sections-menu-paramount-explore_ (default: *false*)
 
 _feeds-menu-paramount-explore_ (default: *false*)
 	Enables explore mode in feeds menu by default.
-
-_initial-unread-first-sorting_ (default: *false*)
-	Enables unread first sorting in items menu by default.
 
 _mark-item-read-on-hover_ (default: *false*)
 	Mark every item that gets selected as read.
@@ -498,14 +503,12 @@ _color-list-section-unread-bg_ (default: *default*)
 :[ _jump-to-next-important_
 |[ *P*
 :[ _jump-to-prev-important_
-|[ *s*
-:[ _sorting-method-next_
-|[ *S*
-:[ _sorting-method-prev_
-|[ *a*
-:[ _sorting-direction-toggle_
+|[ *t*
+:[ _sort-by-time_
 |[ *u*
-:[ _toggle-unread-first-sorting_
+:[ _sort-by-unread_
+|[ *a*
+:[ _sort-by-alphabet_
 |[ *l*, *^J*, *KEY_RIGHT*, *KEY_ENTER*
 :[ _enter_
 |[ *r*

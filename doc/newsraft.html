@@ -286,6 +286,14 @@
   cores multiplied by <b>10</b>. However, the setting value will never exceed
   <b>100</b>. You might want to set this setting to a lower value if you have a
   poor network connection causing slowdowns due to overloading.</div>
+<p class="Pp"><i>menu-feed-sorting</i> (default: <b>none</b>)</p>
+<div class="Bd-indent">Sorting order for the feeds menu. Available values:
+  <b>unread-desc</b>, <b>unread-asc</b>, <b>alphabet-desc</b>,
+  <b>alphabet-asc</b>.</div>
+<p class="Pp"><i>menu-item-sorting</i> (default: <b>time-desc</b>)</p>
+<div class="Bd-indent">Sorting order for the items menu. Available values:
+  <b>time-desc</b>, <b>time-asc</b>, <b>unread-desc</b>, <b>unread-asc</b>,
+  <b>alphabet-desc</b>, <b>alphabet-asc</b>.</div>
 <p class="Pp"><i>open-in-browser-command</i> (default: <b>${BROWSER:-xdg-open}
     &quot;%l&quot;</b>)</p>
 <div class="Bd-indent">Shell command for opening URL in a web browser. The URL
@@ -400,9 +408,6 @@
 <div class="Bd-indent">Enables explore mode in sections menu by default.</div>
 <p class="Pp"><i>feeds-menu-paramount-explore</i> (default: <b>false</b>)</p>
 <div class="Bd-indent">Enables explore mode in feeds menu by default.</div>
-<p class="Pp"><i>initial-unread-first-sorting</i> (default: <b>false</b>)</p>
-<div class="Bd-indent">Enables unread first sorting in items menu by
-  default.</div>
 <p class="Pp"><i>mark-item-read-on-hover</i> (default: <b>false</b>)</p>
 <div class="Bd-indent">Mark every item that gets selected as read.</div>
 <p class="Pp"><i>analyze-database-on-startup</i> (default: <b>true</b>)</p>
@@ -570,20 +575,16 @@
     <td><i>jump-to-prev-important</i></td>
   </tr>
   <tr>
-    <td><b>s</b></td>
-    <td><i>sorting-method-next</i></td>
-  </tr>
-  <tr>
-    <td><b>S</b></td>
-    <td><i>sorting-method-prev</i></td>
-  </tr>
-  <tr>
-    <td><b>a</b></td>
-    <td><i>sorting-direction-toggle</i></td>
+    <td><b>t</b></td>
+    <td><i>sort-by-time</i></td>
   </tr>
   <tr>
     <td><b>u</b></td>
-    <td><i>toggle-unread-first-sorting</i></td>
+    <td><i>sort-by-unread</i></td>
+  </tr>
+  <tr>
+    <td><b>a</b></td>
+    <td><i>sort-by-alphabet</i></td>
   </tr>
   <tr>
     <td><b>l</b>, <b>^J</b>, <b>KEY_RIGHT</b>, <b>KEY_ENTER</b></td>

@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include "render_data.h"
 
 static inline void

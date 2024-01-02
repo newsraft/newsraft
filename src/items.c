@@ -151,7 +151,7 @@ enter_items_menu_loop(struct feed_entry **feeds, size_t feeds_count, bool is_exp
 {
 	items_menu_needs_to_regenerate = false;
 	free_items_list(items);
-	items = create_items_list(feeds, feeds_count, -1, get_cfg_bool(CFG_INITIAL_UNREAD_FIRST_SORTING), search_filter);
+	items = create_items_list(feeds, feeds_count, -1, search_filter);
 	if (items == NULL) {
 		// Error message written by create_items_list.
 		return INPUT_ITEMS_MENU_WAS_NOT_CREATED;
@@ -189,14 +189,8 @@ enter_items_menu_loop(struct feed_entry **feeds, size_t feeds_count, bool is_exp
 			update_feeds(feeds, feeds_count);
 		} else if (cmd == INPUT_APPLY_SEARCH_MODE_FILTER) {
 			change_search_filter_of_items_list(&items, search_mode_text_input);
-		} else if (cmd == INPUT_SORT_NEXT) {
-			change_items_list_sorting(&items, items->sort_order + 2);
-		} else if (cmd == INPUT_SORT_PREV) {
-			change_items_list_sorting(&items, items->sort_order - 2);
-		} else if (cmd == INPUT_SORT_DIRECTION_TOGGLE) {
-			change_items_list_sorting(&items, items->sort_order ^ 1);
-		} else if (cmd == INPUT_TOGGLE_UNREAD_FIRST_SORTING) {
-			toggle_unread_first_sorting_of_items_list(&items);
+		} else if (cmd == INPUT_SORT_BY_TIME || cmd == INPUT_SORT_BY_UNREAD || cmd == INPUT_SORT_BY_ALPHABET) {
+			change_items_list_sorting(&items, cmd);
 		} else if (cmd == INPUT_STATUS_HISTORY_MENU) {
 			cmd = enter_status_pager_view_loop();
 			if (cmd == INPUT_QUIT_HARD) {

@@ -132,10 +132,9 @@ assign_default_binds(void)
 	if (create_bind("N",              1, INPUT_JUMP_TO_PREV_UNREAD)             == false) { goto fail; }
 	if (create_bind("p",              1, INPUT_JUMP_TO_NEXT_IMPORTANT)          == false) { goto fail; }
 	if (create_bind("P",              1, INPUT_JUMP_TO_PREV_IMPORTANT)          == false) { goto fail; }
-	if (create_bind("s",              1, INPUT_SORT_NEXT)                       == false) { goto fail; }
-	if (create_bind("S",              1, INPUT_SORT_PREV)                       == false) { goto fail; }
-	if (create_bind("a",              1, INPUT_SORT_DIRECTION_TOGGLE)           == false) { goto fail; }
-	if (create_bind("u",              1, INPUT_TOGGLE_UNREAD_FIRST_SORTING)     == false) { goto fail; }
+	if (create_bind("t",              1, INPUT_SORT_BY_TIME)                    == false) { goto fail; }
+	if (create_bind("u",              1, INPUT_SORT_BY_UNREAD)                  == false) { goto fail; }
+	if (create_bind("a",              1, INPUT_SORT_BY_ALPHABET)                == false) { goto fail; }
 	if (create_bind("l",              1, INPUT_ENTER)                           == false) { goto fail; }
 	if (create_bind("^J",             2, INPUT_ENTER) /* actual enter key */    == false) { goto fail; }
 	if (create_bind("KEY_RIGHT",      9, INPUT_ENTER) /* right arrow */         == false) { goto fail; }

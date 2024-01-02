@@ -5,23 +5,23 @@
 enum { // Even is ascending, odd is descending
 	ITEMS_SORT_BY_TIME_ASC = 0,
 	ITEMS_SORT_BY_TIME_DESC,
+	ITEMS_SORT_BY_UNREAD_ASC,
+	ITEMS_SORT_BY_UNREAD_DESC,
 	ITEMS_SORT_BY_ALPHABET_ASC,
 	ITEMS_SORT_BY_ALPHABET_DESC,
 	ITEMS_SORT_METHODS_COUNT,
 };
 
 static inline bool
-append_sorting_order_expression_to_query(struct string *query, int order, bool unread_first)
+append_sorting_order_expression_to_query(struct string *query, int order)
 {
-	catas(query, " ORDER BY ", 10);
-	if (unread_first == true) {
-		catas(query, "unread DESC, ", 13);
-	}
 	switch (order) {
-		case ITEMS_SORT_BY_TIME_ASC:      return catas(query, "MAX(publication_date, update_date) ASC, rowid ASC", 49);
-		case ITEMS_SORT_BY_TIME_DESC:     return catas(query, "MAX(publication_date, update_date) DESC, rowid DESC", 51);
-		case ITEMS_SORT_BY_ALPHABET_ASC:  return catas(query, "title ASC, rowid ASC", 20);
-		case ITEMS_SORT_BY_ALPHABET_DESC: return catas(query, "title DESC, rowid DESC", 22);
+		case ITEMS_SORT_BY_TIME_ASC:      return catas(query, " ORDER BY MAX(publication_date, update_date) ASC, rowid ASC", 59);
+		case ITEMS_SORT_BY_TIME_DESC:     return catas(query, " ORDER BY MAX(publication_date, update_date) DESC, rowid DESC", 61);
+		case ITEMS_SORT_BY_UNREAD_ASC:    return catas(query, " ORDER BY unread ASC, MAX(publication_date, update_date) DESC, rowid DESC", 73);
+		case ITEMS_SORT_BY_UNREAD_DESC:   return catas(query, " ORDER BY unread DESC, MAX(publication_date, update_date) DESC, rowid DESC", 74);
+		case ITEMS_SORT_BY_ALPHABET_ASC:  return catas(query, " ORDER BY title ASC, rowid ASC", 30);
+		case ITEMS_SORT_BY_ALPHABET_DESC: return catas(query, " ORDER BY title DESC, rowid DESC", 32);
 	}
 	return false;
 }
@@ -38,7 +38,7 @@ generate_search_query_string(const struct items_list *items, const struct string
 	if (search_filter != NULL && search_filter->len > 0) {
 		if (catas(q, " AND (title LIKE '%' || ? || '%')", 33) == false) goto error;
 	}
-	if (append_sorting_order_expression_to_query(q, items->sort_order, items->show_unread_first) == false) goto error;
+	if (append_sorting_order_expression_to_query(q, items->sorting) == false) goto error;
 	return q;
 error:
 	FAIL("Not enough memory for query string!");
@@ -134,7 +134,7 @@ obtain_items_at_least_up_to_the_given_index(struct items_list *items, size_t ind
 }
 
 struct items_list *
-create_items_list(struct feed_entry **feeds, size_t feeds_count, int sort_order, bool unread_first, const struct string *search_filter)
+create_items_list(struct feed_entry **feeds, size_t feeds_count, int sorting, const struct string *search_filter)
 {
 	INFO("Generating items list.");
 	if (feeds_count == 0) {
@@ -144,11 +144,22 @@ create_items_list(struct feed_entry **feeds, size_t feeds_count, int sort_order,
 	if (items == NULL) {
 		return NULL;
 	}
+
+	items->sorting = sorting;
+	if (sorting < 0) {
+		items->sorting = ITEMS_SORT_BY_TIME_DESC;
+		const struct string *sort = get_cfg_string(CFG_MENU_ITEM_SORTING);
+		if      (strcmp(sort->ptr, "time-desc")     == 0) items->sorting = ITEMS_SORT_BY_TIME_DESC;
+		else if (strcmp(sort->ptr, "time-asc")      == 0) items->sorting = ITEMS_SORT_BY_TIME_ASC;
+		else if (strcmp(sort->ptr, "unread-desc")   == 0) items->sorting = ITEMS_SORT_BY_UNREAD_DESC;
+		else if (strcmp(sort->ptr, "unread-asc")    == 0) items->sorting = ITEMS_SORT_BY_UNREAD_ASC;
+		else if (strcmp(sort->ptr, "alphabet-desc") == 0) items->sorting = ITEMS_SORT_BY_ALPHABET_DESC;
+		else if (strcmp(sort->ptr, "alphabet-asc")  == 0) items->sorting = ITEMS_SORT_BY_ALPHABET_ASC;
+	}
+
 	items->ptr = NULL;
 	items->len = 0;
 	items->finished = false;
-	items->sort_order = sort_order >= 0 ? sort_order : ITEMS_SORT_BY_TIME_DESC;
-	items->show_unread_first = unread_first;
 	items->feeds = feeds;
 	items->feeds_count = feeds_count;
 	items->search_filter = search_filter == NULL ? NULL : crtss(search_filter);
@@ -191,7 +202,7 @@ undo1:
 bool
 replace_items_list_with_empty_one(struct items_list **items)
 {
-	struct items_list *new_items = create_items_list((*items)->feeds, (*items)->feeds_count, (*items)->sort_order, (*items)->show_unread_first, (*items)->search_filter);
+	struct items_list *new_items = create_items_list((*items)->feeds, (*items)->feeds_count, (*items)->sorting, (*items)->search_filter);
 	if (new_items == NULL) {
 		return false;
 	}
@@ -203,33 +214,24 @@ replace_items_list_with_empty_one(struct items_list **items)
 	return true;
 }
 
-static inline void
-print_current_sorting_method_to_status(const struct items_list *items)
+void
+change_items_list_sorting(struct items_list **items, input_cmd_id cmd)
 {
-	const char *order = items->sort_order & 1 ? "descending" : "ascending";
-	const char *aux_msg = items->show_unread_first == true ? ", unread first" : "";
-	switch (items->sort_order & ~1) {
-		case ITEMS_SORT_BY_TIME_ASC:     info_status("Sorted items by time (%s%s)", order, aux_msg); break;
-		case ITEMS_SORT_BY_ALPHABET_ASC: info_status("Sorted items by alphabet (%s%s)", order, aux_msg); break;
+	if (cmd == INPUT_SORT_BY_TIME) {
+		(*items)->sorting = (*items)->sorting == ITEMS_SORT_BY_TIME_DESC ? ITEMS_SORT_BY_TIME_ASC : ITEMS_SORT_BY_TIME_DESC;
+	} else if (cmd == INPUT_SORT_BY_UNREAD) {
+		(*items)->sorting = (*items)->sorting == ITEMS_SORT_BY_UNREAD_DESC ? ITEMS_SORT_BY_UNREAD_ASC : ITEMS_SORT_BY_UNREAD_DESC;
+	} else {
+		(*items)->sorting = (*items)->sorting == ITEMS_SORT_BY_ALPHABET_ASC ? ITEMS_SORT_BY_ALPHABET_DESC : ITEMS_SORT_BY_ALPHABET_ASC;
 	}
-}
-
-void
-change_items_list_sorting(struct items_list **items, int new_order)
-{
-	if (new_order < 0) new_order = ITEMS_SORT_METHODS_COUNT - new_order;
-	new_order %= ITEMS_SORT_METHODS_COUNT;
-	(*items)->sort_order = new_order;
 	replace_items_list_with_empty_one(items);
-	print_current_sorting_method_to_status(*items);
-}
 
-void
-toggle_unread_first_sorting_of_items_list(struct items_list **items)
-{
-	(*items)->show_unread_first = !(*items)->show_unread_first;
-	replace_items_list_with_empty_one(items);
-	print_current_sorting_method_to_status(*items);
+	const char *order = (*items)->sorting & 1 ? "descending" : "ascending";
+	switch ((*items)->sorting & ~1) {
+		case ITEMS_SORT_BY_TIME_ASC:     info_status("Sorted items by time (%s)", order); break;
+		case ITEMS_SORT_BY_UNREAD_ASC:   info_status("Sorted items by unread (%s)", order); break;
+		case ITEMS_SORT_BY_ALPHABET_ASC: info_status("Sorted items by alphabet (%s)", order); break;
+	}
 }
 
 void

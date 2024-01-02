@@ -380,6 +380,18 @@ setting to a lower value if you have a poor network connection causing
 slowdowns due to overloading.\&
 .P
 .RE
+\fImenu-feed-sorting\fR (default: \fBnone\fR)
+.RS 4
+Sorting order for the feeds menu.\& Available values: \fBunread-desc\fR,
+\fBunread-asc\fR, \fBalphabet-desc\fR, \fBalphabet-asc\fR.\&
+.P
+.RE
+\fImenu-item-sorting\fR (default: \fBtime-desc\fR)
+.RS 4
+Sorting order for the items menu.\& Available values: \fBtime-desc\fR, \fBtime-asc\fR,
+\fBunread-desc\fR, \fBunread-asc\fR, \fBalphabet-desc\fR, \fBalphabet-asc\fR.\&
+.P
+.RE
 \fIopen-in-browser-command\fR (default: \fB${BROWSER:-xdg-open} "%l"\fR)
 .RS 4
 Shell command for opening URL in a web browser.\& The URL to be opened is put
@@ -525,11 +537,6 @@ Enables explore mode in sections menu by default.\&
 \fIfeeds-menu-paramount-explore\fR (default: \fBfalse\fR)
 .RS 4
 Enables explore mode in feeds menu by default.\&
-.P
-.RE
-\fIinitial-unread-first-sorting\fR (default: \fBfalse\fR)
-.RS 4
-Enables unread first sorting in items menu by default.\&
 .P
 .RE
 \fImark-item-read-on-hover\fR (default: \fBfalse\fR)
@@ -763,7 +770,6 @@ l l
 l l
 l l
 l l
-l l
 l l.
 T{
 Keys
@@ -831,24 +837,19 @@ T}	T{
 \fIjump-to-prev-important\fR
 T}
 T{
-\fBs\fR
+\fBt\fR
 T}	T{
-\fIsorting-method-next\fR
-T}
-T{
-\fBS\fR
-T}	T{
-\fIsorting-method-prev\fR
-T}
-T{
-\fBa\fR
-T}	T{
-\fIsorting-direction-toggle\fR
+\fIsort-by-time\fR
 T}
 T{
 \fBu\fR
 T}	T{
-\fItoggle-unread-first-sorting\fR
+\fIsort-by-unread\fR
+T}
+T{
+\fBa\fR
+T}	T{
+\fIsort-by-alphabet\fR
 T}
 T{
 \fBl\fR, \fB^J\fR, \fBKEY_RIGHT\fR, \fBKEY_ENTER\fR

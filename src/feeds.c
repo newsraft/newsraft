@@ -1,9 +1,10 @@
 #include <stdlib.h>
+#include <string.h>
 #include "newsraft.h"
 
 enum { // Even is ascending, odd is descending
-	FEEDS_SORT_BY_ORDER_ASC = 0,
-	FEEDS_SORT_BY_ORDER_DESC,
+	FEEDS_SORT_BY_ORIGINAL_ASC = 0,
+	FEEDS_SORT_BY_ORIGINAL_DESC,
 	FEEDS_SORT_BY_UNREAD_COUNT_ASC,
 	FEEDS_SORT_BY_UNREAD_COUNT_DESC,
 	FEEDS_SORT_BY_ALPHABET_ASC,
@@ -13,7 +14,7 @@ enum { // Even is ascending, odd is descending
 
 static struct feed_entry **feeds = NULL;
 static size_t feeds_count = 0;
-static int feeds_sorting = FEEDS_SORT_BY_ORDER_ASC;
+static int feeds_sorting = FEEDS_SORT_BY_ORIGINAL_ASC;
 static struct feed_entry **original_feeds = NULL;
 
 static struct format_arg feeds_fmt_args[] = {
@@ -92,7 +93,7 @@ feeds_sort(int new_feeds_sorting, bool we_are_already_in_feeds_menu)
 	const char *sort_msg = NULL;
 	pthread_mutex_lock(&interface_lock);
 	switch (feeds_sorting & ~1) {
-		case FEEDS_SORT_BY_ORDER_ASC:
+		case FEEDS_SORT_BY_ORIGINAL_ASC:
 			sort_msg = "Sorted feeds by original order";
 			qsort(feeds, feeds_count, sizeof(struct feed_entry *), &feeds_sort_original_comparison); break;
 		case FEEDS_SORT_BY_UNREAD_COUNT_ASC:
@@ -164,8 +165,14 @@ enter_feeds_menu_loop(struct feed_entry **base_feeds, size_t base_feeds_count, s
 	memcpy(feeds_view, base_feeds, sizeof(struct feed_entry *) * base_feeds_count);
 	feeds = feeds_view;
 	feeds_count = base_feeds_count;
+	feeds_sorting = FEEDS_SORT_BY_ORIGINAL_ASC;
 	original_feeds = base_feeds;
-	feeds_sort(FEEDS_SORT_BY_ORDER_ASC, false);
+
+	const struct string *sort = get_cfg_string(CFG_MENU_FEED_SORTING);
+	if      (strcmp(sort->ptr, "unread-desc") == 0)   feeds_sort(FEEDS_SORT_BY_UNREAD_COUNT_DESC, false);
+	else if (strcmp(sort->ptr, "unread-asc") == 0)    feeds_sort(FEEDS_SORT_BY_UNREAD_COUNT_ASC, false);
+	else if (strcmp(sort->ptr, "alphabet-desc") == 0) feeds_sort(FEEDS_SORT_BY_ALPHABET_DESC, false);
+	else if (strcmp(sort->ptr, "alphabet-asc") == 0)  feeds_sort(FEEDS_SORT_BY_ALPHABET_ASC, false);
 
 	input_cmd_id cmd;
 	if (get_cfg_bool(CFG_FEEDS_MENU_PARAMOUNT_EXPLORE) == true) {
@@ -205,12 +212,18 @@ enter_feeds_menu_loop(struct feed_entry **base_feeds, size_t base_feeds_count, s
 			cmd = enter_items_menu_loop(feeds, feeds_count, true, search_mode_text_input);
 			if (cmd == INPUT_QUIT_SOFT || cmd == INPUT_QUIT_HARD) break;
 			enter_list_menu(FEEDS_MENU, 0, false);
-		} else if (cmd == INPUT_SORT_NEXT) {
-			feeds_sort((feeds_sorting + 2) % FEEDS_SORT_METHODS_COUNT, true);
-		} else if (cmd == INPUT_SORT_PREV) {
-			feeds_sort(feeds_sorting > 1 ? feeds_sorting - 2 : FEEDS_SORT_METHODS_COUNT - 2 + feeds_sorting % 2, true);
-		} else if (cmd == INPUT_SORT_DIRECTION_TOGGLE) {
-			feeds_sort(feeds_sorting ^ 1, true);
+		} else if (cmd == INPUT_SORT_BY_UNREAD) {
+			if (feeds_sorting == FEEDS_SORT_BY_UNREAD_COUNT_DESC) {
+				feeds_sort(FEEDS_SORT_BY_UNREAD_COUNT_ASC, true);
+			} else {
+				feeds_sort(FEEDS_SORT_BY_UNREAD_COUNT_DESC, true);
+			}
+		} else if (cmd == INPUT_SORT_BY_ALPHABET) {
+			if (feeds_sorting == FEEDS_SORT_BY_ALPHABET_ASC) {
+				feeds_sort(FEEDS_SORT_BY_ALPHABET_DESC, true);
+			} else {
+				feeds_sort(FEEDS_SORT_BY_ALPHABET_ASC, true);
+			}
 		} else if (cmd == INPUT_STATUS_HISTORY_MENU) {
 			cmd = enter_status_pager_view_loop();
 			if (cmd == INPUT_QUIT_HARD) break;

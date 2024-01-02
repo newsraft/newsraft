@@ -72,9 +72,10 @@ enum {
 	CFG_MENU_FEED_ENTRY_FORMAT,
 	CFG_MENU_ITEM_ENTRY_FORMAT,
 	CFG_MENU_EXPLORE_ITEM_ENTRY_FORMAT,
+	CFG_MENU_FEED_SORTING,
+	CFG_MENU_ITEM_SORTING,
 	CFG_SECTIONS_MENU_PARAMOUNT_EXPLORE,
 	CFG_FEEDS_MENU_PARAMOUNT_EXPLORE,
-	CFG_INITIAL_UNREAD_FIRST_SORTING,
 	CFG_MARK_ITEM_READ_ON_HOVER,
 	CFG_ANALYZE_DATABASE_ON_STARTUP,
 	CFG_CLEAN_DATABASE_ON_STARTUP,
@@ -100,10 +101,9 @@ enum {
 	INPUT_JUMP_TO_PREV_UNREAD,
 	INPUT_JUMP_TO_NEXT_IMPORTANT,
 	INPUT_JUMP_TO_PREV_IMPORTANT,
-	INPUT_SORT_NEXT,
-	INPUT_SORT_PREV,
-	INPUT_SORT_DIRECTION_TOGGLE,
-	INPUT_TOGGLE_UNREAD_FIRST_SORTING,
+	INPUT_SORT_BY_TIME,
+	INPUT_SORT_BY_UNREAD,
+	INPUT_SORT_BY_ALPHABET,
 	INPUT_ENTER,
 	INPUT_RELOAD,
 	INPUT_RELOAD_ALL,
@@ -231,8 +231,7 @@ struct items_list {
 	struct item_entry *ptr;
 	size_t len;
 	bool finished;
-	int sort_order;
-	bool show_unread_first;
+	int sorting;
 	struct feed_entry **feeds; // Just a pointer to parent feeds.
 	size_t feeds_count;
 };
@@ -352,11 +351,10 @@ void tell_items_menu_to_regenerate(void);
 input_cmd_id enter_items_menu_loop(struct feed_entry **new_feeds, size_t new_feeds_count, bool is_explore_mode, const struct string *search_filter);
 
 // See "items-list.c" file for implementation.
-struct items_list *create_items_list(struct feed_entry **feeds, size_t feeds_count, int sort_order, bool unread_first, const struct string *search_filter);
+struct items_list *create_items_list(struct feed_entry **feeds, size_t feeds_count, int sorting, const struct string *search_filter);
 bool replace_items_list_with_empty_one(struct items_list **items);
 void obtain_items_at_least_up_to_the_given_index(struct items_list *items, size_t index);
-void change_items_list_sorting(struct items_list **items, int new_order);
-void toggle_unread_first_sorting_of_items_list(struct items_list **items);
+void change_items_list_sorting(struct items_list **items, input_cmd_id cmd);
 void change_search_filter_of_items_list(struct items_list **items, const struct string *search_filter);
 void free_items_list(struct items_list *items);
 

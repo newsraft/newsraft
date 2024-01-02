@@ -6,22 +6,22 @@ you're considering switching from Newsboat to Newsraft, it's advised to examine 
 
 ## TL;DR
 
-| Criterion                        | Newsraft                        | Newsboat               |
-|:---------------------------------|:--------------------------------|:-----------------------|
-| Parallel downloads               | +                               | +                      |
-| Multiple actions key bindings    | +                               | +                      |
-| Interactive content pager        | +                               | +                      |
-| Built-in HTML renderer           | +                               | +                      |
-| Sorting                          | +                               | +                      |
-| Feeds grouping                   | Sections                        | Query feeds            |
-| Automatic updates                | Square brackets in `feeds` file | `reload-time` setting  |
-| Feed capacity limits             | Curly brackets in `feeds` file  | `max-items` setting    |
-| Command feeds                    | `$(cmd arg1 arg2)`              | `"exec:cmd arg1 arg2"` |
-| Download management              | -                               | +                      |
-| Support for third-party services | -                               | +                      |
-| Internal command-line            | -                               | +                      |
-| Programming languages used       | C99                             | C++11, Rust, Coco/R    |
-| Source lines of code             | ~9k                             | ~40k                   |
+| Criterion                             | Newsraft                        | Newsboat               |
+|:--------------------------------------|:--------------------------------|:-----------------------|
+| Feeds grouping                        | Sections                        | Query feeds            |
+| Parallel downloads                    | +                               | +                      |
+| Multiple actions key bindings         | +                               | +                      |
+| Interactive content pager             | +                               | +                      |
+| Built-in HTML renderer                | +                               | +                      |
+| Sorting                               | +                               | +                      |
+| Automatic updates                     | Square brackets in `feeds` file | `reload-time` setting  |
+| Feed capacity limits                  | Curly brackets in `feeds` file  | `max-items` setting    |
+| Command feeds                         | `$(cmd arg1 arg2)`              | `"exec:cmd arg1 arg2"` |
+| Download manager                      | -                               | `podboat`              |
+| Integration with third-party services | -                               | +                      |
+| Internal command-line                 | -                               | +                      |
+| Programming languages used            | C99                             | C++11, Rust, Coco/R    |
+| Source lines of code                  | ~9k                             | ~40k                   |
 
 Feel free to submit an issue if you think that table above contains outdated information.
 
@@ -75,11 +75,11 @@ timers (numbers in square brackets) and capacity limits (numbers in curly
 brackets) for individual sections and feeds like this:
 
 ```
-http://example.org/feed3.xml "Phonk" [60]
-http://example.org/feed1.xml "Weather" {100}
+http://example.org/feed1.xml "Phonk" [60]
+http://example.org/feed2.xml "Weather" {100}
 
 @ News [30]
-http://example.org/feed5.xml "World news" [0] {50}
+http://example.org/feed3.xml "World news" [0] {50}
 http://example.org/feed4.xml "Tech news"
 ```
 

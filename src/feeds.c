@@ -1,14 +1,23 @@
+#include <stdlib.h>
 #include "newsraft.h"
+
+enum {
+	FEEDS_SORT_ORIGINAL = 0,
+	FEEDS_SORT_BY_UNREAD_COUNT,
+	FEEDS_SORT_ALPHABETICAL,
+	FEEDS_SORT_METHODS_COUNT,
+};
 
 static struct feed_entry **feeds = NULL;
 static size_t feeds_count = 0;
+static unsigned feeds_sorting = FEEDS_SORT_ORIGINAL;
+static struct feed_entry **original_feeds = NULL;
 
 static struct format_arg feeds_fmt_args[] = {
 	{L'n',  L'd',  {.i = 0   }},
 	{L'u',  L'd',  {.i = 0   }},
 	{L'l',  L's',  {.s = NULL}},
 	{L't',  L's',  {.s = NULL}},
-	{L'o',  L's',  {.s = NULL}},
 	{L'\0', L'\0', {.i = 0   }}, // terminator
 };
 
@@ -24,8 +33,7 @@ get_feed_entry_args(size_t index)
 	feeds_fmt_args[0].value.i = index + 1;
 	feeds_fmt_args[1].value.i = feeds[index]->unread_count;
 	feeds_fmt_args[2].value.s = feeds[index]->link->ptr;
-	feeds_fmt_args[3].value.s = feeds[index]->name ? feeds[index]->name->ptr : "";
-	feeds_fmt_args[4].value.s = feeds[index]->name ? feeds[index]->name->ptr : feeds[index]->link->ptr;
+	feeds_fmt_args[3].value.s = feeds[index]->name->ptr;
 	return feeds_fmt_args;
 }
 
@@ -39,6 +47,60 @@ bool
 unread_feed_condition(size_t index)
 {
 	return feeds[index]->unread_count > 0;
+}
+
+static int
+feeds_sort_original_comparison(const void *data1, const void *data2)
+{
+	struct feed_entry *feed1 = *(struct feed_entry **)data1;
+	struct feed_entry *feed2 = *(struct feed_entry **)data2;
+	size_t index1 = 0, index2 = 0;
+	for (size_t i = 0; i < feeds_count; ++i) {
+		if (feed1 == original_feeds[i]) index1 = i;
+		if (feed2 == original_feeds[i]) index2 = i;
+	}
+	if (index1 > index2) return 1;
+	if (index1 < index2) return -1;
+	return 0;
+}
+
+static int
+feeds_sort_by_unread_count_comparison(const void *data1, const void *data2)
+{
+	struct feed_entry *feed1 = *(struct feed_entry **)data1;
+	struct feed_entry *feed2 = *(struct feed_entry **)data2;
+	if (feed1->unread_count > feed2->unread_count) return -1;
+	if (feed1->unread_count < feed2->unread_count) return 1;
+	return 0;
+}
+
+static int
+feeds_sort_alphabetical_comparison(const void *data1, const void *data2)
+{
+	struct feed_entry *feed1 = *(struct feed_entry **)data1;
+	struct feed_entry *feed2 = *(struct feed_entry **)data2;
+	return strcmp(feed1->name->ptr, feed2->name->ptr);
+}
+
+static inline void
+feeds_sort(void)
+{
+	const char *sort_msg = NULL;
+	pthread_mutex_lock(&interface_lock);
+	switch (feeds_sorting) {
+		case FEEDS_SORT_ORIGINAL:
+			sort_msg = "Sorted feeds in original order";
+			qsort(feeds, feeds_count, sizeof(struct feed_entry *), &feeds_sort_original_comparison); break;
+		case FEEDS_SORT_BY_UNREAD_COUNT:
+			sort_msg = "Sorted feeds by unread count";
+			qsort(feeds, feeds_count, sizeof(struct feed_entry *), &feeds_sort_by_unread_count_comparison); break;
+		case FEEDS_SORT_ALPHABETICAL:
+			sort_msg = "Sorted feeds alphabetically";
+			qsort(feeds, feeds_count, sizeof(struct feed_entry *), &feeds_sort_alphabetical_comparison); break;
+	}
+	pthread_mutex_unlock(&interface_lock);
+	expose_all_visible_entries_of_the_list_menu();
+	if (sort_msg != NULL) info_status(sort_msg);
 }
 
 static inline void
@@ -91,11 +153,15 @@ mark_all_feeds_unread(void)
 }
 
 input_cmd_id
-enter_feeds_menu_loop(struct feed_entry **new_feeds, size_t new_feeds_count)
+enter_feeds_menu_loop(struct feed_entry **base_feeds, size_t base_feeds_count, struct feed_entry **feeds_view)
 {
+	memcpy(feeds_view, base_feeds, sizeof(struct feed_entry *) * base_feeds_count);
+	feeds = feeds_view;
+	feeds_count = base_feeds_count;
+	feeds_sorting = FEEDS_SORT_ORIGINAL;
+	original_feeds = base_feeds;
+
 	input_cmd_id cmd;
-	feeds = new_feeds;
-	feeds_count = new_feeds_count;
 	if (get_cfg_bool(CFG_FEEDS_MENU_PARAMOUNT_EXPLORE) == true) {
 		cmd = enter_items_menu_loop(feeds, feeds_count, true, NULL);
 		if (cmd == INPUT_NAVIGATE_BACK || cmd == INPUT_QUIT_SOFT || cmd == INPUT_QUIT_HARD) {
@@ -133,6 +199,12 @@ enter_feeds_menu_loop(struct feed_entry **new_feeds, size_t new_feeds_count)
 			cmd = enter_items_menu_loop(feeds, feeds_count, true, search_mode_text_input);
 			if (cmd == INPUT_QUIT_SOFT || cmd == INPUT_QUIT_HARD) break;
 			enter_list_menu(FEEDS_MENU, 0, false);
+		} else if (cmd == INPUT_SORT_NEXT) {
+			feeds_sorting = (feeds_sorting + 1) % FEEDS_SORT_METHODS_COUNT;
+			feeds_sort();
+		} else if (cmd == INPUT_SORT_PREV) {
+			feeds_sorting = feeds_sorting > 0 ? feeds_sorting - 1 : FEEDS_SORT_METHODS_COUNT - 1;
+			feeds_sort();
 		} else if (cmd == INPUT_STATUS_HISTORY_MENU) {
 			cmd = enter_status_pager_view_loop();
 			if (cmd == INPUT_QUIT_HARD) break;

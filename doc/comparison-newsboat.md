@@ -12,11 +12,11 @@ you're considering switching from Newsboat to Newsraft, it's advised to examine 
 | Multiple actions key bindings    | +                               | +                      |
 | Interactive content pager        | +                               | +                      |
 | Built-in HTML renderer           | +                               | +                      |
+| Sorting                          | +                               | +                      |
 | Feeds grouping                   | Sections                        | Query feeds            |
 | Automatic updates                | Square brackets in `feeds` file | `reload-time` setting  |
 | Feed capacity limits             | Curly brackets in `feeds` file  | `max-items` setting    |
 | Command feeds                    | `$(cmd arg1 arg2)`              | `"exec:cmd arg1 arg2"` |
-| Sorting                          | Only for news at the moment     | +                      |
 | Download management              | -                               | +                      |
 | Support for third-party services | -                               | +                      |
 | Internal command-line            | -                               | +                      |

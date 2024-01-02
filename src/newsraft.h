@@ -316,13 +316,13 @@ void mark_section_unread(size_t view_sel);
 bool parse_feeds_file(void);
 
 // See "feeds.c" file for implementation.
-void mark_feed_read(size_t view_sel);
-void mark_feed_unread(size_t view_sel);
-input_cmd_id enter_feeds_menu_loop(struct feed_entry **new_feeds, size_t new_feeds_count);
 bool feeds_list_moderator(size_t index);
 const struct format_arg *get_feed_entry_args(size_t index);
 int paint_feed_entry(size_t index);
 bool unread_feed_condition(size_t index);
+void mark_feed_read(size_t view_sel);
+void mark_feed_unread(size_t view_sel);
+input_cmd_id enter_feeds_menu_loop(struct feed_entry **base_feeds, size_t base_feeds_count, struct feed_entry **feeds_view);
 
 // See "interface-list.c" file for implementation.
 int8_t get_current_menu_type(void);

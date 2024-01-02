@@ -307,13 +307,12 @@ _menu-section-entry-format_ (default: *%5.0u @ %t*)
 *u*	unread items count;++
 *t*	section title.
 
-_menu-feed-entry-format_ (default: *%5.0u │ %o*)
+_menu-feed-entry-format_ (default: *%5.0u │ %t*)
 	Format of the feed list entries. Specifiers are as follows:++
 *n*	index number;++
 *u*	unread items count;++
 *l*	feed link;++
-*t*	feed title;++
-*o*	feed title if set, feed link otherwise.
+*t*	feed name if set, feed link otherwise.
 
 _menu-item-entry-format_ (default: *" %u │ %d │ %o"*)
 	Format of the item list entries. Specifiers are as follows:++

@@ -303,20 +303,20 @@ _list-entry-date-format_ (default: *%b %d*)
 
 _menu-section-entry-format_ (default: *%5.0u @ %t*)
 	Format of the section list entries. Specifiers are as follows:++
-*n*	index number;++
+*i*	index number;++
 *u*	unread items count;++
 *t*	section title.
 
 _menu-feed-entry-format_ (default: *%5.0u │ %t*)
 	Format of the feed list entries. Specifiers are as follows:++
-*n*	index number;++
+*i*	index number;++
 *u*	unread items count;++
 *l*	feed link;++
 *t*	feed name if set, feed link otherwise.
 
 _menu-item-entry-format_ (default: *" %u │ %d │ %o"*)
 	Format of the item list entries. Specifiers are as follows:++
-*n*	index number;++
+*i*	index number;++
 *u*	"N" if item is unread, " " otherwise;++
 *d*	update date formatted according to _list-entry-date-format_;++
 *D*	publication date formatted according to _list-entry-date-format_;++

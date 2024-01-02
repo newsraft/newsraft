@@ -14,7 +14,7 @@ static unsigned feeds_sorting = FEEDS_SORT_ORIGINAL;
 static struct feed_entry **original_feeds = NULL;
 
 static struct format_arg feeds_fmt_args[] = {
-	{L'n',  L'd',  {.i = 0   }},
+	{L'i',  L'd',  {.i = 0   }},
 	{L'u',  L'd',  {.i = 0   }},
 	{L'l',  L's',  {.s = NULL}},
 	{L't',  L's',  {.s = NULL}},

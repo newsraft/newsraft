@@ -15,7 +15,7 @@ static size_t sections_count = 0;
 static bool at_least_one_feed_has_positive_update_period = false;
 
 static struct format_arg sections_fmt_args[] = {
-	{L'n',  L'd',  {.i = 0   }},
+	{L'i',  L'd',  {.i = 0   }},
 	{L'u',  L'd',  {.i = 0   }},
 	{L't',  L's',  {.s = NULL}},
 	{L'\0', L'\0', {.i = 0   }}, // terminator

@@ -4,7 +4,7 @@ static struct items_list *items = NULL;
 static volatile bool items_menu_needs_to_regenerate = false;
 
 static struct format_arg items_fmt_args[] = {
-	{L'n',  L'd',  {.i = 0   }},
+	{L'i',  L'd',  {.i = 0   }},
 	{L'u',  L's',  {.s = NULL}},
 	{L'd',  L's',  {.s = NULL}},
 	{L'D',  L's',  {.s = NULL}},

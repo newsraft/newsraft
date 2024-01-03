@@ -236,9 +236,6 @@ _scrolloff_ (default: *0*)
 	entry. If you set it to a very large value the selected entry will always be
 	in the middle of the list menu (except for start and end of the list menu).
 
-_items-count-limit_ (default: *0*)
-	Maximum number of items stored in one feed. Setting to *0* disables the limit.
-
 _update-threads-count_ (default: *0*)
 	Maximum number of updates running simultaneously. If set to *0*, the setting
 	value will be set to the number of available CPU cores multiplied by *10*.

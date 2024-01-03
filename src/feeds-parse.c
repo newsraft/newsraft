@@ -48,7 +48,7 @@ parse_feeds_file(void)
 	int64_t section_index = 0;
 	int64_t global_update_period  = -1;
 	int64_t section_update_period = -1;
-	int64_t global_item_limit     = get_cfg_uint(CFG_ITEMS_COUNT_LIMIT);
+	int64_t global_item_limit     = -1;
 	int64_t section_item_limit    = -1;
 	struct string *section_name = crtes(100);
 	struct feed_entry feed;

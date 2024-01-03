@@ -46,10 +46,10 @@ parse_feeds_file(void)
 	struct string *line = crtes(1000);
 	bool at_least_one_feed_was_added = false;
 	int64_t section_index = 0;
-	int64_t global_update_period   = -1;
-	int64_t section_update_period  = -1;
-	int64_t global_capacity_limit  = get_cfg_uint(CFG_ITEMS_COUNT_LIMIT);
-	int64_t section_capacity_limit = -1;
+	int64_t global_update_period  = -1;
+	int64_t section_update_period = -1;
+	int64_t global_item_limit     = get_cfg_uint(CFG_ITEMS_COUNT_LIMIT);
+	int64_t section_item_limit    = -1;
 	struct string *section_name = crtes(100);
 	struct feed_entry feed;
 	feed.name = crtes(100);
@@ -71,7 +71,7 @@ parse_feeds_file(void)
 		if (line->len == 0 || line->ptr[0] == '#') continue; // Skip empty and comment lines.
 
 		long update_timer = -1;
-		long capacity_limit = -1;
+		long item_limit = -1;
 		while (line->ptr[line->len - 1] == ']' || line->ptr[line->len - 1] == '}') {
 			char *open = strrchr(line->ptr, line->ptr[line->len - 1] == ']' ? '[' : '{');
 			if (open == NULL || open == line->ptr) {
@@ -94,7 +94,7 @@ parse_feeds_file(void)
 			if (*open == '[') {
 				update_timer = value * 60; // Convert to seconds.
 			} else {
-				capacity_limit = value;
+				item_limit = value;
 			}
 			*open = '\0';
 			line->len = strlen(line->ptr);
@@ -104,13 +104,13 @@ parse_feeds_file(void)
 		if (line->ptr[0] == '@') { // Start of a new section.
 			cpyas(&section_name, line->ptr + 1, line->len - 1);
 			trim_whitespace_from_string(section_name);
-			section_update_period  = update_timer   >= 0 ? update_timer   : global_update_period;
-			section_capacity_limit = capacity_limit >= 0 ? capacity_limit : global_capacity_limit;
+			section_update_period = update_timer >= 0 ? update_timer : global_update_period;
+			section_item_limit    = item_limit   >= 0 ? item_limit   : global_item_limit;
 			section_index = make_sure_section_exists(section_name);
 			if (section_index < 0) goto error;
 			if (section_index == 0) {
 				global_update_period = section_update_period;
-				global_capacity_limit = section_capacity_limit;
+				global_item_limit    = section_item_limit;
 			}
 			continue;
 		}
@@ -134,8 +134,8 @@ parse_feeds_file(void)
 		}
 
 		cpyss(&feed.link, line);
-		feed.update_period  = update_timer   >= 0 ? update_timer   : section_update_period;
-		feed.capacity_limit = capacity_limit >= 0 ? capacity_limit : section_capacity_limit;
+		feed.update_period = update_timer >= 0 ? update_timer : section_update_period;
+		feed.item_limit    = item_limit   >= 0 ? item_limit   : section_item_limit;
 		remove_trailing_slashes_from_string(feed.link);
 		if (line->len < 4 || line->ptr[0] != '$' || line->ptr[1] != '(' || line->ptr[line->len - 1] != ')') {
 			if (check_url_for_validity(feed.link) == false) {

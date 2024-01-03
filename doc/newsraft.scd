@@ -159,7 +159,7 @@ doing so, think about what load can be exerted on a servers by frequent
 downloads. Going for a small auto update timer on *Global* section will most
 likely result in a waste of a lot of resources. You have been warned.
 
-In a similar to update timers fashion, capacity limits can be set for feeds and
+In a similar to update timers fashion, item limits can be set for feeds and
 sections. They make targeted feeds contain no more than a set amount of news.
 Precedence rules are the same as for update timers. The only difference is type
 of brackets used: they use curly brackets instead of square ones. For example:

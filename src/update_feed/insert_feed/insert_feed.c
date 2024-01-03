@@ -13,7 +13,7 @@ insert_feed(const struct feed_entry *feed, struct getfeed_feed *feed_data)
 			return false;
 		}
 	}
-	if (feed->capacity_limit > 0 && delete_excess_items(feed->link, feed->capacity_limit) == false) {
+	if (feed->item_limit > 0 && delete_excess_items(feed->link, feed->item_limit) == false) {
 		WARN("Failed to delete excess items!");
 	}
 	return true;

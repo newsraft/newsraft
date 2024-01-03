@@ -15,7 +15,7 @@ you're considering switching from Newsboat to Newsraft, it's advised to examine 
 | Built-in HTML renderer                | +                               | +                      |
 | Sorting                               | +                               | +                      |
 | Automatic updates                     | Square brackets in `feeds` file | `reload-time` setting  |
-| Feed capacity limits                  | Curly brackets in `feeds` file  | `max-items` setting    |
+| Item limits                           | Curly brackets in `feeds` file  | `max-items` setting    |
 | Command feeds                         | `$(cmd arg1 arg2)`              | `"exec:cmd arg1 arg2"` |
 | Download manager                      | -                               | `podboat`              |
 | Integration with third-party services | -                               | +                      |
@@ -67,12 +67,11 @@ Newsraft uses streaming parsers to process feeds, while Newsboat uses DOM
 parsers. Also Newsraft takes simpler approach to data structures, which also
 gives a small performance boost.
 
-## Flexible automatic updates and capacity limits
+## Flexible auto updates and item limits
 
-In Newsboat you have settings for automatic updates and capacity limits but they
-are applied to all feeds at once, while in Newsraft you can set auto update
-timers (numbers in square brackets) and capacity limits (numbers in curly
-brackets) for individual sections and feeds like this:
+In Newsboat there are settings `reload-time` and `max-items` which are applied
+to all feeds at once. In Newsraft you can set auto updates and item limits for
+individual feeds and sections using square and curly brackets respectively.
 
 ```
 http://example.org/feed1.xml "Phonk" [60]
@@ -83,5 +82,10 @@ http://example.org/feed3.xml "World news" [0] {50}
 http://example.org/feed4.xml "Tech news"
 ```
 
-To set automatic updates or capacity limits for all feeds, just apply brackets
-expression to Global section at the very beginning of the `feeds` file.
+To set auto updates and item limits for all feeds, simply apply a brackets
+expression to `Global` section at the very beginning of the `feeds` file just
+like that:
+
+```
+@ Global [60] {5000}
+```

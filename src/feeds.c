@@ -75,7 +75,7 @@ feeds_sort_by_unread_count_comparison(const void *data1, const void *data2)
 	struct feed_entry *feed2 = *(struct feed_entry **)data2;
 	if (feed1->unread_count > feed2->unread_count) return feeds_sorting & 1 ? -1 : 1;
 	if (feed1->unread_count < feed2->unread_count) return feeds_sorting & 1 ? 1 : -1;
-	return feeds_sort_original_comparison(data1, data2);
+	return feeds_sort_original_comparison(data1, data2) * (feeds_sorting & 1 ? -1 : 1);
 }
 
 static int

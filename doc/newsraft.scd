@@ -84,12 +84,12 @@ With this you will be able to open any link in *mpv*(1) and *feh*(1) directly
 from your terminal! Isn't it awesome? It is freaking amazing!
 
 For both _sections menu_ and _feeds menu_ there is a special explore mode. You
-can toggle it by pressing the *tab* key. What it does is truly miraculous: it
-shows all the news in the current context (i. e. explore mode in _sections menu_
-will show you all the news in the database, while in _feeds menu_ it will show
-you all the news of feeds in the current _feeds menu_). This mode may come in
-handy when you want to quickly scroll through all the news without switching
-between sections and feeds back and forth.
+can toggle it by pressing the *tab* key (*^I*). It's truly miraculous: it shows
+all the news in the current context (i. e. in _sections menu_ it will show you
+all the news in the database, whereas in _feeds menu_ it will show you all the
+news of feeds in the current _feeds menu_). This mode may come in handy when you
+want to quickly scroll through all the news without switching between sections
+and feeds back and forth.
 
 And for dessert, I'll tell you about search functionality. You can type */* in
 _items menu_ to start search input - enter the desired query here and press

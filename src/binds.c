@@ -146,6 +146,7 @@ assign_default_binds(void)
 	if (create_bind("^D",             2, INPUT_MARK_READ_ALL)                   == false) { goto fail; }
 	if (create_bind("i",              1, INPUT_MARK_IMPORTANT)                  == false) { goto fail; }
 	if (create_bind("I",              1, INPUT_MARK_UNIMPORTANT)                == false) { goto fail; }
+	if (create_bind("^I",             2, INPUT_TOGGLE_EXPLORE_MODE)             == false) { goto fail; }
 	if (create_bind("e",              1, INPUT_TOGGLE_EXPLORE_MODE)             == false) { goto fail; }
 	if (create_bind("v",              1, INPUT_STATUS_HISTORY_MENU)             == false) { goto fail; }
 	if (create_bind("o",              1, INPUT_OPEN_IN_BROWSER)                 == false) { goto fail; }

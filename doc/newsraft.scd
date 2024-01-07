@@ -83,14 +83,13 @@ _bind f exec feh "%l"_
 With this you will be able to open any link in *mpv*(1) and *feh*(1) directly
 from your terminal! Isn't it awesome? It is freaking amazing!
 
-For both _sections menu_ and _feeds menu_ there is a special view mode - explore
-mode. You can toggle this mode by pressing the *e* key in either _sections menu_
-or _feeds menu_. What it does is truly miraculous - it lists all the feed item
-entries in the current scope (i. e. explore mode in _sections menu_ will show
-you all the feed item entries in the database, while in _feeds menu_ it will
-show you all the feed item entries of feeds in the current _feeds menu_). This
-mode may come in handy when you want to quickly scroll through all the news
-without switching between sections and feeds back and forth.
+For both _sections menu_ and _feeds menu_ there is a special explore mode. You
+can toggle it by pressing the *tab* key. What it does is truly miraculous: it
+shows all the news in the current context (i. e. explore mode in _sections menu_
+will show you all the news in the database, while in _feeds menu_ it will show
+you all the news of feeds in the current _feeds menu_). This mode may come in
+handy when you want to quickly scroll through all the news without switching
+between sections and feeds back and forth.
 
 And for dessert, I'll tell you about search functionality. You can type */* in
 _items menu_ to start search input - enter the desired query here and press
@@ -524,7 +523,7 @@ _color-list-section-unread-bg_ (default: *default*)
 :[ _mark-important_
 |[ *I*
 :[ _mark-unimportant_
-|[ *e*
+|[ *^I*, *e*
 :[ _toggle-explore-mode_
 |[ *v*
 :[ _status-history-menu_

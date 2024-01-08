@@ -10,8 +10,6 @@
 // NEWSRAFT_CONFIG_DIR), because environment is intended for settings that are
 // valueable to many programs, not just a single one.
 
-// TODO: replace strcats with printfs because overflow may occur!
-
 #ifndef PATH_MAX
 #define PATH_MAX 4096
 #endif
@@ -52,7 +50,7 @@ set_db_path(const char *path)
 const char *
 get_feeds_path(void)
 {
-	if (strlen(feeds_file_path) != 0) {
+	if (strlen(feeds_file_path) > 0) {
 		return feeds_file_path;
 	}
 
@@ -64,9 +62,8 @@ get_feeds_path(void)
 	// 2. $HOME/.config/newsraft/feeds
 	// 3. $HOME/.newsraft/feeds
 
-	if (env_var != NULL && strlen(env_var) != 0) {
-		strcpy(feeds_file_path, env_var);
-		strcat(feeds_file_path, "/newsraft/feeds");
+	if (env_var != NULL && strlen(env_var) > 0) {
+		snprintf(feeds_file_path, PATH_MAX, "%s/newsraft/feeds", env_var);
 		f = fopen(feeds_file_path, "r");
 		if (f != NULL) {
 			fclose(f);
@@ -75,16 +72,14 @@ get_feeds_path(void)
 	}
 
 	env_var = getenv("HOME");
-	if (env_var != NULL && strlen(env_var) != 0) {
-		strcpy(feeds_file_path, env_var);
-		strcat(feeds_file_path, "/.config/newsraft/feeds");
+	if (env_var != NULL && strlen(env_var) > 0) {
+		snprintf(feeds_file_path, PATH_MAX, "%s/.config/newsraft/feeds", env_var);
 		f = fopen(feeds_file_path, "r");
 		if (f != NULL) {
 			fclose(f);
 			return feeds_file_path; // 2
 		}
-		strcpy(feeds_file_path, env_var);
-		strcat(feeds_file_path, "/.newsraft/feeds");
+		snprintf(feeds_file_path, PATH_MAX, "%s/.newsraft/feeds", env_var);
 		f = fopen(feeds_file_path, "r");
 		if (f != NULL) {
 			fclose(f);
@@ -100,7 +95,7 @@ get_feeds_path(void)
 const char *
 get_config_path(void)
 {
-	if (strlen(config_file_path) != 0) {
+	if (strlen(config_file_path) > 0) {
 		return config_file_path;
 	}
 
@@ -112,9 +107,8 @@ get_config_path(void)
 	// 2. $HOME/.config/newsraft/config
 	// 3. $HOME/.newsraft/config
 
-	if (env_var != NULL && strlen(env_var) != 0) {
-		strcpy(config_file_path, env_var);
-		strcat(config_file_path, "/newsraft/config");
+	if (env_var != NULL && strlen(env_var) > 0) {
+		snprintf(config_file_path, PATH_MAX, "%s/newsraft/config", env_var);
 		f = fopen(config_file_path, "r");
 		if (f != NULL) {
 			fclose(f);
@@ -123,16 +117,14 @@ get_config_path(void)
 	}
 
 	env_var = getenv("HOME");
-	if (env_var != NULL && strlen(env_var) != 0) {
-		strcpy(config_file_path, env_var);
-		strcat(config_file_path, "/.config/newsraft/config");
+	if (env_var != NULL && strlen(env_var) > 0) {
+		snprintf(config_file_path, PATH_MAX, "%s/.config/newsraft/config", env_var);
 		f = fopen(config_file_path, "r");
 		if (f != NULL) {
 			fclose(f);
 			return config_file_path; // 2
 		}
-		strcpy(config_file_path, env_var);
-		strcat(config_file_path, "/.newsraft/config");
+		snprintf(config_file_path, PATH_MAX, "%s/.newsraft/config", env_var);
 		f = fopen(config_file_path, "r");
 		if (f != NULL) {
 			fclose(f);
@@ -147,7 +139,7 @@ get_config_path(void)
 const char *
 get_db_path(void)
 {
-	if (strlen(db_file_path) != 0) {
+	if (strlen(db_file_path) > 0) {
 		return db_file_path;
 	}
 
@@ -160,9 +152,8 @@ get_db_path(void)
 
 	char *xdg_data_home_var = getenv("XDG_DATA_HOME");
 	size_t xdg_data_home_var_len = xdg_data_home_var != NULL ? strlen(xdg_data_home_var) : 0;
-	if (xdg_data_home_var != NULL && xdg_data_home_var_len != 0) {
-		strcpy(db_file_path, xdg_data_home_var);
-		strcat(db_file_path, "/newsraft/newsraft.sqlite3");
+	if (xdg_data_home_var != NULL && xdg_data_home_var_len > 0) {
+		snprintf(db_file_path, PATH_MAX, "%s/newsraft/newsraft.sqlite3", xdg_data_home_var);
 		f = fopen(db_file_path, "r");
 		if (f != NULL) {
 			fclose(f);
@@ -172,16 +163,14 @@ get_db_path(void)
 
 	char *home_var = getenv("HOME");
 	size_t home_var_len = home_var != NULL ? strlen(home_var) : 0;
-	if (home_var != NULL && home_var_len != 0) {
-		strcpy(db_file_path, home_var);
-		strcat(db_file_path, "/.local/share/newsraft/newsraft.sqlite3");
+	if (home_var != NULL && home_var_len > 0) {
+		snprintf(db_file_path, PATH_MAX, "%s/.local/share/newsraft/newsraft.sqlite3", home_var);
 		f = fopen(db_file_path, "r");
 		if (f != NULL) {
 			fclose(f);
 			return db_file_path; // 2
 		}
-		strcpy(db_file_path, home_var);
-		strcat(db_file_path, "/.newsraft/newsraft.sqlite3");
+		snprintf(db_file_path, PATH_MAX, "%s/.newsraft/newsraft.sqlite3", home_var);
 		f = fopen(db_file_path, "r");
 		if (f != NULL) {
 			fclose(f);
@@ -194,32 +183,32 @@ get_db_path(void)
 
 	DIR *d;
 
-	if (xdg_data_home_var != NULL && xdg_data_home_var_len != 0) {
-		strcpy(db_file_path, xdg_data_home_var);
+	if (xdg_data_home_var != NULL && xdg_data_home_var_len > 0) {
+		snprintf(db_file_path, PATH_MAX, "%s", xdg_data_home_var);
 		mkdir(db_file_path, 0777);
-		strcat(db_file_path, "/newsraft");
+		snprintf(db_file_path, PATH_MAX, "%s/newsraft", xdg_data_home_var);
 		mkdir(db_file_path, 0777);
 		d = opendir(db_file_path);
 		if (d != NULL) {
 			closedir(d);
-			strcat(db_file_path, "/newsraft.sqlite3");
+			snprintf(db_file_path, PATH_MAX, "%s/newsraft/newsraft.sqlite3", xdg_data_home_var);
 			return db_file_path; // 1
 		} else {
 			fprintf(stderr, "Failed to create \"%s\" directory!\n", db_file_path);
 		}
-	} else if (home_var != NULL && home_var_len != 0) {
-		strcpy(db_file_path, home_var);
+	} else if (home_var != NULL && home_var_len > 0) {
+		snprintf(db_file_path, PATH_MAX, "%s", home_var);
 		mkdir(db_file_path, 0777);
-		strcat(db_file_path, "/.local");
+		snprintf(db_file_path, PATH_MAX, "%s/.local", home_var);
 		mkdir(db_file_path, 0777);
-		strcat(db_file_path, "/share");
+		snprintf(db_file_path, PATH_MAX, "%s/.local/share", home_var);
 		mkdir(db_file_path, 0777);
-		strcat(db_file_path, "/newsraft");
+		snprintf(db_file_path, PATH_MAX, "%s/.local/share/newsraft", home_var);
 		mkdir(db_file_path, 0777);
 		d = opendir(db_file_path);
 		if (d != NULL) {
 			closedir(d);
-			strcat(db_file_path, "/newsraft.sqlite3");
+			snprintf(db_file_path, PATH_MAX, "%s/.local/share/newsraft/newsraft.sqlite3", home_var);
 			return db_file_path; // 2
 		} else {
 			fprintf(stderr, "Failed to create \"%s\" directory!\n", db_file_path);

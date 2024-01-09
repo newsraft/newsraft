@@ -71,7 +71,7 @@ void
 mark_item_read(size_t view_sel)
 {
 	if (items->ptr[view_sel].is_unread == true) {
-		if (db_mark_item_read(items->ptr[view_sel].rowid) == true) {
+		if (db_mark_item_read(items->ptr[view_sel].rowid, true) == true) {
 			items->ptr[view_sel].is_unread = false;
 			expose_entry_of_the_list_menu(view_sel);
 		}
@@ -82,7 +82,7 @@ void
 mark_item_unread(size_t view_sel)
 {
 	if (items->ptr[view_sel].is_unread == false) {
-		if (db_mark_item_unread(items->ptr[view_sel].rowid) == true) {
+		if (db_mark_item_read(items->ptr[view_sel].rowid, false) == true) {
 			items->ptr[view_sel].is_unread = true;
 			expose_entry_of_the_list_menu(view_sel);
 		}
@@ -112,25 +112,16 @@ mark_item_unimportant(size_t view_sel)
 }
 
 static void
-mark_all_items_read(struct feed_entry **feeds, size_t feeds_count)
+mark_all_items_read(bool status)
 {
-	if (db_mark_all_items_in_feeds_as_read(feeds, feeds_count) == true) {
-		for (size_t i = 0; i < items->len; ++i) {
+	pthread_mutex_lock(&interface_lock);
+	for (size_t i = 0; i < items->len; ++i) {
+		if (db_mark_item_read(items->ptr[i].rowid, status) == true) {
 			items->ptr[i].is_unread = false;
 		}
-		expose_all_visible_entries_of_the_list_menu();
 	}
-}
-
-static void
-mark_all_items_unread(struct feed_entry **feeds, size_t feeds_count)
-{
-	if (db_mark_all_items_in_feeds_as_unread(feeds, feeds_count) == true) {
-		for (size_t i = 0; i < items->len; ++i) {
-			items->ptr[i].is_unread = true;
-		}
-		expose_all_visible_entries_of_the_list_menu();
-	}
+	pthread_mutex_unlock(&interface_lock);
+	expose_all_visible_entries_of_the_list_menu();
 }
 
 void
@@ -170,9 +161,9 @@ enter_items_menu_loop(struct feed_entry **feeds, size_t feeds_count, bool is_exp
 		if (handle_list_menu_control(ITEMS_MENU, cmd, macro) == true) {
 			// Rest a little.
 		} else if (cmd == INPUT_MARK_READ_ALL) {
-			mark_all_items_read(feeds, feeds_count);
+			mark_all_items_read(true);
 		} else if (cmd == INPUT_MARK_UNREAD_ALL) {
-			mark_all_items_unread(feeds, feeds_count);
+			mark_all_items_read(false);
 		} else if (cmd == INPUT_MARK_IMPORTANT) {
 			mark_item_important(*view_sel);
 		} else if (cmd == INPUT_MARK_UNIMPORTANT) {

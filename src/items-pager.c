@@ -61,7 +61,7 @@ enter_item_pager_view_loop(struct items_list *items, const size_t *view_sel)
 			free_links_list(&links);
 			return INPUT_ERROR;
 		}
-		db_mark_item_read(items->ptr[*view_sel].rowid);
+		db_mark_item_read(items->ptr[*view_sel].rowid, true);
 		items->ptr[*view_sel].is_unread = false;
 		enter_list_menu(PAGER_MENU, CFG_MENU_SECTION_ENTRY_FORMAT, true);
 		while (true) {

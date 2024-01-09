@@ -42,15 +42,9 @@ db_set_item_int(int64_t rowid, const char *column, size_t column_len, int value)
 }
 
 bool
-db_mark_item_read(int64_t rowid)
+db_mark_item_read(int64_t rowid, bool status)
 {
-	return db_set_item_int(rowid, "unread", 6, 0);
-}
-
-bool
-db_mark_item_unread(int64_t rowid)
-{
-	return db_set_item_int(rowid, "unread", 6, 1);
+	return db_set_item_int(rowid, "unread", 6, status == true ? 0 : 1);
 }
 
 bool

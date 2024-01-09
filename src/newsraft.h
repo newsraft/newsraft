@@ -426,8 +426,7 @@ void db_set_download_date(const struct string *url, int64_t download_date);
 
 // See "db-items.c" file for implementation.
 sqlite3_stmt *db_find_item_by_rowid(int64_t rowid);
-bool db_mark_item_read(int64_t rowid);
-bool db_mark_item_unread(int64_t rowid);
+bool db_mark_item_read(int64_t rowid, bool status);
 bool db_mark_item_important(int64_t rowid);
 bool db_mark_item_unimportant(int64_t rowid);
 int64_t get_unread_items_count_of_the_feed(const struct string *url);

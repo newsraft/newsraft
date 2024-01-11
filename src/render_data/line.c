@@ -19,9 +19,6 @@ line_bump(struct line *line)
 	line->target->lines = tmp;
 	line->target->lines_len += 1;
 	line->pin = SIZE_MAX;
-	if (line->is_bold       == true) line_style(line, FORMAT_BOLD_BEGIN);
-	if (line->is_underlined == true) line_style(line, FORMAT_UNDERLINED_BEGIN);
-	if (line->is_italic     == true) line_style(line, FORMAT_ITALIC_BEGIN);
 	return true;
 }
 
@@ -40,6 +37,11 @@ line_char(struct line *line, wchar_t c)
 		for (size_t i = 0; i < indent_size; ++i) {
 			wcatcs(LAST_LINE.ws, L' ');
 		}
+		// Make sure to apply styling after indenting whitespace to avoid
+		// underlined empty space at the beginning of the line, for example.
+		if (line->is_bold       == true) line_style(line, FORMAT_BOLD_BEGIN);
+		if (line->is_underlined == true) line_style(line, FORMAT_UNDERLINED_BEGIN);
+		if (line->is_italic     == true) line_style(line, FORMAT_ITALIC_BEGIN);
 	}
 	if (wcswidth(LAST_LINE.ws->ptr, LAST_LINE.ws->len) + c_width <= (int)line->lim) {
 		wcatcs(LAST_LINE.ws, c);

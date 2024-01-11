@@ -162,6 +162,11 @@ mark_all_feeds_unread(void)
 input_cmd_id
 enter_feeds_menu_loop(struct feed_entry **base_feeds, size_t base_feeds_count, struct feed_entry **feeds_view)
 {
+	if (base_feeds_count < 1) {
+		info_status("There are no feeds in this section.");
+		return INPUT_NAVIGATE_BACK;
+	}
+
 	memcpy(feeds_view, base_feeds, sizeof(struct feed_entry *) * base_feeds_count);
 	feeds = feeds_view;
 	feeds_count = base_feeds_count;

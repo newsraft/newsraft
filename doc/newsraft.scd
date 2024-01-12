@@ -284,7 +284,7 @@ _proxy-password_ (default: *""*)
 _global-section-name_ (default: *Global*)
 	Name of the section that contains all feeds.
 
-_item-content-format_ (default: *<b>Feed</b>: %f<br>|<b>Title</b>: %t<br>|<b>Date</b>: %d<br>|<br>%c<br>|<br><b>Links</b>:<br>%L*)
+_item-content-format_ (default: *<b>Feed</b>:&nbsp;&nbsp;%f<br>|<b>Title</b>:&nbsp;%t<br>|<b>Date</b>:&nbsp;&nbsp;%d<br>|<br>%c<br>|<br><b>Links</b>:<br>%L*)
 	Sets the format according to which the item's content will be generated.
 	The text in this format string is HTML formatted. Fields are separated by *|*
 	character. If an item doesn't have a value corresponding to the specifier in

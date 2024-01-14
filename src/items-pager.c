@@ -18,7 +18,7 @@ populate_render_blocks_list_with_data_from_item(const struct item_entry *item, s
 		goto error;
 	}
 	if (links->len > 0) {
-		if (complete_urls_of_links(links, item->feed->link) == false) {
+		if (complete_urls_of_links(links) == false) {
 			goto error;
 		}
 		struct string *str = generate_link_list_string_for_pager(links);

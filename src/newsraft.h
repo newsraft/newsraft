@@ -391,7 +391,7 @@ bool get_largest_piece_from_item_attachments(const char *attachments, struct str
 int64_t add_another_url_to_trim_links_list(struct links_list *links, const char *url, size_t url_len);
 bool populate_link_list_with_links_of_item(struct links_list *links, sqlite3_stmt *res);
 struct string *generate_link_list_string_for_pager(const struct links_list *links);
-bool complete_urls_of_links(struct links_list *links, const struct string *feed_url);
+bool complete_urls_of_links(struct links_list *links);
 void free_links_list(const struct links_list *links);
 
 // See "items-metadata-persons.c" file for implementation.

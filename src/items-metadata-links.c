@@ -258,14 +258,12 @@ error:
 	return NULL;
 }
 
-// Some URLs of item links are presented in relative form. For example:
-//     (1)  /upload/podcast83.mp3
-// or:
-//     (2)  ../../images/image-194.jpg
-// In this function we beautify these URLs by prepending feed url hostname in
-// case (1) and by prepending full feed url with trailing slash in case (2).
+// Convert relative URLs of links to absolute form. For example:
+// (1) /upload/podcast83.mp3      => http://example.org/upload/podcast83.mp3
+// (2) ../../images/image-194.jpg => http://example.org/post13/../../images/image-194.jpg
+// (3) image-195.jpg              => http://example.org/post13/image-195.jpg
 bool
-complete_urls_of_links(struct links_list *links, const struct string *feed_url)
+complete_urls_of_links(struct links_list *links)
 {
 	INFO("Completing URLs of links list.");
 	CURLU *h = curl_url();
@@ -281,7 +279,10 @@ complete_urls_of_links(struct links_list *links, const struct string *feed_url)
 		if (strncmp(links->ptr[i].url->ptr, "tel:", 4) == 0) {
 			continue; // This is a telephone URL, leave it as is.
 		}
-		if (curl_url_set(h, CURLUPART_URL, feed_url->ptr, 0) != CURLUE_OK) {
+		if (strstr(links->ptr[i].url->ptr, "://") != NULL) {
+			continue; // This URL has protocol scheme, it's most likely absolute.
+		}
+		if (curl_url_set(h, CURLUPART_URL, links->ptr[0].url->ptr, 0) != CURLUE_OK) {
 			continue; // This URL is broken, leave it alone.
 		}
 		if (curl_url_set(h, CURLUPART_URL, links->ptr[i].url->ptr, 0) != CURLUE_OK) {

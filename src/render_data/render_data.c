@@ -33,6 +33,7 @@ render_data(struct render_result *result, struct render_blocks_list *blocks)
 		}
 		if (blocks->ptr[i].needs_trimming == true) {
 			remove_trailing_empty_lines_except_for_first_one(result);
+			line.head = line.target->lines + line.target->lines_len - 1;
 		}
 		line_style(&line, FORMAT_ALL_END);
 	}

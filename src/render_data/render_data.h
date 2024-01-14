@@ -3,10 +3,9 @@
 #include <gumbo.h>
 #include "newsraft.h"
 
-#define LAST_LINE line->target->lines[line->target->lines_len - 1]
-
 struct line {
-	struct render_result *target; // Render output for this line.
+	struct render_result *target; // Render output context.
+	struct render_line *head;     // Line where text is currently added.
 	size_t lim;                   // Capacity of one text line.
 	size_t pin;                   // Index of the last space in the last text line.
 	size_t indent;                // Shows how many spaces must be in the beginning of line.

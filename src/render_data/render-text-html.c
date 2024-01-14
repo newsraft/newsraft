@@ -196,8 +196,8 @@ render_html(GumboNode *node, struct line *line)
 			for (const wchar_t *i = wstr->ptr; *i != L'\0'; ++i) {
 				if (!ISWIDEWHITESPACE(*i)) {
 					line_char(line, *i);
-				} else if (LAST_LINE.ws->len > 0) {
-					if (!ISWIDEWHITESPACE(LAST_LINE.ws->ptr[LAST_LINE.ws->len - 1])) {
+				} else if (line->head->ws->len > 0) {
+					if (!ISWIDEWHITESPACE(line->head->ws->ptr[line->head->ws->len - 1])) {
 						line_char(line, L' ');
 					}
 				}

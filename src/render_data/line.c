@@ -17,6 +17,7 @@ line_bump(struct line *line)
 	tmp[line->target->lines_len].hints = NULL;
 	tmp[line->target->lines_len].hints_len = 0;
 	line->target->lines = tmp;
+	line->head = line->target->lines + line->target->lines_len;
 	line->target->lines_len += 1;
 	line->pin = SIZE_MAX;
 	return true;
@@ -32,10 +33,10 @@ line_char(struct line *line, wchar_t c)
 	if (c_width < 1) {
 		return true; // Ignore invalid characters.
 	}
-	if (LAST_LINE.ws->len == 0) {
+	if (line->head->ws->len == 0) {
 		size_t indent_size = line->indent < line->lim ? line->indent : line->lim - 1;
 		for (size_t i = 0; i < indent_size; ++i) {
-			wcatcs(LAST_LINE.ws, L' ');
+			wcatcs(line->head->ws, L' ');
 		}
 		// Make sure to apply styling after indenting whitespace to avoid
 		// underlined empty space at the beginning of the line, for example.
@@ -43,10 +44,10 @@ line_char(struct line *line, wchar_t c)
 		if (line->is_underlined == true) line_style(line, FORMAT_UNDERLINED_BEGIN);
 		if (line->is_italic     == true) line_style(line, FORMAT_ITALIC_BEGIN);
 	}
-	if (wcswidth(LAST_LINE.ws->ptr, LAST_LINE.ws->len) + c_width <= (int)line->lim) {
-		wcatcs(LAST_LINE.ws, c);
+	if (wcswidth(line->head->ws->ptr, line->head->ws->len) + c_width <= (int)line->lim) {
+		wcatcs(line->head->ws, c);
 		if (c == L' ') {
-			line->pin = LAST_LINE.ws->len - 1;
+			line->pin = line->head->ws->len - 1;
 		}
 	} else if (c == L' ') {
 		line_bump(line);
@@ -54,10 +55,10 @@ line_char(struct line *line, wchar_t c)
 		line_bump(line);
 		line_char(line, c);
 	} else {
-		wcatcs(LAST_LINE.ws, c);
-		const wchar_t *cut = LAST_LINE.ws->ptr + line->pin + 1;
-		LAST_LINE.ws->ptr[line->pin] = L'\0';
-		LAST_LINE.ws->len = line->pin;
+		wcatcs(line->head->ws, c);
+		const wchar_t *cut = line->head->ws->ptr + line->pin + 1;
+		line->head->ws->ptr[line->pin] = L'\0';
+		line->head->ws->len = line->pin;
 		line_bump(line);
 		line_string(line, cut);
 	}
@@ -82,23 +83,23 @@ line_style(struct line *line, format_hint_mask hint)
 	if (hint & FORMAT_UNDERLINED_END)   line->is_underlined = false;
 	if (hint & FORMAT_ITALIC_BEGIN)     line->is_italic     = true;
 	if (hint & FORMAT_ITALIC_END)       line->is_italic     = false;
-	for (size_t i = 0; i < LAST_LINE.hints_len; ++i) {
-		if (LAST_LINE.ws->len == LAST_LINE.hints[i].pos) {
-			LAST_LINE.hints[i].value |= hint;
+	for (size_t i = 0; i < line->head->hints_len; ++i) {
+		if (line->head->ws->len == line->head->hints[i].pos) {
+			line->head->hints[i].value |= hint;
 			// Force style on when explicitly enabling it.
-			if (hint & FORMAT_BOLD_BEGIN)       LAST_LINE.hints[i].value &= ~FORMAT_BOLD_END;
-			if (hint & FORMAT_UNDERLINED_BEGIN) LAST_LINE.hints[i].value &= ~FORMAT_UNDERLINED_END;
-			if (hint & FORMAT_ITALIC_BEGIN)     LAST_LINE.hints[i].value &= ~FORMAT_ITALIC_END;
+			if (hint & FORMAT_BOLD_BEGIN)       line->head->hints[i].value &= ~FORMAT_BOLD_END;
+			if (hint & FORMAT_UNDERLINED_BEGIN) line->head->hints[i].value &= ~FORMAT_UNDERLINED_END;
+			if (hint & FORMAT_ITALIC_BEGIN)     line->head->hints[i].value &= ~FORMAT_ITALIC_END;
 			return true;
 		}
 	}
-	void *tmp = realloc(LAST_LINE.hints, sizeof(struct format_hint) * (LAST_LINE.hints_len + 1));
+	void *tmp = realloc(line->head->hints, sizeof(struct format_hint) * (line->head->hints_len + 1));
 	if (tmp == NULL) {
 		return false;
 	}
-	LAST_LINE.hints = tmp;
-	LAST_LINE.hints[LAST_LINE.hints_len].value = hint;
-	LAST_LINE.hints[LAST_LINE.hints_len].pos = LAST_LINE.ws->len;
-	LAST_LINE.hints_len += 1;
+	line->head->hints = tmp;
+	line->head->hints[line->head->hints_len].value = hint;
+	line->head->hints[line->head->hints_len].pos = line->head->ws->len;
+	line->head->hints_len += 1;
 	return true;
 }

@@ -106,7 +106,8 @@ add_url_mark(struct links_list *links, struct string *text, const char *url, con
 	if (index_len < 1 || index_len > 99) {
 		return;
 	}
-	catas(text, " [", 2);
+	// Prepend &nbsp; instead of space to avoid line wrapping of URL mark alone.
+	catas(text, "&nbsp;[", 7);
 	catas(text, index, index_len);
 	if (type != NULL || title != NULL) {
 		catas(text, ", ", 2);

@@ -240,7 +240,7 @@ ul_out_handler(struct string *text, struct html_data *data, GumboVector *attrs)
 static const struct html_element_preparer preparers[] = {
 	{GUMBO_TAG_P,          NULL,            NULL,             2, 2, NULL,   NULL},
 	{GUMBO_TAG_SPAN,       NULL,            NULL,             0, 0, NULL,   NULL},
-	{GUMBO_TAG_A,          NULL,            &a_handler,       0, 0, NULL,   NULL},
+	{GUMBO_TAG_A,          NULL,            &a_handler,       0, 0, "<u>",  "</u>"},
 	{GUMBO_TAG_LI,         NULL,            NULL,             1, 1, "<li>", "</li>"},
 	{GUMBO_TAG_UL,         &ul_in_handler,  &ul_out_handler,  0, 0, "<ul>", "</ul>"},
 	{GUMBO_TAG_OL,         &ul_in_handler,  &ul_out_handler,  0, 0, "<ol>", "</ol>"},

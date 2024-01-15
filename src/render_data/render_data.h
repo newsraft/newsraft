@@ -9,9 +9,6 @@ struct line {
 	size_t lim;                   // Capacity of one text line.
 	size_t pin;                   // Index of the last space in the last text line.
 	size_t indent;                // Shows how many spaces must be in the beginning of line.
-	bool is_bold;
-	bool is_underlined;
-	bool is_italic;
 };
 
 bool render_text_html(struct line *line, const struct wstring *source);

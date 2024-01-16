@@ -47,11 +47,11 @@ int
 paint_item_entry(size_t index)
 {
 	if (items->ptr[index].is_important == true) {
-		return CFG_COLOR_LIST_ITEM_IMPORTANT_FG;
+		return CFG_COLOR_LIST_ITEM_IMPORTANT;
 	} else if (items->ptr[index].is_unread == true) {
-		return CFG_COLOR_LIST_ITEM_UNREAD_FG;
+		return CFG_COLOR_LIST_ITEM_UNREAD;
 	} else {
-		return CFG_COLOR_LIST_ITEM_FG;
+		return CFG_COLOR_LIST_ITEM;
 	}
 }
 

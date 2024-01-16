@@ -9,7 +9,8 @@ struct config_string {
 };
 
 struct config_color {
-	int hue;
+	int fg;
+	int bg;
 	unsigned int attribute;
 };
 
@@ -27,26 +28,16 @@ struct config_entry {
 };
 
 static struct config_entry config[] = {
-	{"color-status-good-fg",            CFG_COLOR,  {.c = {COLOR_GREEN,   A_NORMAL}}},
-	{"color-status-good-bg",            CFG_COLOR,  {.c = {-1,            A_NORMAL}}},
-	{"color-status-info-fg",            CFG_COLOR,  {.c = {COLOR_CYAN,    A_NORMAL}}},
-	{"color-status-info-bg",            CFG_COLOR,  {.c = {-1,            A_NORMAL}}},
-	{"color-status-fail-fg",            CFG_COLOR,  {.c = {COLOR_RED,     A_NORMAL}}},
-	{"color-status-fail-bg",            CFG_COLOR,  {.c = {-1,            A_NORMAL}}},
-	{"color-list-item-fg",              CFG_COLOR,  {.c = {-1,            A_NORMAL}}},
-	{"color-list-item-bg",              CFG_COLOR,  {.c = {-1,            A_NORMAL}}},
-	{"color-list-item-unread-fg",       CFG_COLOR,  {.c = {COLOR_YELLOW,  A_NORMAL}}},
-	{"color-list-item-unread-bg",       CFG_COLOR,  {.c = {-1,            A_NORMAL}}},
-	{"color-list-item-important-fg",    CFG_COLOR,  {.c = {COLOR_MAGENTA, A_NORMAL}}},
-	{"color-list-item-important-bg",    CFG_COLOR,  {.c = {-1,            A_NORMAL}}},
-	{"color-list-feed-fg",              CFG_COLOR,  {.c = {-1,            A_NORMAL}}},
-	{"color-list-feed-bg",              CFG_COLOR,  {.c = {-1,            A_NORMAL}}},
-	{"color-list-feed-unread-fg",       CFG_COLOR,  {.c = {COLOR_YELLOW,  A_NORMAL}}},
-	{"color-list-feed-unread-bg",       CFG_COLOR,  {.c = {-1,            A_NORMAL}}},
-	{"color-list-section-fg",           CFG_COLOR,  {.c = {-1,            A_NORMAL}}},
-	{"color-list-section-bg",           CFG_COLOR,  {.c = {-1,            A_NORMAL}}},
-	{"color-list-section-unread-fg",    CFG_COLOR,  {.c = {COLOR_YELLOW,  A_NORMAL}}},
-	{"color-list-section-unread-bg",    CFG_COLOR,  {.c = {-1,            A_NORMAL}}},
+	{"color-status-good",               CFG_COLOR,  {.c = {COLOR_GREEN,   -1, A_NORMAL}}},
+	{"color-status-info",               CFG_COLOR,  {.c = {COLOR_CYAN,    -1, A_NORMAL}}},
+	{"color-status-fail",               CFG_COLOR,  {.c = {COLOR_RED,     -1, A_NORMAL}}},
+	{"color-list-item",                 CFG_COLOR,  {.c = {-1,            -1, A_NORMAL}}},
+	{"color-list-item-unread",          CFG_COLOR,  {.c = {COLOR_YELLOW,  -1, A_NORMAL}}},
+	{"color-list-item-important",       CFG_COLOR,  {.c = {COLOR_MAGENTA, -1, A_NORMAL}}},
+	{"color-list-feed",                 CFG_COLOR,  {.c = {-1,            -1, A_NORMAL}}},
+	{"color-list-feed-unread",          CFG_COLOR,  {.c = {COLOR_YELLOW,  -1, A_NORMAL}}},
+	{"color-list-section",              CFG_COLOR,  {.c = {-1,            -1, A_NORMAL}}},
+	{"color-list-section-unread",       CFG_COLOR,  {.c = {COLOR_YELLOW,  -1, A_NORMAL}}},
 	{"scrolloff",                       CFG_UINT,   {.u = 0   }},
 	{"update-threads-count",            CFG_UINT,   {.u = 0   }},
 	{"download-timeout",                CFG_UINT,   {.u = 20  }},
@@ -167,11 +158,12 @@ get_cfg_uint(config_entry_id i)
 	return config[i].value.u;
 }
 
-int
-get_cfg_color(config_entry_id i, unsigned int *attribute)
+unsigned int
+get_cfg_color(config_entry_id i, int *fg, int *bg)
 {
-	*attribute = config[i].value.c.attribute;
-	return config[i].value.c.hue;
+	*fg = config[i].value.c.fg;
+	*bg = config[i].value.c.bg;
+	return config[i].value.c.attribute;
 }
 
 const struct string *
@@ -199,14 +191,10 @@ set_cfg_uint(config_entry_id i, size_t value)
 }
 
 void
-set_cfg_color_hue(config_entry_id i, int hue)
+set_cfg_color(config_entry_id i, int fg, int bg, unsigned int attribute)
 {
-	config[i].value.c.hue = hue;
-}
-
-void
-set_cfg_color_attribute(config_entry_id i, unsigned int attribute)
-{
+	config[i].value.c.fg = fg;
+	config[i].value.c.bg = bg;
 	config[i].value.c.attribute = attribute;
 }
 

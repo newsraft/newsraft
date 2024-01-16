@@ -404,72 +404,34 @@ _send-if-modified-since-header_ (default: *true*)
 
 # COLOR SETTINGS
 
-Color settings are the same settings as above, but they take a certain set of
-whitespace separated tokens for their values: one hue word and optional format
-attributes. Available tokens for hue are *default*, *black*, *red*, *green*,
-*yellow*, *blue*, *magenta*, *cyan*, *white* and *colorN*, where *N* is a number
-between 0 and 255. Available tokens for format attributes are *bold*, *italic*
-and *underlined*.
+Color settings are the same settings as above, but they take two color words
+(foreground and background) and optional attribute words. Available colors are
+*default*, *black*, *red*, *green*, *yellow*, *blue*, *magenta*, *cyan*, *white*
+and *colorN* (*N* can be a number from *0* to *255*). Available attributes are
+*bold*, *italic* and *underlined*.
 
-_color-status-good-fg_ (default: *green*)
-	Text color of status area when reporting success.
-
-_color-status-good-bg_ (default: *default*)
-	Background color of status area when reporting success.
-
-_color-status-info-fg_ (default: *cyan*)
-	Text color of status area when reporting information.
-
-_color-status-info-bg_ (default: *default*)
-	Background color of status area when reporting information.
-
-_color-status-fail-fg_ (default: *red*)
-	Text color of status area when reporting failure.
-
-_color-status-fail-bg_ (default: *default*)
-	Background color of status area when reporting failure.
-
-_color-list-item-fg_ (default: *default*)
-	Text color of item list entry.
-
-_color-list-item-bg_ (default: *default*)
-	Background color of item list entry.
-
-_color-list-item-unread-fg_ (default: *yellow*)
-	Text color of unread item list entry.
-
-_color-list-item-unread-bg_ (default: *default*)
-	Background color of unread item list entry.
-
-_color-list-item-important-fg_ (default: *magenta*)
-	Text color of important item list entry.
-
-_color-list-item-important-bg_ (default: *default*)
-	Background color of important item list entry.
-
-_color-list-feed-fg_ (default: *default*)
-	Text color of feed list entry.
-
-_color-list-feed-bg_ (default: *default*)
-	Background color of feed list entry.
-
-_color-list-feed-unread-fg_ (default: *yellow*)
-	Text color of unread feed list entry.
-
-_color-list-feed-unread-bg_ (default: *default*)
-	Background color of unread feed list entry.
-
-_color-list-section-fg_ (default: *default*)
-	Text color of section list entry.
-
-_color-list-section-bg_ (default: *default*)
-	Background color of section list entry.
-
-_color-list-section-unread-fg_ (default: *yellow*)
-	Text color of unread section list entry.
-
-_color-list-section-unread-bg_ (default: *default*)
-	Background color of unread section list entry.
+|[ Color setting
+:[ Default value
+|[ _color-status-good_
+:[ *green default*
+|[ _color-status-info_
+:[ *cyan default*
+|[ _color-status-fail_
+:[ *red default*
+|[ _color-list-item_
+:[ *default default*
+|[ _color-list-item-unread_
+:[ *yellow default*
+|[ _color-list-item-important_
+:[ *magenta default*
+|[ _color-list-feed_
+:[ *default default*
+|[ _color-list-feed-unread_
+:[ *yellow default*
+|[ _color-list-section_
+:[ *default default*
+|[ _color-list-section-unread_
+:[ *yellow default*
 
 # ACTIONS
 

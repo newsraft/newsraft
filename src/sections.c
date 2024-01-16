@@ -39,7 +39,7 @@ get_section_entry_args(size_t index)
 int
 paint_section_entry(size_t index)
 {
-	return sections[index].unread_count > 0 ? CFG_COLOR_LIST_SECTION_UNREAD_FG : CFG_COLOR_LIST_SECTION_FG;
+	return sections[index].unread_count > 0 ? CFG_COLOR_LIST_SECTION_UNREAD : CFG_COLOR_LIST_SECTION;
 }
 
 bool

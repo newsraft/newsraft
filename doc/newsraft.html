@@ -462,57 +462,61 @@
 <section class="Sh">
 <h1 class="Sh" id="COLOR_SETTINGS"><a class="permalink" href="#COLOR_SETTINGS">COLOR
   SETTINGS</a></h1>
-<p class="Pp">Color settings are the same settings as above, but they take a
-    certain set of whitespace separated tokens for their values: one hue word
-    and optional format attributes. Available tokens for hue are <b>default</b>,
-    <b>black</b>, <b>red</b>, <b>green</b>, <b>yellow</b>, <b>blue</b>,
-    <b>magenta</b>, <b>cyan</b>, <b>white</b> and <b>colorN</b>, where <b>N</b>
-    is a number between 0 and 255. Available tokens for format attributes are
-    <b>bold</b>, <b>italic</b> and <b>underlined</b>.</p>
-<p class="Pp"><i>color-status-good-fg</i> (default: <b>green</b>)</p>
-<div class="Bd-indent">Text color of status area when reporting success.</div>
-<p class="Pp"><i>color-status-good-bg</i> (default: <b>default</b>)</p>
-<div class="Bd-indent">Background color of status area when reporting
-  success.</div>
-<p class="Pp"><i>color-status-info-fg</i> (default: <b>cyan</b>)</p>
-<div class="Bd-indent">Text color of status area when reporting
-  information.</div>
-<p class="Pp"><i>color-status-info-bg</i> (default: <b>default</b>)</p>
-<div class="Bd-indent">Background color of status area when reporting
-  information.</div>
-<p class="Pp"><i>color-status-fail-fg</i> (default: <b>red</b>)</p>
-<div class="Bd-indent">Text color of status area when reporting failure.</div>
-<p class="Pp"><i>color-status-fail-bg</i> (default: <b>default</b>)</p>
-<div class="Bd-indent">Background color of status area when reporting
-  failure.</div>
-<p class="Pp"><i>color-list-item-fg</i> (default: <b>default</b>)</p>
-<div class="Bd-indent">Text color of item list entry.</div>
-<p class="Pp"><i>color-list-item-bg</i> (default: <b>default</b>)</p>
-<div class="Bd-indent">Background color of item list entry.</div>
-<p class="Pp"><i>color-list-item-unread-fg</i> (default: <b>yellow</b>)</p>
-<div class="Bd-indent">Text color of unread item list entry.</div>
-<p class="Pp"><i>color-list-item-unread-bg</i> (default: <b>default</b>)</p>
-<div class="Bd-indent">Background color of unread item list entry.</div>
-<p class="Pp"><i>color-list-item-important-fg</i> (default: <b>magenta</b>)</p>
-<div class="Bd-indent">Text color of important item list entry.</div>
-<p class="Pp"><i>color-list-item-important-bg</i> (default: <b>default</b>)</p>
-<div class="Bd-indent">Background color of important item list entry.</div>
-<p class="Pp"><i>color-list-feed-fg</i> (default: <b>default</b>)</p>
-<div class="Bd-indent">Text color of feed list entry.</div>
-<p class="Pp"><i>color-list-feed-bg</i> (default: <b>default</b>)</p>
-<div class="Bd-indent">Background color of feed list entry.</div>
-<p class="Pp"><i>color-list-feed-unread-fg</i> (default: <b>yellow</b>)</p>
-<div class="Bd-indent">Text color of unread feed list entry.</div>
-<p class="Pp"><i>color-list-feed-unread-bg</i> (default: <b>default</b>)</p>
-<div class="Bd-indent">Background color of unread feed list entry.</div>
-<p class="Pp"><i>color-list-section-fg</i> (default: <b>default</b>)</p>
-<div class="Bd-indent">Text color of section list entry.</div>
-<p class="Pp"><i>color-list-section-bg</i> (default: <b>default</b>)</p>
-<div class="Bd-indent">Background color of section list entry.</div>
-<p class="Pp"><i>color-list-section-unread-fg</i> (default: <b>yellow</b>)</p>
-<div class="Bd-indent">Text color of unread section list entry.</div>
-<p class="Pp"><i>color-list-section-unread-bg</i> (default: <b>default</b>)</p>
-<div class="Bd-indent">Background color of unread section list entry.</div>
+<p class="Pp">Color settings are the same settings as above, but they take two
+    color words (foreground and background) and optional attribute words.
+    Available colors are <b>default</b>, <b>black</b>, <b>red</b>, <b>green</b>,
+    <b>yellow</b>, <b>blue</b>, <b>magenta</b>, <b>cyan</b>, <b>white</b> and
+    <b>colorN</b> (<b>N</b> can be a number from <b>0</b> to <b>255</b>).
+    Available attributes are <b>bold</b>, <b>italic</b> and
+  <b>underlined</b>.</p>
+<p class="Pp"></p>
+<table class="tbl">
+  <tr>
+    <td>Color setting</td>
+    <td>Default value</td>
+  </tr>
+  <tr>
+    <td><i>color-status-good</i></td>
+    <td><b>green default</b></td>
+  </tr>
+  <tr>
+    <td><i>color-status-info</i></td>
+    <td><b>cyan default</b></td>
+  </tr>
+  <tr>
+    <td><i>color-status-fail</i></td>
+    <td><b>red default</b></td>
+  </tr>
+  <tr>
+    <td><i>color-list-item</i></td>
+    <td><b>default default</b></td>
+  </tr>
+  <tr>
+    <td><i>color-list-item-unread</i></td>
+    <td><b>yellow default</b></td>
+  </tr>
+  <tr>
+    <td><i>color-list-item-important</i></td>
+    <td><b>magenta default</b></td>
+  </tr>
+  <tr>
+    <td><i>color-list-feed</i></td>
+    <td><b>default default</b></td>
+  </tr>
+  <tr>
+    <td><i>color-list-feed-unread</i></td>
+    <td><b>yellow default</b></td>
+  </tr>
+  <tr>
+    <td><i>color-list-section</i></td>
+    <td><b>default default</b></td>
+  </tr>
+  <tr>
+    <td><i>color-list-section-unread</i></td>
+    <td><b>yellow default</b></td>
+  </tr>
+</table>
+<p class="Pp"></p>
 </section>
 <section class="Sh">
 <h1 class="Sh" id="ACTIONS"><a class="permalink" href="#ACTIONS">ACTIONS</a></h1>
@@ -731,7 +735,7 @@
 </div>
 <table class="foot">
   <tr>
-    <td class="foot-date">2024-01-12</td>
+    <td class="foot-date">2024-01-16</td>
     <td class="foot-os"></td>
   </tr>
 </table>

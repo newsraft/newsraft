@@ -5,7 +5,7 @@
 .nh
 .ad l
 .\" Begin generated content:
-.TH "NEWSRAFT" "1" "2024-01-12"
+.TH "NEWSRAFT" "1" "2024-01-16"
 .P
 .SH NAME
 .P
@@ -622,113 +622,81 @@ discouraged.\&
 .RE
 .SH COLOR SETTINGS
 .P
-Color settings are the same settings as above, but they take a certain set of
-whitespace separated tokens for their values: one hue word and optional format
-attributes.\& Available tokens for hue are \fBdefault\fR, \fBblack\fR, \fBred\fR, \fBgreen\fR,
-\fByellow\fR, \fBblue\fR, \fBmagenta\fR, \fBcyan\fR, \fBwhite\fR and \fBcolorN\fR, where \fBN\fR is a number
-between 0 and 255.\& Available tokens for format attributes are \fBbold\fR, \fBitalic\fR
-and \fBunderlined\fR.\&
+Color settings are the same settings as above, but they take two color words
+(foreground and background) and optional attribute words.\& Available colors are
+\fBdefault\fR, \fBblack\fR, \fBred\fR, \fBgreen\fR, \fByellow\fR, \fBblue\fR, \fBmagenta\fR, \fBcyan\fR, \fBwhite\fR
+and \fBcolorN\fR (\fBN\fR can be a number from \fB0\fR to \fB255\fR).\& Available attributes are
+\fBbold\fR, \fBitalic\fR and \fBunderlined\fR.\&
 .P
-\fIcolor-status-good-fg\fR (default: \fBgreen\fR)
-.RS 4
-Text color of status area when reporting success.\&
-.P
-.RE
-\fIcolor-status-good-bg\fR (default: \fBdefault\fR)
-.RS 4
-Background color of status area when reporting success.\&
-.P
-.RE
-\fIcolor-status-info-fg\fR (default: \fBcyan\fR)
-.RS 4
-Text color of status area when reporting information.\&
-.P
-.RE
-\fIcolor-status-info-bg\fR (default: \fBdefault\fR)
-.RS 4
-Background color of status area when reporting information.\&
-.P
-.RE
-\fIcolor-status-fail-fg\fR (default: \fBred\fR)
-.RS 4
-Text color of status area when reporting failure.\&
-.P
-.RE
-\fIcolor-status-fail-bg\fR (default: \fBdefault\fR)
-.RS 4
-Background color of status area when reporting failure.\&
-.P
-.RE
-\fIcolor-list-item-fg\fR (default: \fBdefault\fR)
-.RS 4
-Text color of item list entry.\&
-.P
-.RE
-\fIcolor-list-item-bg\fR (default: \fBdefault\fR)
-.RS 4
-Background color of item list entry.\&
-.P
-.RE
-\fIcolor-list-item-unread-fg\fR (default: \fByellow\fR)
-.RS 4
-Text color of unread item list entry.\&
-.P
-.RE
-\fIcolor-list-item-unread-bg\fR (default: \fBdefault\fR)
-.RS 4
-Background color of unread item list entry.\&
-.P
-.RE
-\fIcolor-list-item-important-fg\fR (default: \fBmagenta\fR)
-.RS 4
-Text color of important item list entry.\&
-.P
-.RE
-\fIcolor-list-item-important-bg\fR (default: \fBdefault\fR)
-.RS 4
-Background color of important item list entry.\&
-.P
-.RE
-\fIcolor-list-feed-fg\fR (default: \fBdefault\fR)
-.RS 4
-Text color of feed list entry.\&
-.P
-.RE
-\fIcolor-list-feed-bg\fR (default: \fBdefault\fR)
-.RS 4
-Background color of feed list entry.\&
-.P
-.RE
-\fIcolor-list-feed-unread-fg\fR (default: \fByellow\fR)
-.RS 4
-Text color of unread feed list entry.\&
-.P
-.RE
-\fIcolor-list-feed-unread-bg\fR (default: \fBdefault\fR)
-.RS 4
-Background color of unread feed list entry.\&
-.P
-.RE
-\fIcolor-list-section-fg\fR (default: \fBdefault\fR)
-.RS 4
-Text color of section list entry.\&
-.P
-.RE
-\fIcolor-list-section-bg\fR (default: \fBdefault\fR)
-.RS 4
-Background color of section list entry.\&
-.P
-.RE
-\fIcolor-list-section-unread-fg\fR (default: \fByellow\fR)
-.RS 4
-Text color of unread section list entry.\&
-.P
-.RE
-\fIcolor-list-section-unread-bg\fR (default: \fBdefault\fR)
-.RS 4
-Background color of unread section list entry.\&
-.P
-.RE
+.TS
+l l
+l l
+l l
+l l
+l l
+l l
+l l
+l l
+l l
+l l
+l l.
+T{
+Color setting
+T}	T{
+Default value
+T}
+T{
+\fIcolor-status-good\fR
+T}	T{
+\fBgreen default\fR
+T}
+T{
+\fIcolor-status-info\fR
+T}	T{
+\fBcyan default\fR
+T}
+T{
+\fIcolor-status-fail\fR
+T}	T{
+\fBred default\fR
+T}
+T{
+\fIcolor-list-item\fR
+T}	T{
+\fBdefault default\fR
+T}
+T{
+\fIcolor-list-item-unread\fR
+T}	T{
+\fByellow default\fR
+T}
+T{
+\fIcolor-list-item-important\fR
+T}	T{
+\fBmagenta default\fR
+T}
+T{
+\fIcolor-list-feed\fR
+T}	T{
+\fBdefault default\fR
+T}
+T{
+\fIcolor-list-feed-unread\fR
+T}	T{
+\fByellow default\fR
+T}
+T{
+\fIcolor-list-section\fR
+T}	T{
+\fBdefault default\fR
+T}
+T{
+\fIcolor-list-section-unread\fR
+T}	T{
+\fByellow default\fR
+T}
+.TE
+.sp 1
 .SH ACTIONS
 .P
 .TS

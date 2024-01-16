@@ -21,9 +21,9 @@
 #define INFO(...) do { if (log_stream) { fputs("[INFO] ", log_stream); fprintf(log_stream, __VA_ARGS__); fputc('\n', log_stream); } } while (0)
 #define WARN(...) do { if (log_stream) { fputs("[WARN] ", log_stream); fprintf(log_stream, __VA_ARGS__); fputc('\n', log_stream); } } while (0)
 #define FAIL(...) do { if (log_stream) { fputs("[FAIL] ", log_stream); fprintf(log_stream, __VA_ARGS__); fputc('\n', log_stream); } } while (0)
-#define good_status(...) status_write(CFG_COLOR_STATUS_GOOD_FG, __VA_ARGS__)
-#define info_status(...) status_write(CFG_COLOR_STATUS_INFO_FG, __VA_ARGS__)
-#define fail_status(...) status_write(CFG_COLOR_STATUS_FAIL_FG, __VA_ARGS__)
+#define good_status(...) status_write(CFG_COLOR_STATUS_GOOD, __VA_ARGS__)
+#define info_status(...) status_write(CFG_COLOR_STATUS_INFO, __VA_ARGS__)
+#define fail_status(...) status_write(CFG_COLOR_STATUS_FAIL, __VA_ARGS__)
 #define MIN(A, B) ((A) < (B) ? (A) : (B))
 
 #define NEWSRAFT_THREADS_COUNT_LIMIT 100
@@ -31,26 +31,16 @@
 #define NEWSRAFT_COLOR_PAIRS_COUNT 10
 typedef uint8_t config_entry_id;
 enum {
-	CFG_COLOR_STATUS_GOOD_FG = 0,
-	CFG_COLOR_STATUS_GOOD_BG,
-	CFG_COLOR_STATUS_INFO_FG,
-	CFG_COLOR_STATUS_INFO_BG,
-	CFG_COLOR_STATUS_FAIL_FG,
-	CFG_COLOR_STATUS_FAIL_BG,
-	CFG_COLOR_LIST_ITEM_FG,
-	CFG_COLOR_LIST_ITEM_BG,
-	CFG_COLOR_LIST_ITEM_UNREAD_FG,
-	CFG_COLOR_LIST_ITEM_UNREAD_BG,
-	CFG_COLOR_LIST_ITEM_IMPORTANT_FG,
-	CFG_COLOR_LIST_ITEM_IMPORTANT_BG,
-	CFG_COLOR_LIST_FEED_FG,
-	CFG_COLOR_LIST_FEED_BG,
-	CFG_COLOR_LIST_FEED_UNREAD_FG,
-	CFG_COLOR_LIST_FEED_UNREAD_BG,
-	CFG_COLOR_LIST_SECTION_FG,
-	CFG_COLOR_LIST_SECTION_BG,
-	CFG_COLOR_LIST_SECTION_UNREAD_FG,
-	CFG_COLOR_LIST_SECTION_UNREAD_BG,
+	CFG_COLOR_STATUS_GOOD = 0,
+	CFG_COLOR_STATUS_INFO,
+	CFG_COLOR_STATUS_FAIL,
+	CFG_COLOR_LIST_ITEM,
+	CFG_COLOR_LIST_ITEM_UNREAD,
+	CFG_COLOR_LIST_ITEM_IMPORTANT,
+	CFG_COLOR_LIST_FEED,
+	CFG_COLOR_LIST_FEED_UNREAD,
+	CFG_COLOR_LIST_SECTION,
+	CFG_COLOR_LIST_SECTION_UNREAD,
 	CFG_SCROLLOFF,
 	CFG_UPDATE_THREADS_COUNT,
 	CFG_DOWNLOAD_TIMEOUT,
@@ -535,7 +525,7 @@ bool parse_config_file(void);
 bool load_config(void);
 bool get_cfg_bool(config_entry_id i);
 size_t get_cfg_uint(config_entry_id i);
-int get_cfg_color(config_entry_id i, unsigned int *attribute);
+unsigned int get_cfg_color(config_entry_id i, int *fg, int *bg);
 const struct string *get_cfg_string(config_entry_id i);
 const struct wstring *get_cfg_wstring(config_entry_id i);
 void free_config(void);

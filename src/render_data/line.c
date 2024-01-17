@@ -42,13 +42,13 @@ line_pin_split(struct line *line)
 	if (next_hints_start < prev_head->hints_len) {
 		// Trim content and style hints of current line head.
 		for (size_t i = 0; i < next_hints_start; ++i) {
-			line_style(line, prev_head->hints[i].value);
+			line_style(line, prev_head->hints[i].mask);
 		}
 		for (size_t i = next_hints_start; i < prev_head->hints_len; ++i) {
 			struct format_hint *tmp = realloc(line->head->hints, sizeof(struct format_hint) * (line->head->hints_len + 1));
 			if (tmp == NULL) return;
 			line->head->hints = tmp;
-			line->head->hints[line->head->hints_len].value = prev_head->hints[i].value;
+			line->head->hints[line->head->hints_len].mask = prev_head->hints[i].mask;
 			line->head->hints[line->head->hints_len].pos = prev_head->hints[i].pos - prev_pin - 1;
 			line->head->hints_len += 1;
 		}
@@ -78,12 +78,12 @@ line_char(struct line *line, wchar_t c)
 		if (line->target->lines_len > 1) {
 			bool is_bold = false, is_underlined = false, is_italic = false;
 			for (size_t i = 0; i < (line->head - 1)->hints_len; ++i) {
-				if ((line->head - 1)->hints[i].value & FORMAT_BOLD_BEGIN)       is_bold = true;
-				if ((line->head - 1)->hints[i].value & FORMAT_BOLD_END)         is_bold = false;
-				if ((line->head - 1)->hints[i].value & FORMAT_UNDERLINED_BEGIN) is_underlined = true;
-				if ((line->head - 1)->hints[i].value & FORMAT_UNDERLINED_END)   is_underlined = false;
-				if ((line->head - 1)->hints[i].value & FORMAT_ITALIC_BEGIN)     is_italic = true;
-				if ((line->head - 1)->hints[i].value & FORMAT_ITALIC_END)       is_italic = false;
+				if ((line->head - 1)->hints[i].mask & FORMAT_BOLD_BEGIN)       is_bold = true;
+				if ((line->head - 1)->hints[i].mask & FORMAT_BOLD_END)         is_bold = false;
+				if ((line->head - 1)->hints[i].mask & FORMAT_UNDERLINED_BEGIN) is_underlined = true;
+				if ((line->head - 1)->hints[i].mask & FORMAT_UNDERLINED_END)   is_underlined = false;
+				if ((line->head - 1)->hints[i].mask & FORMAT_ITALIC_BEGIN)     is_italic = true;
+				if ((line->head - 1)->hints[i].mask & FORMAT_ITALIC_END)       is_italic = false;
 			}
 			if (is_bold       == true) line_style(line, FORMAT_BOLD_BEGIN);
 			if (is_underlined == true) line_style(line, FORMAT_UNDERLINED_BEGIN);
@@ -121,13 +121,13 @@ line_style(struct line *line, format_hint_mask hint)
 {
 	for (size_t i = 0; i < line->head->hints_len; ++i) {
 		if (line->head->ws->len == line->head->hints[i].pos) {
-			line->head->hints[i].value |= hint;
-			if (hint & FORMAT_BOLD_BEGIN)       line->head->hints[i].value &= ~FORMAT_BOLD_END;
-			if (hint & FORMAT_BOLD_END)         line->head->hints[i].value &= ~FORMAT_BOLD_BEGIN;
-			if (hint & FORMAT_UNDERLINED_BEGIN) line->head->hints[i].value &= ~FORMAT_UNDERLINED_END;
-			if (hint & FORMAT_UNDERLINED_END)   line->head->hints[i].value &= ~FORMAT_UNDERLINED_BEGIN;
-			if (hint & FORMAT_ITALIC_BEGIN)     line->head->hints[i].value &= ~FORMAT_ITALIC_END;
-			if (hint & FORMAT_ITALIC_END)       line->head->hints[i].value &= ~FORMAT_ITALIC_BEGIN;
+			line->head->hints[i].mask |= hint;
+			if (hint & FORMAT_BOLD_BEGIN)       line->head->hints[i].mask &= ~FORMAT_BOLD_END;
+			if (hint & FORMAT_BOLD_END)         line->head->hints[i].mask &= ~FORMAT_BOLD_BEGIN;
+			if (hint & FORMAT_UNDERLINED_BEGIN) line->head->hints[i].mask &= ~FORMAT_UNDERLINED_END;
+			if (hint & FORMAT_UNDERLINED_END)   line->head->hints[i].mask &= ~FORMAT_UNDERLINED_BEGIN;
+			if (hint & FORMAT_ITALIC_BEGIN)     line->head->hints[i].mask &= ~FORMAT_ITALIC_END;
+			if (hint & FORMAT_ITALIC_END)       line->head->hints[i].mask &= ~FORMAT_ITALIC_BEGIN;
 			return true;
 		}
 	}
@@ -136,7 +136,7 @@ line_style(struct line *line, format_hint_mask hint)
 		return false;
 	}
 	line->head->hints = tmp;
-	line->head->hints[line->head->hints_len].value = hint;
+	line->head->hints[line->head->hints_len].mask = hint;
 	line->head->hints[line->head->hints_len].pos = line->head->ws->len;
 	line->head->hints_len += 1;
 	return true;

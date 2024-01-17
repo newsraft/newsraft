@@ -249,7 +249,7 @@ struct render_blocks_list {
 };
 
 struct format_hint {
-	format_hint_mask value;
+	format_hint_mask mask;
 	size_t pos;
 };
 

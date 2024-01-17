@@ -16,20 +16,20 @@ pager_list_menu_writer(size_t index, WINDOW *w)
 	if (index < content.lines_len) {
 		for (size_t i = 0, hint_index = 0; i < content.lines[index].ws->len; ++i) {
 			if (hint_index < content.lines[index].hints_len && i == content.lines[index].hints[hint_index].pos) {
-				if (content.lines[index].hints[hint_index].value & FORMAT_BOLD_END) {
+				if (content.lines[index].hints[hint_index].mask & FORMAT_BOLD_END) {
 					wattroff(w, A_BOLD);
-				} else if (content.lines[index].hints[hint_index].value & FORMAT_BOLD_BEGIN) {
+				} else if (content.lines[index].hints[hint_index].mask & FORMAT_BOLD_BEGIN) {
 					wattron(w, A_BOLD);
 				}
-				if (content.lines[index].hints[hint_index].value & FORMAT_UNDERLINED_END) {
+				if (content.lines[index].hints[hint_index].mask & FORMAT_UNDERLINED_END) {
 					wattroff(w, A_UNDERLINE);
-				} else if (content.lines[index].hints[hint_index].value & FORMAT_UNDERLINED_BEGIN) {
+				} else if (content.lines[index].hints[hint_index].mask & FORMAT_UNDERLINED_BEGIN) {
 					wattron(w, A_UNDERLINE);
 				}
 #ifdef A_ITALIC // Since A_ITALIC is an ncurses extension, some systems may lack it.
-				if (content.lines[index].hints[hint_index].value & FORMAT_ITALIC_END) {
+				if (content.lines[index].hints[hint_index].mask & FORMAT_ITALIC_END) {
 					wattroff(w, A_ITALIC);
-				} else if (content.lines[index].hints[hint_index].value & FORMAT_ITALIC_BEGIN) {
+				} else if (content.lines[index].hints[hint_index].mask & FORMAT_ITALIC_BEGIN) {
 					wattron(w, A_ITALIC);
 				}
 #endif

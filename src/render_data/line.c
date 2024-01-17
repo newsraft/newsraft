@@ -76,9 +76,18 @@ line_char(struct line *line, wchar_t c)
 		// Apply unfinished formatting of the previous line to the current line.
 		// We do it AFTER indenting whitespace to avoid styling empty start of line.
 		if (line->target->lines_len > 1) {
+			bool is_bold = false, is_underlined = false, is_italic = false;
 			for (size_t i = 0; i < (line->head - 1)->hints_len; ++i) {
-				line_style(line, (line->head - 1)->hints[i].value);
+				if ((line->head - 1)->hints[i].value & FORMAT_BOLD_BEGIN)       is_bold = true;
+				if ((line->head - 1)->hints[i].value & FORMAT_BOLD_END)         is_bold = false;
+				if ((line->head - 1)->hints[i].value & FORMAT_UNDERLINED_BEGIN) is_underlined = true;
+				if ((line->head - 1)->hints[i].value & FORMAT_UNDERLINED_END)   is_underlined = false;
+				if ((line->head - 1)->hints[i].value & FORMAT_ITALIC_BEGIN)     is_italic = true;
+				if ((line->head - 1)->hints[i].value & FORMAT_ITALIC_END)       is_italic = false;
 			}
+			if (is_bold       == true) line_style(line, FORMAT_BOLD_BEGIN);
+			if (is_underlined == true) line_style(line, FORMAT_UNDERLINED_BEGIN);
+			if (is_italic     == true) line_style(line, FORMAT_ITALIC_BEGIN);
 		}
 	}
 	if (wcswidth(line->head->ws->ptr, line->head->ws->len) + c_width <= (int)line->lim) {
@@ -113,10 +122,12 @@ line_style(struct line *line, format_hint_mask hint)
 	for (size_t i = 0; i < line->head->hints_len; ++i) {
 		if (line->head->ws->len == line->head->hints[i].pos) {
 			line->head->hints[i].value |= hint;
-			// Force style on when explicitly enabling it.
 			if (hint & FORMAT_BOLD_BEGIN)       line->head->hints[i].value &= ~FORMAT_BOLD_END;
+			if (hint & FORMAT_BOLD_END)         line->head->hints[i].value &= ~FORMAT_BOLD_BEGIN;
 			if (hint & FORMAT_UNDERLINED_BEGIN) line->head->hints[i].value &= ~FORMAT_UNDERLINED_END;
+			if (hint & FORMAT_UNDERLINED_END)   line->head->hints[i].value &= ~FORMAT_UNDERLINED_BEGIN;
 			if (hint & FORMAT_ITALIC_BEGIN)     line->head->hints[i].value &= ~FORMAT_ITALIC_END;
+			if (hint & FORMAT_ITALIC_END)       line->head->hints[i].value &= ~FORMAT_ITALIC_BEGIN;
 			return true;
 		}
 	}

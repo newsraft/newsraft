@@ -244,8 +244,6 @@ struct render_blocks_list {
 	struct render_block *ptr;
 	size_t len;
 	size_t links_block_index;
-	struct string *pre_links_block;
-	struct string *post_links_block;
 };
 
 struct format_hint {

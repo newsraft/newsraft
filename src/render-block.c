@@ -34,20 +34,14 @@ apply_links_render_blocks(struct render_blocks_list *blocks, const struct string
 	}
 	blocks->ptr = tmp;
 	for (size_t i = blocks->len - 1; i >= blocks->links_block_index; --i) {
-		blocks->ptr[i + 3].content        = blocks->ptr[i].content;
-		blocks->ptr[i + 3].content_type   = blocks->ptr[i].content_type;
-		blocks->ptr[i + 3].needs_trimming = blocks->ptr[i].needs_trimming;
+		blocks->ptr[i + 1].content        = blocks->ptr[i].content;
+		blocks->ptr[i + 1].content_type   = blocks->ptr[i].content_type;
+		blocks->ptr[i + 1].needs_trimming = blocks->ptr[i].needs_trimming;
 	}
-	blocks->ptr[blocks->links_block_index + 0].content        = convert_string_to_wstring(blocks->pre_links_block);
-	blocks->ptr[blocks->links_block_index + 0].content_type   = TEXT_HTML;
-	blocks->ptr[blocks->links_block_index + 0].needs_trimming = false;
-	blocks->ptr[blocks->links_block_index + 1].content        = convert_string_to_wstring(data);
-	blocks->ptr[blocks->links_block_index + 1].content_type   = TEXT_RAW;
-	blocks->ptr[blocks->links_block_index + 1].needs_trimming = true;
-	blocks->ptr[blocks->links_block_index + 2].content        = convert_string_to_wstring(blocks->post_links_block);
-	blocks->ptr[blocks->links_block_index + 2].content_type   = TEXT_HTML;
-	blocks->ptr[blocks->links_block_index + 2].needs_trimming = false;
-	blocks->len += 3;
+	blocks->ptr[blocks->links_block_index].content        = convert_string_to_wstring(data);
+	blocks->ptr[blocks->links_block_index].content_type   = TEXT_RAW;
+	blocks->ptr[blocks->links_block_index].needs_trimming = true;
+	blocks->len += 1;
 	return true;
 }
 
@@ -58,6 +52,4 @@ free_render_blocks(struct render_blocks_list *blocks)
 		free_wstring(blocks->ptr[i].content);
 	}
 	free(blocks->ptr);
-	free_string(blocks->pre_links_block);
-	free_string(blocks->post_links_block);
 }

@@ -8,7 +8,7 @@ struct line {
 	struct render_line *head;     // Line where text is currently added.
 	size_t lim;                   // Capacity of one text line.
 	size_t pin;                   // Index of the last space in the last text line.
-	size_t indent;                // Shows how many spaces must be in the beginning of line.
+	size_t next_indent;           // Indentation for subsequent line bumps.
 };
 
 bool render_text_html(struct line *line, const struct wstring *source);

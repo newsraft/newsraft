@@ -13,13 +13,25 @@ line_bump(struct line *line)
 		free_wstring(line_ws);
 		return false;
 	}
-	tmp[line->target->lines_len].ws = line_ws;
-	tmp[line->target->lines_len].hints = NULL;
-	tmp[line->target->lines_len].hints_len = 0;
-	line->head = tmp + line->target->lines_len;
 	line->target->lines = tmp;
 	line->target->lines_len += 1;
+	line->head = line->target->lines + line->target->lines_len - 1;
+	line->head->ws = line_ws;
+	line->head->hints = NULL;
+	line->head->hints_len = 0;
+	line->head->indent = line->next_indent;
 	line->pin = SIZE_MAX;
+
+	// Apply unfinished formatting of the previous line to the current line.
+	// We do it in line_bump instead of line_char to make sure formatting may
+	// continue on empty lines (where line_char is not called).
+	if (line->target->lines_len > 1 && (line->head - 1)->hints_len > 0) {
+		for (size_t i = 0; i < (line->head - 1)->hints_len; ++i) {
+			line_style(line, (line->head - 1)->hints[i].mask);
+		}
+		line->head->hints[0].mask &= ~FORMAT_ALL_END;
+	}
+
 	return true;
 }
 
@@ -27,70 +39,41 @@ static inline void
 line_pin_split(struct line *line)
 {
 	size_t prev_pin = line->pin;
+	size_t prev_hints_len = line->head->hints_len;
+	size_t next_hints_start = 0;
+	while (next_hints_start < prev_hints_len) {
+		if (line->head->hints[next_hints_start].pos >= prev_pin) {
+			line->head->hints_len = next_hints_start;
+			break;
+		}
+		next_hints_start += 1;
+	}
+
 	line_bump(line); // Now line->head points to a next empty line.
+
 	struct render_line *prev_head = line->head - 1;
+	size_t prev_len = prev_head->ws->len;
 	prev_head->ws->ptr[prev_pin] = L'\0';
 	prev_head->ws->len = prev_pin;
 
-	size_t next_hints_start;
-	for (next_hints_start = 0; next_hints_start < prev_head->hints_len; ++next_hints_start) {
-		if (prev_head->hints[next_hints_start].pos > prev_pin) {
-			break;
+	for (size_t i = prev_pin + 1, j = next_hints_start; i < prev_len; ++i) {
+		if (j < prev_hints_len && i == prev_head->hints[j].pos) {
+			line_style(line, prev_head->hints[j].mask);
+			j += 1;
 		}
+		line_char(line, prev_head->ws->ptr[i]);
 	}
-
-	if (next_hints_start < prev_head->hints_len) {
-		// Trim content and style hints of current line head.
-		for (size_t i = 0; i < next_hints_start; ++i) {
-			line_style(line, prev_head->hints[i].mask);
-		}
-		for (size_t i = next_hints_start; i < prev_head->hints_len; ++i) {
-			struct format_hint *tmp = realloc(line->head->hints, sizeof(struct format_hint) * (line->head->hints_len + 1));
-			if (tmp == NULL) return;
-			line->head->hints = tmp;
-			line->head->hints[line->head->hints_len].mask = prev_head->hints[i].mask;
-			line->head->hints[line->head->hints_len].pos = prev_head->hints[i].pos - prev_pin - 1;
-			line->head->hints_len += 1;
-		}
-		prev_head->hints_len = next_hints_start;
-	}
-
-	line_string(line, prev_head->ws->ptr + prev_pin + 1);
 }
 
 bool
 line_char(struct line *line, wchar_t c)
 {
-	if (c == L'\n') {
-		return line_bump(line);
-	}
-	const int c_width = wcwidth(c);
-	if (c_width < 1) {
-		return true; // Ignore invalid characters.
-	}
-	if (line->head->ws->len == 0) {
-		size_t indent_size = line->indent < line->lim ? line->indent : line->lim - 1;
-		for (size_t i = 0; i < indent_size; ++i) {
-			wcatcs(line->head->ws, L' ');
-		}
-		// Apply unfinished formatting of the previous line to the current line.
-		// We do it AFTER indenting whitespace to avoid styling empty start of line.
-		if (line->target->lines_len > 1) {
-			bool is_bold = false, is_underlined = false, is_italic = false;
-			for (size_t i = 0; i < (line->head - 1)->hints_len; ++i) {
-				if ((line->head - 1)->hints[i].mask & FORMAT_BOLD_BEGIN)       is_bold = true;
-				if ((line->head - 1)->hints[i].mask & FORMAT_BOLD_END)         is_bold = false;
-				if ((line->head - 1)->hints[i].mask & FORMAT_UNDERLINED_BEGIN) is_underlined = true;
-				if ((line->head - 1)->hints[i].mask & FORMAT_UNDERLINED_END)   is_underlined = false;
-				if ((line->head - 1)->hints[i].mask & FORMAT_ITALIC_BEGIN)     is_italic = true;
-				if ((line->head - 1)->hints[i].mask & FORMAT_ITALIC_END)       is_italic = false;
-			}
-			if (is_bold       == true) line_style(line, FORMAT_BOLD_BEGIN);
-			if (is_underlined == true) line_style(line, FORMAT_UNDERLINED_BEGIN);
-			if (is_italic     == true) line_style(line, FORMAT_ITALIC_BEGIN);
-		}
-	}
-	if (wcswidth(line->head->ws->ptr, line->head->ws->len) + c_width <= (int)line->lim) {
+	if (c == L'\n') return line_bump(line);
+
+	int c_width = wcwidth(c);
+	if (c_width < 1) return true; // Ignore invalid characters.
+
+	if ((size_t)wcswidth(line->head->ws->ptr, line->head->ws->len) + c_width <= line->lim - line->head->indent) {
 		wcatcs(line->head->ws, c);
 		if (c == L' ') {
 			line->pin = line->head->ws->len - 1;
@@ -104,6 +87,7 @@ line_char(struct line *line, wchar_t c)
 		wcatcs(line->head->ws, c);
 		line_pin_split(line);
 	}
+
 	return true; // TODO: check for errors?
 }
 

@@ -14,6 +14,9 @@ void
 pager_list_menu_writer(size_t index, WINDOW *w)
 {
 	if (index < content.lines_len) {
+		for (size_t i = 0; i < content.lines[index].indent; ++i) {
+			waddnwstr(w, L" ", 1);
+		}
 		for (size_t i = 0, hint_index = 0; i < content.lines[index].ws->len; ++i) {
 			if (hint_index < content.lines[index].hints_len && i == content.lines[index].hints[hint_index].pos) {
 				if (content.lines[index].hints[hint_index].mask & FORMAT_BOLD_END) {

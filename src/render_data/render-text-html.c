@@ -34,28 +34,26 @@ br_handler(struct line *line)
 static void
 hr_handler(struct line *line)
 {
-	size_t temp_indent = line->indent;
-	line->indent = 0;
+	line->head->indent = 0;
 	for (size_t i = 0; i < line->lim; ++i) {
 		line_char(line, L'─');
 	}
-	line->indent = temp_indent;
 }
 
 static void
 li_handler(struct line *line)
 {
-	line->indent = list_depth * SPACES_PER_INDENTATION_LEVEL;
+	line->head->indent = list_depth * SPACES_PER_INDENTATION_LEVEL;
 	if (list_levels[list_depth].type == UNORDERED_LIST) {
 		line_string(line, L"*  ");
-		line->indent += 3;
+		line->next_indent = line->head->indent + 3;
 	} else {
 		list_levels[list_depth].length += 1;
 		// 5 (for longest uint16_t) + 2 (for dot and space) + 1 (for terminator) + 12 (for luck lol) = 20
 		wchar_t number_str[20];
 		int number_str_len = swprintf(number_str, 20, L"%d. ", list_levels[list_depth].length);
 		line_string(line, number_str);
-		line->indent += number_str_len;
+		line->next_indent = line->head->indent + number_str_len;
 	}
 }
 
@@ -64,7 +62,8 @@ ul_start_handler(struct line *line)
 {
 	if (list_depth < MAX_NESTED_LISTS_DEPTH) {
 		list_depth += 1;
-		line->indent = list_depth * SPACES_PER_INDENTATION_LEVEL;
+		line->head->indent = list_depth * SPACES_PER_INDENTATION_LEVEL;
+		line->next_indent = line->head->indent;
 		list_levels[list_depth].type = UNORDERED_LIST;
 	}
 }
@@ -74,7 +73,8 @@ ul_end_handler(struct line *line)
 {
 	if (list_depth > 0) {
 		list_depth -= 1;
-		line->indent = list_depth * SPACES_PER_INDENTATION_LEVEL;
+		line->head->indent = list_depth * SPACES_PER_INDENTATION_LEVEL;
+		line->next_indent = line->head->indent;
 	}
 }
 
@@ -83,7 +83,8 @@ ol_start_handler(struct line *line)
 {
 	if (list_depth < MAX_NESTED_LISTS_DEPTH) {
 		list_depth += 1;
-		line->indent = list_depth * SPACES_PER_INDENTATION_LEVEL;
+		line->head->indent = list_depth * SPACES_PER_INDENTATION_LEVEL;
+		line->next_indent = line->head->indent;
 		list_levels[list_depth].type = ORDERED_LIST;
 		list_levels[list_depth].length = 0;
 	}
@@ -92,14 +93,16 @@ ol_start_handler(struct line *line)
 static void
 indent_enter_handler(struct line *line)
 {
-	line->indent += SPACES_PER_INDENTATION_LEVEL;
+	line->head->indent += SPACES_PER_INDENTATION_LEVEL;
+	line->next_indent = line->head->indent;
 }
 
 static void
 indent_leave_handler(struct line *line)
 {
-	if (line->indent >= SPACES_PER_INDENTATION_LEVEL) {
-		line->indent -= SPACES_PER_INDENTATION_LEVEL;
+	if (line->head->indent >= SPACES_PER_INDENTATION_LEVEL) {
+		line->head->indent -= SPACES_PER_INDENTATION_LEVEL;
+		line->next_indent = line->head->indent;
 	}
 }
 

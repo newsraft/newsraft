@@ -255,6 +255,7 @@ struct render_line {
 	struct wstring *ws;
 	struct format_hint *hints;
 	size_t hints_len;
+	size_t indent;
 };
 
 struct render_result {

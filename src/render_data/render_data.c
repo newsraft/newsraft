@@ -26,7 +26,7 @@ render_data(struct render_result *result, struct render_blocks_list *blocks)
 	line_bump(&line); // Add first line to line processor.
 	for (size_t i = 0; i < blocks->len; ++i) {
 		line.pin = SIZE_MAX;
-		line.indent = 0;
+		line.next_indent = 0;
 		if (blocks->ptr[i].content_type == TEXT_HTML) {
 			render_text_html(&line, blocks->ptr[i].content);
 		} else { // TEXT_RAW || TEXT_PLAIN

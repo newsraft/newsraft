@@ -80,8 +80,8 @@ get_unread_items_count_of_the_feed(const struct string *url)
 	return unread_count;
 }
 
-static bool
-change_unread_status_of_all_items_in_feeds(struct feed_entry **feeds, size_t feeds_count, bool unread)
+bool
+db_change_unread_status_of_all_items_in_feeds(struct feed_entry **feeds, size_t feeds_count, bool unread)
 {
 	if (feeds_count == 0) {
 		return true;
@@ -117,16 +117,4 @@ change_unread_status_of_all_items_in_feeds(struct feed_entry **feeds, size_t fee
 	sqlite3_finalize(res);
 	free_string(query);
 	return true;
-}
-
-bool
-db_mark_all_items_in_feeds_as_read(struct feed_entry **feeds, size_t feeds_count)
-{
-	return change_unread_status_of_all_items_in_feeds(feeds, feeds_count, false);
-}
-
-bool
-db_mark_all_items_in_feeds_as_unread(struct feed_entry **feeds, size_t feeds_count)
-{
-	return change_unread_status_of_all_items_in_feeds(feeds, feeds_count, true);
 }

@@ -289,8 +289,7 @@ bool sections_list_moderator(size_t index);
 const struct format_arg *get_section_entry_args(size_t index);
 int paint_section_entry(size_t index);
 bool unread_section_condition(size_t index);
-void mark_section_read(size_t view_sel);
-void mark_section_unread(size_t view_sel);
+void mark_feeds_read(struct feed_entry **feeds, size_t feeds_count, bool status);
 
 // See "feeds-parse.c" file for implementation.
 bool parse_feeds_file(void);
@@ -300,8 +299,6 @@ bool feeds_list_moderator(size_t index);
 const struct format_arg *get_feed_entry_args(size_t index);
 int paint_feed_entry(size_t index);
 bool unread_feed_condition(size_t index);
-void mark_feed_read(size_t view_sel);
-void mark_feed_unread(size_t view_sel);
 input_cmd_id enter_feeds_menu_loop(struct feed_entry **base_feeds, size_t base_feeds_count, struct feed_entry **feeds_view);
 
 // See "interface-list.c" file for implementation.
@@ -327,8 +324,6 @@ bool refresh_pager_menu(void);
 void do_format(struct wstring *dest, const wchar_t *fmt, const struct format_arg *args);
 
 // See "items.c" file for implementation.
-void mark_item_read(size_t view_sel);
-void mark_item_unread(size_t view_sel);
 bool items_list_moderator(size_t index);
 const struct format_arg *get_item_entry_args(size_t index);
 int paint_item_entry(size_t index);
@@ -419,8 +414,7 @@ bool db_mark_item_read(int64_t rowid, bool status);
 bool db_mark_item_important(int64_t rowid);
 bool db_mark_item_unimportant(int64_t rowid);
 int64_t get_unread_items_count_of_the_feed(const struct string *url);
-bool db_mark_all_items_in_feeds_as_read(struct feed_entry **feeds, size_t feeds_count);
-bool db_mark_all_items_in_feeds_as_unread(struct feed_entry **feeds, size_t feeds_count);
+bool db_change_unread_status_of_all_items_in_feeds(struct feed_entry **feeds, size_t feeds_count, bool unread);
 
 // See "interface.c" file for implementation.
 bool curses_init(void);
@@ -469,7 +463,7 @@ void free_binds(void);
 // Functions related to executing system commands.
 // See "commands.c" file for implementation.
 void copy_string_to_clipboard(const struct string *src);
-void run_command_with_specifiers(const struct wstring *wcmd_fmt, const struct format_arg *args);
+void run_formatted_command(const struct wstring *wcmd_fmt, const struct format_arg *args);
 
 // See "string.c" file for implementation.
 struct string *crtes(size_t desired_capacity);

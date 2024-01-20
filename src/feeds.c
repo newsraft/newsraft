@@ -110,55 +110,6 @@ feeds_sort(int new_feeds_sorting, bool we_are_already_in_feeds_menu)
 	}
 }
 
-static inline void
-update_unread_items_count(size_t index)
-{
-	int64_t new_unread_count = get_unread_items_count_of_the_feed(feeds[index]->link);
-	if (new_unread_count >= 0) {
-		feeds[index]->unread_count = new_unread_count;
-	}
-}
-
-static inline void
-update_unread_items_count_of_all_feeds(void)
-{
-	for (size_t i = 0; i < feeds_count; ++i) {
-		update_unread_items_count(i);
-	}
-}
-
-void
-mark_feed_read(size_t view_sel)
-{
-	db_mark_all_items_in_feeds_as_read(&feeds[view_sel], 1);
-	update_unread_items_count(view_sel);
-	expose_entry_of_the_list_menu(view_sel);
-}
-
-void
-mark_feed_unread(size_t view_sel)
-{
-	db_mark_all_items_in_feeds_as_unread(&feeds[view_sel], 1);
-	update_unread_items_count(view_sel);
-	expose_entry_of_the_list_menu(view_sel);
-}
-
-static inline void
-mark_all_feeds_read(void)
-{
-	db_mark_all_items_in_feeds_as_read(feeds, feeds_count);
-	update_unread_items_count_of_all_feeds();
-	expose_all_visible_entries_of_the_list_menu();
-}
-
-static inline void
-mark_all_feeds_unread(void)
-{
-	db_mark_all_items_in_feeds_as_unread(feeds, feeds_count);
-	update_unread_items_count_of_all_feeds();
-	expose_all_visible_entries_of_the_list_menu();
-}
-
 input_cmd_id
 enter_feeds_menu_loop(struct feed_entry **base_feeds, size_t base_feeds_count, struct feed_entry **feeds_view)
 {
@@ -197,10 +148,14 @@ enter_feeds_menu_loop(struct feed_entry **base_feeds, size_t base_feeds_count, s
 		cmd = get_input_command(NULL, &macro);
 		if (handle_list_menu_control(FEEDS_MENU, cmd, macro) == true) {
 			// Rest a little.
+		} else if (cmd == INPUT_MARK_READ) {
+			mark_feeds_read(&feeds[*view_sel], 1, true);
+		} else if (cmd == INPUT_MARK_UNREAD) {
+			mark_feeds_read(&feeds[*view_sel], 1, false);
 		} else if (cmd == INPUT_MARK_READ_ALL) {
-			mark_all_feeds_read();
+			mark_feeds_read(feeds, feeds_count, true);
 		} else if (cmd == INPUT_MARK_UNREAD_ALL) {
-			mark_all_feeds_unread();
+			mark_feeds_read(feeds, feeds_count, false);
 		} else if (cmd == INPUT_RELOAD) {
 			update_feeds(feeds + *view_sel, 1);
 		} else if (cmd == INPUT_RELOAD_ALL) {

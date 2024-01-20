@@ -48,7 +48,7 @@ copy_string_to_clipboard(const struct string *src)
 }
 
 void
-run_command_with_specifiers(const struct wstring *wcmd_fmt, const struct format_arg *args)
+run_formatted_command(const struct wstring *wcmd_fmt, const struct format_arg *args)
 {
 	struct wstring *fmtout = wcrtes(200);
 	if (fmtout != NULL) {

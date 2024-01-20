@@ -10,12 +10,9 @@ struct list_menu_settings {
 	size_t view_max; // Index of the last visible entry.
 	const struct wstring *entry_format;
 	bool (*enumerator)(size_t index); // Checks if index is valid.
-	void (*read_action)(size_t index);
-	void (*unread_action)(size_t index);
 	const struct format_arg *(*get_args)(size_t index);
 	int (*paint_action)(size_t index);
 	void (*write_action)(size_t index, WINDOW *w);
-	void (*hover_action)(size_t index);
 	bool (*unread_state)(size_t index);
 };
 
@@ -96,32 +93,19 @@ void
 initialize_settings_of_list_menus(void)
 {
 	menus[SECTIONS_MENU].enumerator    = &sections_list_moderator;
-	menus[SECTIONS_MENU].read_action   = &mark_section_read;
-	menus[SECTIONS_MENU].unread_action = &mark_section_unread;
 	menus[SECTIONS_MENU].get_args      = &get_section_entry_args;
 	menus[SECTIONS_MENU].paint_action  = &paint_section_entry;
 	menus[SECTIONS_MENU].write_action  = &regular_list_menu_writer;
-	menus[SECTIONS_MENU].hover_action  = NULL;
 	menus[SECTIONS_MENU].unread_state  = &unread_section_condition;
 	menus[FEEDS_MENU].enumerator    = &feeds_list_moderator;
-	menus[FEEDS_MENU].read_action   = &mark_feed_read;
-	menus[FEEDS_MENU].unread_action = &mark_feed_unread;
 	menus[FEEDS_MENU].get_args      = &get_feed_entry_args;
 	menus[FEEDS_MENU].paint_action  = &paint_feed_entry;
 	menus[FEEDS_MENU].write_action  = &regular_list_menu_writer;
-	menus[FEEDS_MENU].hover_action  = NULL;
 	menus[FEEDS_MENU].unread_state  = &unread_feed_condition;
 	menus[ITEMS_MENU].enumerator    = &items_list_moderator;
-	menus[ITEMS_MENU].read_action   = &mark_item_read;
-	menus[ITEMS_MENU].unread_action = &mark_item_unread;
 	menus[ITEMS_MENU].get_args      = &get_item_entry_args;
 	menus[ITEMS_MENU].paint_action  = &paint_item_entry;
 	menus[ITEMS_MENU].write_action  = &regular_list_menu_writer;
-	if (get_cfg_bool(CFG_MARK_ITEM_READ_ON_HOVER) == true) {
-		menus[ITEMS_MENU].hover_action = &mark_item_read;
-	} else {
-		menus[ITEMS_MENU].hover_action = NULL;
-	}
 	menus[ITEMS_MENU].unread_state  = &unread_item_condition;
 	menus[PAGER_MENU].enumerator    = &pager_menu_moderator;
 	menus[PAGER_MENU].write_action  = &pager_list_menu_writer;
@@ -234,18 +218,14 @@ obtain_list_entries_count(struct list_menu_settings *m)
 }
 
 static void
-list_menu_change_view(struct list_menu_settings *m, size_t new_sel)
+change_list_view_unprotected(struct list_menu_settings *m, size_t new_sel)
 {
-	pthread_mutex_lock(&interface_lock);
-
 	while (m->enumerator(new_sel) == false && new_sel > 0) {
 		new_sel -= 1;
 	}
 	if (m->enumerator(new_sel) == false) {
-		pthread_mutex_unlock(&interface_lock);
 		return;
 	}
-
 	if (new_sel + scrolloff > m->view_max) {
 		m->view_max = new_sel + scrolloff;
 		while (m->view_max >= list_menu_height && m->enumerator(m->view_max) == false) {
@@ -287,29 +267,22 @@ list_menu_change_view(struct list_menu_settings *m, size_t new_sel)
 			m->view_sel = new_sel;
 		}
 	}
-
-	pthread_mutex_unlock(&interface_lock);
-
-	// We have to perform the hover action only after unlocking the interface
-	// lock because the hover actions are already thread-safe functions.
-	if (m->hover_action != NULL) {
-		m->hover_action(m->view_sel);
-	}
 }
 
 bool
 handle_list_menu_control(uint8_t menu_id, input_cmd_id cmd, const struct wstring *arg)
 {
+	pthread_mutex_lock(&interface_lock);
 	struct list_menu_settings *m = &menus[menu_id];
 	if (cmd == INPUT_SELECT_NEXT || cmd == INPUT_JUMP_TO_NEXT) {
-		list_menu_change_view(m, m->view_sel + 1);
+		change_list_view_unprotected(m, m->view_sel + 1);
 	} else if (cmd == INPUT_SELECT_PREV || cmd == INPUT_JUMP_TO_PREV) {
-		list_menu_change_view(m, m->view_sel > 1 ? m->view_sel - 1 : 0);
+		change_list_view_unprotected(m, m->view_sel > 1 ? m->view_sel - 1 : 0);
 	} else if (cmd == INPUT_JUMP_TO_NEXT_UNREAD) {
 		for (size_t i = m->view_sel + 1, j = 0; j < 2; i = 0, ++j) {
 			while (m->enumerator(i) == true) {
 				if (m->unread_state(i) == true) {
-					list_menu_change_view(m, i);
+					change_list_view_unprotected(m, i);
 					j = 2;
 					break;
 				}
@@ -320,7 +293,7 @@ handle_list_menu_control(uint8_t menu_id, input_cmd_id cmd, const struct wstring
 		for (size_t i = m->view_sel, j = 0; j < 2; ++j) {
 			while ((i > 0) && (m->enumerator(i - 1) == true)) {
 				if (m->unread_state(i - 1) == true) {
-					list_menu_change_view(m, i - 1);
+					change_list_view_unprotected(m, i - 1);
 					j = 2;
 					break;
 				}
@@ -334,7 +307,7 @@ handle_list_menu_control(uint8_t menu_id, input_cmd_id cmd, const struct wstring
 		for (size_t i = m->view_sel + 1, j = 0; j < 2; i = 0, ++j) {
 			while (m->enumerator(i) == true) {
 				if (important_item_condition(i) == true) {
-					list_menu_change_view(m, i);
+					change_list_view_unprotected(m, i);
 					j = 2;
 					break;
 				}
@@ -345,7 +318,7 @@ handle_list_menu_control(uint8_t menu_id, input_cmd_id cmd, const struct wstring
 		for (size_t i = m->view_sel, j = 0; j < 2; ++j) {
 			while (i > 0 && m->enumerator(i - 1) == true) {
 				if (important_item_condition(i - 1) == true) {
-					list_menu_change_view(m, i - 1);
+					change_list_view_unprotected(m, i - 1);
 					j = 2;
 					break;
 				}
@@ -356,22 +329,22 @@ handle_list_menu_control(uint8_t menu_id, input_cmd_id cmd, const struct wstring
 			}
 		}
 	} else if (cmd == INPUT_SELECT_NEXT_PAGE) {
-		list_menu_change_view(m, m->view_sel + list_menu_height);
+		change_list_view_unprotected(m, m->view_sel + list_menu_height);
 	} else if (cmd == INPUT_SELECT_PREV_PAGE) {
-		list_menu_change_view(m, m->view_sel > list_menu_height ? m->view_sel - list_menu_height : 0);
+		change_list_view_unprotected(m, m->view_sel > list_menu_height ? m->view_sel - list_menu_height : 0);
 	} else if (cmd == INPUT_SELECT_FIRST) {
-		list_menu_change_view(m, 0);
+		change_list_view_unprotected(m, 0);
 	} else if (cmd == INPUT_SELECT_LAST) {
-		list_menu_change_view(m, obtain_list_entries_count(m));
-	} else if (cmd == INPUT_MARK_READ) {
-		m->read_action(m->view_sel);
-	} else if (cmd == INPUT_MARK_UNREAD) {
-		m->unread_action(m->view_sel);
+		change_list_view_unprotected(m, obtain_list_entries_count(m));
 	} else if (cmd == INPUT_SYSTEM_COMMAND) {
-		run_command_with_specifiers(arg, m->get_args(m->view_sel));
+		pthread_mutex_unlock(&interface_lock);
+		run_formatted_command(arg, m->get_args(m->view_sel));
+		return true;
 	} else {
+		pthread_mutex_unlock(&interface_lock);
 		return false;
 	}
+	pthread_mutex_unlock(&interface_lock);
 	return true;
 }
 

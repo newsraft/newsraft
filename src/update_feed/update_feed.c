@@ -223,7 +223,7 @@ here_we_go_again:
 					{L'q',  L'd',  {.i = cumulative_new_items_count}},
 					{L'\0', L'\0', {.i = 0 /* terminator */        }},
 				};
-				run_command_with_specifiers(notification_cmd, notification_cmd_args);
+				run_formatted_command(notification_cmd, notification_cmd_args);
 			}
 		}
 

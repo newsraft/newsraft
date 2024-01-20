@@ -67,23 +67,12 @@ important_item_condition(size_t index)
 	return items->ptr[index].is_important;
 }
 
-void
-mark_item_read(size_t view_sel)
+static void
+mark_item_read(size_t view_sel, bool status)
 {
-	if (items->ptr[view_sel].is_unread == true) {
-		if (db_mark_item_read(items->ptr[view_sel].rowid, true) == true) {
-			items->ptr[view_sel].is_unread = false;
-			expose_entry_of_the_list_menu(view_sel);
-		}
-	}
-}
-
-void
-mark_item_unread(size_t view_sel)
-{
-	if (items->ptr[view_sel].is_unread == false) {
-		if (db_mark_item_read(items->ptr[view_sel].rowid, false) == true) {
-			items->ptr[view_sel].is_unread = true;
+	if (items->ptr[view_sel].is_unread == status) {
+		if (db_mark_item_read(items->ptr[view_sel].rowid, status) == true) {
+			items->ptr[view_sel].is_unread = !status;
 			expose_entry_of_the_list_menu(view_sel);
 		}
 	}
@@ -157,9 +146,16 @@ enter_items_menu_loop(struct feed_entry **feeds, size_t feeds_count, bool is_exp
 			items_menu_needs_to_regenerate = false;
 			replace_items_list_with_empty_one(&items);
 		}
+		if (get_cfg_bool(CFG_MARK_ITEM_READ_ON_HOVER) == true) {
+			mark_item_read(*view_sel, true);
+		}
 		cmd = get_input_command(NULL, &macro);
 		if (handle_list_menu_control(ITEMS_MENU, cmd, macro) == true) {
 			// Rest a little.
+		} else if (cmd == INPUT_MARK_READ) {
+			mark_item_read(*view_sel, true);
+		} else if (cmd == INPUT_MARK_UNREAD) {
+			mark_item_read(*view_sel, false);
 		} else if (cmd == INPUT_MARK_READ_ALL) {
 			mark_all_items_read(true);
 		} else if (cmd == INPUT_MARK_UNREAD_ALL) {
@@ -189,7 +185,7 @@ enter_items_menu_loop(struct feed_entry **feeds, size_t feeds_count, bool is_exp
 			}
 			enter_list_menu(ITEMS_MENU, 0, false);
 		} else if (cmd == INPUT_OPEN_IN_BROWSER) {
-			run_command_with_specifiers(get_cfg_wstring(CFG_OPEN_IN_BROWSER_COMMAND), get_item_entry_args(*view_sel));
+			run_formatted_command(get_cfg_wstring(CFG_OPEN_IN_BROWSER_COMMAND), get_item_entry_args(*view_sel));
 		} else if (cmd == INPUT_COPY_TO_CLIPBOARD) {
 			copy_string_to_clipboard(items->ptr[*view_sel].url);
 		} else if (cmd == INPUT_TOGGLE_EXPLORE_MODE && is_explore_mode == true) {

@@ -49,28 +49,13 @@ unread_section_condition(size_t index)
 }
 
 void
-mark_section_read(size_t view_sel)
+mark_feeds_read(struct feed_entry **feeds, size_t feeds_count, bool status)
 {
-	if (db_mark_all_items_in_feeds_as_read(sections[view_sel].feeds, sections[view_sel].feeds_count) == true) {
-		for (size_t i = 0; i < sections[view_sel].feeds_count; ++i) {
-			int64_t new_unread_count = get_unread_items_count_of_the_feed(sections[view_sel].feeds[i]->link);
+	if (db_change_unread_status_of_all_items_in_feeds(feeds, feeds_count, !status) == true) {
+		for (size_t i = 0; i < feeds_count; ++i) {
+			int64_t new_unread_count = get_unread_items_count_of_the_feed(feeds[i]->link);
 			if (new_unread_count >= 0) {
-				sections[view_sel].feeds[i]->unread_count = new_unread_count;
-			}
-		}
-		refresh_unread_items_count_of_all_sections();
-		expose_all_visible_entries_of_the_list_menu();
-	}
-}
-
-void
-mark_section_unread(size_t view_sel)
-{
-	if (db_mark_all_items_in_feeds_as_unread(sections[view_sel].feeds, sections[view_sel].feeds_count) == true) {
-		for (size_t i = 0; i < sections[view_sel].feeds_count; ++i) {
-			int64_t new_unread_count = get_unread_items_count_of_the_feed(sections[view_sel].feeds[i]->link);
-			if (new_unread_count >= 0) {
-				sections[view_sel].feeds[i]->unread_count = new_unread_count;
+				feeds[i]->unread_count = new_unread_count;
 			}
 		}
 		refresh_unread_items_count_of_all_sections();
@@ -300,10 +285,14 @@ enter_sections_menu_loop(void)
 		cmd = get_input_command(NULL, &macro);
 		if (handle_list_menu_control(SECTIONS_MENU, cmd, macro) == true) {
 			// Rest a little.
+		} else if (cmd == INPUT_MARK_READ) {
+			mark_feeds_read(sections[*view_sel].feeds, sections[*view_sel].feeds_count, true);
+		} else if (cmd == INPUT_MARK_UNREAD) {
+			mark_feeds_read(sections[*view_sel].feeds, sections[*view_sel].feeds_count, false);
 		} else if (cmd == INPUT_MARK_READ_ALL) {
-			mark_section_read(0);
+			mark_feeds_read(sections[0].feeds, sections[0].feeds_count, true);
 		} else if (cmd == INPUT_MARK_UNREAD_ALL) {
-			mark_section_unread(0);
+			mark_feeds_read(sections[0].feeds, sections[0].feeds_count, false);
 		} else if (cmd == INPUT_RELOAD) {
 			update_feeds(sections[*view_sel].feeds, sections[*view_sel].feeds_count);
 		} else if (cmd == INPUT_RELOAD_ALL) {

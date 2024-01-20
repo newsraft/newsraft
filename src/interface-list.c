@@ -208,15 +208,6 @@ obtain_list_entries_count_unprotected(struct list_menu_settings *m)
 	return i;
 }
 
-static size_t
-obtain_list_entries_count(struct list_menu_settings *m)
-{
-	pthread_mutex_lock(&interface_lock);
-	size_t count = obtain_list_entries_count_unprotected(m);
-	pthread_mutex_unlock(&interface_lock);
-	return count;
-}
-
 static void
 change_list_view_unprotected(struct list_menu_settings *m, size_t new_sel)
 {
@@ -300,7 +291,7 @@ handle_list_menu_control(uint8_t menu_id, input_cmd_id cmd, const struct wstring
 				i -= 1;
 			}
 			if (j < 2) {
-				i = obtain_list_entries_count(m);
+				i = obtain_list_entries_count_unprotected(m);
 			}
 		}
 	} else if (cmd == INPUT_JUMP_TO_NEXT_IMPORTANT && menu_id == ITEMS_MENU) {
@@ -325,7 +316,7 @@ handle_list_menu_control(uint8_t menu_id, input_cmd_id cmd, const struct wstring
 				i -= 1;
 			}
 			if (j < 2) {
-				i = obtain_list_entries_count(m);
+				i = obtain_list_entries_count_unprotected(m);
 			}
 		}
 	} else if (cmd == INPUT_SELECT_NEXT_PAGE) {
@@ -335,7 +326,7 @@ handle_list_menu_control(uint8_t menu_id, input_cmd_id cmd, const struct wstring
 	} else if (cmd == INPUT_SELECT_FIRST) {
 		change_list_view_unprotected(m, 0);
 	} else if (cmd == INPUT_SELECT_LAST) {
-		change_list_view_unprotected(m, obtain_list_entries_count(m));
+		change_list_view_unprotected(m, obtain_list_entries_count_unprotected(m));
 	} else if (cmd == INPUT_SYSTEM_COMMAND) {
 		pthread_mutex_unlock(&interface_lock);
 		run_formatted_command(arg, m->get_args(m->view_sel));
@@ -349,15 +340,12 @@ handle_list_menu_control(uint8_t menu_id, input_cmd_id cmd, const struct wstring
 }
 
 static void
-pager_menu_change_view(size_t new_sel)
+change_pager_view_unprotected(size_t new_sel)
 {
-	pthread_mutex_lock(&interface_lock);
-
 	while (menu->enumerator(new_sel) == false && new_sel > 0) {
 		new_sel -= 1;
 	}
 	if (menu->enumerator(new_sel) == false) {
-		pthread_mutex_unlock(&interface_lock);
 		return;
 	}
 	size_t entries_count = obtain_list_entries_count_unprotected(menu);
@@ -372,29 +360,30 @@ pager_menu_change_view(size_t new_sel)
 		menu->view_min = menu->view_max - (list_menu_height - 1);
 		expose_all_visible_entries_of_the_list_menu_unprotected();
 	}
-
-	pthread_mutex_unlock(&interface_lock);
 }
 
 bool
 handle_pager_menu_control(input_cmd_id cmd)
 {
+	pthread_mutex_lock(&interface_lock);
 	if (cmd == INPUT_SELECT_NEXT || cmd == INPUT_ENTER) {
-		pager_menu_change_view(menu->view_min + 1);
+		change_pager_view_unprotected(menu->view_min + 1);
 	} else if (cmd == INPUT_SELECT_PREV) {
-		pager_menu_change_view(menu->view_min > 0 ? menu->view_min - 1 : 0);
+		change_pager_view_unprotected(menu->view_min > 0 ? menu->view_min - 1 : 0);
 	} else if (cmd == INPUT_SELECT_NEXT_PAGE) {
-		pager_menu_change_view(menu->view_min + list_menu_height);
+		change_pager_view_unprotected(menu->view_min + list_menu_height);
 	} else if (cmd == INPUT_SELECT_PREV_PAGE) {
-		pager_menu_change_view(menu->view_min > list_menu_height ? menu->view_min - list_menu_height : 0);
+		change_pager_view_unprotected(menu->view_min > list_menu_height ? menu->view_min - list_menu_height : 0);
 	} else if (cmd == INPUT_SELECT_FIRST) {
-		pager_menu_change_view(0);
+		change_pager_view_unprotected(0);
 	} else if (cmd == INPUT_SELECT_LAST) {
-		pager_menu_change_view(obtain_list_entries_count(menu));
+		change_pager_view_unprotected(obtain_list_entries_count_unprotected(menu));
 	} else if (cmd == INPUT_RESIZE) {
 		refresh_pager_menu();
 	} else {
+		pthread_mutex_unlock(&interface_lock);
 		return false;
 	}
+	pthread_mutex_unlock(&interface_lock);
 	return true;
 }

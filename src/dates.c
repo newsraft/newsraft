@@ -1,6 +1,18 @@
 #include <stdlib.h>
 #include "newsraft.h"
 
+static int64_t
+get_local_offset_relative_to_utc(void)
+{
+	time_t utc_seconds = time(NULL);
+	if (utc_seconds == ((time_t)-1)) return 0;
+	struct tm *utc_time = gmtime(&utc_seconds);
+	if (utc_time == NULL) return 0;
+	time_t local_seconds = mktime(utc_time);
+	if (local_seconds == ((time_t)-1)) return 0;
+	return utc_seconds - local_seconds;
+}
+
 int64_t
 parse_date_rfc3339(const char *src)
 {
@@ -9,7 +21,10 @@ parse_date_rfc3339(const char *src)
 	if (rem == NULL) {
 		return 0;
 	}
-	int64_t time = (int64_t)mktime(&t);
+	// Function timegm does the conversion without bias from local timezone,
+	// but it's not in the standard, unfortunately...
+	//int64_t time = (int64_t)timegm(&t);
+	int64_t time = (int64_t)mktime(&t) + get_local_offset_relative_to_utc();
 	if ((rem[0] == '+' || rem[0] == '-')
 		&& ISDIGIT(rem[1]) && ISDIGIT(rem[2]) && rem[3] == ':' && ISDIGIT(rem[4]) && ISDIGIT(rem[5]))
 	{

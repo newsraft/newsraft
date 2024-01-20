@@ -1,10 +1,22 @@
 #include "newsraft.h"
 
+static bool
+test_date(const char *date, int64_t true_time)
+{
+	int64_t test_time = parse_date_rfc3339(date);
+	if (test_time == true_time) {
+		return true;
+	} else {
+		fprintf(stderr, "Mismatch for %s: %ld != %ld\n", date, test_time, true_time);
+		return false;
+	}
+}
+
 int
 main(void)
 {
-	if (parse_date_rfc3339("1996-12-19T16:39:57-08:00") != 851031597) return 1;
-	if (parse_date_rfc3339("1990-12-31T23:59:60Z")      != 662677200) return 1;
-	if (parse_date_rfc3339("1990-12-31T15:59:60-08:00") != 662677200) return 1;
+	if (test_date("1996-12-19T16:39:57-08:00", 851042397) == false) return 1;
+	if (test_date("1990-12-31T23:59:60Z",      662688000) == false) return 1;
+	if (test_date("1990-12-31T15:59:60-08:00", 662688000) == false) return 1;
 	return 0;
 }

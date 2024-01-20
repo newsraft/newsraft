@@ -60,5 +60,5 @@ refresh_pager_menu(void)
 	free(content.lines);
 	content.lines = NULL;
 	content.lines_len = 0;
-	return render_data(&content, blocks);
+	return render_data(&content, blocks, list_menu_width);
 }

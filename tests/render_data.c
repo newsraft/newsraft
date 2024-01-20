@@ -36,7 +36,6 @@ const struct render_data_test render_tests[] = {
 int
 main(void)
 {
-	list_menu_width = 80;
 	struct render_blocks_list blocks = {0};
 	struct render_result result = {0};
 	for (size_t i = 0; i < sizeof(render_tests) / sizeof(*render_tests); ++i) {
@@ -51,7 +50,7 @@ main(void)
 				render_tests[i].blocks[j].needs_trimming
 			);
 		}
-		render_data(&result, &blocks);
+		render_data(&result, &blocks, 80);
 		if (result.lines_len != render_tests[i].lines_count) {
 			fprintf(stderr, "%s: test %zu fails (invalid number of lines)!\n", __FILE__, i);
 			return 1;

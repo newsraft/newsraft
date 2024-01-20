@@ -361,7 +361,7 @@ void free_render_blocks(struct render_blocks_list *blocks);
 bool prepare_to_render_data(struct render_blocks_list *blocks, struct links_list *links);
 
 // See "render_data" directory for implementation.
-bool render_data(struct render_result *result, struct render_blocks_list *blocks);
+bool render_data(struct render_result *result, struct render_blocks_list *blocks, size_t content_width);
 
 // See "items-metadata.c" file for implementation.
 bool generate_render_blocks_based_on_item_data(struct render_blocks_list *blocks, const struct item_entry *item, sqlite3_stmt *res);

@@ -1,6 +1,17 @@
 #include <locale.h>
 #include "newsraft.h"
 
+static bool
+test_fmt(struct wstring *out, const wchar_t *fmt, struct format_arg *args, const wchar_t *expect)
+{
+	do_format(out, fmt, args);
+	if (wcscmp(out->ptr, expect) != 0) {
+		fprintf(stderr, "%ls != %ls\n", out->ptr, expect);
+		return false;
+	}
+	return true;
+}
+
 int
 main(void)
 {
@@ -33,23 +44,23 @@ main(void)
 		{L'\0', L'\0', {.i = 0                             }},
 	};
 
-	do_format(w, L"%n%l%f",    args); if (wcscmp(w->ptr, L"567Se7en38395629")           != 0) goto error;
-	do_format(w, L"%v%%%p",    args); if (wcscmp(w->ptr, L"Wag the Dog%The Green Mile") != 0) goto error;
-	do_format(w, L"%%%d%%",    args); if (wcscmp(w->ptr, L"%The Usual Suspects%")       != 0) goto error;
-	do_format(w, L"%m%",       args); if (wcscmp(w->ptr, L"Остров сокровищ")            != 0) goto error;
-	do_format(w, L"%%%%%%%%%", args); if (wcscmp(w->ptr, L"%%%%")                       != 0) goto error;
-	do_format(w, L" %q %w ",   args); if (wcscmp(w->ptr, L" Big Брат ")                 != 0) goto error;
-	do_format(w, L" %q%%w ",   args); if (wcscmp(w->ptr, L" Big%w ")                    != 0) goto error;
-	do_format(w, L"%s %h %n",  args); if (wcscmp(w->ptr, L"伍六七 英雄 567")            != 0) goto error;
-	do_format(w, L"%bгыгы%f",  args); if (wcscmp(w->ptr, L"Shrekгыгы38395629")          != 0) goto error;
-	do_format(w, L"гугу%t%w",  args); if (wcscmp(w->ptr, L"гугуCarsБрат")               != 0) goto error;
-	do_format(w, L"%a%qгого",  args); if (wcscmp(w->ptr, L"ScarfaceBigгого")            != 0) goto error;
-	do_format(w, L"%13e",      args); if (wcscmp(w->ptr, L"Алёша Попович")              != 0) goto error;
-	do_format(w, L"%-13e",     args); if (wcscmp(w->ptr, L"Алёша Попович")              != 0) goto error;
-	do_format(w, L"%10s",      args); if (wcscmp(w->ptr, L"    伍六七")                 != 0) goto error;
-	do_format(w, L"%-10s",     args); if (wcscmp(w->ptr, L"伍六七    ")                 != 0) goto error;
-	do_format(w, L"%3h",       args); if (wcscmp(w->ptr, L" 英")                        != 0) goto error;
-	do_format(w, L"%-3h",      args); if (wcscmp(w->ptr, L"英 ")                        != 0) goto error;
+	if (!test_fmt(w, L"%n%l%f",    args, L"567Se7en38395629"))           goto error;
+	if (!test_fmt(w, L"%v%%%p",    args, L"Wag the Dog%The Green Mile")) goto error;
+	if (!test_fmt(w, L"%%%d%%",    args, L"%The Usual Suspects%"))       goto error;
+	if (!test_fmt(w, L"%m%",       args, L"Остров сокровищ"))            goto error;
+	if (!test_fmt(w, L"%%%%%%%%%", args, L"%%%%"))                       goto error;
+	if (!test_fmt(w, L" %q %w ",   args, L" Big Брат "))                 goto error;
+	if (!test_fmt(w, L" %q%%w ",   args, L" Big%w "))                    goto error;
+	if (!test_fmt(w, L"%s %h %n",  args, L"伍六七 英雄 567"))            goto error;
+	if (!test_fmt(w, L"%bгыгы%f",  args, L"Shrekгыгы38395629"))          goto error;
+	if (!test_fmt(w, L"гугу%t%w",  args, L"гугуCarsБрат"))               goto error;
+	if (!test_fmt(w, L"%a%qгого",  args, L"ScarfaceBigгого"))            goto error;
+	if (!test_fmt(w, L"%13e",      args, L"Алёша Попович"))              goto error;
+	if (!test_fmt(w, L"%-13e",     args, L"Алёша Попович"))              goto error;
+	if (!test_fmt(w, L"%10s",      args, L"    伍六七"))                 goto error;
+	if (!test_fmt(w, L"%-10s",     args, L"伍六七    "))                 goto error;
+	if (!test_fmt(w, L"%3h",       args, L" 英"))                        goto error;
+	if (!test_fmt(w, L"%-3h",      args, L"英 "))                        goto error;
 
 	free_wstring(w);
 	return 0;

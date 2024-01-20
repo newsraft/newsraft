@@ -102,11 +102,11 @@ resize_handler(void)
 		goto error;
 	}
 	if (get_current_menu_type() == PAGER_MENU) {
-		handle_pager_menu_control(INPUT_RESIZE);
+		refresh_pager_menu();
 	}
 	redraw_list_menu_unprotected();
 	pthread_mutex_unlock(&interface_lock);
-	return INPUT_RESIZE;
+	return INPUT_ERROR;
 error:
 	pthread_mutex_unlock(&interface_lock);
 	return INPUT_QUIT_HARD;

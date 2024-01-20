@@ -378,8 +378,6 @@ handle_pager_menu_control(input_cmd_id cmd)
 		change_pager_view_unprotected(0);
 	} else if (cmd == INPUT_SELECT_LAST) {
 		change_pager_view_unprotected(obtain_list_entries_count_unprotected(menu));
-	} else if (cmd == INPUT_RESIZE) {
-		refresh_pager_menu();
 	} else {
 		pthread_mutex_unlock(&interface_lock);
 		return false;

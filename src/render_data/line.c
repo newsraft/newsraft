@@ -42,7 +42,10 @@ line_pin_split(struct line *line)
 	size_t prev_hints_len = line->head->hints_len;
 	size_t next_hints_start = 0;
 	while (next_hints_start < prev_hints_len) {
-		if (line->head->hints[next_hints_start].pos >= prev_pin) {
+		// Strict inequality matters in cases where text
+		// formatting ends right before the pin character.
+		// For example, "<u>Lorem ipsum</u>{pin}".
+		if (line->head->hints[next_hints_start].pos > prev_pin) {
 			line->head->hints_len = next_hints_start;
 			break;
 		}

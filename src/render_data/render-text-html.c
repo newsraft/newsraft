@@ -4,11 +4,6 @@
 #define MAX_NESTED_LISTS_DEPTH 10
 #define SPACES_PER_INDENTATION_LEVEL 4
 
-enum list_type {
-	UNORDERED_LIST,
-	ORDERED_LIST,
-};
-
 struct html_element_renderer {
 	const GumboTag tag_id;
 	void (*start_handler)(struct line *);
@@ -16,8 +11,8 @@ struct html_element_renderer {
 };
 
 struct list_level {
-	enum list_type type;
-	uint16_t length;
+	bool is_ordered;
+	unsigned length;
 };
 
 static uint8_t list_depth;
@@ -44,16 +39,14 @@ static void
 li_handler(struct line *line)
 {
 	line->head->indent = list_depth * SPACES_PER_INDENTATION_LEVEL;
-	if (list_levels[list_depth].type == UNORDERED_LIST) {
-		line_string(line, L"*  ");
-		line->next_indent = line->head->indent + 3;
-	} else {
+	line->next_indent = line->head->indent + 3;
+	if (list_levels[list_depth].is_ordered == true) {
 		list_levels[list_depth].length += 1;
-		// 5 (for longest uint16_t) + 2 (for dot and space) + 1 (for terminator) + 12 (for luck lol) = 20
-		wchar_t number_str[20];
-		int number_str_len = swprintf(number_str, 20, L"%d. ", list_levels[list_depth].length);
-		line_string(line, number_str);
-		line->next_indent = line->head->indent + number_str_len;
+		wchar_t num[100];
+		swprintf(num, 100, L"%u. ", list_levels[list_depth].length);
+		line_string(line, num);
+	} else {
+		line_string(line, L"*  ");
 	}
 }
 
@@ -64,7 +57,7 @@ ul_start_handler(struct line *line)
 		list_depth += 1;
 		line->head->indent = list_depth * SPACES_PER_INDENTATION_LEVEL;
 		line->next_indent = line->head->indent;
-		list_levels[list_depth].type = UNORDERED_LIST;
+		list_levels[list_depth].is_ordered = false;
 	}
 }
 
@@ -85,7 +78,7 @@ ol_start_handler(struct line *line)
 		list_depth += 1;
 		line->head->indent = list_depth * SPACES_PER_INDENTATION_LEVEL;
 		line->next_indent = line->head->indent;
-		list_levels[list_depth].type = ORDERED_LIST;
+		list_levels[list_depth].is_ordered = true;
 		list_levels[list_depth].length = 0;
 	}
 }
@@ -101,8 +94,10 @@ static void
 indent_leave_handler(struct line *line)
 {
 	if (line->head->indent >= SPACES_PER_INDENTATION_LEVEL) {
-		line->head->indent -= SPACES_PER_INDENTATION_LEVEL;
-		line->next_indent = line->head->indent;
+		line->next_indent = line->head->indent - SPACES_PER_INDENTATION_LEVEL;
+	}
+	if (line->head->ws->len == 0) {
+		line->head->indent = line->next_indent;
 	}
 }
 
@@ -214,7 +209,7 @@ bool
 render_text_html(struct line *line, const struct wstring *source)
 {
 	list_depth = 0;
-	list_levels[0].type = UNORDERED_LIST;
+	list_levels[0].is_ordered = false;
 	list_levels[0].length = 0;
 	struct string *str = convert_wstring_to_string(source);
 	if (str == NULL) {

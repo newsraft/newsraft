@@ -22,10 +22,11 @@ struct html_element_preparer {
 	const char *suffix;
 };
 
-static void
-provide_newlines(struct string *text, size_t count)
+static int
+count_how_many_newlines_there_are_at_this_position(const struct string *text)
 {
 	bool in_tag = false;
+	int count = 0;
 	size_t i = text->len, close_pos = 0; // Initialize to shut the compiler.
 	while (i > 0) {
 		if (ISWHITESPACE(text->ptr[i - 1])) {
@@ -38,9 +39,9 @@ provide_newlines(struct string *text, size_t count)
 			size_t tag_name_len = close_pos - tag_name_pos;
 			if (tag_name_len == 2) {
 				if (text->ptr[tag_name_pos] == 'b' && text->ptr[tag_name_pos + 1] == 'r') {
-					count = count > 0 ? count - 1 : 0;
+					count += 1;
 				} else if (text->ptr[tag_name_pos] == 'l' && text->ptr[tag_name_pos + 1] == 'i') {
-					return; // Don't pollute beginning of list entries.
+					return 9999; // Don't pollute beginning of list entries.
 				} else if (text->ptr[tag_name_pos] == 'h' && text->ptr[tag_name_pos + 1] == 'r') {
 					break; // <hr> will be expanded to text during rendering.
 				}
@@ -51,10 +52,15 @@ provide_newlines(struct string *text, size_t count)
 		}
 		i -= 1;
 	}
-	if (i != 0) {
-		for (i = 0; i < count; ++i) {
-			catas(text, "<br>", 4);
-		}
+	return i == 0 ? 9999 : count;
+}
+
+static void
+provide_newlines(struct string *text, int count)
+{
+	int newlines = count_how_many_newlines_there_are_at_this_position(text);
+	for (int i = 0; i < (count - newlines); ++i) {
+		catas(text, "<br>", 4);
 	}
 }
 
@@ -94,20 +100,19 @@ add_url_mark(struct links_list *links, struct string *text, const char *url, con
 	if (url_len == 0) {
 		return; // Ignore empty links.
 	}
-
 	int64_t url_index = add_another_url_to_trim_links_list(links, url, url_len);
 	if (url_index < 0) {
-		return;
+		return; // Ignore invalid links.
 	}
-
-	// Add link mark to HTML content.
 	char index[100];
-	int index_len = snprintf(index, 100, "%" PRId64, url_index + 1);
-	if (index_len < 1 || index_len > 99) {
-		return;
+	int index_len = snprintf(index, 100, "[%" PRId64, url_index + 1);
+	if (index_len < 2 || index_len > 99) {
+		return; // Should never happen.
 	}
 	// Prepend &nbsp; instead of space to avoid line wrapping of URL mark alone.
-	catas(text, "&nbsp;[", 7);
+	if (count_how_many_newlines_there_are_at_this_position(text) == 0) {
+		catas(text, "&nbsp;", 6);
+	}
 	catas(text, index, index_len);
 	if (type != NULL || title != NULL) {
 		catas(text, ", ", 2);

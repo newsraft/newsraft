@@ -22,7 +22,9 @@ remove_trailing_empty_lines_except_for_first_one(struct line *line)
 bool
 render_data(struct render_result *result, struct render_blocks_list *blocks, size_t content_width)
 {
-	struct line line = {.target = result, .lim = content_width};
+	size_t pager_width = get_cfg_uint(CFG_PAGER_WIDTH);
+	struct line line = {.target = result};
+	line.lim = pager_width > 0 && pager_width < content_width ? pager_width : content_width;
 	line_bump(&line); // Add first line to line processor.
 	for (size_t i = 0; i < blocks->len; ++i) {
 		line.pin = SIZE_MAX;
@@ -38,5 +40,10 @@ render_data(struct render_result *result, struct render_blocks_list *blocks, siz
 		line_style(&line, FORMAT_ALL_END);
 	}
 	remove_trailing_empty_lines_except_for_first_one(&line);
+	if (pager_width > 0 && pager_width < content_width) {
+		for (size_t i = 0; i < result->lines_len; ++i) {
+			result->lines[i].indent += (content_width - pager_width) / 2;
+		}
+	}
 	return result->lines_len > 1 ? true : false;
 }

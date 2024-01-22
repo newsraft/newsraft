@@ -39,6 +39,7 @@ static struct config_entry config[] = {
 	{"color-list-section",              CFG_COLOR,  {.c = {-1,            -1, A_NORMAL}}},
 	{"color-list-section-unread",       CFG_COLOR,  {.c = {COLOR_YELLOW,  -1, A_NORMAL}}},
 	{"scrolloff",                       CFG_UINT,   {.u = 0   }},
+	{"pager-width",                     CFG_UINT,   {.u = 0   }},
 	{"update-threads-count",            CFG_UINT,   {.u = 0   }},
 	{"download-timeout",                CFG_UINT,   {.u = 20  }},
 	{"download-speed-limit",            CFG_UINT,   {.u = 0   }},

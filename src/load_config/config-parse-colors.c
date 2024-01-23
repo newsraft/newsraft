@@ -5,7 +5,7 @@
 bool
 parse_color_setting(config_entry_id id, const char *iter)
 {
-	int colors[2]; // colors[0] = fg; colors[1] = bg;
+	int colors[2] = {-1, -1}; // colors[0] = fg; colors[1] = bg;
 	unsigned int c = 0;
 	unsigned int attribute = A_NORMAL;
 	while (*iter != '\0') {

@@ -4,7 +4,7 @@
 bool
 line_bump(struct line *line)
 {
-	struct wstring *line_ws = wcrtes(50);
+	struct wstring *line_ws = wcrtes(line->lim);
 	if (line_ws == NULL) {
 		return false;
 	}
@@ -20,7 +20,7 @@ line_bump(struct line *line)
 	line->head->hints = NULL;
 	line->head->hints_len = 0;
 	line->head->indent = line->next_indent;
-	line->pin = SIZE_MAX;
+	line->end = SIZE_MAX;
 
 	// Apply unfinished formatting of the previous line to the current line.
 	// We do it in line_bump instead of line_char to make sure formatting may
@@ -36,16 +36,17 @@ line_bump(struct line *line)
 }
 
 static inline void
-line_pin_split(struct line *line)
+line_split_at_end(struct line *line)
 {
-	size_t prev_pin = line->pin;
+	size_t prev_end = line->end;
 	size_t prev_hints_len = line->head->hints_len;
 	size_t next_hints_start = 0;
 	while (next_hints_start < prev_hints_len) {
-		// Strict inequality matters in cases where text
-		// formatting ends right before the pin character.
-		// For example, "<u>Lorem ipsum</u>{pin}".
-		if (line->head->hints[next_hints_start].pos > prev_pin) {
+		// Lorem ipsum <u>dolor sit</u> amet
+		//                        ^
+		//               prev_end |
+		//
+		if (line->head->hints[next_hints_start].pos > prev_end + 1) {
 			line->head->hints_len = next_hints_start;
 			break;
 		}
@@ -53,19 +54,23 @@ line_pin_split(struct line *line)
 	}
 
 	line_bump(line); // Now line->head points to a next empty line.
-
 	struct render_line *prev_head = line->head - 1;
-	size_t prev_len = prev_head->ws->len;
-	prev_head->ws->ptr[prev_pin] = L'\0';
-	prev_head->ws->len = prev_pin;
 
-	for (size_t i = prev_pin + 1, j = next_hints_start; i < prev_len; ++i) {
+	size_t i = prev_end + 1;
+	while (i < prev_head->ws->len && ISWIDEWHITESPACE(prev_head->ws->ptr[i])) {
+		// Do we have to apply style of skipped whitespace here?
+		i += 1;
+	}
+	for (size_t j = next_hints_start; i < prev_head->ws->len; ++i) {
 		if (j < prev_hints_len && i == prev_head->hints[j].pos) {
 			line_style(line, prev_head->hints[j].mask);
 			j += 1;
 		}
 		line_char(line, prev_head->ws->ptr[i]);
 	}
+
+	prev_head->ws->ptr[prev_end + 1] = L'\0';
+	prev_head->ws->len = prev_end + 1;
 }
 
 bool
@@ -76,19 +81,23 @@ line_char(struct line *line, wchar_t c)
 	int c_width = wcwidth(c);
 	if (c_width < 1) return true; // Ignore invalid characters.
 
+	if (c == L' '
+		&& line->head->ws->len > 0
+		&& line->head->ws->ptr[line->head->ws->len - 1] != ' ')
+	{
+		line->end = line->head->ws->len - 1;
+	}
+
 	if ((size_t)wcswidth(line->head->ws->ptr, line->head->ws->len) + c_width <= line->lim - line->head->indent) {
 		wcatcs(line->head->ws, c);
-		if (c == L' ') {
-			line->pin = line->head->ws->len - 1;
-		}
 	} else if (c == L' ') {
-		line_bump(line);
-	} else if (line->pin == SIZE_MAX) {
+		return true; // Ignore spaces when we are in the end of line
+	} else if (line->end == SIZE_MAX) {
 		line_bump(line);
 		line_char(line, c);
 	} else {
 		wcatcs(line->head->ws, c);
-		line_pin_split(line);
+		line_split_at_end(line);
 	}
 
 	return true; // TODO: check for errors?

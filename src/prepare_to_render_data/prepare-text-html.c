@@ -243,6 +243,23 @@ ul_out_handler(struct string *text, struct html_data *data, GumboVector *attrs)
 	provide_newlines(text, data->list_depth == 0 ? 2 : 1);
 }
 
+static void
+input_handler(struct string *text, struct html_data *data, GumboVector *attrs)
+{
+	(void)data;
+	const char *type = get_value_of_xml_attribute(attrs, "type");
+	if (type == NULL || strcmp(type, "hidden") == 0) {
+		return;
+	}
+	const char *value = get_value_of_xml_attribute(attrs, "value");
+	if (value == NULL) {
+		return;
+	}
+	catcs(text, '[');
+	catas(text, value, strlen(value));
+	catcs(text, ']');
+}
+
 static const struct html_element_preparer preparers[] = {
 	{GUMBO_TAG_P,          NULL,            NULL,             2, 2, NULL,   NULL},
 	{GUMBO_TAG_SPAN,       NULL,            NULL,             0, 0, NULL,   NULL},
@@ -261,6 +278,7 @@ static const struct html_element_preparer preparers[] = {
 	{GUMBO_TAG_H4,         NULL,            NULL,             3, 2, "<b>",  "</b>"},
 	{GUMBO_TAG_H5,         NULL,            NULL,             3, 2, "<b>",  "</b>"},
 	{GUMBO_TAG_H6,         NULL,            NULL,             3, 2, "<b>",  "</b>"},
+	{GUMBO_TAG_HEADER,     NULL,            NULL,             3, 2, NULL,   NULL},
 	{GUMBO_TAG_STRONG,     NULL,            NULL,             0, 0, "<b>",  "</b>"},
 	{GUMBO_TAG_MARK,       NULL,            NULL,             0, 0, "<b>",  "</b>"},
 	{GUMBO_TAG_BIG,        NULL,            NULL,             0, 0, "<b>",  "</b>"},
@@ -278,10 +296,11 @@ static const struct html_element_preparer preparers[] = {
 	{GUMBO_TAG_ABBR,       NULL,            &abbr_handler,    0, 0, NULL,   NULL},
 	{GUMBO_TAG_SUP,        NULL,            NULL,             0, 0, "^",    NULL},
 	{GUMBO_TAG_Q,          NULL,            NULL,             0, 0, "\"",   "\""},
-	{GUMBO_TAG_BUTTON,     NULL,            NULL,             0, 0, "[ ",   " ]"},
+	{GUMBO_TAG_BUTTON,     NULL,            NULL,             0, 0, "[",    "]"},
 	//{GUMBO_TAG_PICTURE,    NULL,            NULL,             0, 0, NULL,   NULL}, // Gumbo lacks it.
 	{GUMBO_TAG_AUDIO,      &audio_handler,  NULL,             0, 0, NULL,   NULL},
 	{GUMBO_TAG_VIDEO,      &video_handler,  NULL,             0, 0, NULL,   NULL},
+	{GUMBO_TAG_INPUT,      &input_handler,  NULL,             0, 0, NULL,   NULL},
 	{GUMBO_TAG_DIV,        NULL,            NULL,             1, 1, NULL,   NULL},
 	{GUMBO_TAG_CENTER,     NULL,            NULL,             1, 1, NULL,   NULL},
 	{GUMBO_TAG_MAIN,       NULL,            NULL,             1, 1, NULL,   NULL},
@@ -322,6 +341,9 @@ static const struct html_element_preparer preparers[] = {
 	{GUMBO_TAG_SVG,        NULL,            NULL,             0, 0, NULL,   " [svg image]"},
 	{GUMBO_TAG_CANVAS,     NULL,            NULL,             0, 0, NULL,   NULL},
 	{GUMBO_TAG_META,       NULL,            NULL,             0, 0, NULL,   NULL},
+	{GUMBO_TAG_BODY,       NULL,            NULL,             0, 0, NULL,   NULL},
+	{GUMBO_TAG_HEAD,       NULL,            NULL,             0, 0, NULL,   NULL},
+	{GUMBO_TAG_HTML,       NULL,            NULL,             0, 0, NULL,   NULL},
 	{GUMBO_TAG_UNKNOWN,    NULL,            NULL,             0, 0, NULL,   NULL},
 };
 
@@ -352,9 +374,10 @@ prepare_html(GumboNode *node, struct string *text, struct html_data *data)
 				catas(text, preparers[i].prefix, strlen(preparers[i].prefix));
 			}
 			// Don't descend into elements which are illegible.
-			if ((preparers[i].tag != GUMBO_TAG_STYLE)
-				&& (preparers[i].tag != GUMBO_TAG_SCRIPT)
-				&& (preparers[i].tag != GUMBO_TAG_SVG))
+			if (preparers[i].tag != GUMBO_TAG_STYLE
+				&& preparers[i].tag != GUMBO_TAG_SCRIPT
+				&& preparers[i].tag != GUMBO_TAG_SVG
+				&& preparers[i].tag != GUMBO_TAG_HEAD)
 			{
 				for (size_t j = 0; j < node->v.element.children.length; ++j) {
 					prepare_html(node->v.element.children.data[j], text, data);

@@ -25,9 +25,8 @@ render_data(struct render_result *result, struct render_blocks_list *blocks, siz
 	size_t pager_width = get_cfg_uint(CFG_PAGER_WIDTH);
 	struct line line = {.target = result};
 	line.lim = pager_width > 0 && pager_width < content_width ? pager_width : content_width;
-	line_bump(&line); // Add first line to line processor.
+	line_char(&line, L'\n'); // Add first line to line processor
 	for (size_t i = 0; i < blocks->len; ++i) {
-		line.pin = SIZE_MAX;
 		line.next_indent = 0;
 		if (blocks->ptr[i].content_type == TEXT_HTML) {
 			render_text_html(&line, blocks->ptr[i].content);

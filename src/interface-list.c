@@ -22,6 +22,7 @@ size_t list_menu_width;
 static WINDOW **windows = NULL;
 static size_t windows_count = 0;
 static size_t scrolloff;
+static size_t horizontal_shift = 0;
 
 static struct list_menu_settings menus[MENUS_COUNT];
 static struct list_menu_settings *menu = menus; // Selected menu.
@@ -84,7 +85,9 @@ regular_list_menu_writer(size_t index, WINDOW *w)
 {
 	if (menu->enumerator(index) == true) {
 		do_format(list_fmtout, menu->entry_format->ptr, menu->get_args(index));
-		waddwstr(w, list_fmtout->ptr);
+		if (list_fmtout->len > horizontal_shift) {
+			waddwstr(w, list_fmtout->ptr + horizontal_shift);
+		}
 		wbkgd(w, get_color_pair(menu->paint_action(index)) | (index == menu->view_sel ? A_REVERSE : 0));
 	}
 }
@@ -180,6 +183,7 @@ enter_list_menu(int8_t menu_index, config_entry_id format_id, bool do_reset)
 	if (menu_index == SECTIONS_MENU) {
 		refresh_unread_items_count_of_all_sections();
 	}
+	horizontal_shift = 0;
 	if (do_reset == true || menu != prev_menu) {
 		status_clean_unprotected();
 		redraw_list_menu_unprotected();
@@ -327,6 +331,23 @@ handle_list_menu_control(uint8_t menu_id, input_cmd_id cmd, const struct wstring
 		change_list_view_unprotected(m, 0);
 	} else if (cmd == INPUT_SELECT_LAST) {
 		change_list_view_unprotected(m, obtain_list_entries_count_unprotected(m));
+	} else if (cmd == INPUT_SHIFT_WEST) {
+		size_t shift_delta = 1 + list_menu_width / 50;
+		if (horizontal_shift >= shift_delta) {
+			horizontal_shift -= shift_delta;
+			expose_all_visible_entries_of_the_list_menu_unprotected();
+		} else if (horizontal_shift > 0) {
+			horizontal_shift = 0;
+			expose_all_visible_entries_of_the_list_menu_unprotected();
+		}
+	} else if (cmd == INPUT_SHIFT_EAST) {
+		horizontal_shift += 1 + list_menu_width / 50;
+		expose_all_visible_entries_of_the_list_menu_unprotected();
+	} else if (cmd == INPUT_SHIFT_RESET) {
+		if (horizontal_shift != 0) {
+			horizontal_shift = 0;
+			expose_all_visible_entries_of_the_list_menu_unprotected();
+		}
 	} else if (cmd == INPUT_SYSTEM_COMMAND) {
 		pthread_mutex_unlock(&interface_lock);
 		run_formatted_command(arg, m->get_args(m->view_sel));

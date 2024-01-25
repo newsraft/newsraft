@@ -132,6 +132,9 @@ assign_default_binds(void)
 	if (create_bind("N",              1, INPUT_JUMP_TO_PREV_UNREAD)             == false) { goto fail; }
 	if (create_bind("p",              1, INPUT_JUMP_TO_NEXT_IMPORTANT)          == false) { goto fail; }
 	if (create_bind("P",              1, INPUT_JUMP_TO_PREV_IMPORTANT)          == false) { goto fail; }
+	if (create_bind(",",              1, INPUT_SHIFT_WEST)                      == false) { goto fail; }
+	if (create_bind(".",              1, INPUT_SHIFT_EAST)                      == false) { goto fail; }
+	if (create_bind("<",              1, INPUT_SHIFT_RESET)                     == false) { goto fail; }
 	if (create_bind("t",              1, INPUT_SORT_BY_TIME)                    == false) { goto fail; }
 	if (create_bind("u",              1, INPUT_SORT_BY_UNREAD)                  == false) { goto fail; }
 	if (create_bind("a",              1, INPUT_SORT_BY_ALPHABET)                == false) { goto fail; }

@@ -465,6 +465,12 @@ and *colorN* (*N* can be a number from *0* to *255*). Available attributes are
 :[ _jump-to-next-important_
 |[ *P*
 :[ _jump-to-prev-important_
+|[ *,*
+:[ _shift-west_
+|[ *.*
+:[ _shift-east_
+|[ *<*
+:[ _shift-reset_
 |[ *t*
 :[ _sort-by-time_
 |[ *u*

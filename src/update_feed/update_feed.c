@@ -294,3 +294,12 @@ stop_feed_updater(void)
 	}
 	free(update_queue);
 }
+
+bool
+ask_feed_updater_if_it_is_busy(void)
+{
+	pthread_mutex_lock(&queue_lock);
+	bool status = update_queue_length > 0;
+	pthread_mutex_unlock(&queue_lock);
+	return status;
+}

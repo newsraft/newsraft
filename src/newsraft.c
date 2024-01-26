@@ -148,7 +148,10 @@ main(int argc, char **argv)
 	refresh_unread_items_count_of_all_sections();
 	if (start_feed_updater()               == false) { error = 19; goto undo10; }
 
-	enter_sections_menu_loop();
+	do {
+		enter_sections_menu_loop();
+	} while (ask_feed_updater_if_it_is_busy());
+
 	clean_up_items_menu();
 
 	they_want_us_to_terminate = true;

@@ -18,7 +18,7 @@ static struct format_arg items_fmt_args[] = {
 };
 
 bool
-items_list_moderator(size_t index)
+is_item_valid(size_t index)
 {
 	if (items == NULL) {
 		return false;
@@ -28,7 +28,7 @@ items_list_moderator(size_t index)
 }
 
 const struct format_arg *
-get_item_entry_args(size_t index)
+get_item_args(size_t index)
 {
 	items_fmt_args[0].value.i = index + 1;
 	items_fmt_args[1].value.s = items->ptr[index].is_unread == true ? "N" : " ";
@@ -44,7 +44,7 @@ get_item_entry_args(size_t index)
 }
 
 int
-paint_item_entry(size_t index)
+paint_item(size_t index)
 {
 	if (items->ptr[index].is_important == true) {
 		return CFG_COLOR_LIST_ITEM_IMPORTANT;
@@ -56,7 +56,7 @@ paint_item_entry(size_t index)
 }
 
 bool
-unread_item_condition(size_t index)
+is_item_unread(size_t index)
 {
 	return items->ptr[index].is_unread;
 }
@@ -185,7 +185,7 @@ enter_items_menu_loop(struct feed_entry **feeds, size_t feeds_count, bool is_exp
 			}
 			enter_list_menu(ITEMS_MENU, 0, false);
 		} else if (cmd == INPUT_OPEN_IN_BROWSER) {
-			run_formatted_command(get_cfg_wstring(CFG_OPEN_IN_BROWSER_COMMAND), get_item_entry_args(*view_sel));
+			run_formatted_command(get_cfg_wstring(CFG_OPEN_IN_BROWSER_COMMAND), get_item_args(*view_sel));
 		} else if (cmd == INPUT_COPY_TO_CLIPBOARD) {
 			copy_string_to_clipboard(items->ptr[*view_sel].url);
 		} else if (cmd == INPUT_TOGGLE_EXPLORE_MODE && is_explore_mode == true) {

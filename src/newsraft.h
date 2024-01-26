@@ -288,27 +288,26 @@ bool purge_abandoned_feeds(void);
 void enter_sections_menu_loop(void);
 void free_sections(void);
 void process_auto_updating_feeds(void);
-bool sections_list_moderator(size_t index);
-const struct format_arg *get_section_entry_args(size_t index);
-int paint_section_entry(size_t index);
-bool unread_section_condition(size_t index);
+bool is_section_valid(size_t index);
+const struct format_arg *get_section_args(size_t index);
+int paint_section(size_t index);
+bool is_section_unread(size_t index);
 void mark_feeds_read(struct feed_entry **feeds, size_t feeds_count, bool status);
 
 // See "feeds-parse.c" file for implementation.
 bool parse_feeds_file(void);
 
 // See "feeds.c" file for implementation.
-bool feeds_list_moderator(size_t index);
-const struct format_arg *get_feed_entry_args(size_t index);
-int paint_feed_entry(size_t index);
-bool unread_feed_condition(size_t index);
+bool is_feed_valid(size_t index);
+const struct format_arg *get_feed_args(size_t index);
+int paint_feed(size_t index);
+bool is_feed_unread(size_t index);
 input_cmd_id enter_feeds_menu_loop(struct feed_entry **base_feeds, size_t base_feeds_count, struct feed_entry **feeds_view);
 
 // See "interface-list.c" file for implementation.
 int8_t get_current_menu_type(void);
 bool adjust_list_menu(void);
 void free_list_menu(void);
-void initialize_settings_of_list_menus(void);
 void expose_entry_of_the_list_menu(size_t index);
 void expose_all_visible_entries_of_the_list_menu(void);
 void redraw_list_menu_unprotected(void);
@@ -318,8 +317,8 @@ bool handle_list_menu_control(uint8_t menu_id, input_cmd_id cmd, const struct ws
 bool handle_pager_menu_control(input_cmd_id cmd);
 
 // See "interface-list-pager.c" file for implementation.
-bool pager_menu_moderator(size_t index);
-void pager_list_menu_writer(size_t index, WINDOW *w);
+bool is_pager_pos_valid(size_t index);
+void pager_menu_writer(size_t index, WINDOW *w);
 bool start_pager_menu(struct render_blocks_list *new_blocks);
 bool refresh_pager_menu(void);
 
@@ -327,10 +326,10 @@ bool refresh_pager_menu(void);
 void do_format(struct wstring *dest, const wchar_t *fmt, const struct format_arg *args);
 
 // See "items.c" file for implementation.
-bool items_list_moderator(size_t index);
-const struct format_arg *get_item_entry_args(size_t index);
-int paint_item_entry(size_t index);
-bool unread_item_condition(size_t index);
+bool is_item_valid(size_t index);
+const struct format_arg *get_item_args(size_t index);
+int paint_item(size_t index);
+bool is_item_unread(size_t index);
 bool important_item_condition(size_t index);
 void clean_up_items_menu(void);
 void tell_items_menu_to_regenerate(void);

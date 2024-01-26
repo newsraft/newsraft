@@ -5,13 +5,13 @@ static struct render_result content = {0};
 static struct render_blocks_list *blocks;
 
 bool
-pager_menu_moderator(size_t index)
+is_pager_pos_valid(size_t index)
 {
 	return index < content.lines_len;
 }
 
 void
-pager_list_menu_writer(size_t index, WINDOW *w)
+pager_menu_writer(size_t index, WINDOW *w)
 {
 	if (index < content.lines_len) {
 		for (size_t i = 0; i < content.lines[index].indent; ++i) {

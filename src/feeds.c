@@ -26,13 +26,13 @@ static struct format_arg feeds_fmt_args[] = {
 };
 
 bool
-feeds_list_moderator(size_t index)
+is_feed_valid(size_t index)
 {
 	return index < feeds_count ? true : false;
 }
 
 const struct format_arg *
-get_feed_entry_args(size_t index)
+get_feed_args(size_t index)
 {
 	feeds_fmt_args[0].value.i = index + 1;
 	feeds_fmt_args[1].value.i = feeds[index]->unread_count;
@@ -42,13 +42,13 @@ get_feed_entry_args(size_t index)
 }
 
 int
-paint_feed_entry(size_t index)
+paint_feed(size_t index)
 {
 	return feeds[index]->unread_count > 0 ? CFG_COLOR_LIST_FEED_UNREAD : CFG_COLOR_LIST_FEED;
 }
 
 bool
-unread_feed_condition(size_t index)
+is_feed_unread(size_t index)
 {
 	return feeds[index]->unread_count > 0;
 }

@@ -24,7 +24,14 @@ static size_t windows_count = 0;
 static size_t scrolloff;
 static size_t horizontal_shift = 0;
 
-static struct list_menu_settings menus[MENUS_COUNT];
+static void list_menu_writer(size_t index, WINDOW *w);
+
+static struct list_menu_settings menus[MENUS_COUNT] = {
+	{0, 0, 0, NULL, &is_section_valid,   &get_section_args, &paint_section, &list_menu_writer,  &is_section_unread},
+	{0, 0, 0, NULL, &is_feed_valid,      &get_feed_args,    &paint_feed,    &list_menu_writer,  &is_feed_unread},
+	{0, 0, 0, NULL, &is_item_valid,      &get_item_args,    &paint_item,    &list_menu_writer,  &is_item_unread},
+	{0, 0, 0, NULL, &is_pager_pos_valid, NULL,              NULL,           &pager_menu_writer, NULL},
+};
 static struct list_menu_settings *menu = menus; // Selected menu.
 
 static struct wstring *list_fmtout = NULL;
@@ -81,7 +88,7 @@ free_list_menu(void)
 }
 
 static void
-regular_list_menu_writer(size_t index, WINDOW *w)
+list_menu_writer(size_t index, WINDOW *w)
 {
 	if (menu->enumerator(index) == true) {
 		do_format(list_fmtout, menu->entry_format->ptr, menu->get_args(index));
@@ -90,28 +97,6 @@ regular_list_menu_writer(size_t index, WINDOW *w)
 		}
 		wbkgd(w, get_color_pair(menu->paint_action(index)) | (index == menu->view_sel ? A_REVERSE : 0));
 	}
-}
-
-void
-initialize_settings_of_list_menus(void)
-{
-	menus[SECTIONS_MENU].enumerator    = &sections_list_moderator;
-	menus[SECTIONS_MENU].get_args      = &get_section_entry_args;
-	menus[SECTIONS_MENU].paint_action  = &paint_section_entry;
-	menus[SECTIONS_MENU].write_action  = &regular_list_menu_writer;
-	menus[SECTIONS_MENU].unread_state  = &unread_section_condition;
-	menus[FEEDS_MENU].enumerator    = &feeds_list_moderator;
-	menus[FEEDS_MENU].get_args      = &get_feed_entry_args;
-	menus[FEEDS_MENU].paint_action  = &paint_feed_entry;
-	menus[FEEDS_MENU].write_action  = &regular_list_menu_writer;
-	menus[FEEDS_MENU].unread_state  = &unread_feed_condition;
-	menus[ITEMS_MENU].enumerator    = &items_list_moderator;
-	menus[ITEMS_MENU].get_args      = &get_item_entry_args;
-	menus[ITEMS_MENU].paint_action  = &paint_item_entry;
-	menus[ITEMS_MENU].write_action  = &regular_list_menu_writer;
-	menus[ITEMS_MENU].unread_state  = &unread_item_condition;
-	menus[PAGER_MENU].enumerator    = &pager_menu_moderator;
-	menus[PAGER_MENU].write_action  = &pager_list_menu_writer;
 }
 
 static inline void

@@ -22,13 +22,13 @@ static struct format_arg sections_fmt_args[] = {
 };
 
 bool
-sections_list_moderator(size_t index)
+is_section_valid(size_t index)
 {
 	return index < sections_count ? true : false;
 }
 
 const struct format_arg *
-get_section_entry_args(size_t index)
+get_section_args(size_t index)
 {
 	sections_fmt_args[0].value.i = index + 1;
 	sections_fmt_args[1].value.i = sections[index].unread_count;
@@ -37,13 +37,13 @@ get_section_entry_args(size_t index)
 }
 
 int
-paint_section_entry(size_t index)
+paint_section(size_t index)
 {
 	return sections[index].unread_count > 0 ? CFG_COLOR_LIST_SECTION_UNREAD : CFG_COLOR_LIST_SECTION;
 }
 
 bool
-unread_section_condition(size_t index)
+is_section_unread(size_t index)
 {
 	return sections[index].unread_count > 0;
 }

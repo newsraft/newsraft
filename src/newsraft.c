@@ -144,7 +144,6 @@ main(int argc, char **argv)
 	if (allocate_status_messages_buffer()  == false) { error = 16; goto undo8; }
 	if (counter_recreate_unprotected()     == false) { error = 17; goto undo8; }
 	if (curl_global_init(CURL_GLOBAL_DEFAULT)  != 0) { error = 18; goto undo9; }
-	initialize_settings_of_list_menus();
 	refresh_unread_items_count_of_all_sections();
 	if (start_feed_updater()               == false) { error = 19; goto undo10; }
 

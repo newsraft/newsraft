@@ -17,7 +17,10 @@ static inline void
 update_status_window_content_unprotected(void)
 {
 	werase(status_window);
-	if (search_mode_is_enabled == true) {
+	if (they_want_us_to_terminate == true) {
+		mvwaddnstr(status_window, 0, 0, "Terminating...", list_menu_width - 9);
+		wbkgd(status_window, get_color_pair(CFG_COLOR_STATUS_FAIL));
+	} else if (search_mode_is_enabled == true) {
 		mvwaddnstr(status_window, 0, 0, "/", 1);
 		mvwaddnstr(status_window, 0, 1, search_mode_text_input->ptr, list_menu_width - 10);
 		wbkgd(status_window, A_NORMAL);

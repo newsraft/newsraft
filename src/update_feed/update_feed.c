@@ -151,7 +151,7 @@ branch_update_feed_action_into_thread(struct feed_entry *feed)
 				return;
 			}
 		}
-		nanosleep(&worker_threads_check_period, NULL); // Add a little delay to give the CPU some rest.
+		nanosleep(&worker_threads_check_period, NULL); // Little delay to give CPU some rest
 	}
 }
 
@@ -209,21 +209,23 @@ here_we_go_again:
 			goto here_we_go_again;
 		}
 
-		tell_items_menu_to_regenerate();
-		allow_status_cleaning();
-		if (update_queue_failures == 0) {
-			status_clean();
-		} else {
-			fail_status("Failed to update %zu feeds (check status history for details)", update_queue_failures);
-		}
-		if (cumulative_new_items_count > 0) {
-			const struct wstring *notification_cmd = get_cfg_wstring(CFG_NOTIFICATION_COMMAND);
-			if (notification_cmd != NULL && notification_cmd->len > 0) {
-				struct format_arg notification_cmd_args[] = {
-					{L'q',  L'd',  {.i = cumulative_new_items_count}},
-					{L'\0', L'\0', {.i = 0 /* terminator */        }},
-				};
-				run_formatted_command(notification_cmd, notification_cmd_args);
+		if (they_want_us_to_terminate == false) {
+			tell_items_menu_to_regenerate();
+			allow_status_cleaning();
+			if (update_queue_failures == 0) {
+				status_clean();
+			} else {
+				fail_status("Failed to update %zu feeds (check status history for details)", update_queue_failures);
+			}
+			if (cumulative_new_items_count > 0) {
+				const struct wstring *notification_cmd = get_cfg_wstring(CFG_NOTIFICATION_COMMAND);
+				if (notification_cmd != NULL && notification_cmd->len > 0) {
+					struct format_arg notification_cmd_args[] = {
+						{L'q',  L'd',  {.i = cumulative_new_items_count}},
+						{L'\0', L'\0', {.i = 0 /* terminator */        }},
+					};
+					run_formatted_command(notification_cmd, notification_cmd_args);
+				}
 			}
 		}
 

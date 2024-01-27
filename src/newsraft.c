@@ -147,14 +147,13 @@ main(int argc, char **argv)
 	refresh_unread_items_count_of_all_sections();
 	if (start_feed_updater()               == false) { error = 19; goto undo10; }
 
+	struct timespec check_period = {0, 100000000}; // 0.1 seconds
 	do {
 		enter_sections_menu_loop();
-	} while (ask_feed_updater_if_it_is_busy());
+		nanosleep(&check_period, NULL);
+	} while (!try_to_stop_feed_updater());
 
 	clean_up_items_menu();
-
-	they_want_us_to_terminate = true;
-	stop_feed_updater();
 undo10:
 	curl_global_cleanup();
 undo9:

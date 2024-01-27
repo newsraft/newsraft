@@ -529,8 +529,7 @@ void free_config(void);
 // See "update_feed" directory for implementation.
 void update_feeds(struct feed_entry **feeds, size_t feeds_count);
 bool start_feed_updater(void);
-void stop_feed_updater(void);
-bool ask_feed_updater_if_it_is_busy(void);
+bool try_to_stop_feed_updater(void);
 
 extern volatile bool they_want_us_to_terminate;
 extern FILE *log_stream;

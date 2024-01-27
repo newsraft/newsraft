@@ -285,9 +285,15 @@ start_feed_updater(void)
 	return true;
 }
 
-void
-stop_feed_updater(void)
+bool
+try_to_stop_feed_updater(void)
 {
+	pthread_mutex_lock(&queue_lock);
+	if (update_queue_length > 0 || at_least_one_thread_is_running() == true) {
+		pthread_mutex_unlock(&queue_lock);
+		return false;
+	}
+	they_want_us_to_terminate = true;
 	pthread_join(queue_worker_thread, NULL);
 	for (size_t i = 0; i < worker_threads_count; ++i) {
 		if (worker_threads[i].was_started == true) {
@@ -295,13 +301,6 @@ stop_feed_updater(void)
 		}
 	}
 	free(update_queue);
-}
-
-bool
-ask_feed_updater_if_it_is_busy(void)
-{
-	pthread_mutex_lock(&queue_lock);
-	bool status = update_queue_length > 0;
 	pthread_mutex_unlock(&queue_lock);
-	return status;
+	return true;
 }

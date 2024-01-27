@@ -108,6 +108,7 @@ resize_handler(void)
 	pthread_mutex_unlock(&interface_lock);
 	return INPUT_ERROR;
 error:
+	tell_program_to_terminate_safely_and_quickly(0);
 	pthread_mutex_unlock(&interface_lock);
 	return INPUT_QUIT_HARD;
 }

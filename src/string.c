@@ -23,9 +23,12 @@ str_set(struct string **dest, const char *src_ptr, size_t src_len, size_t src_li
 		}
 		if (src_ptr != NULL && src_len > 0) {
 			memcpy(str->ptr, src_ptr, sizeof(char) * src_len);
+			*(str->ptr + src_len) = '\0';
+			str->len = src_len;
+		} else {
+			*(str->ptr) = '\0';
+			str->len = 0;
 		}
-		*(str->ptr + src_len) = '\0';
-		str->len = src_len;
 		str->lim = src_lim;
 		*dest = str;
 	} else {
@@ -114,34 +117,44 @@ catcs(struct string *dest, char c)
 }
 
 bool
+make_string_fit_more(struct string **dest, size_t n)
+{
+	if (*dest == NULL) {
+		return str_set(dest, NULL, 0, n);
+	}
+	if ((*dest)->len + n > (*dest)->lim) {
+		char *tmp = realloc((*dest)->ptr, sizeof(char) * ((*dest)->len + n + 100));
+		if (tmp == NULL) {
+			FAIL("Not enough memory to expand string!");
+			return false;
+		}
+		(*dest)->ptr = tmp;
+		(*dest)->lim = (*dest)->len + n + 99;
+	}
+	return true;
+}
+
+bool
 string_vprintf(struct string *dest, const char *format, va_list args)
 {
 	// We need a copy of args because first call to vsnprintf screws original
 	// argument list and we need to call vsnprintf after that.
 	va_list args_copy;
 	va_copy(args_copy, args);
-	int required_length = vsnprintf(dest->ptr, 0, format, args_copy);
+	int required_len = vsnprintf(dest->ptr, 0, format, args_copy);
 	va_end(args_copy);
-	if (required_length < 0) {
+	if (required_len < 0) {
 		return false;
 	}
-	// We already know that integer is positive, so it is safe to cast it to unsigned integer.
-	if ((size_t)required_length > dest->lim) {
-		size_t new_lim = (size_t)required_length * 2 + 67;
-		char *temp = realloc(dest->ptr, sizeof(char) * (new_lim + 1));
-		if (temp == NULL) {
-			FAIL("Not enough memory for printing to string!");
-			return false;
-		}
-		dest->ptr = temp;
-		dest->lim = new_lim;
+	if ((size_t)required_len > dest->lim && make_string_fit_more(&dest, required_len - dest->lim) == false) {
+		return false;
 	}
-	required_length = vsnprintf(dest->ptr, required_length + 1, format, args);
-	if (required_length < 0) {
+	required_len = vsnprintf(dest->ptr, required_len + 1, format, args);
+	if (required_len < 0) {
 		empty_string(dest);
 		return false;
 	}
-	dest->len = (size_t)required_length;
+	dest->len = (size_t)required_len;
 	*(dest->ptr + dest->len) = '\0';
 	return true;
 }

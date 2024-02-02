@@ -476,6 +476,7 @@ bool cpyss(struct string **dest, const struct string *src);
 bool catas(struct string *dest, const char *src_ptr, size_t src_len);
 bool catss(struct string *dest, const struct string *src);
 bool catcs(struct string *dest, char c);
+bool make_string_fit_more(struct string **dest, size_t n);
 bool string_vprintf(struct string *dest, const char *format, va_list args);
 void empty_string(struct string *dest);
 void free_string(struct string *str);
@@ -486,7 +487,7 @@ void inlinefy_string(struct string *title);
 
 // See "string-serialize.c" file for implementation.
 bool serialize_caret(struct string **target);
-bool serialize_array(struct string **target, const char *key, size_t key_len, const char *value, size_t value_len);
+bool serialize_array(register struct string **target, register const char *key, register size_t key_len, register const char *value, register size_t value_len);
 bool serialize_string(struct string **target, const char *key, size_t key_len, const struct string *value);
 struct deserialize_stream *open_deserialize_stream(const char *serialized_data);
 const struct string *get_next_entry_from_deserialize_stream(struct deserialize_stream *stream);

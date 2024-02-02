@@ -20,37 +20,26 @@ dublincore_title_end(struct stream_callback_data *data)
 }
 
 static int8_t
-dublincore_date_end(struct stream_callback_data *data)
-{
-	if (data->in_item == true) {
-		data->feed.item->update_date = parse_date_rfc3339(data->text->ptr);
-	} else {
-		data->feed.update_date = parse_date_rfc3339(data->text->ptr);
-	}
-	return PARSE_OKAY;
-}
-
-static int8_t
 dublincore_creator_end(struct stream_callback_data *data)
 {
 	if (data->in_item == true) {
 		if (serialize_caret(&data->feed.item->persons) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
-		if (serialize_array(&data->feed.item->persons, "type", 4, "author", 6) == false) {
+		if (serialize_array(&data->feed.item->persons, "type=", 5, "author", 6) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
-		if (serialize_string(&data->feed.item->persons, "name", 4, data->text) == false) {
+		if (serialize_string(&data->feed.item->persons, "name=", 5, data->text) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	} else {
 		if (serialize_caret(&data->feed.persons) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
-		if (serialize_array(&data->feed.persons, "type", 4, "author", 6) == false) {
+		if (serialize_array(&data->feed.persons, "type=", 5, "author", 6) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
-		if (serialize_string(&data->feed.persons, "name", 4, data->text) == false) {
+		if (serialize_string(&data->feed.persons, "name=", 5, data->text) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	}
@@ -64,32 +53,22 @@ dublincore_contributor_end(struct stream_callback_data *data)
 		if (serialize_caret(&data->feed.item->persons) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
-		if (serialize_array(&data->feed.item->persons, "type", 4, "contributor", 11) == false) {
+		if (serialize_array(&data->feed.item->persons, "type=", 5, "contributor", 11) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
-		if (serialize_string(&data->feed.item->persons, "name", 4, data->text) == false) {
+		if (serialize_string(&data->feed.item->persons, "name=", 5, data->text) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	} else {
 		if (serialize_caret(&data->feed.persons) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
-		if (serialize_array(&data->feed.persons, "type", 4, "contributor", 11) == false) {
+		if (serialize_array(&data->feed.persons, "type=", 5, "contributor", 11) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
-		if (serialize_string(&data->feed.persons, "name", 4, data->text) == false) {
+		if (serialize_string(&data->feed.persons, "name=", 5, data->text) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	}
 	return PARSE_OKAY;
 }
-
-const struct xml_element_handler xml_dublincore_handlers[] = {
-	{"title",       XML_UNKNOWN_POS, NULL, &dublincore_title_end},
-	{"description", XML_UNKNOWN_POS, NULL, &generic_plain_content_end},
-	{"date",        XML_UNKNOWN_POS, NULL, &dublincore_date_end},
-	{"creator",     XML_UNKNOWN_POS, NULL, &dublincore_creator_end},
-	{"contributor", XML_UNKNOWN_POS, NULL, &dublincore_contributor_end},
-	{"subject",     XML_UNKNOWN_POS, NULL, &generic_category_end},
-	{NULL,          XML_UNKNOWN_POS, NULL, NULL},
-};

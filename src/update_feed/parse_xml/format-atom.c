@@ -5,7 +5,7 @@
 // https://web.archive.org/web/20211201194224/https://datatracker.ietf.org/doc/html/rfc4287
 
 static int8_t
-link_start(struct stream_callback_data *data, const XML_Char **attrs)
+atom_link_start(struct stream_callback_data *data, const XML_Char **attrs)
 {
 	const char *attr = get_value_of_attribute_key(attrs, "href");
 	if (attr == NULL) {
@@ -16,11 +16,11 @@ link_start(struct stream_callback_data *data, const XML_Char **attrs)
 		return PARSE_OKAY; // Ignore empty links.
 	}
 	const char *rel = get_value_of_attribute_key(attrs, "rel");
-	if ((rel != NULL) && (strcmp(rel, "self") == 0)) {
+	if (rel != NULL && strcmp(rel, "self") == 0) {
 		return PARSE_OKAY; // Ignore links to feed itself.
 	}
-	if ((rel == NULL) || (strcmp(rel, "alternate") == 0)) {
-		// Default value of rel is alternate.
+	// Default value of rel is alternate!
+	if (rel == NULL || strcmp(rel, "alternate") == 0) {
 		if (data->path[data->depth] == GENERIC_ITEM) {
 			if (cpyas(&data->feed.item->url, attr, attr_len) == false) {
 				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
@@ -34,13 +34,13 @@ link_start(struct stream_callback_data *data, const XML_Char **attrs)
 		if (serialize_caret(&data->feed.item->attachments) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
-		if (serialize_array(&data->feed.item->attachments, "url", 3, attr, attr_len) == false) {
+		if (serialize_array(&data->feed.item->attachments, "url=", 4, attr, attr_len) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
-		if (serialize_attribute(&data->feed.item->attachments, attrs, "type", "type", 4) == false) {
+		if (serialize_attribute(&data->feed.item->attachments, "type=", 5, attrs, "type") == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
-		if (serialize_attribute(&data->feed.item->attachments, attrs, "length", "size", 4) == false) {
+		if (serialize_attribute(&data->feed.item->attachments, "size=", 5, attrs, "length") == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	}
@@ -48,13 +48,13 @@ link_start(struct stream_callback_data *data, const XML_Char **attrs)
 }
 
 static int8_t
-content_start(struct stream_callback_data *data, const XML_Char **attrs)
+atom_content_start(struct stream_callback_data *data, const XML_Char **attrs)
 {
 	if (data->path[data->depth] == GENERIC_ITEM) {
 		if (serialize_caret(&data->feed.item->content) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
-		if (serialize_attribute(&data->feed.item->content, attrs, "type", "type", 4) == false) {
+		if (serialize_attribute(&data->feed.item->content, "type=", 5, attrs, "type") == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 		const char *type = get_value_of_attribute_key(attrs, "type");
@@ -67,11 +67,11 @@ content_start(struct stream_callback_data *data, const XML_Char **attrs)
 }
 
 static int8_t
-content_end(struct stream_callback_data *data)
+atom_content_end(struct stream_callback_data *data)
 {
 	if (data->path[data->depth] == GENERIC_ITEM) {
 		data->emptying_target = data->text;
-		if (serialize_string(&data->feed.item->content, "text", 4, data->text) == false) {
+		if (serialize_string(&data->feed.item->content, "text=", 5, data->text) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	}
@@ -88,17 +88,6 @@ published_end(struct stream_callback_data *data)
 }
 
 static int8_t
-updated_end(struct stream_callback_data *data)
-{
-	if (data->path[data->depth] == GENERIC_ITEM) {
-		data->feed.item->update_date = parse_date_rfc3339(data->text->ptr);
-	} else if (data->path[data->depth] == GENERIC_FEED) {
-		data->feed.update_date = parse_date_rfc3339(data->text->ptr);
-	}
-	return PARSE_OKAY;
-}
-
-static int8_t
 author_start(struct stream_callback_data *data, const XML_Char **attrs)
 {
 	(void)attrs;
@@ -106,14 +95,14 @@ author_start(struct stream_callback_data *data, const XML_Char **attrs)
 		if (serialize_caret(&data->feed.item->persons) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
-		if (serialize_array(&data->feed.item->persons, "type", 4, "author", 6) == false) {
+		if (serialize_array(&data->feed.item->persons, "type=", 5, "author", 6) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	} else if (data->path[data->depth] == GENERIC_FEED) {
 		if (serialize_caret(&data->feed.persons) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
-		if (serialize_array(&data->feed.persons, "type", 4, "author", 6) == false) {
+		if (serialize_array(&data->feed.persons, "type=", 5, "author", 6) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	}
@@ -128,14 +117,14 @@ contributor_start(struct stream_callback_data *data, const XML_Char **attrs)
 		if (serialize_caret(&data->feed.item->persons) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
-		if (serialize_array(&data->feed.item->persons, "type", 4, "contributor", 11) == false) {
+		if (serialize_array(&data->feed.item->persons, "type=", 5, "contributor", 11) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	} else if (data->path[data->depth] == GENERIC_FEED) {
 		if (serialize_caret(&data->feed.persons) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
-		if (serialize_array(&data->feed.persons, "type", 4, "contributor", 11) == false) {
+		if (serialize_array(&data->feed.persons, "type=", 5, "contributor", 11) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	}
@@ -146,12 +135,12 @@ static int8_t
 name_end(struct stream_callback_data *data)
 {
 	if (data->path[data->depth] == ATOM_AUTHOR) {
-		if (data->path[data->depth - 1] == GENERIC_ITEM) {
-			if (serialize_string(&data->feed.item->persons, "name", 4, data->text) == false) {
+		if (data->in_item == true) {
+			if (serialize_string(&data->feed.item->persons, "name=", 5, data->text) == false) {
 				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			}
-		} else if (data->path[data->depth - 1] == GENERIC_FEED) {
-			if (serialize_string(&data->feed.persons, "name", 4, data->text) == false) {
+		} else {
+			if (serialize_string(&data->feed.persons, "name=", 5, data->text) == false) {
 				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			}
 		}
@@ -163,12 +152,12 @@ static int8_t
 uri_end(struct stream_callback_data *data)
 {
 	if (data->path[data->depth] == ATOM_AUTHOR) {
-		if (data->path[data->depth - 1] == GENERIC_ITEM) {
-			if (serialize_string(&data->feed.item->persons, "url", 3, data->text) == false) {
+		if (data->in_item == true) {
+			if (serialize_string(&data->feed.item->persons, "url=", 4, data->text) == false) {
 				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			}
-		} else if (data->path[data->depth - 1] == GENERIC_FEED) {
-			if (serialize_string(&data->feed.persons, "url", 3, data->text) == false) {
+		} else {
+			if (serialize_string(&data->feed.persons, "url=", 4, data->text) == false) {
 				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			}
 		}
@@ -180,12 +169,12 @@ static int8_t
 email_end(struct stream_callback_data *data)
 {
 	if (data->path[data->depth] == ATOM_AUTHOR) {
-		if (data->path[data->depth - 1] == GENERIC_ITEM) {
-			if (serialize_string(&data->feed.item->persons, "email", 5, data->text) == false) {
+		if (data->in_item == true) {
+			if (serialize_string(&data->feed.item->persons, "email=", 6, data->text) == false) {
 				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			}
-		} else if (data->path[data->depth - 1] == GENERIC_FEED) {
-			if (serialize_string(&data->feed.persons, "email", 5, data->text) == false) {
+		} else {
+			if (serialize_string(&data->feed.persons, "email=", 6, data->text) == false) {
 				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			}
 		}
@@ -194,7 +183,7 @@ email_end(struct stream_callback_data *data)
 }
 
 static int8_t
-category_start(struct stream_callback_data *data, const XML_Char **attrs)
+atom_category_start(struct stream_callback_data *data, const XML_Char **attrs)
 {
 	struct string **target;
 	if (data->path[data->depth] == GENERIC_ITEM) {
@@ -216,7 +205,7 @@ category_start(struct stream_callback_data *data, const XML_Char **attrs)
 		if (serialize_caret(target) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
-		if (serialize_array(target, "category", 8, attr, attr_len) == false) {
+		if (serialize_array(target, "category=", 9, attr, attr_len) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	}
@@ -224,13 +213,13 @@ category_start(struct stream_callback_data *data, const XML_Char **attrs)
 }
 
 static int8_t
-subtitle_start(struct stream_callback_data *data, const XML_Char **attrs)
+atom_subtitle_start(struct stream_callback_data *data, const XML_Char **attrs)
 {
 	if (data->path[data->depth] == GENERIC_FEED) {
 		if (serialize_caret(&data->feed.content) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
-		if (serialize_attribute(&data->feed.content, attrs, "type", "type", 4) == false) {
+		if (serialize_attribute(&data->feed.content, "type=", 5, attrs, "type") == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	}
@@ -238,10 +227,10 @@ subtitle_start(struct stream_callback_data *data, const XML_Char **attrs)
 }
 
 static int8_t
-subtitle_end(struct stream_callback_data *data)
+atom_subtitle_end(struct stream_callback_data *data)
 {
 	if (data->path[data->depth] == GENERIC_FEED) {
-		if (serialize_string(&data->feed.content, "text", 4, data->text) == false) {
+		if (serialize_string(&data->feed.content, "text=", 5, data->text) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	}
@@ -266,24 +255,3 @@ atom_generator_start(struct stream_callback_data *data, const XML_Char **attrs)
 	}
 	return PARSE_OKAY;
 }
-
-const struct xml_element_handler xml_atom10_handlers[] = {
-	{"entry",       GENERIC_ITEM,    &generic_item_starter, &generic_item_ender},
-	{"id",          XML_UNKNOWN_POS, NULL,                  &generic_guid_end},
-	{"title",       XML_UNKNOWN_POS, NULL,                  &generic_title_end},
-	{"link",        XML_UNKNOWN_POS, &link_start,           NULL},
-	{"summary",     XML_UNKNOWN_POS, &content_start,        &content_end},
-	{"content",     XML_UNKNOWN_POS, &content_start,        &content_end},
-	{"published",   XML_UNKNOWN_POS, NULL,                  &published_end},
-	{"updated",     XML_UNKNOWN_POS, NULL,                  &updated_end},
-	{"author",      ATOM_AUTHOR,     &author_start,         NULL},
-	{"contributor", ATOM_AUTHOR,     &contributor_start,    NULL},
-	{"name",        XML_UNKNOWN_POS, NULL,                  &name_end},
-	{"uri",         XML_UNKNOWN_POS, NULL,                  &uri_end},
-	{"email",       XML_UNKNOWN_POS, NULL,                  &email_end},
-	{"category",    XML_UNKNOWN_POS, &category_start,       NULL},
-	{"subtitle",    XML_UNKNOWN_POS, &subtitle_start,       &subtitle_end},
-	{"generator",   XML_UNKNOWN_POS, &atom_generator_start, &generator_end},
-	{"feed",        GENERIC_FEED,    NULL,                  NULL},
-	{NULL,          XML_UNKNOWN_POS, NULL,                  NULL},
-};

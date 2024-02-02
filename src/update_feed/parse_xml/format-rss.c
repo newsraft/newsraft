@@ -2,28 +2,36 @@
 #include <curl/curl.h>
 #include "update_feed/parse_xml/parse_xml_feed.h"
 
-// https://web.archive.org/web/20211208135333/https://validator.w3.org/feed/docs/rss2.html
-
-// Some ancient stuff:
+// Note to the future.
+//
+// Since all versions of RSS specifications are basically compatible
+// with each other, we don't even have to check for a value in the
+// version attribute of the rss element.
+//
+// https://web.archive.org/web/20240202013527/http://backend.userland.com/rssChangeNotes
+// https://web.archive.org/web/20230124122614/http://static.userland.com/gems/backend/gratefulDead.xml
 // https://web.archive.org/web/20211011074123/https://www.rssboard.org/rss-0-9-0
-// https://web.archive.org/web/20211106023928/https://web.resource.org/rss/1.0/spec
+// https://web.archive.org/web/20231208183902/https://www.rssboard.org/rss-0-9-1-netscape
+// https://web.archive.org/web/20231216194351/https://www.rssboard.org/rss-0-9-2
+// https://web.archive.org/web/20240202013313/http://backend.userland.com/rss093
+// https://web.archive.org/web/20060831192123/http://web.resource.org/rss/1.0/spec
 // https://web.archive.org/web/20210411040907/http://inamidst.com/rss1.1/
+// https://web.archive.org/web/20211208135333/https://validator.w3.org/feed/docs/rss2.html
+// https://web.archive.org/web/20240201121905/https://www.rssboard.org/rss-specification
 
 static int8_t
 rss_guid_start(struct stream_callback_data *data, const XML_Char **attrs)
 {
 	if (data->path[data->depth] == GENERIC_ITEM) {
-		data->feed.item->guid_is_url = true; // Default value is true.
-		const char *is_perma_link = get_value_of_attribute_key(attrs, "isPermaLink");
-		if (is_perma_link != NULL && strcmp(is_perma_link, "true") != 0) {
-			data->feed.item->guid_is_url = false;
-		}
+		const char *val = get_value_of_attribute_key(attrs, "isPermaLink");
+		// Default value of isPermaLink is considered true!
+		data->feed.item->guid_is_url = val == NULL || strcmp(val, "true") == 0;
 	}
 	return PARSE_OKAY;
 }
 
 static int8_t
-link_end(struct stream_callback_data *data)
+rss_link_end(struct stream_callback_data *data)
 {
 	if (data->path[data->depth] == GENERIC_ITEM) {
 		if (cpyss(&data->feed.item->url, data->text) == false) {
@@ -38,7 +46,7 @@ link_end(struct stream_callback_data *data)
 }
 
 static int8_t
-pub_date_end(struct stream_callback_data *data)
+rss_pubdate_end(struct stream_callback_data *data)
 {
 	if (data->path[data->depth] == GENERIC_ITEM) {
 		data->feed.item->publication_date = curl_getdate(data->text->ptr, NULL);
@@ -62,7 +70,7 @@ pub_date_end(struct stream_callback_data *data)
 }
 
 static int8_t
-last_build_date_end(struct stream_callback_data *data)
+rss_lastbuilddate_end(struct stream_callback_data *data)
 {
 	// In RSS 2.0 lastBuildDate element is only for channel,
 	// for items they use pubDate.
@@ -76,26 +84,26 @@ last_build_date_end(struct stream_callback_data *data)
 }
 
 static int8_t
-author_end(struct stream_callback_data *data)
+rss_author_end(struct stream_callback_data *data)
 {
 	if (data->path[data->depth] == GENERIC_ITEM) {
 		if (serialize_caret(&data->feed.item->persons) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
-		if (serialize_array(&data->feed.item->persons, "type", 4, "author", 6) == false) {
+		if (serialize_array(&data->feed.item->persons, "type=", 5, "author", 6) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
-		if (serialize_string(&data->feed.item->persons, "email", 5, data->text) == false) {
+		if (serialize_string(&data->feed.item->persons, "email=", 6, data->text) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	} else if (data->path[data->depth] == GENERIC_FEED) {
 		if (serialize_caret(&data->feed.persons) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
-		if (serialize_array(&data->feed.persons, "type", 4, "author", 6) == false) {
+		if (serialize_array(&data->feed.persons, "type=", 5, "author", 6) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
-		if (serialize_string(&data->feed.persons, "email", 5, data->text) == false) {
+		if (serialize_string(&data->feed.persons, "email=", 6, data->text) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	}
@@ -103,7 +111,7 @@ author_end(struct stream_callback_data *data)
 }
 
 static int8_t
-enclosure_start(struct stream_callback_data *data, const XML_Char **attrs)
+rss_enclosure_start(struct stream_callback_data *data, const XML_Char **attrs)
 {
 	if (data->path[data->depth] != GENERIC_ITEM) {
 		return PARSE_OKAY;
@@ -119,29 +127,29 @@ enclosure_start(struct stream_callback_data *data, const XML_Char **attrs)
 	if (serialize_caret(&data->feed.item->attachments) == false) {
 		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 	}
-	if (serialize_array(&data->feed.item->attachments, "url", 3, attr, attr_len) == false) {
+	if (serialize_array(&data->feed.item->attachments, "url=", 4, attr, attr_len) == false) {
 		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 	}
-	if (serialize_attribute(&data->feed.item->attachments, attrs, "type", "type", 4) == false) {
+	if (serialize_attribute(&data->feed.item->attachments, "type=", 5, attrs, "type") == false) {
 		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 	}
-	if (serialize_attribute(&data->feed.item->attachments, attrs, "length", "size", 4) == false) {
+	if (serialize_attribute(&data->feed.item->attachments, "size=", 5, attrs, "length") == false) {
 		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 	}
 	return PARSE_OKAY;
 }
 
 static int8_t
-comments_end(struct stream_callback_data *data)
+rss_comments_end(struct stream_callback_data *data)
 {
 	if (data->path[data->depth] == GENERIC_ITEM) {
 		if (serialize_caret(&data->feed.item->attachments) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
-		if (serialize_string(&data->feed.item->attachments, "url", 3, data->text) == false) {
+		if (serialize_string(&data->feed.item->attachments, "url=", 4, data->text) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
-		if (serialize_array(&data->feed.item->attachments, "content", 7, "comments", 8) == false) {
+		if (serialize_array(&data->feed.item->attachments, "content=", 8, "comments", 8) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	}
@@ -149,7 +157,7 @@ comments_end(struct stream_callback_data *data)
 }
 
 static int8_t
-ttl_end(struct stream_callback_data *data)
+rss_ttl_end(struct stream_callback_data *data)
 {
 	if (data->path[data->depth] == GENERIC_FEED) {
 		int64_t minutes;
@@ -167,23 +175,23 @@ ttl_end(struct stream_callback_data *data)
 }
 
 static int8_t
-web_master_end(struct stream_callback_data *data)
+rss_webmaster_end(struct stream_callback_data *data)
 {
 	INFO("Webmaster of this feed: %s", data->text->ptr);
 	return PARSE_OKAY;
 }
 
 static int8_t
-managing_editor_end(struct stream_callback_data *data)
+rss_managingeditor_end(struct stream_callback_data *data)
 {
 	if (data->path[data->depth] == GENERIC_FEED) {
 		if (serialize_caret(&data->feed.persons) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
-		if (serialize_array(&data->feed.persons, "type", 4, "editor", 6) == false) {
+		if (serialize_array(&data->feed.persons, "type=", 5, "editor", 6) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
-		if (serialize_string(&data->feed.persons, "email", 5, data->text) == false) {
+		if (serialize_string(&data->feed.persons, "email=", 6, data->text) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	}
@@ -191,7 +199,7 @@ managing_editor_end(struct stream_callback_data *data)
 }
 
 static int8_t
-source_start(struct stream_callback_data *data, const XML_Char **attrs)
+rss_source_start(struct stream_callback_data *data, const XML_Char **attrs)
 {
 	if (data->path[data->depth] != GENERIC_ITEM) {
 		return PARSE_OKAY;
@@ -207,45 +215,22 @@ source_start(struct stream_callback_data *data, const XML_Char **attrs)
 	if (serialize_caret(&data->feed.item->attachments) == false) {
 		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 	}
-	if (serialize_array(&data->feed.item->attachments, "url", 3, attr, attr_len) == false) {
+	if (serialize_array(&data->feed.item->attachments, "url=", 4, attr, attr_len) == false) {
 		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 	}
-	if (serialize_array(&data->feed.item->attachments, "content", 7, "source", 6) == false) {
+	if (serialize_array(&data->feed.item->attachments, "content=", 8, "source", 6) == false) {
 		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 	}
 	return PARSE_OKAY;
 }
 
 static int8_t
-source_end(struct stream_callback_data *data)
+rss_source_end(struct stream_callback_data *data)
 {
 	if (data->path[data->depth] == GENERIC_ITEM) {
-		if (serialize_string(&data->feed.item->attachments, "title", 5, data->text) == false) {
+		if (serialize_string(&data->feed.item->attachments, "title=", 6, data->text) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	}
 	return PARSE_OKAY;
 }
-
-const struct xml_element_handler xml_rss_handlers[] = {
-	{"item",           GENERIC_ITEM,    &generic_item_starter, &generic_item_ender},
-	{"guid",           XML_UNKNOWN_POS, &rss_guid_start,       &generic_guid_end},
-	{"title",          XML_UNKNOWN_POS, NULL,                  &generic_title_end},
-	{"link",           XML_UNKNOWN_POS, NULL,                  &link_end},
-	{"description",    XML_UNKNOWN_POS, NULL,                  &generic_html_content_end},
-	{"pubDate",        XML_UNKNOWN_POS, NULL,                  &pub_date_end},
-	{"lastBuildDate",  XML_UNKNOWN_POS, NULL,                  &last_build_date_end},
-	{"author",         XML_UNKNOWN_POS, NULL,                  &author_end},
-	{"enclosure",      XML_UNKNOWN_POS, &enclosure_start,      NULL},
-	{"category",       XML_UNKNOWN_POS, NULL,                  &generic_category_end},
-	{"comments",       XML_UNKNOWN_POS, NULL,                  &comments_end},
-	{"ttl",            XML_UNKNOWN_POS, NULL,                  &ttl_end},
-	{"generator",      XML_UNKNOWN_POS, NULL,                  &generator_end},
-	{"webMaster",      XML_UNKNOWN_POS, NULL,                  &web_master_end},
-	{"managingEditor", XML_UNKNOWN_POS, NULL,                  &managing_editor_end},
-	{"source",         XML_UNKNOWN_POS, &source_start,         &source_end},
-	{"channel",        GENERIC_FEED,    NULL,                  NULL},
-	// Channel with capital C is used in RSS 1.1
-	{"Channel",        GENERIC_FEED,    NULL,                  NULL},
-	{NULL,             XML_UNKNOWN_POS, NULL,                  NULL},
-};

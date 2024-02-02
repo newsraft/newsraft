@@ -1,0 +1,54 @@
+struct xml_element_handler;
+%%
+channel,                                          GENERIC_FEED,     NULL,                    NULL
+Channel,                                          GENERIC_FEED,     NULL,                    NULL
+item,                                             GENERIC_ITEM,     &generic_item_starter,   &generic_item_ender
+guid,                                             XML_UNKNOWN_POS,  &rss_guid_start,         &generic_guid_end
+title,                                            XML_UNKNOWN_POS,  NULL,                    &generic_title_end
+link,                                             XML_UNKNOWN_POS,  NULL,                    &rss_link_end
+description,                                      XML_UNKNOWN_POS,  NULL,                    &generic_html_content_end
+pubDate,                                          XML_UNKNOWN_POS,  NULL,                    &rss_pubdate_end
+lastBuildDate,                                    XML_UNKNOWN_POS,  NULL,                    &rss_lastbuilddate_end
+author,                                           XML_UNKNOWN_POS,  NULL,                    &rss_author_end
+enclosure,                                        XML_UNKNOWN_POS,  &rss_enclosure_start,    NULL
+category,                                         XML_UNKNOWN_POS,  NULL,                    &generic_category_end
+comments,                                         XML_UNKNOWN_POS,  NULL,                    &rss_comments_end
+ttl,                                              XML_UNKNOWN_POS,  NULL,                    &rss_ttl_end
+generator,                                        XML_UNKNOWN_POS,  NULL,                    &generic_generator_end
+webMaster,                                        XML_UNKNOWN_POS,  NULL,                    &rss_webmaster_end
+managingEditor,                                   XML_UNKNOWN_POS,  NULL,                    &rss_managingeditor_end
+source,                                           XML_UNKNOWN_POS,  &rss_source_start,       &rss_source_end
+http://www.w3.org/2005/Atom feed,                 GENERIC_FEED,     NULL,                    NULL
+http://www.w3.org/2005/Atom entry,                GENERIC_ITEM,     &generic_item_starter,   &generic_item_ender
+http://www.w3.org/2005/Atom id,                   XML_UNKNOWN_POS,  NULL,                    &generic_guid_end
+http://www.w3.org/2005/Atom title,                XML_UNKNOWN_POS,  NULL,                    &generic_title_end
+http://www.w3.org/2005/Atom link,                 XML_UNKNOWN_POS,  &atom_link_start,        NULL
+http://www.w3.org/2005/Atom summary,              XML_UNKNOWN_POS,  &atom_content_start,     &atom_content_end
+http://www.w3.org/2005/Atom content,              XML_UNKNOWN_POS,  &atom_content_start,     &atom_content_end
+http://www.w3.org/2005/Atom published,            XML_UNKNOWN_POS,  NULL,                    &published_end
+http://www.w3.org/2005/Atom updated,              XML_UNKNOWN_POS,  NULL,                    &rfc3339_update_date_end
+http://www.w3.org/2005/Atom author,               ATOM_AUTHOR,      &author_start,           NULL
+http://www.w3.org/2005/Atom contributor,          ATOM_AUTHOR,      &contributor_start,      NULL
+http://www.w3.org/2005/Atom name,                 XML_UNKNOWN_POS,  NULL,                    &name_end
+http://www.w3.org/2005/Atom uri,                  XML_UNKNOWN_POS,  NULL,                    &uri_end
+http://www.w3.org/2005/Atom email,                XML_UNKNOWN_POS,  NULL,                    &email_end
+http://www.w3.org/2005/Atom category,             XML_UNKNOWN_POS,  &atom_category_start,    NULL
+http://www.w3.org/2005/Atom subtitle,             XML_UNKNOWN_POS,  &atom_subtitle_start,    &atom_subtitle_end
+http://www.w3.org/2005/Atom generator,            XML_UNKNOWN_POS,  &atom_generator_start,   &generic_generator_end
+http://purl.org/rss/1.0/modules/content/ encoded, XML_UNKNOWN_POS,  NULL,                    &generic_html_content_end
+http://purl.org/dc/elements/1.1/ title,           XML_UNKNOWN_POS,  NULL,                    &dublincore_title_end
+http://purl.org/dc/elements/1.1/ description,     XML_UNKNOWN_POS,  NULL,                    &generic_plain_content_end
+http://purl.org/dc/elements/1.1/ date,            XML_UNKNOWN_POS,  NULL,                    &rfc3339_update_date_end
+http://purl.org/dc/elements/1.1/ creator,         XML_UNKNOWN_POS,  NULL,                    &dublincore_creator_end
+http://purl.org/dc/elements/1.1/ contributor,     XML_UNKNOWN_POS,  NULL,                    &dublincore_contributor_end
+http://purl.org/dc/elements/1.1/ subject,         XML_UNKNOWN_POS,  NULL,                    &generic_category_end
+http://search.yahoo.com/mrss/ content,            MEDIARSS_CONTENT, &mediarss_content_start, NULL
+http://search.yahoo.com/mrss/ embed,              XML_UNKNOWN_POS,  &embed_or_player_start,  NULL
+http://search.yahoo.com/mrss/ player,             XML_UNKNOWN_POS,  &embed_or_player_start,  NULL
+http://search.yahoo.com/mrss/ peerLink,           XML_UNKNOWN_POS,  &peerlink_start,         NULL
+http://search.yahoo.com/mrss/ description,        XML_UNKNOWN_POS,  &description_start,      &description_end
+http://www.georss.org/georss point,               XML_UNKNOWN_POS,  NULL,                    &georss_point_end
+http://www.opengis.net/gml pos,                   XML_UNKNOWN_POS,  NULL,                    &georss_point_end
+http://news.yandex.ru full-text,                  XML_UNKNOWN_POS,  NULL,                    &generic_html_content_end
+http://turbo.yandex.ru content,                   XML_UNKNOWN_POS,  NULL,                    &generic_html_content_end
+http://www.rbc.ru full-text,                      XML_UNKNOWN_POS,  NULL,                    &generic_plain_content_end

@@ -51,6 +51,9 @@ newsraft:
 libnewsraft.so:
 	$(CC) -std=c99 -shared $(CFLAGS) $(AUXCFLAGS) -Isrc -D_XOPEN_SOURCE=700 -D_XOPEN_SOURCE_EXTENDED $(LDFLAGS) -o $@ src/newsraft.c $(LDLIBS)
 
+gperf:
+	gperf -I -t -F ,0,NULL,NULL < src/update_feed/parse_xml/gperf-data.in > src/update_feed/parse_xml/gperf-data.c
+
 man:
 	scdoc < doc/newsraft.scd > doc/newsraft.1
 

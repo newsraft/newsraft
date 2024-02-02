@@ -47,7 +47,6 @@ struct stream_callback_data {
 	yajl_handle json_parser;
 	struct getfeed_feed feed;
 	bool in_item;
-	int8_t xml_format;
 	struct string *text;
 	uint8_t path[256];
 	uint8_t depth;
@@ -58,10 +57,10 @@ struct stream_callback_data {
 download_status download_feed(const char *url, struct stream_callback_data *data);
 download_status execute_feed(const struct string *cmd, struct stream_callback_data *data);
 
-bool engage_xml_parser(struct stream_callback_data *data);
+bool setup_xml_parser(struct stream_callback_data *data);
 void free_xml_parser(struct stream_callback_data *data);
 
-bool engage_json_parser(struct stream_callback_data *data);
+bool setup_json_parser(struct stream_callback_data *data);
 void free_json_parser(struct stream_callback_data *data);
 
 // See "insert_feed" directory for implementation.

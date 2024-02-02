@@ -15,9 +15,6 @@ struct deserialize_stream {
 // to take as a delimiter.
 #define DELIMITER 31 // ASCII Unit Separator (control character)
 
-// However, this constant must never be changed. Or wicked times will come!
-#define SEPARATOR '='
-
 static const char caret[2] = {DELIMITER, '^'};
 
 bool
@@ -30,31 +27,39 @@ serialize_caret(struct string **target)
 }
 
 bool
-serialize_array(struct string **target, const char *key, size_t key_len, const char *value, size_t value_len)
+serialize_array(register struct string **target, register const char *key, register size_t key_len, register const char *value, register size_t value_len)
 {
 	if (value == NULL || value_len == 0) {
 		return true; // Ignore empty entries.
 	}
-	if (*target == NULL) {
-		*target = crtes(100);
-		if (*target == NULL) {
-			return false;
-		}
+	if (make_string_fit_more(target, 1 + key_len + value_len) == false) {
+		return false;
 	}
-	if (catcs(*target, DELIMITER)        == false) return false;
-	if (catas(*target, key, key_len)     == false) return false;
-	if (catcs(*target, SEPARATOR)        == false) return false;
-	size_t old_len = (*target)->len;
-	if (catas(*target, value, value_len) == false) return false;
+
+	// Check tests/serialize_array.c to better understand what this function does.
+
+	// Just append key and value to the target with DELIMITER at the beginning.
+	// It's kind of messy here because we need to squeeze out all available performance
+	// since this function does a lot of heavy lifting in the feed parsers code.
+	(*target)->ptr[(*target)->len] = DELIMITER;
+	memcpy((*target)->ptr + (*target)->len + 1, key, key_len);
+	memcpy((*target)->ptr + (*target)->len + 1 + key_len, value, value_len);
+	(*target)->len += 1 + key_len + value_len;
+	(*target)->ptr[(*target)->len] = '\0';
+
 	// Make sure there's no delimiters in the serialized data!
-	for (char *i = (*target)->ptr + old_len; *i != '\0'; ++i) {
-		if (*i == DELIMITER) {
-			for (char *j = i; *j != '\0'; ++j) {
+	for (size_t i = 0, end = (*target)->len; i < value_len; ++i) {
+		if ((*target)->ptr[end - i - 1] == DELIMITER) {
+			for (char *j = (*target)->ptr + end - i - 1; *j != '\0'; ++j) {
 				*j = *(j + 1);
 			}
 			(*target)->len -= 1;
 			(*target)->ptr[(*target)->len] = '\0';
-			i -= 1;
+			if ((*target)->len + value_len == end) {
+				(*target)->len -= 1 + key_len;
+				(*target)->ptr[(*target)->len] = '\0';
+				return true; // Value consists only of delimiters!
+			}
 		}
 	}
 	return true;

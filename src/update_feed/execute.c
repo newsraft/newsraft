@@ -16,8 +16,8 @@ execute_feed(const struct string *cmd, struct stream_callback_data *data)
 	for (const char *i = content->ptr; *i != '\0'; ++i) {
 		if (*i == '<') {
 			INFO("The output has \"<\" character in the beginning - engaging XML parser.");
-			if (engage_xml_parser(data) == false) {
-				FAIL("Failed to engage XML parser!");
+			if (setup_xml_parser(data) == false) {
+				FAIL("Failed to setup XML parser!");
 				goto error;
 			}
 			enum XML_Status status = XML_Parse(data->xml_parser, content->ptr, content->len, false);
@@ -29,8 +29,8 @@ execute_feed(const struct string *cmd, struct stream_callback_data *data)
 			break;
 		} else if (*i == '{') {
 			INFO("The output has \"{\" character in the beginning - engaging JSON parser.");
-			if (engage_json_parser(data) == false) {
-				FAIL("Failed to engage JSON parser!");
+			if (setup_json_parser(data) == false) {
+				FAIL("Failed to setup JSON parser!");
 				goto error;
 			}
 			yajl_status status = yajl_parse(data->json_parser, (const unsigned char *)content->ptr, content->len);

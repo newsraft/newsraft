@@ -20,8 +20,8 @@ you're considering switching from Newsboat to Newsraft, it's advised to examine 
 | Download manager                      | -                               | `podboat`              |
 | Integration with third-party services | -                               | +                      |
 | Internal command-line                 | -                               | +                      |
-| Programming languages used            | C99                             | C++11, Rust, Coco/R    |
-| Source lines of code                  | ~9k                             | ~40k                   |
+| Programming languages used            | C99                             | C++11, Rust            |
+| Source lines of code                  | ~9k                             | ~41k                   |
 
 Feel free to submit an issue if you think that table above contains outdated information.
 

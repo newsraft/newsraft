@@ -13,17 +13,10 @@ get_value_of_attribute_key(const XML_Char **attrs, const char *key)
 }
 
 bool
-serialize_attribute(struct string **dest, const XML_Char **attrs, const char *attr_key, const char *prefix, size_t prefix_len)
+serialize_attribute(struct string **dest, const char *key, size_t key_len, const XML_Char **attrs, const char *attr_name)
 {
-	const char *attr_value = get_value_of_attribute_key(attrs, attr_key);
-	if (attr_value == NULL) {
-		return true; // Ignore absence of an attribute.
-	}
-	const size_t attr_value_len = strlen(attr_value);
-	if (attr_value_len == 0) {
-		return true; // Ignore empty attribute values.
-	}
-	return serialize_array(dest, prefix, prefix_len, attr_value, attr_value_len);
+	const char *val = get_value_of_attribute_key(attrs, attr_name);
+	return val != NULL ? serialize_array(dest, key, key_len, val, strlen(val)) : true;
 }
 
 int8_t
@@ -77,20 +70,20 @@ generic_plain_content_end(struct stream_callback_data *data)
 		if (serialize_caret(&data->feed.item->content) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
-		if (serialize_array(&data->feed.item->content, "type", 4, "text/plain", 10) == false) {
+		if (serialize_array(&data->feed.item->content, "type=", 5, "text/plain", 10) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
-		if (serialize_string(&data->feed.item->content, "text", 4, data->text) == false) {
+		if (serialize_string(&data->feed.item->content, "text=", 5, data->text) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	} else {
 		if (serialize_caret(&data->feed.content) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
-		if (serialize_array(&data->feed.content, "type", 4, "text/plain", 10) == false) {
+		if (serialize_array(&data->feed.content, "type=", 5, "text/plain", 10) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
-		if (serialize_string(&data->feed.content, "text", 4, data->text) == false) {
+		if (serialize_string(&data->feed.content, "text=", 5, data->text) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	}
@@ -104,20 +97,20 @@ generic_html_content_end(struct stream_callback_data *data)
 		if (serialize_caret(&data->feed.item->content) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
-		if (serialize_array(&data->feed.item->content, "type", 4, "text/html", 9) == false) {
+		if (serialize_array(&data->feed.item->content, "type=", 5, "text/html", 9) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
-		if (serialize_string(&data->feed.item->content, "text", 4, data->text) == false) {
+		if (serialize_string(&data->feed.item->content, "text=", 5, data->text) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	} else {
 		if (serialize_caret(&data->feed.content) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
-		if (serialize_array(&data->feed.content, "type", 4, "text/html", 9) == false) {
+		if (serialize_array(&data->feed.content, "type=", 5, "text/html", 9) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
-		if (serialize_string(&data->feed.content, "text", 4, data->text) == false) {
+		if (serialize_string(&data->feed.content, "text=", 5, data->text) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	}
@@ -131,14 +124,14 @@ generic_category_end(struct stream_callback_data *data)
 		if (serialize_caret(&data->feed.item->extras) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
-		if (serialize_string(&data->feed.item->extras, "category", 8, data->text) == false) {
+		if (serialize_string(&data->feed.item->extras, "category=", 9, data->text) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	} else {
 		if (serialize_caret(&data->feed.extras) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
-		if (serialize_string(&data->feed.extras, "category", 8, data->text) == false) {
+		if (serialize_string(&data->feed.extras, "category=", 9, data->text) == false) {
 			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 		}
 	}
@@ -146,8 +139,19 @@ generic_category_end(struct stream_callback_data *data)
 }
 
 int8_t
-generator_end(struct stream_callback_data *data)
+generic_generator_end(struct stream_callback_data *data)
 {
 	INFO("Feed generator name: %s", data->text->ptr);
+	return PARSE_OKAY;
+}
+
+int8_t
+rfc3339_update_date_end(struct stream_callback_data *data)
+{
+	if (data->in_item == true) {
+		data->feed.item->update_date = parse_date_rfc3339(data->text->ptr);
+	} else {
+		data->feed.update_date = parse_date_rfc3339(data->text->ptr);
+	}
 	return PARSE_OKAY;
 }

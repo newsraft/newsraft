@@ -58,16 +58,16 @@ parse_stream_callback(char *contents, size_t length, size_t nmemb, void *userdat
 		for (size_t i = 0; i < real_size; ++i) {
 			if (contents[i] == '<') {
 				INFO("The stream has \"<\" character in the beginning - engaging XML parser.");
-				if (engage_xml_parser(data) == false) {
-					FAIL("Failed to engage XML parser!");
+				if (setup_xml_parser(data) == false) {
+					FAIL("Failed to setup XML parser!");
 					return CURL_WRITEFUNC_ERROR;
 				}
 				data->media_type = MEDIA_TYPE_XML;
 				break;
 			} else if (contents[i] == '{') {
 				INFO("The stream has \"{\" character in the beginning - engaging JSON parser.");
-				if (engage_json_parser(data) == false) {
-					FAIL("Failed to engage JSON parser!");
+				if (setup_json_parser(data) == false) {
+					FAIL("Failed to setup JSON parser!");
 					return CURL_WRITEFUNC_ERROR;
 				}
 				data->media_type = MEDIA_TYPE_JSON;

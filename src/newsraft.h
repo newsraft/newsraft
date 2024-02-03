@@ -26,8 +26,6 @@
 #define fail_status(...) status_write(CFG_COLOR_STATUS_FAIL, __VA_ARGS__)
 #define MIN(A, B) ((A) < (B) ? (A) : (B))
 
-#define NEWSRAFT_THREADS_COUNT_LIMIT 100
-
 #define NEWSRAFT_COLOR_PAIRS_COUNT 10
 typedef uint8_t config_entry_id;
 enum {

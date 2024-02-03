@@ -1,5 +1,7 @@
 #include "update_feed/update_feed.h"
 
+#define NEWSRAFT_THREADS_COUNT_LIMIT 100
+
 struct responsive_thread {
 	pthread_t thread;
 	bool was_started;
@@ -55,7 +57,7 @@ update_feed_action(void *arg)
 		if (expires_date < 0) {
 			goto finish;
 		} else if ((expires_date > 0) && (data.feed.download_date < expires_date)) {
-			INFO("Aborting update because content hasn't expired yet.");
+			INFO("Aborting update for %s because it's not expired yet", feed->link->ptr);
 			status = DOWNLOAD_CANCELED;
 			goto finish;
 		}
@@ -67,7 +69,7 @@ update_feed_action(void *arg)
 		if ((ttl < 0) || (prev_download_date < 0)) {
 			goto finish;
 		} else if ((ttl > 0) && (prev_download_date > 0) && ((prev_download_date + ttl) > data.feed.download_date)) {
-			INFO("Aborting update because content hasn't died yet.");
+			INFO("Aborting update for %s because it's not dead yet", feed->link->ptr);
 			status = DOWNLOAD_CANCELED;
 			goto finish;
 		}
@@ -121,7 +123,7 @@ finish:
 		fail_status("Failed to update %s", feed->link->ptr);
 		update_queue_failures += 1;
 	} else if (status == DOWNLOAD_CANCELED) {
-		INFO("Download canceled.");
+		INFO("Download canceled");
 		db_set_download_date(feed->link, feed->download_date);
 	}
 	updates_finished += 1;
@@ -190,7 +192,7 @@ queue_worker(void *dummy)
 		prevent_status_cleaning();
 		pthread_mutex_lock(&queue_lock);
 here_we_go_again:
-		while (they_want_us_to_terminate == false && update_queue_progress != update_queue_length) {
+		while (they_want_us_to_terminate == false && update_queue_progress < update_queue_length) {
 			struct feed_entry *feed = update_queue[update_queue_progress];
 			pthread_mutex_unlock(&queue_lock);
 			branch_update_feed_action_into_thread(feed);
@@ -274,10 +276,38 @@ update_feeds(struct feed_entry **feeds, size_t feeds_count)
 	pthread_mutex_unlock(&queue_lock);
 }
 
+static size_t
+get_processors_count(void)
+{
+	const char *cmds[] = {
+		"nproc 2>/dev/null",
+		"sysctl -n hw.ncpu 2>/dev/null",
+		"getconf _NPROCESSORS_ONLN 2>/dev/null",
+		"grep -c ^processor /proc/cpuinfo 2>/dev/null",
+		NULL
+	};
+	size_t cores = 0;
+	for (const char **i = cmds; *i != NULL; ++i) {
+		FILE *p = popen(*i, "r");
+		if (p != NULL) {
+			fscanf(p, "%zu", &cores);
+			INFO("Processors count from %s is %zu", *i, cores);
+			pclose(p);
+			if (cores > 0) {
+				return cores;
+			}
+		}
+	}
+	return 1;
+}
+
 bool
 start_feed_updater(void)
 {
-	worker_threads_count = get_cfg_uint(CFG_UPDATE_THREADS_COUNT);
+	size_t threads_count = get_cfg_uint(CFG_UPDATE_THREADS_COUNT);
+	size_t processors_count = get_processors_count();
+	worker_threads_count = MIN(threads_count > 0 ? threads_count : processors_count * 10, NEWSRAFT_THREADS_COUNT_LIMIT);
+	INFO("Allocated %zu update threads", worker_threads_count);
 	if (pthread_create(&queue_worker_thread, NULL, &queue_worker, NULL) != 0) {
 		fputs("Failed to start feed updater!\n", stderr);
 		return false;

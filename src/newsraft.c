@@ -26,7 +26,6 @@
 #include "items-metadata-persons.c"
 #include "items-pager.c"
 #include "load_config/config-auto.c"
-#include "load_config/config.c"
 #include "load_config/config-parse.c"
 #include "load_config/config-parse-colors.c"
 #include "load_config/config-parse-input.c"

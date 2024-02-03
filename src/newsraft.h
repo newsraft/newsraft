@@ -53,6 +53,7 @@ enum {
 	CFG_USER_AGENT,
 	CFG_ITEM_CONTENT_FORMAT,
 	CFG_ITEM_CONTENT_DATE_FORMAT,
+	CFG_ITEM_CONTENT_LINK_FORMAT,
 	CFG_LIST_ENTRY_DATE_FORMAT,
 	CFG_OPEN_IN_BROWSER_COMMAND,
 	CFG_NOTIFICATION_COMMAND,
@@ -350,7 +351,7 @@ int enter_item_pager_view_loop(struct items_list *items, const size_t *view_sel)
 // and generates a single plain text buffer for a pager to display.
 // See "render-block.c" file for implementation.
 bool add_render_block(struct render_blocks_list *blocks, const char *content, size_t content_len, render_block_format content_type, bool needs_trimming);
-bool apply_links_render_blocks(struct render_blocks_list *blocks, const struct string *data);
+bool apply_links_render_blocks(struct render_blocks_list *blocks, const struct wstring *data);
 void free_render_blocks(struct render_blocks_list *blocks);
 
 // Here we extract links from texts of render_block entries into links_list and
@@ -374,7 +375,7 @@ bool get_largest_piece_from_item_attachments(const char *attachments, struct str
 // See "items-metadata-links.c" file for implementation.
 int64_t add_another_url_to_trim_links_list(struct links_list *links, const char *url, size_t url_len);
 bool populate_link_list_with_links_of_item(struct links_list *links, sqlite3_stmt *res);
-struct string *generate_link_list_string_for_pager(const struct links_list *links);
+struct wstring *generate_link_list_wstring_for_pager(const struct links_list *links);
 bool complete_urls_of_links(struct links_list *links);
 void free_links_list(const struct links_list *links);
 

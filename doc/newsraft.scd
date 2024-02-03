@@ -305,6 +305,10 @@ _item-content-date-format_ (default: *%a, %d %b %Y %H:%M:%S %z*)
 	Date format in the item's content. Specifier values correspond to the
 	*strftime*(3) format.
 
+_item-content-link-format_ (default: *<b>[%i]</b>:&nbsp;%l<br>*)
+	Link format in the links list of item's content. *%i* and *%l* will be
+	replaced by link index and link address respectively.
+
 _list-entry-date-format_ (default: *%b %d*)
 	Date format of the list entries. Specifier values correspond to the
 	*strftime*(3) format.

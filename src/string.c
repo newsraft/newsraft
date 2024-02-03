@@ -123,13 +123,14 @@ make_string_fit_more(struct string **dest, size_t n)
 		return str_set(dest, NULL, 0, n);
 	}
 	if ((*dest)->len + n > (*dest)->lim) {
-		char *tmp = realloc((*dest)->ptr, sizeof(char) * ((*dest)->len + n + 100));
+		size_t new_lim = ((*dest)->len + n) * 2 + 67;
+		char *tmp = realloc((*dest)->ptr, sizeof(char) * (new_lim + 1));
 		if (tmp == NULL) {
 			FAIL("Not enough memory to expand string!");
 			return false;
 		}
 		(*dest)->ptr = tmp;
-		(*dest)->lim = (*dest)->len + n + 99;
+		(*dest)->lim = new_lim;
 	}
 	return true;
 }
@@ -146,10 +147,10 @@ string_vprintf(struct string *dest, const char *format, va_list args)
 	if (required_len < 0) {
 		return false;
 	}
-	if ((size_t)required_len > dest->lim && make_string_fit_more(&dest, required_len - dest->lim) == false) {
+	if (dest->lim <= (size_t)required_len && make_string_fit_more(&dest, required_len) == false) {
 		return false;
 	}
-	required_len = vsnprintf(dest->ptr, required_len + 1, format, args);
+	required_len = vsnprintf(dest->ptr, dest->lim, format, args);
 	if (required_len < 0) {
 		empty_string(dest);
 		return false;

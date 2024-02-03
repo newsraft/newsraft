@@ -184,40 +184,24 @@ populate_link_list_with_links_of_item(struct links_list *links, sqlite3_stmt *re
 	return false;
 }
 
-struct string *
-generate_link_list_string_for_pager(const struct links_list *links)
+struct wstring *
+generate_link_list_wstring_for_pager(const struct links_list *links)
 {
+	struct wstring *list = wcrtes(200);
+	struct wstring *fmt_out = wcrtes(200);
 	struct string *str = crtes(200);
-	if (str == NULL) {
-		return NULL;
-	}
-#define LINK_PREFIX_SIZE 30
-	// For the link prefix we need at minimum 29 bytes, because:
-	// 1 newline        |  1 ascii character   | 1 byte
-	// 1 bracket        |  1 ascii character   | 1 byte
-	// 1 size_t integer | 20 ascii characters  | 20 bytes
-	// 1 bracket        |  1 ascii character   | 1 byte
-	// 1 colon          |  1 ascii character   | 1 byte
-	// 1 nbsp           |  1 unicode character | 4 bytes
-	// 1 terminator     |  1 ascii character   | 1 byte
-	char prefix[LINK_PREFIX_SIZE];
-	int prefix_len;
-	bool parentheses_are_open;
+	const struct wstring *link_fmt = get_cfg_wstring(CFG_ITEM_CONTENT_LINK_FORMAT);
 #define CONVERT_OUT_SIZE 200
 	char convert_out[CONVERT_OUT_SIZE];
 	int convert_len;
 	for (size_t i = 0; i < links->len; ++i) {
-		if ((links->ptr[i].url == NULL) || (links->ptr[i].url->len == 0)) {
+		if (links->ptr[i].url == NULL || links->ptr[i].url->len == 0) {
 			continue;
 		}
-
-		// Non-breaking space below the parentheses! ---------> ( )
-		prefix_len = snprintf(prefix, LINK_PREFIX_SIZE, "[%zu]: ", i + 1);
-		if ((prefix_len <= 0) || (catas(str, prefix, prefix_len) == false) || (catss(str, links->ptr[i].url) == false)) {
+		if (cpyss(&str, links->ptr[i].url) == false) {
 			goto error;
 		}
-
-		parentheses_are_open = false;
+		bool parentheses_are_open = false;
 
 		if ((links->ptr[i].type != NULL) && (links->ptr[i].type->len != 0)) {
 			if (catas(str, " (type: ", 8) == false) { goto error; }
@@ -250,10 +234,21 @@ generate_link_list_string_for_pager(const struct links_list *links)
 		}
 
 		if (parentheses_are_open == true && catcs(str, ')') == false) goto error;
-		if (catcs(str, '\n') == false) goto error;
+
+		struct format_arg link_fmt_args[] = {
+			{L'i',  L'd',  {.i = i + 1   }},
+			{L'l',  L's',  {.s = str->ptr}},
+			{L'\0', L'\0', {.i = 0       }}, // terminator
+		};
+		do_format(fmt_out, link_fmt->ptr, link_fmt_args);
+		wcatss(list, fmt_out);
 	}
-	return str;
+	free_wstring(fmt_out);
+	free_string(str);
+	return list;
 error:
+	free_wstring(list);
+	free_wstring(fmt_out);
 	free_string(str);
 	return NULL;
 }

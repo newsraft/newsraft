@@ -52,6 +52,7 @@ static struct config_entry config[] = {
 	{"user-agent",                      CFG_STRING, {.s = {NULL, NULL, "auto",   &obtain_useragent_string}}},
 	{"item-content-format",             CFG_STRING, {.s = {NULL, NULL, "<b>Feed</b>:&nbsp;&nbsp;%f<br>|<b>Title</b>:&nbsp;%t<br>|<b>Date</b>:&nbsp;&nbsp;%d<br>|<br>%c<br>|<br><hr>%L", NULL}}},
 	{"item-content-date-format",        CFG_STRING, {.s = {NULL, NULL, "%a, %d %b %Y %H:%M:%S %z",    NULL}}},
+	{"item-content-link-format",        CFG_STRING, {.s = {NULL, NULL, "<b>[%i]</b>:&nbsp;%l<br>",    NULL}}},
 	{"list-entry-date-format",          CFG_STRING, {.s = {NULL, NULL, "%b %d",                       NULL}}},
 	{"open-in-browser-command",         CFG_STRING, {.s = {NULL, NULL, "${BROWSER:-xdg-open} \"%l\"", NULL}}},
 	{"notification-command",            CFG_STRING, {.s = {NULL, NULL, "auto",                        &obtain_notification_command}}},

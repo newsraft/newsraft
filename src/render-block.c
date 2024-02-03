@@ -23,7 +23,7 @@ add_render_block(struct render_blocks_list *blocks, const char *content, size_t 
 }
 
 bool
-apply_links_render_blocks(struct render_blocks_list *blocks, const struct string *data)
+apply_links_render_blocks(struct render_blocks_list *blocks, const struct wstring *data)
 {
 	if (blocks->len == 0 || blocks->links_block_index == 0 || data == NULL || data->ptr == NULL || data->len == 0) {
 		return true; // Ignore when links block is not needed or when it is empty.
@@ -38,8 +38,8 @@ apply_links_render_blocks(struct render_blocks_list *blocks, const struct string
 		blocks->ptr[i + 1].content_type   = blocks->ptr[i].content_type;
 		blocks->ptr[i + 1].needs_trimming = blocks->ptr[i].needs_trimming;
 	}
-	blocks->ptr[blocks->links_block_index].content        = convert_string_to_wstring(data);
-	blocks->ptr[blocks->links_block_index].content_type   = TEXT_RAW;
+	blocks->ptr[blocks->links_block_index].content        = wcrtas(data->ptr, data->len);
+	blocks->ptr[blocks->links_block_index].content_type   = TEXT_HTML;
 	blocks->ptr[blocks->links_block_index].needs_trimming = true;
 	blocks->len += 1;
 	return true;

@@ -5,7 +5,7 @@
 .nh
 .ad l
 .\" Begin generated content:
-.TH "NEWSRAFT" "1" "2024-01-26"
+.TH "NEWSRAFT" "1" "2024-02-03"
 .P
 .SH NAME
 .P
@@ -466,6 +466,12 @@ the field, then the entire field will not be shown.\& Specifiers are as follows:
 .RS 4
 Date format in the item'\&s content.\& Specifier values correspond to the
 \fBstrftime\fR(3) format.\&
+.P
+.RE
+\fIitem-content-link-format\fR (default: \fB<b>[%i]</b>:&nbsp;%l<br>\fR)
+.RS 4
+Link format in the links list of item'\&s content.\& \fB%i\fR and \fB%l\fR will be
+replaced by link index and link address respectively.\&
 .P
 .RE
 \fIlist-entry-date-format\fR (default: \fB%b %d\fR)

@@ -21,15 +21,15 @@ populate_render_blocks_list_with_data_from_item(const struct item_entry *item, s
 		if (complete_urls_of_links(links) == false) {
 			goto error;
 		}
-		struct string *str = generate_link_list_string_for_pager(links);
-		if (str == NULL) {
+		struct wstring *links_wstr = generate_link_list_wstring_for_pager(links);
+		if (links_wstr == NULL) {
 			goto error;
 		}
-		if (apply_links_render_blocks(blocks, str) == false) {
-			free_string(str);
+		if (apply_links_render_blocks(blocks, links_wstr) == false) {
+			free_wstring(links_wstr);
 			goto error;
 		}
-		free_string(str);
+		free_wstring(links_wstr);
 	}
 	sqlite3_finalize(res);
 	return true;

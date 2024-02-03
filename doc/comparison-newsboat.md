@@ -63,9 +63,12 @@ the command to open the browser (`o` by default).
 
 ## Faster feed updates
 
-Newsraft uses streaming parsers to process feeds, while Newsboat uses DOM
-parsers. Also Newsraft takes simpler approach to data structures, which also
-gives a small performance boost.
+Newsraft uses streaming parsers to process feeds and parses feed elements with
+O(1) time complexity by using perfect hashing, while Newsboat uses DOM parsers
+and parses feed elements with O(n) time complexity. Newsboat takes
+object-oriented approach to processing feeds which can sometimes result in
+[a huge memory footprint](https://github.com/newsboat/newsboat/issues/977),
+while Newsraft represents feeds as simple structures of strings and numbers.
 
 ## Flexible auto updates and item limits
 

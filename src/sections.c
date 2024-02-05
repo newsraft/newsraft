@@ -268,7 +268,7 @@ sections_menu_loop(struct menu_state *dest)
 			return setup_menu(&feeds_menu_loop, sections[0].feeds, sections[0].feeds_count, MENU_SKIP_PREV);
 		}
 	}
-	const size_t *view_sel = enter_list_menu(SECTIONS_MENU, CFG_MENU_SECTION_ENTRY_FORMAT, false);
+	const size_t *view_sel = enter_list_menu(SECTIONS_MENU, CFG_MENU_SECTION_ENTRY_FORMAT, true);
 	const struct wstring *macro;
 	for (input_cmd_id cmd = get_input_cmd(NULL, &macro) ;; cmd = get_input_cmd(NULL, &macro)) {
 		if (handle_list_menu_control(SECTIONS_MENU, cmd, macro) == true) {

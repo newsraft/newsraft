@@ -151,7 +151,7 @@ main(int argc, char **argv)
 		if (menu == NULL) {
 			if (try_to_stop_feed_updater()) break;
 			nanosleep(&idling, NULL); // Avoids CPU cycles waste while awaiting termination
-			menu = setup_menu(&sections_menu_loop, NULL, 0, MENU_NO_FLAGS);
+			menu = setup_menu(&sections_menu_loop, NULL, 0, MENU_DISABLE_SETTINGS);
 		}
 	}
 

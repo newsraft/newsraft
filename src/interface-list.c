@@ -167,9 +167,6 @@ enter_list_menu(int8_t menu_index, config_entry_id format_id, bool do_reset)
 		menu->view_sel = 0;
 		menu->view_min = 0;
 	}
-	if (menu_index == SECTIONS_MENU) {
-		refresh_unread_items_count_of_all_sections();
-	}
 	horizontal_shift = 0;
 	if (do_reset != false || menu != prev_menu) {
 		status_clean_unprotected();

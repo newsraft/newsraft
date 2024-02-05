@@ -128,17 +128,16 @@ call_resize_handler_if_current_list_menu_size_is_different_from_actual(void)
 struct menu_state *
 setup_menu(struct menu_state *(*menu)(struct menu_state *), struct feed_entry **feeds, size_t feeds_count, uint32_t flags)
 {
+	static struct menu_state *head = NULL;
 	// Get up-to-date information on unread items count
-	if (feeds != NULL && feeds_count > 0) {
-		for (size_t i = 0; i < feeds_count; ++i) {
-			int64_t unread_count = get_unread_items_count_of_the_feed(feeds[i]->link);
+	if (head != NULL && head->feeds != NULL && head->feeds_count > 0) {
+		for (size_t i = 0; i < head->feeds_count; ++i) {
+			int64_t unread_count = get_unread_items_count_of_the_feed(head->feeds[i]->link);
 			if (unread_count >= 0) {
-				feeds[i]->unread_count = unread_count;
+				head->feeds[i]->unread_count = unread_count;
 			}
 		}
 	}
-
-	static struct menu_state *head = NULL;
 	if (menu != NULL) {
 		struct menu_state *new = malloc(sizeof(struct menu_state));
 		new->run         = menu;

@@ -173,6 +173,9 @@ items_menu_loop(struct menu_state *dest)
 			case INPUT_RELOAD_ALL:        update_feeds(dest->feeds, dest->feeds_count);        break;
 			case INPUT_COPY_TO_CLIPBOARD: copy_string_to_clipboard(items->ptr[*view_sel].url); break;
 			case INPUT_QUIT_HARD:         return NULL;
+			case INPUT_GOTO_FEED:
+				if (dest->flags & MENU_IS_EXPLORE) return setup_menu(&items_menu_loop, items->ptr[*view_sel].feed, 1, MENU_NO_FLAGS);
+				break;
 			case INPUT_APPLY_SEARCH_MODE_FILTER:
 				change_search_filter_of_items_list(&items, search_mode_text_input); break;
 			case INPUT_OPEN_IN_BROWSER:

@@ -19,6 +19,7 @@ static const struct input_entry_match action_names_string_table[] = {
 	{"jump-to-prev-unread",               INPUT_JUMP_TO_PREV_UNREAD        },
 	{"jump-to-next-important",            INPUT_JUMP_TO_NEXT_IMPORTANT     },
 	{"jump-to-prev-important",            INPUT_JUMP_TO_PREV_IMPORTANT     },
+	{"goto-feed",                         INPUT_GOTO_FEED                  },
 	{"shift-west",                        INPUT_SHIFT_WEST                 },
 	{"shift-east",                        INPUT_SHIFT_EAST                 },
 	{"shift-reset",                       INPUT_SHIFT_RESET                },

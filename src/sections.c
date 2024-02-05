@@ -258,65 +258,43 @@ process_auto_updating_feeds(void)
 	}
 }
 
-void
-enter_sections_menu_loop(void)
+struct menu_state *
+sections_menu_loop(struct menu_state *dest)
 {
-	// We create a virtual feeds array (feeds_view) to which we will apply
-	// sorting while the original feeds arrays must remain unchanged to
-	// preserve the order of feeds that the user specified in the feeds file.
-	struct feed_entry **feeds_view = malloc(sizeof(struct feed_entry *) * sections[0].feeds_count);
-	if (feeds_view == NULL) {
-		return;
-	}
-
-	input_cmd_id cmd;
-	if (get_cfg_bool(CFG_SECTIONS_MENU_PARAMOUNT_EXPLORE) == true) {
-		cmd = enter_items_menu_loop(sections[0].feeds, sections[0].feeds_count, true, NULL);
-		if (cmd == INPUT_QUIT_SOFT || cmd == INPUT_QUIT_HARD) {
-			goto quit;
+	if (!(dest->flags & MENU_DISABLE_SETTINGS)) {
+		if (get_cfg_bool(CFG_SECTIONS_MENU_PARAMOUNT_EXPLORE) && get_items_count_of_feeds(sections[0].feeds, sections[0].feeds_count)) {
+			return setup_menu(&items_menu_loop, sections[0].feeds, sections[0].feeds_count, MENU_IS_EXPLORE | MENU_SKIP_PREV);
+		} else if (sections_count == 1) {
+			return setup_menu(&feeds_menu_loop, sections[0].feeds, sections[0].feeds_count, MENU_SKIP_PREV);
 		}
-	} else if (sections_count == 1) {
-		enter_feeds_menu_loop(sections[0].feeds, sections[0].feeds_count, feeds_view);
-		goto quit;
 	}
-	const size_t *view_sel = enter_list_menu(SECTIONS_MENU, CFG_MENU_SECTION_ENTRY_FORMAT, true);
-	while (true) {
-		const struct wstring *macro;
-		cmd = get_input_command(NULL, &macro);
+	const size_t *view_sel = enter_list_menu(SECTIONS_MENU, CFG_MENU_SECTION_ENTRY_FORMAT, false);
+	const struct wstring *macro;
+	for (input_cmd_id cmd = get_input_cmd(NULL, &macro) ;; cmd = get_input_cmd(NULL, &macro)) {
 		if (handle_list_menu_control(SECTIONS_MENU, cmd, macro) == true) {
-			// Rest a little.
-		} else if (cmd == INPUT_MARK_READ) {
-			mark_feeds_read(sections[*view_sel].feeds, sections[*view_sel].feeds_count, true);
-		} else if (cmd == INPUT_MARK_UNREAD) {
-			mark_feeds_read(sections[*view_sel].feeds, sections[*view_sel].feeds_count, false);
-		} else if (cmd == INPUT_MARK_READ_ALL) {
-			mark_feeds_read(sections[0].feeds, sections[0].feeds_count, true);
-		} else if (cmd == INPUT_MARK_UNREAD_ALL) {
-			mark_feeds_read(sections[0].feeds, sections[0].feeds_count, false);
-		} else if (cmd == INPUT_RELOAD) {
-			update_feeds(sections[*view_sel].feeds, sections[*view_sel].feeds_count);
-		} else if (cmd == INPUT_RELOAD_ALL) {
-			update_feeds(sections[0].feeds, sections[0].feeds_count);
-		} else if (cmd == INPUT_ENTER) {
-			cmd = enter_feeds_menu_loop(sections[*view_sel].feeds, sections[*view_sel].feeds_count, feeds_view);
-			if (cmd == INPUT_QUIT_HARD) break;
-			enter_list_menu(SECTIONS_MENU, 0, false);
-		} else if (cmd == INPUT_TOGGLE_EXPLORE_MODE) {
-			cmd = enter_items_menu_loop(sections[0].feeds, sections[0].feeds_count, true, NULL);
-			if (cmd == INPUT_QUIT_SOFT || cmd == INPUT_QUIT_HARD) break;
-			enter_list_menu(SECTIONS_MENU, 0, false);
-		} else if (cmd == INPUT_APPLY_SEARCH_MODE_FILTER) {
-			cmd = enter_items_menu_loop(sections[0].feeds, sections[0].feeds_count, true, search_mode_text_input);
-			if (cmd == INPUT_QUIT_SOFT || cmd == INPUT_QUIT_HARD) break;
-			enter_list_menu(SECTIONS_MENU, 0, false);
-		} else if (cmd == INPUT_STATUS_HISTORY_MENU) {
-			cmd = enter_status_pager_view_loop();
-			if (cmd == INPUT_QUIT_HARD) break;
-			enter_list_menu(SECTIONS_MENU, 0, false);
-		} else if ((cmd == INPUT_QUIT_SOFT) || (cmd == INPUT_QUIT_HARD)) {
-			break;
+			continue;
+		}
+		switch (cmd) {
+			case INPUT_MARK_READ:       mark_feeds_read(sections[*view_sel].feeds, sections[*view_sel].feeds_count, true);  break;
+			case INPUT_MARK_UNREAD:     mark_feeds_read(sections[*view_sel].feeds, sections[*view_sel].feeds_count, false); break;
+			case INPUT_MARK_READ_ALL:   mark_feeds_read(sections[0].feeds, sections[0].feeds_count, true);                  break;
+			case INPUT_MARK_UNREAD_ALL: mark_feeds_read(sections[0].feeds, sections[0].feeds_count, false);                 break;
+			case INPUT_RELOAD:          update_feeds(sections[*view_sel].feeds, sections[*view_sel].feeds_count);           break;
+			case INPUT_RELOAD_ALL:      update_feeds(sections[0].feeds, sections[0].feeds_count);                           break;
+			case INPUT_ENTER:
+				return setup_menu(&feeds_menu_loop, sections[*view_sel].feeds, sections[*view_sel].feeds_count, MENU_NO_FLAGS);
+			case INPUT_TOGGLE_EXPLORE_MODE:
+				return setup_menu(&items_menu_loop, sections[0].feeds, sections[0].feeds_count, MENU_IS_EXPLORE | MENU_SKIP_PREV);
+			case INPUT_APPLY_SEARCH_MODE_FILTER:
+				return setup_menu(&items_menu_loop, sections[0].feeds, sections[0].feeds_count, MENU_IS_EXPLORE | MENU_USE_SEARCH);
+			case INPUT_STATUS_HISTORY_MENU:
+				if (enter_status_pager_view_loop() == INPUT_QUIT_HARD) return NULL;
+				enter_list_menu(SECTIONS_MENU, CFG_MENU_SECTION_ENTRY_FORMAT, false);
+				break;
+			case INPUT_QUIT_SOFT:
+			case INPUT_QUIT_HARD:
+				return NULL;
 		}
 	}
-quit:
-	free(feeds_view);
+	return NULL;
 }

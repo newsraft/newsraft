@@ -155,11 +155,31 @@ enum {
 };
 
 enum {
-	SECTIONS_MENU,
+	SECTIONS_MENU = 0,
 	FEEDS_MENU,
 	ITEMS_MENU,
 	PAGER_MENU,
 	MENUS_COUNT,
+};
+
+enum {
+	MENU_NO_FLAGS         = 0,
+	MENU_IS_EXPLORE       = 1,  // Tell items menu to use explore mode
+	MENU_USE_SEARCH       = 2,  // Tell items menu to apply search
+	MENU_SKIP_PREV        = 4, // Remove previous menu from history
+	MENU_DISABLE_SETTINGS = 8,
+};
+
+enum { // Even is ascending, odd is descending
+	SORT_BY_ORIGINAL_ASC = 0,
+	SORT_BY_ORIGINAL_DESC,
+	SORT_BY_TIME_ASC,
+	SORT_BY_TIME_DESC,
+	SORT_BY_UNREAD_ASC,
+	SORT_BY_UNREAD_DESC,
+	SORT_BY_ALPHABET_ASC,
+	SORT_BY_ALPHABET_DESC,
+	SORT_METHODS_COUNT,
 };
 
 typedef uint8_t render_block_format;
@@ -205,7 +225,7 @@ struct feed_entry {
 struct item_entry {
 	struct string *title;
 	struct string *url;
-	struct feed_entry *feed;
+	struct feed_entry **feed;
 	int64_t rowid;
 	bool is_unread;
 	bool is_important;
@@ -223,7 +243,7 @@ struct items_list {
 	size_t len;
 	bool finished;
 	int sorting;
-	struct feed_entry **feeds; // Just a pointer to parent feeds.
+	struct feed_entry **feeds; // Just a pointer to parent feeds
 	size_t feeds_count;
 };
 
@@ -234,6 +254,15 @@ struct format_arg {
 		int i;
 		const char *s;
 	} value;
+};
+
+struct menu_state {
+	struct menu_state *(*run)(struct menu_state *);
+	struct feed_entry **feeds;
+	size_t feeds_count;
+	uint32_t flags;
+	struct menu_state *(*caller)(struct menu_state *);
+	struct menu_state *next;
 };
 
 struct render_block {
@@ -284,7 +313,7 @@ int64_t make_sure_section_exists(const struct string *section_name);
 bool copy_feed_to_section(const struct feed_entry *feed, int64_t section_index);
 void refresh_unread_items_count_of_all_sections(void);
 bool purge_abandoned_feeds(void);
-void enter_sections_menu_loop(void);
+struct menu_state *sections_menu_loop(struct menu_state *dest);
 void free_sections(void);
 void process_auto_updating_feeds(void);
 bool is_section_valid(size_t index);
@@ -301,7 +330,7 @@ bool is_feed_valid(size_t index);
 const struct format_arg *get_feed_args(size_t index);
 int paint_feed(size_t index);
 bool is_feed_unread(size_t index);
-input_cmd_id enter_feeds_menu_loop(struct feed_entry **base_feeds, size_t base_feeds_count, struct feed_entry **feeds_view);
+struct menu_state *feeds_menu_loop(struct menu_state *dest);
 
 // See "interface-list.c" file for implementation.
 int8_t get_current_menu_type(void);
@@ -332,7 +361,7 @@ bool is_item_unread(size_t index);
 bool important_item_condition(size_t index);
 void clean_up_items_menu(void);
 void tell_items_menu_to_regenerate(void);
-input_cmd_id enter_items_menu_loop(struct feed_entry **new_feeds, size_t new_feeds_count, bool is_explore_mode, const struct string *search_filter);
+struct menu_state *items_menu_loop(struct menu_state *dest);
 
 // See "items-list.c" file for implementation.
 struct items_list *create_items_list(struct feed_entry **feeds, size_t feeds_count, int sorting, const struct string *search_filter);
@@ -415,19 +444,21 @@ bool db_mark_item_read(int64_t rowid, bool status);
 bool db_mark_item_important(int64_t rowid);
 bool db_mark_item_unimportant(int64_t rowid);
 int64_t get_unread_items_count_of_the_feed(const struct string *url);
+int64_t get_items_count_of_feeds(struct feed_entry **feeds, size_t feeds_count);
 bool db_change_unread_status_of_all_items_in_feeds(struct feed_entry **feeds, size_t feeds_count, bool unread);
 
 // See "interface.c" file for implementation.
 bool curses_init(void);
 input_cmd_id resize_handler(void);
 bool call_resize_handler_if_current_list_menu_size_is_different_from_actual(void);
+struct menu_state *setup_menu(struct menu_state *(*menu)(struct menu_state *), struct feed_entry **feeds, size_t feeds_count, uint32_t flags);
 
 // Functions related to window which reads user input and displays command
 // counter (prefix number before command).
 // See "interface-input.c" file for implementation.
 bool counter_recreate_unprotected(void);
 void tell_program_to_terminate_safely_and_quickly(int dummy);
-input_cmd_id get_input_command(uint32_t *count, const struct wstring **macro_ptr);
+input_cmd_id get_input_cmd(uint32_t *count, const struct wstring **macro_ptr);
 void break_getting_input_command(void);
 void counter_delete(void);
 

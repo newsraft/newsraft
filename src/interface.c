@@ -124,3 +124,39 @@ call_resize_handler_if_current_list_menu_size_is_different_from_actual(void)
 	}
 	return false;
 }
+
+struct menu_state *
+setup_menu(struct menu_state *(*menu)(struct menu_state *), struct feed_entry **feeds, size_t feeds_count, uint32_t flags)
+{
+	// Get up-to-date information on unread items count
+	if (feeds != NULL && feeds_count > 0) {
+		for (size_t i = 0; i < feeds_count; ++i) {
+			int64_t unread_count = get_unread_items_count_of_the_feed(feeds[i]->link);
+			if (unread_count >= 0) {
+				feeds[i]->unread_count = unread_count;
+			}
+		}
+	}
+
+	static struct menu_state *head = NULL;
+	if (menu != NULL) {
+		struct menu_state *new = malloc(sizeof(struct menu_state));
+		new->run         = menu;
+		new->feeds       = feeds;
+		new->feeds_count = feeds_count;
+		new->flags       = flags;
+		new->caller      = head != NULL ? head->run : NULL;
+		if ((flags & MENU_SKIP_PREV) && head != NULL) {
+			new->next    = head->next;
+			free(head);
+		} else {
+			new->next    = head;
+		}
+		head = new;
+	} else if (head != NULL) {
+		struct menu_state *tmp = head;
+		head = head->next;
+		free(tmp);
+	}
+	return head;
+}

@@ -51,7 +51,7 @@ tell_program_to_terminate_safely_and_quickly(int dummy)
 }
 
 input_cmd_id
-get_input_command(uint32_t *count, const struct wstring **macro_ptr)
+get_input_cmd(uint32_t *count, const struct wstring **macro_ptr)
 {
 	static int c = 0;
 	static size_t queued_action_index = 0;

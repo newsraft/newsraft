@@ -160,16 +160,18 @@ enter_list_menu(int8_t menu_index, config_entry_id format_id, bool do_reset)
 	pthread_mutex_lock(&interface_lock);
 	struct list_menu_settings *prev_menu = menu;
 	menu = menus + menu_index;
-	if (do_reset == true) {
+	// Always reset entry_format because sometimes we enter list menu for
+	// the first time without do_reset set to true!
+	menu->entry_format = get_cfg_wstring(format_id);
+	if (do_reset != false) {
 		menu->view_sel = 0;
 		menu->view_min = 0;
-		menu->entry_format = get_cfg_wstring(format_id);
 	}
 	if (menu_index == SECTIONS_MENU) {
 		refresh_unread_items_count_of_all_sections();
 	}
 	horizontal_shift = 0;
-	if (do_reset == true || menu != prev_menu) {
+	if (do_reset != false || menu != prev_menu) {
 		status_clean_unprotected();
 		redraw_list_menu_unprotected();
 	}

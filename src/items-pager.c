@@ -67,7 +67,7 @@ enter_item_pager_view_loop(struct items_list *items, const size_t *view_sel)
 		while (true) {
 			uint32_t count;
 			const struct wstring *macro;
-			input_cmd_id cmd = get_input_command(&count, &macro);
+			input_cmd_id cmd = get_input_cmd(&count, &macro);
 			if (handle_pager_menu_control(cmd) == true) {
 				// Rest a little.
 			} else if ((cmd == INPUT_JUMP_TO_NEXT)

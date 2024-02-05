@@ -116,7 +116,7 @@ generate_render_blocks_based_on_item_data(struct render_blocks_list *blocks, con
 				} else {
 					struct string *value = NULL;
 					switch (specifier) {
-						case 'f': value = block_str(item->feed->name != NULL && item->feed->name->len != 0 ? item->feed->name : item->feed->link); break;
+						case 'f': value = block_str(item->feed[0]->name != NULL && item->feed[0]->name->len != 0 ? item->feed[0]->name : item->feed[0]->link); break;
 						case 't': value = block_str(item->title); break;
 						case 'l': value = block_str(item->url);   break;
 						case 'd': value = block_date(item);       break;

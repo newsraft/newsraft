@@ -37,9 +37,9 @@ get_item_args(size_t index)
 	items_fmt_args[4].value.s = items->ptr[index].url->ptr;
 	items_fmt_args[5].value.s = items->ptr[index].title ? items->ptr[index].title->ptr : "";
 	items_fmt_args[6].value.s = items->ptr[index].title ? items->ptr[index].title->ptr : items->ptr[index].url->ptr;
-	items_fmt_args[7].value.s = items->ptr[index].feed->link->ptr;
-	items_fmt_args[8].value.s = items->ptr[index].feed->name ? items->ptr[index].feed->name->ptr : "";
-	items_fmt_args[9].value.s = items->ptr[index].feed->name ? items->ptr[index].feed->name->ptr : items->ptr[index].feed->link->ptr;
+	items_fmt_args[7].value.s = items->ptr[index].feed[0]->link->ptr;
+	items_fmt_args[8].value.s = items->ptr[index].feed[0]->name ? items->ptr[index].feed[0]->name->ptr : "";
+	items_fmt_args[9].value.s = items->ptr[index].feed[0]->name ? items->ptr[index].feed[0]->name->ptr : items->ptr[index].feed[0]->link->ptr;
 	return items_fmt_args;
 }
 
@@ -104,9 +104,21 @@ static void
 mark_all_items_read(bool status)
 {
 	pthread_mutex_lock(&interface_lock);
-	for (size_t i = 0; i < items->len; ++i) {
-		if (db_mark_item_read(items->ptr[i].rowid, status) == true) {
+	if (items->search_filter == NULL) {
+		// Use intermediate variables to avoid race condition
+		struct feed_entry **items_feeds = items->feeds;
+		size_t items_feeds_count = items->feeds_count;
+		pthread_mutex_unlock(&interface_lock);
+		mark_feeds_read(items_feeds, items_feeds_count, status);
+		pthread_mutex_lock(&interface_lock);
+		for (size_t i = 0; i < items->len; ++i) {
 			items->ptr[i].is_unread = false;
+		}
+	} else {
+		for (size_t i = 0; i < items->len; ++i) {
+			if (db_mark_item_read(items->ptr[i].rowid, status) == true) {
+				items->ptr[i].is_unread = false;
+			}
 		}
 	}
 	pthread_mutex_unlock(&interface_lock);
@@ -126,85 +138,71 @@ tell_items_menu_to_regenerate(void)
 	break_getting_input_command();
 }
 
-input_cmd_id
-enter_items_menu_loop(struct feed_entry **feeds, size_t feeds_count, bool is_explore_mode, const struct string *search_filter)
+struct menu_state *
+items_menu_loop(struct menu_state *dest)
 {
-	items_menu_needs_to_regenerate = false;
-	free_items_list(items);
-	items = create_items_list(feeds, feeds_count, -1, search_filter);
-	if (items == NULL) {
-		// Error message written by create_items_list.
-		return INPUT_ITEMS_MENU_WAS_NOT_CREATED;
+	bool need_reset = (items == NULL)
+		|| (items->feeds != dest->feeds)
+		|| (items->feeds_count != dest->feeds_count)
+		|| (dest->flags & MENU_USE_SEARCH);
+	if (need_reset) {
+		items_menu_needs_to_regenerate = false;
+		free_items_list(items);
+		items = create_items_list(dest->feeds, dest->feeds_count, -1, dest->flags & MENU_USE_SEARCH ? search_mode_text_input : NULL);
+		if (items == NULL) {
+			return setup_menu(NULL, NULL, 0, MENU_DISABLE_SETTINGS); // Error displayed by create_items_list
+		}
 	}
-
-	const size_t *view_sel = enter_list_menu(ITEMS_MENU, is_explore_mode ? CFG_MENU_EXPLORE_ITEM_ENTRY_FORMAT : CFG_MENU_ITEM_ENTRY_FORMAT, true);
-
-	input_cmd_id cmd;
+	const size_t *view_sel = enter_list_menu(ITEMS_MENU, dest->flags & MENU_IS_EXPLORE ? CFG_MENU_EXPLORE_ITEM_ENTRY_FORMAT : CFG_MENU_ITEM_ENTRY_FORMAT, need_reset);
 	const struct wstring *macro;
-	while (true) {
+	for (input_cmd_id cmd = get_input_cmd(NULL, &macro) ;; cmd = get_input_cmd(NULL, &macro)) {
+		if (get_cfg_bool(CFG_MARK_ITEM_READ_ON_HOVER) == true) {
+			mark_item_read(*view_sel, true);
+		}
+		if (handle_list_menu_control(ITEMS_MENU, cmd, macro) == true) {
+			continue;
+		}
+		switch (cmd) {
+			case INPUT_MARK_READ:         mark_item_read(*view_sel, true);                     break;
+			case INPUT_MARK_UNREAD:       mark_item_read(*view_sel, false);                    break;
+			case INPUT_MARK_READ_ALL:     mark_all_items_read(true);                           break;
+			case INPUT_MARK_UNREAD_ALL:   mark_all_items_read(false);                          break;
+			case INPUT_MARK_IMPORTANT:    mark_item_important(*view_sel);                      break;
+			case INPUT_MARK_UNIMPORTANT:  mark_item_unimportant(*view_sel);                    break;
+			case INPUT_RELOAD:            update_feeds(items->ptr[*view_sel].feed, 1);         break;
+			case INPUT_RELOAD_ALL:        update_feeds(dest->feeds, dest->feeds_count);        break;
+			case INPUT_COPY_TO_CLIPBOARD: copy_string_to_clipboard(items->ptr[*view_sel].url); break;
+			case INPUT_QUIT_HARD:         return NULL;
+			case INPUT_APPLY_SEARCH_MODE_FILTER:
+				change_search_filter_of_items_list(&items, search_mode_text_input); break;
+			case INPUT_OPEN_IN_BROWSER:
+				run_formatted_command(get_cfg_wstring(CFG_OPEN_IN_BROWSER_COMMAND), get_item_args(*view_sel)); break;
+			case INPUT_SORT_BY_TIME:
+			case INPUT_SORT_BY_UNREAD:
+			case INPUT_SORT_BY_ALPHABET:
+				change_items_list_sorting(&items, cmd); break;
+			case INPUT_ENTER:
+				if (enter_item_pager_view_loop(items, view_sel) == INPUT_QUIT_HARD) return NULL;
+				enter_list_menu(ITEMS_MENU, dest->flags & MENU_IS_EXPLORE ? CFG_MENU_EXPLORE_ITEM_ENTRY_FORMAT : CFG_MENU_ITEM_ENTRY_FORMAT, false);
+				break;
+			case INPUT_STATUS_HISTORY_MENU:
+				if (enter_status_pager_view_loop() == INPUT_QUIT_HARD) return NULL;
+				enter_list_menu(ITEMS_MENU, dest->flags & MENU_IS_EXPLORE ? CFG_MENU_EXPLORE_ITEM_ENTRY_FORMAT : CFG_MENU_ITEM_ENTRY_FORMAT, false);
+				break;
+		}
+		if (cmd == INPUT_TOGGLE_EXPLORE_MODE && (dest->flags & MENU_IS_EXPLORE)) {
+			if (dest->caller == &feeds_menu_loop) {
+				return setup_menu(&feeds_menu_loop, dest->feeds, dest->feeds_count, MENU_SKIP_PREV | MENU_DISABLE_SETTINGS);
+			} else {
+				return setup_menu(&sections_menu_loop, NULL, 0, MENU_SKIP_PREV | MENU_DISABLE_SETTINGS);
+			}
+		} else if (cmd == INPUT_QUIT_SOFT || (cmd == INPUT_NAVIGATE_BACK && dest->caller != &sections_menu_loop)) {
+			return setup_menu(NULL, NULL, 0, MENU_DISABLE_SETTINGS);
+		}
 		if (items_menu_needs_to_regenerate == true) {
 			items_menu_needs_to_regenerate = false;
 			replace_items_list_with_empty_one(&items);
 		}
-		if (get_cfg_bool(CFG_MARK_ITEM_READ_ON_HOVER) == true) {
-			mark_item_read(*view_sel, true);
-		}
-		cmd = get_input_command(NULL, &macro);
-		if (handle_list_menu_control(ITEMS_MENU, cmd, macro) == true) {
-			// Rest a little.
-		} else if (cmd == INPUT_MARK_READ) {
-			mark_item_read(*view_sel, true);
-		} else if (cmd == INPUT_MARK_UNREAD) {
-			mark_item_read(*view_sel, false);
-		} else if (cmd == INPUT_MARK_READ_ALL) {
-			mark_all_items_read(true);
-		} else if (cmd == INPUT_MARK_UNREAD_ALL) {
-			mark_all_items_read(false);
-		} else if (cmd == INPUT_MARK_IMPORTANT) {
-			mark_item_important(*view_sel);
-		} else if (cmd == INPUT_MARK_UNIMPORTANT) {
-			mark_item_unimportant(*view_sel);
-		} else if (cmd == INPUT_ENTER) {
-			cmd = enter_item_pager_view_loop(items, view_sel);
-			if (cmd == INPUT_QUIT_HARD) {
-				break;
-			}
-			enter_list_menu(ITEMS_MENU, 0, false);
-		} else if (cmd == INPUT_RELOAD) {
-			update_feeds(&items->ptr[*view_sel].feed, 1);
-		} else if (cmd == INPUT_RELOAD_ALL) {
-			update_feeds(feeds, feeds_count);
-		} else if (cmd == INPUT_APPLY_SEARCH_MODE_FILTER) {
-			change_search_filter_of_items_list(&items, search_mode_text_input);
-		} else if (cmd == INPUT_SORT_BY_TIME || cmd == INPUT_SORT_BY_UNREAD || cmd == INPUT_SORT_BY_ALPHABET) {
-			change_items_list_sorting(&items, cmd);
-		} else if (cmd == INPUT_STATUS_HISTORY_MENU) {
-			cmd = enter_status_pager_view_loop();
-			if (cmd == INPUT_QUIT_HARD) {
-				break;
-			}
-			enter_list_menu(ITEMS_MENU, 0, false);
-		} else if (cmd == INPUT_OPEN_IN_BROWSER) {
-			run_formatted_command(get_cfg_wstring(CFG_OPEN_IN_BROWSER_COMMAND), get_item_args(*view_sel));
-		} else if (cmd == INPUT_COPY_TO_CLIPBOARD) {
-			copy_string_to_clipboard(items->ptr[*view_sel].url);
-		} else if (cmd == INPUT_TOGGLE_EXPLORE_MODE && is_explore_mode == true) {
-			break;
-		} else if (cmd == INPUT_NAVIGATE_BACK || cmd == INPUT_QUIT_SOFT || cmd == INPUT_QUIT_HARD) {
-			break;
-		}
 	}
-
-	// Get new feeds' unread counts before leaving list menu so that when we
-	// calculate sections' unread counts in leave_list_menu() it gets the
-	// actual data.
-	int64_t new_unread_count;
-	for (size_t i = 0; i < feeds_count; ++i) {
-		new_unread_count = get_unread_items_count_of_the_feed(feeds[i]->link);
-		if (new_unread_count >= 0) {
-			feeds[i]->unread_count = new_unread_count;
-		}
-	}
-
-	return cmd;
+	return setup_menu(NULL, NULL, 0, MENU_DISABLE_SETTINGS);
 }

@@ -144,11 +144,16 @@ main(int argc, char **argv)
 	refresh_unread_items_count_of_all_sections();
 	if (start_feed_updater()               == false) { error = 19; goto undo10; }
 
-	struct timespec check_period = {0, 100000000}; // 0.1 seconds
-	do {
-		enter_sections_menu_loop();
-		nanosleep(&check_period, NULL);
-	} while (!try_to_stop_feed_updater());
+	struct timespec idling = {0, 100000000}; // 0.1 seconds
+	struct menu_state *menu = setup_menu(&sections_menu_loop, NULL, 0, MENU_NO_FLAGS);
+	while (they_want_us_to_terminate == false) {
+		menu = menu->run(menu);
+		if (menu == NULL) {
+			if (try_to_stop_feed_updater()) break;
+			nanosleep(&idling, NULL); // Avoids CPU cycles waste while awaiting termination
+			menu = setup_menu(&sections_menu_loop, NULL, 0, MENU_NO_FLAGS);
+		}
+	}
 
 	clean_up_items_menu();
 undo10:

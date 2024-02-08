@@ -165,9 +165,9 @@ enum {
 
 enum {
 	MENU_NO_FLAGS         = 0,
-	MENU_IS_EXPLORE       = 1,  // Tell items menu to use explore mode
-	MENU_USE_SEARCH       = 2,  // Tell items menu to apply search
-	MENU_SKIP_PREV        = 4, // Remove previous menu from history
+	MENU_IS_EXPLORE       = 1, // Tell items menu to use explore mode
+	MENU_USE_SEARCH       = 2, // Tell items menu to apply search
+	MENU_SWALLOW          = 4, // Replace current menu with this menu
 	MENU_DISABLE_SETTINGS = 8,
 };
 

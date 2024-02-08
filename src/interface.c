@@ -145,11 +145,11 @@ setup_menu(struct menu_state *(*menu)(struct menu_state *), struct feed_entry **
 		new->feeds_count = feeds_count;
 		new->flags       = flags;
 		new->caller      = head != NULL ? head->run : NULL;
-		if ((flags & MENU_SKIP_PREV) && head != NULL) {
-			new->next    = head->next;
+		if ((flags & MENU_SWALLOW) && head != NULL) {
+			new->next = head->next;
 			free(head);
 		} else {
-			new->next    = head;
+			new->next = head;
 		}
 		head = new;
 	} else if (head != NULL) {

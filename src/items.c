@@ -195,9 +195,9 @@ items_menu_loop(struct menu_state *dest)
 		}
 		if (cmd == INPUT_TOGGLE_EXPLORE_MODE && (dest->flags & MENU_IS_EXPLORE)) {
 			if (dest->caller == &feeds_menu_loop) {
-				return setup_menu(&feeds_menu_loop, dest->feeds, dest->feeds_count, MENU_SKIP_PREV | MENU_DISABLE_SETTINGS);
+				return setup_menu(&feeds_menu_loop, dest->feeds, dest->feeds_count, MENU_SWALLOW | MENU_DISABLE_SETTINGS);
 			} else {
-				return setup_menu(&sections_menu_loop, NULL, 0, MENU_SKIP_PREV | MENU_DISABLE_SETTINGS);
+				return setup_menu(&sections_menu_loop, NULL, 0, MENU_SWALLOW | MENU_DISABLE_SETTINGS);
 			}
 		} else if (cmd == INPUT_QUIT_SOFT || (cmd == INPUT_NAVIGATE_BACK && dest->caller != &sections_menu_loop)) {
 			return setup_menu(NULL, NULL, 0, MENU_DISABLE_SETTINGS);

@@ -263,9 +263,9 @@ sections_menu_loop(struct menu_state *dest)
 {
 	if (!(dest->flags & MENU_DISABLE_SETTINGS)) {
 		if (get_cfg_bool(CFG_SECTIONS_MENU_PARAMOUNT_EXPLORE) && get_items_count_of_feeds(sections[0].feeds, sections[0].feeds_count)) {
-			return setup_menu(&items_menu_loop, sections[0].feeds, sections[0].feeds_count, MENU_IS_EXPLORE | MENU_SKIP_PREV);
+			return setup_menu(&items_menu_loop, sections[0].feeds, sections[0].feeds_count, MENU_IS_EXPLORE | MENU_SWALLOW);
 		} else if (sections_count == 1) {
-			return setup_menu(&feeds_menu_loop, sections[0].feeds, sections[0].feeds_count, MENU_SKIP_PREV);
+			return setup_menu(&feeds_menu_loop, sections[0].feeds, sections[0].feeds_count, MENU_SWALLOW);
 		}
 	}
 	refresh_unread_items_count_of_all_sections();
@@ -285,7 +285,7 @@ sections_menu_loop(struct menu_state *dest)
 			case INPUT_ENTER:
 				return setup_menu(&feeds_menu_loop, sections[*view_sel].feeds, sections[*view_sel].feeds_count, MENU_NO_FLAGS);
 			case INPUT_TOGGLE_EXPLORE_MODE:
-				return setup_menu(&items_menu_loop, sections[0].feeds, sections[0].feeds_count, MENU_IS_EXPLORE | MENU_SKIP_PREV);
+				return setup_menu(&items_menu_loop, sections[0].feeds, sections[0].feeds_count, MENU_IS_EXPLORE | MENU_SWALLOW);
 			case INPUT_APPLY_SEARCH_MODE_FILTER:
 				return setup_menu(&items_menu_loop, sections[0].feeds, sections[0].feeds_count, MENU_IS_EXPLORE | MENU_USE_SEARCH);
 			case INPUT_STATUS_HISTORY_MENU:

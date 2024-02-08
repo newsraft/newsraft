@@ -111,9 +111,6 @@ mark_all_items_read(bool status)
 		pthread_mutex_unlock(&interface_lock);
 		mark_feeds_read(items_feeds, items_feeds_count, status);
 		pthread_mutex_lock(&interface_lock);
-		for (size_t i = 0; i < items->len; ++i) {
-			items->ptr[i].is_unread = false;
-		}
 	} else {
 		for (size_t i = 0; i < items->len; ++i) {
 			if (db_mark_item_read(items->ptr[i].rowid, status) == true) {
@@ -155,10 +152,15 @@ items_menu_loop(struct menu_state *dest)
 	}
 	const size_t *view_sel = enter_list_menu(ITEMS_MENU, dest->flags & MENU_IS_EXPLORE ? CFG_MENU_EXPLORE_ITEM_ENTRY_FORMAT : CFG_MENU_ITEM_ENTRY_FORMAT, need_reset);
 	const struct wstring *macro;
-	for (input_cmd_id cmd = get_input_cmd(NULL, &macro) ;; cmd = get_input_cmd(NULL, &macro)) {
+	while (true) {
+		if (items_menu_needs_to_regenerate == true) {
+			items_menu_needs_to_regenerate = false;
+			replace_items_list_with_empty_one(&items);
+		}
 		if (get_cfg_bool(CFG_MARK_ITEM_READ_ON_HOVER) == true) {
 			mark_item_read(*view_sel, true);
 		}
+		input_cmd_id cmd = get_input_cmd(NULL, &macro);
 		if (handle_list_menu_control(ITEMS_MENU, cmd, macro) == true) {
 			continue;
 		}
@@ -201,10 +203,6 @@ items_menu_loop(struct menu_state *dest)
 			}
 		} else if (cmd == INPUT_QUIT_SOFT || (cmd == INPUT_NAVIGATE_BACK && dest->caller != &sections_menu_loop)) {
 			return setup_menu(NULL, NULL, 0, MENU_DISABLE_SETTINGS);
-		}
-		if (items_menu_needs_to_regenerate == true) {
-			items_menu_needs_to_regenerate = false;
-			replace_items_list_with_empty_one(&items);
 		}
 	}
 	return setup_menu(NULL, NULL, 0, MENU_DISABLE_SETTINGS);

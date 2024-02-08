@@ -60,6 +60,7 @@ mark_feeds_read(struct feed_entry **feeds, size_t feeds_count, bool status)
 		}
 		refresh_unread_items_count_of_all_sections();
 		expose_all_visible_entries_of_the_list_menu();
+		tell_items_menu_to_regenerate();
 	}
 }
 

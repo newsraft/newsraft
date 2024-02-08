@@ -269,7 +269,7 @@ sections_menu_loop(struct menu_state *dest)
 		}
 	}
 	refresh_unread_items_count_of_all_sections();
-	const size_t *view_sel = enter_list_menu(SECTIONS_MENU, CFG_MENU_SECTION_ENTRY_FORMAT, true);
+	const size_t *view_sel = enter_list_menu(SECTIONS_MENU, CFG_MENU_SECTION_ENTRY_FORMAT, false);
 	const struct wstring *macro;
 	for (input_cmd_id cmd = get_input_cmd(NULL, &macro) ;; cmd = get_input_cmd(NULL, &macro)) {
 		if (handle_list_menu_control(SECTIONS_MENU, cmd, macro) == true) {

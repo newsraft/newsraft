@@ -158,20 +158,17 @@ const size_t *
 enter_list_menu(int8_t menu_index, config_entry_id format_id, bool do_reset)
 {
 	pthread_mutex_lock(&interface_lock);
-	struct list_menu_settings *prev_menu = menu;
 	menu = menus + menu_index;
 	// Always reset entry_format because sometimes we enter list menu for
 	// the first time without do_reset set to true!
 	menu->entry_format = get_cfg_wstring(format_id);
+	horizontal_shift = 0;
 	if (do_reset != false) {
 		menu->view_sel = 0;
 		menu->view_min = 0;
-	}
-	horizontal_shift = 0;
-	if (do_reset != false || menu != prev_menu) {
 		status_clean_unprotected();
-		redraw_list_menu_unprotected();
 	}
+	redraw_list_menu_unprotected();
 	pthread_mutex_unlock(&interface_lock);
 	return &(menu->view_sel);
 }

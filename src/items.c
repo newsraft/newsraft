@@ -147,7 +147,7 @@ items_menu_loop(struct menu_state *dest)
 		free_items_list(items);
 		items = create_items_list(dest->feeds, dest->feeds_count, -1, dest->flags & MENU_USE_SEARCH ? search_mode_text_input : NULL);
 		if (items == NULL) {
-			return setup_menu(NULL, NULL, 0, MENU_DISABLE_SETTINGS); // Error displayed by create_items_list
+			return setup_menu(NULL, NULL, 0, 0); // Error displayed by create_items_list
 		}
 	}
 	const size_t *view_sel = enter_list_menu(ITEMS_MENU, dest->flags & MENU_IS_EXPLORE ? CFG_MENU_EXPLORE_ITEM_ENTRY_FORMAT : CFG_MENU_ITEM_ENTRY_FORMAT, need_reset);
@@ -175,6 +175,15 @@ items_menu_loop(struct menu_state *dest)
 			case INPUT_RELOAD_ALL:        update_feeds(dest->feeds, dest->feeds_count);        break;
 			case INPUT_COPY_TO_CLIPBOARD: copy_string_to_clipboard(items->ptr[*view_sel].url); break;
 			case INPUT_QUIT_HARD:         return NULL;
+			case INPUT_NAVIGATE_BACK:
+				if (dest->prev == NULL || (dest->prev->prev == NULL && (dest->flags & MENU_IS_EXPLORE))) break;
+				// fall through
+			case INPUT_QUIT_SOFT:
+				if (dest->flags & MENU_IS_EXPLORE) setup_menu(NULL, NULL, 0, 0);
+				return setup_menu(NULL, NULL, 0, 0);
+			case INPUT_TOGGLE_EXPLORE_MODE:
+				if (dest->flags & MENU_IS_EXPLORE) return setup_menu(NULL, NULL, 0, 0);
+				break;
 			case INPUT_GOTO_FEED:
 				if (dest->flags & MENU_IS_EXPLORE) return setup_menu(&items_menu_loop, items->ptr[*view_sel].feed, 1, MENU_NO_FLAGS);
 				break;
@@ -195,15 +204,6 @@ items_menu_loop(struct menu_state *dest)
 				enter_list_menu(ITEMS_MENU, dest->flags & MENU_IS_EXPLORE ? CFG_MENU_EXPLORE_ITEM_ENTRY_FORMAT : CFG_MENU_ITEM_ENTRY_FORMAT, false);
 				break;
 		}
-		if (cmd == INPUT_TOGGLE_EXPLORE_MODE && (dest->flags & MENU_IS_EXPLORE)) {
-			if (dest->caller == &feeds_menu_loop) {
-				return setup_menu(&feeds_menu_loop, dest->feeds, dest->feeds_count, MENU_SWALLOW | MENU_DISABLE_SETTINGS);
-			} else {
-				return setup_menu(&sections_menu_loop, NULL, 0, MENU_SWALLOW | MENU_DISABLE_SETTINGS);
-			}
-		} else if (cmd == INPUT_QUIT_SOFT || (cmd == INPUT_NAVIGATE_BACK && dest->caller != &sections_menu_loop)) {
-			return setup_menu(NULL, NULL, 0, MENU_DISABLE_SETTINGS);
-		}
 	}
-	return setup_menu(NULL, NULL, 0, MENU_DISABLE_SETTINGS);
+	return setup_menu(NULL, NULL, 0, 0);
 }

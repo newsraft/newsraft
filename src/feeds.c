@@ -105,10 +105,10 @@ feeds_menu_loop(struct menu_state *dest)
 {
 	if (dest->feeds_count < 1) {
 		info_status("There are no feeds in this section");
-		return setup_menu(NULL, NULL, 0, MENU_DISABLE_SETTINGS);
+		return setup_menu(NULL, NULL, 0, 0);
 	} else if (!(dest->flags & MENU_DISABLE_SETTINGS)) {
 		if (get_cfg_bool(CFG_FEEDS_MENU_PARAMOUNT_EXPLORE) && get_items_count_of_feeds(dest->feeds, dest->feeds_count)) {
-			return setup_menu(&items_menu_loop, dest->feeds, dest->feeds_count, MENU_IS_EXPLORE | MENU_SWALLOW);
+			return setup_menu(&items_menu_loop, dest->feeds, dest->feeds_count, MENU_IS_EXPLORE);
 		} else if (dest->feeds_count == 1 && get_items_count_of_feeds(dest->feeds, dest->feeds_count)) {
 			return setup_menu(&items_menu_loop, dest->feeds, dest->feeds_count, MENU_SWALLOW);
 		}
@@ -150,12 +150,14 @@ feeds_menu_loop(struct menu_state *dest)
 			case INPUT_ENTER:
 				return setup_menu(&items_menu_loop, &dest->feeds[*view_sel], 1, MENU_NO_FLAGS);
 			case INPUT_TOGGLE_EXPLORE_MODE:
-				return setup_menu(&items_menu_loop, dest->feeds, dest->feeds_count, MENU_IS_EXPLORE | MENU_SWALLOW);
+				return setup_menu(&items_menu_loop, dest->feeds, dest->feeds_count, MENU_IS_EXPLORE);
 			case INPUT_APPLY_SEARCH_MODE_FILTER:
 				return setup_menu(&items_menu_loop, dest->feeds, dest->feeds_count, MENU_IS_EXPLORE | MENU_USE_SEARCH);
 			case INPUT_NAVIGATE_BACK:
+				if (dest->prev == NULL) break;
+				// fall through
 			case INPUT_QUIT_SOFT:
-				return setup_menu(NULL, NULL, 0, MENU_DISABLE_SETTINGS);
+				return setup_menu(NULL, NULL, 0, 0);
 			case INPUT_SORT_BY_UNREAD:
 				sort_feeds(feeds_sort == SORT_BY_UNREAD_DESC ? SORT_BY_UNREAD_ASC : SORT_BY_UNREAD_DESC, true);
 				break;

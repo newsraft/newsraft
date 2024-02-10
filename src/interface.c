@@ -144,17 +144,16 @@ setup_menu(struct menu_state *(*menu)(struct menu_state *), struct feed_entry **
 		new->feeds       = feeds;
 		new->feeds_count = feeds_count;
 		new->flags       = flags;
-		new->caller      = head != NULL ? head->run : NULL;
+		new->prev        = head;
 		if ((flags & MENU_SWALLOW) && head != NULL) {
-			new->next = head->next;
+			new->prev = head->prev;
 			free(head);
-		} else {
-			new->next = head;
 		}
 		head = new;
 	} else if (head != NULL) {
 		struct menu_state *tmp = head;
-		head = head->next;
+		head = head->prev;
+		if (head != NULL) head->flags |= MENU_DISABLE_SETTINGS;
 		free(tmp);
 	}
 	return head;

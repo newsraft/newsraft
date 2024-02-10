@@ -262,8 +262,7 @@ struct menu_state {
 	struct feed_entry **feeds;
 	size_t feeds_count;
 	uint32_t flags;
-	struct menu_state *(*caller)(struct menu_state *);
-	struct menu_state *next;
+	struct menu_state *prev;
 };
 
 struct render_block {

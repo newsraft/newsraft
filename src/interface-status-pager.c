@@ -1,39 +1,39 @@
 #include "newsraft.h"
 
-int
-enter_status_pager_view_loop(void)
+struct menu_state *
+status_pager_loop(struct menu_state *dest)
 {
+	dest->enumerator   = &is_pager_pos_valid;
+	dest->write_action = &pager_menu_writer;
 	struct string *messages = generate_string_with_status_messages_for_pager();
-	if (messages == NULL) {
-		return INPUT_ERROR;
-	}
-	if (messages->len == 0) {
+	if (messages == NULL || messages->len == 0) {
 		free_string(messages);
-		return INPUT_ERROR;
+		return setup_menu(NULL, NULL, 0, 0);
 	}
 	struct wstring *wmessages = convert_string_to_wstring(messages);
 	if (wmessages == NULL) {
 		free_string(messages);
-		return INPUT_ERROR;
+		return setup_menu(NULL, NULL, 0, 0);
 	}
 	free_string(messages);
 	struct render_block block = {wmessages, TEXT_PLAIN, false};
 	struct render_blocks_list blocks = {&block, 1, 0};
 	if (start_pager_menu(&blocks) == false) {
 		free_wstring(wmessages);
-		return INPUT_ERROR;
+		return setup_menu(NULL, NULL, 0, 0);
 	}
-	enter_list_menu(PAGER_MENU, CFG_MENU_SECTION_ENTRY_FORMAT, true);
-	input_cmd_id cmd;
+	start_menu(CFG_MENU_SECTION_ENTRY_FORMAT);
 	const struct wstring *macro;
-	while (true) {
-		cmd = get_input_cmd(NULL, &macro);
+	for (input_cmd_id cmd = get_input_cmd(NULL, &macro) ;; cmd = get_input_cmd(NULL, &macro)) {
 		if (handle_pager_menu_control(cmd) == true) {
 			// Rest a little.
-		} else if (cmd == INPUT_NAVIGATE_BACK || cmd == INPUT_QUIT_SOFT || cmd == INPUT_QUIT_HARD) {
+		} else if (cmd == INPUT_NAVIGATE_BACK || cmd == INPUT_QUIT_SOFT) {
 			break;
+		} else if (cmd == INPUT_QUIT_HARD) {
+			free_wstring(wmessages);
+			return NULL;
 		}
 	}
 	free_wstring(wmessages);
-	return cmd;
+	return setup_menu(NULL, NULL, 0, 0);
 }

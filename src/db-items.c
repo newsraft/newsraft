@@ -44,19 +44,13 @@ db_set_item_int(int64_t rowid, const char *column, size_t column_len, int value)
 bool
 db_mark_item_read(int64_t rowid, bool status)
 {
-	return db_set_item_int(rowid, "unread", 6, status == true ? 0 : 1);
+	return db_set_item_int(rowid, "unread", 6, status == false ? 1 : 0);
 }
 
 bool
-db_mark_item_important(int64_t rowid)
+db_mark_item_important(int64_t rowid, bool status)
 {
-	return db_set_item_int(rowid, "important", 9, 1);
-}
-
-bool
-db_mark_item_unimportant(int64_t rowid)
-{
-	return db_set_item_int(rowid, "important", 9, 0);
+	return db_set_item_int(rowid, "important", 9, status == false ? 0 : 1);
 }
 
 int64_t

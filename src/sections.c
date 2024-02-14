@@ -11,40 +11,42 @@ struct feed_section {
 
 static struct feed_section *sections = NULL;
 static size_t sections_count = 0;
-
 static bool at_least_one_feed_has_positive_update_period = false;
 
-static struct format_arg sections_fmt_args[] = {
-	{L'i',  L'd',  {.i = 0   }},
-	{L'u',  L'd',  {.i = 0   }},
-	{L't',  L's',  {.s = NULL}},
-	{L'\0', L'\0', {.i = 0   }}, // terminator
-};
-
-bool
-is_section_valid(size_t index)
+static bool
+is_section_valid(struct menu_state *ctx, size_t index)
 {
+	(void)ctx;
 	return index < sections_count ? true : false;
 }
 
-const struct format_arg *
-get_section_args(size_t index)
+static const struct format_arg *
+get_section_args(struct menu_state *ctx, size_t index)
 {
-	sections_fmt_args[0].value.i = index + 1;
-	sections_fmt_args[1].value.i = sections[index].unread_count;
-	sections_fmt_args[2].value.s = sections[index].name->ptr;
-	return sections_fmt_args;
+	(void)ctx;
+	static struct format_arg section_fmt[] = {
+		{L'i',  L'd',  {.i = 0   }},
+		{L'u',  L'd',  {.i = 0   }},
+		{L't',  L's',  {.s = NULL}},
+		{L'\0', L'\0', {.i = 0   }}, // terminator
+	};
+	section_fmt[0].value.i = index + 1;
+	section_fmt[1].value.i = sections[index].unread_count;
+	section_fmt[2].value.s = sections[index].name->ptr;
+	return section_fmt;
 }
 
-int
-paint_section(size_t index)
+static int
+paint_section(struct menu_state *ctx, size_t index)
 {
+	(void)ctx;
 	return sections[index].unread_count > 0 ? CFG_COLOR_LIST_SECTION_UNREAD : CFG_COLOR_LIST_SECTION;
 }
 
-bool
-is_section_unread(size_t index)
+static bool
+is_section_unread(struct menu_state *ctx, size_t index)
 {
+	(void)ctx;
 	return sections[index].unread_count > 0;
 }
 
@@ -260,9 +262,14 @@ process_auto_updating_feeds(void)
 }
 
 struct menu_state *
-sections_menu_loop(struct menu_state *dest)
+sections_menu_loop(struct menu_state *m)
 {
-	if (!(dest->flags & MENU_DISABLE_SETTINGS)) {
+	m->enumerator   = &is_section_valid;
+	m->get_args     = &get_section_args;
+	m->paint_action = &paint_section;
+	m->unread_state = &is_section_unread;
+	m->write_action = &list_menu_writer;
+	if (!(m->flags & MENU_DISABLE_SETTINGS)) {
 		if (get_cfg_bool(CFG_SECTIONS_MENU_PARAMOUNT_EXPLORE) && get_items_count_of_feeds(sections[0].feeds, sections[0].feeds_count)) {
 			return setup_menu(&items_menu_loop, sections[0].feeds, sections[0].feeds_count, MENU_IS_EXPLORE);
 		} else if (sections_count == 1) {
@@ -270,29 +277,27 @@ sections_menu_loop(struct menu_state *dest)
 		}
 	}
 	refresh_unread_items_count_of_all_sections();
-	const size_t *view_sel = enter_list_menu(SECTIONS_MENU, CFG_MENU_SECTION_ENTRY_FORMAT, false);
+	start_menu(CFG_MENU_SECTION_ENTRY_FORMAT);
 	const struct wstring *macro;
 	for (input_cmd_id cmd = get_input_cmd(NULL, &macro) ;; cmd = get_input_cmd(NULL, &macro)) {
-		if (handle_list_menu_control(SECTIONS_MENU, cmd, macro) == true) {
+		if (handle_list_menu_control(m, cmd, macro) == true) {
 			continue;
 		}
 		switch (cmd) {
-			case INPUT_MARK_READ:       mark_feeds_read(sections[*view_sel].feeds, sections[*view_sel].feeds_count, true);  break;
-			case INPUT_MARK_UNREAD:     mark_feeds_read(sections[*view_sel].feeds, sections[*view_sel].feeds_count, false); break;
-			case INPUT_MARK_READ_ALL:   mark_feeds_read(sections[0].feeds, sections[0].feeds_count, true);                  break;
-			case INPUT_MARK_UNREAD_ALL: mark_feeds_read(sections[0].feeds, sections[0].feeds_count, false);                 break;
-			case INPUT_RELOAD:          update_feeds(sections[*view_sel].feeds, sections[*view_sel].feeds_count);           break;
-			case INPUT_RELOAD_ALL:      update_feeds(sections[0].feeds, sections[0].feeds_count);                           break;
+			case INPUT_MARK_READ:       mark_feeds_read(sections[m->view_sel].feeds, sections[m->view_sel].feeds_count, true);  break;
+			case INPUT_MARK_UNREAD:     mark_feeds_read(sections[m->view_sel].feeds, sections[m->view_sel].feeds_count, false); break;
+			case INPUT_MARK_READ_ALL:   mark_feeds_read(sections[0].feeds, sections[0].feeds_count, true);                      break;
+			case INPUT_MARK_UNREAD_ALL: mark_feeds_read(sections[0].feeds, sections[0].feeds_count, false);                     break;
+			case INPUT_RELOAD:          update_feeds(sections[m->view_sel].feeds, sections[m->view_sel].feeds_count);           break;
+			case INPUT_RELOAD_ALL:      update_feeds(sections[0].feeds, sections[0].feeds_count);                               break;
 			case INPUT_ENTER:
-				return setup_menu(&feeds_menu_loop, sections[*view_sel].feeds, sections[*view_sel].feeds_count, MENU_NO_FLAGS);
+				return setup_menu(&feeds_menu_loop, sections[m->view_sel].feeds, sections[m->view_sel].feeds_count, MENU_NO_FLAGS);
 			case INPUT_TOGGLE_EXPLORE_MODE:
 				return setup_menu(&items_menu_loop, sections[0].feeds, sections[0].feeds_count, MENU_IS_EXPLORE);
 			case INPUT_APPLY_SEARCH_MODE_FILTER:
 				return setup_menu(&items_menu_loop, sections[0].feeds, sections[0].feeds_count, MENU_IS_EXPLORE | MENU_USE_SEARCH);
 			case INPUT_STATUS_HISTORY_MENU:
-				if (enter_status_pager_view_loop() == INPUT_QUIT_HARD) return NULL;
-				enter_list_menu(SECTIONS_MENU, CFG_MENU_SECTION_ENTRY_FORMAT, false);
-				break;
+				return setup_menu(&status_pager_loop, NULL, 0, MENU_NO_FLAGS);
 			case INPUT_QUIT_SOFT:
 			case INPUT_QUIT_HARD:
 				return NULL;

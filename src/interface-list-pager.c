@@ -5,8 +5,9 @@ static struct render_result content = {0};
 static struct render_blocks_list *blocks;
 
 bool
-is_pager_pos_valid(size_t index)
+is_pager_pos_valid(struct menu_state *ctx, size_t index)
 {
+	(void)ctx;
 	return index < content.lines_len;
 }
 

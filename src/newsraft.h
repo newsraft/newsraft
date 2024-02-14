@@ -258,10 +258,24 @@ struct format_arg {
 };
 
 struct menu_state {
-	struct menu_state *(*run)(struct menu_state *);
-	struct feed_entry **feeds;
-	size_t feeds_count;
+	struct menu_state *(*run)(struct menu_state *); // Function used to start menu
+	struct feed_entry **feeds_original; // Remains unchanged to use original order
+	struct feed_entry **feeds;          // Virtual feeds with user sorting applied
+	size_t feeds_count;                 // Size of feeds_original and feeds arrays
+	struct items_list *items;
+	size_t items_age;                   // Refresh, if it doesn't match global age
 	uint32_t flags;
+	size_t view_sel;                    // Index of the selected entry
+	size_t view_min;                    // Index of the first visible entry
+	size_t view_max;                    // Index of the last visible entry
+	bool is_initialized;
+	bool is_deleted;
+	const struct wstring *entry_format;
+	bool (*enumerator)(struct menu_state *ctx, size_t index); // Checks if index is valid
+	const struct format_arg *(*get_args)(struct menu_state *ctx, size_t index);
+	int (*paint_action)(struct menu_state *ctx, size_t index);
+	void (*write_action)(size_t index, WINDOW *w);
+	bool (*unread_state)(struct menu_state *ctx, size_t index);
 	struct menu_state *prev;
 };
 
@@ -313,39 +327,35 @@ int64_t make_sure_section_exists(const struct string *section_name);
 bool copy_feed_to_section(const struct feed_entry *feed, int64_t section_index);
 void refresh_unread_items_count_of_all_sections(void);
 bool purge_abandoned_feeds(void);
-struct menu_state *sections_menu_loop(struct menu_state *dest);
+struct menu_state *sections_menu_loop(struct menu_state *m);
 void free_sections(void);
 void process_auto_updating_feeds(void);
-bool is_section_valid(size_t index);
-const struct format_arg *get_section_args(size_t index);
-int paint_section(size_t index);
-bool is_section_unread(size_t index);
 void mark_feeds_read(struct feed_entry **feeds, size_t feeds_count, bool status);
 
 // See "feeds-parse.c" file for implementation.
 bool parse_feeds_file(void);
 
 // See "feeds.c" file for implementation.
-bool is_feed_valid(size_t index);
-const struct format_arg *get_feed_args(size_t index);
-int paint_feed(size_t index);
-bool is_feed_unread(size_t index);
-struct menu_state *feeds_menu_loop(struct menu_state *dest);
+struct menu_state *feeds_menu_loop(struct menu_state *m);
 
 // See "interface-list.c" file for implementation.
-int8_t get_current_menu_type(void);
+bool is_current_menu_a_pager(void);
 bool adjust_list_menu(void);
 void free_list_menu(void);
+void list_menu_writer(size_t index, WINDOW *w);
 void expose_entry_of_the_list_menu(size_t index);
 void expose_all_visible_entries_of_the_list_menu(void);
 void redraw_list_menu_unprotected(void);
-const size_t *enter_list_menu(int8_t menu_index, config_entry_id format_id, bool do_reset);
 void reset_list_menu_unprotected(void);
-bool handle_list_menu_control(uint8_t menu_id, input_cmd_id cmd, const struct wstring *arg);
+bool handle_list_menu_control(struct menu_state *m, input_cmd_id cmd, const struct wstring *arg);
 bool handle_pager_menu_control(input_cmd_id cmd);
+void free_menus(void);
+size_t get_menu_depth(void);
+struct menu_state *setup_menu(struct menu_state *(*run)(struct menu_state *), struct feed_entry **feeds, size_t feeds_count, uint32_t flags);
+void start_menu(config_entry_id format_id);
 
 // See "interface-list-pager.c" file for implementation.
-bool is_pager_pos_valid(size_t index);
+bool is_pager_pos_valid(struct menu_state *ctx, size_t index);
 void pager_menu_writer(size_t index, WINDOW *w);
 bool start_pager_menu(struct render_blocks_list *new_blocks);
 bool refresh_pager_menu(void);
@@ -354,12 +364,7 @@ bool refresh_pager_menu(void);
 void do_format(struct wstring *dest, const wchar_t *fmt, const struct format_arg *args);
 
 // See "items.c" file for implementation.
-bool is_item_valid(size_t index);
-const struct format_arg *get_item_args(size_t index);
-int paint_item(size_t index);
-bool is_item_unread(size_t index);
-bool important_item_condition(size_t index);
-void clean_up_items_menu(void);
+bool important_item_condition(struct menu_state *ctx, size_t index);
 void tell_items_menu_to_regenerate(void);
 struct menu_state *items_menu_loop(struct menu_state *dest);
 
@@ -372,7 +377,7 @@ void change_search_filter_of_items_list(struct items_list **items, const struct 
 void free_items_list(struct items_list *items);
 
 // See "items-pager.c" file for implementation.
-int enter_item_pager_view_loop(struct items_list *items, const size_t *view_sel);
+struct menu_state *item_pager_loop(struct menu_state *m);
 
 // Functions responsible for managing render blocks.
 // Render block is a piece of text in a single format. A list of render blocks
@@ -441,8 +446,7 @@ void db_set_download_date(const struct string *url, int64_t download_date);
 // See "db-items.c" file for implementation.
 sqlite3_stmt *db_find_item_by_rowid(int64_t rowid);
 bool db_mark_item_read(int64_t rowid, bool status);
-bool db_mark_item_important(int64_t rowid);
-bool db_mark_item_unimportant(int64_t rowid);
+bool db_mark_item_important(int64_t rowid, bool status);
 int64_t get_unread_items_count_of_the_feed(const struct string *url);
 int64_t get_items_count_of_feeds(struct feed_entry **feeds, size_t feeds_count);
 bool db_change_unread_status_of_all_items_in_feeds(struct feed_entry **feeds, size_t feeds_count, bool unread);
@@ -451,7 +455,6 @@ bool db_change_unread_status_of_all_items_in_feeds(struct feed_entry **feeds, si
 bool curses_init(void);
 input_cmd_id resize_handler(void);
 bool call_resize_handler_if_current_list_menu_size_is_different_from_actual(void);
-struct menu_state *setup_menu(struct menu_state *(*menu)(struct menu_state *), struct feed_entry **feeds, size_t feeds_count, uint32_t flags);
 
 // Functions related to window which reads user input and displays command
 // counter (prefix number before command).
@@ -481,7 +484,7 @@ void status_delete(void);
 struct string *generate_string_with_status_messages_for_pager(void);
 
 // See "interface-status-pager.c" file for implementation.
-int enter_status_pager_view_loop(void);
+struct menu_state *status_pager_loop(struct menu_state *dest);
 
 // Functions responsible for managing of key bindings.
 // See "binds.c" file for implementation.

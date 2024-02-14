@@ -101,7 +101,7 @@ resize_handler(void)
 	if (counter_recreate_unprotected() == false) {
 		goto error;
 	}
-	if (get_current_menu_type() == PAGER_MENU) {
+	if (is_current_menu_a_pager() == true) {
 		refresh_pager_menu();
 	}
 	redraw_list_menu_unprotected();
@@ -123,38 +123,4 @@ call_resize_handler_if_current_list_menu_size_is_different_from_actual(void)
 		return true;
 	}
 	return false;
-}
-
-struct menu_state *
-setup_menu(struct menu_state *(*menu)(struct menu_state *), struct feed_entry **feeds, size_t feeds_count, uint32_t flags)
-{
-	static struct menu_state *head = NULL;
-	// Get up-to-date information on unread items count
-	if (head != NULL && head->feeds != NULL && head->feeds_count > 0) {
-		for (size_t i = 0; i < head->feeds_count; ++i) {
-			int64_t unread_count = get_unread_items_count_of_the_feed(head->feeds[i]->link);
-			if (unread_count >= 0) {
-				head->feeds[i]->unread_count = unread_count;
-			}
-		}
-	}
-	if (menu != NULL) {
-		struct menu_state *new = malloc(sizeof(struct menu_state));
-		new->run         = menu;
-		new->feeds       = feeds;
-		new->feeds_count = feeds_count;
-		new->flags       = flags;
-		new->prev        = head;
-		if ((flags & MENU_SWALLOW) && head != NULL) {
-			new->prev = head->prev;
-			free(head);
-		}
-		head = new;
-	} else if (head != NULL) {
-		struct menu_state *tmp = head;
-		head = head->prev;
-		if (head != NULL) head->flags |= MENU_DISABLE_SETTINGS;
-		free(tmp);
-	}
-	return head;
 }

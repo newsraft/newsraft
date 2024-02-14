@@ -128,20 +128,19 @@ main(int argc, char **argv)
 		}
 	}
 
-	if (register_signal_handlers()         == false) { error = 6;  goto undo1; }
-	if (assign_default_binds()             == false) { error = 7;  goto undo1; }
-	if (parse_config_file()                == false) { error = 8;  goto undo2; }
-	if (load_config()                      == false) { error = 9;  goto undo3; }
-	if (db_init()                          == false) { error = 10; goto undo3; }
-	if (query_database_file_optimization() == false) { error = 11; goto undo4; }
-	if (parse_feeds_file()                 == false) { error = 12; goto undo4; }
-	if (curses_init()                      == false) { error = 13; goto undo5; }
-	if (adjust_list_menu()                 == false) { error = 14; goto undo6; }
-	if (status_recreate_unprotected()      == false) { error = 15; goto undo7; }
-	if (allocate_status_messages_buffer()  == false) { error = 16; goto undo8; }
-	if (counter_recreate_unprotected()     == false) { error = 17; goto undo8; }
-	if (curl_global_init(CURL_GLOBAL_DEFAULT)  != 0) { error = 18; goto undo9; }
-	refresh_unread_items_count_of_all_sections();
+	if (register_signal_handlers()         == false) { error = 6;  goto undo1;  }
+	if (assign_default_binds()             == false) { error = 7;  goto undo1;  }
+	if (parse_config_file()                == false) { error = 8;  goto undo2;  }
+	if (load_config()                      == false) { error = 9;  goto undo3;  }
+	if (db_init()                          == false) { error = 10; goto undo3;  }
+	if (query_database_file_optimization() == false) { error = 11; goto undo4;  }
+	if (parse_feeds_file()                 == false) { error = 12; goto undo4;  }
+	if (curses_init()                      == false) { error = 13; goto undo5;  }
+	if (adjust_list_menu()                 == false) { error = 14; goto undo6;  }
+	if (status_recreate_unprotected()      == false) { error = 15; goto undo7;  }
+	if (allocate_status_messages_buffer()  == false) { error = 16; goto undo8;  }
+	if (counter_recreate_unprotected()     == false) { error = 17; goto undo8;  }
+	if (curl_global_init(CURL_GLOBAL_DEFAULT)  != 0) { error = 18; goto undo9;  }
 	if (start_feed_updater()               == false) { error = 19; goto undo10; }
 
 	struct timespec idling = {0, 100000000}; // 0.1 seconds
@@ -155,7 +154,7 @@ main(int argc, char **argv)
 		}
 	}
 
-	clean_up_items_menu();
+	free_menus();
 undo10:
 	curl_global_cleanup();
 undo9:

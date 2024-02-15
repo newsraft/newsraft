@@ -239,6 +239,10 @@ _pager-width_ (default: *100*)
 	Pager width in characters. If set to *0*, pager will take up all available
 	space.
 
+_pager-centering_ (default: *true*)
+	Whether the pager should be centered in the available space. If set to
+	*false*, the pager will be aligned to the left.
+
 _update-threads-count_ (default: *0*)
 	Maximum number of updates running simultaneously. If set to *0*, the setting
 	value will be set to the number of available CPU cores multiplied by *10*.

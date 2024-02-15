@@ -72,6 +72,7 @@ static struct config_entry config[] = {
 	{"send-user-agent-header",          CFG_BOOL,   {.b = true }},
 	{"send-if-none-match-header",       CFG_BOOL,   {.b = true }},
 	{"send-if-modified-since-header",   CFG_BOOL,   {.b = true }},
+	{"pager-centering",                 CFG_BOOL,   {.b = true }},
 	{NULL,                              CFG_BOOL,   {.b = false}},
 };
 

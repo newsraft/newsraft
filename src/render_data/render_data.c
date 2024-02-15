@@ -39,7 +39,7 @@ render_data(struct render_result *result, struct render_blocks_list *blocks, siz
 		line_style(&line, FORMAT_ALL_END);
 	}
 	remove_trailing_empty_lines_except_for_first_one(&line);
-	if (pager_width > 0 && pager_width < content_width) {
+	if (get_cfg_bool(CFG_PAGER_CENTERING) && pager_width > 0 && pager_width < content_width) {
 		for (size_t i = 0; i < result->lines_len; ++i) {
 			result->lines[i].indent += (content_width - pager_width) / 2;
 		}

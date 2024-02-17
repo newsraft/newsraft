@@ -236,12 +236,12 @@ _scrolloff_ (default: *0*)
 	in the middle of the list menu (except for start and end of the list menu).
 
 _pager-width_ (default: *100*)
-	Pager width in characters. If set to *0*, pager will take up all available
+	Pager width in characters. If set to *0*, the pager will take up all available
 	space.
 
 _pager-centering_ (default: *true*)
-	Whether the pager should be centered in the available space. If set to
-	*false*, the pager will be aligned to the left.
+	Whether the pager should center its content when _pager-width_ is not *0*. If
+	set to *false*, the pager will be aligned to the left.
 
 _update-threads-count_ (default: *0*)
 	Maximum number of updates running simultaneously. If set to *0*, the setting
@@ -473,6 +473,8 @@ and *colorN* (*N* can be a number from *0* to *255*). Available attributes are
 :[ _jump-to-next-important_
 |[ *P*
 :[ _jump-to-prev-important_
+|[ *\**
+:[ _goto-feed_
 |[ *,*
 :[ _shift-west_
 |[ *.*

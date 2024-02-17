@@ -12,7 +12,7 @@ echo
 for test_file in *.c
 do
 	tests_count="$((tests_count + 1))"
-	if cc -Isrc -L. "$test_file" -l:libnewsraft.so && env LD_LIBRARY_PATH=. ./a.out; then
+	if ${CC:-cc} -Isrc -o ./a.out "$test_file" -L. -l:libnewsraft.so && env LD_LIBRARY_PATH=. ./a.out; then
 		echo "[OKAY] $test_file"
 		okays_count="$((okays_count + 1))"
 	else

@@ -38,9 +38,15 @@ line_bump(struct line *line)
 static inline void
 line_split_at_end(struct line *line)
 {
-	size_t prev_end = line->end;
-	size_t prev_hints_len = line->head->hints_len;
-	size_t next_hints_start = 0;
+	// Have to use pointers to individual members because calling line_char can
+	// realloc lines array which would make using a pointer to the render_line
+	// element prone to the use-after-free bugs.
+	struct wstring *prev_ws        = line->head->ws;
+	struct format_hint *prev_hints = line->head->hints;
+	size_t prev_hints_len          = line->head->hints_len;
+	size_t prev_end                = line->end;
+	size_t next_hints_start        = 0;
+
 	while (next_hints_start < prev_hints_len) {
 		// Lorem ipsum <u>dolor sit</u> amet
 		//                        ^
@@ -54,23 +60,22 @@ line_split_at_end(struct line *line)
 	}
 
 	line_bump(line); // Now line->head points to a next empty line.
-	struct render_line *prev_head = line->head - 1;
 
 	size_t i = prev_end + 1;
-	while (i < prev_head->ws->len && ISWIDEWHITESPACE(prev_head->ws->ptr[i])) {
+	while (i < prev_ws->len && ISWIDEWHITESPACE(prev_ws->ptr[i])) {
 		// Do we have to apply style of skipped whitespace here?
 		i += 1;
 	}
-	for (size_t j = next_hints_start; i < prev_head->ws->len; ++i) {
-		if (j < prev_hints_len && i == prev_head->hints[j].pos) {
-			line_style(line, prev_head->hints[j].mask);
+	for (size_t j = next_hints_start; i < prev_ws->len; ++i) {
+		if (j < prev_hints_len && i == prev_hints[j].pos) {
+			line_style(line, prev_hints[j].mask);
 			j += 1;
 		}
-		line_char(line, prev_head->ws->ptr[i]);
+		line_char(line, prev_ws->ptr[i]);
 	}
 
-	prev_head->ws->ptr[prev_end + 1] = L'\0';
-	prev_head->ws->len = prev_end + 1;
+	prev_ws->ptr[prev_end + 1] = L'\0';
+	prev_ws->len = prev_end + 1;
 }
 
 bool

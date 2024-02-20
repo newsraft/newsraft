@@ -228,21 +228,20 @@ convert_array_to_wstring(const char *src_ptr, size_t src_len)
 void
 inlinefy_string(struct string *str)
 {
-	char *i, *j;
-	// Replace whitespace with spaces.
-	for (i = str->ptr; *i != '\0'; ++i) {
-		if (*i == '\n' || *i == '\t' || *i == '\r' || *i == '\f' || *i == '\v') {
-			*i = ' ';
+	// Replace multiple whitespace with a single space.
+	char *dest = str->ptr;
+	char c = '\0';
+	for (const char *s = str->ptr; *s != '\0'; ++s) {
+		if (ISWHITESPACE(*s)) {
+			if (c == ' ') // previous character was whitespace
+				continue;
+			c = ' ';
+		} else {
+			c = *s;
 		}
+		*dest = c;
+		++dest;
 	}
-	// Replace repeated spaces with a single one.
-	for (i = str->ptr; *i != '\0'; ++i) {
-		if ((*i == ' ') && (*(i + 1) == ' ')) {
-			for (j = i; *j != '\0'; ++j) {
-				*j = *(j + 1);
-			}
-			str->len -= 1;
-			i -= 1;
-		}
-	}
+	*dest = '\0';
+	str->len = dest - str->ptr;
 }

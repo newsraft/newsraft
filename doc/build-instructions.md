@@ -2,11 +2,11 @@
 
 | Operating system | Command                                                                                                       |
 |------------------|---------------------------------------------------------------------------------------------------------------|
-| Alpine Linux     | `apk add curl-dev expat-dev gumbo-parser-dev ncurses-dev sqlite-dev yajl-dev`                                 |
-| Arch Linux       | `pacman -S curl expat gumbo-parser ncurses sqlite yajl`                                                       |
+| Alpine Linux     | `apk add build-base curl-dev expat-dev gumbo-parser-dev ncurses-dev sqlite-dev yajl-dev`                      |
+| Arch Linux       | `pacman -S base-devel curl expat gumbo-parser ncurses sqlite yajl`                                            |
 | Source Mage      | `cast curl expat gumbo-parser ncurses sqlite yajl`                                                            |
 | Debian/Ubuntu    | `apt install build-essential libcurl-dev libexpat-dev libgumbo-dev libncurses-dev libsqlite3-dev libyajl-dev` |
-| Void Linux       | `xbps-install libcurl-devel expat-devel gumbo-parser-devel ncurses-devel sqlite-devel yajl-devel`             |
+| Void Linux       | `xbps-install base-devel libcurl-devel expat-devel gumbo-parser-devel ncurses-devel sqlite-devel yajl-devel`  |
 | OpenBSD          | `pkg_add curl gumbo sqlite libyajl`                                                                           |
 
 ## Compilation

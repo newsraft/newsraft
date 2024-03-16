@@ -3,6 +3,7 @@ tests/makefile
 tests/src
 tests/libnewsraft.so
 tests/a.out
+tests/test-database*
 flog
 vlog
 callgrind.out*

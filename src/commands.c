@@ -35,8 +35,8 @@ void
 copy_string_to_clipboard(const struct string *src)
 {
 	if (src != NULL && src->len > 0) {
-		const struct string *copy_cmd = get_cfg_string(CFG_COPY_TO_CLIPBOARD_COMMAND);
-		FILE *p = popen(copy_cmd->ptr, "w");
+		const struct string *cmd = get_cfg_string(NULL, CFG_COPY_TO_CLIPBOARD_COMMAND);
+		FILE *p = popen(cmd->ptr, "w");
 		if (p == NULL) {
 			fail_status("Failed to execute clipboard command!");
 			return;

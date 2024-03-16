@@ -1,7 +1,7 @@
 #include "update_feed/insert_feed/insert_feed.h"
 
 bool
-insert_feed(const struct feed_entry *feed, struct getfeed_feed *feed_data)
+insert_feed(struct feed_entry *feed, struct getfeed_feed *feed_data)
 {
 	if (insert_feed_data(feed->link, feed_data) == false) {
 		FAIL("Failed to insert feed data!");
@@ -13,7 +13,8 @@ insert_feed(const struct feed_entry *feed, struct getfeed_feed *feed_data)
 			return false;
 		}
 	}
-	if (feed->item_limit > 0 && delete_excess_items(feed->link, feed->item_limit) == false) {
+	size_t limit = get_cfg_uint(&feed->cfg, CFG_ITEM_LIMIT);
+	if (limit > 0 && delete_excess_items(feed->link, limit) == false) {
 		WARN("Failed to delete excess items!");
 	}
 	return true;

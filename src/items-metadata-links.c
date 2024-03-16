@@ -190,7 +190,7 @@ generate_link_list_wstring_for_pager(const struct links_list *links)
 	struct wstring *list = wcrtes(200);
 	struct wstring *fmt_out = wcrtes(200);
 	struct string *str = crtes(200);
-	const struct wstring *link_fmt = get_cfg_wstring(CFG_ITEM_CONTENT_LINK_FORMAT);
+	const struct wstring *link_fmt = get_cfg_wstring(NULL, CFG_ITEM_CONTENT_LINK_FORMAT);
 #define CONVERT_OUT_SIZE 200
 	char convert_out[CONVERT_OUT_SIZE];
 	int convert_len;

@@ -140,7 +140,7 @@ create_items_list(struct feed_entry **feeds, size_t feeds_count, int sorting, co
 	items->sorting = sorting;
 	if (sorting < 0) {
 		items->sorting = SORT_BY_TIME_DESC;
-		const struct string *sort = get_cfg_string(CFG_MENU_ITEM_SORTING);
+		const struct string *sort = get_cfg_string(NULL, CFG_MENU_ITEM_SORTING);
 		if      (strcmp(sort->ptr, "time-desc")     == 0) items->sorting = SORT_BY_TIME_DESC;
 		else if (strcmp(sort->ptr, "time-asc")      == 0) items->sorting = SORT_BY_TIME_ASC;
 		else if (strcmp(sort->ptr, "unread-desc")   == 0) items->sorting = SORT_BY_UNREAD_DESC;

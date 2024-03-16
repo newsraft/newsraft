@@ -26,7 +26,6 @@
 #define fail_status(...) status_write(CFG_COLOR_STATUS_FAIL, __VA_ARGS__)
 #define MIN(A, B) ((A) < (B) ? (A) : (B))
 
-#define NEWSRAFT_COLOR_PAIRS_COUNT 10
 typedef uint8_t config_entry_id;
 enum {
 	CFG_COLOR_STATUS_GOOD = 0,
@@ -39,6 +38,8 @@ enum {
 	CFG_COLOR_LIST_FEED_UNREAD,
 	CFG_COLOR_LIST_SECTION,
 	CFG_COLOR_LIST_SECTION_UNREAD,
+	CFG_RELOAD_PERIOD,
+	CFG_ITEM_LIMIT,
 	CFG_SCROLLOFF,
 	CFG_PAGER_WIDTH,
 	CFG_UPDATE_THREADS_COUNT,
@@ -202,6 +203,9 @@ enum {
 	FORMAT_ALL_END = 42, // Sum of all ending hints.
 };
 
+struct config_context;
+struct deserialize_stream;
+
 struct string {
 	char *ptr;
 	size_t len;
@@ -219,8 +223,7 @@ struct feed_entry {
 	struct string *link;
 	int64_t unread_count;
 	int64_t download_date;
-	int64_t update_period;
-	int64_t item_limit;
+	struct config_context *cfg;
 	volatile bool *volatile did_update_just_finished;
 };
 
@@ -321,17 +324,18 @@ struct links_list {
 	size_t len;
 };
 
-struct deserialize_stream;
-
 // See "sections.c" file for implementation.
 int64_t make_sure_section_exists(const struct string *section_name);
-bool copy_feed_to_section(const struct feed_entry *feed, int64_t section_index);
+struct feed_entry *copy_feed_to_section(const struct feed_entry *feed_data, int64_t section_index);
 void refresh_unread_items_count_of_all_sections(void);
 bool purge_abandoned_feeds(void);
 struct menu_state *sections_menu_loop(struct menu_state *m);
 void free_sections(void);
 void process_auto_updating_feeds(void);
 void mark_feeds_read(struct feed_entry **feeds, size_t feeds_count, bool status);
+#ifdef TEST
+struct feed_entry **get_all_feeds(size_t *feeds_count);
+#endif
 
 // See "feeds-parse.c" file for implementation.
 bool parse_feeds_file(void);
@@ -353,7 +357,7 @@ bool handle_pager_menu_control(input_cmd_id cmd);
 void free_menus(void);
 size_t get_menu_depth(void);
 struct menu_state *setup_menu(struct menu_state *(*run)(struct menu_state *), struct feed_entry **feeds, size_t feeds_count, uint32_t flags);
-void start_menu(config_entry_id format_id);
+void start_menu(void);
 
 // See "interface-list-pager.c" file for implementation.
 bool is_pager_pos_valid(struct menu_state *ctx, size_t index);
@@ -456,6 +460,7 @@ bool db_change_unread_status_of_all_items_in_feeds(struct feed_entry **feeds, si
 bool curses_init(void);
 input_cmd_id resize_handler(void);
 bool call_resize_handler_if_current_list_menu_size_is_different_from_actual(void);
+bool arent_we_colorful(void);
 
 // Functions related to window which reads user input and displays command
 // counter (prefix number before command).
@@ -465,11 +470,6 @@ void tell_program_to_terminate_safely_and_quickly(int dummy);
 input_cmd_id get_input_cmd(uint32_t *count, const struct wstring **macro_ptr);
 void break_getting_input_command(void);
 void counter_delete(void);
-
-// Functions responsible for curses color pairs.
-// See "interface-colors.c" file for implementation.
-bool create_color_pairs(void);
-unsigned int get_color_pair(config_entry_id id);
 
 // Functions related to window which displays status messages.
 // See "interface-status.c" file for implementation.
@@ -517,6 +517,7 @@ void free_string(struct string *str);
 void trim_whitespace_from_string(struct string *str);
 struct wstring *convert_string_to_wstring(const struct string *src);
 struct wstring *convert_array_to_wstring(const char *src_ptr, size_t src_len);
+void remove_start_of_string(struct string *str, size_t size);
 void inlinefy_string(struct string *title);
 
 // See "string-serialize.c" file for implementation.
@@ -551,13 +552,14 @@ void log_stop(int error_code);
 
 // Parse config file, fill out config_data structure, bind keys to actions.
 // See "load_config" directory for implementation.
+bool process_config_line(struct feed_entry *feed, const char *str, size_t len);
 bool parse_config_file(void);
 bool load_config(void);
-bool get_cfg_bool(config_entry_id i);
-size_t get_cfg_uint(config_entry_id i);
-unsigned int get_cfg_color(config_entry_id i, int *fg, int *bg);
-const struct string *get_cfg_string(config_entry_id i);
-const struct wstring *get_cfg_wstring(config_entry_id i);
+bool get_cfg_bool(struct config_context **ctx, config_entry_id id);
+size_t get_cfg_uint(struct config_context **ctx, config_entry_id id);
+unsigned int get_cfg_color(struct config_context **ctx, config_entry_id id);
+const struct string *get_cfg_string(struct config_context **ctx, config_entry_id id);
+const struct wstring *get_cfg_wstring(struct config_context **ctx, config_entry_id id);
 void free_config(void);
 
 // Download, process and store new items of feed.

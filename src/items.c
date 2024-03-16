@@ -124,6 +124,7 @@ items_menu_loop(struct menu_state *m)
 	m->paint_action = &paint_item;
 	m->unread_state = &is_item_unread;
 	m->write_action = &list_menu_writer;
+	m->entry_format = get_cfg_wstring(NULL, m->flags & MENU_IS_EXPLORE ? CFG_MENU_EXPLORE_ITEM_ENTRY_FORMAT : CFG_MENU_ITEM_ENTRY_FORMAT);
 	if (m->is_initialized == false) {
 		m->items_age = items_age;
 		m->items = create_items_list(m->feeds_original, m->feeds_count, -1, m->flags & MENU_USE_SEARCH ? search_mode_text_input : NULL);
@@ -131,14 +132,14 @@ items_menu_loop(struct menu_state *m)
 			return setup_menu(NULL, NULL, 0, 0); // Error displayed by create_items_list
 		}
 	}
-	start_menu(m->flags & MENU_IS_EXPLORE ? CFG_MENU_EXPLORE_ITEM_ENTRY_FORMAT : CFG_MENU_ITEM_ENTRY_FORMAT);
+	start_menu();
 	const struct wstring *macro;
 	while (true) {
 		if (m->items_age != items_age) {
 			m->items_age = items_age;
 			replace_items_list_with_empty_one(&m->items);
 		}
-		if (get_cfg_bool(CFG_MARK_ITEM_READ_ON_HOVER) == true) {
+		if (get_cfg_bool(NULL, CFG_MARK_ITEM_READ_ON_HOVER) == true) {
 			mark_item_read(m, m->view_sel, true);
 		}
 		input_cmd_id cmd = get_input_cmd(NULL, &macro);
@@ -171,7 +172,7 @@ items_menu_loop(struct menu_state *m)
 			case INPUT_APPLY_SEARCH_MODE_FILTER:
 				change_search_filter_of_items_list(&m->items, search_mode_text_input); break;
 			case INPUT_OPEN_IN_BROWSER:
-				run_formatted_command(get_cfg_wstring(CFG_OPEN_IN_BROWSER_COMMAND), get_item_args(m, m->view_sel)); break;
+				run_formatted_command(get_cfg_wstring(NULL, CFG_OPEN_IN_BROWSER_COMMAND), get_item_args(m, m->view_sel)); break;
 			case INPUT_SORT_BY_TIME:
 			case INPUT_SORT_BY_UNREAD:
 			case INPUT_SORT_BY_ALPHABET:

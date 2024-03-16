@@ -12,7 +12,6 @@
 #include "feeds.c"
 #include "feeds-parse.c"
 #include "interface.c"
-#include "interface-colors.c"
 #include "interface-input.c"
 #include "interface-list.c"
 #include "interface-list-pager.c"
@@ -130,12 +129,12 @@ main(int argc, char **argv)
 
 	if (register_signal_handlers()         == false) { error = 6;  goto undo1;  }
 	if (assign_default_binds()             == false) { error = 7;  goto undo1;  }
-	if (parse_config_file()                == false) { error = 8;  goto undo2;  }
-	if (load_config()                      == false) { error = 9;  goto undo3;  }
-	if (db_init()                          == false) { error = 10; goto undo3;  }
-	if (query_database_file_optimization() == false) { error = 11; goto undo4;  }
-	if (parse_feeds_file()                 == false) { error = 12; goto undo4;  }
-	if (curses_init()                      == false) { error = 13; goto undo5;  }
+	if (curses_init()                      == false) { error = 13; goto undo2;  }
+	if (parse_config_file()                == false) { error = 8;  goto undo3;  }
+	if (load_config()                      == false) { error = 9;  goto undo4;  }
+	if (db_init()                          == false) { error = 10; goto undo4;  }
+	if (query_database_file_optimization() == false) { error = 11; goto undo5;  }
+	if (parse_feeds_file()                 == false) { error = 12; goto undo5;  }
 	if (adjust_list_menu()                 == false) { error = 14; goto undo6;  }
 	if (status_recreate_unprotected()      == false) { error = 15; goto undo7;  }
 	if (allocate_status_messages_buffer()  == false) { error = 16; goto undo8;  }
@@ -164,13 +163,13 @@ undo8:
 undo7:
 	free_list_menu();
 undo6:
-	endwin();
-undo5:
 	free_sections();
-undo4:
+undo5:
 	db_stop();
-undo3:
+undo4:
 	free_config();
+undo3:
+	endwin();
 undo2:
 	free_binds();
 undo1:

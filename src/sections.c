@@ -11,7 +11,6 @@ struct feed_section {
 
 static struct feed_section *sections = NULL;
 static size_t sections_count = 0;
-static bool at_least_one_feed_has_positive_update_period = false;
 
 static bool
 is_section_valid(struct menu_state *ctx, size_t index)
@@ -49,6 +48,15 @@ is_section_unread(struct menu_state *ctx, size_t index)
 	(void)ctx;
 	return sections[index].unread_count > 0;
 }
+
+#ifdef TEST
+struct feed_entry **
+get_all_feeds(size_t *feeds_count)
+{
+	*feeds_count = sections[0].feeds_count;
+	return sections[0].feeds;
+}
+#endif
 
 void
 mark_feeds_read(struct feed_entry **feeds, size_t feeds_count, bool status)
@@ -111,21 +119,18 @@ copy_feed_to_global_section(const struct feed_entry *feed)
 	if (duplicate != NULL) {
 		return duplicate;
 	}
-	INFO("Adding %s (update period = %" PRId64 ", item limit = %" PRId64 ") to global section.",
-		feed->link->ptr,
-		feed->update_period,
-		feed->item_limit
-	);
+	INFO("Adding to global section: %s", feed->link->ptr);
 	size_t feed_index = (sections[0].feeds_count)++;
 	struct feed_entry **temp = realloc(sections[0].feeds, sizeof(struct feed_entry *) * sections[0].feeds_count);
 	if (temp == NULL) {
 		return NULL;
 	}
 	sections[0].feeds = temp;
-	sections[0].feeds[feed_index] = malloc(sizeof(struct feed_entry));
+	sections[0].feeds[feed_index] = calloc(1, sizeof(struct feed_entry));
 	if (sections[0].feeds[feed_index] == NULL) {
 		return NULL;
 	}
+
 	if (feed->name != NULL && feed->name->len > 0) {
 		sections[0].feeds[feed_index]->name = crtss(feed->name);
 	} else {
@@ -139,48 +144,46 @@ copy_feed_to_global_section(const struct feed_entry *feed)
 	if (sections[0].feeds[feed_index]->name == NULL) {
 		return NULL;
 	}
+
 	sections[0].feeds[feed_index]->link = crtss(feed->link);
 	if (sections[0].feeds[feed_index]->link == NULL) {
 		return NULL;
 	}
+
 	int64_t new_unread_count = get_unread_items_count_of_the_feed(sections[0].feeds[feed_index]->link);
 	if (new_unread_count < 0) {
+		fputs("Failed to get unread items count of the feed from database!\n", stderr);
 		return NULL;
 	}
 	sections[0].feeds[feed_index]->unread_count  = new_unread_count;
 	sections[0].feeds[feed_index]->download_date = db_get_date_from_feeds_table(feed->link, "download_date", 13);
-	sections[0].feeds[feed_index]->update_period = feed->update_period;
-	sections[0].feeds[feed_index]->item_limit    = feed->item_limit;
-	if (feed->update_period > 0) {
-		at_least_one_feed_has_positive_update_period = true;
-	}
 	return sections[0].feeds[feed_index];
 }
 
-static bool
-attach_feed_to_section(struct feed_entry *feed, struct feed_section *section)
+struct feed_entry *
+copy_feed_to_section(const struct feed_entry *feed_data, int64_t section_index)
 {
+	// All feeds without exception are stored in the global section
+	struct feed_entry *feed = copy_feed_to_global_section(feed_data);
+	if (feed == NULL) {
+		fputs("Not enough memory!\n", stderr);
+		return NULL;
+	}
+
+	// User sections contain only pointers to feeds in the global section
+	struct feed_section *section = sections + section_index;
 	if (find_feed_in_section(feed->link, section) == NULL) {
-		struct feed_entry **temp = realloc(section->feeds, sizeof(struct feed_entry *) * (section->feeds_count + 1));
-		if (temp == NULL) {
-			return false;
+		struct feed_entry **f = realloc(section->feeds, sizeof(struct feed_entry *) * (section->feeds_count + 1));
+		if (f == NULL) {
+			fputs("Not enough memory!\n", stderr);
+			return NULL;
 		}
-		section->feeds = temp;
+		section->feeds = f;
 		section->feeds[section->feeds_count] = feed;
 		section->feeds_count += 1;
 	}
-	return true;
-}
 
-bool
-copy_feed_to_section(const struct feed_entry *feed, int64_t section_index)
-{
-	struct feed_entry *attached_feed = copy_feed_to_global_section(feed);
-	if (attached_feed == NULL) {
-		fputs("Not enough memory for new feed in global section!\n", stderr);
-		return false;
-	}
-	return attach_feed_to_section(attached_feed, &sections[section_index]);
+	return feed;
 }
 
 void
@@ -249,12 +252,13 @@ free_sections(void)
 void
 process_auto_updating_feeds(void)
 {
-	if (at_least_one_feed_has_positive_update_period == true) {
-		time_t current_time = time(NULL);
+	time_t now = time(NULL);
+	if (now > 0) {
 		for (size_t i = 0; i < sections[0].feeds_count; ++i) {
-			if ((sections[0].feeds[i]->update_period > 0)
-				&& (sections[0].feeds[i]->update_period < (current_time - sections[0].feeds[i]->download_date)))
-			{
+			size_t download = sections[0].feeds[i]->download_date;
+			size_t age = (size_t)now > download ? now - download : 0;
+			size_t reload_period = get_cfg_uint(&sections[0].feeds[i]->cfg, CFG_RELOAD_PERIOD) * 60;
+			if (reload_period > 0 && age > reload_period) {
 				update_feeds(sections[0].feeds + i, 1);
 			}
 		}
@@ -269,15 +273,16 @@ sections_menu_loop(struct menu_state *m)
 	m->paint_action = &paint_section;
 	m->unread_state = &is_section_unread;
 	m->write_action = &list_menu_writer;
+	m->entry_format = get_cfg_wstring(NULL, CFG_MENU_SECTION_ENTRY_FORMAT);
 	if (!(m->flags & MENU_DISABLE_SETTINGS)) {
-		if (get_cfg_bool(CFG_SECTIONS_MENU_PARAMOUNT_EXPLORE) && get_items_count_of_feeds(sections[0].feeds, sections[0].feeds_count)) {
+		if (get_cfg_bool(NULL, CFG_SECTIONS_MENU_PARAMOUNT_EXPLORE) && get_items_count_of_feeds(sections[0].feeds, sections[0].feeds_count)) {
 			return setup_menu(&items_menu_loop, sections[0].feeds, sections[0].feeds_count, MENU_IS_EXPLORE);
 		} else if (sections_count == 1) {
 			return setup_menu(&feeds_menu_loop, sections[0].feeds, sections[0].feeds_count, MENU_SWALLOW);
 		}
 	}
 	refresh_unread_items_count_of_all_sections();
-	start_menu(CFG_MENU_SECTION_ENTRY_FORMAT);
+	start_menu();
 	const struct wstring *macro;
 	for (input_cmd_id cmd = get_input_cmd(NULL, &macro) ;; cmd = get_input_cmd(NULL, &macro)) {
 		if (handle_list_menu_control(m, cmd, macro) == true) {

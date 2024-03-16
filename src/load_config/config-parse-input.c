@@ -6,7 +6,7 @@ struct input_entry_match {
 	const input_cmd_id value;
 };
 
-static const struct input_entry_match action_names_string_table[] = {
+static const struct input_entry_match actions_table[] = {
 	{"select-next",                       INPUT_SELECT_NEXT                },
 	{"select-prev",                       INPUT_SELECT_PREV                },
 	{"select-next-page",                  INPUT_SELECT_NEXT_PAGE           },
@@ -47,11 +47,11 @@ static const struct input_entry_match action_names_string_table[] = {
 };
 
 input_cmd_id
-get_input_cmd_id_by_name(const char *name)
+get_input_cmd_id_by_name(const char *name, size_t len)
 {
-	for (uint8_t i = 0; action_names_string_table[i].name != NULL; ++i) {
-		if (strcmp(name, action_names_string_table[i].name) == 0) {
-			return action_names_string_table[i].value;
+	for (uint8_t i = 0; actions_table[i].name != NULL; ++i) {
+		if (len == strlen(actions_table[i].name) && memcmp(name, actions_table[i].name, len) == 0) {
+			return actions_table[i].value;
 		}
 	}
 	fprintf(stderr, "Action \"%s\" doesn't exist!\n", name);

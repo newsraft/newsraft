@@ -35,7 +35,7 @@ parse_feeds_file(void)
 	if (feeds_file_path == NULL) {
 		return false;
 	}
-	if (make_sure_section_exists(get_cfg_string(CFG_GLOBAL_SECTION_NAME)) != 0) {
+	if (make_sure_section_exists(get_cfg_string(NULL, CFG_GLOBAL_SECTION_NAME)) != 0) {
 		return false;
 	}
 	FILE *f = fopen(feeds_file_path, "r");
@@ -43,18 +43,18 @@ parse_feeds_file(void)
 		fputs("Couldn't open feeds file!\n", stderr);
 		return false;
 	}
-	struct string *line = crtes(1000);
+	bool status = false;
+	int64_t section_index       = 0;
+	struct string *line         = crtes(200);
+	struct string *section_name = crtes(200);
+	struct string *feed_cfg     = crtes(200);
+	struct string *section_cfg  = crtes(200);
+	struct string *global_cfg   = crtes(200);
 	bool at_least_one_feed_was_added = false;
-	int64_t section_index = 0;
-	int64_t global_update_period  = -1;
-	int64_t section_update_period = -1;
-	int64_t global_item_limit     = -1;
-	int64_t section_item_limit    = -1;
-	struct string *section_name = crtes(100);
 	struct feed_entry feed;
 	feed.name = crtes(100);
 	feed.link = crtes(200);
-	if (line == NULL || section_name == NULL || feed.name == NULL || feed.link == NULL) {
+	if (!line || !section_name || !feed_cfg || !section_cfg || !global_cfg || !feed.name || !feed.link) {
 		fputs("Not enough memory for parsing feeds file!\n", stderr);
 		goto error;
 	}
@@ -70,86 +70,101 @@ parse_feeds_file(void)
 
 		if (line->len == 0 || line->ptr[0] == '#') continue; // Skip empty and comment lines.
 
-		long update_timer = -1;
-		long item_limit = -1;
-		while (line->ptr[line->len - 1] == ']' || line->ptr[line->len - 1] == '}') {
-			char *open = strrchr(line->ptr, line->ptr[line->len - 1] == ']' ? '[' : '{');
-			if (open == NULL || open == line->ptr) {
-				break; // Break if it's in the beginning of string.
+		bool is_section = false;
+
+		// Process first token: section, feed command or feed link
+		size_t len = 0;
+		if (line->ptr[0] == '@') {
+			is_section = true;
+			for (const char *i = line->ptr + 1; *i != '[' && *i != '{' && *i != '<' && *i != '\0'; ++i) {
+				len += 1;
 			}
-			if (!ISWHITESPACE(*(open - 1))) {
-				break; // Break if it's a part of the link.
-			}
-			for (char *i = open + 1; i < line->ptr + line->len - 1; ++i) {
-				if (!ISDIGIT(*i)) {
-					fputs("Bracketed value contains invalid integer!\n", stderr);
-					goto error;
+			cpyas(&section_name, line->ptr + 1, len);
+			trim_whitespace_from_string(section_name);
+			section_index = make_sure_section_exists(section_name);
+			if (section_index < 0) goto error;
+			empty_string(section_cfg);
+			remove_start_of_string(line, 1 + len);
+		} else if (line->ptr[0] == '$' && line->ptr[1] == '(') {
+			for (len = 2; line->ptr[len] != '\0'; ++len) {
+				if (line->ptr[len] == ')') {
+					len += 1;
+					break;
 				}
 			}
+			cpyas(&feed.link, line->ptr, len);
+			remove_start_of_string(line, len);
+		} else {
+			for (const char *i = line->ptr; !ISWHITESPACE(*i) && *i != '\0'; ++i) {
+				len += 1;
+			}
+			cpyas(&feed.link, line->ptr, len);
+			remove_start_of_string(line, len);
+		}
+		trim_whitespace_from_string(line);
+		empty_string(feed_cfg);
+
+		// Process second token: feed name
+		empty_string(feed.name);
+		if (line->ptr[0] == '"') {
+			char *close = strchr(line->ptr + 1, '"');
+			if (close == NULL) {
+				fputs("Unclosed feed name!\n", stderr);
+				goto error;
+			}
+			*close = '\0';
+			cpyas(&feed.name, line->ptr + 1, strlen(line->ptr + 1));
+			remove_start_of_string(line, close + 1 - line->ptr);
+		}
+		trim_whitespace_from_string(line);
+
+		// Process deprecated timers
+		while (line->ptr[0] == '[' || line->ptr[0] == '{') {
+			char *close = strchr(line->ptr, line->ptr[0] == '[' ? ']' : '}');
+			if (close == NULL) {
+				fputs("Unclosed counter!\n", stderr);
+				goto error;
+			}
 			long value = -1;
-			if (sscanf(open + 1, "%ld", &value) != 1 || value < 0) {
+			if (sscanf(line->ptr + 1, "%ld", &value) != 1 || value < 0) {
 				fputs("Bracketed value contains invalid integer!\n", stderr);
 				goto error;
 			}
-			if (*open == '[') {
-				update_timer = value * 60; // Convert to seconds.
+			char setting[500];
+			int setting_len = 0;
+			if (line->ptr[0] == '[') {
+				setting_len = sprintf(setting, "set reload-period %ld; ", value);
 			} else {
-				item_limit = value;
+				setting_len = sprintf(setting, "set item-limit %ld; ", value);
 			}
-			*open = '\0';
-			line->len = strlen(line->ptr);
+			catas(is_section ? section_cfg : feed_cfg, setting, setting_len);
+			remove_start_of_string(line, close + 1 - line->ptr);
 			trim_whitespace_from_string(line);
 		}
 
-		if (line->ptr[0] == '@') { // Start of a new section.
-			cpyas(&section_name, line->ptr + 1, line->len - 1);
-			trim_whitespace_from_string(section_name);
-			section_update_period = update_timer >= 0 ? update_timer : global_update_period;
-			section_item_limit    = item_limit   >= 0 ? item_limit   : global_item_limit;
-			section_index = make_sure_section_exists(section_name);
-			if (section_index < 0) goto error;
-			if (section_index == 0) {
-				global_update_period = section_update_period;
-				global_item_limit    = section_item_limit;
-			}
+		if (line->ptr[0] == '<') {
+			catas(is_section ? section_cfg : feed_cfg, line->ptr + 1, strlen(line->ptr + 1));
+		}
+		if (is_section == true && section_index == 0) {
+			catss(global_cfg, section_cfg);
+		}
+
+		if (is_section == true)
 			continue;
-		}
 
-		empty_string(feed.name);
-		if (line->ptr[line->len - 1] == '"') {
-			size_t close_pos = line->len - 1;
-			size_t start_pos = close_pos;
-			while (start_pos > 0 && line->ptr[start_pos - 1] != '"') {
-				start_pos -= 1;
-			}
-			if (start_pos < 2) {
-				fputs("Stumbled upon an invalid feed line!\n", stderr);
-				goto error;
-			}
-			line->ptr[close_pos] = '\0';
-			cpyas(&feed.name, line->ptr + start_pos, strlen(line->ptr + start_pos));
-			line->len = start_pos - 2;
-			line->ptr[line->len] = '\0';
-			trim_whitespace_from_string(line);
-		}
-
-		cpyss(&feed.link, line);
-		feed.update_period = update_timer >= 0 ? update_timer : section_update_period;
-		feed.item_limit    = item_limit   >= 0 ? item_limit   : section_item_limit;
 		remove_trailing_slashes_from_string(feed.link);
-		if (line->len < 4 || line->ptr[0] != '$' || line->ptr[1] != '(' || line->ptr[line->len - 1] != ')') {
-			if (check_url_for_validity(feed.link) == false) {
-				goto error;
-			}
-		}
-
-		if (copy_feed_to_section(&feed, section_index) == true) {
-			at_least_one_feed_was_added = true;
-		} else {
-			fprintf(stderr, "Failed to add feed \"%s\" to section \"%s\"!\n", feed.link->ptr, section_name->ptr);
+		if (feed.link->ptr[0] != '$' && check_url_for_validity(feed.link) == false)
 			goto error;
-		}
 
+		struct feed_entry *feed_ptr = copy_feed_to_section(&feed, section_index);
+		if (feed_ptr == NULL)
+			goto error;
+
+		at_least_one_feed_was_added = true;
+
+		if (!process_config_line(feed_ptr, global_cfg->ptr,  global_cfg->len))  goto error;
+		if (!process_config_line(feed_ptr, section_cfg->ptr, section_cfg->len)) goto error;
+		if (!process_config_line(feed_ptr, feed_cfg->ptr,    feed_cfg->len))    goto error;
 	}
 
 	if (at_least_one_feed_was_added == false) {
@@ -157,17 +172,15 @@ parse_feeds_file(void)
 		goto error;
 	}
 
-	free_string(line);
-	free_string(section_name);
-	free_string(feed.link);
-	free_string(feed.name);
-	fclose(f);
-	return true;
+	status = true;
 error:
 	free_string(line);
 	free_string(section_name);
+	free_string(feed_cfg);
+	free_string(section_cfg);
+	free_string(global_cfg);
 	free_string(feed.link);
 	free_string(feed.name);
 	fclose(f);
-	return false;
+	return status;
 }

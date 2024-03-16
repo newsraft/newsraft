@@ -44,7 +44,7 @@ adjust_list_menu(void)
 		}
 	}
 	windows_count = list_menu_height;
-	scrolloff = get_cfg_uint(CFG_SCROLLOFF);
+	scrolloff = get_cfg_uint(NULL, CFG_SCROLLOFF);
 	if (scrolloff > (list_menu_height / 2)) {
 		scrolloff = list_menu_height / 2;
 	}
@@ -75,7 +75,7 @@ list_menu_writer(size_t index, WINDOW *w)
 		if (list_fmtout->len > horizontal_shift) {
 			waddwstr(w, list_fmtout->ptr + horizontal_shift);
 		}
-		wbkgd(w, get_color_pair(menu->paint_action(menu, index)) | (index == menu->view_sel ? A_REVERSE : 0));
+		wbkgd(w, get_cfg_color(NULL, menu->paint_action(menu, index)) | (index == menu->view_sel ? A_REVERSE : 0));
 	}
 }
 
@@ -193,11 +193,11 @@ change_list_view_unprotected(struct menu_state *m, size_t new_sel)
 	} else if (new_sel != m->view_sel) {
 		if (m == menu) {
 			WINDOW *w = windows[m->view_sel - m->view_min];
-			wbkgd(w, get_color_pair(m->paint_action(m, m->view_sel)));
+			wbkgd(w, get_cfg_color(NULL, m->paint_action(m, m->view_sel)));
 			wnoutrefresh(w);
 			m->view_sel = new_sel;
 			w = windows[m->view_sel - m->view_min];
-			wbkgd(w, get_color_pair(m->paint_action(m, m->view_sel)) | A_REVERSE);
+			wbkgd(w, get_cfg_color(NULL, m->paint_action(m, m->view_sel)) | A_REVERSE);
 			wnoutrefresh(w);
 			doupdate();
 		} else {
@@ -431,7 +431,7 @@ setup_menu(struct menu_state *(*run)(struct menu_state *), struct feed_entry **f
 }
 
 void
-start_menu(config_entry_id format_id)
+start_menu(void)
 {
 	pthread_mutex_lock(&interface_lock);
 	free_deleted_menus();
@@ -440,7 +440,6 @@ start_menu(config_entry_id format_id)
 	if (menu->is_initialized == false) {
 		menu->view_sel = 0;
 		menu->view_min = 0;
-		menu->entry_format = get_cfg_wstring(format_id);
 		status_clean_unprotected();
 	}
 	redraw_list_menu_unprotected();

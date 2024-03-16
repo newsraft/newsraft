@@ -143,11 +143,11 @@ get_proxy_auth_info_encoded(const char *user, const char *password)
 }
 
 static inline bool
-prepare_curl_for_performance(CURL *curl, const char *url, struct curl_slist *headers, struct stream_callback_data *data, char *errbuf)
+prepare_curl_for_performance(CURL *curl, struct feed_entry *feed, struct curl_slist *headers, struct stream_callback_data *data, char *errbuf)
 {
-	curl_easy_setopt(curl, CURLOPT_URL, url);
-	if (get_cfg_bool(CFG_SEND_USER_AGENT_HEADER) == true) {
-		const struct string *useragent = get_cfg_string(CFG_USER_AGENT);
+	curl_easy_setopt(curl, CURLOPT_URL, feed->link->ptr);
+	if (get_cfg_bool(&feed->cfg, CFG_SEND_USER_AGENT_HEADER) == true) {
+		const struct string *useragent = get_cfg_string(&feed->cfg, CFG_USER_AGENT);
 		INFO("Attached header - User-Agent: %s", useragent->ptr);
 		curl_easy_setopt(curl, CURLOPT_USERAGENT, useragent->ptr);
 	}
@@ -161,8 +161,8 @@ prepare_curl_for_performance(CURL *curl, const char *url, struct curl_slist *hea
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, data);
 	curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, &header_callback);
 	curl_easy_setopt(curl, CURLOPT_HEADERDATA, &data->feed);
-	curl_easy_setopt(curl, CURLOPT_TIMEOUT, get_cfg_uint(CFG_DOWNLOAD_TIMEOUT));
-	curl_easy_setopt(curl, CURLOPT_MAX_RECV_SPEED_LARGE, (curl_off_t)get_cfg_uint(CFG_DOWNLOAD_SPEED_LIMIT) * 1024);
+	curl_easy_setopt(curl, CURLOPT_TIMEOUT, get_cfg_uint(&feed->cfg, CFG_DOWNLOAD_TIMEOUT));
+	curl_easy_setopt(curl, CURLOPT_MAX_RECV_SPEED_LARGE, (curl_off_t)get_cfg_uint(&feed->cfg, CFG_DOWNLOAD_SPEED_LIMIT) * 1024);
 	curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, errbuf);
 	curl_easy_setopt(curl, CURLOPT_FAILONERROR, 1);
 	curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1);
@@ -172,11 +172,11 @@ prepare_curl_for_performance(CURL *curl, const char *url, struct curl_slist *hea
 	curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1);
 	curl_easy_setopt(curl, CURLOPT_VERBOSE, 0);
 
-	const struct string *proxy = get_cfg_string(CFG_PROXY);
+	const struct string *proxy = get_cfg_string(&feed->cfg, CFG_PROXY);
 	if (proxy->len != 0) {
 		curl_easy_setopt(curl, CURLOPT_PROXY, proxy->ptr);
-		const struct string *user_str = get_cfg_string(CFG_PROXY_USER);
-		const struct string *password_str = get_cfg_string(CFG_PROXY_PASSWORD);
+		const struct string *user_str = get_cfg_string(&feed->cfg, CFG_PROXY_USER);
+		const struct string *password_str = get_cfg_string(&feed->cfg, CFG_PROXY_PASSWORD);
 		if ((user_str->len != 0) && (password_str->len != 0)) {
 			char *user = curl_easy_escape(curl, user_str->ptr, user_str->len);
 			char *password = curl_easy_escape(curl, password_str->ptr, password_str->len);
@@ -194,7 +194,7 @@ prepare_curl_for_performance(CURL *curl, const char *url, struct curl_slist *hea
 }
 
 download_status
-download_feed(const char *url, struct stream_callback_data *data)
+download_feed(struct feed_entry *feed, struct stream_callback_data *data)
 {
 	CURL *curl = curl_easy_init();
 	if (curl == NULL) {
@@ -208,7 +208,7 @@ download_feed(const char *url, struct stream_callback_data *data)
 		return DOWNLOAD_FAILED;
 	}
 	char curl_errbuf[CURL_ERROR_SIZE] = {0};
-	if (prepare_curl_for_performance(curl, url, headers, data, curl_errbuf) == false) {
+	if (prepare_curl_for_performance(curl, feed, headers, data, curl_errbuf) == false) {
 		curl_slist_free_all(headers);
 		curl_easy_cleanup(curl);
 		return DOWNLOAD_FAILED;

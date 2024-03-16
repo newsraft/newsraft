@@ -1,9 +1,8 @@
-#include <stdlib.h>
 #include <string.h>
 #include "load_config/load_config.h"
 
 bool
-parse_color_setting(config_entry_id id, const char *iter)
+parse_color_setting(struct config_context **ctx, config_entry_id id, const char *iter)
 {
 	int colors[2] = {-1, -1}; // colors[0] = fg; colors[1] = bg;
 	unsigned int c = 0;
@@ -39,6 +38,6 @@ parse_color_setting(config_entry_id id, const char *iter)
 		}
 		while (!ISWHITESPACE(*iter) && *iter != '\0') iter += 1; // Advance to next token.
 	}
-	set_cfg_color(id, colors[0], colors[1], attribute);
+	set_cfg_color(ctx, id, colors[0], colors[1], attribute);
 	return true;
 }

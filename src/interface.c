@@ -3,6 +3,7 @@
 
 bool search_mode_is_enabled = false;
 struct string *search_mode_text_input = NULL;
+static bool paint_it_black = true;
 
 pthread_mutex_t interface_lock = PTHREAD_MUTEX_INITIALIZER;
 
@@ -69,8 +70,8 @@ curses_init(void)
 		WARN("Can't obtain default terminal colors!");
 	} else if (start_color() == ERR) {
 		WARN("Initialization of curses color structures failed!");
-	} else if (create_color_pairs() == false) {
-		WARN("Can't create color pairs!");
+	} else {
+		paint_it_black = false; // Some iridescent sensation at last!
 	}
 	INFO("The value of KEY_RESIZE code is %d.", KEY_RESIZE);
 	return true;
@@ -123,4 +124,10 @@ call_resize_handler_if_current_list_menu_size_is_different_from_actual(void)
 		return true;
 	}
 	return false;
+}
+
+bool
+arent_we_colorful(void)
+{
+	return !paint_it_black;
 }

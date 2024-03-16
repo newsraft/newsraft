@@ -54,7 +54,7 @@ struct stream_callback_data {
 	struct string *emptying_target;
 };
 
-download_status download_feed(const char *url, struct stream_callback_data *data);
+download_status download_feed(struct feed_entry *feed, struct stream_callback_data *data);
 download_status execute_feed(const struct string *cmd, struct stream_callback_data *data);
 
 bool setup_xml_parser(struct stream_callback_data *data);
@@ -64,7 +64,7 @@ bool setup_json_parser(struct stream_callback_data *data);
 void free_json_parser(struct stream_callback_data *data);
 
 // See "insert_feed" directory for implementation.
-bool insert_feed(const struct feed_entry *feed, struct getfeed_feed *feed_data);
+bool insert_feed(struct feed_entry *feed, struct getfeed_feed *feed_data);
 
 // item bucket functions
 bool prepend_item(struct getfeed_item **head_item_ptr);

@@ -39,7 +39,7 @@ parse_date_rfc3339(const char *src)
 struct string *
 get_config_date_str(int64_t date, config_entry_id format_index)
 {
-	const struct string *format = get_cfg_string(format_index);
+	const struct string *format = get_cfg_string(NULL, format_index);
 	struct string *date_str = crtes(format->len + 1000);
 	if (date_str == NULL) {
 		FAIL("Not enough memory for date string!");

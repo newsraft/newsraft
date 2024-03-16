@@ -1,123 +1,156 @@
 #include <string.h>
 #include "load_config/load_config.h"
 
-#define CONFIG_LINE_SIZE 1000
-
-static inline bool
-process_set_line(char *line)
+static inline void
+extract_token_from_line(struct string *line, struct string *token, bool break_on_whitespace)
 {
-	char *i;
-	for (i = line; *i != '\0'; ++i) {
-		if (ISWHITESPACE(*i)) {
-			*i = '\0';
-			i += 1;
-			break;
+	trim_whitespace_from_string(line);
+	empty_string(token);
+	size_t to_remove = 0;
+	if (line->ptr[0] == '"' || line->ptr[0] == '\'') {
+		to_remove = 1;
+		for (const char *i = line->ptr + 1; *i != '\0'; ++i) {
+			to_remove += 1;
+			if (*i == line->ptr[0]) break;
+			catcs(token, *i);
+		}
+	} else {
+		for (const char *i = line->ptr; *i != ';' && *i != '\0'; ++i) {
+			if (break_on_whitespace == true && ISWHITESPACE(*i)) {
+				break;
+			}
+			catcs(token, *i);
+			to_remove += 1;
 		}
 	}
-	config_entry_id id = find_config_entry_by_name(line);
-	if (id == CFG_ENTRIES_COUNT) {
-		fprintf(stderr, "Setting \"%s\" doesn't exist!\n", line);
-		return false;
-	}
-	while (ISWHITESPACE(*i)) {
-		i += 1;
-	}
-	if (*i == '"') {
-		char *next_double_quote = strchr(i + 1, '"');
-		if (next_double_quote != NULL) {
-			*next_double_quote = '\0';
-			i += 1;
-		}
-	} else if (*i == '\'') {
-		char *next_single_quote = strchr(i + 1, '\'');
-		if (next_single_quote != NULL) {
-			*next_single_quote = '\0';
-			i += 1;
-		}
-	}
+	remove_start_of_string(line, to_remove);
+}
+
+static bool
+set_cfg_setting(struct config_context **ctx, config_entry_id id, const char *str, size_t len)
+{
+	struct string *s = crtas(str, len);
+	const char *i = s->ptr;
 	config_type_id type = get_cfg_type(id);
-	if (type == CFG_BOOL) {
-		if ((*i == '\0') || (strcmp(i, "true") == 0)) {
-			set_cfg_bool(id, true);
-		} else if (strcmp(i, "false") == 0) {
-			set_cfg_bool(id, false);
-		} else {
-			fputs("Boolean settings only take \"true\" and \"false\" for values!\n", stderr);
-			return false;
-		}
-	} else if (type == CFG_UINT) {
-		size_t val;
-		if ((*i == '\0') || (*i == '-') || (sscanf(i, "%zu", &val) != 1)) {
-			fputs("Numeric settings only take non-negative integers for values!\n", stderr);
-			return false;
-		}
-		set_cfg_uint(id, val);
-	} else if (type == CFG_COLOR) {
-		if (parse_color_setting(id, i) == false) {
-			return false;
-		}
-	} else if (type == CFG_STRING) {
-		if (set_cfg_string(id, i, strlen(i)) == false) {
-			goto error;
-		}
+	switch (type) {
+		case CFG_BOOL:
+			if (*i != '\0' && strcmp(i, "true") != 0 && strcmp(i, "false") != 0) {
+				fputs("Boolean settings only take \"true\" and \"false\" for values!\n", stderr);
+				goto error;
+			}
+			set_cfg_bool(ctx, id, *i == 'f' ? false : true);
+			break;
+		case CFG_UINT:
+			size_t val;
+			if (*i == '\0' || *i == '-' || sscanf(i, "%zu", &val) != 1) {
+				fputs("Numeric settings only take non-negative integers for values!\n", stderr);
+				goto error;
+			}
+			set_cfg_uint(ctx, id, val);
+			break;
+		case CFG_COLOR:
+			free_string(s);
+			return parse_color_setting(ctx, id, i);
+		case CFG_STRING:
+			free_string(s);
+			return set_cfg_string(ctx, id, str, len);
 	}
+	free_string(s);
 	return true;
 error:
-	fputs("Not enough memory for parsing config file!\n", stderr);
+	free_string(s);
 	return false;
 }
 
-static inline bool
-process_bind_or_unbind_line(char *line)
+bool
+process_config_line(struct feed_entry *feed, const char *str, size_t len)
 {
-	char *i = line;
-	size_t key_len = 0;
-	for (; ; ++i) {
-		if (ISWHITESPACE(*i) || *i == '\0') {
-			key_len = i - line;
-			if (*i != '\0') i += 1;
-			break;
-		}
+	struct string *line = crtas(str, len);
+	struct string *token = crtes(200);
+	struct config_context **ctx = feed != NULL ? &feed->cfg : NULL;
+	trim_whitespace_from_string(line);
+
+	if (line->len > 0) {
+		INFO("Config line %s -> %s", feed == NULL ? "" : feed->link->ptr, line->ptr);
 	}
-	if ((key_len == 5) && (memcmp(line, "space", 5) == 0)) {
-		*line = ' ';
-		key_len = 1;
-	}
-	ssize_t bind_index = create_empty_bind_or_clean_existing(line, key_len);
-	if (bind_index < 0) {
-		return false;
-	}
-	while (true) {
-		while (ISWHITESPACE(*i) || *i == ';') {
-			i += 1;
+
+	ssize_t bind_index = -1;
+
+	while (line->len > 0) {
+		while (line->ptr[0] == ';') {
+			remove_start_of_string(line, 1);
 		}
-		if (*i == '\0') break;
-		char *border = strchr(i, ';');
-		if (border != NULL) {
-			*border = '\0';
-			// Remove whitespace before semicolon.
-			for (char *j = border - 1; ISWHITESPACE(*j); --j) {
-				*j = '\0';
+		trim_whitespace_from_string(line);
+		if (line->len <= 0) break;
+		if (line->ptr[0] == ';') continue;
+
+		INFO("Config line remainder: %s", line->ptr);
+
+		if (line->ptr[0] == '#') {
+			break; // Terminate on comments
+		} else if (line->len > 3 && strncmp(line->ptr, "set", 3) == 0 && ISWHITESPACE(line->ptr[3])) {
+
+			// set <setting> <value>
+
+			remove_start_of_string(line, 3);
+			extract_token_from_line(line, token, true);
+			config_entry_id id = find_config_entry_by_name(token->ptr, token->len);
+			if (id == CFG_ENTRIES_COUNT) {
+				fprintf(stderr, "Setting \"%.*s\" doesn't exist!\n", (int)token->len, token->ptr);
+				goto error;
 			}
+			extract_token_from_line(line, token, false);
+			if (set_cfg_setting(ctx, id, token->ptr, token->len) != true) {
+				goto error;
+			}
+			continue;
+
+		} else if ((line->len > 4 && strncmp(line->ptr, "bind", 4) == 0 && ISWHITESPACE(line->ptr[4]))
+			|| (line->len > 6 && strncmp(line->ptr, "unbind", 6) == 0 && ISWHITESPACE(line->ptr[6])))
+		{
+			// bind <key> <action1>
+
+			remove_start_of_string(line, line->ptr[0] == 'b' ? 4 : 6);
+			extract_token_from_line(line, token, true);
+			if (token->len == 5 && memcmp(token->ptr, "space", 5) == 0) {
+				bind_index = create_empty_bind_or_clean_existing(" ", 1);
+			} else {
+				bind_index = create_empty_bind_or_clean_existing(token->ptr, token->len);
+			}
+			continue;
+
+		} else if (bind_index > 0) {
+			// These will be parsed only taking into account the previous bind
+			if (line->len > 4 && strncmp(line->ptr, "exec", 4) == 0 && ISWHITESPACE(line->ptr[4])) {
+
+				remove_start_of_string(line, 4);
+				extract_token_from_line(line, token, false);
+				if (attach_exec_action_to_bind(bind_index, token->ptr, token->len) == false) {
+					goto error;
+				}
+
+			} else {
+
+				extract_token_from_line(line, token, true);
+				input_cmd_id cmd = get_input_cmd_id_by_name(token->ptr, token->len);
+				if (cmd == INPUT_ERROR || attach_cmd_action_to_bind(bind_index, cmd) == false) {
+					goto error;
+				}
+
+			}
+			continue;
+
 		}
-		if ((strncmp(i, "exec", 4) == 0) && (ISWHITESPACE(i[4]))) {
-			i += 5;
-			while (ISWHITESPACE(*i)) {
-				i += 1;
-			}
-			if (attach_exec_action_to_bind(bind_index, i, strlen(i)) == false) {
-				return false;
-			}
-		} else {
-			input_cmd_id cmd = get_input_cmd_id_by_name(i);
-			if (cmd == INPUT_ERROR || attach_cmd_action_to_bind(bind_index, cmd) == false) {
-				return false;
-			}
-		}
-		if (border == NULL) break;
-		i = border + 1;
+		goto error;
 	}
+	free_string(line);
+	free_string(token);
 	return true;
+error:
+	fprintf(stderr, "Invalid config line: %s", str);
+	free_string(line);
+	free_string(token);
+	return false;
 }
 
 bool
@@ -125,76 +158,23 @@ parse_config_file(void)
 {
 	const char *config_path = get_config_path();
 	if (config_path == NULL) {
-		return true; // Since the config file is optional, don't return an error.
+		return true; // Since a config file is optional, don't return the error.
 	}
 	FILE *f = fopen(config_path, "r");
 	if (f == NULL) {
 		fputs("Couldn't open config file!\n", stderr);
 		return false;
 	}
-	char type[6], line[CONFIG_LINE_SIZE + 1];
-	size_t type_len, line_len;
-	int c;
-	// This is line-by-line file processing loop:
-	// one iteration of loop results in one processed line.
-	while (true) {
-
-		// Get first non-whitespace character.
-		do { c = fgetc(f); } while (ISWHITESPACE(c));
-
-		if (c == '#') {
-			// Skip a comment line.
-			do { c = fgetc(f); } while (c != '\n' && c != EOF);
-			continue;
-		} else if (c == EOF) {
-			break;
+	char *line = NULL;
+	size_t size = 0;
+	for (ssize_t len = getline(&line, &size, f); len >= 0; len = getline(&line, &size, f)) {
+		if (process_config_line(NULL, line, len) == false) {
+			free(line);
+			fclose(f);
+			return false;
 		}
-
-		type_len = 0;
-		do {
-			if (type_len == 6) {
-				goto invalid_format;
-			}
-			type[type_len++] = c;
-			c = fgetc(f);
-		} while (!ISWHITESPACE(c) && c != EOF);
-
-		do { c = fgetc(f); } while (ISWHITESPACEEXCEPTNEWLINE(c));
-
-		line_len = 0;
-		while (c != '\n' && c != EOF) {
-			if (line_len == CONFIG_LINE_SIZE) {
-				fputs("Stumbled upon a config file line that is too long!\n", stderr);
-				goto error;
-			}
-			line[line_len++] = c;
-			c = fgetc(f);
-		}
-		// Delete trailing whitespace.
-		while (line_len > 0 && ISWHITESPACE(line[line_len - 1])) {
-			line_len -= 1;
-		}
-		line[line_len] = '\0';
-
-		if (strncmp(type, "set", type_len) == 0) {
-			if (process_set_line(line) == false) {
-				goto error;
-			}
-		} else if (strncmp(type, "bind", type_len) == 0 || strncmp(type, "unbind", type_len) == 0) {
-			if (process_bind_or_unbind_line(line) == false) {
-				goto error;
-			}
-		} else {
-			goto invalid_format;
-		}
-
 	}
+	free(line);
 	fclose(f);
 	return true;
-invalid_format:
-	fputs("Incorrect line notation! Lines can only start with either \"set\", \"bind\" or \"unbind\"!\n", stderr);
-error:
-	fputs("Failed to parse config file!\n", stderr);
-	fclose(f);
-	return false;
 }

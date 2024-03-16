@@ -4,55 +4,56 @@
 #include "load_config/load_config.h"
 
 bool
-obtain_useragent_string(struct string **ua)
+obtain_useragent_string(struct config_context **ctx, config_type_id id)
 {
-	if (cpyas(ua, "newsraft/", 9) == false) {
+	struct string *ua = NULL;
+	if (cpyas(&ua, "newsraft/", 9) == false) {
 		goto error;
 	}
-	if (catas(*ua, NEWSRAFT_VERSION, strlen(NEWSRAFT_VERSION)) == false) {
+	if (catas(ua, NEWSRAFT_VERSION, strlen(NEWSRAFT_VERSION)) == false) {
 		goto error;
 	}
-	struct utsname sys_data;
-	if (uname(&sys_data) == 0) {
-		size_t sysname_len = strlen(sys_data.sysname);
-		if (sysname_len != 0) {
-			if (catas(*ua, " (", 2) == false) {
-				goto error;
-			}
-			if (catas(*ua, sys_data.sysname, sysname_len) == false) {
-				goto error;
-			}
-			if (catcs(*ua, ')') == false) {
-				goto error;
-			}
+	struct utsname sys_data = {0};
+	if (uname(&sys_data) >= 0 && strlen(sys_data.sysname) > 0) {
+		if (catas(ua, " (", 2) == false) {
+			goto error;
+		}
+		if (catas(ua, sys_data.sysname, strlen(sys_data.sysname)) == false) {
+			goto error;
+		}
+		if (catcs(ua, ')') == false) {
+			goto error;
 		}
 	}
-	return true;
+	bool status = set_cfg_string(ctx, id, ua->ptr, ua->len);
+	free_string(ua);
+	return status;
 error:
 	fputs("Not enough memory for user-agent setting string!\n", stderr);
+	free_string(ua);
 	return false;
 }
 
 bool
-obtain_clipboard_command(struct string **cmd)
+obtain_clipboard_command(struct config_context **ctx, config_type_id id)
 {
 #ifdef __APPLE__
-	return cpyas(cmd, "pbcopy", 6);
+	return set_cfg_string(ctx, id, "pbcopy", 6);
 #endif
 	if (getenv("WAYLAND_DISPLAY") != NULL) {
-		return cpyas(cmd, "wl-copy", 7);
+		return set_cfg_string(ctx, id, "wl-copy", 7);
 	} else if (getenv("DISPLAY") != NULL) {
-		return cpyas(cmd, "xclip -selection clipboard", 26);
+		return set_cfg_string(ctx, id, "xclip -selection clipboard", 26);
 	} else {
-		return cpyas(cmd, "false", 5);
+		return set_cfg_string(ctx, id, "false", 5);
 	}
 }
 
 bool
-obtain_notification_command(struct string **cmd)
+obtain_notification_command(struct config_context **ctx, config_type_id id)
 {
 #ifdef __APPLE__
-	return cpyas(cmd, "osascript -e 'display notification \"Newsraft brought %q news!\"'", 63);
+	return set_cfg_string(ctx, id, "osascript -e 'display notification \"Newsraft brought %q news!\"'", 63);
 #endif
-	return cpyas(cmd, "notify-send 'Newsraft brought %q news!'", 39);
+	return set_cfg_string(ctx, id, "notify-send 'Newsraft brought %q news!'", 39);
 }

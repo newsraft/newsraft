@@ -73,7 +73,7 @@ item_pager_loop(struct menu_state *m)
 	}
 	db_mark_item_read(item->rowid, true);
 	item->is_unread = false;
-	start_menu(CFG_MENU_SECTION_ENTRY_FORMAT);
+	start_menu();
 	uint32_t count;
 	const struct wstring *macro;
 	for (input_cmd_id cmd = get_input_cmd(&count, &macro) ;; cmd = get_input_cmd(&count, &macro)) {
@@ -98,7 +98,7 @@ item_pager_loop(struct menu_state *m)
 			return cmd == INPUT_QUIT_HARD ? NULL : setup_menu(NULL, NULL, 0, 0);
 		} else if (cmd == INPUT_OPEN_IN_BROWSER && count > 0 && count <= links.len) {
 			items_pager_fmt_args[0].value.s = links.ptr[count - 1].url->ptr;
-			run_formatted_command(get_cfg_wstring(CFG_OPEN_IN_BROWSER_COMMAND), items_pager_fmt_args);
+			run_formatted_command(get_cfg_wstring(NULL, CFG_OPEN_IN_BROWSER_COMMAND), items_pager_fmt_args);
 		} else if (cmd == INPUT_COPY_TO_CLIPBOARD && count > 0 && count <= links.len) {
 			copy_string_to_clipboard(links.ptr[count - 1].url);
 		} else if (cmd == INPUT_SYSTEM_COMMAND && count > 0 && count <= links.len) {

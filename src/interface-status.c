@@ -19,14 +19,14 @@ update_status_window_content_unprotected(void)
 	werase(status_window);
 	if (they_want_us_to_terminate == true) {
 		mvwaddnstr(status_window, 0, 0, "Terminating...", list_menu_width - 9);
-		wbkgd(status_window, get_color_pair(CFG_COLOR_STATUS_FAIL));
+		wbkgd(status_window, get_cfg_color(NULL, CFG_COLOR_STATUS_FAIL));
 	} else if (search_mode_is_enabled == true) {
 		mvwaddnstr(status_window, 0, 0, "/", 1);
 		mvwaddnstr(status_window, 0, 1, search_mode_text_input->ptr, list_menu_width - 10);
 		wbkgd(status_window, A_NORMAL);
 	} else if (status_window_is_clean == false) {
 		mvwaddnstr(status_window, 0, 0, messages[(messages_len - 1) % messages_lim].text->ptr, list_menu_width - 9);
-		wbkgd(status_window, get_color_pair(messages[(messages_len - 1) % messages_lim].color));
+		wbkgd(status_window, get_cfg_color(NULL, messages[(messages_len - 1) % messages_lim].color));
 	}
 	wrefresh(status_window);
 }
@@ -58,7 +58,7 @@ status_recreate_unprotected(void)
 bool
 allocate_status_messages_buffer(void)
 {
-	messages_lim = get_cfg_uint(CFG_STATUS_MESSAGES_COUNT_LIMIT);
+	messages_lim = get_cfg_uint(NULL, CFG_STATUS_MESSAGES_COUNT_LIMIT);
 	messages_lim |= 1; // Make sure it's not a zero.
 	messages = calloc(messages_lim, sizeof(struct status_message));
 	if (messages == NULL) {

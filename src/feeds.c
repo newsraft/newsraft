@@ -110,11 +110,12 @@ feeds_menu_loop(struct menu_state *m)
 	m->paint_action = &paint_feed;
 	m->unread_state = &is_feed_unread;
 	m->write_action = &list_menu_writer;
+	m->entry_format = get_cfg_wstring(NULL, CFG_MENU_FEED_ENTRY_FORMAT);
 	if (m->feeds_count < 1) {
 		info_status("There are no feeds in this section");
 		return setup_menu(NULL, NULL, 0, 0);
 	} else if (!(m->flags & MENU_DISABLE_SETTINGS)) {
-		if (get_cfg_bool(CFG_FEEDS_MENU_PARAMOUNT_EXPLORE) && get_items_count_of_feeds(m->feeds_original, m->feeds_count)) {
+		if (get_cfg_bool(NULL, CFG_FEEDS_MENU_PARAMOUNT_EXPLORE) && get_items_count_of_feeds(m->feeds_original, m->feeds_count)) {
 			return setup_menu(&items_menu_loop, m->feeds_original, m->feeds_count, MENU_IS_EXPLORE);
 		} else if (m->feeds_count == 1 && get_items_count_of_feeds(m->feeds_original, m->feeds_count)) {
 			return setup_menu(&items_menu_loop, m->feeds_original, m->feeds_count, MENU_SWALLOW);
@@ -123,13 +124,13 @@ feeds_menu_loop(struct menu_state *m)
 	if (m->is_initialized == false) {
 		m->feeds = malloc(sizeof(struct feed_entry *) * m->feeds_count);
 		memcpy(m->feeds, m->feeds_original, sizeof(struct feed_entry *) * m->feeds_count);
-		const struct string *sort = get_cfg_string(CFG_MENU_FEED_SORTING);
+		const struct string *sort = get_cfg_string(NULL, CFG_MENU_FEED_SORTING);
 		if      (strcmp(sort->ptr, "unread-desc")   == 0) sort_feeds(m, SORT_BY_UNREAD_DESC,   false);
 		else if (strcmp(sort->ptr, "unread-asc")    == 0) sort_feeds(m, SORT_BY_UNREAD_ASC,    false);
 		else if (strcmp(sort->ptr, "alphabet-desc") == 0) sort_feeds(m, SORT_BY_ALPHABET_DESC, false);
 		else if (strcmp(sort->ptr, "alphabet-asc")  == 0) sort_feeds(m, SORT_BY_ALPHABET_ASC,  false);
 	}
-	start_menu(CFG_MENU_FEED_ENTRY_FORMAT);
+	start_menu();
 	const struct wstring *macro;
 	for (input_cmd_id cmd = get_input_cmd(NULL, &macro) ;; cmd = get_input_cmd(NULL, &macro)) {
 		if (handle_list_menu_control(m, cmd, macro) == true) {

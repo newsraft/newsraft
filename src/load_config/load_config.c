@@ -5,13 +5,14 @@ struct config_string {
 	struct string *actual;
 	struct wstring *wactual;
 	const char *const base;
-	bool (*auto_handler)(struct string **);
+	bool (*auto_handler)(struct config_context **, config_type_id);
 };
 
 struct config_color {
+	int color_pair;
 	int fg;
 	int bg;
-	unsigned int attribute;
+	unsigned int attributes;
 };
 
 union config_value {
@@ -22,22 +23,30 @@ union config_value {
 };
 
 struct config_entry {
-	const char *const name;
+	const char *name;
 	const config_type_id type;
 	union config_value value;
 };
 
+struct config_context {
+	config_entry_id id;
+	struct config_entry cfg;
+	struct config_context *next;
+};
+
 static struct config_entry config[] = {
-	{"color-status-good",               CFG_COLOR,  {.c = {COLOR_GREEN,   -1, A_NORMAL}}},
-	{"color-status-info",               CFG_COLOR,  {.c = {COLOR_CYAN,    -1, A_NORMAL}}},
-	{"color-status-fail",               CFG_COLOR,  {.c = {COLOR_RED,     -1, A_NORMAL}}},
-	{"color-list-item",                 CFG_COLOR,  {.c = {-1,            -1, A_NORMAL}}},
-	{"color-list-item-unread",          CFG_COLOR,  {.c = {COLOR_YELLOW,  -1, A_NORMAL}}},
-	{"color-list-item-important",       CFG_COLOR,  {.c = {COLOR_MAGENTA, -1, A_NORMAL}}},
-	{"color-list-feed",                 CFG_COLOR,  {.c = {-1,            -1, A_NORMAL}}},
-	{"color-list-feed-unread",          CFG_COLOR,  {.c = {COLOR_YELLOW,  -1, A_NORMAL}}},
-	{"color-list-section",              CFG_COLOR,  {.c = {-1,            -1, A_NORMAL}}},
-	{"color-list-section-unread",       CFG_COLOR,  {.c = {COLOR_YELLOW,  -1, A_NORMAL}}},
+	{"color-status-good",               CFG_COLOR,  {.c = {-1, COLOR_GREEN,   -1, A_NORMAL}}},
+	{"color-status-info",               CFG_COLOR,  {.c = {-1, COLOR_CYAN,    -1, A_NORMAL}}},
+	{"color-status-fail",               CFG_COLOR,  {.c = {-1, COLOR_RED,     -1, A_NORMAL}}},
+	{"color-list-item",                 CFG_COLOR,  {.c = {-1, -1,            -1, A_NORMAL}}},
+	{"color-list-item-unread",          CFG_COLOR,  {.c = {-1, COLOR_YELLOW,  -1, A_NORMAL}}},
+	{"color-list-item-important",       CFG_COLOR,  {.c = {-1, COLOR_MAGENTA, -1, A_NORMAL}}},
+	{"color-list-feed",                 CFG_COLOR,  {.c = {-1, -1,            -1, A_NORMAL}}},
+	{"color-list-feed-unread",          CFG_COLOR,  {.c = {-1, COLOR_YELLOW,  -1, A_NORMAL}}},
+	{"color-list-section",              CFG_COLOR,  {.c = {-1, -1,            -1, A_NORMAL}}},
+	{"color-list-section-unread",       CFG_COLOR,  {.c = {-1, COLOR_YELLOW,  -1, A_NORMAL}}},
+	{"reload-period",                   CFG_UINT,   {.u = 0   }},
+	{"item-limit",                      CFG_UINT,   {.u = 0   }},
 	{"scrolloff",                       CFG_UINT,   {.u = 0   }},
 	{"pager-width",                     CFG_UINT,   {.u = 100 }},
 	{"update-threads-count",            CFG_UINT,   {.u = 0   }},
@@ -77,126 +86,131 @@ static struct config_entry config[] = {
 };
 
 config_entry_id
-find_config_entry_by_name(const char *name)
+find_config_entry_by_name(const char *name, size_t len)
 {
 	for (config_entry_id i = 0; config[i].name != NULL; ++i) {
-		if (strcmp(name, config[i].name) == 0) {
+		if (len == strlen(config[i].name) && memcmp(name, config[i].name, len) == 0) {
 			return i;
 		}
 	}
 	return CFG_ENTRIES_COUNT;
 }
 
-static inline bool
-assign_values_to_null_config_strings(void)
+static struct config_entry *
+get_global_or_context_config(struct config_context **ctx, config_entry_id id, bool create)
 {
-	INFO("Assigning values to NULL config strings.");
-	for (config_entry_id i = 0; config[i].name != NULL; ++i) {
-		if (config[i].type == CFG_STRING && config[i].value.s.actual == NULL) {
-			if (cpyas(&config[i].value.s.actual, config[i].value.s.base, strlen(config[i].value.s.base)) == false) {
-				fprintf(stderr, "Not enough memory for %s string setting!\n", config[i].name);
-				return false;
+	if (ctx != NULL) {
+		for (struct config_context *c = *ctx; c != NULL; c = c->next) {
+			if (c->id == id) {
+				return &c->cfg;
 			}
 		}
-	}
-	return true;
-}
-
-static inline bool
-assign_values_to_auto_config_strings(void)
-{
-	INFO("Assigning values to auto config strings.");
-	for (config_entry_id i = 0; config[i].name != NULL; ++i) {
-		if ((config[i].type == CFG_STRING)
-			&& (config[i].value.s.auto_handler != NULL)
-			&& (strcmp(config[i].value.s.actual->ptr, "auto") == 0)
-			&& (config[i].value.s.auto_handler(&config[i].value.s.actual) == false))
-		{
-			fprintf(stderr, "Failed to determine auto value for %s setting!\n", config[i].name);
-			return false;
+		if (create == true) {
+			struct config_context *new = calloc(1, sizeof(struct config_context));
+			new->id = id;
+			new->next = *ctx;
+			*ctx = new;
+			return &new->cfg;
 		}
 	}
-	return true;
-}
-
-static inline bool
-assign_wide_values_to_config_strings(void)
-{
-	INFO("Assigning wstring members to config strings.");
-	for (config_entry_id i = 0; config[i].name != NULL; ++i) {
-		if (config[i].type == CFG_STRING) {
-			config[i].value.s.wactual = convert_string_to_wstring(config[i].value.s.actual);
-			if (config[i].value.s.wactual == NULL) {
-				fprintf(stderr, "Failed to convert %s setting value to wide characters!\n", config[i].name);
-				return false;
-			}
-		}
-	}
-	return true;
+	return config + id;
 }
 
 config_type_id
-get_cfg_type(config_entry_id i)
+get_cfg_type(config_entry_id id)
 {
-	return config[i].type;
+	return config[id].type;
 }
 
 bool
-get_cfg_bool(config_entry_id i)
+get_cfg_bool(struct config_context **ctx, config_entry_id id)
 {
-	return config[i].value.b;
+	return get_global_or_context_config(ctx, id, false)->value.b;
 }
 
 size_t
-get_cfg_uint(config_entry_id i)
+get_cfg_uint(struct config_context **ctx, config_entry_id id)
 {
-	return config[i].value.u;
+	return get_global_or_context_config(ctx, id, false)->value.u;
 }
 
 unsigned int
-get_cfg_color(config_entry_id i, int *fg, int *bg)
+get_cfg_color(struct config_context **ctx, config_entry_id id)
 {
-	*fg = config[i].value.c.fg;
-	*bg = config[i].value.c.bg;
-	return config[i].value.c.attribute;
+	struct config_entry *cfg = get_global_or_context_config(ctx, id, false);
+	if (cfg->value.c.color_pair >= 0 && arent_we_colorful()) {
+		return COLOR_PAIR(cfg->value.c.color_pair) | cfg->value.c.attributes;
+	}
+	return A_NORMAL;
 }
 
 const struct string *
-get_cfg_string(config_entry_id i)
+get_cfg_string(struct config_context **ctx, config_entry_id id)
 {
-	return config[i].value.s.actual;
+	return get_global_or_context_config(ctx, id, false)->value.s.actual;
 }
 
 const struct wstring *
-get_cfg_wstring(config_entry_id i)
+get_cfg_wstring(struct config_context **ctx, config_entry_id id)
 {
-	return config[i].value.s.wactual;
+	return get_global_or_context_config(ctx, id, false)->value.s.wactual;
 }
 
 void
-set_cfg_bool(config_entry_id i, bool value)
+set_cfg_bool(struct config_context **ctx, config_entry_id id, bool value)
 {
-	config[i].value.b = value;
+	get_global_or_context_config(ctx, id, true)->value.b = value;
 }
 
 void
-set_cfg_uint(config_entry_id i, size_t value)
+set_cfg_uint(struct config_context **ctx, config_entry_id id, size_t value)
 {
-	config[i].value.u = value;
+	get_global_or_context_config(ctx, id, true)->value.u = value;
 }
 
 void
-set_cfg_color(config_entry_id i, int fg, int bg, unsigned int attribute)
+set_cfg_color(struct config_context **ctx, config_entry_id id, int fg, int bg, unsigned int attribute)
 {
-	config[i].value.c.fg = fg;
-	config[i].value.c.bg = bg;
-	config[i].value.c.attribute = attribute;
+	static size_t color_pairs_count = 1; // Curses just wants us to start with 1
+	struct config_entry *cfg = get_global_or_context_config(ctx, id, true);
+	cfg->value.c.attributes = attribute;
+
+	// For init_pair function to work you have to initialize curses first!
+	if (init_pair(color_pairs_count, fg, bg) == OK) {
+		cfg->value.c.color_pair = color_pairs_count;
+		color_pairs_count += 1;
+	} else {
+		WARN("Failed to create color pair (%d, %d)", fg, bg);
+		if (init_pair(color_pairs_count, -1, -1) == OK) {
+			cfg->value.c.color_pair = color_pairs_count;
+			color_pairs_count += 1;
+		} else {
+			WARN("Failed to create fallback color pair!");
+		}
+	}
 }
 
 bool
-set_cfg_string(config_entry_id i, const char *src_ptr, size_t src_len)
+set_cfg_string(struct config_context **ctx, config_entry_id id, const char *src_ptr, size_t src_len)
 {
-	return cpyas(&config[i].value.s.actual, src_ptr, src_len);
+	struct config_entry *cfg = get_global_or_context_config(ctx, id, true);
+	if (cpyas(&cfg->value.s.actual, src_ptr, src_len) != true) {
+		return false;
+	}
+	struct wstring *w = convert_string_to_wstring(cfg->value.s.actual);
+	if (w == NULL) {
+		fprintf(stderr, "Failed to convert %s setting value to wide characters!\n", config[id].name);
+		return false;
+	}
+	bool status = wstr_set(&cfg->value.s.wactual, w->ptr, w->len, w->len);
+	free_wstring(w);
+	if (config[id].value.s.auto_handler != NULL && strcmp(cfg->value.s.actual->ptr, "auto") == 0) {
+		if (config[id].value.s.auto_handler(ctx, id) == false) {
+			fprintf(stderr, "Failed to determine auto value for %s setting!\n", config[id].name);
+			return false;
+		}
+	}
+	return status;
 }
 
 static void
@@ -229,13 +243,16 @@ free_config(void)
 bool
 load_config(void)
 {
-	if (assign_values_to_null_config_strings() != true
-		|| assign_values_to_auto_config_strings() != true
-		|| assign_wide_values_to_config_strings() != true)
-	{
-		fputs("Failed to prepare config string settings!\n", stderr);
-		free_config();
-		return false;
+	for (config_entry_id i = 0; config[i].name != NULL; ++i) {
+		if (config[i].type == CFG_STRING && config[i].value.s.actual == NULL) {
+			if (set_cfg_string(NULL, i, config[i].value.s.base, strlen(config[i].value.s.base)) == false) {
+				fputs("Failed to prepare config settings!\n", stderr);
+				free_config();
+				return false;
+			}
+		} else if (config[i].type == CFG_COLOR && config[i].value.c.color_pair < 0) {
+			set_cfg_color(NULL, i, config[i].value.c.fg, config[i].value.c.bg, config[i].value.c.attributes);
+		}
 	}
 	log_config_settings();
 	return true;

@@ -52,7 +52,7 @@ update_feed_action(void *arg)
 	}
 	feed->download_date = data.feed.download_date;
 
-	if (get_cfg_bool(CFG_RESPECT_EXPIRES_HEADER) == true) {
+	if (get_cfg_bool(&feed->cfg, CFG_RESPECT_EXPIRES_HEADER) == true) {
 		int64_t expires_date = db_get_date_from_feeds_table(feed->link, "http_header_expires", 19);
 		if (expires_date < 0) {
 			goto finish;
@@ -63,7 +63,7 @@ update_feed_action(void *arg)
 		}
 	}
 
-	if (get_cfg_bool(CFG_RESPECT_TTL_ELEMENT) == true) {
+	if (get_cfg_bool(&feed->cfg, CFG_RESPECT_TTL_ELEMENT) == true) {
 		int64_t ttl = db_get_date_from_feeds_table(feed->link, "time_to_live", 12);
 		int64_t prev_download_date = db_get_date_from_feeds_table(feed->link, "download_date", 13);
 		if ((ttl < 0) || (prev_download_date < 0)) {
@@ -75,18 +75,18 @@ update_feed_action(void *arg)
 		}
 	}
 
-	if (get_cfg_bool(CFG_SEND_IF_MODIFIED_SINCE_HEADER) == true) {
+	if (get_cfg_bool(&feed->cfg, CFG_SEND_IF_MODIFIED_SINCE_HEADER) == true) {
 		data.feed.http_header_last_modified = db_get_date_from_feeds_table(feed->link, "http_header_last_modified", 25);
 		if (data.feed.http_header_last_modified < 0) {
 			goto finish;
 		}
 	}
 
-	if (get_cfg_bool(CFG_SEND_IF_NONE_MATCH_HEADER) == true) {
+	if (get_cfg_bool(&feed->cfg, CFG_SEND_IF_NONE_MATCH_HEADER) == true) {
 		data.feed.http_header_etag = db_get_string_from_feed_table(feed->link, "http_header_etag", 16);
 	}
 
-	status = feed->link->ptr[0] == '$' ? execute_feed(feed->link, &data) : download_feed(feed->link->ptr, &data);
+	status = feed->link->ptr[0] == '$' ? execute_feed(feed->link, &data) : download_feed(feed, &data);
 
 finish:
 	pthread_mutex_lock(&update_lock);
@@ -220,7 +220,7 @@ here_we_go_again:
 				fail_status("Failed to update %zu feeds (check status history for details)", update_queue_failures);
 			}
 			if (cumulative_new_items_count > 0) {
-				const struct wstring *notification_cmd = get_cfg_wstring(CFG_NOTIFICATION_COMMAND);
+				const struct wstring *notification_cmd = get_cfg_wstring(NULL, CFG_NOTIFICATION_COMMAND);
 				if (notification_cmd != NULL && notification_cmd->len > 0) {
 					struct format_arg notification_cmd_args[] = {
 						{L'q',  L'd',  {.i = cumulative_new_items_count}},
@@ -304,7 +304,7 @@ get_processors_count(void)
 bool
 start_feed_updater(void)
 {
-	size_t threads_count = get_cfg_uint(CFG_UPDATE_THREADS_COUNT);
+	size_t threads_count = get_cfg_uint(NULL, CFG_UPDATE_THREADS_COUNT);
 	size_t processors_count = get_processors_count();
 	worker_threads_count = MIN(threads_count > 0 ? threads_count : processors_count * 10, NEWSRAFT_THREADS_COUNT_LIMIT);
 	INFO("Allocated %zu update threads", worker_threads_count);

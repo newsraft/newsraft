@@ -11,19 +11,19 @@ enum config_type {
 };
 
 // See "load_config.c" file for implementation.
-config_entry_id find_config_entry_by_name(const char *name);
-config_type_id get_cfg_type(config_entry_id i);
-void set_cfg_bool(config_entry_id i, bool value);
-void set_cfg_uint(config_entry_id i, size_t value);
-void set_cfg_color(config_entry_id i, int fg, int bg, unsigned int attribute);
-bool set_cfg_string(config_entry_id i, const char *src_ptr, size_t src_len);
+config_entry_id find_config_entry_by_name(const char *name, size_t len);
+config_type_id get_cfg_type(config_entry_id id);
+void set_cfg_bool(struct config_context **ctx, config_entry_id id, bool value);
+void set_cfg_uint(struct config_context **ctx, config_entry_id id, size_t value);
+void set_cfg_color(struct config_context **ctx, config_entry_id id, int fg, int bg, unsigned int attribute);
+bool set_cfg_string(struct config_context **ctx, config_entry_id id, const char *src_ptr, size_t src_len);
 
 // See "config-auto.c" file for implementation.
-bool obtain_useragent_string(struct string **ua);
-bool obtain_clipboard_command(struct string **cmd);
-bool obtain_notification_command(struct string **cmd);
+bool obtain_useragent_string(struct config_context **ctx, config_type_id id);
+bool obtain_clipboard_command(struct config_context **ctx, config_type_id id);
+bool obtain_notification_command(struct config_context **ctx, config_type_id id);
 
-input_cmd_id get_input_cmd_id_by_name(const char *name);
+input_cmd_id get_input_cmd_id_by_name(const char *name, size_t len);
 
-bool parse_color_setting(config_entry_id id, const char *iter);
+bool parse_color_setting(struct config_context **ctx, config_entry_id id, const char *iter);
 #endif // LOAD_CONFIG_H

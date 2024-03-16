@@ -226,6 +226,20 @@ convert_array_to_wstring(const char *src_ptr, size_t src_len)
 }
 
 void
+remove_start_of_string(struct string *str, size_t size)
+{
+	if (size >= str->len) {
+		empty_string(str);
+	} else {
+		for (size_t i = 0; (i + size) < str->len; ++i) {
+			str->ptr[i] = str->ptr[i + size];
+		}
+		str->len -= size;
+		str->ptr[str->len] = '\0';
+	}
+}
+
+void
 inlinefy_string(struct string *str)
 {
 	// Replace multiple whitespace with a single space.

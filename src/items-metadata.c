@@ -88,7 +88,7 @@ generate_render_blocks_based_on_item_data(struct render_blocks_list *blocks, con
 #define MAX_ENTRY_LENGTH 1000
 	char entry[MAX_ENTRY_LENGTH + 10];
 	size_t entry_len = 0;
-	const struct string *content_order = get_cfg_string(CFG_ITEM_CONTENT_FORMAT);
+	const struct string *content_order = get_cfg_string(NULL, CFG_ITEM_CONTENT_FORMAT);
 	for (const char *i = content_order->ptr; ; ++i) {
 		if (*i == '|' || *i == '\0') {
 			entry[entry_len] = '\0';

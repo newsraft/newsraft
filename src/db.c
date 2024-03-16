@@ -111,13 +111,13 @@ db_vacuum(void)
 bool
 query_database_file_optimization(void)
 {
-	if (get_cfg_bool(CFG_CLEAN_DATABASE_ON_STARTUP) == true) {
+	if (get_cfg_bool(NULL, CFG_CLEAN_DATABASE_ON_STARTUP) == true) {
 		if (db_vacuum() == false) {
 			return false;
 		}
 	}
 	char *error = NULL;
-	if (get_cfg_bool(CFG_ANALYZE_DATABASE_ON_STARTUP) == true) {
+	if (get_cfg_bool(NULL, CFG_ANALYZE_DATABASE_ON_STARTUP) == true) {
 		sqlite3_exec(db, "ANALYZE;", NULL, NULL, &error);
 		if (error != NULL) {
 			fprintf(stderr, "Failed to analyze the database: %s!\n", error);

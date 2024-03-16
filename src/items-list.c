@@ -109,11 +109,13 @@ obtain_items_at_least_up_to_the_given_index(struct items_list *items, size_t ind
 
 		items->ptr[items->len].pub_date = sqlite3_column_int64(items->res, 4);
 		items->ptr[items->len].upd_date = sqlite3_column_int64(items->res, 5);
-		int64_t max_date = items->ptr[items->len].pub_date;
-		if (items->ptr[items->len].upd_date > max_date) {
-			max_date = items->ptr[items->len].upd_date;
+		if (items->ptr[items->len].pub_date <= 0 && items->ptr[items->len].upd_date > 0) {
+			items->ptr[items->len].pub_date = items->ptr[items->len].upd_date;
 		}
-		items->ptr[items->len].date_str = get_config_date_str(max_date, CFG_LIST_ENTRY_DATE_FORMAT);
+		if (items->ptr[items->len].upd_date <= 0 && items->ptr[items->len].pub_date > 0) {
+			items->ptr[items->len].upd_date = items->ptr[items->len].pub_date;
+		}
+		items->ptr[items->len].date_str = get_config_date_str(items->ptr[items->len].upd_date, CFG_LIST_ENTRY_DATE_FORMAT);
 		items->ptr[items->len].pub_date_str = get_config_date_str(items->ptr[items->len].pub_date, CFG_LIST_ENTRY_DATE_FORMAT);
 
 		items->ptr[items->len].is_unread = sqlite3_column_int(items->res, 6); // unread

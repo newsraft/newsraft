@@ -9,12 +9,12 @@ bool
 log_init(const char *path)
 {
 	if (path == NULL) {
-		fputs("Path to the log file is not set!\n", stderr);
+		write_error("Path to the log file is not set!\n");
 		return false;
 	}
 	log_stream = fopen(path, "w");
 	if (log_stream == NULL) {
-		fputs("Failed to open log file for writing!\n", stderr);
+		write_error("Failed to open log file for writing!\n");
 		return false;
 	}
 	INFO("Okay... Here we go. Focus. Speed. I am speed.");

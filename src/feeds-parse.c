@@ -20,9 +20,9 @@ check_url_for_validity(const struct string *url)
 		&& strncmp(url->ptr, "gopher://", 9) != 0
 		&& strncmp(url->ptr, "gophers://", 10) != 0)
 	{
-		fprintf(stderr, "Stumbled across an invalid URL: \"%s\"!\n", url->ptr);
-		fputs("Every feed URL must start with a protocol scheme like \"http://\".\n", stderr);
-		fputs("Supported protocol schemes are http, https, ftp, file, gopher and gophers.\n", stderr);
+		write_error("Stumbled across an invalid URL: \"%s\"!\n", url->ptr);
+		write_error("Every feed URL must start with a protocol scheme like \"http://\".\n");
+		write_error("Supported protocol schemes are http, https, ftp, file, gopher and gophers.\n");
 		return false;
 	}
 	return true;
@@ -40,7 +40,7 @@ parse_feeds_file(void)
 	}
 	FILE *f = fopen(feeds_file_path, "r");
 	if (f == NULL) {
-		fputs("Couldn't open feeds file!\n", stderr);
+		write_error("Couldn't open feeds file!\n");
 		return false;
 	}
 	bool status = false;
@@ -55,7 +55,7 @@ parse_feeds_file(void)
 	feed.name = crtes(100);
 	feed.link = crtes(200);
 	if (!line || !section_name || !feed_cfg || !section_cfg || !global_cfg || !feed.name || !feed.link) {
-		fputs("Not enough memory for parsing feeds file!\n", stderr);
+		write_error("Not enough memory for parsing feeds file!\n");
 		goto error;
 	}
 
@@ -109,7 +109,7 @@ parse_feeds_file(void)
 		if (line->ptr[0] == '"') {
 			char *close = strchr(line->ptr + 1, '"');
 			if (close == NULL) {
-				fputs("Unclosed feed name!\n", stderr);
+				write_error("Unclosed feed name!\n");
 				goto error;
 			}
 			*close = '\0';
@@ -122,12 +122,12 @@ parse_feeds_file(void)
 		while (line->ptr[0] == '[' || line->ptr[0] == '{') {
 			char *close = strchr(line->ptr, line->ptr[0] == '[' ? ']' : '}');
 			if (close == NULL) {
-				fputs("Unclosed counter!\n", stderr);
+				write_error("Unclosed counter!\n");
 				goto error;
 			}
 			long value = -1;
 			if (sscanf(line->ptr + 1, "%ld", &value) != 1 || value < 0) {
-				fputs("Bracketed value contains invalid integer!\n", stderr);
+				write_error("Bracketed value contains invalid integer!\n");
 				goto error;
 			}
 			char setting[500];
@@ -168,7 +168,7 @@ parse_feeds_file(void)
 	}
 
 	if (at_least_one_feed_was_added == false) {
-		fputs("Not a single feed was loaded!\n", stderr);
+		write_error("Not a single feed was loaded!\n");
 		goto error;
 	}
 

@@ -309,7 +309,7 @@ start_feed_updater(void)
 	worker_threads_count = MIN(threads_count > 0 ? threads_count : processors_count * 10, NEWSRAFT_THREADS_COUNT_LIMIT);
 	INFO("Allocated %zu update threads", worker_threads_count);
 	if (pthread_create(&queue_worker_thread, NULL, &queue_worker, NULL) != 0) {
-		fputs("Failed to start feed updater!\n", stderr);
+		write_error("Failed to start feed updater!\n");
 		return false;
 	}
 	return true;

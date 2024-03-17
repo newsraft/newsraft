@@ -9,6 +9,7 @@
 #include "dates.c"
 #include "db.c"
 #include "db-items.c"
+#include "errors.c"
 #include "feeds.c"
 #include "feeds-parse.c"
 #include "interface.c"
@@ -175,5 +176,6 @@ undo2:
 undo1:
 	log_stop(error);
 undo0:
+	flush_errors();
 	return error;
 }

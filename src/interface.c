@@ -45,15 +45,15 @@ bool
 curses_init(void)
 {
 	if (initscr() == NULL) {
-		fputs("Initialization of curses data structures failed!\n", stderr);
+		write_error("Initialization of curses data structures failed!\n");
 		return false;
 	}
 	if (cbreak() == ERR) {
-		fputs("Can not disable line buffering and erase/kill character-processing!\n", stderr);
+		write_error("Can't disable line buffering and erase/kill characters processing!\n");
 		return false;
 	}
 	if (obtain_list_menu_size(&list_menu_width, &list_menu_height) == false) {
-		fputs("Invalid terminal size obtained!\n", stderr);
+		write_error("Invalid terminal size obtained!\n");
 		return false;
 	}
 	if (curs_set(0) == ERR) {
@@ -90,7 +90,7 @@ resize_handler(void)
 	if (obtain_list_menu_size(&list_menu_width, &list_menu_height) == false) {
 		// Some really crazy resize happend. It is either a glitch or user
 		// deliberately trying to break something. This state is unusable anyways.
-		fputs("Don't flex around with me, okay?\n", stderr);
+		write_error("Don't flex around with me, okay?\n");
 		goto error;
 	}
 	if (adjust_list_menu() == false) {

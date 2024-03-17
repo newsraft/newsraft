@@ -59,7 +59,7 @@ create_empty_bind_or_clean_existing(const char *key_name, size_t key_name_len)
 			return binds_count - 1;
 		}
 	}
-	fputs("Not enough memory for binding!\n", stderr);
+	write_error("Not enough memory for binding!\n");
 	return -1;
 }
 
@@ -75,7 +75,7 @@ attach_action_to_bind(ssize_t bind_index, input_cmd_id cmd, struct wstring *exec
 		INFO("Attached action: %14s, %zu, %2u, %ls", binds[bind_index].key->ptr, binds[bind_index].actions_count, cmd, exec == NULL ? L"none" : exec->ptr);
 		return true;
 	}
-	fputs("Not enough memory for binding!\n", stderr);
+	write_error("Not enough memory for binding!\n");
 	return false;
 }
 
@@ -165,7 +165,7 @@ assign_default_binds(void)
 	if (create_bind("Q",              1, INPUT_QUIT_HARD)                       == false) { goto fail; }
 	return true;
 fail:
-	fputs("Failed to assign default binds!\n", stderr);
+	write_error("Failed to assign default binds!\n");
 	free_binds();
 	return false;
 }

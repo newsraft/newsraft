@@ -47,7 +47,7 @@ status_recreate_unprotected(void)
 	}
 	status_window = newwin(1, list_menu_width - 9, list_menu_height, 0);
 	if (status_window == NULL) {
-		fputs("Failed to create status window!\n", stderr);
+		write_error("Failed to create status window!\n");
 		return false;
 	}
 	INFO("Created new status window.");
@@ -72,7 +72,7 @@ allocate_status_messages_buffer(void)
 	}
 	return true;
 error:
-	fputs("Not enough memory for status messages buffer!\n", stderr);
+	write_error("Not enough memory for status messages buffer!\n");
 	return false;
 }
 

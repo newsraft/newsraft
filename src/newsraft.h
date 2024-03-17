@@ -544,12 +544,6 @@ struct string *convert_warray_to_string(const wchar_t *src_ptr, size_t src_len);
 // See "signal.c" file for implementation.
 bool register_signal_handlers(void);
 
-// Functions for opening and closing the log stream.
-// To write to the log stream use macros INFO, WARN or FAIL.
-// See "log.c" file for implementation.
-bool log_init(const char *path);
-void log_stop(int error_code);
-
 // Parse config file, fill out config_data structure, bind keys to actions.
 // See "load_config" directory for implementation.
 bool process_config_line(struct feed_entry *feed, const char *str, size_t len);
@@ -567,6 +561,18 @@ void free_config(void);
 void update_feeds(struct feed_entry **feeds, size_t feeds_count);
 bool start_feed_updater(void);
 bool try_to_stop_feed_updater(void);
+
+// Functions for opening and closing the log stream.
+// To write to the log stream use macros INFO, WARN or FAIL.
+// See "log.c" file for implementation.
+bool log_init(const char *path);
+void log_stop(int error_code);
+
+// Functions for buffering errors to prevent
+// ncurses calls from erasing printed text.
+// See "errors.c" file for implementation.
+void write_error(const char *format, ...);
+void flush_errors(void);
 
 extern volatile bool they_want_us_to_terminate;
 extern FILE *log_stream;

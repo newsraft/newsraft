@@ -22,7 +22,7 @@ static inline bool
 set_file_path(char *dest, const char *name, const char *src)
 {
 	if (strlen(src) >= PATH_MAX) {
-		fprintf(stderr, "Path to the %s file is too long!\n", name);
+		write_error("Path to the %s file is too long!\n", name);
 		return false;
 	}
 	strcpy(dest, src);
@@ -87,8 +87,8 @@ get_feeds_path(void)
 		}
 	}
 
-	fputs("Can't find feeds file! Newsraft requires it to function.\n", stderr);
-	fputs("A detailed description of the format of this file is provided in newsraft(1) man page.\n", stderr);
+	write_error("Can't find feeds file! Newsraft requires it to function.\n");
+	write_error("A detailed description of the format of this file is provided in newsraft(1) man page.\n");
 	return NULL;
 }
 
@@ -194,7 +194,7 @@ get_db_path(void)
 			snprintf(db_file_path, PATH_MAX, "%s/newsraft/newsraft.sqlite3", xdg_data_home_var);
 			return db_file_path; // 1
 		} else {
-			fprintf(stderr, "Failed to create \"%s\" directory!\n", db_file_path);
+			write_error("Failed to create \"%s\" directory!\n", db_file_path);
 		}
 	} else if (home_var != NULL && home_var_len > 0) {
 		snprintf(db_file_path, PATH_MAX, "%s", home_var);
@@ -211,12 +211,12 @@ get_db_path(void)
 			snprintf(db_file_path, PATH_MAX, "%s/.local/share/newsraft/newsraft.sqlite3", home_var);
 			return db_file_path; // 2
 		} else {
-			fprintf(stderr, "Failed to create \"%s\" directory!\n", db_file_path);
+			write_error("Failed to create \"%s\" directory!\n", db_file_path);
 		}
 	} else {
-		fputs("Neither XDG_DATA_HOME nor HOME environment variables are set!\n", stderr);
+		write_error("Neither XDG_DATA_HOME nor HOME environment variables are set!\n");
 	}
 
-	fputs("Failed to get database file path!\n", stderr);
+	write_error("Failed to get database file path!\n");
 	return NULL;
 }

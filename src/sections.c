@@ -84,13 +84,13 @@ make_sure_section_exists(const struct string *section_name)
 	}
 	struct feed_section *tmp = realloc(sections, sizeof(struct feed_section) * (sections_count + 1));
 	if (tmp == NULL) {
-		fputs("Not enough memory for another section structure!\n", stderr);
+		write_error("Not enough memory for another section structure!\n");
 		return -1;
 	}
 	sections = tmp;
 	sections[sections_count].name = crtss(section_name);
 	if (sections[sections_count].name == NULL) {
-		fputs("Not enough memory for section name string!\n", stderr);
+		write_error("Not enough memory for section name string!\n");
 		return -1;
 	}
 	sections[sections_count].feeds = NULL;
@@ -152,7 +152,7 @@ copy_feed_to_global_section(const struct feed_entry *feed)
 
 	int64_t new_unread_count = get_unread_items_count_of_the_feed(sections[0].feeds[feed_index]->link);
 	if (new_unread_count < 0) {
-		fputs("Failed to get unread items count of the feed from database!\n", stderr);
+		write_error("Failed to get unread items count of the feed from database!\n");
 		return NULL;
 	}
 	sections[0].feeds[feed_index]->unread_count  = new_unread_count;
@@ -166,7 +166,7 @@ copy_feed_to_section(const struct feed_entry *feed_data, int64_t section_index)
 	// All feeds without exception are stored in the global section
 	struct feed_entry *feed = copy_feed_to_global_section(feed_data);
 	if (feed == NULL) {
-		fputs("Not enough memory!\n", stderr);
+		write_error("Not enough memory!\n");
 		return NULL;
 	}
 
@@ -175,7 +175,7 @@ copy_feed_to_section(const struct feed_entry *feed_data, int64_t section_index)
 	if (find_feed_in_section(feed->link, section) == NULL) {
 		struct feed_entry **f = realloc(section->feeds, sizeof(struct feed_entry *) * (section->feeds_count + 1));
 		if (f == NULL) {
-			fputs("Not enough memory!\n", stderr);
+			write_error("Not enough memory!\n");
 			return NULL;
 		}
 		section->feeds = f;

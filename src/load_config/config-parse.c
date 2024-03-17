@@ -27,39 +27,32 @@ extract_token_from_line(struct string *line, struct string *token, bool break_on
 }
 
 static bool
-set_cfg_setting(struct config_context **ctx, config_entry_id id, const char *str, size_t len)
+set_cfg_setting(struct config_context **ctx, config_entry_id id, const struct string *s)
 {
-	struct string *s = crtas(str, len);
 	const char *i = s->ptr;
 	config_type_id type = get_cfg_type(id);
 	switch (type) {
 		case CFG_BOOL:
 			if (*i != '\0' && strcmp(i, "true") != 0 && strcmp(i, "false") != 0) {
-				fputs("Boolean settings only take \"true\" and \"false\" for values!\n", stderr);
-				goto error;
+				write_error("Boolean settings only take \"true\" and \"false\" for values!\n");
+				return false;
 			}
 			set_cfg_bool(ctx, id, *i == 'f' ? false : true);
 			break;
 		case CFG_UINT:
 			size_t val;
 			if (*i == '\0' || *i == '-' || sscanf(i, "%zu", &val) != 1) {
-				fputs("Numeric settings only take non-negative integers for values!\n", stderr);
-				goto error;
+				write_error("Numeric settings only take non-negative integers for values!\n");
+				return false;
 			}
 			set_cfg_uint(ctx, id, val);
 			break;
 		case CFG_COLOR:
-			free_string(s);
-			return parse_color_setting(ctx, id, i);
+			return parse_color_setting(ctx, id, s->ptr);
 		case CFG_STRING:
-			free_string(s);
-			return set_cfg_string(ctx, id, str, len);
+			return set_cfg_string(ctx, id, s->ptr, s->len);
 	}
-	free_string(s);
 	return true;
-error:
-	free_string(s);
-	return false;
 }
 
 bool
@@ -96,11 +89,11 @@ process_config_line(struct feed_entry *feed, const char *str, size_t len)
 			extract_token_from_line(line, token, true);
 			config_entry_id id = find_config_entry_by_name(token->ptr, token->len);
 			if (id == CFG_ENTRIES_COUNT) {
-				fprintf(stderr, "Setting \"%.*s\" doesn't exist!\n", (int)token->len, token->ptr);
+				write_error("Setting \"%s\" doesn't exist!\n", token->ptr);
 				goto error;
 			}
 			extract_token_from_line(line, token, false);
-			if (set_cfg_setting(ctx, id, token->ptr, token->len) != true) {
+			if (set_cfg_setting(ctx, id, token) != true) {
 				goto error;
 			}
 			continue;
@@ -132,7 +125,7 @@ process_config_line(struct feed_entry *feed, const char *str, size_t len)
 			} else {
 
 				extract_token_from_line(line, token, true);
-				input_cmd_id cmd = get_input_cmd_id_by_name(token->ptr, token->len);
+				input_cmd_id cmd = get_input_cmd_id_by_name(token->ptr);
 				if (cmd == INPUT_ERROR || attach_cmd_action_to_bind(bind_index, cmd) == false) {
 					goto error;
 				}
@@ -147,7 +140,7 @@ process_config_line(struct feed_entry *feed, const char *str, size_t len)
 	free_string(token);
 	return true;
 error:
-	fprintf(stderr, "Invalid config line: %s", str);
+	write_error("Invalid config line: %s", str);
 	free_string(line);
 	free_string(token);
 	return false;
@@ -162,7 +155,7 @@ parse_config_file(void)
 	}
 	FILE *f = fopen(config_path, "r");
 	if (f == NULL) {
-		fputs("Couldn't open config file!\n", stderr);
+		write_error("Couldn't open config file!\n");
 		return false;
 	}
 	char *line = NULL;

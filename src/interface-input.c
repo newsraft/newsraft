@@ -31,7 +31,7 @@ counter_recreate_unprotected(void)
 	}
 	counter_window = newwin(1, 9, list_menu_height, list_menu_width - 9);
 	if (counter_window == NULL) {
-		fputs("Failed to create counter window!\n", stderr);
+		write_error("Failed to create counter window!\n");
 		return false;
 	}
 	INFO("Created counter window.");

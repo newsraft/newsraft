@@ -26,14 +26,14 @@ parse_color_setting(struct config_context **ctx, config_entry_id id, const char 
 		else if (strncmp(iter, "color",       5) == 0) {
 			colors[c] = strtol(iter + 5, NULL, 10);
 			if (colors[c] < 0 || colors[c] > 255) {
-				fputs("Color number must be in the range from 0 to 255!\n", stderr);
+				write_error("Color number must be in the range from 0 to 255!\n");
 				return false;
 			}
 			c ^= 1;
 		} else {
-			fputs("Color settings can only contain the following tokens:\n", stderr);
-			fputs("default, black, red, green, yellow, blue, magenta, cyan, white, colorN,\n", stderr);
-			fputs("bold, italic, underlined.\n", stderr);
+			write_error("Color settings can only contain the following tokens:\n");
+			write_error("default, black, red, green, yellow, blue, magenta, cyan, white, colorN,\n");
+			write_error("bold, italic, underlined.\n");
 			return false;
 		}
 		while (!ISWHITESPACE(*iter) && *iter != '\0') iter += 1; // Advance to next token.

@@ -13,13 +13,13 @@ db_init(void)
 	}
 
 	if (sqlite3_config(SQLITE_CONFIG_SERIALIZED) != SQLITE_OK) {
-		fputs("Failed to set threading mode of database to serialized!\n", stderr);
-		fputs("It probably happens because SQLite was compiled without multithreading functionality.\n", stderr);
+		write_error("Failed to set threading mode of database to serialized!\n");
+		write_error("It probably happens because SQLite was compiled without multithreading functionality.\n");
 		return false;
 	}
 
 	if (sqlite3_open(path, &db) != SQLITE_OK) {
-		fputs("Failed to open database!\n", stderr);
+		write_error("Failed to open database!\n");
 		sqlite3_close(db);
 		return false;
 	}
@@ -27,7 +27,7 @@ db_init(void)
 	char *errmsg = NULL;
 	sqlite3_exec(db, "PRAGMA locking_mode = EXCLUSIVE;", NULL, NULL, &errmsg);
 	if (errmsg != NULL) {
-		fprintf(stderr, "Failed to open database in exclusive locking mode: %s!\n", errmsg);
+		write_error("Failed to open database in exclusive locking mode: %s!\n", errmsg);
 		goto error;
 	}
 
@@ -83,13 +83,13 @@ db_init(void)
 		&errmsg
 	);
 	if (errmsg != NULL) {
-		fprintf(stderr, "Failed to initialize database in exclusive locking mode: %s!\n", errmsg);
+		write_error("Failed to initialize database in exclusive locking mode: %s!\n", errmsg);
 		goto error;
 	}
 
 	return true;
 error:
-	fputs("Probably there's other process currently working with this database.\n", stderr);
+	write_error("Probably there's other process currently working with this database.\n");
 	sqlite3_free(errmsg);
 	sqlite3_close(db);
 	return false;
@@ -101,7 +101,7 @@ db_vacuum(void)
 	char *error = NULL;
 	sqlite3_exec(db, "VACUUM;", NULL, NULL, &error);
 	if (error != NULL) {
-		fprintf(stderr, "Failed to vacuum the database: %s!\n", error);
+		write_error("Failed to vacuum the database: %s!\n", error);
 		sqlite3_free(error);
 		return false;
 	}
@@ -120,7 +120,7 @@ query_database_file_optimization(void)
 	if (get_cfg_bool(NULL, CFG_ANALYZE_DATABASE_ON_STARTUP) == true) {
 		sqlite3_exec(db, "ANALYZE;", NULL, NULL, &error);
 		if (error != NULL) {
-			fprintf(stderr, "Failed to analyze the database: %s!\n", error);
+			write_error("Failed to analyze the database: %s!\n", error);
 			sqlite3_free(error);
 			return false;
 		}

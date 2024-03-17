@@ -47,13 +47,13 @@ static const struct input_entry_match actions_table[] = {
 };
 
 input_cmd_id
-get_input_cmd_id_by_name(const char *name, size_t len)
+get_input_cmd_id_by_name(const char *name)
 {
-	for (uint8_t i = 0; actions_table[i].name != NULL; ++i) {
-		if (len == strlen(actions_table[i].name) && memcmp(name, actions_table[i].name, len) == 0) {
+	for (size_t i = 0; actions_table[i].name != NULL; ++i) {
+		if (strcmp(name, actions_table[i].name) == 0) {
 			return actions_table[i].value;
 		}
 	}
-	fprintf(stderr, "Action \"%s\" doesn't exist!\n", name);
+	write_error("Action \"%s\" doesn't exist!\n", name);
 	return INPUT_ERROR;
 }

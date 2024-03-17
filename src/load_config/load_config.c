@@ -199,14 +199,14 @@ set_cfg_string(struct config_context **ctx, config_entry_id id, const char *src_
 	}
 	struct wstring *w = convert_string_to_wstring(cfg->value.s.actual);
 	if (w == NULL) {
-		fprintf(stderr, "Failed to convert %s setting value to wide characters!\n", config[id].name);
+		write_error("Failed to convert %s setting value to wide characters!\n", config[id].name);
 		return false;
 	}
 	bool status = wstr_set(&cfg->value.s.wactual, w->ptr, w->len, w->len);
 	free_wstring(w);
 	if (config[id].value.s.auto_handler != NULL && strcmp(cfg->value.s.actual->ptr, "auto") == 0) {
 		if (config[id].value.s.auto_handler(ctx, id) == false) {
-			fprintf(stderr, "Failed to determine auto value for %s setting!\n", config[id].name);
+			write_error("Failed to set auto value for %s setting!\n", config[id].name);
 			return false;
 		}
 	}
@@ -246,7 +246,7 @@ load_config(void)
 	for (config_entry_id i = 0; config[i].name != NULL; ++i) {
 		if (config[i].type == CFG_STRING && config[i].value.s.actual == NULL) {
 			if (set_cfg_string(NULL, i, config[i].value.s.base, strlen(config[i].value.s.base)) == false) {
-				fputs("Failed to prepare config settings!\n", stderr);
+				write_error("Failed to prepare config settings!\n");
 				free_config();
 				return false;
 			}

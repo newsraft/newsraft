@@ -13,6 +13,6 @@ register_signal_handlers(void)
 			}
 		}
 	}
-	fputs("Failed to register signal handlers!\n", stderr);
+	write_error("Failed to register signal handlers!\n");
 	return false;
 }

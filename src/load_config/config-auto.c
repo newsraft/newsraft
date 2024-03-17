@@ -29,7 +29,7 @@ obtain_useragent_string(struct config_context **ctx, config_type_id id)
 	free_string(ua);
 	return status;
 error:
-	fputs("Not enough memory for user-agent setting string!\n", stderr);
+	write_error("Not enough memory for user-agent setting string!\n");
 	free_string(ua);
 	return false;
 }

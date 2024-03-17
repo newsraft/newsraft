@@ -127,43 +127,15 @@ example:
 
 	_# Look closely. The beautiful may be small._
 
-Both feed and section lines allow you to set an auto update timer at the end,
-which will force section or feed related to this line to be automatically
-updated at a certain frequency. The period of automatic updates is specified in
-minutes and must be enclosed in square brackets. If you set an auto update timer
-for a feed that belongs to a section with an auto update timer set, then the
-auto update timer of the feed will take precedence. Auto update timer of *0*
-disables automatic updates. Let's walk through a small example and see how it
-all works. Consider this *feeds* file:
+Both feed and section lines allow you to set individual settings for them. The
+syntax is as follows:
 
-	_http://example.org/feed1.xml_++
-_http://example.org/feed2.xml [30]_
+	_@ Lorem Ipsum < set reload-period 1440_++
+_https://example.org/feed.xml "Lorem Ipsum Blog" < set reload-period 60_
 
-	_@ Replies [20]_++
-_http://example.org/feed3.xml [10]_++
-_http://example.org/feed4.xml "Forum notifications"_
-
-	_@ News [60]_++
-_http://example.org/feed5.xml_++
-_http://example.org/feed6.xml "Local weather" [0]_
-
-In this example, _feed1_ will never update automatically, _feed2_ will update
-every *30* minutes, _feed3_ will update every *10* minutes, _feed4_ will update
-every *20* minutes, _feed5_ will update every *60* minutes and _feed6_ will
-never update automatically.
-
-If you just want to automatically update all feeds then you should set an auto
-update timer for *Global* section at the very beginning of the file, but before
-doing so, think about what load can be exerted on a servers by frequent
-downloads. Going for a small auto update timer on *Global* section will most
-likely result in a waste of a lot of resources. You have been warned.
-
-In a similar to update timers fashion, item limits can be set for feeds and
-sections. They make targeted feeds contain no more than a set amount of news.
-Precedence rules are the same as for update timers. The only difference is type
-of brackets used: they use curly brackets instead of square ones. For example:
-
-	_http://example.org/feed.xml "Politics" [1440] {100}_
+Settings set for feeds take precedence over the settings specified for sections.
+Not every setting supports individual assignment - only settings with *scalable*
+mark in *SETTINGS* section do.
 
 Search precedence:
 . _$XDG_CONFIG_HOME_/newsraft/feeds
@@ -230,6 +202,14 @@ Search precedence:
 
 # SETTINGS
 
+Settings with *scalable* mark can be set for individual feeds and sections.
+
+_reload-period_ (*scalable*, default: *0*)
+	Feed auto reload period in minutes. If set to *0*, no auto reloads are run.
+
+_item-limit_ (*scalable*, default: *0*)
+	Maximum number of items stored in a feed. If set to *0*, no limit is set.
+
 _scrolloff_ (default: *0*)
 	Minimal number of list menu entries to keep above and below the selected
 	entry. If you set it to a very large value the selected entry will always be
@@ -276,17 +256,17 @@ _notification-command_ (default: *auto*)
 	*"notify-send 'Newsraft brought %q news!'"* for most Unix systems and to
 	*"osascript -e 'display notification "Newsraft brought %q news!"'"* for macOS.
 
-_proxy_ (default: *""*)
+_proxy_ (*scalable*, default: *""*)
 	Sets the proxy to use for the network requests. It must be either a hostname
 	or dotted numerical IPv4 address. To specify IPv6 address you have to enclose
 	it within square brackets. Port number can be set by appending :PORT to the
 	end of setting value. By default proxy protocol is considered HTTP, but you
 	can set a different one by prepending SCHEME:// to the setting value.
 
-_proxy-user_ (default: *""*)
+_proxy-user_ (*scalable*, default: *""*)
 	User for authentication with the proxy server.
 
-_proxy-password_ (default: *""*)
+_proxy-password_ (*scalable*, default: *""*)
 	Password for authentication with the proxy server.
 
 _global-section-name_ (default: *Global*)
@@ -366,11 +346,11 @@ _clean-database-on-startup_ (default: *false*)
 	It rebuilds the database file by packing it into a minimal amount of disk space.
 	This can significantly increase startup time.
 
-_download-timeout_ (default: *20*)
+_download-timeout_ (*scalable*, default: *20*)
 	Maximum time in seconds that you allow Newsraft to download one feed. Setting
 	to *0* disables the timeout.
 
-_download-speed-limit_ (default: *0*)
+_download-speed-limit_ (*scalable*, default: *0*)
 	Maximum download speed in kilobytes per second (kB/s). Setting to *0* disables
 	the limit.
 
@@ -378,10 +358,10 @@ _status-messages-count-limit_ (default: *1000*)
 	Maximum number of status messages stored in memory. If set to *0*, status
 	messages history will not be stored in memory.
 
-_send-user-agent-header_ (default: *true*)
+_send-user-agent-header_ (*scalable*, default: *true*)
 	Attach user-agent header to download requests. See _user-agent_ setting.
 
-_user-agent_ (default: *auto*)
+_user-agent_ (*scalable*, default: *auto*)
 	User-agent string to attach to download requests. If it is set to *"auto"*,
 	Newsraft will generate it according to the following format:
 
@@ -391,23 +371,23 @@ _user-agent_ (default: *auto*)
 	contains nothing more like *"Linux"* or *"Darwin"*. If you want to be sure
 	of this, check Newsraft log to see how _user-agent_ is set at startup.
 
-_respect-ttl-element_ (default: *true*)
+_respect-ttl-element_ (*scalable*, default: *true*)
 	Prevents too frequent updates for some feeds. The limit is set by the
 	creators of the feeds in order to save traffic and resources for a very
 	rarely updated feeds. Disabling it is strongly discouraged.
 
-_respect-expires-header_ (default: *true*)
+_respect-expires-header_ (*scalable*, default: *true*)
 	Prevents feed updates until the expiration date of the previously downloaded
 	information in order to save traffic and resources. Disabling it is strongly
 	discouraged.
 
-_send-if-none-match-header_ (default: *true*)
+_send-if-none-match-header_ (*scalable*, default: *true*)
 	Sends an entity tag corresponding to the previously downloaded information.
 	If the server from which the feed is downloaded contains information with
 	the same tag, then in order to save traffic and resources, it will reject
 	the download request. Disabling it is strongly discouraged.
 
-_send-if-modified-since-header_ (default: *true*)
+_send-if-modified-since-header_ (*scalable*, default: *true*)
 	Sends a date corresponding to the last modification of previously downloaded
 	information. If the server from which the feed is downloaded contains
 	information with the same modification date, then in order to save traffic

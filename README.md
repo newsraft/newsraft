@@ -14,6 +14,7 @@ counterpart.
 * Opening links in any program
 * Viewing news from all feeds with explore mode
 * Automatic updates for feeds and sections
+* Per-feed and per-section settings
 * Multiple actions key bindings
 * Support for feed generating scripts
 * Text search by news titles

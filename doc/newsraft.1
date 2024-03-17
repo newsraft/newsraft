@@ -5,7 +5,7 @@
 .nh
 .ad l
 .\" Begin generated content:
-.TH "NEWSRAFT" "1" "2024-02-17"
+.TH "NEWSRAFT" "1" "2024-03-16"
 .P
 .SH NAME
 .P
@@ -159,53 +159,19 @@ example:
 \fI# Look closely.\& The beautiful may be small.\&\fR
 .P
 .RE
-Both feed and section lines allow you to set an auto update timer at the end,
-which will force section or feed related to this line to be automatically
-updated at a certain frequency.\& The period of automatic updates is specified in
-minutes and must be enclosed in square brackets.\& If you set an auto update timer
-for a feed that belongs to a section with an auto update timer set, then the
-auto update timer of the feed will take precedence.\& Auto update timer of \fB0\fR
-disables automatic updates.\& Let'\&s walk through a small example and see how it
-all works.\& Consider this \fBfeeds\fR file:
+Both feed and section lines allow you to set individual settings for them.\& The
+syntax is as follows:
 .P
 .RS 4
-\fIhttp://example.\&org/feed1.\&xml\fR
+\fI@ Lorem Ipsum < set reload-period 1440\fR
 .br
-\fIhttp://example.\&org/feed2.\&xml [30]\fR
-.P
-\fI@ Replies [20]\fR
-.br
-\fIhttp://example.\&org/feed3.\&xml [10]\fR
-.br
-\fIhttp://example.\&org/feed4.\&xml "Forum notifications"\fR
-.P
-\fI@ News [60]\fR
-.br
-\fIhttp://example.\&org/feed5.\&xml\fR
-.br
-\fIhttp://example.\&org/feed6.\&xml "Local weather" [0]\fR
+\fIhttps://example.\&org/feed.\&xml "Lorem Ipsum Blog" < set reload-period 60\fR
 .P
 .RE
-In this example, \fIfeed1\fR will never update automatically, \fIfeed2\fR will update
-every \fB30\fR minutes, \fIfeed3\fR will update every \fB10\fR minutes, \fIfeed4\fR will update
-every \fB20\fR minutes, \fIfeed5\fR will update every \fB60\fR minutes and \fIfeed6\fR will
-never update automatically.\&
+Settings set for feeds take precedence over the settings specified for sections.\&
+Not every setting supports individual assignment - only settings with \fBscalable\fR
+mark in \fBSETTINGS\fR section do.\&
 .P
-If you just want to automatically update all feeds then you should set an auto
-update timer for \fBGlobal\fR section at the very beginning of the file, but before
-doing so, think about what load can be exerted on a servers by frequent
-downloads.\& Going for a small auto update timer on \fBGlobal\fR section will most
-likely result in a waste of a lot of resources.\& You have been warned.\&
-.P
-In a similar to update timers fashion, item limits can be set for feeds and
-sections.\& They make targeted feeds contain no more than a set amount of news.\&
-Precedence rules are the same as for update timers.\& The only difference is type
-of brackets used: they use curly brackets instead of square ones.\& For example:
-.P
-.RS 4
-\fIhttp://example.\&org/feed.\&xml "Politics" [1440] {100}\fR
-.P
-.RE
 Search precedence:
 .RS 4
 .ie n \{\
@@ -358,6 +324,18 @@ Search precedence:
 .P
 .SH SETTINGS
 .P
+Settings with \fBscalable\fR mark can be set for individual feeds and sections.\&
+.P
+\fIreload-period\fR (\fBscalable\fR, default: \fB0\fR)
+.RS 4
+Feed auto reload period in minutes.\& If set to \fB0\fR, no auto reloads are run.\&
+.P
+.RE
+\fIitem-limit\fR (\fBscalable\fR, default: \fB0\fR)
+.RS 4
+Maximum number of items stored in a feed.\& If set to \fB0\fR, no limit is set.\&
+.P
+.RE
 \fIscrolloff\fR (default: \fB0\fR)
 .RS 4
 Minimal number of list menu entries to keep above and below the selected
@@ -422,7 +400,7 @@ it is set to \fB"auto"\fR, then Newsraft will set the setting value to
 \fB"osascript -e '\&display notification "Newsraft brought %q news!\&"'\&"\fR for macOS.\&
 .P
 .RE
-\fIproxy\fR (default: \fB""\fR)
+\fIproxy\fR (\fBscalable\fR, default: \fB""\fR)
 .RS 4
 Sets the proxy to use for the network requests.\& It must be either a hostname
 or dotted numerical IPv4 address.\& To specify IPv6 address you have to enclose
@@ -431,12 +409,12 @@ end of setting value.\& By default proxy protocol is considered HTTP, but you
 can set a different one by prepending SCHEME:// to the setting value.\&
 .P
 .RE
-\fIproxy-user\fR (default: \fB""\fR)
+\fIproxy-user\fR (\fBscalable\fR, default: \fB""\fR)
 .RS 4
 User for authentication with the proxy server.\&
 .P
 .RE
-\fIproxy-password\fR (default: \fB""\fR)
+\fIproxy-password\fR (\fBscalable\fR, default: \fB""\fR)
 .RS 4
 Password for authentication with the proxy server.\&
 .P
@@ -570,13 +548,13 @@ It rebuilds the database file by packing it into a minimal amount of disk space.
 This can significantly increase startup time.\&
 .P
 .RE
-\fIdownload-timeout\fR (default: \fB20\fR)
+\fIdownload-timeout\fR (\fBscalable\fR, default: \fB20\fR)
 .RS 4
 Maximum time in seconds that you allow Newsraft to download one feed.\& Setting
 to \fB0\fR disables the timeout.\&
 .P
 .RE
-\fIdownload-speed-limit\fR (default: \fB0\fR)
+\fIdownload-speed-limit\fR (\fBscalable\fR, default: \fB0\fR)
 .RS 4
 Maximum download speed in kilobytes per second (kB/s).\& Setting to \fB0\fR disables
 the limit.\&
@@ -588,12 +566,12 @@ Maximum number of status messages stored in memory.\& If set to \fB0\fR, status
 messages history will not be stored in memory.\&
 .P
 .RE
-\fIsend-user-agent-header\fR (default: \fBtrue\fR)
+\fIsend-user-agent-header\fR (\fBscalable\fR, default: \fBtrue\fR)
 .RS 4
 Attach user-agent header to download requests.\& See \fIuser-agent\fR setting.\&
 .P
 .RE
-\fIuser-agent\fR (default: \fBauto\fR)
+\fIuser-agent\fR (\fBscalable\fR, default: \fBauto\fR)
 .RS 4
 User-agent string to attach to download requests.\& If it is set to \fB"auto"\fR,
 Newsraft will generate it according to the following format:
@@ -607,21 +585,21 @@ contains nothing more like \fB"Linux"\fR or \fB"Darwin"\fR.\& If you want to be 
 of this, check Newsraft log to see how \fIuser-agent\fR is set at startup.\&
 .P
 .RE
-\fIrespect-ttl-element\fR (default: \fBtrue\fR)
+\fIrespect-ttl-element\fR (\fBscalable\fR, default: \fBtrue\fR)
 .RS 4
 Prevents too frequent updates for some feeds.\& The limit is set by the
 creators of the feeds in order to save traffic and resources for a very
 rarely updated feeds.\& Disabling it is strongly discouraged.\&
 .P
 .RE
-\fIrespect-expires-header\fR (default: \fBtrue\fR)
+\fIrespect-expires-header\fR (\fBscalable\fR, default: \fBtrue\fR)
 .RS 4
 Prevents feed updates until the expiration date of the previously downloaded
 information in order to save traffic and resources.\& Disabling it is strongly
 discouraged.\&
 .P
 .RE
-\fIsend-if-none-match-header\fR (default: \fBtrue\fR)
+\fIsend-if-none-match-header\fR (\fBscalable\fR, default: \fBtrue\fR)
 .RS 4
 Sends an entity tag corresponding to the previously downloaded information.\&
 If the server from which the feed is downloaded contains information with
@@ -629,7 +607,7 @@ the same tag, then in order to save traffic and resources, it will reject
 the download request.\& Disabling it is strongly discouraged.\&
 .P
 .RE
-\fIsend-if-modified-since-header\fR (default: \fBtrue\fR)
+\fIsend-if-modified-since-header\fR (\fBscalable\fR, default: \fBtrue\fR)
 .RS 4
 Sends a date corresponding to the last modification of previously downloaded
 information.\& If the server from which the feed is downloaded contains

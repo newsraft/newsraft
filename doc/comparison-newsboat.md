@@ -14,8 +14,9 @@ you're considering switching from Newsboat to Newsraft, it's advised to examine 
 | Interactive content pager             | +                               | +                      |
 | Built-in HTML renderer                | +                               | +                      |
 | Sorting                               | +                               | +                      |
-| Automatic updates                     | Square brackets in `feeds` file | `reload-time` setting  |
-| Item limits                           | Curly brackets in `feeds` file  | `max-items` setting    |
+| Automatic updates                     | +                               | +                      |
+| Item limits                           | +                               | +                      |
+| Per-feed settings                     | +                               | -                      |
 | Command feeds                         | `$(cmd arg1 arg2)`              | `"exec:cmd arg1 arg2"` |
 | Download manager                      | -                               | `podboat`              |
 | Integration with third-party services | -                               | +                      |
@@ -53,6 +54,21 @@ bind m exec mpv "%l"
 macro m set browser mpv; open-in-browser; set browser elinks
 ```
 
+## Per-feed and per-section settings
+
+Newsboat [doesn't support individual configuration for feeds](https://github.com/newsboat/newsboat/issues/83).
+Newsraft, on the other hand, supports many settings to be set on individual
+feeds and sections. For example, you can do something like this:
+
+```
+http://example.org/feed1.xml "Phonk" < set reload-period 60
+http://example.org/feed2.xml "Weather" < set proxy socks5h://127.0.0.1:9050
+
+@ News < set reload-period 60
+http://example.org/feed3.xml "World news" < set reload-period 0; set item-limit 50
+http://example.org/feed4.xml "Tech news"
+```
+
 ## Vim-like bindings by default
 
 You don't need to configure anything related to bindings if you are familiar
@@ -69,26 +85,3 @@ and parses feed elements with O(n) time complexity. Newsboat takes
 object-oriented approach to processing feeds which can sometimes result in
 [a huge memory footprint](https://github.com/newsboat/newsboat/issues/977),
 while Newsraft represents feeds as simple structures of strings and numbers.
-
-## Flexible auto updates and item limits
-
-In Newsboat there are settings `reload-time` and `max-items` which are applied
-to all feeds at once. In Newsraft you can set auto updates and item limits for
-individual feeds and sections using square and curly brackets respectively.
-
-```
-http://example.org/feed1.xml "Phonk" [60]
-http://example.org/feed2.xml "Weather" {100}
-
-@ News [30]
-http://example.org/feed3.xml "World news" [0] {50}
-http://example.org/feed4.xml "Tech news"
-```
-
-To set auto updates and item limits for all feeds, simply apply a brackets
-expression to `Global` section at the very beginning of the `feeds` file just
-like that:
-
-```
-@ Global [60] {5000}
-```

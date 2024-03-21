@@ -29,6 +29,7 @@ extract_token_from_line(struct string *line, struct string *token, bool break_on
 static bool
 set_cfg_setting(struct config_context **ctx, config_entry_id id, const struct string *s)
 {
+	size_t val;
 	const char *i = s->ptr;
 	config_type_id type = get_cfg_type(id);
 	switch (type) {
@@ -40,7 +41,6 @@ set_cfg_setting(struct config_context **ctx, config_entry_id id, const struct st
 			set_cfg_bool(ctx, id, *i == 'f' ? false : true);
 			break;
 		case CFG_UINT:
-			size_t val;
 			if (*i == '\0' || *i == '-' || sscanf(i, "%zu", &val) != 1) {
 				write_error("Numeric settings only take non-negative integers for values!\n");
 				return false;

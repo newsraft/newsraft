@@ -61,11 +61,11 @@ Newsraft, on the other hand, supports many settings to be set on individual
 feeds and sections. For example, you can do something like this:
 
 ```
-http://example.org/feed1.xml "Phonk" < set reload-period 60
-http://example.org/feed2.xml "Weather" < set proxy socks5h://127.0.0.1:9050
+http://example.org/feed1.xml "Phonk"      < reload-period 120
+http://example.org/feed2.xml "Weather"    < proxy socks5h://127.0.0.1:9050
 
-@ News < set reload-period 60
-http://example.org/feed3.xml "World news" < set reload-period 0; set item-limit 50
+@ News                                    < reload-period 60
+http://example.org/feed3.xml "World news" < reload-period 0; item-limit 50
 http://example.org/feed4.xml "Tech news"
 ```
 

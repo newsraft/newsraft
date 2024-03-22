@@ -133,9 +133,9 @@ parse_feeds_file(void)
 			char setting[500];
 			int setting_len = 0;
 			if (line->ptr[0] == '[') {
-				setting_len = sprintf(setting, "set reload-period %ld; ", value);
+				setting_len = sprintf(setting, "reload-period %ld; ", value);
 			} else {
-				setting_len = sprintf(setting, "set item-limit %ld; ", value);
+				setting_len = sprintf(setting, "item-limit %ld; ", value);
 			}
 			catas(is_section ? section_cfg : feed_cfg, setting, setting_len);
 			remove_start_of_string(line, close + 1 - line->ptr);

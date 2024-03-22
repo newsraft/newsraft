@@ -19,14 +19,16 @@ append_sorting_order_expression_to_query(struct string *query, int order)
 static inline struct string *
 generate_search_query_string(const struct items_list *items, const struct string *search_filter)
 {
-	struct string *q = crtas("SELECT rowid,feed_url,title,link,publication_date,update_date,unread,important FROM items WHERE (feed_url=?", 107);
+	struct string *q = crtas("SELECT rowid,feed_url,title,link,publication_date,update_date,unread,important FROM items WHERE feed_url IN (?", 110);
 	if (q == NULL) goto error;
 	for (size_t i = 1; i < items->feeds_count; ++i) {
-		if (catas(q, " OR feed_url=?", 14) == false) goto error;
+		if (catas(q, ",?", 2) == false) goto error;
 	}
 	if (catcs(q, ')') == false) goto error;
 	if (search_filter != NULL && search_filter->len > 0) {
-		if (catas(q, " AND (title LIKE '%' || ? || '%')", 33) == false) goto error;
+		if (catas(q, " AND ((title LIKE '%' || ? || '%') OR (content LIKE '%' || ? || '%'))", 69) == false) {
+			goto error;
+		}
 	}
 	if (append_sorting_order_expression_to_query(q, items->sorting) == false) goto error;
 	return q;
@@ -170,6 +172,7 @@ create_items_list(struct feed_entry **feeds, size_t feeds_count, int sorting, co
 	}
 	if (items->search_filter != NULL && items->search_filter->len > 0) {
 		db_bind_string(items->res, feeds_count + 1, items->search_filter);
+		db_bind_string(items->res, feeds_count + 2, items->search_filter);
 	}
 	obtain_items_at_least_up_to_the_given_index(items, 0);
 	if (items->len < 1) {

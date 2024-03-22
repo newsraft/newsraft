@@ -5,7 +5,7 @@
 .nh
 .ad l
 .\" Begin generated content:
-.TH "NEWSRAFT" "1" "2024-03-16"
+.TH "NEWSRAFT" "1" "2024-03-22"
 .P
 .SH NAME
 .P
@@ -163,9 +163,9 @@ Both feed and section lines allow you to set individual settings for them.\& The
 syntax is as follows:
 .P
 .RS 4
-\fI@ Lorem Ipsum < set reload-period 1440\fR
+\fI@ Lorem Ipsum < reload-period 1440\fR
 .br
-\fIhttps://example.\&org/feed.\&xml "Lorem Ipsum Blog" < set reload-period 60\fR
+\fIhttps://example.\&org/feed.\&xml "Lorem Ipsum Blog" < reload-period 60\fR
 .P
 .RE
 Settings set for feeds take precedence over the settings specified for sections.\&
@@ -208,12 +208,16 @@ This file is used to override default settings and bindings of Newsraft.\&
 Presence of \fBconfig\fR file is totally optional and Newsraft will work without it
 just fine.\& There are 3 types of lines in \fBconfig\fR file.\&
 .P
-Setting lines start with the \fBset\fR word.\& You can find available settings in the
-\fBSETTINGS\fR and \fBCOLOR SETTINGS\fR sections.\& Format of these lines is as follows,
-where \fIvalue\fR can be enclosed in single or double quotes:
+Setting lines start with a setting name and end with a setting value.\& Available
+settings are listed in the \fBSETTINGS\fR and \fBCOLOR SETTINGS\fR sections.\& Here are a
+couple of examples:
 .P
 .RS 4
-\fBset\fR setting \fIvalue\fR
+\fIscrolloff 5000\fR
+.br
+\fIlist-entry-date-format "%D"\fR
+.br
+\fIfeeds-menu-paramount-explore true\fR
 .P
 .RE
 Binding lines start with the \fBbind\fR word.\& They define actions that are performed

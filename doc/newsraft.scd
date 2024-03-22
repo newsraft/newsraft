@@ -130,8 +130,8 @@ example:
 Both feed and section lines allow you to set individual settings for them. The
 syntax is as follows:
 
-	_@ Lorem Ipsum < set reload-period 1440_++
-_https://example.org/feed.xml "Lorem Ipsum Blog" < set reload-period 60_
+	_@ Lorem Ipsum < reload-period 1440_++
+_https://example.org/feed.xml "Lorem Ipsum Blog" < reload-period 60_
 
 Settings set for feeds take precedence over the settings specified for sections.
 Not every setting supports individual assignment - only settings with *scalable*
@@ -148,11 +148,13 @@ This file is used to override default settings and bindings of Newsraft.
 Presence of *config* file is totally optional and Newsraft will work without it
 just fine. There are 3 types of lines in *config* file.
 
-Setting lines start with the *set* word. You can find available settings in the
-*SETTINGS* and *COLOR SETTINGS* sections. Format of these lines is as follows,
-where _value_ can be enclosed in single or double quotes:
+Setting lines start with a setting name and end with a setting value. Available
+settings are listed in the *SETTINGS* and *COLOR SETTINGS* sections. Here are a
+couple of examples:
 
-	*set* setting _value_
+	_scrolloff 5000_++
+_list-entry-date-format "%D"_++
+_feeds-menu-paramount-explore true_
 
 Binding lines start with the *bind* word. They define actions that are performed
 when certain keys are pressed. Complete list of assigned actions can be found in

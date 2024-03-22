@@ -159,10 +159,10 @@
 <p class="Pp">Both feed and section lines allow you to set individual settings
     for them. The syntax is as follows:</p>
 <p class="Pp"></p>
-<div class="Bd-indent"><i>@ Lorem Ipsum &lt; set reload-period 1440</i>
+<div class="Bd-indent"><i>@ Lorem Ipsum &lt; reload-period 1440</i>
 <br/>
-<i>https://example.org/feed.xml &quot;Lorem Ipsum Blog&quot; &lt; set
-  reload-period 60</i></div>
+<i>https://example.org/feed.xml &quot;Lorem Ipsum Blog&quot; &lt; reload-period
+  60</i></div>
 <p class="Pp">Settings set for feeds take precedence over the settings specified
     for sections. Not every setting supports individual assignment - only
     settings with <b>scalable</b> mark in <b>SETTINGS</b> section do.</p>
@@ -180,12 +180,15 @@
     Newsraft. Presence of <b>config</b> file is totally optional and Newsraft
     will work without it just fine. There are 3 types of lines in <b>config</b>
     file.</p>
-<p class="Pp">Setting lines start with the <b>set</b> word. You can find
-    available settings in the <b>SETTINGS</b> and <b>COLOR SETTINGS</b>
-    sections. Format of these lines is as follows, where <i>value</i> can be
-    enclosed in single or double quotes:</p>
+<p class="Pp">Setting lines start with a setting name and end with a setting
+    value. Available settings are listed in the <b>SETTINGS</b> and <b>COLOR
+    SETTINGS</b> sections. Here are a couple of examples:</p>
 <p class="Pp"></p>
-<div class="Bd-indent"><b>set</b> setting <i>value</i></div>
+<div class="Bd-indent"><i>scrolloff 5000</i>
+<br/>
+<i>list-entry-date-format &quot;%D&quot;</i>
+<br/>
+<i>feeds-menu-paramount-explore true</i></div>
 <p class="Pp">Binding lines start with the <b>bind</b> word. They define actions
     that are performed when certain keys are pressed. Complete list of assigned
     actions can be found in the <b>ACTIONS</b> section. Format of these lines is
@@ -746,7 +749,7 @@
 </div>
 <table class="foot">
   <tr>
-    <td class="foot-date">2024-03-16</td>
+    <td class="foot-date">2024-03-22</td>
     <td class="foot-os"></td>
   </tr>
 </table>

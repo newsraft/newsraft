@@ -11,7 +11,9 @@ extract_token_from_line(struct string *line, struct string *token, bool break_on
 		to_remove = 1;
 		for (const char *i = line->ptr + 1; *i != '\0'; ++i) {
 			to_remove += 1;
-			if (*i == line->ptr[0]) break;
+			if (*i == line->ptr[0]) {
+				break;
+			}
 			catcs(token, *i);
 		}
 	} else {
@@ -79,13 +81,14 @@ process_config_line(struct feed_entry *feed, const char *str, size_t len)
 
 		INFO("Config line remainder: %s", line->ptr);
 
-		if (line->ptr[0] == '#') {
-			break; // Terminate on comments
-		} else if (line->len > 3 && strncmp(line->ptr, "set", 3) == 0 && ISWHITESPACE(line->ptr[3])) {
+		if (line->ptr[0] == '#') break; // Terminate on comments
+
+		extract_token_from_line(line, token, true);
+
+		if (strcmp(token->ptr, "set") == 0) {
 
 			// set <setting> <value>
 
-			remove_start_of_string(line, 3);
 			extract_token_from_line(line, token, true);
 			config_entry_id id = find_config_entry_by_name(token->ptr, token->len);
 			if (id == CFG_ENTRIES_COUNT) {
@@ -98,12 +101,10 @@ process_config_line(struct feed_entry *feed, const char *str, size_t len)
 			}
 			continue;
 
-		} else if ((line->len > 4 && strncmp(line->ptr, "bind", 4) == 0 && ISWHITESPACE(line->ptr[4]))
-			|| (line->len > 6 && strncmp(line->ptr, "unbind", 6) == 0 && ISWHITESPACE(line->ptr[6])))
-		{
-			// bind <key> <action1>
+		} else if (strcmp(token->ptr, "bind") == 0 || strcmp(token->ptr, "unbind") == 0) {
 
-			remove_start_of_string(line, line->ptr[0] == 'b' ? 4 : 6);
+			// bind/unbind <key>
+
 			extract_token_from_line(line, token, true);
 			if (token->len == 5 && memcmp(token->ptr, "space", 5) == 0) {
 				bind_index = create_empty_bind_or_clean_existing(" ", 1);
@@ -112,24 +113,29 @@ process_config_line(struct feed_entry *feed, const char *str, size_t len)
 			}
 			continue;
 
-		} else if (bind_index > 0) {
-			// These will be parsed only taking into account the previous bind
-			if (line->len > 4 && strncmp(line->ptr, "exec", 4) == 0 && ISWHITESPACE(line->ptr[4])) {
+		} else if (find_config_entry_by_name(token->ptr, token->len) != CFG_ENTRIES_COUNT) {
 
-				remove_start_of_string(line, 4);
+			// <setting> <value>
+
+			config_entry_id id = find_config_entry_by_name(token->ptr, token->len);
+			extract_token_from_line(line, token, false);
+			if (set_cfg_setting(ctx, id, token) != true) {
+				goto error;
+			}
+			continue;
+
+		} else if (bind_index > 0) { // Takes previous bind entry into account
+
+			if (strcmp(token->ptr, "exec") == 0) {
 				extract_token_from_line(line, token, false);
 				if (attach_exec_action_to_bind(bind_index, token->ptr, token->len) == false) {
 					goto error;
 				}
-
 			} else {
-
-				extract_token_from_line(line, token, true);
 				input_cmd_id cmd = get_input_cmd_id_by_name(token->ptr);
 				if (cmd == INPUT_ERROR || attach_cmd_action_to_bind(bind_index, cmd) == false) {
 					goto error;
 				}
-
 			}
 			continue;
 
@@ -140,7 +146,8 @@ process_config_line(struct feed_entry *feed, const char *str, size_t len)
 	free_string(token);
 	return true;
 error:
-	write_error("Invalid config line: %s", str);
+	write_error("Invalid config line: %s\n", str);
+	write_error("Erroneous token: %s\n", token->ptr);
 	free_string(line);
 	free_string(token);
 	return false;

@@ -1,7 +1,6 @@
 # This is an example of valid feeds file for Newsraft.
 
-# Lines with # character at the beginning are comments,
-# they are completely ignored by the parser.
+# Lines with # character at the beginning are comments - they are ignored.
 
 # To subscribe to a feed, you have to add a line with its URL:
 http://example.org/feed1.xml

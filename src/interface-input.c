@@ -53,7 +53,7 @@ tell_program_to_terminate_safely_and_quickly(int dummy)
 input_cmd_id
 get_input_cmd(uint32_t *count, const struct wstring **macro_ptr)
 {
-	static int c = 0;
+	static wint_t c = 0;
 	static size_t queued_action_index = 0;
 	if (queued_action_index > 0) {
 		input_cmd_id next = get_action_of_bind(c, queued_action_index, macro_ptr);
@@ -65,13 +65,13 @@ get_input_cmd(uint32_t *count, const struct wstring **macro_ptr)
 		}
 	}
 	while (they_want_us_to_terminate == false) {
-		// We can't read keys from stdscr via getch() function
-		// because calling it will bring stdscr on top of other
-		// windows and overlap them.
+		// We have to read input from a child window because
+		// reading it from the main window will bring stdscr
+		// on top of other windows and overlap them.
 		pthread_mutex_lock(&interface_lock);
-		c = wgetch(counter_window);
+		int status = wget_wch(counter_window, &c);
 		pthread_mutex_unlock(&interface_lock);
-		if (c == ERR) {
+		if (status == ERR) {
 			if (they_want_us_to_break_input == true) {
 				they_want_us_to_break_input = false;
 				return INPUT_ERROR;
@@ -81,7 +81,7 @@ get_input_cmd(uint32_t *count, const struct wstring **macro_ptr)
 		} else if (c == KEY_RESIZE) {
 			return resize_handler();
 		}
-		INFO("Received \"%c\" character with %d key code.", c, c);
+		INFO("Read key %d (\"%lc\")", c, c);
 		if (search_mode_is_enabled == true) {
 			if (c == '\n' || c == 27) {
 				search_mode_is_enabled = false;
@@ -90,14 +90,14 @@ get_input_cmd(uint32_t *count, const struct wstring **macro_ptr)
 			} else if (c == KEY_BACKSPACE || c == KEY_DC || c == 127) {
 				if (search_mode_text_input->len > 0) {
 					search_mode_text_input->len -= 1;
-					search_mode_text_input->ptr[search_mode_text_input->len] = '\0';
+					search_mode_text_input->ptr[search_mode_text_input->len] = L'\0';
 					update_status_window_content();
 				} else {
 					search_mode_is_enabled = false;
 					status_clean();
 				}
 			} else {
-				catcs(search_mode_text_input, c);
+				wcatcs(search_mode_text_input, c);
 				update_status_window_content();
 			}
 		} else if (ISDIGIT(c)) {
@@ -109,7 +109,7 @@ get_input_cmd(uint32_t *count, const struct wstring **macro_ptr)
 		} else {
 			input_cmd_id cmd = get_action_of_bind(c, 0, macro_ptr);
 			if (cmd == INPUT_START_SEARCH_INPUT) {
-				cpyas(&search_mode_text_input, "", 0);
+				wstr_set(&search_mode_text_input, L"", 0, 100);
 				search_mode_is_enabled = true;
 				update_status_window_content();
 			} else {

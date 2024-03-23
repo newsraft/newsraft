@@ -128,13 +128,13 @@ obtain_items_at_least_up_to_the_given_index(struct items_list *items, size_t ind
 }
 
 struct items_list *
-create_items_list(struct feed_entry **feeds, size_t feeds_count, int sorting, const struct string *search_filter)
+create_items_list(struct feed_entry **feeds, size_t feeds_count, int sorting, const struct wstring *search_filter)
 {
 	INFO("Generating items list.");
 	if (feeds_count == 0) {
 		return NULL;
 	}
-	struct items_list *items = malloc(sizeof(struct items_list));
+	struct items_list *items = calloc(1, sizeof(struct items_list));
 	if (items == NULL) {
 		return NULL;
 	}
@@ -151,12 +151,9 @@ create_items_list(struct feed_entry **feeds, size_t feeds_count, int sorting, co
 		else if (strcmp(sort->ptr, "alphabet-asc")  == 0) items->sorting = SORT_BY_ALPHABET_ASC;
 	}
 
-	items->ptr = NULL;
-	items->len = 0;
-	items->finished = false;
 	items->feeds = feeds;
 	items->feeds_count = feeds_count;
-	items->search_filter = search_filter == NULL ? NULL : crtss(search_filter);
+	items->search_filter = search_filter == NULL ? NULL : convert_wstring_to_string(search_filter);
 	items->query = generate_search_query_string(items, items->search_filter);
 	if (items->query == NULL) {
 		fail_status("Can't generate search query string!");
@@ -195,9 +192,11 @@ undo1:
 }
 
 bool
-replace_items_list_with_empty_one(struct items_list **items)
+recreate_items_list(struct items_list **items)
 {
-	struct items_list *new_items = create_items_list((*items)->feeds, (*items)->feeds_count, (*items)->sorting, (*items)->search_filter);
+	struct wstring *filter = (*items)->search_filter ? convert_string_to_wstring((*items)->search_filter) : NULL;
+	struct items_list *new_items = create_items_list((*items)->feeds, (*items)->feeds_count, (*items)->sorting, filter);
+	free_wstring(filter);
 	if (new_items == NULL) {
 		return false;
 	}
@@ -219,7 +218,7 @@ change_items_list_sorting(struct items_list **items, input_cmd_id cmd)
 	} else {
 		(*items)->sorting = (*items)->sorting == SORT_BY_ALPHABET_ASC ? SORT_BY_ALPHABET_DESC : SORT_BY_ALPHABET_ASC;
 	}
-	replace_items_list_with_empty_one(items);
+	recreate_items_list(items);
 
 	const char *order = (*items)->sorting & 1 ? "descending" : "ascending";
 	switch ((*items)->sorting & ~1) {
@@ -230,11 +229,11 @@ change_items_list_sorting(struct items_list **items, input_cmd_id cmd)
 }
 
 void
-change_search_filter_of_items_list(struct items_list **items, const struct string *search_filter)
+change_search_filter_of_items_list(struct items_list **items, const struct wstring *search_filter)
 {
 	struct string *prev_search_filter = (*items)->search_filter;
-	(*items)->search_filter = crtss(search_filter);
-	if (replace_items_list_with_empty_one(items) == true) {
+	(*items)->search_filter = convert_wstring_to_string(search_filter);
+	if (recreate_items_list(items) == true) {
 		free_string(prev_search_filter);
 	} else {
 		free_string((*items)->search_filter);

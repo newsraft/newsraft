@@ -2,7 +2,7 @@
 #include "newsraft.h"
 
 bool search_mode_is_enabled = false;
-struct string *search_mode_text_input = NULL;
+struct wstring *search_mode_text_input = NULL;
 static bool paint_it_black = true;
 
 pthread_mutex_t interface_lock = PTHREAD_MUTEX_INITIALIZER;

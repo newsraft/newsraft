@@ -374,11 +374,11 @@ void tell_items_menu_to_regenerate(void);
 struct menu_state *items_menu_loop(struct menu_state *dest);
 
 // See "items-list.c" file for implementation.
-struct items_list *create_items_list(struct feed_entry **feeds, size_t feeds_count, int sorting, const struct string *search_filter);
-bool replace_items_list_with_empty_one(struct items_list **items);
+struct items_list *create_items_list(struct feed_entry **feeds, size_t feeds_count, int sorting, const struct wstring *search_filter);
+bool recreate_items_list(struct items_list **items);
 void obtain_items_at_least_up_to_the_given_index(struct items_list *items, size_t index);
 void change_items_list_sorting(struct items_list **items, input_cmd_id cmd);
-void change_search_filter_of_items_list(struct items_list **items, const struct string *search_filter);
+void change_search_filter_of_items_list(struct items_list **items, const struct wstring *search_filter);
 void free_items_list(struct items_list *items);
 
 // See "items-pager.c" file for implementation.
@@ -579,6 +579,6 @@ extern FILE *log_stream;
 extern size_t list_menu_height;
 extern size_t list_menu_width;
 extern bool search_mode_is_enabled;
-extern struct string *search_mode_text_input;
+extern struct wstring *search_mode_text_input;
 extern pthread_mutex_t interface_lock;
 #endif // NEWSRAFT_H

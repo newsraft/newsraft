@@ -21,8 +21,9 @@ update_status_window_content_unprotected(void)
 		mvwaddnstr(status_window, 0, 0, "Terminating...", list_menu_width - 9);
 		wbkgd(status_window, get_cfg_color(NULL, CFG_COLOR_STATUS_FAIL));
 	} else if (search_mode_is_enabled == true) {
-		mvwaddnstr(status_window, 0, 0, "/", 1);
-		mvwaddnstr(status_window, 0, 1, search_mode_text_input->ptr, list_menu_width - 10);
+		wmove(status_window, 0, 0);
+		waddwstr(status_window, L"/");
+		waddwstr(status_window, search_mode_text_input->ptr);
 		wbkgd(status_window, A_NORMAL);
 	} else if (status_window_is_clean == false) {
 		mvwaddnstr(status_window, 0, 0, messages[(messages_len - 1) % messages_lim].text->ptr, list_menu_width - 9);

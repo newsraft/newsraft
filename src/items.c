@@ -137,7 +137,7 @@ items_menu_loop(struct menu_state *m)
 	while (true) {
 		if (m->items_age != items_age) {
 			m->items_age = items_age;
-			replace_items_list_with_empty_one(&m->items);
+			recreate_items_list(&m->items);
 		}
 		if (get_cfg_bool(NULL, CFG_MARK_ITEM_READ_ON_HOVER) == true) {
 			mark_item_read(m, m->view_sel, true);

@@ -420,10 +420,6 @@
 <p class="Pp"><i>status-messages-count-limit</i> (default: <b>1000</b>)</p>
 <div class="Bd-indent">Maximum number of status messages stored in memory. If
   set to <b>0</b>, status messages history will not be stored in memory.</div>
-<p class="Pp"><i>send-user-agent-header</i> (<b>scalable</b>, default:
-    <b>true</b>)</p>
-<div class="Bd-indent">Attach user-agent header to download requests. See
-  <i>user-agent</i> setting.</div>
 <p class="Pp"><i>user-agent</i> (<b>scalable</b>, default: <b>auto</b>)</p>
 <div class="Bd-indent">User-agent string to attach to download requests. If it
   is set to <b>&quot;auto&quot;</b>, Newsraft will generate it according to the
@@ -435,6 +431,8 @@
     systems it contains nothing more like <b>&quot;Linux&quot;</b> or
     <b>&quot;Darwin&quot;</b>. If you want to be sure of this, check Newsraft
     log to see how <i>user-agent</i> is set at startup.</p>
+<p class="Pp">If set to <b>&quot;&quot;</b>, User-Agent header will not be
+  sent.</p>
 </div>
 <p class="Pp"><i>respect-ttl-element</i> (<b>scalable</b>, default:
   <b>true</b>)</p>

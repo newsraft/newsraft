@@ -146,8 +146,8 @@ static inline bool
 prepare_curl_for_performance(CURL *curl, struct feed_entry *feed, struct curl_slist *headers, struct stream_callback_data *data, char *errbuf)
 {
 	curl_easy_setopt(curl, CURLOPT_URL, feed->link->ptr);
-	if (get_cfg_bool(&feed->cfg, CFG_SEND_USER_AGENT_HEADER) == true) {
-		const struct string *useragent = get_cfg_string(&feed->cfg, CFG_USER_AGENT);
+	const struct string *useragent = get_cfg_string(&feed->cfg, CFG_USER_AGENT);
+	if (useragent->len > 0) {
 		INFO("Attached header - User-Agent: %s", useragent->ptr);
 		curl_easy_setopt(curl, CURLOPT_USERAGENT, useragent->ptr);
 	}

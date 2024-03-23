@@ -363,9 +363,6 @@ _status-messages-count-limit_ (default: *1000*)
 	Maximum number of status messages stored in memory. If set to *0*, status
 	messages history will not be stored in memory.
 
-_send-user-agent-header_ (*scalable*, default: *true*)
-	Attach user-agent header to download requests. See _user-agent_ setting.
-
 _user-agent_ (*scalable*, default: *auto*)
 	User-agent string to attach to download requests. If it is set to *"auto"*,
 	Newsraft will generate it according to the following format:
@@ -375,6 +372,8 @@ _user-agent_ (*scalable*, default: *auto*)
 	OS_NAME shouldn't be a matter of privacy concern, because on most systems it
 	contains nothing more like *"Linux"* or *"Darwin"*. If you want to be sure
 	of this, check Newsraft log to see how _user-agent_ is set at startup.
+
+	If set to *""*, User-Agent header will not be sent.
 
 _respect-ttl-element_ (*scalable*, default: *true*)
 	Prevents too frequent updates for some feeds. The limit is set by the

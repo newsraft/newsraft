@@ -79,7 +79,6 @@ static struct config_entry config[] = {
 	{"clean-database-on-startup",       CFG_BOOL,   {.b = false}},
 	{"respect-ttl-element",             CFG_BOOL,   {.b = true }},
 	{"respect-expires-header",          CFG_BOOL,   {.b = true }},
-	{"send-user-agent-header",          CFG_BOOL,   {.b = true }},
 	{"send-if-none-match-header",       CFG_BOOL,   {.b = true }},
 	{"send-if-modified-since-header",   CFG_BOOL,   {.b = true }},
 	{"pager-centering",                 CFG_BOOL,   {.b = true }},

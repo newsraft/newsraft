@@ -575,11 +575,6 @@ Maximum number of status messages stored in memory.\& If set to \fB0\fR, status
 messages history will not be stored in memory.\&
 .P
 .RE
-\fIsend-user-agent-header\fR (\fBscalable\fR, default: \fBtrue\fR)
-.RS 4
-Attach user-agent header to download requests.\& See \fIuser-agent\fR setting.\&
-.P
-.RE
 \fIuser-agent\fR (\fBscalable\fR, default: \fBauto\fR)
 .RS 4
 User-agent string to attach to download requests.\& If it is set to \fB"auto"\fR,
@@ -592,6 +587,8 @@ Newsraft will generate it according to the following format:
 OS_NAME shouldn'\&t be a matter of privacy concern, because on most systems it
 contains nothing more like \fB"Linux"\fR or \fB"Darwin"\fR.\& If you want to be sure
 of this, check Newsraft log to see how \fIuser-agent\fR is set at startup.\&
+.P
+If set to \fB""\fR, User-Agent header will not be sent.\&
 .P
 .RE
 \fIrespect-ttl-element\fR (\fBscalable\fR, default: \fBtrue\fR)

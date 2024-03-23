@@ -38,21 +38,25 @@ delete_excess_items(const struct string *feed_url, int64_t limit)
 }
 
 static inline bool
-db_insert_item(const struct string *feed_url, struct getfeed_item *item, int64_t rowid)
+db_insert_item(struct feed_entry *feed, struct getfeed_item *item, int64_t rowid)
 {
 	sqlite3_stmt *s;
 
 	if (rowid == -1) {
-		s = db_prepare("INSERT INTO items(feed_url,guid,title,link,content,attachments,persons,extras,publication_date,update_date,unread) VALUES(?,?,?,?,?,?,?,?,?,?,?)", 145);
+		s = db_prepare("INSERT INTO items(feed_url,guid,title,link,content,attachments,persons,extras,publication_date,update_date,unread) VALUES(?,?,?,?,?,?,?,?,?,?,1)", 145);
 	} else {
-		s = db_prepare("UPDATE items SET feed_url=?,guid=?,title=?,link=?,content=?,attachments=?,persons=?,extras=?,publication_date=?,update_date=?,unread=? WHERE rowid=?", 149);
+		if (get_cfg_bool(&feed->cfg, CFG_MARK_ITEM_UNREAD_ON_CHANGE) == true) {
+			s = db_prepare("UPDATE items SET feed_url=?,guid=?,title=?,link=?,content=?,attachments=?,persons=?,extras=?,publication_date=?,update_date=?,unread=1 WHERE rowid=?", 149);
+		} else {
+			s = db_prepare("UPDATE items SET feed_url=?,guid=?,title=?,link=?,content=?,attachments=?,persons=?,extras=?,publication_date=?,update_date=? WHERE rowid=?", 140);
+		}
 	}
 	if (s == NULL) {
 		FAIL("Failed to prepare item insertion/update statement!");
 		return false;
 	}
 
-	db_bind_string(s,     1 + ITEM_COLUMN_FEED_URL,         feed_url);
+	db_bind_string(s,     1 + ITEM_COLUMN_FEED_URL,         feed->link);
 	db_bind_string(s,     1 + ITEM_COLUMN_GUID,             item->guid);
 	db_bind_string(s,     1 + ITEM_COLUMN_TITLE,            item->title);
 	db_bind_string(s,     1 + ITEM_COLUMN_LINK,             (item->url == NULL || item->url->len == 0) && item->guid_is_url == true ? item->guid : item->url);
@@ -62,9 +66,8 @@ db_insert_item(const struct string *feed_url, struct getfeed_item *item, int64_t
 	db_bind_string(s,     1 + ITEM_COLUMN_EXTRAS,           item->extras);
 	sqlite3_bind_int64(s, 1 + ITEM_COLUMN_PUBLICATION_DATE, item->publication_date);
 	sqlite3_bind_int64(s, 1 + ITEM_COLUMN_UPDATE_DATE,      item->update_date);
-	sqlite3_bind_int(s,   1 + ITEM_COLUMN_UNREAD,           1);
 	if (rowid != -1) {
-		sqlite3_bind_int64(s, 2 + ITEM_COLUMN_UNREAD, rowid);
+		sqlite3_bind_int64(s, 2 + ITEM_COLUMN_UPDATE_DATE, rowid);
 	}
 
 	if (sqlite3_step(s) != SQLITE_DONE) {
@@ -83,7 +86,7 @@ db_insert_item(const struct string *feed_url, struct getfeed_item *item, int64_t
 }
 
 bool
-insert_item_data(const struct string *feed_url, struct getfeed_item *item)
+insert_item_data(struct feed_entry *feed, struct getfeed_item *item)
 {
 	// Create guid if it was not set.
 	if ((item->guid == NULL) || (item->guid->len == 0)) {
@@ -112,7 +115,7 @@ insert_item_data(const struct string *feed_url, struct getfeed_item *item)
 		FAIL("Failed to prepare SELECT statement for searching item duplicate by guid!");
 		return false;
 	}
-	db_bind_string(s, 1, feed_url);
+	db_bind_string(s, 1, feed->link);
 	db_bind_string(s, 2, item->guid);
 
 	int64_t item_rowid;
@@ -132,5 +135,5 @@ insert_item_data(const struct string *feed_url, struct getfeed_item *item)
 
 	sqlite3_finalize(s);
 
-	return db_insert_item(feed_url, item, item_rowid);
+	return db_insert_item(feed, item, item_rowid);
 }

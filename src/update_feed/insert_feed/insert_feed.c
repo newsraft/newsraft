@@ -8,7 +8,7 @@ insert_feed(struct feed_entry *feed, struct getfeed_feed *feed_data)
 		return false;
 	}
 	for (struct getfeed_item *item = feed_data->item; item != NULL; item = item->next) {
-		if (insert_item_data(feed->link, item) == false) {
+		if (insert_item_data(feed, item) == false) {
 			FAIL("Failed to insert item data!");
 			return false;
 		}

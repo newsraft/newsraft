@@ -4,5 +4,5 @@
 
 bool delete_excess_items(const struct string *feed_url, int64_t limit);
 bool insert_feed_data(const struct string *feed_url, struct getfeed_feed *feed);
-bool insert_item_data(const struct string *feed_url, struct getfeed_item *item);
+bool insert_item_data(struct feed_entry *feed, struct getfeed_item *item);
 #endif // INSERT_FEED_H

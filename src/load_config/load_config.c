@@ -73,6 +73,7 @@ static struct config_entry config[] = {
 	{"menu-item-sorting",               CFG_STRING, {.s = {NULL, NULL, "time-desc",                   NULL}}},
 	{"sections-menu-paramount-explore", CFG_BOOL,   {.b = false}},
 	{"feeds-menu-paramount-explore",    CFG_BOOL,   {.b = false}},
+	{"mark-item-unread-on-change",      CFG_BOOL,   {.b = true }},
 	{"mark-item-read-on-hover",         CFG_BOOL,   {.b = false}},
 	{"analyze-database-on-startup",     CFG_BOOL,   {.b = true }},
 	{"clean-database-on-startup",       CFG_BOOL,   {.b = false}},

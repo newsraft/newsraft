@@ -335,6 +335,9 @@ _sections-menu-paramount-explore_ (default: *false*)
 _feeds-menu-paramount-explore_ (default: *false*)
 	Enables explore mode in feeds menu by default.
 
+_mark-item-unread-on-change_ (*scalable*, default: *true*)
+	Mark every item that changes on a feed update as unread.
+
 _mark-item-read-on-hover_ (default: *false*)
 	Mark every item that gets selected as read.
 

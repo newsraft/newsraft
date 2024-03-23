@@ -11,7 +11,7 @@ enum config_type {
 };
 
 // See "load_config.c" file for implementation.
-config_entry_id find_config_entry_by_name(const char *name, size_t len);
+config_entry_id find_config_entry_by_name(const char *name);
 config_type_id get_cfg_type(config_entry_id id);
 void set_cfg_bool(struct config_context **ctx, config_entry_id id, bool value);
 void set_cfg_uint(struct config_context **ctx, config_entry_id id, size_t value);

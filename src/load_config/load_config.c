@@ -86,10 +86,10 @@ static struct config_entry config[] = {
 };
 
 config_entry_id
-find_config_entry_by_name(const char *name, size_t len)
+find_config_entry_by_name(const char *name)
 {
 	for (config_entry_id i = 0; config[i].name != NULL; ++i) {
-		if (len == strlen(config[i].name) && memcmp(name, config[i].name, len) == 0) {
+		if (strcmp(name, config[i].name) == 0) {
 			return i;
 		}
 	}

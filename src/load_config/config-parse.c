@@ -90,7 +90,7 @@ process_config_line(struct feed_entry *feed, const char *str, size_t len)
 			// set <setting> <value>
 
 			extract_token_from_line(line, token, true);
-			config_entry_id id = find_config_entry_by_name(token->ptr, token->len);
+			config_entry_id id = find_config_entry_by_name(token->ptr);
 			if (id == CFG_ENTRIES_COUNT) {
 				write_error("Setting \"%s\" doesn't exist!\n", token->ptr);
 				goto error;
@@ -113,11 +113,11 @@ process_config_line(struct feed_entry *feed, const char *str, size_t len)
 			}
 			continue;
 
-		} else if (find_config_entry_by_name(token->ptr, token->len) != CFG_ENTRIES_COUNT) {
+		} else if (find_config_entry_by_name(token->ptr) != CFG_ENTRIES_COUNT) {
 
 			// <setting> <value>
 
-			config_entry_id id = find_config_entry_by_name(token->ptr, token->len);
+			config_entry_id id = find_config_entry_by_name(token->ptr);
 			extract_token_from_line(line, token, false);
 			if (set_cfg_setting(ctx, id, token) != true) {
 				goto error;

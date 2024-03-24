@@ -61,11 +61,10 @@ the _items menu_ by entering some feed.
 
 _Items menu_ consists of feed item entries (i. e. single pieces of news) which
 you get when you update feeds in the previous menu. Every feed item entry has
-two switchable properties - read state and importance state. Keys to force read
-state change: *d* to mark read, *D* to mark unread, *^D* to mark everything
-read. Keys to force importance state change: *i* to mark important, *I* to mark
-unimportant. To view item's content you have to go to _pager menu_ by entering
-selected item.
+two switchable properties - read state and importance state. Keys to change read
+state: *d* to mark read, *D* to mark unread, *^D* to mark everything read. Keys
+to change importance state: *f* to flag important, *F* to flag unimportant. To
+view item's content you have to go to _pager menu_ by entering selected item.
 
 _Pager menu_ will display some details about selected item and render its
 content if it was provided by feed. Usually feed item entries have a links
@@ -238,7 +237,8 @@ _menu-feed-sorting_ (default: *none*)
 
 _menu-item-sorting_ (default: *time-desc*)
 	Sorting order for the items menu. Available values: *time-desc*, *time-asc*,
-	*unread-desc*, *unread-asc*, *alphabet-desc*, *alphabet-asc*.
+	*unread-desc*, *unread-asc*, *important-desc*, *important-asc*,
+	*alphabet-desc*, *alphabet-asc*.
 
 _open-in-browser-command_ (default: *${BROWSER:-xdg-open} "%l"*)
 	Shell command for opening URL in a web browser. The URL to be opened is put
@@ -469,6 +469,8 @@ and *colorN* (*N* can be a number from *0* to *255*). Available attributes are
 :[ _sort-by-time_
 |[ *u*
 :[ _sort-by-unread_
+|[ *i*
+:[ _sort-by-important_
 |[ *a*
 :[ _sort-by-alphabet_
 |[ *l*, *^J*, *KEY_RIGHT*, *KEY_ENTER*
@@ -485,9 +487,9 @@ and *colorN* (*N* can be a number from *0* to *255*). Available attributes are
 :[ _mark-read-all_
 |[ (not set)
 :[ _mark-unread-all_
-|[ *i*
+|[ *f*
 :[ _mark-important_
-|[ *I*
+|[ *F*
 :[ _mark-unimportant_
 |[ *^I*, *e*
 :[ _toggle-explore-mode_

@@ -89,11 +89,11 @@
 <p class="Pp"><i>Items menu</i> consists of feed item entries (i. e. single
     pieces of news) which you get when you update feeds in the previous menu.
     Every feed item entry has two switchable properties - read state and
-    importance state. Keys to force read state change: <b>d</b> to mark read,
-    <b>D</b> to mark unread, <b>^D</b> to mark everything read. Keys to force
-    importance state change: <b>i</b> to mark important, <b>I</b> to mark
-    unimportant. To view item's content you have to go to <i>pager menu</i> by
-    entering selected item.</p>
+    importance state. Keys to change read state: <b>d</b> to mark read, <b>D</b>
+    to mark unread, <b>^D</b> to mark everything read. Keys to change importance
+    state: <b>f</b> to flag important, <b>F</b> to flag unimportant. To view
+    item's content you have to go to <i>pager menu</i> by entering selected
+    item.</p>
 <p class="Pp"><i>Pager menu</i> will display some details about selected item
     and render its content if it was provided by feed. Usually feed item entries
     have a links section with one link pointing to a related web page and
@@ -274,7 +274,8 @@
 <p class="Pp"><i>menu-item-sorting</i> (default: <b>time-desc</b>)</p>
 <div class="Bd-indent">Sorting order for the items menu. Available values:
   <b>time-desc</b>, <b>time-asc</b>, <b>unread-desc</b>, <b>unread-asc</b>,
-  <b>alphabet-desc</b>, <b>alphabet-asc</b>.</div>
+  <b>important-desc</b>, <b>important-asc</b>, <b>alphabet-desc</b>,
+  <b>alphabet-asc</b>.</div>
 <p class="Pp"><i>open-in-browser-command</i> (default: <b>${BROWSER:-xdg-open}
     &quot;%l&quot;</b>)</p>
 <div class="Bd-indent">Shell command for opening URL in a web browser. The URL
@@ -598,6 +599,10 @@
     <td><i>sort-by-unread</i></td>
   </tr>
   <tr>
+    <td><b>i</b></td>
+    <td><i>sort-by-important</i></td>
+  </tr>
+  <tr>
     <td><b>a</b></td>
     <td><i>sort-by-alphabet</i></td>
   </tr>
@@ -630,11 +635,11 @@
     <td><i>mark-unread-all</i></td>
   </tr>
   <tr>
-    <td><b>i</b></td>
+    <td><b>f</b></td>
     <td><i>mark-important</i></td>
   </tr>
   <tr>
-    <td><b>I</b></td>
+    <td><b>F</b></td>
     <td><i>mark-unimportant</i></td>
   </tr>
   <tr>
@@ -751,7 +756,7 @@
 </div>
 <table class="foot">
   <tr>
-    <td class="foot-date">2024-03-23</td>
+    <td class="foot-date">2024-03-24</td>
     <td class="foot-os"></td>
   </tr>
 </table>

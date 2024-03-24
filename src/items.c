@@ -176,6 +176,7 @@ items_menu_loop(struct menu_state *m)
 			case INPUT_SORT_BY_TIME:
 			case INPUT_SORT_BY_UNREAD:
 			case INPUT_SORT_BY_ALPHABET:
+			case INPUT_SORT_BY_IMPORTANT:
 				change_items_list_sorting(&m->items, cmd); break;
 			case INPUT_ENTER:
 				return setup_menu(&item_pager_loop, NULL, 0, MENU_NO_FLAGS);

@@ -5,7 +5,7 @@
 .nh
 .ad l
 .\" Begin generated content:
-.TH "NEWSRAFT" "1" "2024-03-23"
+.TH "NEWSRAFT" "1" "2024-03-24"
 .P
 .SH NAME
 .P
@@ -82,11 +82,10 @@ the \fIitems menu\fR by entering some feed.\&
 .P
 \fIItems menu\fR consists of feed item entries (i.\& e.\& single pieces of news) which
 you get when you update feeds in the previous menu.\& Every feed item entry has
-two switchable properties - read state and importance state.\& Keys to force read
-state change: \fBd\fR to mark read, \fBD\fR to mark unread, \fB^D\fR to mark everything
-read.\& Keys to force importance state change: \fBi\fR to mark important, \fBI\fR to mark
-unimportant.\& To view item'\&s content you have to go to \fIpager menu\fR by entering
-selected item.\&
+two switchable properties - read state and importance state.\& Keys to change read
+state: \fBd\fR to mark read, \fBD\fR to mark unread, \fB^D\fR to mark everything read.\& Keys
+to change importance state: \fBf\fR to flag important, \fBF\fR to flag unimportant.\& To
+view item'\&s content you have to go to \fIpager menu\fR by entering selected item.\&
 .P
 \fIPager menu\fR will display some details about selected item and render its
 content if it was provided by feed.\& Usually feed item entries have a links
@@ -377,7 +376,8 @@ Sorting order for the feeds menu.\& Available values: \fBunread-desc\fR,
 \fImenu-item-sorting\fR (default: \fBtime-desc\fR)
 .RS 4
 Sorting order for the items menu.\& Available values: \fBtime-desc\fR, \fBtime-asc\fR,
-\fBunread-desc\fR, \fBunread-asc\fR, \fBalphabet-desc\fR, \fBalphabet-asc\fR.\&
+\fBunread-desc\fR, \fBunread-asc\fR, \fBimportant-desc\fR, \fBimportant-asc\fR,
+\fBalphabet-desc\fR, \fBalphabet-asc\fR.\&
 .P
 .RE
 \fIopen-in-browser-command\fR (default: \fB${BROWSER:-xdg-open} "%l"\fR)
@@ -738,6 +738,7 @@ l l
 l l
 l l
 l l
+l l
 l l.
 T{
 Keys
@@ -835,6 +836,11 @@ T}	T{
 \fIsort-by-unread\fR
 T}
 T{
+\fBi\fR
+T}	T{
+\fIsort-by-important\fR
+T}
+T{
 \fBa\fR
 T}	T{
 \fIsort-by-alphabet\fR
@@ -875,12 +881,12 @@ T}	T{
 \fImark-unread-all\fR
 T}
 T{
-\fBi\fR
+\fBf\fR
 T}	T{
 \fImark-important\fR
 T}
 T{
-\fBI\fR
+\fBF\fR
 T}	T{
 \fImark-unimportant\fR
 T}

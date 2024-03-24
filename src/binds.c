@@ -139,6 +139,7 @@ assign_default_binds(void)
 	if (create_bind("t",              1, INPUT_SORT_BY_TIME)                    == false) { goto fail; }
 	if (create_bind("u",              1, INPUT_SORT_BY_UNREAD)                  == false) { goto fail; }
 	if (create_bind("a",              1, INPUT_SORT_BY_ALPHABET)                == false) { goto fail; }
+	if (create_bind("i",              1, INPUT_SORT_BY_IMPORTANT)               == false) { goto fail; }
 	if (create_bind("l",              1, INPUT_ENTER)                           == false) { goto fail; }
 	if (create_bind("^J",             2, INPUT_ENTER) /* actual enter key */    == false) { goto fail; }
 	if (create_bind("KEY_RIGHT",      9, INPUT_ENTER) /* right arrow */         == false) { goto fail; }
@@ -148,8 +149,8 @@ assign_default_binds(void)
 	if (create_bind2("d",             1, INPUT_MARK_READ, INPUT_JUMP_TO_NEXT)   == false) { goto fail; }
 	if (create_bind2("D",             1, INPUT_MARK_UNREAD, INPUT_JUMP_TO_NEXT) == false) { goto fail; }
 	if (create_bind("^D",             2, INPUT_MARK_READ_ALL)                   == false) { goto fail; }
-	if (create_bind("i",              1, INPUT_MARK_IMPORTANT)                  == false) { goto fail; }
-	if (create_bind("I",              1, INPUT_MARK_UNIMPORTANT)                == false) { goto fail; }
+	if (create_bind("f",              1, INPUT_MARK_IMPORTANT)                  == false) { goto fail; }
+	if (create_bind("F",              1, INPUT_MARK_UNIMPORTANT)                == false) { goto fail; }
 	if (create_bind("^I",             2, INPUT_TOGGLE_EXPLORE_MODE)             == false) { goto fail; }
 	if (create_bind("e",              1, INPUT_TOGGLE_EXPLORE_MODE)             == false) { goto fail; }
 	if (create_bind("v",              1, INPUT_STATUS_HISTORY_MENU)             == false) { goto fail; }

@@ -26,6 +26,7 @@ static const struct input_entry_match actions_table[] = {
 	{"sort-by-time",                      INPUT_SORT_BY_TIME               },
 	{"sort-by-unread",                    INPUT_SORT_BY_UNREAD             },
 	{"sort-by-alphabet",                  INPUT_SORT_BY_ALPHABET           },
+	{"sort-by-important",                 INPUT_SORT_BY_IMPORTANT          },
 	{"enter",                             INPUT_ENTER                      },
 	{"reload",                            INPUT_RELOAD                     },
 	{"reload-all",                        INPUT_RELOAD_ALL                 },

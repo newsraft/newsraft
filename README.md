@@ -37,6 +37,7 @@ Check out [comparison of Newsraft and Newsboat](https://codeberg.org/newsraft/ne
 | [pkg-config](https://www.freedesktop.org/wiki/Software/pkg-config) | >= 0.29.2 | optional at build-time |
 | [gperf](https://www.gnu.org/software/gperf)                        | >= 3.1    | only for development   |
 | [scdoc](https://git.sr.ht/~sircmpwn/scdoc)                         | >= 1.9.1  | only for development   |
+| [mandoc](https://mandoc.bsd.lv)                                    | >= 1.14.6 | only for development   |
 
 ## Installing
 

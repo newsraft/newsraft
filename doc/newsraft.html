@@ -67,34 +67,32 @@
 <h1 class="Sh" id="STARTER_GUIDE"><a class="permalink" href="#STARTER_GUIDE">STARTER
   GUIDE</a></h1>
 <p class="Pp">To start using Newsraft you have to create a <b>feeds</b> file
-    with the list of links that point to feeds you want to receive news from.
-    Format of this file and valid paths for the location of this file are
-    discussed in the <b>FEEDS FILE</b> section.</p>
-<p class="Pp">When your <b>feeds</b> file is ready, you can launch Newsraft.
-    Navigation in the interface is carried out by the same keys as in the
-    <b>vi</b>(1) text editor. There are only 4 menus you're gonna deal with:
-    <i>sections menu</i>, <i>feeds menu</i>, <i>items menu</i> and <i>pager
-    menu</i>.</p>
-<p class="Pp"><i>Sections menu</i> consists of section entries which are needed
+    with the list of links to feeds you want to receive news from. Check out
+    <b>FEEDS FILE</b> section for file syntax and valid paths.</p>
+<p class="Pp">When <b>feeds</b> file is ready, you can launch Newsraft. There
+    are only 4 menus you will have to deal with: <i>sections</i>, <i>feeds</i>,
+    <i>items</i> and <i>pager</i>. Default binds are listed in <b>ACTIONS</b>
+    section.</p>
+<p class="Pp"><i>Sections</i> menu consists of section entries which are needed
     to organize feeds in groups to be able to process them in bulk. They are
     kind of directories for feeds. If you didn't specify any section
-    declarations in your <b>feeds</b> file then you will get to the <i>feeds
-    menu</i> straightaway.</p>
-<p class="Pp"><i>Feeds menu</i> consists of feed entries. Every feed entry
+    declarations in your <b>feeds</b> file then you will get to the <i>feeds</i>
+    menu straightaway.</p>
+<p class="Pp"><i>Feeds</i> menu consists of feed entries. Every feed entry
     contains news downloaded from one specific source which you have set in
     <b>feeds</b> file. To update a single feed you have to select it and press
     <b>r</b>. If you want to update all feeds, <b>Ctrl-R</b> (or <b>^R</b> for
-    short) will do this fine. From <i>feeds menu</i> you can get to the <i>items
-    menu</i> by entering some feed.</p>
-<p class="Pp"><i>Items menu</i> consists of feed item entries (i. e. single
+    short) will do this fine. From <i>feeds</i> menu you can get to the
+    <i>items</i> menu by entering some feed.</p>
+<p class="Pp"><i>Items</i> menu consists of feed item entries (i. e. single
     pieces of news) which you get when you update feeds in the previous menu.
     Every feed item entry has two switchable properties - read state and
     importance state. Keys to change read state: <b>d</b> to mark read, <b>D</b>
     to mark unread, <b>^D</b> to mark everything read. Keys to change importance
     state: <b>f</b> to flag important, <b>F</b> to flag unimportant. To view
-    item's content you have to go to <i>pager menu</i> by entering selected
+    item's content you have to go to <i>pager</i> menu by entering selected
     item.</p>
-<p class="Pp"><i>Pager menu</i> will display some details about selected item
+<p class="Pp"><i>Pager</i> menu will display some details about selected item
     and render its content if it was provided by feed. Usually feed item entries
     have a links section with one link pointing to a related web page and
     several links that were mentioned in the item's content. You can copy these
@@ -111,21 +109,19 @@
 <p class="Pp">With this you will be able to open any link in <b>mpv</b>(1) and
     <b>feh</b>(1) directly from your terminal! Isn't it awesome? It is freaking
     amazing!</p>
-<p class="Pp">For both <i>sections menu</i> and <i>feeds menu</i> there is a
+<p class="Pp">For both <i>sections</i> menu and <i>feeds</i> menu there is a
     special explore mode. You can toggle it by pressing the <b>tab</b> key
     (<b>^I</b>). It's truly miraculous: it shows all the news in the current
-    context (i. e. in <i>sections menu</i> it will show you all the news in the
-    database, whereas in <i>feeds menu</i> it will show you all the news of
-    feeds in the current <i>feeds menu</i>). This mode may come in handy when
+    context (i. e. in <i>sections</i> menu it will show you all the news in the
+    database, whereas in <i>feeds</i> menu it will show you all the news of
+    feeds in the current <i>feeds</i> menu). This mode may come in handy when
     you want to quickly scroll through all the news without switching between
     sections and feeds back and forth.</p>
 <p class="Pp">And for dessert, I'll tell you about search functionality. You can
-    type <b>/</b> in <i>items menu</i> to start search input - enter the desired
-    query here and press <b>Enter</b>. This will generate a new list of items
-    based on given search query. To return to the original items list, you just
-    need to make an empty search (press <b>/</b> and <b>Enter</b> in sequence).
-    Searching like that in <i>sections menu</i> and <i>feeds menu</i> will
-    automatically enable explore mode and apply your search query.</p>
+    type <b>/</b> to begin search input - enter the desired query here and press
+    <b>Enter</b>. This will open an <i>items</i> menu with a search query
+    applied. To make filtering go away just make an empty search (press <b>/</b>
+    and <b>Enter</b> in series).</p>
 </section>
 <section class="Sh">
 <h1 class="Sh" id="CONFIGURATION"><a class="permalink" href="#CONFIGURATION">CONFIGURATION</a></h1>
@@ -431,8 +427,8 @@
 <div class="Bd-indent">Maximum number of status messages stored in memory. If
   set to <b>0</b>, status messages history will not be stored in memory.</div>
 <p class="Pp"><i>user-agent</i> (<b>scalable</b>, default: <b>auto</b>)</p>
-<div class="Bd-indent">User-agent string to attach to download requests. If it
-  is set to <b>&quot;auto&quot;</b>, Newsraft will generate it according to the
+<div class="Bd-indent">User-Agent header sent with download requests. If it is
+  set to <b>&quot;auto&quot;</b>, Newsraft will generate it according to the
   following format:
 <p class="Pp"></p>
 <div class="Bd-indent"><b>&quot;newsraft/&quot;</b> + NEWSRAFT_VERSION +
@@ -750,7 +746,7 @@
 <section class="Sh">
 <h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
   ALSO</a></h1>
-<p class="Pp"><b>vi</b>(1), <b>mpv</b>(1), <b>feh</b>(1), <b>sqlite3</b>(1),
+<p class="Pp"><b>mpv</b>(1), <b>feh</b>(1), <b>sqlite3</b>(1),
     <b>strftime</b>(3), <b>ncurses</b>(3), <b>libcurl</b>(3),
     <b>libcurl-env</b>(3)</p>
 </section>

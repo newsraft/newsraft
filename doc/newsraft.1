@@ -61,33 +61,32 @@ Print usage information.\&
 .SH STARTER GUIDE
 .PP
 To start using Newsraft you have to create a \fBfeeds\fR file with the list of links
-that point to feeds you want to receive news from.\& Format of this file and valid
-paths for the location of this file are discussed in the \fBFEEDS FILE\fR section.\&
+to feeds you want to receive news from.\& Check out \fBFEEDS FILE\fR section for file
+syntax and valid paths.\&
 .PP
-When your \fBfeeds\fR file is ready, you can launch Newsraft.\& Navigation in the
-interface is carried out by the same keys as in the \fBvi\fR(1) text editor.\& There
-are only 4 menus you'\&re gonna deal with: \fIsections menu\fR, \fIfeeds menu\fR,
-\fIitems menu\fR and \fIpager menu\fR.\&
+When \fBfeeds\fR file is ready, you can launch Newsraft.\& There are only 4 menus you
+will have to deal with: \fIsections\fR, \fIfeeds\fR, \fIitems\fR and \fIpager\fR.\& Default binds
+are listed in \fBACTIONS\fR section.\&
 .PP
-\fISections menu\fR consists of section entries which are needed to organize feeds
+\fISections\fR menu consists of section entries which are needed to organize feeds
 in groups to be able to process them in bulk.\& They are kind of directories for
 feeds.\& If you didn'\&t specify any section declarations in your \fBfeeds\fR file then
-you will get to the \fIfeeds menu\fR straightaway.\&
+you will get to the \fIfeeds\fR menu straightaway.\&
 .PP
-\fIFeeds menu\fR consists of feed entries.\& Every feed entry contains news downloaded
+\fIFeeds\fR menu consists of feed entries.\& Every feed entry contains news downloaded
 from one specific source which you have set in \fBfeeds\fR file.\& To update a single
 feed you have to select it and press \fBr\fR.\& If you want to update all feeds,
-\fBCtrl-R\fR (or \fB^R\fR for short) will do this fine.\& From \fIfeeds menu\fR you can get to
-the \fIitems menu\fR by entering some feed.\&
+\fBCtrl-R\fR (or \fB^R\fR for short) will do this fine.\& From \fIfeeds\fR menu you can get to
+the \fIitems\fR menu by entering some feed.\&
 .PP
-\fIItems menu\fR consists of feed item entries (i.\& e.\& single pieces of news) which
+\fIItems\fR menu consists of feed item entries (i.\& e.\& single pieces of news) which
 you get when you update feeds in the previous menu.\& Every feed item entry has
 two switchable properties - read state and importance state.\& Keys to change read
 state: \fBd\fR to mark read, \fBD\fR to mark unread, \fB^D\fR to mark everything read.\& Keys
 to change importance state: \fBf\fR to flag important, \fBF\fR to flag unimportant.\& To
-view item'\&s content you have to go to \fIpager menu\fR by entering selected item.\&
+view item'\&s content you have to go to \fIpager\fR menu by entering selected item.\&
 .PP
-\fIPager menu\fR will display some details about selected item and render its
+\fIPager\fR menu will display some details about selected item and render its
 content if it was provided by feed.\& Usually feed item entries have a links
 section with one link pointing to a related web page and several links that were
 mentioned in the item'\&s content.\& You can copy these links into your clipboard
@@ -106,20 +105,18 @@ any commands with these links.\& Consider this \fBconfig\fR file:
 With this you will be able to open any link in \fBmpv\fR(1) and \fBfeh\fR(1) directly
 from your terminal!\& Isn'\&t it awesome?\& It is freaking amazing!\&
 .PP
-For both \fIsections menu\fR and \fIfeeds menu\fR there is a special explore mode.\& You
+For both \fIsections\fR menu and \fIfeeds\fR menu there is a special explore mode.\& You
 can toggle it by pressing the \fBtab\fR key (\fB^I\fR).\& It'\&s truly miraculous: it shows
-all the news in the current context (i.\& e.\& in \fIsections menu\fR it will show you
-all the news in the database, whereas in \fIfeeds menu\fR it will show you all the
-news of feeds in the current \fIfeeds menu\fR).\& This mode may come in handy when you
+all the news in the current context (i.\& e.\& in \fIsections\fR menu it will show you
+all the news in the database, whereas in \fIfeeds\fR menu it will show you all the
+news of feeds in the current \fIfeeds\fR menu).\& This mode may come in handy when you
 want to quickly scroll through all the news without switching between sections
 and feeds back and forth.\&
 .PP
-And for dessert, I'\&ll tell you about search functionality.\& You can type \fB/\fR in
-\fIitems menu\fR to start search input - enter the desired query here and press
-\fBEnter\fR.\& This will generate a new list of items based on given search query.\& To
-return to the original items list, you just need to make an empty search
-(press \fB/\fR and \fBEnter\fR in sequence).\& Searching like that in \fIsections menu\fR and
-\fIfeeds menu\fR will automatically enable explore mode and apply your search query.\&
+And for dessert, I'\&ll tell you about search functionality.\& You can type \fB/\fR to
+begin search input - enter the desired query here and press \fBEnter\fR.\& This will
+open an \fIitems\fR menu with a search query applied.\& To make filtering go away just
+make an empty search (press \fB/\fR and \fBEnter\fR in series).\&
 .PP
 .SH CONFIGURATION
 .PP
@@ -517,7 +514,7 @@ messages history will not be stored in memory.\&
 .RE
 \fIuser-agent\fR (\fBscalable\fR, default: \fBauto\fR)
 .RS 4
-User-agent string to attach to download requests.\& If it is set to \fB"auto"\fR,
+User-Agent header sent with download requests.\& If it is set to \fB"auto"\fR,
 Newsraft will generate it according to the following format:
 .PP
 .RS 4
@@ -933,7 +930,7 @@ Setting that forcibly makes the interface monochrome when set.\&
 .PP
 .SH SEE ALSO
 .PP
-\fBvi\fR(1), \fBmpv\fR(1), \fBfeh\fR(1), \fBsqlite3\fR(1), \fBstrftime\fR(3), \fBncurses\fR(3), \fBlibcurl\fR(3), \fBlibcurl-env\fR(3)
+\fBmpv\fR(1), \fBfeh\fR(1), \fBsqlite3\fR(1), \fBstrftime\fR(3), \fBncurses\fR(3), \fBlibcurl\fR(3), \fBlibcurl-env\fR(3)
 .PP
 .SH BUGS
 .PP

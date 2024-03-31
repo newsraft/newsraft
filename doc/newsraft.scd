@@ -40,33 +40,32 @@ via one single interface in an efficient and streamlined manner.
 # STARTER GUIDE
 
 To start using Newsraft you have to create a *feeds* file with the list of links
-that point to feeds you want to receive news from. Format of this file and valid
-paths for the location of this file are discussed in the *FEEDS FILE* section.
+to feeds you want to receive news from. Check out *FEEDS FILE* section for file
+syntax and valid paths.
 
-When your *feeds* file is ready, you can launch Newsraft. Navigation in the
-interface is carried out by the same keys as in the *vi*(1) text editor. There
-are only 4 menus you're gonna deal with: _sections menu_, _feeds menu_,
-_items menu_ and _pager menu_.
+When *feeds* file is ready, you can launch Newsraft. There are only 4 menus you
+will have to deal with: _sections_, _feeds_, _items_ and _pager_. Default binds
+are listed in *ACTIONS* section.
 
-_Sections menu_ consists of section entries which are needed to organize feeds
+_Sections_ menu consists of section entries which are needed to organize feeds
 in groups to be able to process them in bulk. They are kind of directories for
 feeds. If you didn't specify any section declarations in your *feeds* file then
-you will get to the _feeds menu_ straightaway.
+you will get to the _feeds_ menu straightaway.
 
-_Feeds menu_ consists of feed entries. Every feed entry contains news downloaded
+_Feeds_ menu consists of feed entries. Every feed entry contains news downloaded
 from one specific source which you have set in *feeds* file. To update a single
 feed you have to select it and press *r*. If you want to update all feeds,
-*Ctrl-R* (or *^R* for short) will do this fine. From _feeds menu_ you can get to
-the _items menu_ by entering some feed.
+*Ctrl-R* (or *^R* for short) will do this fine. From _feeds_ menu you can get to
+the _items_ menu by entering some feed.
 
-_Items menu_ consists of feed item entries (i. e. single pieces of news) which
+_Items_ menu consists of feed item entries (i. e. single pieces of news) which
 you get when you update feeds in the previous menu. Every feed item entry has
 two switchable properties - read state and importance state. Keys to change read
 state: *d* to mark read, *D* to mark unread, *^D* to mark everything read. Keys
 to change importance state: *f* to flag important, *F* to flag unimportant. To
-view item's content you have to go to _pager menu_ by entering selected item.
+view item's content you have to go to _pager_ menu by entering selected item.
 
-_Pager menu_ will display some details about selected item and render its
+_Pager_ menu will display some details about selected item and render its
 content if it was provided by feed. Usually feed item entries have a links
 section with one link pointing to a related web page and several links that were
 mentioned in the item's content. You can copy these links into your clipboard
@@ -82,20 +81,18 @@ _bind f exec feh "%l"_
 With this you will be able to open any link in *mpv*(1) and *feh*(1) directly
 from your terminal! Isn't it awesome? It is freaking amazing!
 
-For both _sections menu_ and _feeds menu_ there is a special explore mode. You
+For both _sections_ menu and _feeds_ menu there is a special explore mode. You
 can toggle it by pressing the *tab* key (*^I*). It's truly miraculous: it shows
-all the news in the current context (i. e. in _sections menu_ it will show you
-all the news in the database, whereas in _feeds menu_ it will show you all the
-news of feeds in the current _feeds menu_). This mode may come in handy when you
+all the news in the current context (i. e. in _sections_ menu it will show you
+all the news in the database, whereas in _feeds_ menu it will show you all the
+news of feeds in the current _feeds_ menu). This mode may come in handy when you
 want to quickly scroll through all the news without switching between sections
 and feeds back and forth.
 
-And for dessert, I'll tell you about search functionality. You can type */* in
-_items menu_ to start search input - enter the desired query here and press
-*Enter*. This will generate a new list of items based on given search query. To
-return to the original items list, you just need to make an empty search
-(press */* and *Enter* in sequence). Searching like that in _sections menu_ and
-_feeds menu_ will automatically enable explore mode and apply your search query.
+And for dessert, I'll tell you about search functionality. You can type */* to
+begin search input - enter the desired query here and press *Enter*. This will
+open an _items_ menu with a search query applied. To make filtering go away just
+make an empty search (press */* and *Enter* in series).
 
 # CONFIGURATION
 
@@ -364,7 +361,7 @@ _status-messages-count-limit_ (default: *1000*)
 	messages history will not be stored in memory.
 
 _user-agent_ (*scalable*, default: *auto*)
-	User-agent string to attach to download requests. If it is set to *"auto"*,
+	User-Agent header sent with download requests. If it is set to *"auto"*,
 	Newsraft will generate it according to the following format:
 
 		*"newsraft/"* + NEWSRAFT_VERSION + *" ("* + OS_NAME + *")"*
@@ -564,7 +561,7 @@ Setting that forcibly makes the interface monochrome when set.
 
 # SEE ALSO
 
-*vi*(1), *mpv*(1), *feh*(1), *sqlite3*(1), *strftime*(3), *ncurses*(3), *libcurl*(3), *libcurl-env*(3)
+*mpv*(1), *feh*(1), *sqlite3*(1), *strftime*(3), *ncurses*(3), *libcurl*(3), *libcurl-env*(3)
 
 # BUGS
 

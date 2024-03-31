@@ -56,7 +56,7 @@ get_input(struct input_binding *ctx, uint32_t *count, const struct wstring **mac
 	static wint_t c = 0;
 	static size_t queued_action_index = 0;
 	if (queued_action_index > 0) {
-		input_id next = get_action_of_bind(ctx, key_name(c), queued_action_index, macro_ptr);
+		input_id next = get_action_of_bind(ctx, keyname(c), queued_action_index, macro_ptr);
 		if (next != INPUT_ERROR) {
 			queued_action_index += 1;
 			return next;
@@ -81,7 +81,7 @@ get_input(struct input_binding *ctx, uint32_t *count, const struct wstring **mac
 		} else if (c == KEY_RESIZE) {
 			return resize_handler();
 		}
-		const char *key = key_name(c);
+		const char *key = keyname(c);
 		INFO("Read key %d (\'%lc\', \"%s\")", c, c, key ? key : "ERROR");
 		if (search_mode_is_enabled == true) {
 			if (c == '\n' || c == 27) {

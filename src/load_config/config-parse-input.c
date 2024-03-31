@@ -3,7 +3,7 @@
 
 struct input_entry_match {
 	const char *name;
-	const input_cmd_id value;
+	const input_id value;
 };
 
 static const struct input_entry_match actions_table[] = {
@@ -47,8 +47,8 @@ static const struct input_entry_match actions_table[] = {
 	{NULL,                                0                                },
 };
 
-input_cmd_id
-get_input_cmd_id_by_name(const char *name)
+input_id
+get_input_id_by_name(const char *name)
 {
 	for (size_t i = 0; actions_table[i].name != NULL; ++i) {
 		if (strcmp(name, actions_table[i].name) == 0) {

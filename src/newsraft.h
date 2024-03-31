@@ -78,7 +78,7 @@ enum {
 	CFG_ENTRIES_COUNT,
 };
 
-typedef uint8_t input_cmd_id;
+typedef uint8_t input_id;
 enum {
 	INPUT_SELECT_NEXT = 0,
 	INPUT_SELECT_PREV,
@@ -120,7 +120,6 @@ enum {
 	INPUT_SYSTEM_COMMAND,
 	INPUT_ERROR,
 	INPUT_APPLY_SEARCH_MODE_FILTER,
-	INPUT_ITEMS_MENU_WAS_NOT_CREATED,
 };
 
 typedef int8_t feeds_column_id;
@@ -221,12 +220,25 @@ struct wstring {
 	size_t lim;
 };
 
+struct binding_action {
+	input_id cmd;
+	struct wstring *exec;
+};
+
+struct input_binding {
+	struct string *key;
+	struct binding_action *actions;
+	size_t actions_count;
+	struct input_binding *next;
+};
+
 struct feed_entry {
 	struct string *name;
 	struct string *link;
 	int64_t unread_count;
 	int64_t download_date;
 	struct config_context *cfg;
+	struct input_binding *binds;
 	volatile bool *volatile did_update_just_finished;
 };
 
@@ -355,8 +367,8 @@ void expose_entry_of_the_list_menu(size_t index);
 void expose_all_visible_entries_of_the_list_menu(void);
 void redraw_list_menu_unprotected(void);
 void reset_list_menu_unprotected(void);
-bool handle_list_menu_control(struct menu_state *m, input_cmd_id cmd, const struct wstring *arg);
-bool handle_pager_menu_control(input_cmd_id cmd);
+bool handle_list_menu_control(struct menu_state *m, input_id cmd, const struct wstring *arg);
+bool handle_pager_menu_control(input_id cmd);
 void free_menus(void);
 size_t get_menu_depth(void);
 struct menu_state *setup_menu(struct menu_state *(*run)(struct menu_state *), struct feed_entry **feeds, size_t feeds_count, uint32_t flags);
@@ -380,7 +392,7 @@ struct menu_state *items_menu_loop(struct menu_state *dest);
 struct items_list *create_items_list(struct feed_entry **feeds, size_t feeds_count, int sorting, const struct wstring *search_filter);
 bool recreate_items_list(struct items_list **items);
 void obtain_items_at_least_up_to_the_given_index(struct items_list *items, size_t index);
-void change_items_list_sorting(struct items_list **items, input_cmd_id cmd);
+void change_items_list_sorting(struct items_list **items, input_id cmd);
 void change_search_filter_of_items_list(struct items_list **items, const struct wstring *search_filter);
 void free_items_list(struct items_list *items);
 
@@ -461,7 +473,7 @@ bool db_change_unread_status_of_all_items_in_feeds(struct feed_entry **feeds, si
 
 // See "interface.c" file for implementation.
 bool curses_init(void);
-input_cmd_id resize_handler(void);
+input_id resize_handler(void);
 bool call_resize_handler_if_current_list_menu_size_is_different_from_actual(void);
 bool arent_we_colorful(void);
 
@@ -470,7 +482,7 @@ bool arent_we_colorful(void);
 // See "interface-input.c" file for implementation.
 bool counter_recreate_unprotected(void);
 void tell_program_to_terminate_safely_and_quickly(int dummy);
-input_cmd_id get_input_cmd(uint32_t *count, const struct wstring **macro_ptr);
+input_id get_input(struct input_binding *ctx, uint32_t *count, const struct wstring **macro_ptr);
 void break_getting_input_command(void);
 void counter_delete(void);
 
@@ -492,12 +504,12 @@ struct menu_state *status_pager_loop(struct menu_state *dest);
 
 // Functions responsible for managing of key bindings.
 // See "binds.c" file for implementation.
-input_cmd_id get_action_of_bind(int key_code, size_t action_index, const struct wstring **macro_ptr);
-ssize_t create_empty_bind_or_clean_existing(const char *key_name, size_t key_name_len);
-bool attach_cmd_action_to_bind(ssize_t bind_index, input_cmd_id cmd_action);
-bool attach_exec_action_to_bind(ssize_t bind_index, const char *exec, size_t exec_len);
+input_id get_action_of_bind(struct input_binding *ctx, const char *key, size_t action_index, const struct wstring **macro_ptr);
+struct input_binding *create_or_clean_bind(struct input_binding **target, const char *key);
+bool attach_action_to_bind(struct input_binding *bind, input_id action);
+bool attach_command_to_bind(struct input_binding *bind, const char *exec, size_t exec_len);
 bool assign_default_binds(void);
-void free_binds(void);
+void free_binds(struct input_binding *target);
 
 // Functions related to executing system commands.
 // See "commands.c" file for implementation.

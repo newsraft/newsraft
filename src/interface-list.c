@@ -207,7 +207,7 @@ change_list_view_unprotected(struct menu_state *m, size_t new_sel)
 }
 
 bool
-handle_list_menu_control(struct menu_state *m, input_cmd_id cmd, const struct wstring *arg)
+handle_list_menu_control(struct menu_state *m, input_id cmd, const struct wstring *arg)
 {
 	pthread_mutex_lock(&interface_lock);
 	if (cmd == INPUT_SELECT_NEXT || cmd == INPUT_JUMP_TO_NEXT) {
@@ -325,7 +325,7 @@ change_pager_view_unprotected(size_t new_sel)
 }
 
 bool
-handle_pager_menu_control(input_cmd_id cmd)
+handle_pager_menu_control(input_id cmd)
 {
 	pthread_mutex_lock(&interface_lock);
 	if (cmd == INPUT_SELECT_NEXT || cmd == INPUT_ENTER) {

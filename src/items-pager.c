@@ -76,7 +76,8 @@ item_pager_loop(struct menu_state *m)
 	start_menu();
 	uint32_t count;
 	const struct wstring *macro;
-	for (input_cmd_id cmd = get_input_cmd(&count, &macro) ;; cmd = get_input_cmd(&count, &macro)) {
+	while (true) {
+		input_id cmd = get_input(item->feed[0]->binds, &count, &macro);
 		if (handle_pager_menu_control(cmd) == true) {
 			// Rest a little.
 		} else if ((cmd == INPUT_JUMP_TO_NEXT)

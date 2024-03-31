@@ -77,7 +77,7 @@ curses_init(void)
 	return true;
 }
 
-input_cmd_id
+input_id
 resize_handler(void)
 {
 	pthread_mutex_lock(&interface_lock);

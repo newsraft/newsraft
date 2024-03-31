@@ -213,7 +213,7 @@ recreate_items_list(struct items_list **items)
 }
 
 void
-change_items_list_sorting(struct items_list **items, input_cmd_id cmd)
+change_items_list_sorting(struct items_list **items, input_id cmd)
 {
 	switch (cmd) {
 		case INPUT_SORT_BY_TIME:

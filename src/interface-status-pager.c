@@ -24,7 +24,8 @@ status_pager_loop(struct menu_state *dest)
 	}
 	start_menu();
 	const struct wstring *macro;
-	for (input_cmd_id cmd = get_input_cmd(NULL, &macro) ;; cmd = get_input_cmd(NULL, &macro)) {
+	while (true) {
+		input_id cmd = get_input(NULL, NULL, &macro);
 		if (handle_pager_menu_control(cmd) == true) {
 			// Rest a little.
 		} else if (cmd == INPUT_NAVIGATE_BACK || cmd == INPUT_QUIT_SOFT) {

@@ -50,13 +50,13 @@ tell_program_to_terminate_safely_and_quickly(int dummy)
 	they_want_us_to_terminate = true;
 }
 
-input_cmd_id
-get_input_cmd(uint32_t *count, const struct wstring **macro_ptr)
+input_id
+get_input(struct input_binding *ctx, uint32_t *count, const struct wstring **macro_ptr)
 {
 	static wint_t c = 0;
 	static size_t queued_action_index = 0;
 	if (queued_action_index > 0) {
-		input_cmd_id next = get_action_of_bind(c, queued_action_index, macro_ptr);
+		input_id next = get_action_of_bind(ctx, key_name(c), queued_action_index, macro_ptr);
 		if (next != INPUT_ERROR) {
 			queued_action_index += 1;
 			return next;
@@ -81,7 +81,8 @@ get_input_cmd(uint32_t *count, const struct wstring **macro_ptr)
 		} else if (c == KEY_RESIZE) {
 			return resize_handler();
 		}
-		INFO("Read key %d (\"%lc\")", c, c);
+		const char *key = key_name(c);
+		INFO("Read key %d (\'%lc\', \"%s\")", c, c, key ? key : "ERROR");
 		if (search_mode_is_enabled == true) {
 			if (c == '\n' || c == 27) {
 				search_mode_is_enabled = false;
@@ -107,7 +108,7 @@ get_input_cmd(uint32_t *count, const struct wstring **macro_ptr)
 			counter_update_unprotected();
 			pthread_mutex_unlock(&interface_lock);
 		} else {
-			input_cmd_id cmd = get_action_of_bind(c, 0, macro_ptr);
+			input_id cmd = get_action_of_bind(ctx, key, 0, macro_ptr);
 			if (cmd == INPUT_START_SEARCH_INPUT) {
 				wstr_set(&search_mode_text_input, L"", 0, 100);
 				search_mode_is_enabled = true;

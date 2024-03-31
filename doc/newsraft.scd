@@ -123,11 +123,12 @@ example:
 
 	_# Look closely. The beautiful may be small._
 
-Both feed and section lines allow you to set individual settings for them. The
-syntax is as follows:
+Both feed and section lines allow you to set individual settings and binds for
+them. The syntax is as follows:
 
 	_@ Lorem Ipsum < reload-period 1440_++
-_https://example.org/feed.xml "Lorem Ipsum Blog" < reload-period 60_
+_http://example.org/feed1.xml "Dolor Sit" < reload-period 60; item-limit 500_++
+_http://example.org/feed2.xml "Id Est" < bind b mark-read; exec book.sh "%l"_
 
 Settings set for feeds take precedence over the settings specified for sections.
 Not every setting supports individual assignment - only settings with *scalable*
@@ -488,7 +489,7 @@ and *colorN* (*N* can be a number from *0* to *255*). Available attributes are
 :[ _mark-important_
 |[ *F*
 :[ _mark-unimportant_
-|[ *^I*, *e*
+|[ *tab*, *e*
 :[ _toggle-explore-mode_
 |[ *v*
 :[ _status-history-menu_

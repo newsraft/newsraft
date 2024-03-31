@@ -142,7 +142,7 @@ items_menu_loop(struct menu_state *m)
 		if (get_cfg_bool(NULL, CFG_MARK_ITEM_READ_ON_HOVER) == true) {
 			mark_item_read(m, m->view_sel, true);
 		}
-		input_cmd_id cmd = get_input_cmd(NULL, &macro);
+		input_id cmd = get_input(m->items->ptr[m->view_sel].feed[0]->binds, NULL, &macro);
 		if (handle_list_menu_control(m, cmd, macro) == true) {
 			continue;
 		}

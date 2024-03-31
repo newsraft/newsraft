@@ -155,13 +155,15 @@ example:
 \fI# Look closely.\& The beautiful may be small.\&\fR
 .PP
 .RE
-Both feed and section lines allow you to set individual settings for them.\& The
-syntax is as follows:
+Both feed and section lines allow you to set individual settings and binds for
+them.\& The syntax is as follows:
 .PP
 .RS 4
 \fI@ Lorem Ipsum < reload-period 1440\fR
 .br
-\fIhttps://example.\&org/feed.\&xml "Lorem Ipsum Blog" < reload-period 60\fR
+\fIhttp://example.\&org/feed1.\&xml "Dolor Sit" < reload-period 60; item-limit 500\fR
+.br
+\fIhttp://example.\&org/feed2.\&xml "Id Est" < bind b mark-read; exec book.\&sh "%l"\fR
 .PP
 .RE
 Settings set for feeds take precedence over the settings specified for sections.\&
@@ -828,7 +830,7 @@ T}	T{
 \fImark-unimportant\fR
 T}
 T{
-\fB^I\fR, \fBe\fR
+\fBtab\fR, \fBe\fR
 T}	T{
 \fItoggle-explore-mode\fR
 T}

@@ -240,6 +240,9 @@ free_sections(void)
 			free_string(sections[0].feeds[i]->name);
 			free_string(sections[0].feeds[i]->link);
 			free_config_context(sections[0].feeds[i]->cfg);
+			if (sections[0].feeds[i]->binds != NULL) {
+				free_binds(sections[0].feeds[i]->binds);
+			}
 			free(sections[0].feeds[i]);
 		}
 	}
@@ -285,7 +288,8 @@ sections_menu_loop(struct menu_state *m)
 	refresh_unread_items_count_of_all_sections();
 	start_menu();
 	const struct wstring *macro;
-	for (input_cmd_id cmd = get_input_cmd(NULL, &macro) ;; cmd = get_input_cmd(NULL, &macro)) {
+	while (true) {
+		input_id cmd = get_input(NULL, NULL, &macro);
 		if (handle_list_menu_control(m, cmd, macro) == true) {
 			continue;
 		}

@@ -172,7 +172,7 @@ undo4:
 undo3:
 	endwin();
 undo2:
-	free_binds();
+	free_binds(NULL);
 undo1:
 	log_stop(error);
 undo0:

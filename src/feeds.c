@@ -132,7 +132,8 @@ feeds_menu_loop(struct menu_state *m)
 	}
 	start_menu();
 	const struct wstring *macro;
-	for (input_cmd_id cmd = get_input_cmd(NULL, &macro) ;; cmd = get_input_cmd(NULL, &macro)) {
+	while (true) {
+		input_id cmd = get_input(m->feeds[m->view_sel]->binds, NULL, &macro);
 		if (handle_list_menu_control(m, cmd, macro) == true) {
 			continue;
 		}

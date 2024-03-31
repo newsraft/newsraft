@@ -23,7 +23,7 @@ bool obtain_useragent_string(struct config_context **ctx, config_type_id id);
 bool obtain_clipboard_command(struct config_context **ctx, config_type_id id);
 bool obtain_notification_command(struct config_context **ctx, config_type_id id);
 
-input_cmd_id get_input_cmd_id_by_name(const char *name);
+input_id get_input_id_by_name(const char *name);
 
 bool parse_color_setting(struct config_context **ctx, config_entry_id id, const char *iter);
 #endif // LOAD_CONFIG_H

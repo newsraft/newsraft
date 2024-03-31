@@ -1,4 +1,5 @@
 #include <string.h>
+#include <strings.h>
 #include "load_config/load_config.h"
 
 static inline void
@@ -62,14 +63,15 @@ process_config_line(struct feed_entry *feed, const char *str, size_t len)
 {
 	struct string *line = crtas(str, len);
 	struct string *token = crtes(200);
-	struct config_context **ctx = feed != NULL ? &feed->cfg : NULL;
+	struct config_context **cfg = feed != NULL ? &feed->cfg : NULL;
+	struct input_binding **binds = feed != NULL ? &feed->binds : NULL;
 	trim_whitespace_from_string(line);
 
 	if (line->len > 0) {
 		INFO("Config line %s -> %s", feed == NULL ? "" : feed->link->ptr, line->ptr);
 	}
 
-	ssize_t bind_index = -1;
+	struct input_binding *bind = NULL;
 
 	while (line->len > 0) {
 		while (line->ptr[0] == ';') {
@@ -96,7 +98,7 @@ process_config_line(struct feed_entry *feed, const char *str, size_t len)
 				goto error;
 			}
 			extract_token_from_line(line, token, false);
-			if (set_cfg_setting(ctx, id, token) != true) {
+			if (set_cfg_setting(cfg, id, token) != true) {
 				goto error;
 			}
 			continue;
@@ -106,10 +108,12 @@ process_config_line(struct feed_entry *feed, const char *str, size_t len)
 			// bind/unbind <key>
 
 			extract_token_from_line(line, token, true);
-			if (token->len == 5 && memcmp(token->ptr, "space", 5) == 0) {
-				bind_index = create_empty_bind_or_clean_existing(" ", 1);
+			if (strcasecmp(token->ptr, "space") == 0) {
+				bind = create_or_clean_bind(binds, " ");
+			} else if (strcasecmp(token->ptr, "tab") == 0) {
+				bind = create_or_clean_bind(binds, "^I");
 			} else {
-				bind_index = create_empty_bind_or_clean_existing(token->ptr, token->len);
+				bind = create_or_clean_bind(binds, token->ptr);
 			}
 			continue;
 
@@ -119,21 +123,21 @@ process_config_line(struct feed_entry *feed, const char *str, size_t len)
 
 			config_entry_id id = find_config_entry_by_name(token->ptr);
 			extract_token_from_line(line, token, false);
-			if (set_cfg_setting(ctx, id, token) != true) {
+			if (set_cfg_setting(cfg, id, token) != true) {
 				goto error;
 			}
 			continue;
 
-		} else if (bind_index > 0) { // Takes previous bind entry into account
+		} else if (bind != NULL) { // Takes previous bind entry into account
 
 			if (strcmp(token->ptr, "exec") == 0) {
 				extract_token_from_line(line, token, false);
-				if (attach_exec_action_to_bind(bind_index, token->ptr, token->len) == false) {
+				if (attach_command_to_bind(bind, token->ptr, token->len) == false) {
 					goto error;
 				}
 			} else {
-				input_cmd_id cmd = get_input_cmd_id_by_name(token->ptr);
-				if (cmd == INPUT_ERROR || attach_cmd_action_to_bind(bind_index, cmd) == false) {
+				input_id cmd = get_input_id_by_name(token->ptr);
+				if (cmd == INPUT_ERROR || attach_action_to_bind(bind, cmd) == false) {
 					goto error;
 				}
 			}

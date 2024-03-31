@@ -153,12 +153,15 @@
 <p class="Pp"></p>
 <div class="Bd-indent"><i># Look closely. The beautiful may be small.</i></div>
 <p class="Pp">Both feed and section lines allow you to set individual settings
-    for them. The syntax is as follows:</p>
+    and binds for them. The syntax is as follows:</p>
 <p class="Pp"></p>
 <div class="Bd-indent"><i>@ Lorem Ipsum &lt; reload-period 1440</i>
 <br/>
-<i>https://example.org/feed.xml &quot;Lorem Ipsum Blog&quot; &lt; reload-period
-  60</i></div>
+<i>http://example.org/feed1.xml &quot;Dolor Sit&quot; &lt; reload-period 60;
+  item-limit 500</i>
+<br/>
+<i>http://example.org/feed2.xml &quot;Id Est&quot; &lt; bind b mark-read; exec
+  book.sh &quot;%l&quot;</i></div>
 <p class="Pp">Settings set for feeds take precedence over the settings specified
     for sections. Not every setting supports individual assignment - only
     settings with <b>scalable</b> mark in <b>SETTINGS</b> section do.</p>
@@ -648,7 +651,7 @@
     <td><i>mark-unimportant</i></td>
   </tr>
   <tr>
-    <td><b>^I</b>, <b>e</b></td>
+    <td><b>tab</b>, <b>e</b></td>
     <td><i>toggle-explore-mode</i></td>
   </tr>
   <tr>

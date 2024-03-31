@@ -558,6 +558,7 @@ unsigned int get_cfg_color(struct config_context **ctx, config_entry_id id);
 const struct string *get_cfg_string(struct config_context **ctx, config_entry_id id);
 const struct wstring *get_cfg_wstring(struct config_context **ctx, config_entry_id id);
 void free_config(void);
+void free_config_context(struct config_context *cfg);
 
 // Download, process and store new items of feed.
 // See "update_feed" directory for implementation.

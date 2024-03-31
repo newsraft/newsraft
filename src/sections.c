@@ -239,6 +239,7 @@ free_sections(void)
 		if (sections[0].feeds[i] != NULL) {
 			free_string(sections[0].feeds[i]->name);
 			free_string(sections[0].feeds[i]->link);
+			free_config_context(sections[0].feeds[i]->cfg);
 			free(sections[0].feeds[i]);
 		}
 	}

@@ -24,7 +24,7 @@ union config_value {
 
 struct config_entry {
 	const char *name;
-	const config_type_id type;
+	config_type_id type;
 	union config_value value;
 };
 
@@ -108,6 +108,7 @@ get_global_or_context_config(struct config_context **ctx, config_entry_id id, bo
 		if (create == true) {
 			struct config_context *new = calloc(1, sizeof(struct config_context));
 			new->id = id;
+			new->cfg.type = get_cfg_type(id);
 			new->next = *ctx;
 			*ctx = new;
 			return &new->cfg;
@@ -237,6 +238,19 @@ free_config(void)
 			free_string(config[i].value.s.actual);
 			free_wstring(config[i].value.s.wactual);
 		}
+	}
+}
+
+void
+free_config_context(struct config_context *c)
+{
+	for (struct config_context *tmp = c; tmp != NULL; c = tmp) {
+		if (c->cfg.type == CFG_STRING) {
+			free_string(c->cfg.value.s.actual);
+			free_wstring(c->cfg.value.s.wactual);
+		}
+		tmp = c->next;
+		free(c);
 	}
 }
 

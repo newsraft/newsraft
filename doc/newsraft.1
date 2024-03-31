@@ -5,7 +5,7 @@
 .nh
 .ad l
 .\" Begin generated content:
-.TH "NEWSRAFT" "1" "2024-03-30"
+.TH "NEWSRAFT" "1" "2024-03-31"
 .PP
 .SH NAME
 .PP
@@ -286,13 +286,13 @@ entry.\& If you set it to a very large value the selected entry will always be
 in the middle of the list menu (except for start and end of the list menu).\&
 .PP
 .RE
-\fIpager-width\fR (default: \fB100\fR)
+\fIpager-width\fR (\fBscalable\fR, default: \fB100\fR)
 .RS 4
 Pager width in characters.\& If set to \fB0\fR, the pager will take up all available
 space.\&
 .PP
 .RE
-\fIpager-centering\fR (default: \fBtrue\fR)
+\fIpager-centering\fR (\fBscalable\fR, default: \fBtrue\fR)
 .RS 4
 Whether the pager should center its content when \fIpager-width\fR is not \fB0\fR.\& If
 set to \fBfalse\fR, the pager will be aligned to the left.\&
@@ -320,7 +320,7 @@ Sorting order for the items menu.\& Available values: \fBtime-desc\fR, \fBtime-a
 \fBalphabet-desc\fR, \fBalphabet-asc\fR.\&
 .PP
 .RE
-\fIopen-in-browser-command\fR (default: \fB${BROWSER:-xdg-open} "%l"\fR)
+\fIopen-in-browser-command\fR (\fBscalable\fR, default: \fB${BROWSER:-xdg-open} "%l"\fR)
 .RS 4
 Shell command for opening URL in a web browser.\& The URL to be opened is put
 in place where \fB%l\fR specifier is located.\&
@@ -368,7 +368,7 @@ Password for authentication with the proxy server.\&
 Name of the section that contains all feeds.\&
 .PP
 .RE
-\fIitem-content-format\fR (default: \fB<b>Feed</b>:&nbsp;&nbsp;%f<br>|<b>Title</b>:&nbsp;%t<br>|<b>Date</b>:&nbsp;&nbsp;%d<br>|<br>%c<br>|<br><hr>%L\fR)
+\fIitem-content-format\fR (\fBscalable\fR, default: \fB<b>Feed</b>:&nbsp;&nbsp;%f<br>|<b>Title</b>:&nbsp;%t<br>|<b>Date</b>:&nbsp;&nbsp;%d<br>|<br>%c<br>|<br><hr>%L\fR)
 .RS 4
 Sets the format according to which the item'\&s content will be generated.\&
 The text in this format string is HTML formatted.\& Fields are separated by \fB|\fR
@@ -390,13 +390,13 @@ the field, then the entire field will not be shown.\& Specifiers are as follows:
 \fBL\fR	item links list.\&
 .PP
 .RE
-\fIitem-content-date-format\fR (default: \fB%a, %d %b %Y %H:%M:%S %z\fR)
+\fIitem-content-date-format\fR (\fBscalable\fR, default: \fB%a, %d %b %Y %H:%M:%S %z\fR)
 .RS 4
 Date format in the item'\&s content.\& Specifier values correspond to the
 \fBstrftime\fR(3) format.\&
 .PP
 .RE
-\fIitem-content-link-format\fR (default: \fB<b>[%i]</b>:&nbsp;%l<br>\fR)
+\fIitem-content-link-format\fR (\fBscalable\fR, default: \fB<b>[%i]</b>:&nbsp;%l<br>\fR)
 .RS 4
 Link format in the links list of item'\&s content.\& \fB%i\fR and \fB%l\fR will be
 replaced by link index and link address respectively.\&

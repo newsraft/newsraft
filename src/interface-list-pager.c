@@ -1,8 +1,9 @@
 #include <stdlib.h>
 #include "newsraft.h"
 
+static struct config_context **pager_context = NULL;
 static struct render_result content = {0};
-static struct render_blocks_list *blocks;
+static struct render_blocks_list *pager_blocks = NULL;
 
 bool
 is_pager_pos_valid(struct menu_state *ctx, size_t index)
@@ -45,9 +46,10 @@ pager_menu_writer(size_t index, WINDOW *w)
 }
 
 bool
-start_pager_menu(struct render_blocks_list *new_blocks)
+start_pager_menu(struct config_context **new_ctx, struct render_blocks_list *new_blocks)
 {
-	blocks = new_blocks;
+	pager_context = new_ctx;
+	pager_blocks = new_blocks;
 	return refresh_pager_menu();
 }
 
@@ -61,5 +63,5 @@ refresh_pager_menu(void)
 	free(content.lines);
 	content.lines = NULL;
 	content.lines_len = 0;
-	return render_data(&content, blocks, list_menu_width);
+	return render_data(pager_context, &content, pager_blocks, list_menu_width);
 }

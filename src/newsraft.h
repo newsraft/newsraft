@@ -365,7 +365,7 @@ void start_menu(void);
 // See "interface-list-pager.c" file for implementation.
 bool is_pager_pos_valid(struct menu_state *ctx, size_t index);
 void pager_menu_writer(size_t index, WINDOW *w);
-bool start_pager_menu(struct render_blocks_list *new_blocks);
+bool start_pager_menu(struct config_context **new_ctx, struct render_blocks_list *new_blocks);
 bool refresh_pager_menu(void);
 
 // See "format.c" file for implementation.
@@ -405,7 +405,7 @@ void free_render_blocks(struct render_blocks_list *blocks);
 bool prepare_to_render_data(struct render_blocks_list *blocks, struct links_list *links);
 
 // See "render_data" directory for implementation.
-bool render_data(struct render_result *result, struct render_blocks_list *blocks, size_t content_width);
+bool render_data(struct config_context **ctx, struct render_result *result, struct render_blocks_list *blocks, size_t content_width);
 
 // See "items-metadata.c" file for implementation.
 bool generate_render_blocks_based_on_item_data(struct render_blocks_list *blocks, const struct item_entry *item, sqlite3_stmt *res);
@@ -417,7 +417,7 @@ bool get_largest_piece_from_item_attachments(const char *attachments, struct str
 // See "items-metadata-links.c" file for implementation.
 int64_t add_another_url_to_trim_links_list(struct links_list *links, const char *url, size_t url_len);
 bool populate_link_list_with_links_of_item(struct links_list *links, sqlite3_stmt *res);
-struct wstring *generate_link_list_wstring_for_pager(const struct links_list *links);
+struct wstring *generate_link_list_wstring_for_pager(struct config_context **ctx, const struct links_list *links);
 bool complete_urls_of_links(struct links_list *links);
 void free_links_list(const struct links_list *links);
 
@@ -434,7 +434,7 @@ const char *get_db_path(void);
 
 // See "dates.c" file for implementation.
 int64_t parse_date_rfc3339(const char *src);
-struct string *get_config_date_str(int64_t date, config_entry_id format_index);
+struct string *get_cfg_date(struct config_context **ctx, config_entry_id format_id, int64_t date);
 
 // See "db.c" file for implementation.
 bool db_init(void);

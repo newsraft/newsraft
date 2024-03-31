@@ -133,7 +133,7 @@ items_menu_loop(struct menu_state *m)
 		}
 	}
 	start_menu();
-	const struct wstring *macro;
+	const struct wstring *macro, *browser;
 	while (true) {
 		if (m->items_age != items_age) {
 			m->items_age = items_age;
@@ -172,7 +172,9 @@ items_menu_loop(struct menu_state *m)
 			case INPUT_APPLY_SEARCH_MODE_FILTER:
 				change_search_filter_of_items_list(&m->items, search_mode_text_input); break;
 			case INPUT_OPEN_IN_BROWSER:
-				run_formatted_command(get_cfg_wstring(NULL, CFG_OPEN_IN_BROWSER_COMMAND), get_item_args(m, m->view_sel)); break;
+				browser = get_cfg_wstring(&m->items->ptr[m->view_sel].feed[0]->cfg, CFG_OPEN_IN_BROWSER_COMMAND);
+				run_formatted_command(browser, get_item_args(m, m->view_sel));
+				break;
 			case INPUT_SORT_BY_TIME:
 			case INPUT_SORT_BY_UNREAD:
 			case INPUT_SORT_BY_ALPHABET:

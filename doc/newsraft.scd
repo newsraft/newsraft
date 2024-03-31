@@ -216,11 +216,11 @@ _scrolloff_ (default: *0*)
 	entry. If you set it to a very large value the selected entry will always be
 	in the middle of the list menu (except for start and end of the list menu).
 
-_pager-width_ (default: *100*)
+_pager-width_ (*scalable*, default: *100*)
 	Pager width in characters. If set to *0*, the pager will take up all available
 	space.
 
-_pager-centering_ (default: *true*)
+_pager-centering_ (*scalable*, default: *true*)
 	Whether the pager should center its content when _pager-width_ is not *0*. If
 	set to *false*, the pager will be aligned to the left.
 
@@ -240,7 +240,7 @@ _menu-item-sorting_ (default: *time-desc*)
 	*unread-desc*, *unread-asc*, *important-desc*, *important-asc*,
 	*alphabet-desc*, *alphabet-asc*.
 
-_open-in-browser-command_ (default: *${BROWSER:-xdg-open} "%l"*)
+_open-in-browser-command_ (*scalable*, default: *${BROWSER:-xdg-open} "%l"*)
 	Shell command for opening URL in a web browser. The URL to be opened is put
 	in place where *%l* specifier is located.
 
@@ -274,7 +274,7 @@ _proxy-password_ (*scalable*, default: *""*)
 _global-section-name_ (default: *Global*)
 	Name of the section that contains all feeds.
 
-_item-content-format_ (default: *<b>Feed</b>:&nbsp;&nbsp;%f<br>|<b>Title</b>:&nbsp;%t<br>|<b>Date</b>:&nbsp;&nbsp;%d<br>|<br>%c<br>|<br><hr>%L*)
+_item-content-format_ (*scalable*, default: *<b>Feed</b>:&nbsp;&nbsp;%f<br>|<b>Title</b>:&nbsp;%t<br>|<b>Date</b>:&nbsp;&nbsp;%d<br>|<br>%c<br>|<br><hr>%L*)
 	Sets the format according to which the item's content will be generated.
 	The text in this format string is HTML formatted. Fields are separated by *|*
 	character. If an item doesn't have a value corresponding to the specifier in
@@ -287,11 +287,11 @@ _item-content-format_ (default: *<b>Feed</b>:&nbsp;&nbsp;%f<br>|<b>Title</b>:&nb
 *c*	item content;++
 *L*	item links list.
 
-_item-content-date-format_ (default: *%a, %d %b %Y %H:%M:%S %z*)
+_item-content-date-format_ (*scalable*, default: *%a, %d %b %Y %H:%M:%S %z*)
 	Date format in the item's content. Specifier values correspond to the
 	*strftime*(3) format.
 
-_item-content-link-format_ (default: *<b>[%i]</b>:&nbsp;%l<br>*)
+_item-content-link-format_ (*scalable*, default: *<b>[%i]</b>:&nbsp;%l<br>*)
 	Link format in the links list of item's content. *%i* and *%l* will be
 	replaced by link index and link address respectively.
 

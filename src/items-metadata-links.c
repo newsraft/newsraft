@@ -185,12 +185,12 @@ populate_link_list_with_links_of_item(struct links_list *links, sqlite3_stmt *re
 }
 
 struct wstring *
-generate_link_list_wstring_for_pager(const struct links_list *links)
+generate_link_list_wstring_for_pager(struct config_context **ctx, const struct links_list *links)
 {
 	struct wstring *list = wcrtes(200);
 	struct wstring *fmt_out = wcrtes(200);
 	struct string *str = crtes(200);
-	const struct wstring *link_fmt = get_cfg_wstring(NULL, CFG_ITEM_CONTENT_LINK_FORMAT);
+	const struct wstring *link_fmt = get_cfg_wstring(ctx, CFG_ITEM_CONTENT_LINK_FORMAT);
 #define CONVERT_OUT_SIZE 200
 	char convert_out[CONVERT_OUT_SIZE];
 	int convert_len;

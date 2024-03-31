@@ -119,8 +119,8 @@ obtain_items_at_least_up_to_the_given_index(struct items_list *items, size_t ind
 		if (items->ptr[items->len].upd_date <= 0 && items->ptr[items->len].pub_date > 0) {
 			items->ptr[items->len].upd_date = items->ptr[items->len].pub_date;
 		}
-		items->ptr[items->len].date_str = get_config_date_str(items->ptr[items->len].upd_date, CFG_LIST_ENTRY_DATE_FORMAT);
-		items->ptr[items->len].pub_date_str = get_config_date_str(items->ptr[items->len].pub_date, CFG_LIST_ENTRY_DATE_FORMAT);
+		items->ptr[items->len].date_str = get_cfg_date(NULL, CFG_LIST_ENTRY_DATE_FORMAT, items->ptr[items->len].upd_date);
+		items->ptr[items->len].pub_date_str = get_cfg_date(NULL, CFG_LIST_ENTRY_DATE_FORMAT, items->ptr[items->len].pub_date);
 
 		items->ptr[items->len].is_unread = sqlite3_column_int(items->res, 6); // unread
 		items->ptr[items->len].is_important = sqlite3_column_int(items->res, 7); // important

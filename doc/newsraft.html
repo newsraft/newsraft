@@ -263,10 +263,10 @@
   below the selected entry. If you set it to a very large value the selected
   entry will always be in the middle of the list menu (except for start and end
   of the list menu).</div>
-<p class="Pp"><i>pager-width</i> (default: <b>100</b>)</p>
+<p class="Pp"><i>pager-width</i> (<b>scalable</b>, default: <b>100</b>)</p>
 <div class="Bd-indent">Pager width in characters. If set to <b>0</b>, the pager
   will take up all available space.</div>
-<p class="Pp"><i>pager-centering</i> (default: <b>true</b>)</p>
+<p class="Pp"><i>pager-centering</i> (<b>scalable</b>, default: <b>true</b>)</p>
 <div class="Bd-indent">Whether the pager should center its content when
   <i>pager-width</i> is not <b>0</b>. If set to <b>false</b>, the pager will be
   aligned to the left.</div>
@@ -285,8 +285,8 @@
   <b>time-desc</b>, <b>time-asc</b>, <b>unread-desc</b>, <b>unread-asc</b>,
   <b>important-desc</b>, <b>important-asc</b>, <b>alphabet-desc</b>,
   <b>alphabet-asc</b>.</div>
-<p class="Pp"><i>open-in-browser-command</i> (default: <b>${BROWSER:-xdg-open}
-    &quot;%l&quot;</b>)</p>
+<p class="Pp"><i>open-in-browser-command</i> (<b>scalable</b>, default:
+    <b>${BROWSER:-xdg-open} &quot;%l&quot;</b>)</p>
 <div class="Bd-indent">Shell command for opening URL in a web browser. The URL
   to be opened is put in place where <b>%l</b> specifier is located.</div>
 <p class="Pp"><i>copy-to-clipboard-command</i> (default: <b>auto</b>)</p>
@@ -319,7 +319,7 @@
 <div class="Bd-indent">Password for authentication with the proxy server.</div>
 <p class="Pp"><i>global-section-name</i> (default: <b>Global</b>)</p>
 <div class="Bd-indent">Name of the section that contains all feeds.</div>
-<p class="Pp"><i>item-content-format</i> (default:
+<p class="Pp"><i>item-content-format</i> (<b>scalable</b>, default:
     <b>&lt;b&gt;Feed&lt;/b&gt;:&amp;nbsp;&amp;nbsp;%f&lt;br&gt;|&lt;b&gt;Title&lt;/b&gt;:&amp;nbsp;%t&lt;br&gt;|&lt;b&gt;Date&lt;/b&gt;:&amp;nbsp;&amp;nbsp;%d&lt;br&gt;|&lt;br&gt;%c&lt;br&gt;|&lt;br&gt;&lt;hr&gt;%L</b>)</p>
 <div class="Bd-indent">Sets the format according to which the item's content
   will be generated. The text in this format string is HTML formatted. Fields
@@ -340,11 +340,11 @@
 <b>c</b>	item content;
 <br/>
 <b>L</b>	item links list.</div>
-<p class="Pp"><i>item-content-date-format</i> (default: <b>%a, %d %b %Y %H:%M:%S
-    %z</b>)</p>
+<p class="Pp"><i>item-content-date-format</i> (<b>scalable</b>, default: <b>%a,
+    %d %b %Y %H:%M:%S %z</b>)</p>
 <div class="Bd-indent">Date format in the item's content. Specifier values
   correspond to the <b>strftime</b>(3) format.</div>
-<p class="Pp"><i>item-content-link-format</i> (default:
+<p class="Pp"><i>item-content-link-format</i> (<b>scalable</b>, default:
     <b>&lt;b&gt;[%i]&lt;/b&gt;:&amp;nbsp;%l&lt;br&gt;</b>)</p>
 <div class="Bd-indent">Link format in the links list of item's content.
   <b>%i</b> and <b>%l</b> will be replaced by link index and link address
@@ -765,7 +765,7 @@
 </div>
 <table class="foot">
   <tr>
-    <td class="foot-date">2024-03-30</td>
+    <td class="foot-date">2024-03-31</td>
     <td class="foot-os"></td>
   </tr>
 </table>

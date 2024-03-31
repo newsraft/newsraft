@@ -21,13 +21,13 @@ block_date(const struct item_entry *item)
 		return NULL;
 	}
 	struct string *date_entry = crtes(100);
-	struct string *date_str = get_config_date_str(item->pub_date == 0 ? item->upd_date : item->pub_date, CFG_ITEM_CONTENT_DATE_FORMAT);
+	struct string *date_str = get_cfg_date(&item->feed[0]->cfg, CFG_ITEM_CONTENT_DATE_FORMAT, item->pub_date == 0 ? item->upd_date : item->pub_date);
 	if (date_entry == NULL || date_str == NULL) goto error;
 	if (item->pub_date > 0 && item->upd_date > 0 && item->pub_date != item->upd_date) {
 		if (catss(date_entry, date_str) == false) goto error;
 		if (catas(date_entry, " (updated ", 10) == false) goto error;
 		free_string(date_str);
-		date_str = get_config_date_str(item->upd_date, CFG_ITEM_CONTENT_DATE_FORMAT);
+		date_str = get_cfg_date(&item->feed[0]->cfg, CFG_ITEM_CONTENT_DATE_FORMAT, item->upd_date);
 		if (date_str == NULL) goto error;
 		if (catcs(date_str, ')') == false) goto error;
 	}
@@ -88,7 +88,7 @@ generate_render_blocks_based_on_item_data(struct render_blocks_list *blocks, con
 #define MAX_ENTRY_LENGTH 1000
 	char entry[MAX_ENTRY_LENGTH + 10];
 	size_t entry_len = 0;
-	const struct string *content_order = get_cfg_string(NULL, CFG_ITEM_CONTENT_FORMAT);
+	const struct string *content_order = get_cfg_string(&item->feed[0]->cfg, CFG_ITEM_CONTENT_FORMAT);
 	for (const char *i = content_order->ptr; ; ++i) {
 		if (*i == '|' || *i == '\0') {
 			entry[entry_len] = '\0';

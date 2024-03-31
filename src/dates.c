@@ -37,22 +37,18 @@ parse_date_rfc3339(const char *src)
 }
 
 struct string *
-get_config_date_str(int64_t date, config_entry_id format_index)
+get_cfg_date(struct config_context **ctx, config_entry_id format_id, int64_t date)
 {
-	const struct string *format = get_cfg_string(NULL, format_index);
-	struct string *date_str = crtes(format->len + 1000);
-	if (date_str == NULL) {
-		FAIL("Not enough memory for date string!");
+	const struct string *format = get_cfg_string(ctx, format_id);
+	struct string *str = crtes(format->len + 1000);
+	if (str == NULL) {
 		return NULL;
 	}
-	struct tm localtime_data;
-	size_t date_str_len = strftime(date_str->ptr, date_str->lim, format->ptr, localtime_r((time_t *)&date, &localtime_data));
-	if (date_str_len == 0) {
-		FAIL("Failed to create date string!");
-		free_string(date_str);
-		return NULL;
+	struct tm timedata;
+	str->len = strftime(str->ptr, str->lim, format->ptr, localtime_r((time_t *)&date, &timedata));
+	str->ptr[str->len] = '\0';
+	if (str->len == 0) {
+		WARN("Failed to format date string!");
 	}
-	date_str->ptr[date_str_len] = '\0';
-	date_str->len = date_str_len;
-	return date_str;
+	return str;
 }

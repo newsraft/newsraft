@@ -21,7 +21,7 @@ populate_render_blocks_list_with_data_from_item(const struct item_entry *item, s
 		if (complete_urls_of_links(links) == false) {
 			goto error;
 		}
-		struct wstring *links_wstr = generate_link_list_wstring_for_pager(links);
+		struct wstring *links_wstr = generate_link_list_wstring_for_pager(&item->feed[0]->cfg, links);
 		if (links_wstr == NULL) {
 			goto error;
 		}
@@ -68,7 +68,7 @@ item_pager_loop(struct menu_state *m)
 	if (populate_render_blocks_list_with_data_from_item(item, &blocks, &links) == false) {
 		goto quit;
 	}
-	if (start_pager_menu(&blocks) == false) {
+	if (start_pager_menu(&item->feed[0]->cfg, &blocks) == false) {
 		goto quit;
 	}
 	db_mark_item_read(item->rowid, true);
@@ -97,8 +97,9 @@ item_pager_loop(struct menu_state *m)
 			free_links_list(&links);
 			return cmd == INPUT_QUIT_HARD ? NULL : setup_menu(NULL, NULL, 0, 0);
 		} else if (cmd == INPUT_OPEN_IN_BROWSER && count > 0 && count <= links.len) {
+			const struct wstring *browser = get_cfg_wstring(&item->feed[0]->cfg, CFG_OPEN_IN_BROWSER_COMMAND);
 			items_pager_fmt_args[0].value.s = links.ptr[count - 1].url->ptr;
-			run_formatted_command(get_cfg_wstring(NULL, CFG_OPEN_IN_BROWSER_COMMAND), items_pager_fmt_args);
+			run_formatted_command(browser, items_pager_fmt_args);
 		} else if (cmd == INPUT_COPY_TO_CLIPBOARD && count > 0 && count <= links.len) {
 			copy_string_to_clipboard(links.ptr[count - 1].url);
 		} else if (cmd == INPUT_SYSTEM_COMMAND && count > 0 && count <= links.len) {

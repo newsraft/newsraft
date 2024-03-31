@@ -50,7 +50,7 @@ main(void)
 				render_tests[i].blocks[j].needs_trimming
 			);
 		}
-		render_data(&result, &blocks, 80);
+		render_data(NULL, &result, &blocks, 80);
 		if (result.lines_len != render_tests[i].lines_count) {
 			fprintf(stderr, "%s: test %zu fails (invalid number of lines)!\n", __FILE__, i);
 			return 1;

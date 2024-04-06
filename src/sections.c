@@ -200,34 +200,27 @@ refresh_unread_items_count_of_all_sections(void)
 bool
 purge_abandoned_feeds(void)
 {
-	if (sections[0].feeds_count == 0) {
+	char *query = malloc(sizeof(char) * (42 + sections[0].feeds_count * 2 + 100));
+	if (query == NULL || sections[0].feeds_count == 0) {
+		free(query);
 		return true;
 	}
-	struct string *query = crtas("DELETE FROM items WHERE feed_url NOT IN (?", 42);
-	if (query == NULL) {
-		return false;
-	}
+	strcpy(query, "DELETE FROM items WHERE feed_url NOT IN (?");
 	for (size_t i = 1; i < sections[0].feeds_count; ++i) {
-		if (catas(query, ",?", 2) == false) {
-			free_string(query);
-			return false;
-		}
+		strcat(query, ",?");
 	}
-	if (catcs(query, ')') == false) {
-		free_string(query);
-		return false;
-	}
-	sqlite3_stmt *res = db_prepare(query->ptr, query->len + 1);
+	strcat(query, ")");
+	sqlite3_stmt *res = db_prepare(query, strlen(query) + 1);
 	if (res == NULL) {
-		free_string(query);
+		free(query);
 		return false;
 	}
 	for (size_t i = 0; i < sections[0].feeds_count; ++i) {
 		db_bind_string(res, i + 1, sections[0].feeds[i]->link);
 	}
-	const bool status = sqlite3_step(res) == SQLITE_DONE ? true : false;
+	bool status = sqlite3_step(res) == SQLITE_DONE ? true : false;
 	sqlite3_finalize(res);
-	free_string(query);
+	free(query);
 	return status;
 }
 

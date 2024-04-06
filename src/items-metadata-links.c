@@ -86,9 +86,9 @@ free_links_list(const struct links_list *links)
 }
 
 static inline bool
-append_raw_link(struct links_list *links, sqlite3_stmt *res, items_column_id column)
+append_item_link(struct links_list *links, sqlite3_stmt *res)
 {
-	const char *text = (char *)sqlite3_column_text(res, column);
+	const char *text = (char *)sqlite3_column_text(res, ITEM_COLUMN_LINK);
 	if (text != NULL) {
 		size_t text_len = strlen(text);
 		if (text_len != 0) {
@@ -176,12 +176,7 @@ error:
 bool
 populate_link_list_with_links_of_item(struct links_list *links, sqlite3_stmt *res)
 {
-	if (append_raw_link(links, res, ITEM_COLUMN_LINK) == true) {
-		if (append_attachments(links, res) == true) {
-			return true;
-		}
-	}
-	return false;
+	return append_item_link(links, res) && append_attachments(links, res);
 }
 
 struct wstring *

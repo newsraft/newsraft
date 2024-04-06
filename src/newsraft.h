@@ -122,8 +122,7 @@ enum {
 	INPUT_APPLY_SEARCH_MODE_FILTER,
 };
 
-typedef int8_t feeds_column_id;
-enum feed_column {
+enum {
 	FEED_COLUMN_FEED_URL,
 	FEED_COLUMN_TITLE,
 	FEED_COLUMN_LINK,
@@ -140,7 +139,6 @@ enum feed_column {
 	FEED_COLUMN_NONE,
 };
 
-typedef int8_t items_column_id;
 enum {
 	ITEM_COLUMN_FEED_URL,
 	ITEM_COLUMN_GUID,
@@ -190,8 +188,9 @@ enum { // Even is ascending, odd is descending
 typedef uint8_t render_block_format;
 enum {
 	TEXT_PLAIN,
-	TEXT_RAW, // Same thing as TEXT_PLAIN, but without search for links.
+	TEXT_RAW,   // Same thing as TEXT_PLAIN, but without link marks
 	TEXT_HTML,
+	TEXT_LINKS, // Special block type which has to be populated with links
 };
 
 typedef uint8_t format_hint_mask;
@@ -307,7 +306,6 @@ struct render_block {
 struct render_blocks_list {
 	struct render_block *ptr;
 	size_t len;
-	size_t links_block_index;
 };
 
 struct format_hint {
@@ -405,7 +403,7 @@ struct menu_state *item_pager_loop(struct menu_state *m);
 // and generates a single plain text buffer for a pager to display.
 // See "render-block.c" file for implementation.
 bool add_render_block(struct render_blocks_list *blocks, const char *content, size_t content_len, render_block_format content_type, bool needs_trimming);
-bool apply_links_render_blocks(struct render_blocks_list *blocks, const struct wstring *data);
+void apply_links_render_blocks(struct render_blocks_list *blocks, const struct wstring *data);
 void free_render_blocks(struct render_blocks_list *blocks);
 
 // Here we extract links from texts of render_block entries into links_list and

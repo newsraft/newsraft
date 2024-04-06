@@ -25,10 +25,7 @@ populate_render_blocks_list_with_data_from_item(const struct item_entry *item, s
 		if (links_wstr == NULL) {
 			goto error;
 		}
-		if (apply_links_render_blocks(blocks, links_wstr) == false) {
-			free_wstring(links_wstr);
-			goto error;
-		}
+		apply_links_render_blocks(blocks, links_wstr);
 		free_wstring(links_wstr);
 	}
 	sqlite3_finalize(res);

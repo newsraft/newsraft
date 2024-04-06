@@ -99,10 +99,8 @@ generate_render_blocks_based_on_item_data(struct render_blocks_list *blocks, con
 				*percent_pos = '\0';
 				char specifier = *(percent_pos + 1);
 				if (specifier == 'L') {
-					// Block with links list will be added later, in apply_links_render_blocks call.
-					// It's this way because links list content depends on what item content has.
 					add_render_block(blocks, entry, strlen(entry), TEXT_HTML, false);
-					blocks->links_block_index = blocks->len;
+					add_render_block(blocks, " ", 1, TEXT_LINKS, false); // Later filled with links of item
 					add_render_block(blocks, percent_pos + 2, strlen(percent_pos + 2), TEXT_HTML, false);
 				} else if (specifier == 'c') {
 					render_block_format type = TEXT_PLAIN;

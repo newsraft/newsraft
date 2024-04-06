@@ -22,27 +22,17 @@ add_render_block(struct render_blocks_list *blocks, const char *content, size_t 
 	return true;
 }
 
-bool
+void
 apply_links_render_blocks(struct render_blocks_list *blocks, const struct wstring *data)
 {
-	if (blocks->len == 0 || blocks->links_block_index == 0 || data == NULL || data->ptr == NULL || data->len == 0) {
-		return true; // Ignore when links block is not needed or when it is empty.
+	if (data != NULL && data->ptr != NULL && data->len > 0) {
+		for (size_t i = 0; i < blocks->len; ++i) {
+			if (blocks->ptr[i].content_type == TEXT_LINKS) {
+				wstr_set(&blocks->ptr[i].content, data->ptr, data->len, data->len);
+				blocks->ptr[i].content_type = TEXT_HTML;
+			}
+		}
 	}
-	void *tmp = realloc(blocks->ptr, sizeof(struct render_block) * (blocks->len + 3));
-	if (tmp == NULL) {
-		return false;
-	}
-	blocks->ptr = tmp;
-	for (size_t i = blocks->len - 1; i >= blocks->links_block_index; --i) {
-		blocks->ptr[i + 1].content        = blocks->ptr[i].content;
-		blocks->ptr[i + 1].content_type   = blocks->ptr[i].content_type;
-		blocks->ptr[i + 1].needs_trimming = blocks->ptr[i].needs_trimming;
-	}
-	blocks->ptr[blocks->links_block_index].content        = wcrtas(data->ptr, data->len);
-	blocks->ptr[blocks->links_block_index].content_type   = TEXT_HTML;
-	blocks->ptr[blocks->links_block_index].needs_trimming = true;
-	blocks->len += 1;
-	return true;
 }
 
 void

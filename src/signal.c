@@ -4,15 +4,11 @@
 bool
 register_signal_handlers(void)
 {
-	struct sigaction act = {0};
-	act.sa_handler = &tell_program_to_terminate_safely_and_quickly;
-	if (sigaction(SIGQUIT, &act, NULL) == 0) {
-		if (sigaction(SIGINT, &act, NULL) == 0) {
-			if (sigaction(SIGTERM, &act, NULL) == 0) {
-				return true;
-			}
-		}
+	struct sigaction s = {0};
+	s.sa_handler = &tell_program_to_terminate_safely_and_quickly;
+	if (sigaction(SIGQUIT, &s, NULL) || sigaction(SIGINT, &s, NULL) || sigaction(SIGTERM, &s, NULL)) {
+		write_error("Failed to register signal handlers!\n");
+		return false;
 	}
-	write_error("Failed to register signal handlers!\n");
-	return false;
+	return true;
 }

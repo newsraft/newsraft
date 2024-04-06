@@ -179,21 +179,21 @@ free_string(struct string *str)
 void
 trim_whitespace_from_string(struct string *str)
 {
-	if (str->len != 0) {
+	if (str != NULL && str->len > 0) {
 		size_t left_edge = 0;
-		while (left_edge < str->len && ISWHITESPACE(*(str->ptr + left_edge))) {
-			++left_edge;
+		while (left_edge < str->len && ISWHITESPACE(str->ptr[left_edge])) {
+			left_edge += 1;
 		}
-		while (left_edge < str->len && ISWHITESPACE(*(str->ptr + str->len - 1))) {
+		while (left_edge < str->len && ISWHITESPACE(str->ptr[str->len - 1])) {
 			str->len -= 1;
 		}
-		if (left_edge != 0) {
+		if (left_edge > 0) {
 			str->len -= left_edge;
 			for (size_t i = 0; i < str->len; ++i) {
-				*(str->ptr + i) = *(str->ptr + i + left_edge);
+				str->ptr[i] = str->ptr[i + left_edge];
 			}
 		}
-		*(str->ptr + str->len) = '\0';
+		str->ptr[str->len] = '\0';
 	}
 }
 

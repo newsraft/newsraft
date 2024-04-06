@@ -16,8 +16,7 @@ prepend_item(struct getfeed_item **head_item_ptr)
 void
 free_item(struct getfeed_item *item)
 {
-	struct getfeed_item *temp;
-	while (item != NULL) {
+	for (struct getfeed_item *i = item; i != NULL; item = i) {
 		free_string(item->guid);
 		free_string(item->title);
 		free_string(item->url);
@@ -25,8 +24,7 @@ free_item(struct getfeed_item *item)
 		free_string(item->attachments);
 		free_string(item->persons);
 		free_string(item->extras);
-		temp = item;
-		item = item->next;
-		free(temp);
+		i = item->next;
+		free(item);
 	}
 }

@@ -77,21 +77,20 @@ get_unread_items_count_of_the_feed(const struct string *url)
 int64_t
 get_items_count_of_feeds(struct feed_entry **feeds, size_t feeds_count)
 {
-	struct string *query = crtas("SELECT COUNT(*) FROM items WHERE feed_url IN (?", 47);
+	char *query = malloc(sizeof(char) * (47 + feeds_count * 2 + 100));
 	if (feeds_count == 0 || query == NULL) {
-		goto error;
+		free(query);
+		return 0;
 	}
+	strcpy(query, "SELECT COUNT(*) FROM items WHERE feed_url IN (?");
 	for (size_t i = 1; i < feeds_count; ++i) {
-		if (catas(query, ",?", 2) == false) {
-			goto error;
-		}
+		strcat(query, ",?");
 	}
-	if (catcs(query, ')') == false) {
-		goto error;
-	}
-	sqlite3_stmt *res = db_prepare(query->ptr, query->len + 1);
+	strcat(query, ")");
+	sqlite3_stmt *res = db_prepare(query, strlen(query) + 1);
 	if (res == NULL) {
-		goto error;
+		free(query);
+		return 0;
 	}
 	for (size_t i = 0; i < feeds_count; ++i) {
 		db_bind_string(res, i + 1, feeds[i]->link);
@@ -101,48 +100,34 @@ get_items_count_of_feeds(struct feed_entry **feeds, size_t feeds_count)
 		count = sqlite3_column_int64(res, 0);
 	}
 	sqlite3_finalize(res);
-	free_string(query);
+	free(query);
 	return count > 0 ? count : 0;
-error:
-	free_string(query);
-	return 0;
 }
 
 bool
 db_change_unread_status_of_all_items_in_feeds(struct feed_entry **feeds, size_t feeds_count, bool unread)
 {
-	if (feeds_count == 0) {
+	char *query = malloc(sizeof(char) * (46 + feeds_count * 2 + 100));
+	if (feeds_count == 0 || query == NULL) {
+		free(query);
 		return true;
 	}
-	struct string *query = crtas("UPDATE items SET unread=? WHERE feed_url IN (?", 46);
-	if (query == NULL) {
-		return false;
-	}
+	strcpy(query, "UPDATE items SET unread=? WHERE feed_url IN (?");
 	for (size_t i = 1; i < feeds_count; ++i) {
-		if (catas(query, ",?", 2) == false) {
-			free_string(query);
-			return false;
-		}
+		strcat(query, ",?");
 	}
-	if (catcs(query, ')') == false) {
-		free_string(query);
-		return false;
-	}
-	sqlite3_stmt *res = db_prepare(query->ptr, query->len + 1);
+	strcat(query, ")");
+	sqlite3_stmt *res = db_prepare(query, strlen(query) + 1);
 	if (res == NULL) {
-		free_string(query);
+		free(query);
 		return false;
 	}
 	sqlite3_bind_int(res, 1, unread);
 	for (size_t i = 0; i < feeds_count; ++i) {
 		db_bind_string(res, i + 2, feeds[i]->link);
 	}
-	if (sqlite3_step(res) != SQLITE_DONE) {
-		sqlite3_finalize(res);
-		free_string(query);
-		return false;
-	}
+	bool status = sqlite3_step(res) == SQLITE_DONE ? true : false;
 	sqlite3_finalize(res);
-	free_string(query);
-	return true;
+	free(query);
+	return status;
 }

@@ -242,15 +242,15 @@ free_config(void)
 }
 
 void
-free_config_context(struct config_context *c)
+free_config_context(struct config_context *ctx)
 {
-	for (struct config_context *tmp = c; tmp != NULL; c = tmp) {
-		if (c->cfg.type == CFG_STRING) {
-			free_string(c->cfg.value.s.actual);
-			free_wstring(c->cfg.value.s.wactual);
+	for (struct config_context *c = ctx; c != NULL; ctx = c) {
+		if (ctx->cfg.type == CFG_STRING) {
+			free_string(ctx->cfg.value.s.actual);
+			free_wstring(ctx->cfg.value.s.wactual);
 		}
-		tmp = c->next;
-		free(c);
+		c = ctx->next;
+		free(ctx);
 	}
 }
 

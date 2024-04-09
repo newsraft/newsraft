@@ -25,20 +25,20 @@ Check out [comparison of Newsraft and Newsboat](https://codeberg.org/newsraft/ne
 
 ## Dependencies
 
-| Name                                                               | Version   | Necessity              |
-|--------------------------------------------------------------------|-----------|------------------------|
-| [curl](https://curl.se)                                            | >= 7.87.0 | required               |
-| [expat](https://github.com/libexpat/libexpat)                      | >= 2.4.8  | required               |
-| [gumbo-parser](https://codeberg.org/grisha/gumbo-parser)           | >= 0.11.0 | required               |
-| [ncursesw](https://invisible-island.net/ncurses)                   | >= 6.2    | required               |
-| [sqlite](https://www.sqlite.org)                                   | >= 3.36.0 | required               |
-| [yajl](https://github.com/lloyd/yajl)                              | >= 2.1.0  | required               |
-| C compiler                                                         | Any C99   | required at build-time |
-| make                                                               | Any POSIX | required at build-time |
-| [pkg-config](https://www.freedesktop.org/wiki/Software/pkg-config) | >= 0.29.2 | optional at build-time |
-| [gperf](https://www.gnu.org/software/gperf)                        | >= 3.1    | only for development   |
-| [scdoc](https://git.sr.ht/~sircmpwn/scdoc)                         | >= 1.9.1  | only for development   |
-| [mandoc](https://mandoc.bsd.lv)                                    | >= 1.14.6 | only for development   |
+| Name                                                               | Version   | Run | Build | Change |
+|--------------------------------------------------------------------|-----------|-----|-------|--------|
+| [curl](https://curl.se)                                            | >= 7.87.0 | +   | +     | +      |
+| [expat](https://github.com/libexpat/libexpat)                      | >= 2.4.8  | +   | +     | +      |
+| [gumbo-parser](https://codeberg.org/grisha/gumbo-parser)           | >= 0.11.0 | +   | +     | +      |
+| [ncursesw](https://invisible-island.net/ncurses)                   | >= 6.2    | +   | +     | +      |
+| [sqlite](https://www.sqlite.org)                                   | >= 3.36.0 | +   | +     | +      |
+| [yajl](https://github.com/lloyd/yajl)                              | >= 2.1.0  | +   | +     | +      |
+| C compiler                                                         | Any C99   |     | +     | +      |
+| make                                                               | Any POSIX |     | +     | +      |
+| [pkg-config](https://www.freedesktop.org/wiki/Software/pkg-config) | >= 0.29.2 |     | +     | +      |
+| [gperf](https://www.gnu.org/software/gperf)                        | >= 3.1    |     |       | +      |
+| [scdoc](https://git.sr.ht/~sircmpwn/scdoc)                         | >= 1.9.1  |     |       | +      |
+| [mandoc](https://mandoc.bsd.lv)                                    | >= 1.14.6 |     |       | +      |
 
 ## Installing
 

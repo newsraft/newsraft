@@ -90,6 +90,16 @@ item_pager_loop(struct menu_state *m)
 				free_links_list(&links);
 				return setup_menu(&item_pager_loop, NULL, 0, MENU_SWALLOW);
 			}
+			/*
+			 * The jump command didn't change the current item, but
+			 * the item structure is not valid after the call to
+			 * handle_list_menu_control() above.  This happens,
+			 * e.g., if jumping to the next unread item, but there
+			 * is no one.
+			 * Ensure that we stay on a valid item in the next loop
+			 * iteration.
+			 */
+			item = items_menu->items->ptr + item_id;
 		} else if (cmd == INPUT_NAVIGATE_BACK || cmd == INPUT_QUIT_SOFT || cmd == INPUT_QUIT_HARD) {
 			free_render_blocks(&blocks);
 			free_links_list(&links);

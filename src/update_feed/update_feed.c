@@ -57,7 +57,7 @@ update_feed_action(void *arg)
 		if (expires_date < 0) {
 			goto finish;
 		} else if ((expires_date > 0) && (data.feed.download_date < expires_date)) {
-			INFO("Aborting update for %s because it's not expired yet", feed->link->ptr);
+			INFO("Skipping %s because its HTTP header is not expired yet", feed->link->ptr);
 			status = DOWNLOAD_CANCELED;
 			goto finish;
 		}
@@ -69,7 +69,7 @@ update_feed_action(void *arg)
 		if ((ttl < 0) || (prev_download_date < 0)) {
 			goto finish;
 		} else if ((ttl > 0) && (prev_download_date > 0) && ((prev_download_date + ttl) > data.feed.download_date)) {
-			INFO("Aborting update for %s because it's not dead yet", feed->link->ptr);
+			INFO("Skipping %s because its ttl element is not expired yet", feed->link->ptr);
 			status = DOWNLOAD_CANCELED;
 			goto finish;
 		}

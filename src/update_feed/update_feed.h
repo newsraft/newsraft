@@ -32,7 +32,6 @@ struct getfeed_feed {
 	struct string *attachments;
 	struct string *persons;
 	struct string *extras;
-	int64_t download_date;
 	int64_t update_date;
 	int64_t time_to_live;
 	struct string *http_header_etag;

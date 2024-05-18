@@ -3,7 +3,7 @@
 bool
 insert_feed(struct feed_entry *feed, struct getfeed_feed *feed_data)
 {
-	if (insert_feed_data(feed->link, feed_data) == false) {
+	if (insert_feed_data(feed, feed_data) == false) {
 		FAIL("Failed to insert feed data!");
 		return false;
 	}

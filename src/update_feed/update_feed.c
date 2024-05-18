@@ -45,18 +45,18 @@ update_feed_action(void *arg)
 	download_status status = DOWNLOAD_FAILED;
 	struct stream_callback_data data = {0};
 
-	data.feed.download_date = time(NULL);
-	if (data.feed.download_date <= 0) {
+	feed->download_date = time(NULL);
+	INFO("Feed download date: %" PRId64, feed->download_date);
+	if (feed->download_date <= 0) {
 		FAIL("Failed to obtain system time!");
 		goto finish;
 	}
-	feed->download_date = data.feed.download_date;
 
 	if (get_cfg_bool(&feed->cfg, CFG_RESPECT_EXPIRES_HEADER) == true) {
 		int64_t expires_date = db_get_date_from_feeds_table(feed->link, "http_header_expires", 19);
 		if (expires_date < 0) {
 			goto finish;
-		} else if ((expires_date > 0) && (data.feed.download_date < expires_date)) {
+		} else if (expires_date > 0 && feed->download_date < expires_date) {
 			INFO("Skipping %s because its HTTP header is not expired yet", feed->link->ptr);
 			status = DOWNLOAD_CANCELED;
 			goto finish;
@@ -66,9 +66,9 @@ update_feed_action(void *arg)
 	if (get_cfg_bool(&feed->cfg, CFG_RESPECT_TTL_ELEMENT) == true) {
 		int64_t ttl = db_get_date_from_feeds_table(feed->link, "time_to_live", 12);
 		int64_t prev_download_date = db_get_date_from_feeds_table(feed->link, "download_date", 13);
-		if ((ttl < 0) || (prev_download_date < 0)) {
+		if (ttl < 0 || prev_download_date < 0) {
 			goto finish;
-		} else if ((ttl > 0) && (prev_download_date > 0) && ((prev_download_date + ttl) > data.feed.download_date)) {
+		} else if ((ttl > 0) && (prev_download_date > 0) && ((prev_download_date + ttl) > feed->download_date)) {
 			INFO("Skipping %s because its ttl element is not expired yet", feed->link->ptr);
 			status = DOWNLOAD_CANCELED;
 			goto finish;

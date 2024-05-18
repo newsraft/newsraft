@@ -221,6 +221,7 @@ db_get_date_from_feeds_table(const struct string *url, const char *column, size_
 	db_bind_string(res, 1, url);
 	int64_t date = sqlite3_step(res) == SQLITE_ROW ? sqlite3_column_int64(res, 0) : 0;
 	sqlite3_finalize(res);
+	INFO("%s of %s is %" PRId64, column, url->ptr, date);
 	return date;
 }
 

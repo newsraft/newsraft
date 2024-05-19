@@ -34,6 +34,10 @@ db_init(void)
 	// All dates are stored as the number of seconds since 1970.
 	// Note that numeric arguments in parentheses that following the type name
 	// are ignored by SQLite - there's no need to impose any length limits.
+	//
+	// feeds' download_date and update_date are special timestamps:
+	// download_date stores the date of last successful feed download,
+	// update_date stores the date of last feed download attempt.
 	sqlite3_exec(
 		db,
 		"CREATE TABLE IF NOT EXISTS feeds("
@@ -252,18 +256,16 @@ db_get_string_from_feed_table(const struct string *url, const char *column, size
 }
 
 void
-db_set_download_date(const struct string *url, int64_t download_date)
+db_set_update_date(const struct string *url, int64_t update_date)
 {
-	INFO("Setting download_date of %s to %" PRId64, url->ptr, download_date);
-	sqlite3_stmt *res = db_prepare("UPDATE feeds SET download_date=? WHERE feed_url=?", 50);
+	INFO("Setting update_date of %s to %" PRId64, url->ptr, update_date);
+	sqlite3_stmt *res = db_prepare("UPDATE feeds SET update_date=? WHERE feed_url=?", 48);
 	if (res != NULL) {
-		sqlite3_bind_int64(res, 1, download_date);
+		sqlite3_bind_int64(res, 1, update_date);
 		db_bind_string(res, 2, url);
-		if (sqlite3_step(res) == SQLITE_DONE) {
-			sqlite3_finalize(res);
-			return;
+		if (sqlite3_step(res) != SQLITE_DONE) {
+			FAIL("Failed to set update_date!");
 		}
 		sqlite3_finalize(res);
 	}
-	FAIL("Failed to set download_date!");
 }

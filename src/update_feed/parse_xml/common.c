@@ -150,8 +150,6 @@ rfc3339_update_date_end(struct stream_callback_data *data)
 {
 	if (data->in_item == true) {
 		data->feed.item->update_date = parse_date_rfc3339(data->text->ptr);
-	} else {
-		data->feed.update_date = parse_date_rfc3339(data->text->ptr);
 	}
 	return PARSE_OKAY;
 }

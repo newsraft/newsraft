@@ -14,8 +14,8 @@ insert_feed_data(const struct feed_entry *feed_entry, struct getfeed_feed *feed)
 	db_bind_string(s,     1 + FEED_COLUMN_ATTACHMENTS,               feed->attachments);
 	db_bind_string(s,     1 + FEED_COLUMN_PERSONS,                   feed->persons);
 	db_bind_string(s,     1 + FEED_COLUMN_EXTRAS,                    feed->extras);
-	sqlite3_bind_int64(s, 1 + FEED_COLUMN_DOWNLOAD_DATE,             feed_entry->download_date);
-	sqlite3_bind_int64(s, 1 + FEED_COLUMN_UPDATE_DATE,               feed->update_date);
+	sqlite3_bind_int64(s, 1 + FEED_COLUMN_DOWNLOAD_DATE,             feed_entry->update_date);
+	sqlite3_bind_int64(s, 1 + FEED_COLUMN_UPDATE_DATE,               feed_entry->update_date);
 	sqlite3_bind_int64(s, 1 + FEED_COLUMN_TIME_TO_LIVE,              feed->time_to_live);
 	db_bind_string(s,     1 + FEED_COLUMN_HTTP_HEADER_ETAG,          feed->http_header_etag);
 	sqlite3_bind_int64(s, 1 + FEED_COLUMN_HTTP_HEADER_LAST_MODIFIED, feed->http_header_last_modified);

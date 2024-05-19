@@ -156,7 +156,7 @@ copy_feed_to_global_section(const struct feed_entry *feed)
 		return NULL;
 	}
 	sections[0].feeds[feed_index]->unread_count  = new_unread_count;
-	sections[0].feeds[feed_index]->download_date = db_get_date_from_feeds_table(feed->link, "download_date", 13);
+	sections[0].feeds[feed_index]->update_date = db_get_date_from_feeds_table(feed->link, "update_date", 11);
 	return sections[0].feeds[feed_index];
 }
 
@@ -252,8 +252,8 @@ process_auto_updating_feeds(void)
 	time_t now = time(NULL);
 	if (now > 0) {
 		for (size_t i = 0; i < sections[0].feeds_count; ++i) {
-			size_t download = sections[0].feeds[i]->download_date;
-			size_t age = (size_t)now > download ? now - download : 0;
+			size_t last_try = sections[0].feeds[i]->update_date;
+			size_t age = (size_t)now > last_try ? now - last_try : 0;
 			size_t reload_period = get_cfg_uint(&sections[0].feeds[i]->cfg, CFG_RELOAD_PERIOD) * 60;
 			if (reload_period > 0 && age > reload_period) {
 				update_feeds(sections[0].feeds + i, 1);

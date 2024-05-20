@@ -52,14 +52,11 @@ update_feed_action(void *arg)
 		goto finish;
 	}
 
-	// Date of last successful feed download
-	int64_t download_date = db_get_date_from_feeds_table(feed->link, "download_date", 13);
-
 	if (get_cfg_bool(&feed->cfg, CFG_RESPECT_EXPIRES_HEADER) == true) {
 		int64_t expires_date = db_get_date_from_feeds_table(feed->link, "http_header_expires", 19);
-		if (download_date < 0 || expires_date < 0) {
+		if (expires_date < 0) {
 			goto finish;
-		} else if (download_date > 0 && expires_date > 0 && download_date < expires_date) {
+		} else if (expires_date > 0 && feed->update_date < expires_date) {
 			INFO("Skipping %s because its HTTP header is not expired yet", feed->link->ptr);
 			status = DOWNLOAD_CANCELED;
 			goto finish;
@@ -67,6 +64,7 @@ update_feed_action(void *arg)
 	}
 
 	if (get_cfg_bool(&feed->cfg, CFG_RESPECT_TTL_ELEMENT) == true) {
+		int64_t download_date = db_get_date_from_feeds_table(feed->link, "download_date", 13);
 		int64_t ttl = db_get_date_from_feeds_table(feed->link, "time_to_live", 12);
 		if (download_date < 0 || ttl < 0) {
 			goto finish;

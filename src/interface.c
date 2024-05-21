@@ -15,8 +15,6 @@ obtain_list_menu_size(size_t *width, size_t *height)
 		FAIL("Failed to get width of the terminal!");
 		return false;
 	}
-	// It is necessary that a counter field of 9 characters width and at least
-	// some nonzero width of the status field fit in the screen.
 	// This is really critical! You will get integer overflow if terminal_width
 	// is less than 10. You have been warned.
 	if (terminal_width < 10) {
@@ -97,9 +95,6 @@ resize_handler(void)
 		goto error;
 	}
 	if (status_recreate_unprotected() == false) {
-		goto error;
-	}
-	if (counter_recreate_unprotected() == false) {
 		goto error;
 	}
 	if (is_current_menu_a_pager() == true) {

@@ -238,7 +238,6 @@ struct feed_entry {
 	int64_t update_date; // Date of last feed update attempt
 	struct config_context *cfg;
 	struct input_binding *binds;
-	volatile bool *volatile did_update_just_finished;
 };
 
 struct item_entry {
@@ -449,7 +448,7 @@ struct string *get_cfg_date(struct config_context **ctx, config_entry_id format_
 // See "db.c" file for implementation.
 bool db_init(void);
 bool db_vacuum(void);
-bool query_database_file_optimization(void);
+bool exec_database_file_optimization(void);
 void db_stop(void);
 sqlite3_stmt *db_prepare(const char *zSql, int nByte);
 bool db_begin_transaction(void);
@@ -475,15 +474,6 @@ input_id resize_handler(void);
 bool call_resize_handler_if_current_list_menu_size_is_different_from_actual(void);
 bool arent_we_colorful(void);
 
-// Functions related to window which reads user input and displays command
-// counter (prefix number before command).
-// See "interface-input.c" file for implementation.
-bool counter_recreate_unprotected(void);
-void tell_program_to_terminate_safely_and_quickly(int dummy);
-input_id get_input(struct input_binding *ctx, uint32_t *count, const struct wstring **macro_ptr);
-void break_getting_input_command(void);
-void counter_delete(void);
-
 // Functions related to window which displays status messages.
 // See "interface-status.c" file for implementation.
 void update_status_window_content(void);
@@ -494,8 +484,10 @@ void status_clean(void);
 void prevent_status_cleaning(void);
 void allow_status_cleaning(void);
 void status_write(config_entry_id color, const char *format, ...);
-void status_delete(void);
 struct string *generate_string_with_status_messages_for_pager(void);
+void status_delete(void);
+input_id get_input(struct input_binding *ctx, uint32_t *count, const struct wstring **macro_ptr);
+void break_getting_input_command(void);
 
 // See "interface-status-pager.c" file for implementation.
 struct menu_state *status_pager_loop(struct menu_state *dest);
@@ -587,6 +579,9 @@ void log_stop(int error_code);
 // See "errors.c" file for implementation.
 void write_error(const char *format, ...);
 void flush_errors(void);
+
+// See "newsraft.c" file for implementation.
+void tell_program_to_terminate_safely_and_quickly(int dummy);
 
 extern volatile bool they_want_us_to_terminate;
 extern FILE *log_stream;

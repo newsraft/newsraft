@@ -20,7 +20,6 @@ execute_system_command(const char *cmd)
 		clear();
 		refresh();
 		status_recreate_unprotected();
-		counter_recreate_unprotected();
 		redraw_list_menu_unprotected();
 		pthread_mutex_unlock(&interface_lock);
 	}

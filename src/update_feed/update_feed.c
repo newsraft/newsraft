@@ -5,7 +5,7 @@
 struct responsive_thread {
 	pthread_t thread;
 	bool was_started;
-	volatile bool says_it_is_done;
+	struct feed_entry *volatile feed_job;
 };
 
 static struct feed_entry **update_queue = NULL;
@@ -40,7 +40,8 @@ free_feed(struct getfeed_feed *feed)
 static void *
 update_feed_action(void *arg)
 {
-	struct feed_entry *feed = arg;
+	struct responsive_thread *thread = arg;
+	struct feed_entry *feed = thread->feed_job;
 
 	download_status status = DOWNLOAD_FAILED;
 	struct stream_callback_data data = {0};
@@ -129,7 +130,7 @@ finish:
 	updates_finished += 1;
 	info_status("Feed updates completed: %zu/%zu", updates_finished, update_queue_length);
 	pthread_mutex_unlock(&update_lock);
-	*feed->did_update_just_finished = true;
+	thread->feed_job = NULL;
 	return NULL;
 }
 
@@ -140,16 +141,14 @@ branch_update_feed_action_into_thread(struct feed_entry *feed)
 		for (size_t i = 0; i < worker_threads_count; ++i) {
 			if (worker_threads[i].was_started == false) {
 				worker_threads[i].was_started = true;
-				worker_threads[i].says_it_is_done = false;
-				feed->did_update_just_finished = &worker_threads[i].says_it_is_done;
-				pthread_create(&(worker_threads[i].thread), NULL, &update_feed_action, feed);
+				worker_threads[i].feed_job = feed;
+				pthread_create(&(worker_threads[i].thread), NULL, &update_feed_action, worker_threads + i);
 				return;
-			} else if (worker_threads[i].says_it_is_done == true) {
+			} else if (worker_threads[i].feed_job == NULL) {
 				pthread_join(worker_threads[i].thread, NULL);
 				worker_threads[i].was_started = true;
-				worker_threads[i].says_it_is_done = false;
-				feed->did_update_just_finished = &worker_threads[i].says_it_is_done;
-				pthread_create(&(worker_threads[i].thread), NULL, &update_feed_action, feed);
+				worker_threads[i].feed_job = feed;
+				pthread_create(&(worker_threads[i].thread), NULL, &update_feed_action, worker_threads + i);
 				return;
 			}
 		}
@@ -161,7 +160,7 @@ static bool
 at_least_one_thread_is_running(void)
 {
 	for (size_t i = 0; i < worker_threads_count; ++i) {
-		if (worker_threads[i].was_started == true && worker_threads[i].says_it_is_done == false) {
+		if (worker_threads[i].was_started == true && worker_threads[i].feed_job != NULL) {
 			return true;
 		}
 	}

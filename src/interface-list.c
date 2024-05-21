@@ -445,4 +445,5 @@ start_menu(void)
 	redraw_list_menu_unprotected();
 	menu->is_initialized = true;
 	pthread_mutex_unlock(&interface_lock);
+	update_status_window_content();
 }

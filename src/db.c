@@ -113,7 +113,7 @@ db_vacuum(void)
 }
 
 bool
-query_database_file_optimization(void)
+exec_database_file_optimization(void)
 {
 	if (get_cfg_bool(NULL, CFG_CLEAN_DATABASE_ON_STARTUP) == true) {
 		if (db_vacuum() == false) {

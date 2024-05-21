@@ -13,7 +13,6 @@
 #include "feeds.c"
 #include "feeds-parse.c"
 #include "interface.c"
-#include "interface-input.c"
 #include "interface-list.c"
 #include "interface-list-pager.c"
 #include "interface-status.c"
@@ -79,6 +78,13 @@ print_usage(void)
 	      stderr);
 }
 
+void
+tell_program_to_terminate_safely_and_quickly(int dummy)
+{
+	(void)dummy;
+	they_want_us_to_terminate = true;
+}
+
 int
 main(int argc, char **argv)
 {
@@ -128,20 +134,19 @@ main(int argc, char **argv)
 		}
 	}
 
-	if (register_signal_handlers()         == false) { error = 6;  goto undo1;  }
-	if (assign_default_binds()             == false) { error = 7;  goto undo1;  }
-	if (curses_init()                      == false) { error = 13; goto undo2;  }
-	if (parse_config_file()                == false) { error = 8;  goto undo3;  }
-	if (load_config()                      == false) { error = 9;  goto undo4;  }
-	if (db_init()                          == false) { error = 10; goto undo4;  }
-	if (query_database_file_optimization() == false) { error = 11; goto undo5;  }
-	if (parse_feeds_file()                 == false) { error = 12; goto undo5;  }
-	if (adjust_list_menu()                 == false) { error = 14; goto undo6;  }
-	if (status_recreate_unprotected()      == false) { error = 15; goto undo7;  }
-	if (allocate_status_messages_buffer()  == false) { error = 16; goto undo8;  }
-	if (counter_recreate_unprotected()     == false) { error = 17; goto undo8;  }
-	if (curl_global_init(CURL_GLOBAL_DEFAULT)  != 0) { error = 18; goto undo9;  }
-	if (start_feed_updater()               == false) { error = 19; goto undo10; }
+	if (register_signal_handlers()        == false) { error = 6;  goto undo1; }
+	if (assign_default_binds()            == false) { error = 7;  goto undo1; }
+	if (curses_init()                     == false) { error = 8;  goto undo2; }
+	if (parse_config_file()               == false) { error = 9;  goto undo3; }
+	if (load_config()                     == false) { error = 10; goto undo4; }
+	if (db_init()                         == false) { error = 11; goto undo4; }
+	if (exec_database_file_optimization() == false) { error = 12; goto undo5; }
+	if (parse_feeds_file()                == false) { error = 13; goto undo5; }
+	if (adjust_list_menu()                == false) { error = 14; goto undo6; }
+	if (status_recreate_unprotected()     == false) { error = 15; goto undo7; }
+	if (allocate_status_messages_buffer() == false) { error = 16; goto undo8; }
+	if (curl_global_init(CURL_GLOBAL_DEFAULT) != 0) { error = 17; goto undo8; }
+	if (start_feed_updater()              == false) { error = 18; goto undo9; }
 
 	struct timespec idling = {0, 100000000}; // 0.1 seconds
 	struct menu_state *menu = setup_menu(&sections_menu_loop, NULL, 0, MENU_NO_FLAGS);
@@ -155,10 +160,8 @@ main(int argc, char **argv)
 	}
 
 	free_menus();
-undo10:
-	curl_global_cleanup();
 undo9:
-	counter_delete();
+	curl_global_cleanup();
 undo8:
 	status_delete();
 undo7:

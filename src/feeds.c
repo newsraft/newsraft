@@ -43,7 +43,7 @@ is_feed_unread(struct menu_state *ctx, size_t index)
 }
 
 static int
-sort_feeds_original_comparison(const void *data1, const void *data2)
+compare_feeds_original(const void *data1, const void *data2)
 {
 	struct feed_entry *feed1 = *(struct feed_entry **)data1;
 	struct feed_entry *feed2 = *(struct feed_entry **)data2;
@@ -58,17 +58,17 @@ sort_feeds_original_comparison(const void *data1, const void *data2)
 }
 
 static int
-sort_feeds_by_unread_count_comparison(const void *data1, const void *data2)
+compare_feeds_unread(const void *data1, const void *data2)
 {
 	struct feed_entry *feed1 = *(struct feed_entry **)data1;
 	struct feed_entry *feed2 = *(struct feed_entry **)data2;
 	if (feed1->unread_count > feed2->unread_count) return feeds_sort & 1 ? -1 : 1;
 	if (feed1->unread_count < feed2->unread_count) return feeds_sort & 1 ? 1 : -1;
-	return sort_feeds_original_comparison(data1, data2) * (feeds_sort & 1 ? -1 : 1);
+	return compare_feeds_original(data1, data2) * (feeds_sort & 1 ? -1 : 1);
 }
 
 static int
-sort_feeds_alphabetical_comparison(const void *data1, const void *data2)
+compare_feeds_alphabet(const void *data1, const void *data2)
 {
 	struct feed_entry *feed1 = *(struct feed_entry **)data1;
 	struct feed_entry *feed2 = *(struct feed_entry **)data2;
@@ -76,29 +76,22 @@ sort_feeds_alphabetical_comparison(const void *data1, const void *data2)
 }
 
 static inline void
-sort_feeds(struct menu_state *m, int new_feeds_sort, bool we_are_already_in_feeds_menu)
+sort_feeds(struct menu_state *m, int sorting_method, bool we_are_already_in_feeds_menu)
 {
 	feeds          = m->feeds;
 	feeds_count    = m->feeds_count;
 	feeds_original = m->feeds_original;
-	feeds_sort     = new_feeds_sort;
-	const char *sort_msg = NULL;
+	feeds_sort     = sorting_method;
 	pthread_mutex_lock(&interface_lock);
 	switch (feeds_sort & ~1) {
-		case SORT_BY_ORIGINAL_ASC:
-			sort_msg = "Sorted feeds by original order";
-			qsort(feeds, feeds_count, sizeof(struct feed_entry *), &sort_feeds_original_comparison); break;
-		case SORT_BY_UNREAD_ASC:
-			sort_msg = "Sorted feeds by unread count";
-			qsort(feeds, feeds_count, sizeof(struct feed_entry *), &sort_feeds_by_unread_count_comparison); break;
-		case SORT_BY_ALPHABET_ASC:
-			sort_msg = "Sorted feeds by alphabet";
-			qsort(feeds, feeds_count, sizeof(struct feed_entry *), &sort_feeds_alphabetical_comparison); break;
+		case SORT_BY_ORIGINAL_ASC: qsort(feeds, feeds_count, sizeof(struct feed_entry *), &compare_feeds_original); break;
+		case SORT_BY_UNREAD_ASC:   qsort(feeds, feeds_count, sizeof(struct feed_entry *), &compare_feeds_unread);   break;
+		case SORT_BY_ALPHABET_ASC: qsort(feeds, feeds_count, sizeof(struct feed_entry *), &compare_feeds_alphabet); break;
 	}
 	pthread_mutex_unlock(&interface_lock);
 	if (we_are_already_in_feeds_menu == true) {
 		expose_all_visible_entries_of_the_list_menu();
-		if (sort_msg != NULL) info_status("%s (%s)", sort_msg, feeds_sort & 1 ? "descending" : "ascending");
+		info_status(get_sorting_message(feeds_sort), "feeds");
 	}
 }
 
@@ -113,22 +106,18 @@ feeds_menu_loop(struct menu_state *m)
 	m->entry_format = get_cfg_wstring(NULL, CFG_MENU_FEED_ENTRY_FORMAT);
 	if (m->feeds_count < 1) {
 		info_status("There are no feeds in this section");
-		return setup_menu(NULL, NULL, 0, 0);
+		return close_menu();
 	} else if (!(m->flags & MENU_DISABLE_SETTINGS)) {
 		if (get_cfg_bool(NULL, CFG_FEEDS_MENU_PARAMOUNT_EXPLORE) && get_items_count_of_feeds(m->feeds_original, m->feeds_count)) {
-			return setup_menu(&items_menu_loop, m->feeds_original, m->feeds_count, MENU_IS_EXPLORE);
+			return setup_menu(&items_menu_loop, NULL, m->feeds_original, m->feeds_count, MENU_IS_EXPLORE);
 		} else if (m->feeds_count == 1 && get_items_count_of_feeds(m->feeds_original, m->feeds_count)) {
-			return setup_menu(&items_menu_loop, m->feeds_original, m->feeds_count, MENU_SWALLOW);
+			return setup_menu(&items_menu_loop, m->feeds[0]->name, m->feeds_original, m->feeds_count, MENU_SWALLOW);
 		}
 	}
 	if (m->is_initialized == false) {
 		m->feeds = malloc(sizeof(struct feed_entry *) * m->feeds_count);
 		memcpy(m->feeds, m->feeds_original, sizeof(struct feed_entry *) * m->feeds_count);
-		const struct string *sort = get_cfg_string(NULL, CFG_MENU_FEED_SORTING);
-		if      (strcmp(sort->ptr, "unread-desc")   == 0) sort_feeds(m, SORT_BY_UNREAD_DESC,   false);
-		else if (strcmp(sort->ptr, "unread-asc")    == 0) sort_feeds(m, SORT_BY_UNREAD_ASC,    false);
-		else if (strcmp(sort->ptr, "alphabet-desc") == 0) sort_feeds(m, SORT_BY_ALPHABET_DESC, false);
-		else if (strcmp(sort->ptr, "alphabet-asc")  == 0) sort_feeds(m, SORT_BY_ALPHABET_ASC,  false);
+		sort_feeds(m, get_sorting_id(get_cfg_string(NULL, CFG_MENU_FEED_SORTING)->ptr), false);
 	}
 	start_menu();
 	const struct wstring *macro;
@@ -146,16 +135,16 @@ feeds_menu_loop(struct menu_state *m)
 			case INPUT_RELOAD_ALL:      update_feeds(m->feeds_original, m->feeds_count);   break;
 			case INPUT_QUIT_HARD:       return NULL;
 			case INPUT_ENTER:
-				return setup_menu(&items_menu_loop, m->feeds + m->view_sel, 1, MENU_NO_FLAGS);
+				return setup_menu(&items_menu_loop, m->feeds[m->view_sel]->name, m->feeds + m->view_sel, 1, MENU_NORMAL);
 			case INPUT_TOGGLE_EXPLORE_MODE:
-				return setup_menu(&items_menu_loop, m->feeds, m->feeds_count, MENU_IS_EXPLORE);
+				return setup_menu(&items_menu_loop, NULL, m->feeds, m->feeds_count, MENU_IS_EXPLORE);
 			case INPUT_APPLY_SEARCH_MODE_FILTER:
-				return setup_menu(&items_menu_loop, m->feeds, m->feeds_count, MENU_IS_EXPLORE | MENU_USE_SEARCH);
+				return setup_menu(&items_menu_loop, NULL, m->feeds, m->feeds_count, MENU_IS_EXPLORE | MENU_USE_SEARCH);
 			case INPUT_NAVIGATE_BACK:
 				if (get_menu_depth() < 2) break;
 				// fall through
 			case INPUT_QUIT_SOFT:
-				return setup_menu(NULL, NULL, 0, 0);
+				return close_menu();
 			case INPUT_SORT_BY_UNREAD:
 				sort_feeds(m, feeds_sort == SORT_BY_UNREAD_DESC ? SORT_BY_UNREAD_ASC : SORT_BY_UNREAD_DESC, true);
 				break;
@@ -163,7 +152,7 @@ feeds_menu_loop(struct menu_state *m)
 				sort_feeds(m, feeds_sort == SORT_BY_ALPHABET_ASC ? SORT_BY_ALPHABET_DESC : SORT_BY_ALPHABET_ASC, true);
 				break;
 			case INPUT_STATUS_HISTORY_MENU:
-				return setup_menu(&status_pager_loop, NULL, 0, MENU_NO_FLAGS);
+				return setup_menu(&status_pager_loop, NULL, NULL, 0, MENU_NORMAL);
 		}
 	}
 	return NULL;

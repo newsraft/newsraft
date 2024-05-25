@@ -23,35 +23,48 @@ static uint8_t count_buf_len = 0;
 static const struct timespec input_polling_period = {0, 30000000}; // 0.03 seconds
 static volatile bool they_want_us_to_break_input = false;
 
-static inline void
+void
 update_status_window_content_unprotected(void)
 {
+	// FIXME: werase doesn't clear screen garbage, so sometimes artifacts
+	// appear in the window. The solution to this is wclear, but it makes
+	// screen flicker on the old hardware.
 	werase(status_window);
 	wmove(status_window, 0, 0);
 
 	if (they_want_us_to_terminate == true) {
-		wattrset(status_window, get_cfg_color(NULL, CFG_COLOR_STATUS_FAIL));
+		wbkgd(status_window, get_cfg_color(NULL, CFG_COLOR_STATUS_FAIL));
 		waddnstr(status_window, "Terminating...", list_menu_width);
 	} else if (search_mode_is_enabled == true) {
-		wattrset(status_window, get_cfg_color(NULL, CFG_COLOR_SEARCH_PROMPT));
+		wbkgd(status_window, get_cfg_color(NULL, CFG_COLOR_STATUS));
 		waddwstr(status_window, L"/");
 		waddwstr(status_window, search_mode_text_input->ptr);
 	} else if (status_window_is_clean == false) {
-		wattrset(status_window, get_cfg_color(NULL, messages[(messages_len - 1) % messages_lim].color));
+		wbkgd(status_window, get_cfg_color(NULL, messages[(messages_len - 1) % messages_lim].color));
 		waddnstr(status_window, messages[(messages_len - 1) % messages_lim].text->ptr, list_menu_width);
+	} else {
+		wbkgd(status_window, get_cfg_color(NULL, CFG_COLOR_STATUS));
+		struct string *path = crtes(100);
+		write_menu_path_string(path, NULL);
+		if (path != NULL && path->len > 0) {
+			waddnstr(status_window, path->ptr, list_menu_width);
+		} else {
+			waddnstr(status_window, get_cfg_string(NULL, CFG_STATUS_PLACEHOLDER)->ptr, list_menu_width);
+		}
+		free_string(path);
 	}
 
 	// Print count value
-	wmove(status_window, 0, list_menu_width - 9);
-	wattrset(status_window, get_cfg_color(NULL, CFG_COLOR_COUNT_NUMBER));
+	wmove(status_window, 0, list_menu_width - 11);
 	if (count_buf_len > 0) {
+		waddstr(status_window, "  "); // Little divider to separate from previous stuff
 		waddnstr(status_window, count_buf, count_buf_len);
 	}
 
 	wrefresh(status_window);
 }
 
-void
+static void
 update_status_window_content(void)
 {
 	pthread_mutex_lock(&interface_lock);
@@ -109,10 +122,7 @@ status_clean_unprotected(void)
 {
 	if (status_window_is_cleanable == true) {
 		status_window_is_clean = true;
-		if (search_mode_is_enabled == false) {
-			werase(status_window);
-			wrefresh(status_window);
-		}
+		update_status_window_content_unprotected();
 	}
 }
 

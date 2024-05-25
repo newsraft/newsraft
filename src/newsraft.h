@@ -21,17 +21,14 @@
 #define INFO(...) do { if (log_stream) { fputs("[INFO] ", log_stream); fprintf(log_stream, __VA_ARGS__); fputc('\n', log_stream); } } while (0)
 #define WARN(...) do { if (log_stream) { fputs("[WARN] ", log_stream); fprintf(log_stream, __VA_ARGS__); fputc('\n', log_stream); } } while (0)
 #define FAIL(...) do { if (log_stream) { fputs("[FAIL] ", log_stream); fprintf(log_stream, __VA_ARGS__); fputc('\n', log_stream); } } while (0)
-#define good_status(...) status_write(CFG_COLOR_STATUS_GOOD, __VA_ARGS__)
-#define info_status(...) status_write(CFG_COLOR_STATUS_INFO, __VA_ARGS__)
+#define info_status(...) status_write(CFG_COLOR_STATUS, __VA_ARGS__)
 #define fail_status(...) status_write(CFG_COLOR_STATUS_FAIL, __VA_ARGS__)
 #define MIN(A, B) ((A) < (B) ? (A) : (B))
+#define LENGTH(A) ((sizeof(A))/(sizeof(*A)))
 
 typedef uint8_t config_entry_id;
 enum {
-	CFG_COLOR_COUNT_NUMBER = 0,
-	CFG_COLOR_SEARCH_PROMPT,
-	CFG_COLOR_STATUS_GOOD,
-	CFG_COLOR_STATUS_INFO,
+	CFG_COLOR_STATUS,
 	CFG_COLOR_STATUS_FAIL,
 	CFG_COLOR_LIST_ITEM,
 	CFG_COLOR_LIST_ITEM_UNREAD,
@@ -48,6 +45,7 @@ enum {
 	CFG_DOWNLOAD_TIMEOUT,
 	CFG_DOWNLOAD_SPEED_LIMIT,
 	CFG_STATUS_MESSAGES_COUNT_LIMIT,
+	CFG_STATUS_PLACEHOLDER,
 	CFG_COPY_TO_CLIPBOARD_COMMAND,
 	CFG_PROXY,
 	CFG_PROXY_USER,
@@ -166,10 +164,10 @@ enum {
 };
 
 enum {
-	MENU_NO_FLAGS         = 0,
-	MENU_IS_EXPLORE       = 1, // Tell items menu to use explore mode
-	MENU_USE_SEARCH       = 2, // Tell items menu to apply search
-	MENU_SWALLOW          = 4, // Replace current menu with this menu
+	MENU_NORMAL           = 0,
+	MENU_IS_EXPLORE       = 1,  // Tell items menu to use explore mode
+	MENU_USE_SEARCH       = 2,  // Tell items menu to apply search
+	MENU_SWALLOW          = 4,  // Replace current menu with this menu
 	MENU_DISABLE_SETTINGS = 8,
 };
 
@@ -277,6 +275,7 @@ struct format_arg {
 };
 
 struct menu_state {
+	struct string *name;
 	struct menu_state *(*run)(struct menu_state *); // Function used to start menu
 	struct feed_entry **feeds_original; // Remains unchanged to use original order
 	struct feed_entry **feeds;          // Virtual feeds with user sorting applied
@@ -370,8 +369,10 @@ bool handle_list_menu_control(struct menu_state *m, input_id cmd, const struct w
 bool handle_pager_menu_control(input_id cmd);
 void free_menus(void);
 size_t get_menu_depth(void);
-struct menu_state *setup_menu(struct menu_state *(*run)(struct menu_state *), struct feed_entry **feeds, size_t feeds_count, uint32_t flags);
+struct menu_state *setup_menu(struct menu_state *(*run)(struct menu_state *), struct string *name, struct feed_entry **feeds, size_t feeds_count, uint32_t flags);
+struct menu_state *close_menu(void);
 void start_menu(void);
+void write_menu_path_string(struct string *names, struct menu_state *m);
 
 // See "interface-list-pager.c" file for implementation.
 bool is_pager_pos_valid(struct menu_state *ctx, size_t index);
@@ -381,6 +382,10 @@ bool refresh_pager_menu(void);
 
 // See "format.c" file for implementation.
 void do_format(struct wstring *dest, const wchar_t *fmt, const struct format_arg *args);
+
+// See "sorting.c" file for implementation.
+int get_sorting_id(const char *sorting_name);
+const char *get_sorting_message(int sorting_id);
 
 // See "items.c" file for implementation.
 bool important_item_condition(struct menu_state *ctx, size_t index);
@@ -478,7 +483,7 @@ bool arent_we_colorful(void);
 
 // Functions related to window which displays status messages.
 // See "interface-status.c" file for implementation.
-void update_status_window_content(void);
+void update_status_window_content_unprotected(void);
 bool status_recreate_unprotected(void);
 bool allocate_status_messages_buffer(void);
 void status_clean_unprotected(void);

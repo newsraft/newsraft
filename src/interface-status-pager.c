@@ -8,19 +8,19 @@ status_pager_loop(struct menu_state *dest)
 	struct string *messages = generate_string_with_status_messages_for_pager();
 	if (messages == NULL || messages->len == 0) {
 		free_string(messages);
-		return setup_menu(NULL, NULL, 0, 0);
+		return close_menu();
 	}
 	struct wstring *wmessages = convert_string_to_wstring(messages);
 	if (wmessages == NULL) {
 		free_string(messages);
-		return setup_menu(NULL, NULL, 0, 0);
+		return close_menu();
 	}
 	free_string(messages);
 	struct render_block block = {wmessages, TEXT_PLAIN, false};
 	struct render_blocks_list blocks = {&block, 1};
 	if (start_pager_menu(NULL, &blocks) == false) {
 		free_wstring(wmessages);
-		return setup_menu(NULL, NULL, 0, 0);
+		return close_menu();
 	}
 	start_menu();
 	const struct wstring *macro;
@@ -36,5 +36,5 @@ status_pager_loop(struct menu_state *dest)
 		}
 	}
 	free_wstring(wmessages);
-	return setup_menu(NULL, NULL, 0, 0);
+	return close_menu();
 }

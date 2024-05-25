@@ -33,8 +33,8 @@ get_item_args(struct menu_state *ctx, size_t index)
 	item_fmt[2].value.s = ctx->items->ptr[index].date_str->ptr;
 	item_fmt[3].value.s = ctx->items->ptr[index].pub_date_str->ptr;
 	item_fmt[4].value.s = ctx->items->ptr[index].url->ptr;
-	item_fmt[5].value.s = ctx->items->ptr[index].title ? ctx->items->ptr[index].title->ptr : "";
-	item_fmt[6].value.s = ctx->items->ptr[index].title ? ctx->items->ptr[index].title->ptr : ctx->items->ptr[index].url->ptr;
+	item_fmt[5].value.s = ctx->items->ptr[index].title->ptr;
+	item_fmt[6].value.s = ctx->items->ptr[index].title->len > 0 ? ctx->items->ptr[index].title->ptr : ctx->items->ptr[index].url->ptr;
 	item_fmt[7].value.s = ctx->items->ptr[index].feed[0]->link->ptr;
 	item_fmt[8].value.s = ctx->items->ptr[index].feed[0]->name ? ctx->items->ptr[index].feed[0]->name->ptr : "";
 	item_fmt[9].value.s = ctx->items->ptr[index].feed[0]->name ? ctx->items->ptr[index].feed[0]->name->ptr : ctx->items->ptr[index].feed[0]->link->ptr;
@@ -129,7 +129,7 @@ items_menu_loop(struct menu_state *m)
 		m->items_age = items_age;
 		m->items = create_items_list(m->feeds_original, m->feeds_count, -1, m->flags & MENU_USE_SEARCH ? search_mode_text_input : NULL);
 		if (m->items == NULL) {
-			return setup_menu(NULL, NULL, 0, 0); // Error displayed by create_items_list
+			return close_menu(); // Error displayed by create_items_list
 		}
 	}
 	start_menu();
@@ -161,13 +161,13 @@ items_menu_loop(struct menu_state *m)
 				if (get_menu_depth() < 3 && (m->flags & MENU_IS_EXPLORE)) break;
 				// fall through
 			case INPUT_QUIT_SOFT:
-				if (m->flags & MENU_IS_EXPLORE) setup_menu(NULL, NULL, 0, 0);
-				return setup_menu(NULL, NULL, 0, 0);
+				if (m->flags & MENU_IS_EXPLORE) close_menu();
+				return close_menu();
 			case INPUT_TOGGLE_EXPLORE_MODE:
-				if (m->flags & MENU_IS_EXPLORE) return setup_menu(NULL, NULL, 0, 0);
+				if (m->flags & MENU_IS_EXPLORE) return close_menu();
 				break;
 			case INPUT_GOTO_FEED:
-				if (m->flags & MENU_IS_EXPLORE) return setup_menu(&items_menu_loop, m->items->ptr[m->view_sel].feed, 1, MENU_NO_FLAGS);
+				if (m->flags & MENU_IS_EXPLORE) return setup_menu(&items_menu_loop, m->items->ptr[m->view_sel].feed[0]->name, m->items->ptr[m->view_sel].feed, 1, MENU_NORMAL);
 				break;
 			case INPUT_APPLY_SEARCH_MODE_FILTER:
 				change_search_filter_of_items_list(&m->items, search_mode_text_input); break;
@@ -181,10 +181,10 @@ items_menu_loop(struct menu_state *m)
 			case INPUT_SORT_BY_IMPORTANT:
 				change_items_list_sorting(&m->items, cmd); break;
 			case INPUT_ENTER:
-				return setup_menu(&item_pager_loop, NULL, 0, MENU_NO_FLAGS);
+				return setup_menu(&item_pager_loop, m->items->ptr[m->view_sel].title, NULL, 0, MENU_NORMAL);
 			case INPUT_STATUS_HISTORY_MENU:
-				return setup_menu(&status_pager_loop, NULL, 0, MENU_NO_FLAGS);
+				return setup_menu(&status_pager_loop, NULL, NULL, 0, MENU_NORMAL);
 		}
 	}
-	return setup_menu(NULL, NULL, 0, 0);
+	return close_menu();
 }

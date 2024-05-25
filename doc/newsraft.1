@@ -5,7 +5,7 @@
 .nh
 .ad l
 .\" Begin generated content:
-.TH "NEWSRAFT" "1" "2024-05-25"
+.TH "NEWSRAFT" "1" "2024-05-26"
 .PP
 .SH NAME
 .PP
@@ -75,9 +75,8 @@ you will get to the \fIfeeds\fR menu straightaway.\&
 .PP
 \fIFeeds\fR menu consists of feed entries.\& Every feed entry contains news downloaded
 from one specific source which you have set in \fBfeeds\fR file.\& To update a single
-feed you have to select it and press \fBr\fR.\& If you want to update all feeds,
-\fBCtrl-R\fR (or \fB^R\fR for short) will do this fine.\& From \fIfeeds\fR menu you can get to
-the \fIitems\fR menu by entering some feed.\&
+feed you have to select it and press \fBr\fR or \fBR\fR if you want to update all feeds.\&
+From \fIfeeds\fR menu you can get to the \fIitems\fR menu by entering some feed.\&
 .PP
 \fIItems\fR menu consists of feed item entries (i.\& e.\& single pieces of news) which
 you get when you update feeds in the previous menu.\& Every feed item entry has
@@ -367,6 +366,11 @@ Password for authentication with the proxy server.\&
 Name of the section that contains all feeds.\&
 .PP
 .RE
+\fIstatus-placeholder\fR (default: \fBr:reload  R:reload-all  tab:explore  d:read  D:unread  f:important  F:unimportant  n:next-unread  N:prev-unread  p:next-important  P:prev-important\fR)
+.RS 4
+Placeholder which is put in a status bar if it'\&s empty.\&
+.PP
+.RE
 \fIitem-content-format\fR (\fBscalable\fR, default: \fB<b>Feed</b>:&nbsp;&nbsp;%f<br>|<b>Title</b>:&nbsp;%t<br>|<b>Date</b>:&nbsp;&nbsp;%d<br>|<br>%c<br>|<br><hr>%L\fR)
 .RS 4
 Sets the format according to which the item'\&s content will be generated.\&
@@ -579,9 +583,6 @@ l l
 l l
 l l
 l l
-l l
-l l
-l l
 l l.
 T{
 Color setting
@@ -589,29 +590,14 @@ T}	T{
 Default value
 T}
 T{
-\fIcolor-count-number\fR
+\fIcolor-status\fR
 T}	T{
-\fBdefault default\fR
-T}
-T{
-\fIcolor-search-prompt\fR
-T}	T{
-\fBdefault default\fR
-T}
-T{
-\fIcolor-status-good\fR
-T}	T{
-\fBgreen default\fR
-T}
-T{
-\fIcolor-status-info\fR
-T}	T{
-\fBcyan default\fR
+\fBgreen default bold\fR
 T}
 T{
 \fIcolor-status-fail\fR
 T}	T{
-\fBred default\fR
+\fBred default bold\fR
 T}
 T{
 \fIcolor-list-item\fR
@@ -807,7 +793,7 @@ T}	T{
 \fIreload\fR
 T}
 T{
-\fB^R\fR
+\fBR\fR, \fB^R\fR
 T}	T{
 \fIreload-all\fR
 T}

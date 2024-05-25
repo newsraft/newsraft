@@ -54,9 +54,8 @@ you will get to the _feeds_ menu straightaway.
 
 _Feeds_ menu consists of feed entries. Every feed entry contains news downloaded
 from one specific source which you have set in *feeds* file. To update a single
-feed you have to select it and press *r*. If you want to update all feeds,
-*Ctrl-R* (or *^R* for short) will do this fine. From _feeds_ menu you can get to
-the _items_ menu by entering some feed.
+feed you have to select it and press *r* or *R* if you want to update all feeds.
+From _feeds_ menu you can get to the _items_ menu by entering some feed.
 
 _Items_ menu consists of feed item entries (i. e. single pieces of news) which
 you get when you update feeds in the previous menu. Every feed item entry has
@@ -272,6 +271,9 @@ _proxy-password_ (*scalable*, default: *""*)
 _global-section-name_ (default: *Global*)
 	Name of the section that contains all feeds.
 
+_status-placeholder_ (default: *r:reload  R:reload-all  tab:explore  d:read  D:unread  f:important  F:unimportant  n:next-unread  N:prev-unread  p:next-important  P:prev-important*)
+	Placeholder which is put in a status bar if it's empty.
+
 _item-content-format_ (*scalable*, default: *<b>Feed</b>:&nbsp;&nbsp;%f<br>|<b>Title</b>:&nbsp;%t<br>|<b>Date</b>:&nbsp;&nbsp;%d<br>|<br>%c<br>|<br><hr>%L*)
 	Sets the format according to which the item's content will be generated.
 	The text in this format string is HTML formatted. Fields are separated by *|*
@@ -406,16 +408,10 @@ and *colorN* (*N* can be a number from *0* to *255*). Available attributes are
 
 |[ Color setting
 :[ Default value
-|[ _color-count-number_
-:[ *default default*
-|[ _color-search-prompt_
-:[ *default default*
-|[ _color-status-good_
-:[ *green default*
-|[ _color-status-info_
-:[ *cyan default*
+|[ _color-status_
+:[ *green default bold*
 |[ _color-status-fail_
-:[ *red default*
+:[ *red default bold*
 |[ _color-list-item_
 :[ *default default*
 |[ _color-list-item-unread_
@@ -479,7 +475,7 @@ and *colorN* (*N* can be a number from *0* to *255*). Available attributes are
 :[ _enter_
 |[ *r*
 :[ _reload_
-|[ *^R*
+|[ *R*, *^R*
 :[ _reload-all_
 |[ *d*
 :[ _mark-read_; _jump-to-next_

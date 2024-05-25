@@ -41,6 +41,7 @@
 #include "render_data/render-text-html-table.c"
 #include "sections.c"
 #include "signal.c"
+#include "sorting.c"
 #include "string.c"
 #include "string-serialize.c"
 #include "update_feed/download.c"
@@ -149,13 +150,13 @@ main(int argc, char **argv)
 	if (start_feed_updater()              == false) { error = 18; goto undo9; }
 
 	struct timespec idling = {0, 100000000}; // 0.1 seconds
-	struct menu_state *menu = setup_menu(&sections_menu_loop, NULL, 0, MENU_NO_FLAGS);
+	struct menu_state *menu = setup_menu(&sections_menu_loop, NULL, NULL, 0, MENU_NORMAL);
 	while (they_want_us_to_terminate == false) {
 		menu = menu->run(menu);
 		if (menu == NULL) {
 			if (try_to_stop_feed_updater()) break;
 			nanosleep(&idling, NULL); // Avoids CPU cycles waste while awaiting termination
-			menu = setup_menu(&sections_menu_loop, NULL, 0, MENU_DISABLE_SETTINGS);
+			menu = setup_menu(&sections_menu_loop, NULL, NULL, 0, MENU_DISABLE_SETTINGS);
 		}
 	}
 

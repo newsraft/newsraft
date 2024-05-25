@@ -56,25 +56,24 @@ item_pager_loop(struct menu_state *m)
 	if (items_menu == NULL) {
 		goto quit;
 	}
-	struct item_entry *item = items_menu->items->ptr + item_id;
 	struct format_arg items_pager_fmt_args[] = {
 		{L'l',  L's',  {.s = NULL}},
 		{L'\0', L'\0', {.i = 0   }}, // terminator
 	};
-	INFO("Trying to view an item with the rowid %" PRId64 "...", item->rowid);
-	if (populate_render_blocks_list_with_data_from_item(item, &blocks, &links) == false) {
+	INFO("Trying to view an item with the rowid %" PRId64 "...", items_menu->items->ptr[item_id].rowid);
+	if (populate_render_blocks_list_with_data_from_item(&items_menu->items->ptr[item_id], &blocks, &links) == false) {
 		goto quit;
 	}
-	if (start_pager_menu(&item->feed[0]->cfg, &blocks) == false) {
+	if (start_pager_menu(&items_menu->items->ptr[item_id].feed[0]->cfg, &blocks) == false) {
 		goto quit;
 	}
-	db_mark_item_read(item->rowid, true);
-	item->is_unread = false;
+	db_mark_item_read(items_menu->items->ptr[item_id].rowid, true);
+	items_menu->items->ptr[item_id].is_unread = false;
 	start_menu();
 	uint32_t count;
 	const struct wstring *macro;
 	while (true) {
-		input_id cmd = get_input(item->feed[0]->binds, &count, &macro);
+		input_id cmd = get_input(items_menu->items->ptr[item_id].feed[0]->binds, &count, &macro);
 		if (handle_pager_menu_control(cmd) == true) {
 			// Rest a little.
 		} else if ((cmd == INPUT_JUMP_TO_NEXT)
@@ -88,24 +87,14 @@ item_pager_loop(struct menu_state *m)
 			if (items_menu->view_sel != item_id) {
 				free_render_blocks(&blocks);
 				free_links_list(&links);
-				return setup_menu(&item_pager_loop, NULL, 0, MENU_SWALLOW);
+				return setup_menu(&item_pager_loop, items_menu->items->ptr[items_menu->view_sel].title, NULL, 0, MENU_SWALLOW);
 			}
-			/*
-			 * The jump command didn't change the current item, but
-			 * the item structure is not valid after the call to
-			 * handle_list_menu_control() above.  This happens,
-			 * e.g., if jumping to the next unread item, but there
-			 * is no one.
-			 * Ensure that we stay on a valid item in the next loop
-			 * iteration.
-			 */
-			item = items_menu->items->ptr + item_id;
 		} else if (cmd == INPUT_NAVIGATE_BACK || cmd == INPUT_QUIT_SOFT || cmd == INPUT_QUIT_HARD) {
 			free_render_blocks(&blocks);
 			free_links_list(&links);
-			return cmd == INPUT_QUIT_HARD ? NULL : setup_menu(NULL, NULL, 0, 0);
+			return cmd == INPUT_QUIT_HARD ? NULL : close_menu();
 		} else if (cmd == INPUT_OPEN_IN_BROWSER && count > 0 && count <= links.len) {
-			const struct wstring *browser = get_cfg_wstring(&item->feed[0]->cfg, CFG_OPEN_IN_BROWSER_COMMAND);
+			const struct wstring *browser = get_cfg_wstring(&items_menu->items->ptr[item_id].feed[0]->cfg, CFG_OPEN_IN_BROWSER_COMMAND);
 			items_pager_fmt_args[0].value.s = links.ptr[count - 1].url->ptr;
 			run_formatted_command(browser, items_pager_fmt_args);
 		} else if (cmd == INPUT_COPY_TO_CLIPBOARD && count > 0 && count <= links.len) {
@@ -118,5 +107,5 @@ item_pager_loop(struct menu_state *m)
 quit:
 	free_render_blocks(&blocks);
 	free_links_list(&links);
-	return setup_menu(NULL, NULL, 0, 0);
+	return close_menu();
 }

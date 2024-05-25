@@ -16,8 +16,8 @@ obtain_list_menu_size(size_t *width, size_t *height)
 		return false;
 	}
 	// This is really critical! You will get integer overflow if terminal_width
-	// is less than 10. You have been warned.
-	if (terminal_width < 10) {
+	// is less than 12. You have been warned.
+	if (terminal_width < 12) {
 		FAIL("Terminal is too narrow!");
 		return false;
 	}

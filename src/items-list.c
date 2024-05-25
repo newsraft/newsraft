@@ -15,6 +15,7 @@ append_sorting_order_expression_to_query(struct string *q, int order)
 		case SORT_BY_ALPHABET_ASC:   return catas(q, " ORDER BY title ASC, rowid ASC", 30);
 		case SORT_BY_ALPHABET_DESC:  return catas(q, " ORDER BY title DESC, rowid DESC", 32);
 	}
+	fail_status("Unknown sorting method name!");
 	return false;
 }
 
@@ -22,17 +23,25 @@ static inline struct string *
 generate_search_query_string(const struct items_list *items, const struct string *search_filter)
 {
 	struct string *q = crtas("SELECT rowid,feed_url,title,link,publication_date,update_date,unread,important FROM items WHERE feed_url IN (?", 110);
-	if (q == NULL) goto error;
-	for (size_t i = 1; i < items->feeds_count; ++i) {
-		if (catas(q, ",?", 2) == false) goto error;
+	if (q == NULL) {
+		goto error;
 	}
-	if (catcs(q, ')') == false) goto error;
+	for (size_t i = 1; i < items->feeds_count; ++i) {
+		if (catas(q, ",?", 2) == false) {
+			goto error;
+		}
+	}
+	if (catcs(q, ')') == false) {
+		goto error;
+	}
 	if (search_filter != NULL && search_filter->len > 0) {
 		if (catas(q, " AND ((title LIKE '%' || ? || '%') OR (content LIKE '%' || ? || '%'))", 69) == false) {
 			goto error;
 		}
 	}
-	if (append_sorting_order_expression_to_query(q, items->sorting) == false) goto error;
+	if (append_sorting_order_expression_to_query(q, items->sorting) == false) {
+		goto error;
+	}
 	return q;
 error:
 	FAIL("Not enough memory for query string!");
@@ -101,12 +110,8 @@ obtain_items_at_least_up_to_the_given_index(struct items_list *items, size_t ind
 		}
 
 		text = (const char *)sqlite3_column_text(items->res, 2);
-		if (text == NULL) {
-			items->ptr[items->len].title = NULL;
-		} else {
-			items->ptr[items->len].title = crtas(text, strlen(text));
-			inlinefy_string(items->ptr[items->len].title);
-		}
+		items->ptr[items->len].title = text == NULL ? crtes(1) : crtas(text, strlen(text));
+		inlinefy_string(items->ptr[items->len].title);
 
 		text = (const char *)sqlite3_column_text(items->res, 3);
 		items->ptr[items->len].url = text == NULL ? crtes(1) : crtas(text, strlen(text));
@@ -143,16 +148,7 @@ create_items_list(struct feed_entry **feeds, size_t feeds_count, int sorting, co
 
 	items->sorting = sorting;
 	if (sorting < 0) {
-		items->sorting = SORT_BY_TIME_DESC;
-		const struct string *sort = get_cfg_string(NULL, CFG_MENU_ITEM_SORTING);
-		if      (strcmp(sort->ptr, "time-desc")      == 0) items->sorting = SORT_BY_TIME_DESC;
-		else if (strcmp(sort->ptr, "time-asc")       == 0) items->sorting = SORT_BY_TIME_ASC;
-		else if (strcmp(sort->ptr, "unread-desc")    == 0) items->sorting = SORT_BY_UNREAD_DESC;
-		else if (strcmp(sort->ptr, "unread-asc")     == 0) items->sorting = SORT_BY_UNREAD_ASC;
-		else if (strcmp(sort->ptr, "important-desc") == 0) items->sorting = SORT_BY_IMPORTANT_DESC;
-		else if (strcmp(sort->ptr, "important-asc")  == 0) items->sorting = SORT_BY_IMPORTANT_ASC;
-		else if (strcmp(sort->ptr, "alphabet-desc")  == 0) items->sorting = SORT_BY_ALPHABET_DESC;
-		else if (strcmp(sort->ptr, "alphabet-asc")   == 0) items->sorting = SORT_BY_ALPHABET_ASC;
+		items->sorting = get_sorting_id(get_cfg_string(NULL, CFG_MENU_ITEM_SORTING)->ptr);
 	}
 
 	items->feeds = feeds;
@@ -160,7 +156,6 @@ create_items_list(struct feed_entry **feeds, size_t feeds_count, int sorting, co
 	items->search_filter = search_filter == NULL ? NULL : convert_wstring_to_string(search_filter);
 	items->query = generate_search_query_string(items, items->search_filter);
 	if (items->query == NULL) {
-		fail_status("Can't generate search query string!");
 		goto undo1;
 	}
 	items->res = db_prepare(items->query->ptr, items->query->len + 1);
@@ -230,14 +225,7 @@ change_items_list_sorting(struct items_list **items, input_id cmd)
 			break;
 	}
 	recreate_items_list(items);
-
-	const char *order = (*items)->sorting & 1 ? "descending" : "ascending";
-	switch ((*items)->sorting & ~1) {
-		case SORT_BY_TIME_ASC:      info_status("Sorted items by time (%s)", order); break;
-		case SORT_BY_UNREAD_ASC:    info_status("Sorted items by unread (%s)", order); break;
-		case SORT_BY_ALPHABET_ASC:  info_status("Sorted items by alphabet (%s)", order); break;
-		case SORT_BY_IMPORTANT_ASC: info_status("Sorted items by important (%s)", order); break;
-	}
+	info_status(get_sorting_message((*items)->sorting), "items");
 }
 
 void

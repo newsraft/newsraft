@@ -134,6 +134,7 @@ assign_default_binds(void)
 	if (create1bind("KEY_RIGHT",     INPUT_ENTER) /* right arrow */         == false) { goto fail; }
 	if (create1bind("KEY_ENTER",     INPUT_ENTER) /* sus enter key */       == false) { goto fail; }
 	if (create1bind("r",             INPUT_RELOAD)                          == false) { goto fail; }
+	if (create1bind("R",             INPUT_RELOAD_ALL)                      == false) { goto fail; }
 	if (create1bind("^R",            INPUT_RELOAD_ALL)                      == false) { goto fail; }
 	if (create2bind("d",             INPUT_MARK_READ, INPUT_JUMP_TO_NEXT)   == false) { goto fail; }
 	if (create2bind("D",             INPUT_MARK_UNREAD, INPUT_JUMP_TO_NEXT) == false) { goto fail; }

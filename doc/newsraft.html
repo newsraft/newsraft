@@ -81,9 +81,8 @@
 <p class="Pp"><i>Feeds</i> menu consists of feed entries. Every feed entry
     contains news downloaded from one specific source which you have set in
     <b>feeds</b> file. To update a single feed you have to select it and press
-    <b>r</b>. If you want to update all feeds, <b>Ctrl-R</b> (or <b>^R</b> for
-    short) will do this fine. From <i>feeds</i> menu you can get to the
-    <i>items</i> menu by entering some feed.</p>
+    <b>r</b> or <b>R</b> if you want to update all feeds. From <i>feeds</i> menu
+    you can get to the <i>items</i> menu by entering some feed.</p>
 <p class="Pp"><i>Items</i> menu consists of feed item entries (i. e. single
     pieces of news) which you get when you update feeds in the previous menu.
     Every feed item entry has two switchable properties - read state and
@@ -318,6 +317,11 @@
 <div class="Bd-indent">Password for authentication with the proxy server.</div>
 <p class="Pp"><i>global-section-name</i> (default: <b>Global</b>)</p>
 <div class="Bd-indent">Name of the section that contains all feeds.</div>
+<p class="Pp"><i>status-placeholder</i> (default: <b>r:reload R:reload-all
+    tab:explore d:read D:unread f:important F:unimportant n:next-unread
+    N:prev-unread p:next-important P:prev-important</b>)</p>
+<div class="Bd-indent">Placeholder which is put in a status bar if it's
+  empty.</div>
 <p class="Pp"><i>item-content-format</i> (<b>scalable</b>, default:
     <b>&lt;b&gt;Feed&lt;/b&gt;:&amp;nbsp;&amp;nbsp;%f&lt;br&gt;|&lt;b&gt;Title&lt;/b&gt;:&amp;nbsp;%t&lt;br&gt;|&lt;b&gt;Date&lt;/b&gt;:&amp;nbsp;&amp;nbsp;%d&lt;br&gt;|&lt;br&gt;%c&lt;br&gt;|&lt;br&gt;&lt;hr&gt;%L</b>)</p>
 <div class="Bd-indent">Sets the format according to which the item's content
@@ -485,24 +489,12 @@
     <td>Default value</td>
   </tr>
   <tr>
-    <td><i>color-count-number</i></td>
-    <td><b>default default</b></td>
-  </tr>
-  <tr>
-    <td><i>color-search-prompt</i></td>
-    <td><b>default default</b></td>
-  </tr>
-  <tr>
-    <td><i>color-status-good</i></td>
-    <td><b>green default</b></td>
-  </tr>
-  <tr>
-    <td><i>color-status-info</i></td>
-    <td><b>cyan default</b></td>
+    <td><i>color-status</i></td>
+    <td><b>green default bold</b></td>
   </tr>
   <tr>
     <td><i>color-status-fail</i></td>
-    <td><b>red default</b></td>
+    <td><b>red default bold</b></td>
   </tr>
   <tr>
     <td><i>color-list-item</i></td>
@@ -631,7 +623,7 @@
     <td><i>reload</i></td>
   </tr>
   <tr>
-    <td><b>^R</b></td>
+    <td><b>R</b>, <b>^R</b></td>
     <td><i>reload-all</i></td>
   </tr>
   <tr>
@@ -772,7 +764,7 @@
 </div>
 <table class="foot">
   <tr>
-    <td class="foot-date">2024-05-25</td>
+    <td class="foot-date">2024-05-26</td>
     <td class="foot-os"></td>
   </tr>
 </table>

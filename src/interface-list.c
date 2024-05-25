@@ -109,6 +109,7 @@ expose_all_visible_entries_of_the_list_menu_unprotected(void)
 		expose_entry_of_the_list_menu_unprotected(i);
 	}
 	doupdate();
+	update_status_window_content_unprotected();
 }
 
 void
@@ -354,6 +355,7 @@ free_deleted_menus(void)
 	while (menus != NULL && menus->is_deleted == true) {
 		struct menu_state *tmp = menus;
 		menus = menus->prev;
+		free_string(tmp->name);
 		free_items_list(tmp->items);
 		free(tmp->feeds);
 		free(tmp);
@@ -366,6 +368,7 @@ free_menus(void)
 	while (menus != NULL) {
 		struct menu_state *tmp = menus;
 		menus = menus->prev;
+		free_string(tmp->name);
 		free_items_list(tmp->items);
 		free(tmp->feeds);
 		free(tmp);
@@ -382,12 +385,9 @@ get_menu_depth(void)
 	return depth;
 }
 
-struct menu_state *
-setup_menu(struct menu_state *(*run)(struct menu_state *), struct feed_entry **feeds, size_t feeds_count, uint32_t flags)
+static void
+update_unread_items_count_of_last_menu(void)
 {
-	pthread_mutex_lock(&interface_lock);
-
-	// Get up-to-date information on unread items count
 	if (menus != NULL && menus->feeds_original != NULL && menus->feeds_count > 0) {
 		for (size_t i = 0; i < menus->feeds_count; ++i) {
 			int64_t unread_count = get_unread_items_count_of_the_feed(menus->feeds_original[i]->link);
@@ -396,36 +396,49 @@ setup_menu(struct menu_state *(*run)(struct menu_state *), struct feed_entry **f
 			}
 		}
 	}
+}
 
+struct menu_state *
+setup_menu(struct menu_state *(*run)(struct menu_state *), struct string *name, struct feed_entry **feeds, size_t feeds_count, uint32_t flags)
+{
+	pthread_mutex_lock(&interface_lock);
+	update_unread_items_count_of_last_menu();
+	struct menu_state *new = calloc(1, sizeof(struct menu_state));
+	new->run            = run;
+	new->feeds_original = feeds;
+	new->feeds_count    = feeds_count;
+	new->flags          = flags;
+	new->prev           = menus;
+	if (name != NULL && name->len > 0) {
+		cpyss(&new->name, name);
+	}
+	if ((flags & MENU_SWALLOW) && menus != NULL) {
+		menus->is_deleted = true;
+	}
+	menus = new;
+	pthread_mutex_unlock(&interface_lock);
+	return menus;
+}
+
+struct menu_state *
+close_menu(void)
+{
+	pthread_mutex_lock(&interface_lock);
+	update_unread_items_count_of_last_menu();
 	struct menu_state *next_menu = NULL;
-	if (run != NULL) {
-		struct menu_state *new = calloc(1, sizeof(struct menu_state));
-		new->run            = run;
-		new->feeds_original = feeds;
-		new->feeds_count    = feeds_count;
-		new->flags          = flags;
-		new->prev           = menus;
-		if ((flags & MENU_SWALLOW) && menus != NULL) {
-			menus->is_deleted = true;
-		}
-		menus = new;
-		next_menu = menus;
-	} else {
-		for (struct menu_state *i = menus; i != NULL; i = i->prev) {
-			if (i->is_deleted == false) {
-				i->is_deleted = true;
-				break;
-			}
-		}
-		for (struct menu_state *i = menus; i != NULL; i = i->prev) {
-			if (i->is_deleted == false) {
-				next_menu = i;
-				next_menu->flags |= MENU_DISABLE_SETTINGS;
-				break;
-			}
+	for (struct menu_state *i = menus; i != NULL; i = i->prev) {
+		if (i->is_deleted == false) {
+			i->is_deleted = true;
+			break;
 		}
 	}
-
+	for (struct menu_state *i = menus; i != NULL; i = i->prev) {
+		if (i->is_deleted == false) {
+			next_menu = i;
+			next_menu->flags |= MENU_DISABLE_SETTINGS;
+			break;
+		}
+	}
 	pthread_mutex_unlock(&interface_lock);
 	return next_menu;
 }
@@ -445,5 +458,21 @@ start_menu(void)
 	redraw_list_menu_unprotected();
 	menu->is_initialized = true;
 	pthread_mutex_unlock(&interface_lock);
-	update_status_window_content();
+}
+
+void
+write_menu_path_string(struct string *names, struct menu_state *m)
+{
+	if (menus == NULL) {
+		return;
+	} else if (m == NULL) {
+		write_menu_path_string(names, menus);
+		return;
+	} else if (m->prev != NULL) {
+		write_menu_path_string(names, m->prev);
+	}
+	if (m->is_deleted == false && m->name != NULL && m->name->len > 0) {
+		catas(names, "  >  ", 5);
+		catss(names, m->name);
+	}
 }

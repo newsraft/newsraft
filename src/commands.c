@@ -42,7 +42,7 @@ copy_string_to_clipboard(const struct string *src)
 		}
 		fwrite(src->ptr, sizeof(char), src->len, p);
 		pclose(p);
-		good_status("Copied %s", src->ptr);
+		info_status("Copied %s", src->ptr);
 	}
 }
 

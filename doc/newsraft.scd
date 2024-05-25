@@ -406,6 +406,10 @@ and *colorN* (*N* can be a number from *0* to *255*). Available attributes are
 
 |[ Color setting
 :[ Default value
+|[ _color-count-number_
+:[ *default default*
+|[ _color-search-prompt_
+:[ *default default*
 |[ _color-status-good_
 :[ *green default*
 |[ _color-status-info_

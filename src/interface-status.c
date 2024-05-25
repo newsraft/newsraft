@@ -33,7 +33,7 @@ update_status_window_content_unprotected(void)
 		wattrset(status_window, get_cfg_color(NULL, CFG_COLOR_STATUS_FAIL));
 		waddnstr(status_window, "Terminating...", list_menu_width);
 	} else if (search_mode_is_enabled == true) {
-		wattrset(status_window, A_NORMAL);
+		wattrset(status_window, get_cfg_color(NULL, CFG_COLOR_SEARCH_PROMPT));
 		waddwstr(status_window, L"/");
 		waddwstr(status_window, search_mode_text_input->ptr);
 	} else if (status_window_is_clean == false) {
@@ -41,10 +41,10 @@ update_status_window_content_unprotected(void)
 		waddnstr(status_window, messages[(messages_len - 1) % messages_lim].text->ptr, list_menu_width);
 	}
 
-	// Print counter value
+	// Print count value
 	wmove(status_window, 0, list_menu_width - 9);
-	wattrset(status_window, A_NORMAL);
-	if (count_buf_len != 0) {
+	wattrset(status_window, get_cfg_color(NULL, CFG_COLOR_COUNT_NUMBER));
+	if (count_buf_len > 0) {
 		waddnstr(status_window, count_buf, count_buf_len);
 	}
 
@@ -244,10 +244,10 @@ get_input(struct input_binding *ctx, uint32_t *count, const struct wstring **mac
 			update_status_window_content();
 		} else {
 			input_id cmd = get_action_of_bind(ctx, key, 0, macro_ptr);
-			uint32_t counter_value = 1;
+			uint32_t count_value = 1;
 			count_buf[count_buf_len] = '\0';
-			if (sscanf(count_buf, "%" SCNu32, &counter_value) != 1) {
-				counter_value = 1;
+			if (sscanf(count_buf, "%" SCNu32, &count_value) != 1) {
+				count_value = 1;
 			}
 			count_buf_len = 0;
 			if (cmd == INPUT_START_SEARCH_INPUT) {
@@ -256,7 +256,7 @@ get_input(struct input_binding *ctx, uint32_t *count, const struct wstring **mac
 				update_status_window_content();
 			} else {
 				if (count) {
-					*count = counter_value;
+					*count = count_value;
 				}
 				queued_action_index = 1;
 				update_status_window_content();

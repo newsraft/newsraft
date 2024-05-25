@@ -35,6 +35,8 @@ struct config_context {
 };
 
 static struct config_entry config[] = {
+	{"color-count-number",              CFG_COLOR,  {.c = {-1, -1,            -1, A_NORMAL}}},
+	{"color-search-prompt",             CFG_COLOR,  {.c = {-1, -1,            -1, A_NORMAL}}},
 	{"color-status-good",               CFG_COLOR,  {.c = {-1, COLOR_GREEN,   -1, A_NORMAL}}},
 	{"color-status-info",               CFG_COLOR,  {.c = {-1, COLOR_CYAN,    -1, A_NORMAL}}},
 	{"color-status-fail",               CFG_COLOR,  {.c = {-1, COLOR_RED,     -1, A_NORMAL}}},

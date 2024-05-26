@@ -1,5 +1,4 @@
 #include <string.h>
-#include <strings.h>
 #include "load_config/load_config.h"
 
 static inline void

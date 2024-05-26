@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 #include "newsraft.h"
 
 static struct input_binding *binds = NULL;

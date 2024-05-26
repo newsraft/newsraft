@@ -1,89 +1,9 @@
 #include <string.h>
 #include "load_config/load_config.h"
 
-struct config_string {
-	struct string *actual;
-	struct wstring *wactual;
-	const char *const base;
-	bool (*auto_handler)(struct config_context **, config_type_id);
-};
-
-struct config_color {
-	int color_pair;
-	int fg;
-	int bg;
-	unsigned int attributes;
-};
-
-union config_value {
-	bool b;
-	size_t u;
-	struct config_color c;
-	struct config_string s;
-};
-
-struct config_entry {
-	const char *name;
-	config_type_id type;
-	union config_value value;
-};
-
-struct config_context {
-	config_entry_id id;
-	struct config_entry cfg;
-	struct config_context *next;
-};
-
-static struct config_entry config[] = {
-	{"color-status",                    CFG_COLOR,  {.c = {-1, COLOR_GREEN,   -1, A_BOLD}}},
-	{"color-status-fail",               CFG_COLOR,  {.c = {-1, COLOR_RED,     -1, A_BOLD}}},
-	{"color-list-item",                 CFG_COLOR,  {.c = {-1, -1,            -1, A_NORMAL}}},
-	{"color-list-item-unread",          CFG_COLOR,  {.c = {-1, COLOR_YELLOW,  -1, A_NORMAL}}},
-	{"color-list-item-important",       CFG_COLOR,  {.c = {-1, COLOR_MAGENTA, -1, A_NORMAL}}},
-	{"color-list-feed",                 CFG_COLOR,  {.c = {-1, -1,            -1, A_NORMAL}}},
-	{"color-list-feed-unread",          CFG_COLOR,  {.c = {-1, COLOR_YELLOW,  -1, A_NORMAL}}},
-	{"color-list-section",              CFG_COLOR,  {.c = {-1, -1,            -1, A_NORMAL}}},
-	{"color-list-section-unread",       CFG_COLOR,  {.c = {-1, COLOR_YELLOW,  -1, A_NORMAL}}},
-	{"reload-period",                   CFG_UINT,   {.u = 0   }},
-	{"item-limit",                      CFG_UINT,   {.u = 0   }},
-	{"scrolloff",                       CFG_UINT,   {.u = 0   }},
-	{"pager-width",                     CFG_UINT,   {.u = 100 }},
-	{"update-threads-count",            CFG_UINT,   {.u = 0   }},
-	{"download-timeout",                CFG_UINT,   {.u = 20  }},
-	{"download-speed-limit",            CFG_UINT,   {.u = 0   }},
-	{"status-messages-count-limit",     CFG_UINT,   {.u = 1000}},
-	{"status-placeholder",              CFG_STRING, {.s = {NULL, NULL, "r:reload  R:reload-all  tab:explore  d:read  D:unread  f:important  F:unimportant  n:next-unread  N:prev-unread  p:next-important  P:prev-important", NULL}}},
-	{"copy-to-clipboard-command",       CFG_STRING, {.s = {NULL, NULL, "auto",   &obtain_clipboard_command}}},
-	{"proxy",                           CFG_STRING, {.s = {NULL, NULL, "",       NULL}}},
-	{"proxy-user",                      CFG_STRING, {.s = {NULL, NULL, "",       NULL}}},
-	{"proxy-password",                  CFG_STRING, {.s = {NULL, NULL, "",       NULL}}},
-	{"global-section-name",             CFG_STRING, {.s = {NULL, NULL, "Global", NULL}}},
-	{"user-agent",                      CFG_STRING, {.s = {NULL, NULL, "auto",   &obtain_useragent_string}}},
-	{"item-content-format",             CFG_STRING, {.s = {NULL, NULL, "<b>Feed</b>:&nbsp;&nbsp;%f<br>|<b>Title</b>:&nbsp;%t<br>|<b>Date</b>:&nbsp;&nbsp;%d<br>|<br>%c<br>|<br><hr>%L", NULL}}},
-	{"item-content-date-format",        CFG_STRING, {.s = {NULL, NULL, "%a, %d %b %Y %H:%M:%S %z",    NULL}}},
-	{"item-content-link-format",        CFG_STRING, {.s = {NULL, NULL, "<b>[%i]</b>:&nbsp;%l<br>",    NULL}}},
-	{"list-entry-date-format",          CFG_STRING, {.s = {NULL, NULL, "%b %d",                       NULL}}},
-	{"open-in-browser-command",         CFG_STRING, {.s = {NULL, NULL, "${BROWSER:-xdg-open} \"%l\"", NULL}}},
-	{"notification-command",            CFG_STRING, {.s = {NULL, NULL, "auto",                        &obtain_notification_command}}},
-	{"menu-section-entry-format",       CFG_STRING, {.s = {NULL, NULL, "%5.0u @ %t",                  NULL}}},
-	{"menu-feed-entry-format",          CFG_STRING, {.s = {NULL, NULL, "%5.0u │ %t",                  NULL}}},
-	{"menu-item-entry-format",          CFG_STRING, {.s = {NULL, NULL, " %u │ %d │ %o",               NULL}}},
-	{"menu-explore-item-entry-format",  CFG_STRING, {.s = {NULL, NULL, " %u │ %d │ %-28O │ %o",       NULL}}},
-	{"menu-feed-sorting",               CFG_STRING, {.s = {NULL, NULL, "none",                        NULL}}},
-	{"menu-item-sorting",               CFG_STRING, {.s = {NULL, NULL, "time-desc",                   NULL}}},
-	{"sections-menu-paramount-explore", CFG_BOOL,   {.b = false}},
-	{"feeds-menu-paramount-explore",    CFG_BOOL,   {.b = false}},
-	{"mark-item-unread-on-change",      CFG_BOOL,   {.b = false}},
-	{"mark-item-read-on-hover",         CFG_BOOL,   {.b = false}},
-	{"analyze-database-on-startup",     CFG_BOOL,   {.b = true }},
-	{"clean-database-on-startup",       CFG_BOOL,   {.b = false}},
-	{"respect-ttl-element",             CFG_BOOL,   {.b = true }},
-	{"respect-expires-header",          CFG_BOOL,   {.b = true }},
-	{"send-if-none-match-header",       CFG_BOOL,   {.b = true }},
-	{"send-if-modified-since-header",   CFG_BOOL,   {.b = true }},
-	{"pager-centering",                 CFG_BOOL,   {.b = true }},
-	{NULL,                              CFG_BOOL,   {.b = false}},
-};
+#define CONFIG_ARRAY
+#include "config.h"
+#undef CONFIG_ARRAY
 
 config_entry_id
 find_config_entry_by_name(const char *name)
@@ -205,8 +125,8 @@ set_cfg_string(struct config_context **ctx, config_entry_id id, const char *src_
 	}
 	bool status = wstr_set(&cfg->value.s.wactual, w->ptr, w->len, w->len);
 	free_wstring(w);
-	if (config[id].value.s.auto_handler != NULL && strcmp(cfg->value.s.actual->ptr, "auto") == 0) {
-		if (config[id].value.s.auto_handler(ctx, id) == false) {
+	if (config[id].value.s.auto_set != NULL && strcmp(cfg->value.s.actual->ptr, "auto") == 0) {
+		if (config[id].value.s.auto_set(ctx, id) == false) {
 			write_error("Failed to set auto value for %s setting!\n", config[id].name);
 			return false;
 		}

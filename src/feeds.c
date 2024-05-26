@@ -108,10 +108,11 @@ feeds_menu_loop(struct menu_state *m)
 		info_status("There are no feeds in this section");
 		return close_menu();
 	} else if (!(m->flags & MENU_DISABLE_SETTINGS)) {
+		// Don't set the menu names here because it's redundant!
 		if (get_cfg_bool(NULL, CFG_FEEDS_MENU_PARAMOUNT_EXPLORE) && get_items_count_of_feeds(m->feeds_original, m->feeds_count)) {
 			return setup_menu(&items_menu_loop, NULL, m->feeds_original, m->feeds_count, MENU_IS_EXPLORE);
 		} else if (m->feeds_count == 1 && get_items_count_of_feeds(m->feeds_original, m->feeds_count)) {
-			return setup_menu(&items_menu_loop, m->feeds[0]->name, m->feeds_original, m->feeds_count, MENU_SWALLOW);
+			return setup_menu(&items_menu_loop, NULL, m->feeds_original, m->feeds_count, MENU_SWALLOW);
 		}
 	}
 	if (m->is_initialized == false) {

@@ -272,10 +272,10 @@ sections_menu_loop(struct menu_state *m)
 	m->write_action = &list_menu_writer;
 	m->entry_format = get_cfg_wstring(NULL, CFG_MENU_SECTION_ENTRY_FORMAT);
 	if (!(m->flags & MENU_DISABLE_SETTINGS)) {
+		// Don't set the menu names here because it's redundant!
 		if (get_cfg_bool(NULL, CFG_SECTIONS_MENU_PARAMOUNT_EXPLORE) && get_items_count_of_feeds(sections[0].feeds, sections[0].feeds_count)) {
-			return setup_menu(&items_menu_loop, sections[0].name, sections[0].feeds, sections[0].feeds_count, MENU_IS_EXPLORE);
+			return setup_menu(&items_menu_loop, NULL, sections[0].feeds, sections[0].feeds_count, MENU_IS_EXPLORE);
 		} else if (sections_count == 1) {
-			// Don't set the menu name here because it's redundant!
 			return setup_menu(&feeds_menu_loop, NULL, sections[0].feeds, sections[0].feeds_count, MENU_SWALLOW);
 		}
 	}
@@ -297,9 +297,9 @@ sections_menu_loop(struct menu_state *m)
 			case INPUT_ENTER:
 				return setup_menu(&feeds_menu_loop, sections[m->view_sel].name, sections[m->view_sel].feeds, sections[m->view_sel].feeds_count, MENU_NORMAL);
 			case INPUT_TOGGLE_EXPLORE_MODE:
-				return setup_menu(&items_menu_loop, sections[0].name, sections[0].feeds, sections[0].feeds_count, MENU_IS_EXPLORE);
+				return setup_menu(&items_menu_loop, NULL, sections[0].feeds, sections[0].feeds_count, MENU_IS_EXPLORE);
 			case INPUT_APPLY_SEARCH_MODE_FILTER:
-				return setup_menu(&items_menu_loop, sections[0].name, sections[0].feeds, sections[0].feeds_count, MENU_IS_EXPLORE | MENU_USE_SEARCH);
+				return setup_menu(&items_menu_loop, NULL, sections[0].feeds, sections[0].feeds_count, MENU_IS_EXPLORE | MENU_USE_SEARCH);
 			case INPUT_STATUS_HISTORY_MENU:
 				return setup_menu(&status_pager_loop, NULL, NULL, 0, MENU_NORMAL);
 			case INPUT_QUIT_SOFT:

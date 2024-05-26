@@ -413,6 +413,8 @@ and *colorN* (*N* can be a number from *0* to *255*). Available attributes are
 :[ Default value
 |[ _color-status_
 :[ *green default bold*
+|[ _color-status-info_
+:[ *cyan default bold*
 |[ _color-status-fail_
 :[ *red default bold*
 |[ _color-list-item_

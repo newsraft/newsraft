@@ -56,6 +56,7 @@ static struct config_entry config[] = {
 #endif // CONFIG_ARRAY
 
 CFG(CFG_COLOR_STATUS,                    "color-status",                    CFG_COLOR,  WRAP({.c = {-1, COLOR_GREEN,   -1, A_BOLD}}))
+CFG(CFG_COLOR_STATUS_INFO,               "color-status-info",               CFG_COLOR,  WRAP({.c = {-1, COLOR_CYAN,    -1, A_BOLD}}))
 CFG(CFG_COLOR_STATUS_FAIL,               "color-status-fail",               CFG_COLOR,  WRAP({.c = {-1, COLOR_RED,     -1, A_BOLD}}))
 CFG(CFG_COLOR_LIST_ITEM,                 "color-list-item",                 CFG_COLOR,  WRAP({.c = {-1, -1,            -1, A_NORMAL}}))
 CFG(CFG_COLOR_LIST_ITEM_UNREAD,          "color-list-item-unread",          CFG_COLOR,  WRAP({.c = {-1, COLOR_YELLOW,  -1, A_NORMAL}}))

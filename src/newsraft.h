@@ -21,7 +21,7 @@
 #define INFO(...) do { if (log_stream) { fputs("[INFO] ", log_stream); fprintf(log_stream, __VA_ARGS__); fputc('\n', log_stream); } } while (0)
 #define WARN(...) do { if (log_stream) { fputs("[WARN] ", log_stream); fprintf(log_stream, __VA_ARGS__); fputc('\n', log_stream); } } while (0)
 #define FAIL(...) do { if (log_stream) { fputs("[FAIL] ", log_stream); fprintf(log_stream, __VA_ARGS__); fputc('\n', log_stream); } } while (0)
-#define info_status(...) status_write(CFG_COLOR_STATUS, __VA_ARGS__)
+#define info_status(...) status_write(CFG_COLOR_STATUS_INFO, __VA_ARGS__)
 #define fail_status(...) status_write(CFG_COLOR_STATUS_FAIL, __VA_ARGS__)
 #define MIN(A, B) ((A) < (B) ? (A) : (B))
 #define LENGTH(A) ((sizeof(A))/(sizeof(*A)))

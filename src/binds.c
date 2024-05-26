@@ -159,6 +159,7 @@ assign_default_binds(void)
 	if (create1bind("y",             INPUT_COPY_TO_CLIPBOARD)               == false) { goto fail; }
 	if (create1bind("c",             INPUT_COPY_TO_CLIPBOARD)               == false) { goto fail; }
 	if (create1bind("/",             INPUT_START_SEARCH_INPUT)              == false) { goto fail; }
+	if (create1bind("escape",        INPUT_CLEAN_STATUS)                    == false) { goto fail; }
 	if (create1bind("h",             INPUT_NAVIGATE_BACK)                   == false) { goto fail; }
 	if (create1bind("backspace",     INPUT_NAVIGATE_BACK)                   == false) { goto fail; }
 	if (create1bind("KEY_LEFT",      INPUT_NAVIGATE_BACK) /* left arrow */  == false) { goto fail; }

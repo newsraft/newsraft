@@ -50,6 +50,7 @@ static const struct input_entry_match actions_table[] = {
 	{"open-in-browser",        INPUT_OPEN_IN_BROWSER       },
 	{"copy-to-clipboard",      INPUT_COPY_TO_CLIPBOARD     },
 	{"start-search-input",     INPUT_START_SEARCH_INPUT    },
+	{"clean-status",           INPUT_CLEAN_STATUS          },
 	{"navigate-back",          INPUT_NAVIGATE_BACK         },
 	{"quit",                   INPUT_QUIT_SOFT             },
 	{"quit-hard",              INPUT_QUIT_HARD             },

@@ -502,6 +502,8 @@ and *colorN* (*N* can be a number from *0* to *255*). Available attributes are
 :[ _copy-to-clipboard_
 |[ */*
 :[ _start-search-input_
+|[ *escape*
+:[ _clean-status_
 |[ *h*, *backspace*, *KEY_LEFT*, *KEY_BACKSPACE*
 :[ _navigate-back_
 |[ *q*

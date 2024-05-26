@@ -44,8 +44,11 @@ update_status_window_content_unprotected(void)
 		waddnstr(status_window, messages[(messages_len - 1) % messages_lim].text->ptr, list_menu_width);
 	} else {
 		wbkgd(status_window, get_cfg_color(NULL, CFG_COLOR_STATUS));
-		struct string *path = crtes(100);
-		write_menu_path_string(path, NULL);
+		struct string *path = NULL;
+		if (get_cfg_bool(NULL, CFG_STATUS_SHOW_MENU_PATH)) {
+			path = crtes(100);
+			write_menu_path_string(path, NULL);
+		}
 		if (path != NULL && path->len > 0) {
 			waddnstr(status_window, path->ptr, list_menu_width);
 		} else {

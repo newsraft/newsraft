@@ -271,8 +271,11 @@ _proxy-password_ (*scalable*, default: *""*)
 _global-section-name_ (default: *Global*)
 	Name of the section that contains all feeds.
 
+_status-show-menu-path_ (default: *true*)
+	Print menu path in the status bar.
+
 _status-placeholder_ (default: *r:reload  R:reload-all  tab:explore  d:read  D:unread  f:important  F:unimportant  n:next-unread  N:prev-unread  p:next-important  P:prev-important*)
-	Placeholder which is put in a status bar if it's empty.
+	Placeholder which is put in the status bar if it's empty.
 
 _item-content-format_ (*scalable*, default: *<b>Feed</b>:&nbsp;&nbsp;%f<br>|<b>Title</b>:&nbsp;%t<br>|<b>Date</b>:&nbsp;&nbsp;%d<br>|<br>%c<br>|<br><hr>%L*)
 	Sets the format according to which the item's content will be generated.

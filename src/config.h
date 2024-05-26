@@ -91,6 +91,7 @@ CFG(CFG_MENU_ITEM_ENTRY_FORMAT,          "menu-item-entry-format",          CFG_
 CFG(CFG_MENU_EXPLORE_ITEM_ENTRY_FORMAT,  "menu-explore-item-entry-format",  CFG_STRING, WRAP({.s = {.base = " %u │ %d │ %-28O │ %o"}}))
 CFG(CFG_MENU_FEED_SORTING,               "menu-feed-sorting",               CFG_STRING, WRAP({.s = {.base = "none"}}))
 CFG(CFG_MENU_ITEM_SORTING,               "menu-item-sorting",               CFG_STRING, WRAP({.s = {.base = "time-desc"}}))
+CFG(CFG_STATUS_SHOW_MENU_PATH,           "status-show-menu-path",           CFG_BOOL,   WRAP({.b = true }))
 CFG(CFG_SECTIONS_MENU_PARAMOUNT_EXPLORE, "sections-menu-paramount-explore", CFG_BOOL,   WRAP({.b = false}))
 CFG(CFG_FEEDS_MENU_PARAMOUNT_EXPLORE,    "feeds-menu-paramount-explore",    CFG_BOOL,   WRAP({.b = false}))
 CFG(CFG_MARK_ITEM_UNREAD_ON_CHANGE,      "mark-item-unread-on-change",      CFG_BOOL,   WRAP({.b = false}))

@@ -108,13 +108,7 @@ process_config_line(struct feed_entry *feed, const char *str, size_t len)
 			// bind/unbind <key>
 
 			extract_token_from_line(line, token, true);
-			if (strcasecmp(token->ptr, "space") == 0) {
-				bind = create_or_clean_bind(binds, " ");
-			} else if (strcasecmp(token->ptr, "tab") == 0) {
-				bind = create_or_clean_bind(binds, "^I");
-			} else {
-				bind = create_or_clean_bind(binds, token->ptr);
-			}
+			bind = create_or_clean_bind(binds, token->ptr);
 			continue;
 
 		} else if (find_config_entry_by_name(token->ptr) != CFG_ENTRIES_COUNT) {

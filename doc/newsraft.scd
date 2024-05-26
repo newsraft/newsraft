@@ -474,7 +474,7 @@ and *colorN* (*N* can be a number from *0* to *255*). Available attributes are
 :[ _sort-by-important_
 |[ *a*
 :[ _sort-by-alphabet_
-|[ *l*, *^J*, *KEY_RIGHT*, *KEY_ENTER*
+|[ *enter*, *l*, *KEY_ENTER*, *KEY_RIGHT*
 :[ _enter_
 |[ *r*
 :[ _reload_
@@ -502,7 +502,7 @@ and *colorN* (*N* can be a number from *0* to *255*). Available attributes are
 :[ _copy-to-clipboard_
 |[ */*
 :[ _start-search-input_
-|[ *h*, *^?*, *KEY_LEFT*, *KEY_BACKSPACE*
+|[ *h*, *backspace*, *KEY_LEFT*, *KEY_BACKSPACE*
 :[ _navigate-back_
 |[ *q*
 :[ _quit_

@@ -27,7 +27,6 @@
 #include "load_config/config-auto.c"
 #include "load_config/config-parse.c"
 #include "load_config/config-parse-colors.c"
-#include "load_config/config-parse-input.c"
 #include "load_config/load_config.c"
 #include "log.c"
 #include "path.c"

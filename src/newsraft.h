@@ -27,51 +27,7 @@
 #define LENGTH(A) ((sizeof(A))/(sizeof(*A)))
 
 typedef uint8_t config_entry_id;
-
 typedef uint8_t input_id;
-enum {
-	INPUT_SELECT_NEXT = 0,
-	INPUT_SELECT_PREV,
-	INPUT_SELECT_NEXT_PAGE,
-	INPUT_SELECT_PREV_PAGE,
-	INPUT_SELECT_FIRST,
-	INPUT_SELECT_LAST,
-	INPUT_JUMP_TO_NEXT,
-	INPUT_JUMP_TO_PREV,
-	INPUT_JUMP_TO_NEXT_UNREAD,
-	INPUT_JUMP_TO_PREV_UNREAD,
-	INPUT_JUMP_TO_NEXT_IMPORTANT,
-	INPUT_JUMP_TO_PREV_IMPORTANT,
-	INPUT_GOTO_FEED,
-	INPUT_SHIFT_WEST,
-	INPUT_SHIFT_EAST,
-	INPUT_SHIFT_RESET,
-	INPUT_SORT_BY_TIME,
-	INPUT_SORT_BY_UNREAD,
-	INPUT_SORT_BY_ALPHABET,
-	INPUT_SORT_BY_IMPORTANT,
-	INPUT_ENTER,
-	INPUT_RELOAD,
-	INPUT_RELOAD_ALL,
-	INPUT_MARK_READ,
-	INPUT_MARK_UNREAD,
-	INPUT_MARK_READ_ALL,
-	INPUT_MARK_UNREAD_ALL,
-	INPUT_MARK_IMPORTANT,
-	INPUT_MARK_UNIMPORTANT,
-	INPUT_TOGGLE_EXPLORE_MODE,
-	INPUT_STATUS_HISTORY_MENU,
-	INPUT_OPEN_IN_BROWSER,
-	INPUT_COPY_TO_CLIPBOARD,
-	INPUT_START_SEARCH_INPUT,
-	INPUT_CLEAN_STATUS,
-	INPUT_NAVIGATE_BACK,
-	INPUT_QUIT_SOFT,
-	INPUT_QUIT_HARD,
-	INPUT_SYSTEM_COMMAND,
-	INPUT_ERROR,
-	INPUT_APPLY_SEARCH_MODE_FILTER,
-};
 
 enum {
 	FEED_COLUMN_FEED_URL,
@@ -457,6 +413,7 @@ struct input_binding *create_or_clean_bind(struct input_binding **target, const 
 bool attach_action_to_bind(struct input_binding *bind, input_id action);
 bool attach_command_to_bind(struct input_binding *bind, const char *exec, size_t exec_len);
 bool assign_default_binds(void);
+input_id get_input_id_by_name(const char *name);
 void free_binds(struct input_binding *target);
 
 // Functions related to executing system commands.
@@ -550,4 +507,5 @@ extern struct wstring *search_mode_text_input;
 extern pthread_mutex_t interface_lock;
 
 #include "config.h"
+#include "input.h"
 #endif // NEWSRAFT_H

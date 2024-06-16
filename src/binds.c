@@ -3,6 +3,10 @@
 #include <strings.h>
 #include "newsraft.h"
 
+#define INPUT_ARRAY
+#include "input.h"
+#undef INPUT_ARRAY
+
 static struct input_binding *binds = NULL;
 
 input_id
@@ -96,13 +100,6 @@ attach_command_to_bind(struct input_binding *bind, const char *exec, size_t exec
 }
 
 static bool
-create1bind(const char *key, input_id action)
-{
-	struct input_binding *bind = create_or_clean_bind(NULL, key);
-	return bind && attach_action_to_bind(bind, action);
-}
-
-static bool
 create2bind(const char *key, input_id action1, input_id action2)
 {
 	struct input_binding *bind = create_or_clean_bind(NULL, key);
@@ -112,66 +109,35 @@ create2bind(const char *key, input_id action1, input_id action2)
 bool
 assign_default_binds(void)
 {
-	if (create1bind("j",             INPUT_SELECT_NEXT)                     == false) { goto fail; }
-	if (create1bind("KEY_DOWN",      INPUT_SELECT_NEXT) /* arrow down */    == false) { goto fail; }
-	if (create1bind("^E",            INPUT_SELECT_NEXT) /* scroll down */   == false) { goto fail; }
-	if (create1bind("k",             INPUT_SELECT_PREV)                     == false) { goto fail; }
-	if (create1bind("KEY_UP",        INPUT_SELECT_PREV) /* arrow up */      == false) { goto fail; }
-	if (create1bind("^Y",            INPUT_SELECT_PREV) /* scroll up */     == false) { goto fail; }
-	if (create1bind("space",         INPUT_SELECT_NEXT_PAGE)                == false) { goto fail; }
-	if (create1bind("^F",            INPUT_SELECT_NEXT_PAGE)                == false) { goto fail; }
-	if (create1bind("KEY_NPAGE",     INPUT_SELECT_NEXT_PAGE)                == false) { goto fail; }
-	if (create1bind("^B",            INPUT_SELECT_PREV_PAGE)                == false) { goto fail; }
-	if (create1bind("KEY_PPAGE",     INPUT_SELECT_PREV_PAGE)                == false) { goto fail; }
-	if (create1bind("g",             INPUT_SELECT_FIRST)                    == false) { goto fail; }
-	if (create1bind("KEY_HOME",      INPUT_SELECT_FIRST)                    == false) { goto fail; }
-	if (create1bind("G",             INPUT_SELECT_LAST)                     == false) { goto fail; }
-	if (create1bind("KEY_END",       INPUT_SELECT_LAST)                     == false) { goto fail; }
-	if (create1bind("J",             INPUT_JUMP_TO_NEXT)                    == false) { goto fail; }
-	if (create1bind("K",             INPUT_JUMP_TO_PREV)                    == false) { goto fail; }
-	if (create1bind("n",             INPUT_JUMP_TO_NEXT_UNREAD)             == false) { goto fail; }
-	if (create1bind("N",             INPUT_JUMP_TO_PREV_UNREAD)             == false) { goto fail; }
-	if (create1bind("p",             INPUT_JUMP_TO_NEXT_IMPORTANT)          == false) { goto fail; }
-	if (create1bind("P",             INPUT_JUMP_TO_PREV_IMPORTANT)          == false) { goto fail; }
-	if (create1bind("*",             INPUT_GOTO_FEED)                       == false) { goto fail; }
-	if (create1bind(",",             INPUT_SHIFT_WEST)                      == false) { goto fail; }
-	if (create1bind(".",             INPUT_SHIFT_EAST)                      == false) { goto fail; }
-	if (create1bind("<",             INPUT_SHIFT_RESET)                     == false) { goto fail; }
-	if (create1bind("t",             INPUT_SORT_BY_TIME)                    == false) { goto fail; }
-	if (create1bind("u",             INPUT_SORT_BY_UNREAD)                  == false) { goto fail; }
-	if (create1bind("a",             INPUT_SORT_BY_ALPHABET)                == false) { goto fail; }
-	if (create1bind("i",             INPUT_SORT_BY_IMPORTANT)               == false) { goto fail; }
-	if (create1bind("l",             INPUT_ENTER)                           == false) { goto fail; }
-	if (create1bind("enter",         INPUT_ENTER) /* actual enter key */    == false) { goto fail; }
-	if (create1bind("KEY_RIGHT",     INPUT_ENTER) /* right arrow */         == false) { goto fail; }
-	if (create1bind("KEY_ENTER",     INPUT_ENTER) /* sus enter key */       == false) { goto fail; }
-	if (create1bind("r",             INPUT_RELOAD)                          == false) { goto fail; }
-	if (create1bind("R",             INPUT_RELOAD_ALL)                      == false) { goto fail; }
-	if (create1bind("^R",            INPUT_RELOAD_ALL)                      == false) { goto fail; }
-	if (create2bind("d",             INPUT_MARK_READ, INPUT_JUMP_TO_NEXT)   == false) { goto fail; }
-	if (create2bind("D",             INPUT_MARK_UNREAD, INPUT_JUMP_TO_NEXT) == false) { goto fail; }
-	if (create1bind("^D",            INPUT_MARK_READ_ALL)                   == false) { goto fail; }
-	if (create1bind("f",             INPUT_MARK_IMPORTANT)                  == false) { goto fail; }
-	if (create1bind("F",             INPUT_MARK_UNIMPORTANT)                == false) { goto fail; }
-	if (create1bind("tab",           INPUT_TOGGLE_EXPLORE_MODE)             == false) { goto fail; }
-	if (create1bind("e",             INPUT_TOGGLE_EXPLORE_MODE)             == false) { goto fail; }
-	if (create1bind("v",             INPUT_STATUS_HISTORY_MENU)             == false) { goto fail; }
-	if (create1bind("o",             INPUT_OPEN_IN_BROWSER)                 == false) { goto fail; }
-	if (create1bind("y",             INPUT_COPY_TO_CLIPBOARD)               == false) { goto fail; }
-	if (create1bind("c",             INPUT_COPY_TO_CLIPBOARD)               == false) { goto fail; }
-	if (create1bind("/",             INPUT_START_SEARCH_INPUT)              == false) { goto fail; }
-	if (create1bind("escape",        INPUT_CLEAN_STATUS)                    == false) { goto fail; }
-	if (create1bind("h",             INPUT_NAVIGATE_BACK)                   == false) { goto fail; }
-	if (create1bind("backspace",     INPUT_NAVIGATE_BACK)                   == false) { goto fail; }
-	if (create1bind("KEY_LEFT",      INPUT_NAVIGATE_BACK) /* left arrow */  == false) { goto fail; }
-	if (create1bind("KEY_BACKSPACE", INPUT_NAVIGATE_BACK)                   == false) { goto fail; }
-	if (create1bind("q",             INPUT_QUIT_SOFT)                       == false) { goto fail; }
-	if (create1bind("Q",             INPUT_QUIT_HARD)                       == false) { goto fail; }
+	for (size_t i = 0; inputs[i].names[0] != NULL; ++i) {
+		for (size_t j = 0; inputs[i].default_binds[j] != NULL; ++j) {
+			struct input_binding *bind = create_or_clean_bind(NULL, inputs[i].default_binds[j]);
+			if (bind == NULL || attach_action_to_bind(bind, i) == false) {
+				goto fail;
+			}
+		}
+	}
+	if (create2bind("d", INPUT_MARK_READ, INPUT_JUMP_TO_NEXT)   == false) { goto fail; }
+	if (create2bind("D", INPUT_MARK_UNREAD, INPUT_JUMP_TO_NEXT) == false) { goto fail; }
 	return true;
 fail:
 	write_error("Failed to assign default binds!\n");
 	free_binds(NULL);
 	return false;
+}
+
+input_id
+get_input_id_by_name(const char *name)
+{
+	for (size_t i = 0; inputs[i].names[0] != NULL; ++i) {
+		for (size_t j = 0; inputs[i].names[j] != NULL; ++j) {
+			if (strcmp(name, inputs[i].names[j]) == 0) {
+				return i;
+			}
+		}
+	}
+	write_error("Action \"%s\" doesn't exist!\n", name);
+	return INPUT_ERROR;
 }
 
 void

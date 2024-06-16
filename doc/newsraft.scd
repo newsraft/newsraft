@@ -10,9 +10,9 @@ newsraft - feed reader for terminal
 
 # DESCRIPTION
 
-Newsraft is a small text based program for reading syndication feeds - it
-enables you to obtain content from many blogs and platforms and view all this
-via one single interface in an efficient and streamlined manner.
+Newsraft is a small text based program for reading syndication feeds. It obtains
+content from a given set of sources and lets you browse it all through one
+streamlined user interface.
 
 # OPTIONS
 
@@ -81,12 +81,10 @@ With this you will be able to open any link in *mpv*(1) and *feh*(1) directly
 from your terminal! Isn't it awesome? It is freaking amazing!
 
 For both _sections_ menu and _feeds_ menu there is a special explore mode. You
-can toggle it by pressing the *tab* key (*^I*). It's truly miraculous: it shows
-all the news in the current context (i. e. in _sections_ menu it will show you
-all the news in the database, whereas in _feeds_ menu it will show you all the
-news of feeds in the current _feeds_ menu). This mode may come in handy when you
-want to quickly scroll through all the news without switching between sections
-and feeds back and forth.
+can toggle it by pressing the *tab* key. It's truly miraculous: it reveals all
+the news in the current context (combines news from all feeds of the current
+menu into one list). This mode may come in handy when you want to quickly scroll
+through all the news without switching between sections and feeds back and forth.
 
 And for dessert, I'll tell you about search functionality. You can type */* to
 begin search input - enter the desired query here and press *Enter*. This will

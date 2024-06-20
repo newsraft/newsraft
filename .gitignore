@@ -6,4 +6,5 @@ tests/a.out
 tests/test-database*
 flog
 vlog
+vgcore.*
 callgrind.out*

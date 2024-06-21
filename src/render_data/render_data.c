@@ -36,7 +36,7 @@ render_data(struct config_context **ctx, struct render_result *result, struct re
 		if (blocks->ptr[i].needs_trimming == true) {
 			remove_trailing_empty_lines_except_for_first_one(&line);
 		}
-		line_style(&line, FORMAT_ALL_END);
+		line.style = FORMAT_DEFAULT;
 	}
 	remove_trailing_empty_lines_except_for_first_one(&line);
 	if (get_cfg_bool(ctx, CFG_PAGER_CENTERING) && pager_width > 0 && pager_width < content_width) {

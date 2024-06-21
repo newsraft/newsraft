@@ -100,15 +100,12 @@ enum {
 	TEXT_LINKS, // Special block type which has to be populated with links
 };
 
-typedef uint8_t format_hint_mask;
+typedef uint8_t format_mask;
 enum {
-	FORMAT_BOLD_BEGIN = 1,
-	FORMAT_BOLD_END = 2,
-	FORMAT_ITALIC_BEGIN = 4,
-	FORMAT_ITALIC_END = 8,
-	FORMAT_UNDERLINED_BEGIN = 16,
-	FORMAT_UNDERLINED_END = 32,
-	FORMAT_ALL_END = 42, // Sum of all ending hints.
+	FORMAT_DEFAULT    = 0,
+	FORMAT_BOLD       = 1,
+	FORMAT_ITALIC     = 2,
+	FORMAT_UNDERLINED = 4,
 };
 
 struct config_context;
@@ -215,14 +212,9 @@ struct render_blocks_list {
 	size_t len;
 };
 
-struct format_hint {
-	format_hint_mask mask;
-	size_t pos;
-};
-
 struct render_line {
 	struct wstring *ws;
-	struct format_hint *hints;
+	format_mask *hints;
 	size_t hints_len;
 	size_t indent;
 };
@@ -318,6 +310,7 @@ struct menu_state *item_pager_loop(struct menu_state *m);
 bool add_render_block(struct render_blocks_list *blocks, const char *content, size_t content_len, render_block_format content_type, bool needs_trimming);
 void apply_links_render_blocks(struct render_blocks_list *blocks, const struct wstring *data);
 void free_render_blocks(struct render_blocks_list *blocks);
+void free_render_result(struct render_result *render);
 
 // Here we extract links from texts of render_block entries into links_list and
 // insert link marks into texts so that it's more convenient for user to work

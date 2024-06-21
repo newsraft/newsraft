@@ -43,3 +43,17 @@ free_render_blocks(struct render_blocks_list *blocks)
 	}
 	free(blocks->ptr);
 }
+
+void
+free_render_result(struct render_result *render)
+{
+	if (render != NULL) {
+		for (size_t i = 0; i < render->lines_len; ++i) {
+			free_wstring(render->lines[i].ws);
+			free(render->lines[i].hints);
+		}
+		free(render->lines);
+		render->lines = NULL;
+		render->lines_len = 0;
+	}
+}

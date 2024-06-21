@@ -2,9 +2,11 @@
 #include <string.h>
 #include "render_data/render_data.h"
 
+#define HTML_TABLE_COLUMN_SPACING 2
+
 struct html_table_cell {
-	struct wstring **lines;
-	size_t lines_count;
+	struct render_result text;
+	struct line line;
 	int8_t colspan;
 	int8_t rowspan;
 	int64_t index;
@@ -22,7 +24,7 @@ struct html_table {
 	int64_t columns_count;
 	size_t *column_widths;
 	struct wstring *unmapped_text; // text outside of cells
-	struct html_table_cell *target;
+	struct line *target;
 };
 
 struct html_table_element_handler {
@@ -49,8 +51,8 @@ static int8_t
 get_cells_count_from_tag_attribute(GumboVector *attrs, const char *attr_name)
 {
 	GumboAttribute *attr = gumbo_get_attribute(attrs, attr_name);
-	if ((attr != NULL) && (attr->value != NULL)) {
-		int8_t result;
+	if (attr != NULL && attr->value != NULL) {
+		int8_t result = 0;
 		if (sscanf(attr->value, "%" SCNd8, &result) == 1) {
 			return result > 0 ? result : 1;
 		}
@@ -94,40 +96,25 @@ expand_last_row_in_html_table_by_one_cell(struct html_table *table, GumboVector 
 		return;
 	}
 
-	for (i = old_count; i < (last_row->cells_count - colspan); ++i) {
-		tmp[i].lines = NULL;
-		tmp[i].colspan = 1; // TODO borrow colspan from cells above
-		tmp[i].rowspan = -1;
-		tmp[i].index = i;
-	}
-	for (i = last_row->cells_count - colspan + 1; i < last_row->cells_count; ++i) {
-		tmp[i].lines = NULL;
-		tmp[i].colspan = -1;
-		tmp[i].rowspan = rowspan;
-		tmp[i].index = i;
-	}
-
-	tmp[last_row->cells_count - colspan].lines = malloc(sizeof(struct wstring *));
-	tmp[last_row->cells_count - colspan].lines[0] = wcrtes(10);
-	tmp[last_row->cells_count - colspan].lines_count = 1;
-	tmp[last_row->cells_count - colspan].colspan = colspan;
-	tmp[last_row->cells_count - colspan].rowspan = rowspan;
-	tmp[last_row->cells_count - colspan].index = last_row->cells_count - colspan;
-	last_row->cells = tmp;
-
-	if (last_row->cells_count > table->columns_count) {
-		int64_t prev_columns_count = table->columns_count;
-		table->columns_count = last_row->cells_count;
-		size_t *tmp2 = realloc(table->column_widths, sizeof(size_t) * table->columns_count);
-		if (tmp2 != NULL) {
-			table->column_widths = tmp2;
-			for (i = prev_columns_count; i < table->columns_count; ++i) {
-				table->column_widths[i] = 0;
-			}
+	for (i = old_count; i < last_row->cells_count; ++i) {
+		memset(&tmp[i], 0, sizeof(struct html_table_cell));
+		tmp[i].line.target = &tmp[i].text;
+		if (i < last_row->cells_count - colspan) {
+			tmp[i].colspan = 1; // TODO borrow colspan from cells above
+			tmp[i].rowspan = -1;
+		} else if (i > last_row->cells_count - colspan) {
+			tmp[i].colspan = -1;
+			tmp[i].rowspan = rowspan;
+		} else {
+			tmp[i].colspan = colspan;
+			tmp[i].rowspan = rowspan;
 		}
+		tmp[i].index = i;
+		line_bump(&tmp[i].line);
 	}
 
-	table->target = &tmp[last_row->cells_count - colspan];
+	last_row->cells = tmp;
+	table->target = &tmp[last_row->cells_count - colspan].line;
 }
 
 static void
@@ -135,65 +122,75 @@ expand_target_cell_by_one_line(struct html_table *table, GumboVector *attrs)
 {
 	(void)attrs;
 	if (table->target != NULL) {
-		struct wstring **tmp = realloc(
-			table->target->lines,
-			sizeof(struct wstring *) * (table->target->lines_count + 1)
-		);
-		if (tmp != NULL) {
-			tmp[table->target->lines_count] = wcrtes(10);
-			table->target->lines = tmp;
-			table->target->lines_count += 1;
-		}
-		struct html_table_row *last_row = &table->rows[table->rows_count - 1];
-		if (last_row->max_cell_height < table->target->lines_count) {
-			last_row->max_cell_height = table->target->lines_count;
-		}
+		line_bump(table->target);
 	}
+}
+
+static void
+html_add_bold_style(struct html_table *table, GumboVector *attrs)
+{
+	(void)attrs;
+	if (table->target != NULL) table->target->style |= FORMAT_BOLD;
+}
+
+static void
+html_remove_bold_style(struct html_table *table, GumboVector *attrs)
+{
+	(void)attrs;
+	if (table->target != NULL) table->target->style &= ~FORMAT_BOLD;
+}
+
+static void
+html_add_italic_style(struct html_table *table, GumboVector *attrs)
+{
+	(void)attrs;
+	if (table->target != NULL) table->target->style |= FORMAT_ITALIC;
+}
+
+static void
+html_remove_italic_style(struct html_table *table, GumboVector *attrs)
+{
+	(void)attrs;
+	if (table->target != NULL) table->target->style &= ~FORMAT_ITALIC;
+}
+
+static void
+html_add_underlined_style(struct html_table *table, GumboVector *attrs)
+{
+	(void)attrs;
+	if (table->target != NULL) table->target->style |= FORMAT_UNDERLINED;
+}
+
+static void
+html_remove_underlined_style(struct html_table *table, GumboVector *attrs)
+{
+	(void)attrs;
+	if (table->target != NULL) table->target->style &= ~FORMAT_UNDERLINED;
 }
 
 static void
 write_to_table(struct html_table *table, const char *src, size_t src_len)
 {
-	struct string *tag = crtas(src, src_len);
-	if (tag == NULL) {
-		return;
-	}
-	trim_whitespace_from_string(tag);
-	inlinefy_string(tag);
-	struct wstring *wtag = convert_string_to_wstring(tag);
-	free_string(tag);
-	if (wtag == NULL) {
-		return;
-	}
-	if (table->target != NULL) {
-		struct wstring *last_line = table->target->lines[table->target->lines_count - 1];
-		wcatss(last_line, wtag);
-		// Don't expand width of an entire column just because of the content
-		// of a cell that spans multiple columns. The required width will be
-		// calculated later to evenly space the content of cells that are not
-		// spread across multiple columns.
-		if (table->target->colspan == 1) {
-			if (table->column_widths[table->target->index] < last_line->len) {
-				table->column_widths[table->target->index] = last_line->len;
-			}
+	// Without converting multi byte text turns into gibberish
+	struct wstring *wsrc = convert_array_to_wstring(src, src_len);
+	if (wsrc != NULL) {
+		if (table->target != NULL) {
+			// You may want to remove leading whitespace here but think again
+			// It's called not only for table elements but for everything else
+			line_string(table->target, wsrc->ptr);
+		} else {
+			wcatss(table->unmapped_text, wsrc);
 		}
-	} else {
-		wcatss(table->unmapped_text, wtag);
+		free_wstring(wsrc);
 	}
-	free_wstring(wtag);
 }
 
 static inline void
 free_html_table(const struct html_table *table)
 {
-	for (int64_t i = 0; i < table->rows_count; ++i) {
-		for (int64_t j = 0; j < table->rows[i].cells_count; ++j) {
-			if (table->rows[i].cells[j].lines != NULL) {
-				for (size_t k = 0; k < table->rows[i].cells[j].lines_count; ++k) {
-					free_wstring(table->rows[i].cells[j].lines[k]);
-				}
-			}
-			free(table->rows[i].cells[j].lines);
+	for (int i = 0; i < table->rows_count; ++i) {
+		for (int j = 0; j < table->rows[i].cells_count; ++j) {
+			free_render_result(&table->rows[i].cells[j].text);
 		}
 		free(table->rows[i].cells);
 	}
@@ -221,7 +218,7 @@ adjust_column_widths_to_contain_cells_with_colspan_attribute(struct html_table *
 					}
 					// table->rows[i].cells[j].lines is not NULL because
 					// all cells with (colspan > 1) have at least one line.
-					if (sum_width < table->rows[i].cells[j].lines[0]->len) {
+					if (sum_width < table->rows[i].cells[j].text.lines[0].ws->len) {
 						*min_width += 1;
 					} else {
 						break;
@@ -233,37 +230,93 @@ adjust_column_widths_to_contain_cells_with_colspan_attribute(struct html_table *
 }
 
 static inline void
-print_html_table(struct line *line, const struct html_table *table)
+print_html_table(struct line *line, struct html_table *table)
 {
-	wchar_t buf[8192];
-	size_t w;
 	if (table->unmapped_text->len > 0) {
 		line_string(line, table->unmapped_text->ptr);
 		line_char(line, L'\n');
 	}
+
+	// Get maximum columns count
+	int max_columns_count = 0;
+	for (int i = 0; i < table->rows_count; ++i) {
+		if (table->rows[i].cells_count > max_columns_count) {
+			max_columns_count = table->rows[i].cells_count;
+		}
+	}
+	table->columns_count = max_columns_count;
+	table->column_widths = calloc(table->columns_count, sizeof(size_t));
+
+	// Get row heights
+	for (int i = 0; i < table->rows_count; ++i) {
+		for (int j = 0; j < table->rows[i].cells_count; ++j) {
+			if (table->rows[i].max_cell_height < table->rows[i].cells[j].text.lines_len) {
+				table->rows[i].max_cell_height = table->rows[i].cells[j].text.lines_len;
+			}
+		}
+	}
+
+	// Get column widths
+	for (int i = 0; i < table->rows_count; ++i) {
+		for (int j = 0; j < table->rows[i].cells_count; ++j) {
+			if (table->rows[i].cells[j].colspan > 1) {
+				// Don't expand width of an entire column just because of the content
+				// of a cell that spans multiple columns. The required width will be
+				// calculated later to evenly space the content of cells that are not
+				// spread across multiple columns.
+				continue;
+			}
+			for (size_t k = 0; k < table->rows[i].cells[j].text.lines_len; ++k) {
+				if (table->column_widths[j] < table->rows[i].cells[j].text.lines[k].ws->len) {
+					table->column_widths[j] = table->rows[i].cells[j].text.lines[k].ws->len;
+				}
+			}
+		}
+	}
+
+	adjust_column_widths_to_contain_cells_with_colspan_attribute(table);
+
 	for (int64_t i = 0; i < table->rows_count; ++i) {
+		// fprintf(stderr, "--> ROW\n");
+
 		for (size_t height = 0; height < table->rows[i].max_cell_height; ++height) {
 			for (int64_t j = 0; j < table->rows[i].cells_count; ++j) {
-				if (table->rows[i].cells[j].colspan > 0) {
-					w = table->column_widths[j];
+				// fprintf(stderr, "----> CEL (%zu)\n", height);
+
+				struct html_table_cell *cells = &table->rows[i].cells[j];
+				if (cells->colspan > 0) {
+					long w = table->column_widths[j];
 					for (int64_t k = j + 1; (k < table->rows[i].cells_count) && (table->rows[i].cells[k].colspan == -1); ++k) {
-						w += table->column_widths[k] + 1;
+						w += HTML_TABLE_COLUMN_SPACING + table->column_widths[k];
 					}
-					if ((table->rows[i].cells[j].rowspan == -1)
-						|| (height >= table->rows[i].cells[j].lines_count))
-					{
-						swprintf(buf, 8192, L"%-*.*ls ", w, w, L"");
-					} else {
-						swprintf(buf, 8192, L"%-*.*ls ", w, w, table->rows[i].cells[j].lines[height]->ptr);
+					if (cells->rowspan >= 0 && height < cells->text.lines_len) {
+						// fprintf(stderr, "------> %ls\n", cells->text.lines[height].ws->ptr);
+						for (size_t g = 0; g < cells->text.lines[height].ws->len; ++g) {
+							line->style = cells->text.lines[height].hints[g];
+							line_char(line, cells->text.lines[height].ws->ptr[g]);
+						}
+						w -= cells->text.lines[height].ws->len;
 					}
-					line_string(line, buf);
+					line->style = FORMAT_DEFAULT;
+
+					// Be careful not to add whitespace for trailing column!
+					if (j + 1 < table->rows[i].cells_count) {
+						for (long l = 0; l < w + HTML_TABLE_COLUMN_SPACING; ++l) {
+							line_string(line, L" "); // It's &nbsp;
+						}
+					}
 				}
+
+				// fprintf(stderr, "<---- CEL (%zu)\n", height);
 			}
 			line_char(line, L'\n');
 		}
+
+		// fprintf(stderr, "<-- ROW\n");
 	}
 }
 
+// TODO: add support for colgroup and col elements
 static const struct html_table_element_handler handlers[] = {
 	{GUMBO_TAG_TD,      &expand_last_row_in_html_table_by_one_cell, NULL},
 	{GUMBO_TAG_TR,      &expand_html_table_by_one_row,              NULL},
@@ -274,6 +327,9 @@ static const struct html_table_element_handler handlers[] = {
 	{GUMBO_TAG_THEAD,   NULL,                                       NULL},
 	{GUMBO_TAG_TBODY,   NULL,                                       NULL},
 	{GUMBO_TAG_TFOOT,   NULL,                                       NULL},
+	{GUMBO_TAG_B,       &html_add_bold_style,       &html_remove_bold_style},
+	{GUMBO_TAG_I,       &html_add_italic_style,     &html_remove_italic_style},
+	{GUMBO_TAG_U,       &html_add_underlined_style, &html_remove_underlined_style},
 	{GUMBO_TAG_UNKNOWN, NULL,                                       NULL},
 };
 
@@ -318,7 +374,6 @@ write_contents_of_html_table_node_to_text(struct line *line, GumboNode *node)
 	for (size_t i = 0; i < node->v.element.children.length; ++i) {
 		dump_html_table_child(node->v.element.children.data[i], &table);
 	}
-	adjust_column_widths_to_contain_cells_with_colspan_attribute(&table);
 	print_html_table(line, &table);
 	free_html_table(&table);
 }

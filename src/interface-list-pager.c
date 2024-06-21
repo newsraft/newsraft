@@ -19,28 +19,29 @@ pager_menu_writer(size_t index, WINDOW *w)
 		for (size_t i = 0; i < content.lines[index].indent; ++i) {
 			waddnwstr(w, L" ", 1);
 		}
-		for (size_t i = 0, hint_index = 0; i < content.lines[index].ws->len; ++i) {
-			if (hint_index < content.lines[index].hints_len && i == content.lines[index].hints[hint_index].pos) {
-				if (content.lines[index].hints[hint_index].mask & FORMAT_BOLD_END) {
-					wattroff(w, A_BOLD);
-				} else if (content.lines[index].hints[hint_index].mask & FORMAT_BOLD_BEGIN) {
+		format_mask prev_style = FORMAT_DEFAULT;
+		for (size_t i = 0; i < content.lines[index].ws->len; ++i) {
+			if (prev_style ^ content.lines[index].hints[i]) {
+				if (content.lines[index].hints[i] & FORMAT_BOLD) {
 					wattron(w, A_BOLD);
+				} else {
+					wattroff(w, A_BOLD);
 				}
-				if (content.lines[index].hints[hint_index].mask & FORMAT_UNDERLINED_END) {
-					wattroff(w, A_UNDERLINE);
-				} else if (content.lines[index].hints[hint_index].mask & FORMAT_UNDERLINED_BEGIN) {
-					wattron(w, A_UNDERLINE);
-				}
-#ifdef A_ITALIC // Since A_ITALIC is an ncurses extension, some systems may lack it.
-				if (content.lines[index].hints[hint_index].mask & FORMAT_ITALIC_END) {
-					wattroff(w, A_ITALIC);
-				} else if (content.lines[index].hints[hint_index].mask & FORMAT_ITALIC_BEGIN) {
+#ifdef A_ITALIC
+				if (content.lines[index].hints[i] & FORMAT_ITALIC) {
 					wattron(w, A_ITALIC);
+				} else {
+					wattroff(w, A_ITALIC);
 				}
 #endif
-				hint_index += 1;
+				if (content.lines[index].hints[i] & FORMAT_UNDERLINED) {
+					wattron(w, A_UNDERLINE);
+				} else {
+					wattroff(w, A_UNDERLINE);
+				}
 			}
 			waddnwstr(w, content.lines[index].ws->ptr + i, 1);
+			prev_style = content.lines[index].hints[i];
 		}
 	}
 }
@@ -56,12 +57,6 @@ start_pager_menu(struct config_context **new_ctx, struct render_blocks_list *new
 bool
 refresh_pager_menu(void)
 {
-	for (size_t i = 0; i < content.lines_len; ++i) {
-		free_wstring(content.lines[i].ws);
-		free(content.lines[i].hints);
-	}
-	free(content.lines);
-	content.lines = NULL;
-	content.lines_len = 0;
+	free_render_result(&content);
 	return render_data(pager_context, &content, pager_blocks, list_menu_width);
 }

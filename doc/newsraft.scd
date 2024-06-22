@@ -573,6 +573,6 @@ Setting that forcibly makes the interface monochrome when set.
 
 Don't be ridiculous...
 
-# AUTHOR
+# AUTHORS
 
-Grigory Kirillov <txgk@bk.ru>
+Grigory Kirillov and contributors

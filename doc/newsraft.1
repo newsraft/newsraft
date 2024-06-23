@@ -5,7 +5,7 @@
 .nh
 .ad l
 .\" Begin generated content:
-.TH "NEWSRAFT" "1" "2024-06-22"
+.TH "NEWSRAFT" "1" "2024-06-23"
 .PP
 .SH NAME
 .PP
@@ -915,34 +915,51 @@ worth mentioning here - \fBESCDELAY\fR.\& It sets delay for reading Escape key.\
 may surprise you that its default value is 1000 ms, which is well explained
 in \fBncurses\fR(3), but many may prefer a value much less than that or even 0.\&
 .PP
-.SS XDG_CONFIG_HOME
-.PP
-Directory for applications to store their configuration.\&
-.PP
-.SS XDG_DATA_HOME
-.PP
-Directory for applications to store their data.\&
-.PP
-.SS HOME
-.PP
-Home directory of your user.\&
-.PP
-.SS BROWSER
-.PP
-Web browser of your user.\&
-.PP
-.SS WAYLAND_DISPLAY
-.PP
+.TS
+l lx
+l l
+l l
+l l
+l l
+l l
+l l.
+T{
+\fBXDG_CONFIG_HOME\fR
+T}	T{
+Directory in which user-specific configuration files are stored.\&
+T}
+T{
+\fBXDG_DATA_HOME\fR
+T}	T{
+Directory in which user-specific data files are stored.\&
+T}
+T{
+\fBHOME\fR
+T}	T{
+User home directory.\&
+T}
+T{
+\fBBROWSER\fR
+T}	T{
+User web browser.\&
+T}
+T{
+\fBWAYLAND_DISPLAY\fR
+T}	T{
 Identifier of the Wayland graphics display.\&
-.PP
-.SS DISPLAY
-.PP
+T}
+T{
+\fBDISPLAY\fR
+T}	T{
 Identifier of the X graphics display.\&
-.PP
-.SS NO_COLOR
-.PP
-Setting that forcibly makes the interface monochrome when set.\&
-.PP
+T}
+T{
+\fBNO_COLOR\fR
+T}	T{
+Makes the interface monochrome when present.\&
+T}
+.TE
+.sp 1
 .SH SEE ALSO
 .PP
 \fBmpv\fR(1), \fBfeh\fR(1), \fBsqlite3\fR(1), \fBstrftime\fR(3), \fBncurses\fR(3), \fBlibcurl\fR(3), \fBlibcurl-env\fR(3)

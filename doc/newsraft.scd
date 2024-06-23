@@ -537,33 +537,20 @@ worth mentioning here - *ESCDELAY*. It sets delay for reading Escape key. It
 may surprise you that its default value is 1000 ms, which is well explained
 in *ncurses*(3), but many may prefer a value much less than that or even 0.
 
-## XDG_CONFIG_HOME
-
-Directory for applications to store their configuration.
-
-## XDG_DATA_HOME
-
-Directory for applications to store their data.
-
-## HOME
-
-Home directory of your user.
-
-## BROWSER
-
-Web browser of your user.
-
-## WAYLAND_DISPLAY
-
-Identifier of the Wayland graphics display.
-
-## DISPLAY
-
-Identifier of the X graphics display.
-
-## NO_COLOR
-
-Setting that forcibly makes the interface monochrome when set.
+|[ *XDG_CONFIG_HOME*
+:< Directory in which user-specific configuration files are stored.
+|[ *XDG_DATA_HOME*
+:[ Directory in which user-specific data files are stored.
+|[ *HOME*
+:[ User home directory.
+|[ *BROWSER*
+:[ User web browser.
+|[ *WAYLAND_DISPLAY*
+:[ Identifier of the Wayland graphics display.
+|[ *DISPLAY*
+:[ Identifier of the X graphics display.
+|[ *NO_COLOR*
+:[ Makes the interface monochrome when present.
 
 # SEE ALSO
 

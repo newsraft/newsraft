@@ -1,6 +1,8 @@
 #include <stdlib.h>
 #include "render_data.h"
 
+#define RENDER_TAB_DISPLAY L"    "
+
 bool
 line_bump(struct line *line)
 {
@@ -22,6 +24,27 @@ line_bump(struct line *line)
 	line->head->indent = line->next_indent;
 	line->end = SIZE_MAX;
 	return true;
+}
+
+static bool
+line_tab(struct line *line)
+{
+	if (line->target->lines_len < 2) {
+		return line_string(line, RENDER_TAB_DISPLAY);
+	}
+	struct render_line *prev = &line->target->lines[line->target->lines_len - 2];
+	size_t whitespace_len = 0;
+	for (size_t i = line->head->ws->len; i < prev->ws->len && ISWIDEWHITESPACE(prev->ws->ptr[i]); ++i) {
+		whitespace_len += 1;
+	}
+	if (whitespace_len == 0) {
+		return line_string(line, RENDER_TAB_DISPLAY);
+	}
+	bool status = true;
+	for (size_t i = 0; i < whitespace_len && status == true; ++i) {
+		status = line_char(line, L' ');
+	}
+	return status;
 }
 
 static inline void
@@ -69,11 +92,21 @@ line_append(struct line *line, wchar_t c)
 bool
 line_char(struct line *line, wchar_t c)
 {
-	if (c == L'\n') return line_bump(line);
-	if (line->lim == 0) return line_append(line, c);
+	if (c == L'\n') {
+		return line_bump(line); // Finish current line and create a new empty one
+	}
+	if (c == L'\t') {
+		return line_tab(line); // Add missing whitespace to align with previous line
+	}
 
 	int c_width = wcwidth(c);
-	if (c_width < 1) return true; // Ignore invalid characters.
+	if (c_width < 1) {
+		return true; // Ignore invalid characters
+	}
+
+	if (line->lim == 0) {
+		return line_append(line, c); // Unconditionally add characters to infinite lines
+	}
 
 	if (c == L' '
 		&& line->head->ws->len > 0
@@ -100,8 +133,9 @@ line_char(struct line *line, wchar_t c)
 bool
 line_string(struct line *line, const wchar_t *str)
 {
-	for (const wchar_t *i = str; *i != L'\0'; ++i) {
-		line_char(line, *i);
+	bool status = true;
+	for (const wchar_t *i = str; *i != L'\0' && status == true; ++i) {
+		status = line_char(line, *i);
 	}
-	return true; // TODO: check for errors?
+	return status;
 }

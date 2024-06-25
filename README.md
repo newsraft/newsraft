@@ -68,7 +68,30 @@ Reporting bugs: [doc/contributing-report.md](https://codeberg.org/newsraft/newsr
 
 Making changes: [doc/contributing-change.md](https://codeberg.org/newsraft/newsraft/src/branch/main/doc/contributing-change.md)
 
-## Copying
+## FAQ
 
-Newsraft is distributed under the terms of the
-[ISC license](https://codeberg.org/newsraft/newsraft/src/branch/main/doc/license.txt).
+<details>
+	<summary>Why it's called Newsraft?</summary>
+	This is a rip-off of <a href="https://www.newsboat.org">Newsboat</a>, replacing "boat" with "raft", which emphasizes a smaller codebase.
+</details>
+
+<details>
+	<summary>How do I bind mpv to run in the background?</summary>
+	<code>bind m exec mpv --no-terminal "%l" &amp;</code>
+</details>
+
+<details>
+	<summary>Can I modify feeds content before Newsraft processes it?</summary>
+	Yes, you can acquire feeds yourself and transform them as you please with custom scripts. Here's an example of scripted feed in a feeds file:<br>
+	<code>$(~/bin/html2rss http://example.org/index.html) "Local news"</code>
+</details>
+
+<details>
+	<summary>Why some of my feeds are lagging behind the upstream website even after updating?</summary>
+	Some web servers ask Newsraft to withhold content to reduce network load. Newsraft fulfills these web server wishes by default. There are settings to disable Newsraft's respect for web servers and make it a bad boy, if you are that kind of person.
+</details>
+
+<details>
+	<summary>How is Newsraft licensed?</summary>
+	The license is <a href="https://codeberg.org/newsraft/newsraft/src/branch/main/doc/license.txt">ISC</a> because its name is sweet.
+</details>

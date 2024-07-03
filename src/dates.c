@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <curl/curl.h>
 #include "newsraft.h"
 
 static int64_t
@@ -13,7 +14,7 @@ get_local_offset_relative_to_utc(void)
 	return utc_seconds - local_seconds;
 }
 
-int64_t
+static int64_t
 parse_date_rfc3339(const char *src)
 {
 	struct tm t = {0};
@@ -34,6 +35,41 @@ parse_date_rfc3339(const char *src)
 		time = rem[0] == '+' ? time - offset : time + offset;
 	}
 	return time > 0 ? time : 0;
+}
+
+int64_t
+parse_date(const char *str, bool rfc3339_first)
+{
+	int64_t date = 0;
+
+	if (rfc3339_first == true) {
+		date = parse_date_rfc3339(str);
+	}
+	if (date <= 0) {
+		date = (int64_t)curl_getdate(str, NULL);
+		if (date < 0) {
+			date = 0;
+		}
+	}
+	if (date <= 0 && rfc3339_first == false) {
+		date = parse_date_rfc3339(str);
+	}
+
+	static const char *formats[] = {
+		"%Y-%m-%d",
+		"%Y/%m/%d",
+	};
+	for (size_t i = 0; i < LENGTH(formats) && date <= 0; ++i) {
+		struct tm t = {0};
+		if (strptime(str, formats[i], &t)) {
+			date = (int64_t)mktime(&t) + get_local_offset_relative_to_utc();
+			if (date < 0) {
+				date = 0;
+			}
+		}
+	}
+
+	return date;
 }
 
 struct string *

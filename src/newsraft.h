@@ -349,7 +349,7 @@ const char *get_config_path(void);
 const char *get_db_path(void);
 
 // See "dates.c" file for implementation.
-int64_t parse_date_rfc3339(const char *src);
+int64_t parse_date(const char *str, bool rfc3339_first);
 struct string *get_cfg_date(struct config_context **ctx, config_entry_id format_id, int64_t date);
 
 // See "db.c" file for implementation.

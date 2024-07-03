@@ -146,10 +146,10 @@ generic_generator_end(struct stream_callback_data *data)
 }
 
 int8_t
-rfc3339_update_date_end(struct stream_callback_data *data)
+update_date_end(struct stream_callback_data *data)
 {
 	if (data->in_item == true) {
-		data->feed.item->update_date = parse_date_rfc3339(data->text->ptr);
+		data->feed.item->update_date = parse_date(data->text->ptr, true);
 	}
 	return PARSE_OKAY;
 }

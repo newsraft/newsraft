@@ -1,5 +1,4 @@
 #include <string.h>
-#include <curl/curl.h>
 #include "update_feed/parse_xml/parse_xml_feed.h"
 
 // Note to the future.
@@ -49,7 +48,7 @@ static int8_t
 rss_pubdate_end(struct stream_callback_data *data)
 {
 	if (data->path[data->depth] == GENERIC_ITEM) {
-		data->feed.item->publication_date = curl_getdate(data->text->ptr, NULL);
+		data->feed.item->publication_date = parse_date(data->text->ptr, false);
 		if (data->feed.item->publication_date < 0) {
 			data->feed.item->publication_date = 0;
 		}

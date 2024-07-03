@@ -82,7 +82,7 @@ static int8_t
 published_end(struct stream_callback_data *data)
 {
 	if (data->path[data->depth] == GENERIC_ITEM) {
-		data->feed.item->publication_date = parse_date_rfc3339(data->text->ptr);
+		data->feed.item->publication_date = parse_date(data->text->ptr, true);
 	}
 	return PARSE_OKAY;
 }

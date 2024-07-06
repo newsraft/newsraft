@@ -48,8 +48,8 @@ package manager.
 [![Packaging status](https://repology.org/badge/vertical-allrepos/newsraft.svg)](https://repology.org/project/newsraft/versions)
 
 If your package repository doesn't provide Newsraft package, you can build it
-from source. Detailed instructions for different platforms are described in
-[doc/build-instructions.md](https://codeberg.org/newsraft/newsraft/src/branch/main/doc/build-instructions.md).
+from source: see [doc/build-instructions.md](https://codeberg.org/newsraft/newsraft/src/branch/main/doc/build-instructions.md)
+for instructions.
 
 ## Learning more
 

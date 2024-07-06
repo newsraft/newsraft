@@ -70,6 +70,8 @@ curses_init(void)
 		WARN("Initialization of curses color structures failed!");
 	} else {
 		paint_it_black = false; // Some iridescent sensation at last!
+		INFO("Maximum number of colors: %d", COLORS);
+		INFO("Maximum number of color pairs: %d", COLOR_PAIRS);
 	}
 	INFO("The value of KEY_RESIZE code is %d.", KEY_RESIZE);
 	return true;

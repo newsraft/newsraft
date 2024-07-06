@@ -59,10 +59,7 @@ unsigned int
 get_cfg_color(struct config_context **ctx, config_entry_id id)
 {
 	struct config_entry *cfg = get_global_or_context_config(ctx, id, false);
-	if (cfg->value.c.color_pair >= 0 && arent_we_colorful()) {
-		return COLOR_PAIR(cfg->value.c.color_pair) | cfg->value.c.attributes;
-	}
-	return A_NORMAL;
+	return get_color_pair_unprotected(cfg->value.c.fg, cfg->value.c.bg) | cfg->value.c.attributes;
 }
 
 const struct string *
@@ -92,23 +89,10 @@ set_cfg_uint(struct config_context **ctx, config_entry_id id, size_t value)
 void
 set_cfg_color(struct config_context **ctx, config_entry_id id, int fg, int bg, unsigned int attribute)
 {
-	static size_t color_pairs_count = 1; // Curses just wants us to start with 1
 	struct config_entry *cfg = get_global_or_context_config(ctx, id, true);
+	cfg->value.c.fg = fg;
+	cfg->value.c.bg = bg;
 	cfg->value.c.attributes = attribute;
-
-	// For init_pair function to work you have to initialize curses first!
-	if (init_pair(color_pairs_count, fg, bg) == OK) {
-		cfg->value.c.color_pair = color_pairs_count;
-		color_pairs_count += 1;
-	} else {
-		WARN("Failed to create color pair (%d, %d)", fg, bg);
-		if (init_pair(color_pairs_count, -1, -1) == OK) {
-			cfg->value.c.color_pair = color_pairs_count;
-			color_pairs_count += 1;
-		} else {
-			WARN("Failed to create fallback color pair!");
-		}
-	}
 }
 
 bool
@@ -184,8 +168,6 @@ load_config(void)
 				free_config();
 				return false;
 			}
-		} else if (config[i].type == CFG_COLOR && config[i].value.c.color_pair < 0) {
-			set_cfg_color(NULL, i, config[i].value.c.fg, config[i].value.c.bg, config[i].value.c.attributes);
 		}
 	}
 	log_config_settings();

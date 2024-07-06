@@ -31,6 +31,7 @@ struct html_table_element_handler {
 	const GumboTag tag_id;
 	void (*start_handler)(struct html_table *, GumboVector *);
 	void (*end_handler)(struct html_table *, GumboVector *);
+	config_entry_id color_setting;
 };
 
 static void
@@ -124,48 +125,6 @@ expand_target_cell_by_one_line(struct html_table *table, GumboVector *attrs)
 	if (table->target != NULL) {
 		line_bump(table->target);
 	}
-}
-
-static void
-html_add_bold_style(struct html_table *table, GumboVector *attrs)
-{
-	(void)attrs;
-	if (table->target != NULL) table->target->style |= FORMAT_BOLD;
-}
-
-static void
-html_remove_bold_style(struct html_table *table, GumboVector *attrs)
-{
-	(void)attrs;
-	if (table->target != NULL) table->target->style &= ~FORMAT_BOLD;
-}
-
-static void
-html_add_italic_style(struct html_table *table, GumboVector *attrs)
-{
-	(void)attrs;
-	if (table->target != NULL) table->target->style |= FORMAT_ITALIC;
-}
-
-static void
-html_remove_italic_style(struct html_table *table, GumboVector *attrs)
-{
-	(void)attrs;
-	if (table->target != NULL) table->target->style &= ~FORMAT_ITALIC;
-}
-
-static void
-html_add_underlined_style(struct html_table *table, GumboVector *attrs)
-{
-	(void)attrs;
-	if (table->target != NULL) table->target->style |= FORMAT_UNDERLINED;
-}
-
-static void
-html_remove_underlined_style(struct html_table *table, GumboVector *attrs)
-{
-	(void)attrs;
-	if (table->target != NULL) table->target->style &= ~FORMAT_UNDERLINED;
 }
 
 static void
@@ -297,7 +256,7 @@ print_html_table(struct line *line, struct html_table *table)
 						}
 						w -= cells->text.lines[height].ws->len;
 					}
-					line->style = FORMAT_DEFAULT;
+					line->style = 0;
 
 					// Be careful not to add whitespace for trailing column!
 					if (j + 1 < table->rows[i].cells_count) {
@@ -318,19 +277,19 @@ print_html_table(struct line *line, struct html_table *table)
 
 // TODO: add support for colgroup and col elements
 static const struct html_table_element_handler handlers[] = {
-	{GUMBO_TAG_TD,      &expand_last_row_in_html_table_by_one_cell, NULL},
-	{GUMBO_TAG_TR,      &expand_html_table_by_one_row,              NULL},
-	{GUMBO_TAG_TH,      &expand_last_row_in_html_table_by_one_cell, NULL},
-	{GUMBO_TAG_BR,      &expand_target_cell_by_one_line,            NULL},
+	{GUMBO_TAG_TD,      &expand_last_row_in_html_table_by_one_cell, NULL, 0},
+	{GUMBO_TAG_TR,      &expand_html_table_by_one_row,              NULL, 0},
+	{GUMBO_TAG_TH,      &expand_last_row_in_html_table_by_one_cell, NULL, 0},
+	{GUMBO_TAG_BR,      &expand_target_cell_by_one_line,            NULL, 0},
 	// Gumbo can assign thead, tbody and tfoot tags to table element under
 	// some circumstances, so we need to ignore these to avoid tag display.
-	{GUMBO_TAG_THEAD,   NULL,                                       NULL},
-	{GUMBO_TAG_TBODY,   NULL,                                       NULL},
-	{GUMBO_TAG_TFOOT,   NULL,                                       NULL},
-	{GUMBO_TAG_B,       &html_add_bold_style,       &html_remove_bold_style},
-	{GUMBO_TAG_I,       &html_add_italic_style,     &html_remove_italic_style},
-	{GUMBO_TAG_U,       &html_add_underlined_style, &html_remove_underlined_style},
-	{GUMBO_TAG_UNKNOWN, NULL,                                       NULL},
+	{GUMBO_TAG_THEAD,   NULL,                                       NULL, 0},
+	{GUMBO_TAG_TBODY,   NULL,                                       NULL, 0},
+	{GUMBO_TAG_TFOOT,   NULL,                                       NULL, 0},
+	{GUMBO_TAG_B,       NULL,                                       NULL, CFG_COLOR_HTML_B},
+	{GUMBO_TAG_I,       NULL,                                       NULL, CFG_COLOR_HTML_I},
+	{GUMBO_TAG_U,       NULL,                                       NULL, CFG_COLOR_HTML_U},
+	{GUMBO_TAG_UNKNOWN, NULL,                                       NULL, 0},
 };
 
 static void
@@ -351,8 +310,14 @@ dump_html_table_child(GumboNode *node, struct html_table *table)
 			if (handlers[i].start_handler != NULL) {
 				handlers[i].start_handler(table, &node->v.element.attributes);
 			}
+			if (handlers[i].color_setting > 0 && table->target != NULL) {
+				table->target->style |= COLOR_TO_BIT(handlers[i].color_setting);
+			}
 			while (j < node->v.element.children.length) {
 				dump_html_table_child(node->v.element.children.data[j++], table);
+			}
+			if (handlers[i].color_setting > 0 && table->target != NULL) {
+				table->target->style &= ~COLOR_TO_BIT(handlers[i].color_setting);
 			}
 			if (handlers[i].end_handler != NULL) {
 				handlers[i].end_handler(table, &node->v.element.attributes);

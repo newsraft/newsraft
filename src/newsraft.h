@@ -28,6 +28,7 @@
 
 typedef uint8_t config_entry_id;
 typedef uint8_t input_id;
+typedef uint64_t format_mask;
 
 enum {
 	FEED_COLUMN_FEED_URL,
@@ -98,14 +99,6 @@ enum {
 	TEXT_RAW,   // Same thing as TEXT_PLAIN, but without link marks
 	TEXT_HTML,
 	TEXT_LINKS, // Special block type which has to be populated with links
-};
-
-typedef uint8_t format_mask;
-enum {
-	FORMAT_DEFAULT    = 0,
-	FORMAT_BOLD       = 1,
-	FORMAT_ITALIC     = 2,
-	FORMAT_UNDERLINED = 4,
 };
 
 struct config_context;
@@ -380,6 +373,9 @@ bool curses_init(void);
 input_id resize_handler(void);
 bool call_resize_handler_if_current_list_menu_size_is_different_from_actual(void);
 bool arent_we_colorful(void);
+
+// See "interface-colors.c" file for implementation.
+int get_color_pair_unprotected(int fg, int bg);
 
 // Functions related to window which displays status messages.
 // See "interface-status.c" file for implementation.

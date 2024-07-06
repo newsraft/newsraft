@@ -3,7 +3,9 @@
 #include <curl/curl.h>
 #include "newsraft.h"
 
-// find -name '*.c' | sed 's/^\.\///' | grep -v '^newsraft.c$' | sort | sed 's/^/#include "/' | sed 's/$/"/'
+/*
+find -name '*.c' | sed 's/^\.\///' | grep -v '^newsraft.c$' | sort | sed 's/^/#include "/' | sed 's/$/"/'
+*/
 #include "binds.c"
 #include "commands.c"
 #include "dates.c"
@@ -13,6 +15,7 @@
 #include "feeds.c"
 #include "feeds-parse.c"
 #include "interface.c"
+#include "interface-colors.c"
 #include "interface-list.c"
 #include "interface-list-pager.c"
 #include "interface-status.c"

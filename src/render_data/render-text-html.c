@@ -22,6 +22,7 @@ struct html_element_renderer {
 	GumboTag tag_id;
 	void (*start_handler)(struct html_render *);
 	void (*end_handler)(struct html_render *);
+	config_entry_id color_setting;
 };
 
 static void
@@ -105,53 +106,17 @@ indent_leave_handler(struct html_render *ctx)
 	}
 }
 
-static void
-add_bold_style(struct html_render *ctx)
-{
-	ctx->line->style |= FORMAT_BOLD;
-}
-
-static void
-remove_bold_style(struct html_render *ctx)
-{
-	ctx->line->style &= ~FORMAT_BOLD;
-}
-
-static void
-add_italic_style(struct html_render *ctx)
-{
-	ctx->line->style |= FORMAT_ITALIC;
-}
-
-static void
-remove_italic_style(struct html_render *ctx)
-{
-	ctx->line->style &= ~FORMAT_ITALIC;
-}
-
-static void
-add_underlined_style(struct html_render *ctx)
-{
-	ctx->line->style |= FORMAT_UNDERLINED;
-}
-
-static void
-remove_underlined_style(struct html_render *ctx)
-{
-	ctx->line->style &= ~FORMAT_UNDERLINED;
-}
-
 static const struct html_element_renderer renderers[] = {
-	{GUMBO_TAG_BR,         &br_handler,           NULL},
-	{GUMBO_TAG_B,          &add_bold_style,       &remove_bold_style},
-	{GUMBO_TAG_I,          &add_italic_style,     &remove_italic_style},
-	{GUMBO_TAG_U,          &add_underlined_style, &remove_underlined_style},
-	{GUMBO_TAG_LI,         &li_handler,           NULL},
-	{GUMBO_TAG_UL,         &ul_start_handler,     &ul_end_handler},
-	{GUMBO_TAG_OL,         &ol_start_handler,     &ul_end_handler},
-	{GUMBO_TAG_HR,         &hr_handler,           NULL},
-	{GUMBO_TAG_FIGURE,     &indent_enter_handler, &indent_leave_handler},
-	{GUMBO_TAG_UNKNOWN,    NULL,                  NULL},
+	{GUMBO_TAG_BR,         &br_handler,           NULL,                  0},
+	{GUMBO_TAG_B,          NULL,                  NULL,                  CFG_COLOR_HTML_B},
+	{GUMBO_TAG_I,          NULL,                  NULL,                  CFG_COLOR_HTML_I},
+	{GUMBO_TAG_U,          NULL,                  NULL,                  CFG_COLOR_HTML_U},
+	{GUMBO_TAG_LI,         &li_handler,           NULL,                  0},
+	{GUMBO_TAG_UL,         &ul_start_handler,     &ul_end_handler,       0},
+	{GUMBO_TAG_OL,         &ol_start_handler,     &ul_end_handler,       0},
+	{GUMBO_TAG_HR,         &hr_handler,           NULL,                  0},
+	{GUMBO_TAG_FIGURE,     &indent_enter_handler, &indent_leave_handler, 0},
+	{GUMBO_TAG_UNKNOWN,    NULL,                  NULL,                  0},
 };
 
 static void
@@ -182,8 +147,14 @@ render_html(GumboNode *node, struct html_render *ctx)
 			if (renderers[i].start_handler != NULL) {
 				renderers[i].start_handler(ctx);
 			}
+			if (renderers[i].color_setting > 0) {
+				ctx->line->style |= COLOR_TO_BIT(renderers[i].color_setting);
+			}
 			for (size_t j = 0; j < node->v.element.children.length; ++j) {
 				render_html(node->v.element.children.data[j], ctx);
+			}
+			if (renderers[i].color_setting > 0) {
+				ctx->line->style &= ~COLOR_TO_BIT(renderers[i].color_setting);
 			}
 			if (renderers[i].end_handler != NULL) {
 				renderers[i].end_handler(ctx);

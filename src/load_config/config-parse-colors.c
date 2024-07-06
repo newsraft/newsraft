@@ -20,9 +20,7 @@ parse_color_setting(struct config_context **ctx, config_entry_id id, const char 
 		else if (strncmp(iter, "white",       5) == 0) { colors[c] = COLOR_WHITE;   c ^= 1; }
 		else if (strncmp(iter, "bold",        4) == 0) { attribute |= A_BOLD;               }
 		else if (strncmp(iter, "underlined", 10) == 0) { attribute |= A_UNDERLINE;          }
-#ifdef A_ITALIC
-		else if (strncmp(iter, "italic",      6) == 0) { attribute |= A_ITALIC;             }
-#endif
+		else if (strncmp(iter, "italic",      6) == 0) { attribute |= NEWSRAFT_ITALIC;      }
 		else if (strncmp(iter, "color",       5) == 0) {
 			colors[c] = strtol(iter + 5, NULL, 10);
 			if (colors[c] < 0 || colors[c] > 255) {

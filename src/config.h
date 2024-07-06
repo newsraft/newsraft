@@ -1,6 +1,13 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
+// Apparently some Curses implementations don't support italic text
+#ifdef A_ITALIC
+#define NEWSRAFT_ITALIC A_ITALIC
+#else
+#define NEWSRAFT_ITALIC A_NORMAL
+#endif
+
 typedef uint8_t config_type_id;
 enum config_type {
 	CFG_BOOL,
@@ -17,7 +24,6 @@ struct config_string {
 };
 
 struct config_color {
-	int color_pair;
 	int fg;
 	int bg;
 	unsigned int attributes;
@@ -42,6 +48,8 @@ struct config_context {
 	struct config_context *next;
 };
 
+#define COLOR_TO_BIT(X) (1 << (X))
+
 #define CFG(NAME, ...)  NAME,
 enum {
 
@@ -54,16 +62,24 @@ static struct config_entry config[] = {
 
 #endif // CONFIG_ARRAY
 
-CFG(CFG_COLOR_STATUS,                    "color-status",                    CFG_COLOR,  {.c = {-1, COLOR_GREEN,   -1, A_BOLD}})
-CFG(CFG_COLOR_STATUS_INFO,               "color-status-info",               CFG_COLOR,  {.c = {-1, COLOR_CYAN,    -1, A_BOLD}})
-CFG(CFG_COLOR_STATUS_FAIL,               "color-status-fail",               CFG_COLOR,  {.c = {-1, COLOR_RED,     -1, A_BOLD}})
-CFG(CFG_COLOR_LIST_ITEM,                 "color-list-item",                 CFG_COLOR,  {.c = {-1, -1,            -1, A_NORMAL}})
-CFG(CFG_COLOR_LIST_ITEM_UNREAD,          "color-list-item-unread",          CFG_COLOR,  {.c = {-1, COLOR_YELLOW,  -1, A_NORMAL}})
-CFG(CFG_COLOR_LIST_ITEM_IMPORTANT,       "color-list-item-important",       CFG_COLOR,  {.c = {-1, COLOR_MAGENTA, -1, A_NORMAL}})
-CFG(CFG_COLOR_LIST_FEED,                 "color-list-feed",                 CFG_COLOR,  {.c = {-1, -1,            -1, A_NORMAL}})
-CFG(CFG_COLOR_LIST_FEED_UNREAD,          "color-list-feed-unread",          CFG_COLOR,  {.c = {-1, COLOR_YELLOW,  -1, A_NORMAL}})
-CFG(CFG_COLOR_LIST_SECTION,              "color-list-section",              CFG_COLOR,  {.c = {-1, -1,            -1, A_NORMAL}})
-CFG(CFG_COLOR_LIST_SECTION_UNREAD,       "color-list-section-unread",       CFG_COLOR,  {.c = {-1, COLOR_YELLOW,  -1, A_NORMAL}})
+CFG(CFG_COLOR_STATUS,                    "color-status",                    CFG_COLOR,  {.c = {COLOR_GREEN,   -1, A_BOLD}})
+CFG(CFG_COLOR_STATUS_INFO,               "color-status-info",               CFG_COLOR,  {.c = {COLOR_CYAN,    -1, A_BOLD}})
+CFG(CFG_COLOR_STATUS_FAIL,               "color-status-fail",               CFG_COLOR,  {.c = {COLOR_RED,     -1, A_BOLD}})
+CFG(CFG_COLOR_LIST_ITEM,                 "color-list-item",                 CFG_COLOR,  {.c = {-1,            -1, A_NORMAL}})
+CFG(CFG_COLOR_LIST_ITEM_UNREAD,          "color-list-item-unread",          CFG_COLOR,  {.c = {COLOR_YELLOW,  -1, A_NORMAL}})
+CFG(CFG_COLOR_LIST_ITEM_IMPORTANT,       "color-list-item-important",       CFG_COLOR,  {.c = {COLOR_MAGENTA, -1, A_NORMAL}})
+CFG(CFG_COLOR_LIST_FEED,                 "color-list-feed",                 CFG_COLOR,  {.c = {-1,            -1, A_NORMAL}})
+CFG(CFG_COLOR_LIST_FEED_UNREAD,          "color-list-feed-unread",          CFG_COLOR,  {.c = {COLOR_YELLOW,  -1, A_NORMAL}})
+CFG(CFG_COLOR_LIST_SECTION,              "color-list-section",              CFG_COLOR,  {.c = {-1,            -1, A_NORMAL}})
+CFG(CFG_COLOR_LIST_SECTION_UNREAD,       "color-list-section-unread",       CFG_COLOR,  {.c = {COLOR_YELLOW,  -1, A_NORMAL}})
+CFG(CFG_COLOR_HTML_A,                    "color-html-a",                    CFG_COLOR,  {.c = {-1,            -1, A_UNDERLINE}})
+CFG(CFG_COLOR_HTML_B,                    "color-html-b",                    CFG_COLOR,  {.c = {-1,            -1, A_BOLD}})
+CFG(CFG_COLOR_HTML_EM,                   "color-html-em",                   CFG_COLOR,  {.c = {COLOR_GREEN,   -1, A_NORMAL}})
+CFG(CFG_COLOR_HTML_H,                    "color-html-h",                    CFG_COLOR,  {.c = {COLOR_BLUE,    -1, A_BOLD}})
+CFG(CFG_COLOR_HTML_I,                    "color-html-i",                    CFG_COLOR,  {.c = {-1,            -1, NEWSRAFT_ITALIC}})
+CFG(CFG_COLOR_HTML_MARK,                 "color-html-mark",                 CFG_COLOR,  {.c = {COLOR_RED,     -1, A_BOLD}})
+CFG(CFG_COLOR_HTML_STRONG,               "color-html-strong",               CFG_COLOR,  {.c = {COLOR_MAGENTA, -1, A_NORMAL}})
+CFG(CFG_COLOR_HTML_U,                    "color-html-u",                    CFG_COLOR,  {.c = {-1,            -1, A_UNDERLINE}})
 CFG(CFG_RELOAD_PERIOD,                   "reload-period",                   CFG_UINT,   {.u = 0   })
 CFG(CFG_ITEM_LIMIT,                      "item-limit",                      CFG_UINT,   {.u = 0   })
 CFG(CFG_SCROLLOFF,                       "scrolloff",                       CFG_UINT,   {.u = 0   })

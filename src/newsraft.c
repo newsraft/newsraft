@@ -40,7 +40,6 @@ find -name '*.c' | sed 's/^\.\///' | grep -v '^newsraft.c$' | sort | sed 's/^/#i
 #include "render_data/line.c"
 #include "render_data/render_data.c"
 #include "render_data/render-text-html.c"
-#include "render_data/render-text-html-table.c"
 #include "sections.c"
 #include "signal.c"
 #include "sorting.c"

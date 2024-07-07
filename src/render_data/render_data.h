@@ -13,7 +13,6 @@ struct line {
 };
 
 bool render_text_html(struct line *line, const struct wstring *source);
-void write_contents_of_html_table_node_to_text(struct line *line, GumboNode *node);
 
 bool line_char(struct line *line, wchar_t c);
 bool line_string(struct line *line, const wchar_t *str);

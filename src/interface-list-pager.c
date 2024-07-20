@@ -19,22 +19,9 @@ pager_menu_writer(size_t index, WINDOW *w)
 		for (size_t i = 0; i < content.lines[index].indent; ++i) {
 			waddnwstr(w, L" ", 1);
 		}
-		format_mask prev_style = 0;
 		for (size_t i = 0; i < content.lines[index].ws->len; ++i) {
-			if (prev_style ^ content.lines[index].hints[i]) {
-				for (size_t j = 0; j <= CFG_COLOR_HTML_U; ++j) {
-					if (!(content.lines[index].hints[i] & COLOR_TO_BIT(j))) {
-						wattroff(w, get_cfg_color(NULL, j));
-					}
-				}
-				for (size_t j = 0; j <= CFG_COLOR_HTML_U; ++j) {
-					if (content.lines[index].hints[i] & COLOR_TO_BIT(j)) {
-						wattron(w, get_cfg_color(NULL, j));
-					}
-				}
-			}
+			wattrset(w, content.lines[index].hints[i]);
 			waddnwstr(w, content.lines[index].ws->ptr + i, 1);
-			prev_style = content.lines[index].hints[i];
 		}
 	}
 }

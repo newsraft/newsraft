@@ -17,7 +17,7 @@ status_pager_loop(struct menu_state *dest)
 	}
 	free_string(messages);
 	struct render_block block = {wmessages, TEXT_PLAIN, false};
-	struct render_blocks_list blocks = {&block, 1};
+	struct render_blocks_list blocks = {&block, 1, {}};
 	if (start_pager_menu(NULL, &blocks) == false) {
 		free_wstring(wmessages);
 		return close_menu();

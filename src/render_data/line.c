@@ -21,7 +21,7 @@ line_bump(struct line *line)
 	line->head->ws = line_ws;
 	line->head->hints = NULL;
 	line->head->hints_len = 0;
-	line->head->indent = line->next_indent;
+	line->head->indent = line->indent;
 	line->end = SIZE_MAX;
 	return true;
 }
@@ -53,9 +53,9 @@ line_split_at_end(struct line *line)
 	// Have to use pointers to individual members because calling line_char can
 	// realloc lines array which would make using a pointer to the render_line
 	// element prone to the use-after-free bugs.
-	struct wstring *prev_ws = line->head->ws;
-	format_mask *prev_hints = line->head->hints;
-	size_t prev_end         = line->end;
+	struct wstring *prev_ws      = line->head->ws;
+	newsraft_video_t *prev_hints = line->head->hints;
+	size_t prev_end              = line->end;
 
 	line_bump(line); // Now line->head points to a new empty line
 
@@ -80,7 +80,7 @@ line_append(struct line *line, wchar_t c)
 	wcatcs(line->head->ws, c);
 
 	if (line->head->hints_len < line->head->ws->lim) {
-		line->head->hints = realloc(line->head->hints, sizeof(format_mask) * (line->head->ws->lim + 1));
+		line->head->hints = realloc(line->head->hints, sizeof(newsraft_video_t) * (line->head->ws->lim + 1));
 		line->head->hints_len = line->head->ws->lim;
 	}
 
@@ -134,8 +134,37 @@ bool
 line_string(struct line *line, const wchar_t *str)
 {
 	bool status = true;
-	for (const wchar_t *i = str; *i != L'\0' && status == true; ++i) {
-		status = line_char(line, *i);
+	if (str != NULL) {
+		for (const wchar_t *i = str; *i != L'\0' && status == true; ++i) {
+			status = line_char(line, *i);
+		}
 	}
 	return status;
+}
+
+static inline void
+line_style_update(struct line *line)
+{
+	line->style = A_NORMAL;
+	for (size_t i = 0; i < line->style_stack_len; ++i) {
+		line->style |= line->style_stack[i];
+	}
+}
+
+void
+line_style(struct line *line, newsraft_video_t attrs)
+{
+	line->style_stack = realloc(line->style_stack, sizeof(newsraft_video_t) * (line->style_stack_len + 1));
+	line->style_stack[line->style_stack_len] = attrs;
+	line->style_stack_len += 1;
+	line_style_update(line);
+}
+
+void
+line_unstyle(struct line *line)
+{
+	if (line->style_stack_len > 0) {
+		line->style_stack_len -= 1;
+	}
+	line_style_update(line);
 }

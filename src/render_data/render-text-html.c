@@ -40,16 +40,172 @@ struct html_render {
 	// which were placed without the beginning of the listing (ul, ol).
 	struct list_level list_levels[MAX_NESTED_LISTS_DEPTH + 1];
 
-	bool in_table; // Nested tables are not supported!
+	struct links_list *links;
+
+	bool in_table;       // Nested tables are not supported
+	size_t in_pre_depth; // Shows how many pre elements we are in
+
+	struct string **abbrs;
+	size_t abbrs_len;
+
 	struct html_table table;
 };
 
 struct html_element_renderer {
 	GumboTag tag_id;
+	bool descentable;
+	uint8_t newlines_before;
+	uint8_t newlines_after;
+	wchar_t *prefix;
+	wchar_t *suffix;
 	void (*start_handler)(struct html_render *, GumboVector *);
 	void (*end_handler)(struct html_render *, GumboVector *);
-	config_entry_id color_setting;
+	newsraft_video_t video_attrs;
 };
+
+static void
+provide_newlines(struct html_render *ctx, size_t count, bool force)
+{
+	if (force == false) {
+		size_t digits_in_the_beginning = 0;
+		if (ctx->line->target->lines_len > 0) {
+			for (size_t i = 0; i < ctx->line->target->lines[ctx->line->target->lines_len - 1].ws->len; ++i) {
+				if (iswdigit(ctx->line->target->lines[ctx->line->target->lines_len - 1].ws->ptr[i])) {
+					digits_in_the_beginning += 1;
+				} else {
+					break;
+				}
+			}
+		}
+		if ((digits_in_the_beginning > 0
+			&& ctx->line->target->lines[ctx->line->target->lines_len - 1].ws->ptr[digits_in_the_beginning] == L'.')
+			|| (ctx->line->target->lines_len > 0
+			&& ctx->line->target->lines[ctx->line->target->lines_len - 1].ws->ptr[0] == L'*'))
+		{
+			return; // Ignore beginning of lists
+		}
+	}
+	size_t empty_lines = 0;
+	for (size_t i = ctx->line->target->lines_len; true; --i) {
+		if (i == 0) {
+			return;
+		} else if (ctx->line->target->lines[i - 1].ws->len == 0) {
+			empty_lines += 1;
+		} else {
+			break;
+		}
+	}
+	if (count > empty_lines) {
+		for (int i = count - empty_lines; i > 0; --i) {
+			line_bump(ctx->line);
+		}
+	}
+}
+
+static const char *
+get_value_of_xml_attribute(GumboVector *attrs, const char *attr_name)
+{
+	GumboAttribute *attr = gumbo_get_attribute(attrs, attr_name);
+	return attr != NULL && attr->value != NULL ? attr->value : "";
+}
+
+static void
+url_mark_handler(struct html_render *ctx, GumboVector *attrs)
+{
+	const char *links[] = {"href", "src", "data"};
+	const char *names[] = {"title", "name", "alt"};
+	const char *types[] = {"type"};
+	const char *link = NULL;
+	const char *type = NULL;
+	const char *name = NULL;
+	for (size_t l = 0; l < LENGTH(links) && link == NULL; ++l) {
+		const char *a = get_value_of_xml_attribute(attrs, links[l]);
+		if (strlen(a) > 0) link = a;
+	}
+	for (size_t t = 0; t < LENGTH(types) && type == NULL; ++t) {
+		const char *a = get_value_of_xml_attribute(attrs, types[t]);
+		if (strlen(a) > 0) type = a;
+	}
+	for (size_t n = 0; n < LENGTH(names) && name == NULL; ++n) {
+		const char *a = get_value_of_xml_attribute(attrs, names[n]);
+		if (strlen(a) > 0) name = a;
+	}
+	if (link    == NULL) return; // Ignore empty links
+	if (link[0] == '#')  return; // Ignore anchors to elements
+	size_t link_len = strlen(link);
+	if (link_len == 0)   return; // Ignore empty links
+	int64_t link_index = add_url_to_links_list(ctx->links, link, link_len);
+	if (link_index < 0)  return; // Ignore invalid links
+
+	wchar_t index[100];
+	int index_len = swprintf(index, 100, L"[%" PRId64, link_index + 1);
+	if (index_len < 2 || index_len > 99) return; // Should never happen
+
+	if (ctx->line->head->ws->len > 0) {
+		line_string(ctx->line, L" "); // It's &nbsp;
+	}
+
+	line_style(ctx->line, A_BOLD);
+
+	line_string(ctx->line, index);
+
+	if (type != NULL || name != NULL) {
+		line_string(ctx->line, L", ");
+		if (type != NULL) {
+			struct wstring *w = convert_array_to_wstring(type, strlen(type));
+			if (w != NULL) {
+				line_string(ctx->line, w->ptr);
+				free_wstring(w);
+			}
+		}
+		if (name != NULL) {
+			line_string(ctx->line, type == NULL ? L"\"" : L" \"");
+			struct wstring *w = convert_array_to_wstring(name, strlen(name));
+			if (w != NULL) {
+				line_string(ctx->line, w->ptr);
+				free_wstring(w);
+			}
+			line_char(ctx->line, L'"');
+		}
+	}
+	line_char(ctx->line, L']');
+
+	line_unstyle(ctx->line);
+}
+
+static void
+abbr_handler(struct html_render *ctx, GumboVector *attrs)
+{
+	const char *title = get_value_of_xml_attribute(attrs, "title");
+	if (title == NULL) {
+		return;
+	}
+	const size_t title_len = strlen(title);
+	if (title_len == 0) {
+		return;
+	}
+	for (size_t i = 0; i < ctx->abbrs_len; ++i) {
+		if (strcasecmp(title, ctx->abbrs[i]->ptr) == 0) {
+			return; // It's a duplicate
+		}
+	}
+	line_string(ctx->line, L" "); // It's &nbsp;
+	line_char(ctx->line, L'(');
+	struct wstring *w = convert_array_to_wstring(title, title_len);
+	if (w != NULL) {
+		line_string(ctx->line, w->ptr);
+		free_wstring(w);
+	}
+	line_char(ctx->line, L')');
+	void *tmp = realloc(ctx->abbrs, sizeof(struct string *) * (ctx->abbrs_len + 1));
+	if (tmp != NULL) {
+		ctx->abbrs = tmp;
+		ctx->abbrs[ctx->abbrs_len] = crtas(title, title_len);
+		if (ctx->abbrs[ctx->abbrs_len] != NULL) {
+			ctx->abbrs_len += 1;
+		}
+	}
+}
 
 static void
 br_handler(struct html_render *ctx, GumboVector *attrs)
@@ -69,18 +225,38 @@ hr_handler(struct html_render *ctx, GumboVector *attrs)
 }
 
 static void
+input_handler(struct html_render *ctx, GumboVector *attrs)
+{
+	if (strcmp(get_value_of_xml_attribute(attrs, "type"), "hidden") != 0) {
+		const char *value = get_value_of_xml_attribute(attrs, "value");
+		size_t value_len = strlen(value);
+		if (value_len > 0) {
+			struct wstring *w = convert_array_to_wstring(value, value_len);
+			if (w != NULL) {
+				line_char(ctx->line, L'[');
+				line_string(ctx->line, w->ptr);
+				line_char(ctx->line, L']');
+				free_wstring(w);
+			}
+		}
+	}
+}
+
+static void
 li_handler(struct html_render *ctx, GumboVector *attrs)
 {
 	(void)attrs;
-	ctx->line->head->indent = ctx->list_depth * SPACES_PER_INDENTATION_LEVEL;
-	ctx->line->next_indent = ctx->line->head->indent + 3;
+	if (ctx->list_depth > 0) {
+		ctx->line->head->indent = SPACES_PER_INDENTATION_LEVEL * (ctx->list_depth * 2 - 1);
+		ctx->line->indent = SPACES_PER_INDENTATION_LEVEL * (ctx->list_depth * 2);
+	}
 	if (ctx->list_levels[ctx->list_depth].is_ordered == true) {
 		ctx->list_levels[ctx->list_depth].length += 1;
 		wchar_t num[100];
-		swprintf(num, 100, L"%u. ", ctx->list_levels[ctx->list_depth].length);
+		swprintf(num, 100, L"%u.  ", ctx->list_levels[ctx->list_depth].length);
 		line_string(ctx->line, num);
 	} else {
-		line_string(ctx->line, L"*  ");
+		line_string(ctx->line, L"*   ");
 	}
 }
 
@@ -90,8 +266,6 @@ ul_start_handler(struct html_render *ctx, GumboVector *attrs)
 	(void)attrs;
 	if (ctx->list_depth < MAX_NESTED_LISTS_DEPTH) {
 		ctx->list_depth += 1;
-		ctx->line->head->indent = ctx->list_depth * SPACES_PER_INDENTATION_LEVEL;
-		ctx->line->next_indent = ctx->line->head->indent;
 		ctx->list_levels[ctx->list_depth].is_ordered = false;
 	}
 }
@@ -102,41 +276,42 @@ ul_end_handler(struct html_render *ctx, GumboVector *attrs)
 	(void)attrs;
 	if (ctx->list_depth > 0) {
 		ctx->list_depth -= 1;
-		ctx->line->head->indent = ctx->list_depth * SPACES_PER_INDENTATION_LEVEL;
-		ctx->line->next_indent = ctx->line->head->indent;
 	}
+	ctx->line->indent = SPACES_PER_INDENTATION_LEVEL * (ctx->list_depth * 2);
+	ctx->line->head->indent = ctx->line->indent;
 }
 
 static void
 ol_start_handler(struct html_render *ctx, GumboVector *attrs)
 {
-	(void)attrs;
+	long list_start = 0;
+	GumboAttribute *start = gumbo_get_attribute(attrs, "start");
+	if (start != NULL && start->value != NULL && strlen(start->value) > 0) {
+		list_start = strtol(start->value, NULL, 10) - 1;
+	}
 	if (ctx->list_depth < MAX_NESTED_LISTS_DEPTH) {
 		ctx->list_depth += 1;
-		ctx->line->head->indent = ctx->list_depth * SPACES_PER_INDENTATION_LEVEL;
-		ctx->line->next_indent = ctx->line->head->indent;
 		ctx->list_levels[ctx->list_depth].is_ordered = true;
-		ctx->list_levels[ctx->list_depth].length = 0;
+		ctx->list_levels[ctx->list_depth].length = list_start;
 	}
 }
-
 static void
-indent_enter_handler(struct html_render *ctx, GumboVector *attrs)
+indent_start_handler(struct html_render *ctx, GumboVector *attrs)
 {
 	(void)attrs;
 	ctx->line->head->indent += SPACES_PER_INDENTATION_LEVEL;
-	ctx->line->next_indent = ctx->line->head->indent;
+	ctx->line->indent = ctx->line->head->indent;
 }
 
 static void
-indent_leave_handler(struct html_render *ctx, GumboVector *attrs)
+indent_end_handler(struct html_render *ctx, GumboVector *attrs)
 {
 	(void)attrs;
 	if (ctx->line->head->indent >= SPACES_PER_INDENTATION_LEVEL) {
-		ctx->line->next_indent = ctx->line->head->indent - SPACES_PER_INDENTATION_LEVEL;
+		ctx->line->indent = ctx->line->head->indent - SPACES_PER_INDENTATION_LEVEL;
 	}
 	if (ctx->line->head->ws->len == 0) {
-		ctx->line->head->indent = ctx->line->next_indent;
+		ctx->line->head->indent = ctx->line->indent;
 	}
 }
 
@@ -312,12 +487,12 @@ print_html_table(struct line *line, struct html_table *table)
 					if (cells->rowspan >= 0 && height < cells->text.lines_len) {
 						// fprintf(stderr, "------> %ls\n", cells->text.lines[height].ws->ptr);
 						for (size_t g = 0; g < cells->text.lines[height].ws->len; ++g) {
-							line->style = cells->text.lines[height].hints[g];
+							line_style(line, cells->text.lines[height].hints[g]);
 							line_char(line, cells->text.lines[height].ws->ptr[g]);
+							line_unstyle(line);
 						}
 						w -= cells->text.lines[height].ws->len;
 					}
-					line->style = 0;
 
 					// Be careful not to add whitespace for trailing column!
 					if (j + 1 < table->rows[i].cells_count) {
@@ -337,10 +512,20 @@ print_html_table(struct line *line, struct html_table *table)
 }
 
 static inline void
+free_abbrs(struct html_render *ctx)
+{
+	for (size_t i = 0; i < ctx->abbrs_len; ++i) {
+		free_string(ctx->abbrs[i]);
+	}
+	free(ctx->abbrs);
+}
+
+static inline void
 free_html_table(struct html_table *table)
 {
 	for (int i = 0; i < table->rows_count; ++i) {
 		for (int j = 0; j < table->rows[i].cells_count; ++j) {
+			free(table->rows[i].cells[j].line.style_stack);
 			free_render_result(&table->rows[i].cells[j].text);
 		}
 		free(table->rows[i].cells);
@@ -351,40 +536,127 @@ free_html_table(struct html_table *table)
 }
 
 static const struct html_element_renderer renderers[] = {
-	{GUMBO_TAG_BR,         &br_handler,           NULL,                  0},
-	{GUMBO_TAG_B,          NULL,                  NULL,                  CFG_COLOR_HTML_B},
-	{GUMBO_TAG_BIG,        NULL,                  NULL,                  CFG_COLOR_HTML_B},
-	{GUMBO_TAG_U,          NULL,                  NULL,                  CFG_COLOR_HTML_U},
-	{GUMBO_TAG_I,          NULL,                  NULL,                  CFG_COLOR_HTML_I},
-	{GUMBO_TAG_EM,         NULL,                  NULL,                  CFG_COLOR_HTML_EM},
-	{GUMBO_TAG_VAR,        NULL,                  NULL,                  CFG_COLOR_HTML_EM},
-	{GUMBO_TAG_SMALL,      NULL,                  NULL,                  CFG_COLOR_HTML_EM},
-	{GUMBO_TAG_DFN,        NULL,                  NULL,                  CFG_COLOR_HTML_EM},
-	{GUMBO_TAG_INS,        NULL,                  NULL,                  CFG_COLOR_HTML_EM},
-	{GUMBO_TAG_MARK,       NULL,                  NULL,                  CFG_COLOR_HTML_MARK},
-	{GUMBO_TAG_STRONG,     NULL,                  NULL,                  CFG_COLOR_HTML_STRONG},
-	{GUMBO_TAG_LI,         &li_handler,           NULL,                  0},
-	{GUMBO_TAG_UL,         &ul_start_handler,     &ul_end_handler,       0},
-	{GUMBO_TAG_OL,         &ol_start_handler,     &ul_end_handler,       0},
-	{GUMBO_TAG_HR,         &hr_handler,           NULL,                  0},
-	{GUMBO_TAG_FIGURE,     &indent_enter_handler, &indent_leave_handler, 0},
-	{GUMBO_TAG_TD,         &html_table_add_cell,  NULL,                  0},
-	{GUMBO_TAG_TR,         &html_table_add_row,   NULL,                  0},
-	{GUMBO_TAG_TH,         &html_table_add_cell,  NULL,                  0},
+	{GUMBO_TAG_SPAN,       true,  0, 0, NULL, NULL, NULL,                  NULL,                A_NORMAL},
+	{GUMBO_TAG_P,          true,  2, 2, NULL, NULL, NULL,                  NULL,                A_NORMAL},
+	{GUMBO_TAG_BR,         true,  0, 0, NULL, NULL, &br_handler,           NULL,                A_NORMAL},
+	{GUMBO_TAG_HR,         true,  1, 1, NULL, NULL, &hr_handler,           NULL,                A_NORMAL},
+	{GUMBO_TAG_A,          true,  0, 0, NULL, NULL, NULL,                  &url_mark_handler,   A_UNDERLINE},
+	{GUMBO_TAG_IMG,        true,  0, 0, NULL, L"[image]",  NULL,           &url_mark_handler,   A_UNDERLINE},
+	{GUMBO_TAG_IFRAME,     true,  0, 0, NULL, L"[iframe]", NULL,           &url_mark_handler,   A_UNDERLINE},
+	{GUMBO_TAG_EMBED,      true,  0, 0, NULL, L"[embed]",  NULL,           &url_mark_handler,   A_UNDERLINE},
+	{GUMBO_TAG_SOURCE,     true,  0, 0, NULL, L"[source]", NULL,           &url_mark_handler,   A_UNDERLINE},
+	{GUMBO_TAG_OBJECT,     true,  0, 0, NULL, L"[object]", NULL,           &url_mark_handler,   A_UNDERLINE},
+	{GUMBO_TAG_AUDIO,      true,  0, 0, NULL, L"[audio]",  NULL,           &url_mark_handler,   A_UNDERLINE},
+	{GUMBO_TAG_VIDEO,      true,  0, 0, NULL, L"[video]",  NULL,           &url_mark_handler,   A_UNDERLINE},
+	{GUMBO_TAG_U,          true,  0, 0, NULL, NULL, NULL,                  NULL,                A_UNDERLINE},
+	{GUMBO_TAG_B,          true,  0, 0, NULL, NULL, NULL,                  NULL,                A_BOLD},
+	{GUMBO_TAG_BIG,        true,  0, 0, NULL, NULL, NULL,                  NULL,                A_BOLD},
+	{GUMBO_TAG_I,          true,  0, 0, NULL, NULL, NULL,                  NULL,                NEWSRAFT_ITALIC},
+	{GUMBO_TAG_EM,         true,  0, 0, NULL, NULL, NULL,                  NULL,                NEWSRAFT_ITALIC},
+	{GUMBO_TAG_VAR,        true,  0, 0, NULL, NULL, NULL,                  NULL,                NEWSRAFT_ITALIC},
+	{GUMBO_TAG_SMALL,      true,  0, 0, NULL, NULL, NULL,                  NULL,                NEWSRAFT_ITALIC},
+	{GUMBO_TAG_DFN,        true,  0, 0, NULL, NULL, NULL,                  NULL,                NEWSRAFT_ITALIC},
+	{GUMBO_TAG_INS,        true,  0, 0, NULL, NULL, NULL,                  NULL,                NEWSRAFT_ITALIC},
+	{GUMBO_TAG_ADDRESS,    true,  1, 1, NULL, NULL, NULL,                  NULL,                NEWSRAFT_ITALIC},
+	{GUMBO_TAG_MARK,       true,  0, 0, NULL, NULL, NULL,                  NULL,                A_BOLD|NEWSRAFT_ITALIC},
+	{GUMBO_TAG_STRONG,     true,  0, 0, NULL, NULL, NULL,                  NULL,                A_BOLD},
+	{GUMBO_TAG_HEADER,     true,  3, 2, NULL, NULL, NULL,                  NULL,                A_BOLD},
+	{GUMBO_TAG_H1,         true,  3, 2, NULL, NULL, NULL,                  NULL,                A_BOLD},
+	{GUMBO_TAG_H2,         true,  3, 2, NULL, NULL, NULL,                  NULL,                A_BOLD},
+	{GUMBO_TAG_H3,         true,  3, 2, NULL, NULL, NULL,                  NULL,                A_BOLD},
+	{GUMBO_TAG_H4,         true,  3, 2, NULL, NULL, NULL,                  NULL,                A_BOLD},
+	{GUMBO_TAG_H5,         true,  3, 2, NULL, NULL, NULL,                  NULL,                A_BOLD},
+	{GUMBO_TAG_H6,         true,  3, 2, NULL, NULL, NULL,                  NULL,                A_BOLD},
+	{GUMBO_TAG_PRE,        true,  1, 1, NULL, NULL, NULL,                  NULL,                A_NORMAL},
+	{GUMBO_TAG_LI,         true,  1, 1, NULL, NULL, &li_handler,           NULL,                A_NORMAL},
+	{GUMBO_TAG_UL,         true,  0, 0, NULL, NULL, &ul_start_handler,     &ul_end_handler,     A_NORMAL},
+	{GUMBO_TAG_OL,         true,  0, 0, NULL, NULL, &ol_start_handler,     &ul_end_handler,     A_NORMAL},
+	{GUMBO_TAG_FIGURE,     true,  2, 2, NULL, NULL, &indent_start_handler, &indent_end_handler, A_NORMAL},
+	{GUMBO_TAG_BLOCKQUOTE, true,  2, 2, NULL, NULL, &indent_start_handler, &indent_end_handler, A_NORMAL},
+	{GUMBO_TAG_DD,         true,  1, 1, NULL, NULL, &indent_start_handler, &indent_end_handler, A_NORMAL},
+	{GUMBO_TAG_TD,         true,  0, 0, NULL, NULL, &html_table_add_cell,  NULL,                A_NORMAL},
+	{GUMBO_TAG_TH,         true,  0, 0, NULL, NULL, &html_table_add_cell,  NULL,                A_NORMAL},
+	{GUMBO_TAG_TR,         true,  0, 0, NULL, NULL, &html_table_add_row,   NULL,                A_NORMAL},
+	{GUMBO_TAG_ABBR,       true,  0, 0, NULL, NULL, NULL,                  &abbr_handler,       A_NORMAL},
+	{GUMBO_TAG_INPUT,      true,  0, 0, NULL, NULL, &input_handler,        NULL,                A_NORMAL},
+	{GUMBO_TAG_DIV,        true,  1, 1, NULL, NULL, NULL,                  NULL,                A_NORMAL},
+	{GUMBO_TAG_CENTER,     true,  1, 1, NULL, NULL, NULL,                  NULL,                A_NORMAL},
+	{GUMBO_TAG_MAIN,       true,  1, 1, NULL, NULL, NULL,                  NULL,                A_NORMAL},
+	{GUMBO_TAG_ARTICLE,    true,  1, 1, NULL, NULL, NULL,                  NULL,                A_NORMAL},
+	{GUMBO_TAG_SUMMARY,    true,  1, 1, NULL, NULL, NULL,                  NULL,                A_NORMAL},
+	{GUMBO_TAG_FIGCAPTION, true,  1, 1, NULL, NULL, NULL,                  NULL,                A_NORMAL},
+	{GUMBO_TAG_SECTION,    true,  1, 1, NULL, NULL, NULL,                  NULL,                A_NORMAL},
+	{GUMBO_TAG_FOOTER,     true,  1, 1, NULL, NULL, NULL,                  NULL,                A_NORMAL},
+	{GUMBO_TAG_OPTION,     true,  1, 1, NULL, NULL, NULL,                  NULL,                A_NORMAL},
+	{GUMBO_TAG_FORM,       true,  1, 1, NULL, NULL, NULL,                  NULL,                A_NORMAL},
+	{GUMBO_TAG_ASIDE,      true,  1, 1, NULL, NULL, NULL,                  NULL,                A_NORMAL},
+	{GUMBO_TAG_NAV,        true,  1, 1, NULL, NULL, NULL,                  NULL,                A_NORMAL},
+	{GUMBO_TAG_HGROUP,     true,  1, 1, NULL, NULL, NULL,                  NULL,                A_NORMAL},
+	{GUMBO_TAG_DT,         true,  1, 1, NULL, NULL, NULL,                  NULL,                A_NORMAL},
+	{GUMBO_TAG_DL,         true,  2, 2, NULL, NULL, NULL,                  NULL,                A_NORMAL},
+	{GUMBO_TAG_DETAILS,    true,  2, 2, NULL, NULL, NULL,                  NULL,                A_NORMAL},
+	{GUMBO_TAG_LABEL,      true,  0, 0, NULL, NULL, NULL,                  NULL,                A_NORMAL},
+	{GUMBO_TAG_TEXTAREA,   true,  0, 0, NULL, NULL, NULL,                  NULL,                A_NORMAL},
+	{GUMBO_TAG_CODE,       true,  0, 0, NULL, NULL, NULL,                  NULL,                A_NORMAL},
+	{GUMBO_TAG_TT,         true,  0, 0, NULL, NULL, NULL,                  NULL,                A_NORMAL},
+	{GUMBO_TAG_SAMP,       true,  0, 0, NULL, NULL, NULL,                  NULL,                A_NORMAL},
+	{GUMBO_TAG_KBD,        true,  0, 0, NULL, NULL, NULL,                  NULL,                A_NORMAL},
+	{GUMBO_TAG_CITE,       true,  0, 0, NULL, NULL, NULL,                  NULL,                A_NORMAL},
+	{GUMBO_TAG_TIME,       true,  0, 0, NULL, NULL, NULL,                  NULL,                A_NORMAL},
+	{GUMBO_TAG_FONT,       true,  0, 0, NULL, NULL, NULL,                  NULL,                A_NORMAL},
+	{GUMBO_TAG_BASEFONT,   true,  0, 0, NULL, NULL, NULL,                  NULL,                A_NORMAL},
+	{GUMBO_TAG_THEAD,      true,  0, 0, NULL, NULL, NULL,                  NULL,                A_NORMAL},
+	{GUMBO_TAG_TBODY,      true,  0, 0, NULL, NULL, NULL,                  NULL,                A_NORMAL},
+	{GUMBO_TAG_TFOOT,      true,  0, 0, NULL, NULL, NULL,                  NULL,                A_NORMAL},
+	{GUMBO_TAG_WBR,        true,  0, 0, NULL, NULL, NULL,                  NULL,                A_NORMAL},
+	{GUMBO_TAG_NOSCRIPT,   true,  0, 0, NULL, NULL, NULL,                  NULL,                A_NORMAL},
+	{GUMBO_TAG_DATA,       true,  0, 0, NULL, NULL, NULL,                  NULL,                A_NORMAL},
+	{GUMBO_TAG_APPLET,     true,  0, 0, NULL, NULL, NULL,                  NULL,                A_NORMAL},
+	{GUMBO_TAG_PARAM,      true,  0, 0, NULL, NULL, NULL,                  NULL,                A_NORMAL},
+	{GUMBO_TAG_LINK,       true,  0, 0, NULL, NULL, NULL,                  NULL,                A_NORMAL},
+	{GUMBO_TAG_CANVAS,     true,  0, 0, NULL, NULL, NULL,                  NULL,                A_NORMAL},
+	{GUMBO_TAG_META,       true,  0, 0, NULL, NULL, NULL,                  NULL,                A_NORMAL},
+	{GUMBO_TAG_BODY,       true,  0, 0, NULL, NULL, NULL,                  NULL,                A_NORMAL},
+	{GUMBO_TAG_HTML,       true,  0, 0, NULL, NULL, NULL,                  NULL,                A_NORMAL},
+	{GUMBO_TAG_SUP,        true,  0, 0, L"^",  NULL, NULL,                 NULL,                A_NORMAL},
+	{GUMBO_TAG_Q,          true,  0, 0, L"\"", L"\"", NULL,                NULL,                A_NORMAL},
+	{GUMBO_TAG_BUTTON,     true,  0, 0, L"[",  L"]",  NULL,                NULL,                A_NORMAL},
+	{GUMBO_TAG_SVG,        false, 0, 0, NULL, L" [svg image]", NULL,       NULL,                A_NORMAL},
+	{GUMBO_TAG_HEAD,       false, 0, 0, NULL, NULL, NULL,                  NULL,                A_NORMAL},
+	{GUMBO_TAG_STYLE,      false, 0, 0, NULL, NULL, NULL,                  NULL,                A_NORMAL},
+	{GUMBO_TAG_SCRIPT,     false, 0, 0, NULL, NULL, NULL,                  NULL,                A_NORMAL},
+	// {GUMBO_TAG_PICTURE, true,  0, 0, NULL, NULL, NULL, /* not gumbo */  NULL,                A_NORMAL},
 
 	// Gumbo can assign thead, tbody and tfoot tags to table element under
 	// some circumstances, so we need to ignore these to avoid tag display.
-	{GUMBO_TAG_THEAD,      NULL,                  NULL,                  0},
-	{GUMBO_TAG_TBODY,      NULL,                  NULL,                  0},
-	{GUMBO_TAG_TFOOT,      NULL,                  NULL,                  0},
+	{GUMBO_TAG_THEAD,      true,  0, 0, NULL, NULL, NULL,                  NULL,                A_NORMAL},
+	{GUMBO_TAG_TBODY,      true,  0, 0, NULL, NULL, NULL,                  NULL,                A_NORMAL},
+	{GUMBO_TAG_TFOOT,      true,  0, 0, NULL, NULL, NULL,                  NULL,                A_NORMAL},
 
-	{GUMBO_TAG_UNKNOWN,    NULL,                  NULL,                  0},
+	{GUMBO_TAG_UNKNOWN,    true,  0, 0, NULL, NULL, NULL,                  NULL,                A_NORMAL},
 };
 
 static void
 render_html(GumboNode *node, struct html_render *ctx)
 {
-	if (node->type == GUMBO_NODE_ELEMENT) {
+	if (node->type == GUMBO_NODE_TEXT || node->type == GUMBO_NODE_CDATA || node->type == GUMBO_NODE_WHITESPACE) {
+		struct wstring *wstr = convert_array_to_wstring(node->v.text.text, strlen(node->v.text.text));
+		if (wstr == NULL) {
+			return;
+		}
+		for (const wchar_t *i = wstr->ptr; *i != L'\0'; ++i) {
+			if (ctx->in_pre_depth > 0) {
+				line_char(ctx->line, *i);
+			} else if (!ISWIDEWHITESPACE(*i)) {
+				line_char(ctx->line, *i);
+			} else if (ctx->line->head->ws->len > 0) {
+				if (!ISWIDEWHITESPACE(ctx->line->head->ws->ptr[ctx->line->head->ws->len - 1])) {
+					line_char(ctx->line, L' ');
+				}
+			}
+		}
+		free_wstring(wstr);
+	} else if (node->type == GUMBO_NODE_ELEMENT) {
 		size_t i = 0;
 		while ((renderers[i].tag_id != GUMBO_TAG_UNKNOWN) && (renderers[i].tag_id != node->v.element.tag)) {
 			i += 1;
@@ -414,49 +686,51 @@ render_html(GumboNode *node, struct html_render *ctx)
 				free_wstring(tag);
 			}
 		} else {
+			if (renderers[i].tag_id == GUMBO_TAG_UL || renderers[i].tag_id == GUMBO_TAG_OL) {
+				provide_newlines(ctx, ctx->list_depth == 0 ? 2 : 1, true);
+			} else {
+				provide_newlines(ctx, renderers[i].newlines_before, false);
+			}
+			if (renderers[i].tag_id == GUMBO_TAG_PRE) {
+				ctx->in_pre_depth += 1;
+			}
 			if (renderers[i].start_handler != NULL) {
 				renderers[i].start_handler(ctx, &node->v.element.attributes);
 			}
-			if (renderers[i].color_setting > 0) {
-				ctx->line->style |= COLOR_TO_BIT(renderers[i].color_setting);
+			if (renderers[i].video_attrs != A_NORMAL) {
+				line_style(ctx->line, renderers[i].video_attrs);
 			}
-			for (size_t j = 0; j < node->v.element.children.length; ++j) {
-				render_html(node->v.element.children.data[j], ctx);
+			line_string(ctx->line, renderers[i].prefix);
+			if (renderers[i].descentable == true) {
+				for (size_t j = 0; j < node->v.element.children.length; ++j) {
+					render_html(node->v.element.children.data[j], ctx);
+				}
 			}
-			if (renderers[i].color_setting > 0) {
-				ctx->line->style &= ~COLOR_TO_BIT(renderers[i].color_setting);
+			line_string(ctx->line, renderers[i].suffix);
+			if (renderers[i].video_attrs != A_NORMAL) {
+				line_unstyle(ctx->line);
 			}
 			if (renderers[i].end_handler != NULL) {
 				renderers[i].end_handler(ctx, &node->v.element.attributes);
 			}
-		}
-	} else if ((node->type == GUMBO_NODE_TEXT)
-		|| (node->type == GUMBO_NODE_CDATA)
-		|| (node->type == GUMBO_NODE_WHITESPACE))
-	{
-		struct wstring *wstr = convert_array_to_wstring(node->v.text.text, strlen(node->v.text.text));
-		if (wstr != NULL) {
-			for (const wchar_t *i = wstr->ptr; *i != L'\0'; ++i) {
-				if (!ISWIDEWHITESPACE(*i)) {
-					line_char(ctx->line, *i);
-				} else if (ctx->line->head->ws->len > 0) {
-					if (!ISWIDEWHITESPACE(ctx->line->head->ws->ptr[ctx->line->head->ws->len - 1])) {
-						line_char(ctx->line, L' ');
-					}
-				}
+			if (renderers[i].tag_id == GUMBO_TAG_PRE) {
+				ctx->in_pre_depth -= 1;
 			}
-			free_wstring(wstr);
+			if (renderers[i].tag_id == GUMBO_TAG_UL || renderers[i].tag_id == GUMBO_TAG_OL) {
+				provide_newlines(ctx, ctx->list_depth == 0 ? 2 : 1, true);
+			} else {
+				provide_newlines(ctx, renderers[i].newlines_after, true);
+			}
 		}
 	}
 }
 
 bool
-render_text_html(struct line *line, const struct wstring *source)
+render_text_html(struct line *line, const struct wstring *source, struct links_list *links)
 {
 	struct html_render html = {
-		.line        = line,
-		.list_depth  = 0,
-		.list_levels = {{false, 0}},
+		.line  = line,
+		.links = links,
 	};
 	struct string *str = convert_wstring_to_string(source);
 	if (str == NULL) {
@@ -471,5 +745,6 @@ render_text_html(struct line *line, const struct wstring *source)
 	render_html(output->root, &html);
 	gumbo_destroy_output(&kGumboDefaultOptions, output);
 	free_string(str);
+	free_abbrs(&html);
 	return true;
 }

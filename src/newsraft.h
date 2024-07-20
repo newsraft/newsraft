@@ -28,7 +28,7 @@
 
 typedef uint8_t config_entry_id;
 typedef uint8_t input_id;
-typedef uint64_t format_mask;
+typedef int newsraft_video_t;
 
 enum {
 	FEED_COLUMN_FEED_URL,
@@ -200,23 +200,6 @@ struct render_block {
 	bool needs_trimming;
 };
 
-struct render_blocks_list {
-	struct render_block *ptr;
-	size_t len;
-};
-
-struct render_line {
-	struct wstring *ws;
-	format_mask *hints;
-	size_t hints_len;
-	size_t indent;
-};
-
-struct render_result {
-	struct render_line *lines;
-	size_t lines_len;
-};
-
 struct link {
 	struct string *url;      // URL link to data.
 	struct string *type;     // Standard MIME type of data.
@@ -227,6 +210,24 @@ struct link {
 struct links_list {
 	struct link *ptr;
 	size_t len;
+};
+
+struct render_blocks_list {
+	struct render_block *ptr;
+	size_t len;
+	struct links_list links;
+};
+
+struct render_line {
+	struct wstring *ws;
+	newsraft_video_t *hints;
+	size_t hints_len;
+	size_t indent;
+};
+
+struct render_result {
+	struct render_line *lines;
+	size_t lines_len;
 };
 
 // See "sections.c" file for implementation.
@@ -305,14 +306,6 @@ void apply_links_render_blocks(struct render_blocks_list *blocks, const struct w
 void free_render_blocks(struct render_blocks_list *blocks);
 void free_render_result(struct render_result *render);
 
-// Here we extract links from texts of render_block entries into links_list and
-// insert link marks into texts so that it's more convenient for user to work
-// with the list of links in the pager. Also, we do here some screen-independent
-// processing of texts that render_block entries have, for example expand a few
-// inline HTML elements like <span>, <sup>, <q>, etc.
-// See "prepare_to_render_data" directory for implementation.
-bool prepare_to_render_data(struct render_blocks_list *blocks, struct links_list *links);
-
 // See "render_data" directory for implementation.
 bool render_data(struct config_context **ctx, struct render_result *result, struct render_blocks_list *blocks, size_t content_width);
 
@@ -324,11 +317,9 @@ bool get_largest_piece_from_item_content(const char *content, struct string **te
 bool get_largest_piece_from_item_attachments(const char *attachments, struct string **text, render_block_format *type);
 
 // See "items-metadata-links.c" file for implementation.
-int64_t add_another_url_to_trim_links_list(struct links_list *links, const char *url, size_t url_len);
+int64_t add_url_to_links_list(struct links_list *links, const char *url, size_t url_len);
 bool populate_link_list_with_links_of_item(struct links_list *links, sqlite3_stmt *res);
 struct wstring *generate_link_list_wstring_for_pager(struct config_context **ctx, const struct links_list *links);
-bool complete_urls_of_links(struct links_list *links);
-void free_links_list(const struct links_list *links);
 
 // See "items-metadata-persons.c" file for implementation.
 struct string *deserialize_persons_string(const char *src);

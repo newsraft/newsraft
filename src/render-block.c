@@ -42,6 +42,14 @@ free_render_blocks(struct render_blocks_list *blocks)
 		free_wstring(blocks->ptr[i].content);
 	}
 	free(blocks->ptr);
+	if (blocks->links.ptr != NULL) {
+		for (size_t i = 0; i < blocks->links.len; ++i) {
+			free_contents_of_link(&blocks->links.ptr[i]);
+		}
+		free(blocks->links.ptr);
+		blocks->links.ptr = NULL;
+		blocks->links.len = 0;
+	}
 }
 
 void

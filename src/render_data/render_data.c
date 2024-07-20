@@ -27,11 +27,14 @@ render_data(struct config_context **ctx, struct render_result *result, struct re
 	line.lim = pager_width > 0 && pager_width < content_width ? pager_width : content_width;
 	line_char(&line, L'\n'); // Add first line to line processor
 	for (size_t i = 0; i < blocks->len; ++i) {
-		line.next_indent = 0;
-		line.style = 0;
+		line.indent = 0;
+		line.style = A_NORMAL;
+		line.style_stack_len = 0;
 		if (blocks->ptr[i].content_type == TEXT_HTML) {
-			render_text_html(&line, blocks->ptr[i].content);
-		} else { // TEXT_RAW || TEXT_PLAIN
+			render_text_html(&line, blocks->ptr[i].content, &blocks->links);
+		} else if (blocks->ptr[i].content_type == TEXT_PLAIN) {
+			render_text_plain(&line, blocks->ptr[i].content, &blocks->links);
+		} else { // TEXT_RAW
 			line_string(&line, blocks->ptr[i].content->ptr);
 		}
 		if (blocks->ptr[i].needs_trimming == true) {
@@ -44,5 +47,6 @@ render_data(struct config_context **ctx, struct render_result *result, struct re
 			result->lines[i].indent += (content_width - pager_width) / 2;
 		}
 	}
+	free(line.style_stack);
 	return result->lines_len > 1 ? true : false;
 }

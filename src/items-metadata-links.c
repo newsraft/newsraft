@@ -41,28 +41,57 @@ convert_seconds_to_human_readable_duration_string(char *dest, size_t dest_size, 
 // [0; INT64_MAX] link was added successfully with that index
 // {-1}           memory failure
 int64_t
-add_another_url_to_trim_links_list(struct links_list *links, const char *url, size_t url_len)
+add_url_to_links_list(struct links_list *links, const char *url, size_t url_len)
 {
-	for (int64_t i = 0; i < (int64_t)links->len; ++i) {
-		if ((url_len == links->ptr[i].url->len) && (strncmp(url, links->ptr[i].url->ptr, url_len) == 0)) {
-			// Don't add duplicate.
-			return i;
+	CURLU *h = curl_url();
+	if (h == NULL) {
+		FAIL("Not enough memory for completing URL of link!");
+		return -1;
+	}
+	char *curl_url = NULL;
+	if (links->len > 0
+		&& strstr(url, "://") == NULL       // Don't complete links with protocol scheme
+		&& strncmp(url, "tel:", 4) != 0     // Don't complete telephone links
+		&& strncmp(url, "mailto:", 7) != 0) // Don't complete email links
+	{
+		// Convert relative URL of link to absolute form. For example:
+		// /upload/podcast83.mp3      -> http://example.org/upload/podcast83.mp3
+		// ../../images/image-194.jpg -> http://example.org/blog/posts/12/../../images/image-194.jpg
+		// image-195.jpg              -> http://example.org/blog/posts/12/image-195.jpg
+		if (curl_url_set(h, CURLUPART_URL, links->ptr[0].url->ptr, 0) == CURLUE_OK) {
+			if (curl_url_set(h, CURLUPART_URL, url, 0) == CURLUE_OK) {
+				if (curl_url_get(h, CURLUPART_URL, &curl_url, 0) == CURLUE_OK) {
+					INFO("Completed link '%s' to '%s'", url, curl_url);
+					url = curl_url;
+					url_len = strlen(url);
+				}
+			}
 		}
 	}
-	struct link *temp = realloc(links->ptr, sizeof(struct link) * (links->len + 1));
-	if (temp == NULL) {
+
+	for (int64_t i = 0; i < (int64_t)links->len; ++i) {
+		if (url_len == links->ptr[i].url->len && strncmp(url, links->ptr[i].url->ptr, url_len) == 0) {
+			curl_free(curl_url);
+			curl_url_cleanup(h);
+			return i; // Don't add duplicate.
+		}
+	}
+	struct link *tmp = realloc(links->ptr, sizeof(struct link) * (links->len + 1));
+	if (tmp == NULL) {
+		curl_free(curl_url);
+		curl_url_cleanup(h);
 		return -1;
 	}
-	size_t index = (links->len)++;
-	links->ptr = temp;
-	links->ptr[index].url = crtas(url, url_len);
-	links->ptr[index].type = NULL;
-	links->ptr[index].size = NULL;
-	links->ptr[index].duration = NULL;
-	if (links->ptr[index].url == NULL) {
-		return -1;
-	}
-	return index;
+
+	int64_t index = (links->len)++;
+	links->ptr = tmp;
+	memset(&links->ptr[index], 0, sizeof(struct link));
+	cpyas(&links->ptr[index].url, url, url_len);
+
+	curl_free(curl_url);
+	curl_url_cleanup(h);
+
+	return links->ptr[index].url == NULL ? -1 : index;
 }
 
 static void
@@ -74,17 +103,6 @@ free_contents_of_link(const struct link *link)
 	free_string(link->duration);
 }
 
-void
-free_links_list(const struct links_list *links)
-{
-	if (links->ptr != NULL) {
-		for (size_t i = 0; i < links->len; ++i) {
-			free_contents_of_link(&(links->ptr[i]));
-		}
-		free(links->ptr);
-	}
-}
-
 static inline bool
 append_item_link(struct links_list *links, sqlite3_stmt *res)
 {
@@ -92,7 +110,7 @@ append_item_link(struct links_list *links, sqlite3_stmt *res)
 	if (text != NULL) {
 		size_t text_len = strlen(text);
 		if (text_len != 0) {
-			if (add_another_url_to_trim_links_list(links, text, text_len) < 0) {
+			if (add_url_to_links_list(links, text, text_len) < 0) {
 				return false;
 			}
 		}
@@ -246,49 +264,4 @@ error:
 	free_wstring(fmt_out);
 	free_string(str);
 	return NULL;
-}
-
-// Convert relative URLs of links to absolute form. For example:
-// (1) /upload/podcast83.mp3      => http://example.org/upload/podcast83.mp3
-// (2) ../../images/image-194.jpg => http://example.org/post13/../../images/image-194.jpg
-// (3) image-195.jpg              => http://example.org/post13/image-195.jpg
-bool
-complete_urls_of_links(struct links_list *links)
-{
-	INFO("Completing URLs of links list.");
-	CURLU *h = curl_url();
-	if (h == NULL) {
-		FAIL("Not enough memory for completing URLs of links list!");
-		return false;
-	}
-	char *url;
-	for (size_t i = 0; i < links->len; ++i) {
-		if (strncmp(links->ptr[i].url->ptr, "mailto:", 7) == 0) {
-			continue; // This is an email URL, leave it as is.
-		}
-		if (strncmp(links->ptr[i].url->ptr, "tel:", 4) == 0) {
-			continue; // This is a telephone URL, leave it as is.
-		}
-		if (strstr(links->ptr[i].url->ptr, "://") != NULL) {
-			continue; // This URL has protocol scheme, it's most likely absolute.
-		}
-		if (curl_url_set(h, CURLUPART_URL, links->ptr[0].url->ptr, 0) != CURLUE_OK) {
-			continue; // This URL is broken, leave it alone.
-		}
-		if (curl_url_set(h, CURLUPART_URL, links->ptr[i].url->ptr, 0) != CURLUE_OK) {
-			continue; // This URL is broken, leave it alone.
-		}
-		if (curl_url_get(h, CURLUPART_URL, &url, 0) != CURLUE_OK) {
-			continue; // This URL is broken, leave it alone.
-		}
-		INFO("Completed \"%s\" to \"%s\".", links->ptr[i].url->ptr, url);
-		if (cpyas(&links->ptr[i].url, url, strlen(url)) == false) {
-			curl_free(url);
-			curl_url_cleanup(h);
-			return false;
-		}
-		curl_free(url);
-	}
-	curl_url_cleanup(h);
-	return true;
 }

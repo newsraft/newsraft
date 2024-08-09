@@ -32,7 +32,7 @@ update_status_window_content_unprotected(void)
 	werase(status_window);
 	wmove(status_window, 0, 0);
 
-	if (they_want_us_to_terminate == true) {
+	if (they_want_us_to_stop == true) {
 		wbkgd(status_window, get_cfg_color(NULL, CFG_COLOR_STATUS_FAIL));
 		waddnstr(status_window, "Terminating...", list_menu_width);
 	} else if (search_mode_is_enabled == true) {
@@ -214,7 +214,7 @@ get_input(struct input_binding *ctx, uint32_t *count, const struct wstring **mac
 			queued_action_index = 0;
 		}
 	}
-	while (they_want_us_to_terminate == false) {
+	while (they_want_us_to_stop == false) {
 		// We have to read input from a child window because
 		// reading it from the main window will bring stdscr
 		// on top of other windows and overlap them.

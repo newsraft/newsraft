@@ -1,5 +1,5 @@
 #include <string.h>
-#include "update_feed/parse_xml/parse_xml_feed.h"
+#include "parse_xml/parse_xml_feed.h"
 
 // Note to the future.
 //
@@ -19,7 +19,7 @@
 // https://web.archive.org/web/20240201121905/https://www.rssboard.org/rss-specification
 
 static int8_t
-rss_guid_start(struct stream_callback_data *data, const XML_Char **attrs)
+rss_guid_start(struct feed_update_state *data, const XML_Char **attrs)
 {
 	if (data->path[data->depth] == GENERIC_ITEM) {
 		const char *val = get_value_of_attribute_key(attrs, "isPermaLink");
@@ -30,7 +30,7 @@ rss_guid_start(struct stream_callback_data *data, const XML_Char **attrs)
 }
 
 static int8_t
-rss_link_end(struct stream_callback_data *data)
+rss_link_end(struct feed_update_state *data)
 {
 	if (data->path[data->depth] == GENERIC_ITEM) {
 		if (cpyss(&data->feed.item->url, data->text) == false) {
@@ -45,7 +45,7 @@ rss_link_end(struct stream_callback_data *data)
 }
 
 static int8_t
-rss_pubdate_end(struct stream_callback_data *data)
+rss_pubdate_end(struct feed_update_state *data)
 {
 	if (data->path[data->depth] == GENERIC_ITEM) {
 		data->feed.item->publication_date = parse_date(data->text->ptr, false);
@@ -57,14 +57,14 @@ rss_pubdate_end(struct stream_callback_data *data)
 }
 
 static int8_t
-rss_lastbuilddate_end(struct stream_callback_data *data)
+rss_lastbuilddate_end(struct feed_update_state *data)
 {
 	INFO("Feed lastBuildDate: %s", data->text->ptr);
 	return PARSE_OKAY;
 }
 
 static int8_t
-rss_author_end(struct stream_callback_data *data)
+rss_author_end(struct feed_update_state *data)
 {
 	if (data->path[data->depth] == GENERIC_ITEM) {
 		if (serialize_caret(&data->feed.item->persons) == false) {
@@ -91,7 +91,7 @@ rss_author_end(struct stream_callback_data *data)
 }
 
 static int8_t
-rss_enclosure_start(struct stream_callback_data *data, const XML_Char **attrs)
+rss_enclosure_start(struct feed_update_state *data, const XML_Char **attrs)
 {
 	if (data->path[data->depth] != GENERIC_ITEM) {
 		return PARSE_OKAY;
@@ -120,7 +120,7 @@ rss_enclosure_start(struct stream_callback_data *data, const XML_Char **attrs)
 }
 
 static int8_t
-rss_comments_end(struct stream_callback_data *data)
+rss_comments_end(struct feed_update_state *data)
 {
 	if (data->path[data->depth] == GENERIC_ITEM) {
 		if (serialize_caret(&data->feed.item->attachments) == false) {
@@ -137,7 +137,7 @@ rss_comments_end(struct stream_callback_data *data)
 }
 
 static int8_t
-rss_ttl_end(struct stream_callback_data *data)
+rss_ttl_end(struct feed_update_state *data)
 {
 	if (data->path[data->depth] == GENERIC_FEED) {
 		int64_t minutes;
@@ -155,14 +155,14 @@ rss_ttl_end(struct stream_callback_data *data)
 }
 
 static int8_t
-rss_webmaster_end(struct stream_callback_data *data)
+rss_webmaster_end(struct feed_update_state *data)
 {
 	INFO("Webmaster of this feed: %s", data->text->ptr);
 	return PARSE_OKAY;
 }
 
 static int8_t
-rss_managingeditor_end(struct stream_callback_data *data)
+rss_managingeditor_end(struct feed_update_state *data)
 {
 	if (data->path[data->depth] == GENERIC_FEED) {
 		if (serialize_caret(&data->feed.persons) == false) {
@@ -179,7 +179,7 @@ rss_managingeditor_end(struct stream_callback_data *data)
 }
 
 static int8_t
-rss_source_start(struct stream_callback_data *data, const XML_Char **attrs)
+rss_source_start(struct feed_update_state *data, const XML_Char **attrs)
 {
 	if (data->path[data->depth] != GENERIC_ITEM) {
 		return PARSE_OKAY;
@@ -205,7 +205,7 @@ rss_source_start(struct stream_callback_data *data, const XML_Char **attrs)
 }
 
 static int8_t
-rss_source_end(struct stream_callback_data *data)
+rss_source_end(struct feed_update_state *data)
 {
 	if (data->path[data->depth] == GENERIC_ITEM) {
 		if (serialize_string(&data->feed.item->attachments, "title=", 6, data->text) == false) {

@@ -1,5 +1,5 @@
 #include <string.h>
-#include "update_feed/parse_xml/parse_xml_feed.h"
+#include "parse_xml/parse_xml_feed.h"
 
 const char *
 get_value_of_attribute_key(const XML_Char **attrs, const char *key)
@@ -20,7 +20,7 @@ serialize_attribute(struct string **dest, const char *key, size_t key_len, const
 }
 
 int8_t
-generic_item_starter(struct stream_callback_data *data, const XML_Char **attrs)
+generic_item_starter(struct feed_update_state *data, const XML_Char **attrs)
 {
 	(void)attrs;
 	if (prepend_item(&data->feed.item) == false) {
@@ -31,14 +31,14 @@ generic_item_starter(struct stream_callback_data *data, const XML_Char **attrs)
 }
 
 int8_t
-generic_item_ender(struct stream_callback_data *data)
+generic_item_ender(struct feed_update_state *data)
 {
 	data->in_item = false;
 	return PARSE_OKAY;
 }
 
 int8_t
-generic_guid_end(struct stream_callback_data *data)
+generic_guid_end(struct feed_update_state *data)
 {
 	if (data->path[data->depth] == GENERIC_ITEM) {
 		if (cpyss(&data->feed.item->guid, data->text) == false) {
@@ -49,7 +49,7 @@ generic_guid_end(struct stream_callback_data *data)
 }
 
 int8_t
-generic_title_end(struct stream_callback_data *data)
+generic_title_end(struct feed_update_state *data)
 {
 	if (data->path[data->depth] == GENERIC_ITEM) {
 		if (cpyss(&data->feed.item->title, data->text) == false) {
@@ -64,7 +64,7 @@ generic_title_end(struct stream_callback_data *data)
 }
 
 int8_t
-generic_plain_content_end(struct stream_callback_data *data)
+generic_plain_content_end(struct feed_update_state *data)
 {
 	if (data->in_item == true) {
 		if (serialize_caret(&data->feed.item->content) == false) {
@@ -91,7 +91,7 @@ generic_plain_content_end(struct stream_callback_data *data)
 }
 
 int8_t
-generic_html_content_end(struct stream_callback_data *data)
+generic_html_content_end(struct feed_update_state *data)
 {
 	if (data->in_item == true) {
 		if (serialize_caret(&data->feed.item->content) == false) {
@@ -118,7 +118,7 @@ generic_html_content_end(struct stream_callback_data *data)
 }
 
 int8_t
-generic_category_end(struct stream_callback_data *data)
+generic_category_end(struct feed_update_state *data)
 {
 	if (data->in_item == true) {
 		if (serialize_caret(&data->feed.item->extras) == false) {
@@ -139,14 +139,14 @@ generic_category_end(struct stream_callback_data *data)
 }
 
 int8_t
-generic_generator_end(struct stream_callback_data *data)
+generic_generator_end(struct feed_update_state *data)
 {
 	INFO("Feed generator name: %s", data->text->ptr);
 	return PARSE_OKAY;
 }
 
 int8_t
-update_date_end(struct stream_callback_data *data)
+update_date_end(struct feed_update_state *data)
 {
 	if (data->in_item == true) {
 		data->feed.item->update_date = parse_date(data->text->ptr, true);

@@ -9,6 +9,9 @@
 #include <pthread.h>
 #include <sqlite3.h>
 #include <curses.h>
+#include <expat.h>
+#include <curl/curl.h>
+#include <yajl/yajl_parse.h>
 
 #ifndef NEWSRAFT_VERSION
 #define NEWSRAFT_VERSION "0.25"
@@ -99,6 +102,19 @@ enum {
 	TEXT_RAW,   // Same thing as TEXT_PLAIN, but without link marks
 	TEXT_HTML,
 	TEXT_LINKS, // Special block type which has to be populated with links
+};
+
+// Unknown type must have 0 value!
+enum {
+	MEDIA_TYPE_UNKNOWN = 0,
+	MEDIA_TYPE_XML,
+	MEDIA_TYPE_JSON,
+};
+
+enum {
+	NEWSRAFT_THREAD_DOWNLOAD = 0, // Downloads the feed from the web
+	NEWSRAFT_THREAD_SHRUNNER = 1, // Reads the feed from the command
+	NEWSRAFT_THREAD_DBWRITER = 2, // Writes the feed to the database
 };
 
 struct config_context;
@@ -228,6 +244,65 @@ struct render_line {
 struct render_result {
 	struct render_line *lines;
 	size_t lines_len;
+};
+
+struct getfeed_item {
+	struct string *guid;
+	struct string *title;
+	struct string *url;
+	struct string *content;
+	struct string *attachments;
+	struct string *persons;
+	struct string *extras;
+	int64_t publication_date; // Publication date in seconds since the Epoch (0 means unset).
+	int64_t update_date; // Update date in seconds since the Epoch (0 means unset).
+	bool guid_is_url;
+	struct getfeed_item *next;
+};
+
+struct getfeed_feed {
+	struct string *title;
+	struct string *url;
+	struct string *content;
+	struct string *attachments;
+	struct string *persons;
+	struct string *extras;
+	int64_t time_to_live;
+	struct string *http_header_etag;
+	int64_t http_header_last_modified;
+	int64_t http_header_expires;
+	struct getfeed_item *item;
+};
+
+struct feed_update_state {
+	struct feed_entry *feed_entry;
+
+	CURL *curl;
+	char curl_error[CURL_ERROR_SIZE];
+	struct curl_slist *download_headers;
+
+	int8_t media_type;
+	XML_Parser xml_parser;
+	yajl_handle json_parser;
+	struct getfeed_feed feed;
+	bool in_item;
+	struct string *text;
+	uint8_t path[256];
+	uint8_t depth;
+	struct string decoy;
+	struct string *emptying_target;
+
+	size_t new_items_count;
+
+	bool curl_handle_added_to_multi;
+
+	bool is_in_progress;
+	bool is_downloaded;
+	bool is_failed;
+	bool is_canceled;
+	bool is_finished;
+
+	struct feed_update_state *next;
 };
 
 // See "sections.c" file for implementation.
@@ -443,6 +518,7 @@ struct string *convert_warray_to_string(const wchar_t *src_ptr, size_t src_len);
 
 // See "signal.c" file for implementation.
 bool register_signal_handlers(void);
+void wait_a_second_for_wake_up_signal(void);
 
 // Parse config file, fill out config_data structure, bind keys to actions.
 // See "load_config" directory for implementation.
@@ -458,10 +534,11 @@ void free_config(void);
 void free_config_context(struct config_context *cfg);
 
 // Download, process and store new items of feed.
-// See "update_feed" directory for implementation.
-void update_feeds(struct feed_entry **feeds, size_t feeds_count);
-bool start_feed_updater(void);
-bool try_to_stop_feed_updater(void);
+// See "queue.c" file for implementation.
+void queue_updates(struct feed_entry **feeds, size_t feeds_count);
+struct feed_update_state *queue_pull(bool (*condition)(struct feed_update_state *));
+void queue_destroy(void);
+void queue_examine(void);
 
 // Functions for opening and closing the log stream.
 // To write to the log stream use macros INFO, WARN or FAIL.
@@ -475,10 +552,37 @@ void log_stop(int error_code);
 void write_error(const char *format, ...);
 void flush_errors(void);
 
-// See "newsraft.c" file for implementation.
-void tell_program_to_terminate_safely_and_quickly(int dummy);
+// See "downloader.c" file for implementation.
+void *downloader_worker(void *dummy);
+bool curl_init(void);
+void curl_stop(void);
+void remove_downloader_handle(struct feed_update_state *data);
 
-extern volatile bool they_want_us_to_terminate;
+// See "executor.c" file for implementation.
+void *executor_worker(void *dummy);
+
+// See "inserter.c" file for implementation.
+void *inserter_worker(void *dummy);
+
+// See "threads.c" file for implementation.
+bool threads_start(void);
+void threads_wake_up(int thread_id);
+void threads_stop(void);
+
+// See "parse_xml" directory for implementation.
+bool setup_xml_parser(struct feed_update_state *data);
+
+// See "parse_json" directory for implementation.
+bool setup_json_parser(struct feed_update_state *data);
+
+// See "insert_feed" directory for implementation.
+bool insert_feed(struct feed_entry *feed, struct getfeed_feed *feed_data);
+
+// See "struct-item.c" file for implementation.
+bool prepend_item(struct getfeed_item **head_item_ptr);
+void free_item(struct getfeed_item *item);
+
+extern volatile bool they_want_us_to_stop;
 extern FILE *log_stream;
 extern size_t list_menu_height;
 extern size_t list_menu_width;

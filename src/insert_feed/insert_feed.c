@@ -1,4 +1,4 @@
-#include "update_feed/insert_feed/insert_feed.h"
+#include "insert_feed/insert_feed.h"
 
 bool
 insert_feed(struct feed_entry *feed, struct getfeed_feed *feed_data)

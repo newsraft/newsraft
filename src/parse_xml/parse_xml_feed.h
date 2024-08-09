@@ -1,6 +1,6 @@
 #ifndef PARSE_XML_FEED_H
 #define PARSE_XML_FEED_H
-#include "update_feed/update_feed.h"
+#include "newsraft.h"
 
 enum parsing_error {
 	PARSE_OKAY = 0,
@@ -19,7 +19,7 @@ enum xml_position {
 struct xml_element_handler {
 	const char *name;
 	uint8_t bitpos;
-	int8_t (*start_handle)(struct stream_callback_data *data, const XML_Char **atts);
-	int8_t (*end_handle)(struct stream_callback_data *data);
+	int8_t (*start_handle)(struct feed_update_state *data, const XML_Char **atts);
+	int8_t (*end_handle)(struct feed_update_state *data);
 };
 #endif // PARSE_XML_FEED_H

@@ -11,9 +11,15 @@ find -name '*.c' | sed 's/^\.\///' | grep -v '^newsraft.c$' | sort | sed 's/^/#i
 #include "dates.c"
 #include "db.c"
 #include "db-items.c"
+#include "downloader.c"
 #include "errors.c"
+#include "executor.c"
 #include "feeds.c"
 #include "feeds-parse.c"
+#include "inserter.c"
+#include "insert_feed/insert_feed.c"
+#include "insert_feed/insert-feed-data.c"
+#include "insert_feed/insert-item-data.c"
 #include "interface.c"
 #include "interface-colors.c"
 #include "interface-list.c"
@@ -32,7 +38,17 @@ find -name '*.c' | sed 's/^\.\///' | grep -v '^newsraft.c$' | sort | sed 's/^/#i
 #include "load_config/config-parse-colors.c"
 #include "load_config/load_config.c"
 #include "log.c"
+#include "parse_json/setup-json-parser.c"
+#include "parse_xml/common.c"
+#include "parse_xml/format-atom.c"
+#include "parse_xml/format-dublincore.c"
+#include "parse_xml/format-georss.c"
+#include "parse_xml/format-mediarss.c"
+#include "parse_xml/format-rss.c"
+#include "parse_xml/gperf-data.c"
+#include "parse_xml/setup-xml-parser.c"
 #include "path.c"
+#include "queue.c"
 #include "render-block.c"
 #include "render_data/line.c"
 #include "render_data/render_data.c"
@@ -43,26 +59,12 @@ find -name '*.c' | sed 's/^\.\///' | grep -v '^newsraft.c$' | sort | sed 's/^/#i
 #include "sorting.c"
 #include "string.c"
 #include "string-serialize.c"
-#include "update_feed/download.c"
-#include "update_feed/execute.c"
-#include "update_feed/insert_feed/insert_feed.c"
-#include "update_feed/insert_feed/insert-feed-data.c"
-#include "update_feed/insert_feed/insert-item-data.c"
-#include "update_feed/parse_json/setup-json-parser.c"
-#include "update_feed/parse_xml/common.c"
-#include "update_feed/parse_xml/format-atom.c"
-#include "update_feed/parse_xml/format-dublincore.c"
-#include "update_feed/parse_xml/format-georss.c"
-#include "update_feed/parse_xml/format-mediarss.c"
-#include "update_feed/parse_xml/format-rss.c"
-#include "update_feed/parse_xml/gperf-data.c"
-#include "update_feed/parse_xml/setup-xml-parser.c"
-#include "update_feed/struct-item.c"
-#include "update_feed/update_feed.c"
+#include "struct-item.c"
+#include "threads.c"
 #include "wstring.c"
 #include "wstring-format.c"
 
-volatile bool they_want_us_to_terminate = false;
+volatile bool they_want_us_to_stop = false;
 
 static inline void
 print_usage(void)
@@ -76,13 +78,6 @@ print_usage(void)
 	      "-v       print version and successfully exit\n"
 	      "-h       print this message and successfully exit\n",
 	      stderr);
-}
-
-void
-tell_program_to_terminate_safely_and_quickly(int dummy)
-{
-	(void)dummy;
-	they_want_us_to_terminate = true;
 }
 
 int
@@ -145,23 +140,26 @@ main(int argc, char **argv)
 	if (adjust_list_menu()                == false) { error = 14; goto undo6; }
 	if (status_recreate_unprotected()     == false) { error = 15; goto undo7; }
 	if (allocate_status_messages_buffer() == false) { error = 16; goto undo8; }
-	if (curl_global_init(CURL_GLOBAL_DEFAULT) != 0) { error = 17; goto undo8; }
-	if (start_feed_updater()              == false) { error = 18; goto undo9; }
+	if (curl_init()                       == false) { error = 17; goto undo8; }
+	if (threads_start()                   == false) { error = 18; goto undo9; }
 
 	struct timespec idling = {0, 100000000}; // 0.1 seconds
 	struct menu_state *menu = setup_menu(&sections_menu_loop, NULL, NULL, 0, MENU_NORMAL);
-	while (they_want_us_to_terminate == false) {
+	while (they_want_us_to_stop == false) {
 		menu = menu->run(menu);
 		if (menu == NULL) {
-			if (try_to_stop_feed_updater()) break;
+			break; // TODO: don't stop feed downloader?
 			nanosleep(&idling, NULL); // Avoids CPU cycles waste while awaiting termination
 			menu = setup_menu(&sections_menu_loop, NULL, NULL, 0, MENU_DISABLE_SETTINGS);
 		}
 	}
 
+	they_want_us_to_stop = true;
+
 	free_menus();
+	threads_stop();
 undo9:
-	curl_global_cleanup();
+	curl_stop();
 undo8:
 	status_delete();
 undo7:

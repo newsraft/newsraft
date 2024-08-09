@@ -256,7 +256,7 @@ process_auto_updating_feeds(void)
 			size_t age = (size_t)now > last_try ? now - last_try : 0;
 			size_t reload_period = get_cfg_uint(&sections[0].feeds[i]->cfg, CFG_RELOAD_PERIOD) * 60;
 			if (reload_period > 0 && age > reload_period) {
-				update_feeds(sections[0].feeds + i, 1);
+				queue_updates(sections[0].feeds + i, 1);
 			}
 		}
 	}
@@ -292,8 +292,8 @@ sections_menu_loop(struct menu_state *m)
 			case INPUT_MARK_UNREAD:     mark_feeds_read(sections[m->view_sel].feeds, sections[m->view_sel].feeds_count, false); break;
 			case INPUT_MARK_READ_ALL:   mark_feeds_read(sections[0].feeds, sections[0].feeds_count, true);                      break;
 			case INPUT_MARK_UNREAD_ALL: mark_feeds_read(sections[0].feeds, sections[0].feeds_count, false);                     break;
-			case INPUT_RELOAD:          update_feeds(sections[m->view_sel].feeds, sections[m->view_sel].feeds_count);           break;
-			case INPUT_RELOAD_ALL:      update_feeds(sections[0].feeds, sections[0].feeds_count);                               break;
+			case INPUT_RELOAD:          queue_updates(sections[m->view_sel].feeds, sections[m->view_sel].feeds_count);          break;
+			case INPUT_RELOAD_ALL:      queue_updates(sections[0].feeds, sections[0].feeds_count);                              break;
 			case INPUT_ENTER:
 				return setup_menu(&feeds_menu_loop, sections[m->view_sel].name, sections[m->view_sel].feeds, sections[m->view_sel].feeds_count, MENU_NORMAL);
 			case INPUT_TOGGLE_EXPLORE_MODE:

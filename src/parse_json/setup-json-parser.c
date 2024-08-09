@@ -1,5 +1,5 @@
 #include <string.h>
-#include "update_feed/update_feed.h"
+#include "newsraft.h"
 
 enum json_array {
 	JSON_OBJECT_UNKNOWN,
@@ -16,7 +16,7 @@ enum json_array {
 #define ISARRAY(A) ((A) >= JSON_ARRAY_UNKNOWN)
 
 static inline bool
-we_are_inside_item(struct stream_callback_data *data)
+we_are_inside_item(struct feed_update_state *data)
 {
 	for (uint8_t i = 1; i < data->depth; ++i) {
 		if (data->path[i] == JSON_OBJECT_ITEM) {
@@ -27,7 +27,7 @@ we_are_inside_item(struct stream_callback_data *data)
 }
 
 static inline int
-feed_string_handler(struct stream_callback_data *data, const char *val, size_t len)
+feed_string_handler(struct feed_update_state *data, const char *val, size_t len)
 {
 	if (strcmp(data->text->ptr, "home_page_url") == 0) {
 		if (cpyas(&data->feed.url, val, len) == false) {
@@ -49,7 +49,7 @@ feed_string_handler(struct stream_callback_data *data, const char *val, size_t l
 }
 
 static inline int
-item_string_handler(struct stream_callback_data *data, const char *val, size_t len)
+item_string_handler(struct feed_update_state *data, const char *val, size_t len)
 {
 	if (data->feed.item == NULL) {
 		return 1;
@@ -165,7 +165,7 @@ boolean_handler(void *ctx, int val)
 static int
 number_handler(void *ctx, const char *val, size_t len)
 {
-	struct stream_callback_data *data = ctx;
+	struct feed_update_state *data = ctx;
 	INFO("Stumbled upon number.");
 	if ((we_are_inside_item(data) == true) && (data->path[data->depth] == JSON_OBJECT_ATTACHMENT)) {
 		if (strcmp(data->text->ptr, "size_in_bytes") == 0) {
@@ -184,7 +184,7 @@ number_handler(void *ctx, const char *val, size_t len)
 static int
 string_handler(void *ctx, const unsigned char *val, size_t len)
 {
-	struct stream_callback_data *data = ctx;
+	struct feed_update_state *data = ctx;
 	INFO("Stumbled upon string.");
 	if (data->path[data->depth] == JSON_OBJECT_ITEM) {
 		return item_string_handler(data, (char *)val, len);
@@ -212,7 +212,7 @@ string_handler(void *ctx, const unsigned char *val, size_t len)
 static int
 start_map_handler(void *ctx)
 {
-	struct stream_callback_data *data = ctx;
+	struct feed_update_state *data = ctx;
 	INFO("Stumbled upon the beginning of an object.");
 	data->depth += 1;
 	if (we_are_inside_item(data) == true) {
@@ -254,7 +254,7 @@ start_map_handler(void *ctx)
 static int
 map_key_handler(void *ctx, const unsigned char *key, size_t key_len)
 {
-	struct stream_callback_data *data = ctx;
+	struct feed_update_state *data = ctx;
 	bool success = cpyas(&data->text, (char *)key, key_len);
 	INFO("Stumbled upon key: %s", data->text->ptr);
 	return success;
@@ -263,7 +263,7 @@ map_key_handler(void *ctx, const unsigned char *key, size_t key_len)
 static int
 start_array_handler(void *ctx)
 {
-	struct stream_callback_data *data = ctx;
+	struct feed_update_state *data = ctx;
 	INFO("Stumbled upon the beginning of an array.");
 	data->depth += 1;
 	if (ISARRAY(data->path[data->depth - 1])) {
@@ -286,7 +286,7 @@ start_array_handler(void *ctx)
 static int
 end_of_object_or_array_handler(void *ctx)
 {
-	struct stream_callback_data *data = ctx;
+	struct feed_update_state *data = ctx;
 	INFO("Stumbled upon the end of an object/array.");
 	if (data->depth > 0) {
 		data->depth -= 1;
@@ -309,7 +309,7 @@ static const yajl_callbacks callbacks = {
 };
 
 bool
-setup_json_parser(struct stream_callback_data *data)
+setup_json_parser(struct feed_update_state *data)
 {
 	data->text = crtes(50000);
 	if (data->text == NULL) {
@@ -323,12 +323,4 @@ setup_json_parser(struct stream_callback_data *data)
 	data->depth = 0;
 	data->path[0] = JSON_OBJECT_UNKNOWN;
 	return true;
-}
-
-void
-free_json_parser(struct stream_callback_data *data)
-{
-	yajl_complete_parse(data->json_parser); // final parsing call
-	yajl_free(data->json_parser);
-	free_string(data->text);
 }

@@ -1,6 +1,6 @@
 #ifndef INSERT_FEED_H
 #define INSERT_FEED_H
-#include "update_feed/update_feed.h"
+#include "newsraft.h"
 
 bool delete_excess_items(const struct string *feed_url, int64_t limit);
 bool insert_feed_data(const struct feed_entry *feed_entry, struct getfeed_feed *feed);

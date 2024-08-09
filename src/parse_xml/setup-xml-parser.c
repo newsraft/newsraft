@@ -1,12 +1,12 @@
 #include <string.h>
-#include "update_feed/parse_xml/parse_xml_feed.h"
+#include "parse_xml/parse_xml_feed.h"
 
 #define XML_NAMESPACE_SEPARATOR ' '
 
 static void
 start_element_handler(void *userData, const XML_Char *name, const XML_Char **atts)
 {
-	struct stream_callback_data *data = userData;
+	struct feed_update_state *data = userData;
 	empty_string(data->emptying_target);
 	data->depth += 1;
 	data->path[data->depth] = XML_UNKNOWN_POS;
@@ -29,7 +29,7 @@ start_element_handler(void *userData, const XML_Char *name, const XML_Char **att
 static void
 end_element_handler(void *userData, const XML_Char *name)
 {
-	struct stream_callback_data *data = userData;
+	struct feed_update_state *data = userData;
 	trim_whitespace_from_string(data->text);
 	if (data->depth > 0) {
 		data->depth -= 1;
@@ -50,20 +50,20 @@ end_element_handler(void *userData, const XML_Char *name)
 static void
 character_data_handler(void *userData, const XML_Char *s, int len)
 {
-	catas(((struct stream_callback_data *)userData)->text, s, len);
+	catas(((struct feed_update_state *)userData)->text, s, len);
 }
 
 static void
 xml_default_handler(void *userData, const XML_Char *s, int len)
 {
-	struct stream_callback_data *data = userData;
+	struct feed_update_state *data = userData;
 	if (data->emptying_target == &data->decoy) {
 		catas(data->text, s, len);
 	}
 }
 
 bool
-setup_xml_parser(struct stream_callback_data *data)
+setup_xml_parser(struct feed_update_state *data)
 {
 	data->text = crtes(50000);
 	if (data->text == NULL) {
@@ -82,12 +82,4 @@ setup_xml_parser(struct stream_callback_data *data)
 	XML_SetCharacterDataHandler(data->xml_parser, &character_data_handler);
 	XML_SetDefaultHandler(data->xml_parser, &xml_default_handler);
 	return true;
-}
-
-void
-free_xml_parser(struct stream_callback_data *data)
-{
-	XML_Parse(data->xml_parser, NULL, 0, true); // Final parsing call.
-	XML_ParserFree(data->xml_parser);
-	free_string(data->text);
 }

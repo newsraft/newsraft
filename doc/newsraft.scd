@@ -219,13 +219,6 @@ _pager-centering_ (*scalable*, default: *true*)
 	Whether the pager should center its content when _pager-width_ is not *0*. If
 	set to *false*, the pager will be aligned to the left.
 
-_update-threads-count_ (default: *0*)
-	Maximum number of updates running simultaneously. If set to *0*, the setting
-	value will be set to the number of available CPU cores multiplied by *10*.
-	However, the setting value will never exceed *100*. You might want to set this
-	setting to a lower value if you have a poor network connection causing
-	slowdowns due to overloading.
-
 _menu-feed-sorting_ (default: *none*)
 	Sorting order for the feeds menu. Available values: *unread-desc*,
 	*unread-asc*, *alphabet-desc*, *alphabet-asc*.

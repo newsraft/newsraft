@@ -1,25 +1,16 @@
+#include <signal.h>
 #include <string.h>
 #include <strings.h>
-#include <curl/curl.h>
-#include "update_feed/update_feed.h"
+#include "newsraft.h"
 
-// Note to the future.
-// Sending "A-IM: feed" header is essential, since some servers in the presence
-// of this header and other headers indicating that the feed was already been
-// downloaded before, may limit themselves to sending only those entries that we
-// do not have; and those entries that were downloaded earlier will not be sent.
-// Thus resources and traffic will be saved. They call this "delta update".
-
-// Unknown type must have 0 value!
-enum {
-	MEDIA_TYPE_UNKNOWN = 0,
-	MEDIA_TYPE_XML,
-	MEDIA_TYPE_JSON,
-};
+static CURLM *multi;
 
 static struct curl_slist *
 create_list_of_headers(const struct getfeed_feed *feed)
 {
+	// A-IM header is a hint for servers that they can send only a part of data,
+	// often known as "delta". Server will know which part of data to send
+	// exactly by analyzing our If-None-Match header. See RFC3229 for more info.
 	struct curl_slist *headers = curl_slist_append(NULL, "A-IM: feed");
 	if (headers == NULL) {
 		return NULL;
@@ -52,7 +43,7 @@ error:
 static size_t
 parse_stream_callback(char *contents, size_t length, size_t nmemb, void *userdata)
 {
-	struct stream_callback_data *data = userdata;
+	struct feed_update_state *data = userdata;
 	const size_t real_size = length * nmemb;
 	if (data->media_type == MEDIA_TYPE_UNKNOWN) {
 		for (size_t i = 0; i < real_size; ++i) {
@@ -76,7 +67,7 @@ parse_stream_callback(char *contents, size_t length, size_t nmemb, void *userdat
 		}
 	}
 	if (data->media_type == MEDIA_TYPE_XML) {
-		if (XML_Parse(data->xml_parser, contents, real_size, false) != XML_STATUS_OK) {
+		if (XML_Parse(data->xml_parser, contents, real_size, XML_FALSE) != XML_STATUS_OK) {
 			fail_status("XML parser ran into an error: %s", XML_ErrorString(XML_GetErrorCode(data->xml_parser)));
 			return CURL_WRITEFUNC_ERROR;
 		}
@@ -87,7 +78,7 @@ parse_stream_callback(char *contents, size_t length, size_t nmemb, void *userdat
 			return CURL_WRITEFUNC_ERROR;
 		}
 	}
-	return they_want_us_to_terminate != true ? real_size : CURL_WRITEFUNC_ERROR;
+	return they_want_us_to_stop ? CURL_WRITEFUNC_ERROR : real_size;
 }
 
 static size_t
@@ -128,7 +119,7 @@ header_callback(char *contents, size_t length, size_t nmemb, void *userdata)
 static inline struct string *
 get_proxy_auth_info_encoded(const char *user, const char *password)
 {
-	if ((user != NULL) && (password != NULL)) {
+	if (user != NULL && password != NULL) {
 		struct string *result = crtas(user, strlen(user));
 		if (result != NULL) {
 			if (catcs(result, ':') == true) {
@@ -143,9 +134,60 @@ get_proxy_auth_info_encoded(const char *user, const char *password)
 }
 
 static inline bool
-prepare_curl_for_performance(CURL *curl, struct feed_entry *feed, struct curl_slist *headers, struct stream_callback_data *data, char *errbuf)
+prepare_feed_update_state_for_download(struct feed_update_state *data)
 {
+	int64_t last_modified = 0;
+	struct feed_entry *feed = data->feed_entry;
+
+	if (get_cfg_bool(&feed->cfg, CFG_RESPECT_EXPIRES_HEADER) == true) {
+		int64_t expires_date = db_get_date_from_feeds_table(feed->link, "http_header_expires", 19);
+		if (expires_date < 0) {
+			FAIL("Skipping %s because its HTTP header is invalid", feed->link->ptr);
+			goto fail;
+		} else if (expires_date > 0 && feed->update_date < expires_date) {
+			INFO("Skipping %s because its HTTP header is not expired yet", feed->link->ptr);
+			goto cancel;
+		}
+	}
+
+	if (get_cfg_bool(&feed->cfg, CFG_RESPECT_TTL_ELEMENT) == true) {
+		int64_t download_date = db_get_date_from_feeds_table(feed->link, "download_date", 13);
+		int64_t ttl = db_get_date_from_feeds_table(feed->link, "time_to_live", 12);
+		if (download_date < 0 || ttl < 0) {
+			FAIL("Skipping %s because its ttl element is invalid", feed->link->ptr);
+			goto fail;
+		} else if (download_date > 0 && ttl > 0 && (download_date + ttl) > feed->update_date) {
+			INFO("Skipping %s because its ttl element is not expired yet", feed->link->ptr);
+			goto cancel;
+		}
+	}
+
+	if (get_cfg_bool(&feed->cfg, CFG_SEND_IF_MODIFIED_SINCE_HEADER) == true) {
+		last_modified = db_get_date_from_feeds_table(feed->link, "http_header_last_modified", 25);
+		if (last_modified < 0) {
+			FAIL("Skipping %s because its http_header_last_modified is invalid", feed->link->ptr);
+			goto fail;
+		}
+	}
+	data->feed.http_header_last_modified = last_modified;
+
+	if (get_cfg_bool(&feed->cfg, CFG_SEND_IF_NONE_MATCH_HEADER) == true) {
+		data->feed.http_header_etag = db_get_string_from_feed_table(feed->link, "http_header_etag", 16);
+	}
+
+	data->curl = curl_easy_init();
+	if (data->curl == NULL) {
+		goto fail;
+	}
+	data->download_headers = create_list_of_headers(&data->feed);
+	if (data->download_headers == NULL) {
+		goto fail;
+	}
+
+	CURL *curl = data->curl;
+
 	curl_easy_setopt(curl, CURLOPT_URL, feed->link->ptr);
+	curl_easy_setopt(curl, CURLOPT_PRIVATE, data);
 	const struct string *useragent = get_cfg_string(&feed->cfg, CFG_USER_AGENT);
 	if (useragent->len > 0) {
 		INFO("Attached header - User-Agent: %s", useragent->ptr);
@@ -156,14 +198,14 @@ prepare_curl_for_performance(CURL *curl, struct feed_entry *feed, struct curl_sl
 		curl_easy_setopt(curl, CURLOPT_TIMECONDITION, CURL_TIMECOND_IFMODSINCE);
 		INFO("Attached header - If-Modified-Since: %" PRId64 " (it was converted to date string).", data->feed.http_header_last_modified);
 	}
-	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, data->download_headers);
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &parse_stream_callback);
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, data);
 	curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, &header_callback);
 	curl_easy_setopt(curl, CURLOPT_HEADERDATA, &data->feed);
 	curl_easy_setopt(curl, CURLOPT_TIMEOUT, get_cfg_uint(&feed->cfg, CFG_DOWNLOAD_TIMEOUT));
 	curl_easy_setopt(curl, CURLOPT_MAX_RECV_SPEED_LARGE, (curl_off_t)get_cfg_uint(&feed->cfg, CFG_DOWNLOAD_SPEED_LIMIT) * 1024);
-	curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, errbuf);
+	curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, data->curl_error);
 	curl_easy_setopt(curl, CURLOPT_FAILONERROR, 1);
 	curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1);
 	curl_easy_setopt(curl, CURLOPT_MAXREDIRS, 10);
@@ -184,69 +226,142 @@ prepare_curl_for_performance(CURL *curl, struct feed_entry *feed, struct curl_sl
 			curl_free(user);
 			curl_free(password);
 			if (auth == NULL) {
-				return false;
+				goto fail;
 			}
 			curl_easy_setopt(curl, CURLOPT_PROXYUSERPWD, auth->ptr);
 			free_string(auth);
 		}
 	}
+
+	return true;
+
+cancel:
+	data->is_canceled = true;
+	return false;
+
+fail:
+	data->is_failed = true;
+	return false;
+}
+
+static bool
+engage_with_not_downloaded_feed(struct feed_update_state *data)
+{
+	if (data->is_finished == false
+		&& data->is_in_progress == false
+		&& data->feed_entry->link->ptr[0] != '$')
+	{
+		data->is_in_progress = true;
+		return true;
+	}
+	return false;
+}
+
+void *
+downloader_worker(void *dummy)
+{
+	(void)dummy;
+	int still_running = 0; // Number of active handles
+	CURLMsg *msg;
+	int msgs_left = 0;
+
+	while (they_want_us_to_stop == false) {
+
+		struct feed_update_state *target = queue_pull(&engage_with_not_downloaded_feed);
+
+		if (target != NULL) {
+			if (prepare_feed_update_state_for_download(target) == true) {
+				curl_multi_add_handle(multi, target->curl);
+				target->curl_handle_added_to_multi = true;
+			}
+		} else if (still_running == 0) {
+			wait_a_second_for_wake_up_signal();
+		}
+
+		curl_multi_perform(multi, &still_running);
+
+		while ((msg = curl_multi_info_read(multi, &msgs_left)) != NULL) {
+			if (msg->msg != CURLMSG_DONE) {
+				continue;
+			}
+			struct feed_update_state *data;
+			curl_easy_getinfo(msg->easy_handle, CURLINFO_PRIVATE, &data);
+
+			long response = 0;
+			curl_easy_getinfo(msg->easy_handle, CURLINFO_RESPONSE_CODE, &response);
+			INFO("Curl response code: %ld", response);
+
+			if (response == 304) {
+				// 304 (Not Modified) response code indicates that
+				// there is no need to retransmit the requested resources.
+				// There may be two reasons for this:
+				// 1) server's ETag header is equal to our If-None-Match header;
+				// 2) server's Last-Modified header is equal to our If-Modified-Since header.
+				data->is_canceled = true;
+			} else if (response == 429) {
+				info_status("The server rejected the download because updates are too frequent.");
+				data->is_canceled = true;
+			}
+
+			if (msg->data.result != CURLE_OK) {
+				fail_status("Curl error: %s; %s", curl_easy_strerror(msg->data.result), data->curl_error);
+				if (response != 0) {
+					fail_status("The server which keeps the feed returned %ld status code!", response);
+				}
+				data->is_failed = true;
+			}
+
+			// Final parsing call
+			if (data->is_failed == false && data->is_canceled == false) {
+				if (data->media_type == MEDIA_TYPE_XML) {
+					if (XML_Parse(data->xml_parser, NULL, 0, XML_TRUE) != XML_STATUS_OK) {
+						data->is_failed = true;
+					}
+				} else if (data->media_type == MEDIA_TYPE_JSON) {
+					if (yajl_complete_parse(data->json_parser) != yajl_status_ok) {
+						data->is_failed = true;
+					}
+				}
+			}
+
+			data->is_downloaded = true;
+			threads_wake_up(NEWSRAFT_THREAD_DBWRITER);
+		}
+
+	}
+
+	return NULL;
+}
+
+void
+remove_downloader_handle(struct feed_update_state *data)
+{
+	if (data->curl_handle_added_to_multi) {
+		curl_multi_remove_handle(multi, data->curl);
+	}
+}
+
+bool
+curl_init(void)
+{
+	if (curl_global_init(CURL_GLOBAL_DEFAULT) != 0) {
+		write_error("Failed to initialize curl!\n");
+		return false;
+	}
+	// Initialize "multi stack". This is the way to do asynchronous
+	// downloads in CURL with shared connection and DNS cahce.
+	multi = curl_multi_init();
+	if (multi == NULL) {
+		write_error("Failed to initialize curl multi stack!\n");
+		return false;
+	}
 	return true;
 }
 
-download_status
-download_feed(struct feed_entry *feed, struct stream_callback_data *data)
+void
+curl_stop(void)
 {
-	CURL *curl = curl_easy_init();
-	if (curl == NULL) {
-		FAIL("Failed to create curl handle!");
-		return DOWNLOAD_FAILED;
-	}
-	struct curl_slist *headers = create_list_of_headers(&data->feed);
-	if (headers == NULL) {
-		FAIL("Failed to create headers list!");
-		curl_easy_cleanup(curl);
-		return DOWNLOAD_FAILED;
-	}
-	char curl_errbuf[CURL_ERROR_SIZE] = {0};
-	if (prepare_curl_for_performance(curl, feed, headers, data, curl_errbuf) == false) {
-		curl_slist_free_all(headers);
-		curl_easy_cleanup(curl);
-		return DOWNLOAD_FAILED;
-	}
-
-	CURLcode res = curl_easy_perform(curl);
-	if (data->media_type == MEDIA_TYPE_XML) {
-		free_xml_parser(data);
-	} else if (data->media_type == MEDIA_TYPE_JSON) {
-		free_json_parser(data);
-	}
-
-	long response = 0;
-	curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response);
-	INFO("Curl response code: %ld", response);
-
-	curl_slist_free_all(headers);
-	curl_easy_cleanup(curl);
-
-	if (response == 304) {
-		// 304 (Not Modified) response code indicates that
-		// there is no need to retransmit the requested resources.
-		// There may be two reasons for this:
-		// 1) server's ETag header is equal to our If-None-Match header;
-		// 2) server's Last-Modified header is equal to our If-Modified-Since header.
-		return DOWNLOAD_CANCELED;
-	} else if (response == 429) {
-		info_status("The server rejected the download because updates are too frequent.");
-		return DOWNLOAD_CANCELED;
-	}
-
-	if (res != CURLE_OK) {
-		fail_status("Curl error: %s; %s", curl_easy_strerror(res), curl_errbuf);
-		if (response != 0) {
-			fail_status("The server which keeps the feed returned %ld status code!", response);
-		}
-		return DOWNLOAD_FAILED;
-	}
-
-	return DOWNLOAD_SUCCEEDED;
+	queue_destroy();
+	curl_multi_cleanup(multi);
+	curl_global_cleanup();
 }

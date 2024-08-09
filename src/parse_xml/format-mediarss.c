@@ -1,5 +1,5 @@
 #include <string.h>
-#include "update_feed/parse_xml/parse_xml_feed.h"
+#include "parse_xml/parse_xml_feed.h"
 
 // References:
 // https://www.rssboard.org/media-rss
@@ -17,7 +17,7 @@
 // to reflect in the database and requires various sophistications.
 
 static int8_t
-mediarss_content_start(struct stream_callback_data *data, const XML_Char **attrs)
+mediarss_content_start(struct feed_update_state *data, const XML_Char **attrs)
 {
 	const char *attr = get_value_of_attribute_key(attrs, "url");
 	if (attr == NULL) {
@@ -53,7 +53,7 @@ mediarss_content_start(struct stream_callback_data *data, const XML_Char **attrs
 }
 
 static int8_t
-embed_or_player_start(struct stream_callback_data *data, const XML_Char **attrs)
+embed_or_player_start(struct feed_update_state *data, const XML_Char **attrs)
 {
 	const char *attr = get_value_of_attribute_key(attrs, "url");
 	if (attr == NULL) {
@@ -74,7 +74,7 @@ embed_or_player_start(struct stream_callback_data *data, const XML_Char **attrs)
 }
 
 static int8_t
-peerlink_start(struct stream_callback_data *data, const XML_Char **attrs)
+peerlink_start(struct feed_update_state *data, const XML_Char **attrs)
 {
 	const char *attr = get_value_of_attribute_key(attrs, "href");
 	if (attr == NULL) {
@@ -98,7 +98,7 @@ peerlink_start(struct stream_callback_data *data, const XML_Char **attrs)
 }
 
 static int8_t
-description_start(struct stream_callback_data *data, const XML_Char **attrs)
+description_start(struct feed_update_state *data, const XML_Char **attrs)
 {
 	if (data->in_item == true) {
 		if (data->path[data->depth] == MEDIARSS_CONTENT) {
@@ -118,7 +118,7 @@ description_start(struct stream_callback_data *data, const XML_Char **attrs)
 }
 
 static int8_t
-description_end(struct stream_callback_data *data)
+description_end(struct feed_update_state *data)
 {
 	if (data->in_item == true) {
 		if (data->path[data->depth] == MEDIARSS_CONTENT) {

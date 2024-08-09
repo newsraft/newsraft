@@ -1,11 +1,11 @@
 #include <string.h>
-#include "update_feed/parse_xml/parse_xml_feed.h"
+#include "parse_xml/parse_xml_feed.h"
 
 // https://web.archive.org/web/20211118181732/https://validator.w3.org/feed/docs/atom.html
 // https://web.archive.org/web/20211201194224/https://datatracker.ietf.org/doc/html/rfc4287
 
 static int8_t
-atom_link_start(struct stream_callback_data *data, const XML_Char **attrs)
+atom_link_start(struct feed_update_state *data, const XML_Char **attrs)
 {
 	const char *attr = get_value_of_attribute_key(attrs, "href");
 	if (attr == NULL) {
@@ -48,7 +48,7 @@ atom_link_start(struct stream_callback_data *data, const XML_Char **attrs)
 }
 
 static int8_t
-atom_content_start(struct stream_callback_data *data, const XML_Char **attrs)
+atom_content_start(struct feed_update_state *data, const XML_Char **attrs)
 {
 	if (data->path[data->depth] == GENERIC_ITEM) {
 		if (serialize_caret(&data->feed.item->content) == false) {
@@ -67,7 +67,7 @@ atom_content_start(struct stream_callback_data *data, const XML_Char **attrs)
 }
 
 static int8_t
-atom_content_end(struct stream_callback_data *data)
+atom_content_end(struct feed_update_state *data)
 {
 	if (data->path[data->depth] == GENERIC_ITEM) {
 		data->emptying_target = data->text;
@@ -79,7 +79,7 @@ atom_content_end(struct stream_callback_data *data)
 }
 
 static int8_t
-published_end(struct stream_callback_data *data)
+published_end(struct feed_update_state *data)
 {
 	if (data->path[data->depth] == GENERIC_ITEM) {
 		data->feed.item->publication_date = parse_date(data->text->ptr, true);
@@ -88,7 +88,7 @@ published_end(struct stream_callback_data *data)
 }
 
 static int8_t
-author_start(struct stream_callback_data *data, const XML_Char **attrs)
+author_start(struct feed_update_state *data, const XML_Char **attrs)
 {
 	(void)attrs;
 	if (data->path[data->depth] == GENERIC_ITEM) {
@@ -110,7 +110,7 @@ author_start(struct stream_callback_data *data, const XML_Char **attrs)
 }
 
 static int8_t
-contributor_start(struct stream_callback_data *data, const XML_Char **attrs)
+contributor_start(struct feed_update_state *data, const XML_Char **attrs)
 {
 	(void)attrs;
 	if (data->path[data->depth] == GENERIC_ITEM) {
@@ -132,7 +132,7 @@ contributor_start(struct stream_callback_data *data, const XML_Char **attrs)
 }
 
 static int8_t
-name_end(struct stream_callback_data *data)
+name_end(struct feed_update_state *data)
 {
 	if (data->path[data->depth] == ATOM_AUTHOR) {
 		if (data->in_item == true) {
@@ -149,7 +149,7 @@ name_end(struct stream_callback_data *data)
 }
 
 static int8_t
-uri_end(struct stream_callback_data *data)
+uri_end(struct feed_update_state *data)
 {
 	if (data->path[data->depth] == ATOM_AUTHOR) {
 		if (data->in_item == true) {
@@ -166,7 +166,7 @@ uri_end(struct stream_callback_data *data)
 }
 
 static int8_t
-email_end(struct stream_callback_data *data)
+email_end(struct feed_update_state *data)
 {
 	if (data->path[data->depth] == ATOM_AUTHOR) {
 		if (data->in_item == true) {
@@ -183,7 +183,7 @@ email_end(struct stream_callback_data *data)
 }
 
 static int8_t
-atom_category_start(struct stream_callback_data *data, const XML_Char **attrs)
+atom_category_start(struct feed_update_state *data, const XML_Char **attrs)
 {
 	struct string **target;
 	if (data->path[data->depth] == GENERIC_ITEM) {
@@ -213,7 +213,7 @@ atom_category_start(struct stream_callback_data *data, const XML_Char **attrs)
 }
 
 static int8_t
-atom_subtitle_start(struct stream_callback_data *data, const XML_Char **attrs)
+atom_subtitle_start(struct feed_update_state *data, const XML_Char **attrs)
 {
 	if (data->path[data->depth] == GENERIC_FEED) {
 		if (serialize_caret(&data->feed.content) == false) {
@@ -227,7 +227,7 @@ atom_subtitle_start(struct stream_callback_data *data, const XML_Char **attrs)
 }
 
 static int8_t
-atom_subtitle_end(struct stream_callback_data *data)
+atom_subtitle_end(struct feed_update_state *data)
 {
 	if (data->path[data->depth] == GENERIC_FEED) {
 		if (serialize_string(&data->feed.content, "text=", 5, data->text) == false) {
@@ -238,7 +238,7 @@ atom_subtitle_end(struct stream_callback_data *data)
 }
 
 static int8_t
-atom_generator_start(struct stream_callback_data *data, const XML_Char **attrs)
+atom_generator_start(struct feed_update_state *data, const XML_Char **attrs)
 {
 	(void)data;
 	const char *attr = get_value_of_attribute_key(attrs, "uri");

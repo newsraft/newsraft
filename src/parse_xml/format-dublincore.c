@@ -1,7 +1,7 @@
-#include "update_feed/parse_xml/parse_xml_feed.h"
+#include "parse_xml/parse_xml_feed.h"
 
 static int8_t
-dublincore_title_end(struct stream_callback_data *data)
+dublincore_title_end(struct feed_update_state *data)
 {
 	if (data->in_item == true) {
 		if ((data->feed.item->title == NULL) || (data->feed.item->title->len == 0)) {
@@ -20,7 +20,7 @@ dublincore_title_end(struct stream_callback_data *data)
 }
 
 static int8_t
-dublincore_creator_end(struct stream_callback_data *data)
+dublincore_creator_end(struct feed_update_state *data)
 {
 	if (data->in_item == true) {
 		if (serialize_caret(&data->feed.item->persons) == false) {
@@ -47,7 +47,7 @@ dublincore_creator_end(struct stream_callback_data *data)
 }
 
 static int8_t
-dublincore_contributor_end(struct stream_callback_data *data)
+dublincore_contributor_end(struct feed_update_state *data)
 {
 	if (data->in_item == true) {
 		if (serialize_caret(&data->feed.item->persons) == false) {

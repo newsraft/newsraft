@@ -76,7 +76,6 @@ CFG(CFG_RELOAD_PERIOD,                   "reload-period",                   CFG_
 CFG(CFG_ITEM_LIMIT,                      "item-limit",                      CFG_UINT,   {.u = 0   })
 CFG(CFG_SCROLLOFF,                       "scrolloff",                       CFG_UINT,   {.u = 0   })
 CFG(CFG_PAGER_WIDTH,                     "pager-width",                     CFG_UINT,   {.u = 100 })
-CFG(CFG_UPDATE_THREADS_COUNT,            "update-threads-count",            CFG_UINT,   {.u = 0   })
 CFG(CFG_DOWNLOAD_TIMEOUT,                "download-timeout",                CFG_UINT,   {.u = 20  })
 CFG(CFG_DOWNLOAD_SPEED_LIMIT,            "download-speed-limit",            CFG_UINT,   {.u = 0   })
 CFG(CFG_STATUS_MESSAGES_COUNT_LIMIT,     "status-messages-count-limit",     CFG_UINT,   {.u = 1000})

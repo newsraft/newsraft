@@ -1,5 +1,5 @@
 #include <string.h>
-#include "update_feed/insert_feed/insert_feed.h"
+#include "insert_feed/insert_feed.h"
 
 static inline bool
 fnv_1a_string(struct string **target, const char *src)

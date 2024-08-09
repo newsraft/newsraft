@@ -153,8 +153,8 @@ items_menu_loop(struct menu_state *m)
 			case INPUT_MARK_UNREAD_ALL:   mark_all_items_read(m, false);                            break;
 			case INPUT_MARK_IMPORTANT:    mark_item_important(m, m->view_sel, true);                break;
 			case INPUT_MARK_UNIMPORTANT:  mark_item_important(m, m->view_sel, false);               break;
-			case INPUT_RELOAD:            update_feeds(m->items->ptr[m->view_sel].feed, 1);         break;
-			case INPUT_RELOAD_ALL:        update_feeds(m->feeds_original, m->feeds_count);          break;
+			case INPUT_RELOAD:            queue_updates(m->items->ptr[m->view_sel].feed, 1);        break;
+			case INPUT_RELOAD_ALL:        queue_updates(m->feeds_original, m->feeds_count);         break;
 			case INPUT_COPY_TO_CLIPBOARD: copy_string_to_clipboard(m->items->ptr[m->view_sel].url); break;
 			case INPUT_QUIT_HARD:         return NULL;
 			case INPUT_NAVIGATE_BACK:

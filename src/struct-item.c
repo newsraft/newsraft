@@ -1,5 +1,5 @@
 #include <stdlib.h>
-#include "update_feed/update_feed.h"
+#include "newsraft.h"
 
 bool
 prepend_item(struct getfeed_item **head_item_ptr)

@@ -132,8 +132,8 @@ feeds_menu_loop(struct menu_state *m)
 			case INPUT_MARK_UNREAD:     mark_feeds_read(m->feeds + m->view_sel, 1, false); break;
 			case INPUT_MARK_READ_ALL:   mark_feeds_read(m->feeds, m->feeds_count, true);   break;
 			case INPUT_MARK_UNREAD_ALL: mark_feeds_read(m->feeds, m->feeds_count, false);  break;
-			case INPUT_RELOAD:          update_feeds(m->feeds + m->view_sel, 1);           break;
-			case INPUT_RELOAD_ALL:      update_feeds(m->feeds_original, m->feeds_count);   break;
+			case INPUT_RELOAD:          queue_updates(m->feeds + m->view_sel, 1);          break;
+			case INPUT_RELOAD_ALL:      queue_updates(m->feeds_original, m->feeds_count);  break;
 			case INPUT_QUIT_HARD:       return NULL;
 			case INPUT_ENTER:
 				return setup_menu(&items_menu_loop, m->feeds[m->view_sel]->name, m->feeds + m->view_sel, 1, MENU_NORMAL);

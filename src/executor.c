@@ -1,7 +1,8 @@
-#include "update_feed/update_feed.h"
+#include <signal.h>
+#include "newsraft.h"
 
-download_status
-execute_feed(const struct string *cmd, struct stream_callback_data *data)
+static void
+execute_feed(const struct string *cmd, struct feed_update_state *data)
 {
 	struct string *real_cmd = crtas(cmd->ptr + 2, cmd->len - 3);
 	struct string *content = crtes(10000);
@@ -20,8 +21,10 @@ execute_feed(const struct string *cmd, struct stream_callback_data *data)
 				FAIL("Failed to setup XML parser!");
 				goto error;
 			}
-			enum XML_Status status = XML_Parse(data->xml_parser, content->ptr, content->len, false);
-			free_xml_parser(data);
+			enum XML_Status status = XML_Parse(data->xml_parser, content->ptr, content->len, XML_FALSE);
+			if (status == XML_STATUS_OK) {
+				status = XML_Parse(data->xml_parser, NULL, 0, XML_TRUE); // Final parsing call
+			}
 			if (status != XML_STATUS_OK) {
 				fail_status("XML parser ran into an error: %s", XML_ErrorString(XML_GetErrorCode(data->xml_parser)));
 				goto error;
@@ -34,7 +37,9 @@ execute_feed(const struct string *cmd, struct stream_callback_data *data)
 				goto error;
 			}
 			yajl_status status = yajl_parse(data->json_parser, (const unsigned char *)content->ptr, content->len);
-			free_json_parser(data);
+			if (status == yajl_status_ok) {
+				status = yajl_complete_parse(data->json_parser); // Final parsing call
+			}
 			if (status != yajl_status_ok) {
 				fail_status("JSON parser ran into an error: %s", yajl_status_to_string(status));
 				goto error;
@@ -44,9 +49,40 @@ execute_feed(const struct string *cmd, struct stream_callback_data *data)
 	}
 	free_string(real_cmd);
 	free_string(content);
-	return DOWNLOAD_SUCCEEDED;
+	return;
 error:
 	free_string(real_cmd);
 	free_string(content);
-	return DOWNLOAD_FAILED;
+	data->is_failed = true;
+	return;
+}
+
+static bool
+engage_with_not_executed_feed(struct feed_update_state *data)
+{
+	if (data->is_finished == false
+		&& data->is_in_progress == false
+		&& data->feed_entry->link->ptr[0] == '$')
+	{
+		data->is_in_progress = true;
+		return true;
+	}
+	return false;
+}
+
+void *
+executor_worker(void *dummy)
+{
+	(void)dummy;
+	while (they_want_us_to_stop == false) {
+		struct feed_update_state *target = queue_pull(&engage_with_not_executed_feed);
+		if (target == NULL) {
+			wait_a_second_for_wake_up_signal();
+			continue;
+		}
+		execute_feed(target->feed_entry->link, target);
+		target->is_downloaded = true;
+		threads_wake_up(NEWSRAFT_THREAD_DBWRITER);
+	}
+	return NULL;
 }

@@ -1,0 +1,18 @@
+when:
+  - event: push
+    branch: main
+steps:
+  alpine:
+    image: alpine:latest
+    commands:
+      - apk add --no-cache
+        build-base
+        curl-dev
+        expat-dev
+        gumbo-parser-dev
+        ncurses-dev
+        sqlite-dev
+        yajl-dev
+      - make
+      - ./newsraft -v
+      - make check

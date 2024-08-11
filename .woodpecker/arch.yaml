@@ -1,0 +1,18 @@
+when:
+  - event: push
+    branch: main
+steps:
+  arch:
+    image: archlinux:latest
+    commands:
+      - pacman --needed --noconfirm -Syu
+        base-devel
+        curl
+        expat
+        gumbo-parser
+        ncurses
+        sqlite
+        yajl
+      - make
+      - ./newsraft -v
+      - make check

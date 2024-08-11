@@ -40,7 +40,13 @@ get_color_pair_unprotected(int fg, int bg)
 		}
 	}
 
-	pairs = realloc(pairs, sizeof(struct newsraft_color_pair) * (pairs_count + 1));
+	void *tmp = realloc(pairs, sizeof(struct newsraft_color_pair) * (pairs_count + 1));
+	if (tmp == NULL) {
+		FAIL("Not enough memory for a color pair!\n");
+		return COLOR_PAIR(0);
+	}
+
+	pairs = tmp;
 	pairs[pairs_count].pair_index = -1;
 	pairs[pairs_count].foreground = fg;
 	pairs[pairs_count].background = bg;

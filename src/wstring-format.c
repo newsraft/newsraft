@@ -8,6 +8,7 @@ void
 do_format(struct wstring *dest, const wchar_t *fmt, const struct format_arg *args)
 {
 	wchar_t tmp_buf[FORMAT_TMP_BUF_SIZE + 2];
+	wchar_t number[300];
 	empty_wstring(dest);
 	for (const wchar_t *iter = fmt; *iter != '\0';) {
 		if (iter[0] != L'%') {
@@ -34,20 +35,18 @@ do_format(struct wstring *dest, const wchar_t *fmt, const struct format_arg *arg
 				tmp_buf[iter - percent + 1] = L'\0';
 				if (args[j].type_specifier == L's') {
 					// Can't rely on swprintf here because it doesn't take into account
-					// double-width characters (for example emojis or chinese symbols).
+					// double-width characters (for example Chinese characters or emojis).
 					// When displaying these characters, they take two widths of regular
 					// character and printf family of functions process strings based on
 					// their character length rather than character width.
 					struct wstring *ws = convert_array_to_wstring(args[j].value.s, strlen(args[j].value.s));
+					if (ws == NULL) {
+						return;
+					}
 					long need_len = wcstol(tmp_buf + 1, NULL, 10);
 					if (need_len != 0) {
-						bool left_adjusted;
-						if (need_len < 0) {
-							left_adjusted = true;
-							need_len = -need_len;
-						} else {
-							left_adjusted = false;
-						}
+						bool left_adjusted = need_len < 0 ? true : false;
+						need_len = labs(need_len);
 						while (wcswidth(ws->ptr, ws->len) > need_len) {
 							ws->len -= 1;
 							ws->ptr[ws->len] = L'\0';
@@ -74,12 +73,10 @@ do_format(struct wstring *dest, const wchar_t *fmt, const struct format_arg *arg
 						return;
 					}
 					free_wstring(ws);
-				} else { // Format integer. Any integer is shorter than 50 characters.
-					if (make_sure_there_is_enough_space_in_wstring(dest, 50) == false) return;
-					int chunk_size = swprintf(dest->ptr + dest->len, dest->lim + 1 - dest->len, tmp_buf, args[j].value.i);
-					if (chunk_size < 0) return;
-					dest->len += chunk_size;
-					dest->ptr[dest->len] = L'\0';
+				} else { // Format integer
+					if (swprintf(number, sizeof(number), tmp_buf, args[j].value.i) > 0) {
+						wcatas(dest, number, wcslen(number));
+					}
 				}
 				inserted = true;
 				break;

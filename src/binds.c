@@ -57,17 +57,18 @@ create_or_clean_bind(struct input_binding **target, const char *key)
 			return i;
 		}
 	}
-	struct input_binding *new = malloc(sizeof(struct input_binding));
-	if (new != NULL) {
-		new->key = crtas(key, strlen(key));
-		new->actions = NULL;
-		new->actions_count = 0;
-		new->next = *target;
-		*target = new;
-		return *target;
+	struct input_binding *new = calloc(1, sizeof(struct input_binding));
+	struct string *new_key = crtas(key, strlen(key));
+	if (new == NULL || new_key == NULL) {
+		write_error("Not enough memory for binding!\n");
+		free(new);
+		free_string(new_key);
+		return NULL;
 	}
-	write_error("Not enough memory for binding!\n");
-	return NULL;
+	new->key = new_key;
+	new->next = *target;
+	*target = new;
+	return *target;
 }
 
 static inline bool

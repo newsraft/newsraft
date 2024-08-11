@@ -56,7 +56,7 @@ main(void)
 	struct feed_entry **feeds = get_all_feeds(&feeds_count);
 
 	if (feeds_count != 26) {
-		fprintf(stderr, "Feeds count %zu != %zu\n", feeds_count, 26);
+		fprintf(stderr, "Feeds count %zu != %d\n", feeds_count, 26);
 		return 1;
 	}
 

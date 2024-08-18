@@ -20,7 +20,7 @@
   </style>
   <title>NEWSRAFT(1)</title>
 </head>
-<body style="color: #BBBBBB; background: #111111; font: 1.5em sans;">
+<body style="color: #BBB; background: #111; width: 100vmin; margin-left: auto; margin-right: auto;">
 <table class="head">
   <tr>
     <td class="head-ltitle">NEWSRAFT(1)</td>
@@ -43,24 +43,41 @@
 <h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
 <p class="Pp">Newsraft is a small text based program for reading syndication
     feeds. It obtains content from a given set of sources and lets you browse it
-    all through one streamlined user interface.</p>
+    all via one streamlined user interface.</p>
 </section>
 <section class="Sh">
 <h1 class="Sh" id="OPTIONS"><a class="permalink" href="#OPTIONS">OPTIONS</a></h1>
-<p class="Pp"><b>-f</b> <i>FILE</i></p>
-<div class="Bd-indent">Force use of <i>FILE</i> as <b>feeds</b> file.</div>
-<p class="Pp"><b>-c</b> <i>FILE</i></p>
-<div class="Bd-indent">Force use of <i>FILE</i> as <b>config</b> file.</div>
-<p class="Pp"><b>-d</b> <i>FILE</i></p>
-<div class="Bd-indent">Force use of <i>FILE</i> as <b>database</b> file.</div>
-<p class="Pp"><b>-l</b> <i>FILE</i></p>
-<div class="Bd-indent">Write log information to <i>FILE</i>.</div>
-<p class="Pp"><b>-p</b></p>
-<div class="Bd-indent">Purge feeds not specified in the <b>feeds</b> file.</div>
-<p class="Pp"><b>-v</b></p>
-<div class="Bd-indent">Print version information.</div>
-<p class="Pp"><b>-h</b></p>
-<div class="Bd-indent">Print usage information.</div>
+<table class="tbl">
+  <tr>
+    <td><b>-f</b> <i>FILE</i></td>
+    <td>Force <b>feeds</b> file to <i>FILE</i>.</td>
+  </tr>
+  <tr>
+    <td><b>-c</b> <i>FILE</i></td>
+    <td>Force <b>config</b> file to <i>FILE</i>.</td>
+  </tr>
+  <tr>
+    <td><b>-d</b> <i>FILE</i></td>
+    <td>Force <b>database</b> file to <i>FILE</i>.</td>
+  </tr>
+  <tr>
+    <td><b>-l</b> <i>FILE</i></td>
+    <td>Write log information to <i>FILE</i>.</td>
+  </tr>
+  <tr>
+    <td><b>-p</b></td>
+    <td>Purge feeds not specified in the <b>feeds</b> file.</td>
+  </tr>
+  <tr>
+    <td><b>-v</b></td>
+    <td>Print version information.</td>
+  </tr>
+  <tr>
+    <td><b>-h</b></td>
+    <td>Print usage information.</td>
+  </tr>
+</table>
+<p class="Pp"></p>
 </section>
 <section class="Sh">
 <h1 class="Sh" id="STARTER_GUIDE"><a class="permalink" href="#STARTER_GUIDE">STARTER
@@ -532,156 +549,156 @@
     <td>Actions</td>
   </tr>
   <tr>
-    <td><b>j</b>, <b>KEY_DOWN</b>, <b>^E</b></td>
     <td><i>select-next</i></td>
+    <td><b>j</b>, <b>KEY_DOWN</b>, <b>^E</b></td>
   </tr>
   <tr>
-    <td><b>k</b>, <b>KEY_UP</b>, <b>^Y</b></td>
     <td><i>select-prev</i></td>
+    <td><b>k</b>, <b>KEY_UP</b>, <b>^Y</b></td>
   </tr>
   <tr>
-    <td><b>space</b>, <b>^F</b>, <b>KEY_NPAGE</b></td>
     <td><i>select-next-page</i></td>
+    <td><b>space</b>, <b>^F</b>, <b>KEY_NPAGE</b></td>
   </tr>
   <tr>
-    <td><b>^B</b>, <b>KEY_PPAGE</b></td>
     <td><i>select-prev-page</i></td>
+    <td><b>^B</b>, <b>KEY_PPAGE</b></td>
   </tr>
   <tr>
-    <td><b>g</b>, <b>KEY_HOME</b></td>
     <td><i>select-first</i></td>
+    <td><b>g</b>, <b>KEY_HOME</b></td>
   </tr>
   <tr>
-    <td><b>G</b>, <b>KEY_END</b></td>
     <td><i>select-last</i></td>
+    <td><b>G</b>, <b>KEY_END</b></td>
   </tr>
   <tr>
-    <td><b>J</b></td>
     <td><i>jump-to-next</i></td>
+    <td><b>J</b></td>
   </tr>
   <tr>
-    <td><b>K</b></td>
     <td><i>jump-to-prev</i></td>
+    <td><b>K</b></td>
   </tr>
   <tr>
-    <td><b>n</b></td>
     <td><i>jump-to-next-unread</i></td>
+    <td><b>n</b></td>
   </tr>
   <tr>
-    <td><b>N</b></td>
     <td><i>jump-to-prev-unread</i></td>
+    <td><b>N</b></td>
   </tr>
   <tr>
-    <td><b>p</b></td>
     <td><i>jump-to-next-important</i></td>
+    <td><b>p</b></td>
   </tr>
   <tr>
-    <td><b>P</b></td>
     <td><i>jump-to-prev-important</i></td>
+    <td><b>P</b></td>
   </tr>
   <tr>
-    <td><b>*</b></td>
     <td><i>goto-feed</i></td>
+    <td><b>*</b></td>
   </tr>
   <tr>
-    <td><b>,</b></td>
     <td><i>shift-west</i></td>
+    <td><b>,</b></td>
   </tr>
   <tr>
-    <td><b>.</b></td>
     <td><i>shift-east</i></td>
+    <td><b>.</b></td>
   </tr>
   <tr>
-    <td><b>&lt;</b></td>
     <td><i>shift-reset</i></td>
+    <td><b>&lt;</b></td>
   </tr>
   <tr>
-    <td><b>t</b></td>
     <td><i>sort-by-time</i></td>
+    <td><b>t</b></td>
   </tr>
   <tr>
-    <td><b>u</b></td>
     <td><i>sort-by-unread</i></td>
+    <td><b>u</b></td>
   </tr>
   <tr>
-    <td><b>i</b></td>
     <td><i>sort-by-important</i></td>
+    <td><b>i</b></td>
   </tr>
   <tr>
-    <td><b>a</b></td>
     <td><i>sort-by-alphabet</i></td>
+    <td><b>a</b></td>
   </tr>
   <tr>
-    <td><b>enter</b>, <b>l</b>, <b>KEY_ENTER</b>, <b>KEY_RIGHT</b></td>
     <td><i>enter</i></td>
+    <td><b>enter</b>, <b>l</b>, <b>KEY_ENTER</b>, <b>KEY_RIGHT</b></td>
   </tr>
   <tr>
-    <td><b>r</b></td>
     <td><i>reload</i></td>
+    <td><b>r</b></td>
   </tr>
   <tr>
-    <td><b>R</b>, <b>^R</b></td>
     <td><i>reload-all</i></td>
+    <td><b>R</b>, <b>^R</b></td>
   </tr>
   <tr>
-    <td><b>d</b></td>
     <td><i>mark-read</i>; <i>jump-to-next</i></td>
+    <td><b>d</b></td>
   </tr>
   <tr>
-    <td><b>D</b></td>
     <td><i>mark-unread</i>; <i>jump-to-next</i></td>
+    <td><b>D</b></td>
   </tr>
   <tr>
-    <td><b>^D</b></td>
     <td><i>mark-read-all</i></td>
+    <td><b>^D</b></td>
   </tr>
   <tr>
-    <td>(not set)</td>
     <td><i>mark-unread-all</i></td>
+    <td>(not set)</td>
   </tr>
   <tr>
-    <td><b>f</b></td>
     <td><i>mark-important</i></td>
+    <td><b>f</b></td>
   </tr>
   <tr>
-    <td><b>F</b></td>
     <td><i>mark-unimportant</i></td>
+    <td><b>F</b></td>
   </tr>
   <tr>
-    <td><b>tab</b>, <b>e</b></td>
     <td><i>toggle-explore-mode</i></td>
+    <td><b>tab</b>, <b>e</b></td>
   </tr>
   <tr>
-    <td><b>v</b></td>
     <td><i>status-history-menu</i></td>
+    <td><b>v</b></td>
   </tr>
   <tr>
-    <td><b>o</b></td>
     <td><i>open-in-browser</i></td>
+    <td><b>o</b></td>
   </tr>
   <tr>
-    <td><b>y</b>, <b>c</b></td>
     <td><i>copy-to-clipboard</i></td>
+    <td><b>y</b>, <b>c</b></td>
   </tr>
   <tr>
-    <td><b>/</b></td>
     <td><i>start-search-input</i></td>
+    <td><b>/</b></td>
   </tr>
   <tr>
-    <td><b>escape</b></td>
     <td><i>clean-status</i></td>
+    <td><b>escape</b></td>
   </tr>
   <tr>
-    <td><b>h</b>, <b>backspace</b>, <b>KEY_LEFT</b>, <b>KEY_BACKSPACE</b></td>
     <td><i>navigate-back</i></td>
+    <td><b>h</b>, <b>backspace</b>, <b>KEY_LEFT</b>, <b>KEY_BACKSPACE</b></td>
   </tr>
   <tr>
-    <td><b>q</b></td>
     <td><i>quit</i></td>
+    <td><b>q</b></td>
   </tr>
   <tr>
-    <td><b>Q</b></td>
     <td><i>quit-hard</i></td>
+    <td><b>Q</b></td>
   </tr>
 </table>
 <p class="Pp"></p>
@@ -769,7 +786,7 @@
 </div>
 <table class="foot">
   <tr>
-    <td class="foot-date">2024-08-04</td>
+    <td class="foot-date">2024-08-19</td>
     <td class="foot-os"></td>
   </tr>
 </table>

@@ -59,7 +59,7 @@ man:
 
 html:
 	mandoc -T html ./doc/newsraft.1 > doc/newsraft.html
-	sed -i 's/<body>/<body style="color: #BBBBBB; background: #111111; font: 1.5em sans;">/' doc/newsraft.html
+	sed -i 's/<body>/<body style="color: #BBB; background: #111; width: 100vmin; margin-left: auto; margin-right: auto;">/' doc/newsraft.html
 
 clean:
 	rm -rf newsraft tests/makefile tests/src tests/libnewsraft.so tests/a.out flog vlog

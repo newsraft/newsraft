@@ -5,7 +5,7 @@
 .nh
 .ad l
 .\" Begin generated content:
-.TH "NEWSRAFT" "1" "2024-08-04"
+.TH "NEWSRAFT" "1" "2024-08-19"
 .PP
 .SH NAME
 .PP
@@ -18,46 +18,56 @@ newsraft - feed reader for terminal
 .SH DESCRIPTION
 .PP
 Newsraft is a small text based program for reading syndication feeds.\& It obtains
-content from a given set of sources and lets you browse it all through one
+content from a given set of sources and lets you browse it all via one
 streamlined user interface.\&
 .PP
 .SH OPTIONS
 .PP
+.TS
+l lx
+l l
+l l
+l l
+l l
+l l
+l l.
+T{
 \fB-f\fR \fIFILE\fR
-.RS 4
-Force use of \fIFILE\fR as \fBfeeds\fR file.\&
-.PP
-.RE
+T}	T{
+Force \fBfeeds\fR file to \fIFILE\fR.\&
+T}
+T{
 \fB-c\fR \fIFILE\fR
-.RS 4
-Force use of \fIFILE\fR as \fBconfig\fR file.\&
-.PP
-.RE
+T}	T{
+Force \fBconfig\fR file to \fIFILE\fR.\&
+T}
+T{
 \fB-d\fR \fIFILE\fR
-.RS 4
-Force use of \fIFILE\fR as \fBdatabase\fR file.\&
-.PP
-.RE
+T}	T{
+Force \fBdatabase\fR file to \fIFILE\fR.\&
+T}
+T{
 \fB-l\fR \fIFILE\fR
-.RS 4
+T}	T{
 Write log information to \fIFILE\fR.\&
-.PP
-.RE
+T}
+T{
 \fB-p\fR
-.RS 4
+T}	T{
 Purge feeds not specified in the \fBfeeds\fR file.\&
-.PP
-.RE
+T}
+T{
 \fB-v\fR
-.RS 4
+T}	T{
 Print version information.\&
-.PP
-.RE
+T}
+T{
 \fB-h\fR
-.RS 4
+T}	T{
 Print usage information.\&
-.PP
-.RE
+T}
+.TE
+.sp 1
 .SH STARTER GUIDE
 .PP
 To start using Newsraft you have to create a \fBfeeds\fR file with the list of links
@@ -684,194 +694,194 @@ T}	T{
 Actions
 T}
 T{
-\fBj\fR, \fBKEY_DOWN\fR, \fB^E\fR
-T}	T{
 \fIselect-next\fR
+T}	T{
+\fBj\fR, \fBKEY_DOWN\fR, \fB^E\fR
 T}
 T{
-\fBk\fR, \fBKEY_UP\fR, \fB^Y\fR
-T}	T{
 \fIselect-prev\fR
+T}	T{
+\fBk\fR, \fBKEY_UP\fR, \fB^Y\fR
 T}
 T{
-\fBspace\fR, \fB^F\fR, \fBKEY_NPAGE\fR
-T}	T{
 \fIselect-next-page\fR
+T}	T{
+\fBspace\fR, \fB^F\fR, \fBKEY_NPAGE\fR
 T}
 T{
-\fB^B\fR, \fBKEY_PPAGE\fR
-T}	T{
 \fIselect-prev-page\fR
+T}	T{
+\fB^B\fR, \fBKEY_PPAGE\fR
 T}
 T{
-\fBg\fR, \fBKEY_HOME\fR
-T}	T{
 \fIselect-first\fR
+T}	T{
+\fBg\fR, \fBKEY_HOME\fR
 T}
 T{
-\fBG\fR, \fBKEY_END\fR
-T}	T{
 \fIselect-last\fR
+T}	T{
+\fBG\fR, \fBKEY_END\fR
 T}
 T{
-\fBJ\fR
-T}	T{
 \fIjump-to-next\fR
+T}	T{
+\fBJ\fR
 T}
 T{
-\fBK\fR
-T}	T{
 \fIjump-to-prev\fR
+T}	T{
+\fBK\fR
 T}
 T{
-\fBn\fR
-T}	T{
 \fIjump-to-next-unread\fR
+T}	T{
+\fBn\fR
 T}
 T{
-\fBN\fR
-T}	T{
 \fIjump-to-prev-unread\fR
+T}	T{
+\fBN\fR
 T}
 T{
-\fBp\fR
-T}	T{
 \fIjump-to-next-important\fR
+T}	T{
+\fBp\fR
 T}
 T{
-\fBP\fR
-T}	T{
 \fIjump-to-prev-important\fR
+T}	T{
+\fBP\fR
 T}
 T{
-\fB*\fR
-T}	T{
 \fIgoto-feed\fR
+T}	T{
+\fB*\fR
 T}
 T{
-\fB,\fR
-T}	T{
 \fIshift-west\fR
+T}	T{
+\fB,\fR
 T}
 T{
-\fB.\&\fR
-T}	T{
 \fIshift-east\fR
+T}	T{
+\fB.\&\fR
 T}
 T{
-\fB<\fR
-T}	T{
 \fIshift-reset\fR
+T}	T{
+\fB<\fR
 T}
 T{
-\fBt\fR
-T}	T{
 \fIsort-by-time\fR
+T}	T{
+\fBt\fR
 T}
 T{
-\fBu\fR
-T}	T{
 \fIsort-by-unread\fR
+T}	T{
+\fBu\fR
 T}
 T{
-\fBi\fR
-T}	T{
 \fIsort-by-important\fR
+T}	T{
+\fBi\fR
 T}
 T{
-\fBa\fR
-T}	T{
 \fIsort-by-alphabet\fR
+T}	T{
+\fBa\fR
 T}
 T{
-\fBenter\fR, \fBl\fR, \fBKEY_ENTER\fR, \fBKEY_RIGHT\fR
-T}	T{
 \fIenter\fR
+T}	T{
+\fBenter\fR, \fBl\fR, \fBKEY_ENTER\fR, \fBKEY_RIGHT\fR
 T}
 T{
-\fBr\fR
-T}	T{
 \fIreload\fR
+T}	T{
+\fBr\fR
 T}
 T{
-\fBR\fR, \fB^R\fR
-T}	T{
 \fIreload-all\fR
+T}	T{
+\fBR\fR, \fB^R\fR
 T}
 T{
-\fBd\fR
-T}	T{
 \fImark-read\fR; \fIjump-to-next\fR
+T}	T{
+\fBd\fR
 T}
 T{
-\fBD\fR
-T}	T{
 \fImark-unread\fR; \fIjump-to-next\fR
+T}	T{
+\fBD\fR
 T}
 T{
-\fB^D\fR
-T}	T{
 \fImark-read-all\fR
+T}	T{
+\fB^D\fR
 T}
 T{
-(not set)
-T}	T{
 \fImark-unread-all\fR
+T}	T{
+(not set)
 T}
 T{
-\fBf\fR
-T}	T{
 \fImark-important\fR
+T}	T{
+\fBf\fR
 T}
 T{
-\fBF\fR
-T}	T{
 \fImark-unimportant\fR
+T}	T{
+\fBF\fR
 T}
 T{
-\fBtab\fR, \fBe\fR
-T}	T{
 \fItoggle-explore-mode\fR
+T}	T{
+\fBtab\fR, \fBe\fR
 T}
 T{
-\fBv\fR
-T}	T{
 \fIstatus-history-menu\fR
+T}	T{
+\fBv\fR
 T}
 T{
-\fBo\fR
-T}	T{
 \fIopen-in-browser\fR
+T}	T{
+\fBo\fR
 T}
 T{
-\fBy\fR, \fBc\fR
-T}	T{
 \fIcopy-to-clipboard\fR
+T}	T{
+\fBy\fR, \fBc\fR
 T}
 T{
-\fB/\fR
-T}	T{
 \fIstart-search-input\fR
+T}	T{
+\fB/\fR
 T}
 T{
-\fBescape\fR
-T}	T{
 \fIclean-status\fR
+T}	T{
+\fBescape\fR
 T}
 T{
-\fBh\fR, \fBbackspace\fR, \fBKEY_LEFT\fR, \fBKEY_BACKSPACE\fR
-T}	T{
 \fInavigate-back\fR
+T}	T{
+\fBh\fR, \fBbackspace\fR, \fBKEY_LEFT\fR, \fBKEY_BACKSPACE\fR
 T}
 T{
-\fBq\fR
-T}	T{
 \fIquit\fR
+T}	T{
+\fBq\fR
 T}
 T{
-\fBQ\fR
-T}	T{
 \fIquit-hard\fR
+T}	T{
+\fBQ\fR
 T}
 .TE
 .sp 1

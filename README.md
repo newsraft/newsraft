@@ -56,7 +56,7 @@ for instructions.
 The essential source of information about Newsraft is its
 [man page](https://codeberg.org/newsraft/newsraft/src/branch/main/doc/newsraft.1)
 (if you already have Newsraft installed, you can open it with the `man newsraft` command).
-Alternatively you can read the HTML version of this man page [here](https://txgk.ru/newsraft.html).
+Alternatively you can read the HTML version of this man page [here](https://newsraft.codeberg.page).
 
 Examples on how to configure Newsraft are located in the
 [doc/examples](https://codeberg.org/newsraft/newsraft/src/branch/main/doc/examples)

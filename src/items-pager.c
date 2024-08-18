@@ -68,31 +68,47 @@ item_pager_loop(struct menu_state *m)
 	while (true) {
 		input_id cmd = get_input(items_menu->items->ptr[item_id].feed[0]->binds, &count, &macro);
 		if (handle_pager_menu_control(cmd) == true) {
-			// Rest a little.
-		} else if ((cmd == INPUT_JUMP_TO_NEXT)
-			|| (cmd == INPUT_JUMP_TO_PREV)
-			|| (cmd == INPUT_JUMP_TO_NEXT_UNREAD)
-			|| (cmd == INPUT_JUMP_TO_PREV_UNREAD)
-			|| (cmd == INPUT_JUMP_TO_NEXT_IMPORTANT)
-			|| (cmd == INPUT_JUMP_TO_PREV_IMPORTANT))
-		{
-			handle_list_menu_control(items_menu, cmd, NULL);
-			if (items_menu->view_sel != item_id) {
+			continue;
+		}
+		switch (cmd) {
+			case INPUT_JUMP_TO_NEXT:
+			case INPUT_JUMP_TO_PREV:
+			case INPUT_JUMP_TO_NEXT_UNREAD:
+			case INPUT_JUMP_TO_PREV_UNREAD:
+			case INPUT_JUMP_TO_NEXT_IMPORTANT:
+			case INPUT_JUMP_TO_PREV_IMPORTANT:
+				handle_list_menu_control(items_menu, cmd, NULL);
+				if (items_menu->view_sel != item_id) {
+					free_render_blocks(&blocks);
+					return setup_menu(&item_pager_loop, items_menu->items->ptr[items_menu->view_sel].title, NULL, 0, MENU_SWALLOW);
+				}
+				break;
+			case INPUT_NAVIGATE_BACK:
+			case INPUT_QUIT_SOFT:
+			case INPUT_QUIT_HARD:
 				free_render_blocks(&blocks);
-				return setup_menu(&item_pager_loop, items_menu->items->ptr[items_menu->view_sel].title, NULL, 0, MENU_SWALLOW);
-			}
-		} else if (cmd == INPUT_NAVIGATE_BACK || cmd == INPUT_QUIT_SOFT || cmd == INPUT_QUIT_HARD) {
-			free_render_blocks(&blocks);
-			return cmd == INPUT_QUIT_HARD ? NULL : close_menu();
-		} else if (cmd == INPUT_OPEN_IN_BROWSER && count > 0 && count <= blocks.links.len) {
-			const struct wstring *browser = get_cfg_wstring(&items_menu->items->ptr[item_id].feed[0]->cfg, CFG_OPEN_IN_BROWSER_COMMAND);
-			items_pager_fmt_args[0].value.s = blocks.links.ptr[count - 1].url->ptr;
-			run_formatted_command(browser, items_pager_fmt_args);
-		} else if (cmd == INPUT_COPY_TO_CLIPBOARD && count > 0 && count <= blocks.links.len) {
-			copy_string_to_clipboard(blocks.links.ptr[count - 1].url);
-		} else if (cmd == INPUT_SYSTEM_COMMAND && count > 0 && count <= blocks.links.len) {
-			items_pager_fmt_args[0].value.s = blocks.links.ptr[count - 1].url->ptr;
-			run_formatted_command(macro, items_pager_fmt_args);
+				return cmd == INPUT_QUIT_HARD ? NULL : close_menu();
+			case INPUT_OPEN_IN_BROWSER:
+				if (count > 0 && count <= blocks.links.len) {
+					struct config_context **cfg = &items_menu->items->ptr[item_id].feed[0]->cfg;
+					const struct wstring *browser = get_cfg_wstring(cfg, CFG_OPEN_IN_BROWSER_COMMAND);
+					items_pager_fmt_args[0].value.s = blocks.links.ptr[count - 1].url->ptr;
+					run_formatted_command(browser, items_pager_fmt_args);
+				}
+				break;
+			case INPUT_COPY_TO_CLIPBOARD:
+				if (count > 0 && count <= blocks.links.len) {
+					copy_string_to_clipboard(blocks.links.ptr[count - 1].url);
+				}
+				break;
+			case INPUT_SYSTEM_COMMAND:
+				if (count > 0 && count <= blocks.links.len) {
+					items_pager_fmt_args[0].value.s = blocks.links.ptr[count - 1].url->ptr;
+					run_formatted_command(macro, items_pager_fmt_args);
+				}
+				break;
+			default:
+				break;
 		}
 	}
 quit:

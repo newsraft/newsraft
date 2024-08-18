@@ -11,31 +11,25 @@ newsraft - feed reader for terminal
 # DESCRIPTION
 
 Newsraft is a small text based program for reading syndication feeds. It obtains
-content from a given set of sources and lets you browse it all through one
+content from a given set of sources and lets you browse it all via one
 streamlined user interface.
 
 # OPTIONS
 
-*-f* _FILE_
-	Force use of _FILE_ as *feeds* file.
-
-*-c* _FILE_
-	Force use of _FILE_ as *config* file.
-
-*-d* _FILE_
-	Force use of _FILE_ as *database* file.
-
-*-l* _FILE_
-	Write log information to _FILE_.
-
-*-p*
-	Purge feeds not specified in the *feeds* file.
-
-*-v*
-	Print version information.
-
-*-h*
-	Print usage information.
+|[ *-f* _FILE_
+:< Force *feeds* file to _FILE_.
+|[ *-c* _FILE_
+:[ Force *config* file to _FILE_.
+|[ *-d* _FILE_
+:[ Force *database* file to _FILE_.
+|[ *-l* _FILE_
+:[ Write log information to _FILE_.
+|[ *-p*
+:[ Purge feeds not specified in the *feeds* file.
+|[ *-v*
+:[ Print version information.
+|[ *-h*
+:[ Print usage information.
 
 # STARTER GUIDE
 
@@ -427,82 +421,82 @@ and *colorN* (*N* can be a number from *0* to *255*). Available attributes are
 
 |[ Keys
 :[ Actions
-|[ *j*, *KEY_DOWN*, *^E*
-:[ _select-next_
-|[ *k*, *KEY_UP*, *^Y*
-:[ _select-prev_
-|[ *space*, *^F*, *KEY_NPAGE*
-:[ _select-next-page_
-|[ *^B*, *KEY_PPAGE*
-:[ _select-prev-page_
-|[ *g*, *KEY_HOME*
-:[ _select-first_
-|[ *G*, *KEY_END*
-:[ _select-last_
-|[ *J*
-:[ _jump-to-next_
-|[ *K*
-:[ _jump-to-prev_
-|[ *n*
-:[ _jump-to-next-unread_
-|[ *N*
-:[ _jump-to-prev-unread_
-|[ *p*
-:[ _jump-to-next-important_
-|[ *P*
-:[ _jump-to-prev-important_
-|[ *\**
-:[ _goto-feed_
-|[ *,*
-:[ _shift-west_
-|[ *.*
-:[ _shift-east_
-|[ *<*
-:[ _shift-reset_
-|[ *t*
-:[ _sort-by-time_
-|[ *u*
-:[ _sort-by-unread_
-|[ *i*
-:[ _sort-by-important_
-|[ *a*
-:[ _sort-by-alphabet_
-|[ *enter*, *l*, *KEY_ENTER*, *KEY_RIGHT*
-:[ _enter_
-|[ *r*
-:[ _reload_
-|[ *R*, *^R*
-:[ _reload-all_
-|[ *d*
-:[ _mark-read_; _jump-to-next_
-|[ *D*
-:[ _mark-unread_; _jump-to-next_
-|[ *^D*
-:[ _mark-read-all_
-|[ (not set)
-:[ _mark-unread-all_
-|[ *f*
-:[ _mark-important_
-|[ *F*
-:[ _mark-unimportant_
-|[ *tab*, *e*
-:[ _toggle-explore-mode_
-|[ *v*
-:[ _status-history-menu_
-|[ *o*
-:[ _open-in-browser_
-|[ *y*, *c*
-:[ _copy-to-clipboard_
-|[ */*
-:[ _start-search-input_
-|[ *escape*
-:[ _clean-status_
-|[ *h*, *backspace*, *KEY_LEFT*, *KEY_BACKSPACE*
-:[ _navigate-back_
-|[ *q*
-:[ _quit_
-|[ *Q*
-:[ _quit-hard_
+|[ _select-next_
+:[ *j*, *KEY_DOWN*, *^E*
+|[ _select-prev_
+:[ *k*, *KEY_UP*, *^Y*
+|[ _select-next-page_
+:[ *space*, *^F*, *KEY_NPAGE*
+|[ _select-prev-page_
+:[ *^B*, *KEY_PPAGE*
+|[ _select-first_
+:[ *g*, *KEY_HOME*
+|[ _select-last_
+:[ *G*, *KEY_END*
+|[ _jump-to-next_
+:[ *J*
+|[ _jump-to-prev_
+:[ *K*
+|[ _jump-to-next-unread_
+:[ *n*
+|[ _jump-to-prev-unread_
+:[ *N*
+|[ _jump-to-next-important_
+:[ *p*
+|[ _jump-to-prev-important_
+:[ *P*
+|[ _goto-feed_
+:[ *\**
+|[ _shift-west_
+:[ *,*
+|[ _shift-east_
+:[ *.*
+|[ _shift-reset_
+:[ *<*
+|[ _sort-by-time_
+:[ *t*
+|[ _sort-by-unread_
+:[ *u*
+|[ _sort-by-important_
+:[ *i*
+|[ _sort-by-alphabet_
+:[ *a*
+|[ _enter_
+:[ *enter*, *l*, *KEY_ENTER*, *KEY_RIGHT*
+|[ _reload_
+:[ *r*
+|[ _reload-all_
+:[ *R*, *^R*
+|[ _mark-read_; _jump-to-next_
+:[ *d*
+|[ _mark-unread_; _jump-to-next_
+:[ *D*
+|[ _mark-read-all_
+:[ *^D*
+|[ _mark-unread-all_
+:[ (not set)
+|[ _mark-important_
+:[ *f*
+|[ _mark-unimportant_
+:[ *F*
+|[ _toggle-explore-mode_
+:[ *tab*, *e*
+|[ _status-history-menu_
+:[ *v*
+|[ _open-in-browser_
+:[ *o*
+|[ _copy-to-clipboard_
+:[ *y*, *c*
+|[ _start-search-input_
+:[ */*
+|[ _clean-status_
+:[ *escape*
+|[ _navigate-back_
+:[ *h*, *backspace*, *KEY_LEFT*, *KEY_BACKSPACE*
+|[ _quit_
+:[ *q*
+|[ _quit-hard_
+:[ *Q*
 
 # FORMATS SUPPORT
 

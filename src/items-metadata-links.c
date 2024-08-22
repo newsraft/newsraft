@@ -37,49 +37,65 @@ convert_seconds_to_human_readable_duration_string(char *dest, size_t dest_size, 
 	return snprintf(dest, dest_size, "%.1f hours", duration / 3600);
 }
 
-// Return codes correspond to:
-// [0; INT64_MAX] link was added successfully with that index
-// {-1}           memory failure
+// See tests/complete_url.c to understand what it takes in and spews out.
+char *
+complete_url(const char *base, const char *rel)
+{
+	if (base == NULL || rel == NULL) {
+		return NULL;
+	}
+	// Don't complete links with protocol scheme
+	// Don't complete telephone links
+	// Don't complete email links
+	if (strstr(rel, "://") != NULL || strstr(rel, "tel:") == rel || strstr(rel, "mailto:") == rel) {
+		return strdup(rel);
+	}
+	CURLU *link = curl_url();
+	if (link == NULL) {
+		return NULL;
+	}
+	if (curl_url_set(link, CURLUPART_URL, base, 0) != CURLUE_OK) {
+		curl_url_cleanup(link);
+		return NULL;
+	}
+	if (curl_url_set(link, CURLUPART_URL, rel, 0) != CURLUE_OK) {
+		curl_url_cleanup(link);
+		return NULL;
+	}
+	char *new_url = NULL;
+	if (curl_url_get(link, CURLUPART_URL, &new_url, 0) != CURLUE_OK || new_url == NULL) {
+		curl_free(new_url);
+		curl_url_cleanup(link);
+		return NULL;
+	}
+	char *complete = strdup(new_url);
+	curl_free(new_url);
+	curl_url_cleanup(link);
+	return complete;
+}
+
+// Returns link index in the links list or -1 in case of failure.
 int64_t
 add_url_to_links_list(struct links_list *links, const char *url, size_t url_len)
 {
-	CURLU *h = curl_url();
-	if (h == NULL) {
-		FAIL("Not enough memory for completing URL of link!");
-		return -1;
-	}
-	char *curl_url = NULL;
-	if (links->len > 0
-		&& strstr(url, "://") == NULL       // Don't complete links with protocol scheme
-		&& strncmp(url, "tel:", 4) != 0     // Don't complete telephone links
-		&& strncmp(url, "mailto:", 7) != 0) // Don't complete email links
-	{
-		// Convert relative URL of link to absolute form. For example:
-		// /upload/podcast83.mp3      -> http://example.org/upload/podcast83.mp3
-		// ../../images/image-194.jpg -> http://example.org/blog/posts/12/../../images/image-194.jpg
-		// image-195.jpg              -> http://example.org/blog/posts/12/image-195.jpg
-		if (curl_url_set(h, CURLUPART_URL, links->ptr[0].url->ptr, 0) == CURLUE_OK) {
-			if (curl_url_set(h, CURLUPART_URL, url, 0) == CURLUE_OK) {
-				if (curl_url_get(h, CURLUPART_URL, &curl_url, 0) == CURLUE_OK) {
-					INFO("Completed link '%s' to '%s'", url, curl_url);
-					url = curl_url;
-					url_len = strlen(url);
-				}
-			}
+	char *full_url = NULL;
+	if (links->len > 0) {
+		full_url = complete_url(links->ptr[0].url->ptr, url);
+		if (full_url != NULL) {
+			url = full_url;
+			url_len = strlen(full_url);
 		}
 	}
 
 	for (int64_t i = 0; i < (int64_t)links->len; ++i) {
 		if (url_len == links->ptr[i].url->len && strncmp(url, links->ptr[i].url->ptr, url_len) == 0) {
-			curl_free(curl_url);
-			curl_url_cleanup(h);
+			free(full_url);
 			return i; // Don't add duplicate.
 		}
 	}
 	struct link *tmp = realloc(links->ptr, sizeof(struct link) * (links->len + 1));
 	if (tmp == NULL) {
-		curl_free(curl_url);
-		curl_url_cleanup(h);
+		free(full_url);
 		return -1;
 	}
 
@@ -88,8 +104,7 @@ add_url_to_links_list(struct links_list *links, const char *url, size_t url_len)
 	memset(&links->ptr[index], 0, sizeof(struct link));
 	cpyas(&links->ptr[index].url, url, url_len);
 
-	curl_free(curl_url);
-	curl_url_cleanup(h);
+	free(full_url);
 
 	return links->ptr[index].url == NULL ? -1 : index;
 }
@@ -101,21 +116,6 @@ free_contents_of_link(const struct link *link)
 	free_string(link->type);
 	free_string(link->size);
 	free_string(link->duration);
-}
-
-static inline bool
-append_item_link(struct links_list *links, sqlite3_stmt *res)
-{
-	const char *text = (char *)sqlite3_column_text(res, ITEM_COLUMN_LINK);
-	if (text != NULL) {
-		size_t text_len = strlen(text);
-		if (text_len != 0) {
-			if (add_url_to_links_list(links, text, text_len) < 0) {
-				return false;
-			}
-		}
-	}
-	return true; // It's not an error because this item simply doesn't have link set.
 }
 
 static inline bool
@@ -146,8 +146,8 @@ add_another_link_to_trim_link_list(struct links_list *links, const struct link *
 	return true;
 }
 
-static inline bool
-append_attachments(struct links_list *links, sqlite3_stmt *res)
+bool
+add_item_attachments_to_links_list(struct links_list *links, sqlite3_stmt *res)
 {
 	const char *text = (const char *)sqlite3_column_text(res, ITEM_COLUMN_ATTACHMENTS);
 	if (text == NULL) {
@@ -189,12 +189,6 @@ error:
 	free_contents_of_link(&another_link);
 	close_deserialize_stream(s);
 	return false;
-}
-
-bool
-populate_link_list_with_links_of_item(struct links_list *links, sqlite3_stmt *res)
-{
-	return append_item_link(links, res) && append_attachments(links, res);
 }
 
 struct wstring *

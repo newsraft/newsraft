@@ -114,7 +114,14 @@ obtain_items_at_least_up_to_the_given_index(struct items_list *items, size_t ind
 		inlinefy_string(items->ptr[items->len].title);
 
 		text = (const char *)sqlite3_column_text(items->res, 3);
-		items->ptr[items->len].url = text == NULL ? crtes(1) : crtas(text, strlen(text));
+		items->ptr[items->len].url = crtes(1);
+		// Convert URL to absolute notation in case it's stored relative.
+		// For example, convert "/index.xml" to "http://example.org/index.xml"
+		char *full_url = complete_url(items->ptr[items->len].feed[0]->link->ptr, text);
+		if (full_url != NULL) {
+			cpyas(&items->ptr[items->len].url, full_url, strlen(full_url));
+			free(full_url);
+		}
 
 		items->ptr[items->len].pub_date = sqlite3_column_int64(items->res, 4);
 		items->ptr[items->len].upd_date = sqlite3_column_int64(items->res, 5);

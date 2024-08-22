@@ -392,9 +392,10 @@ bool get_largest_piece_from_item_content(const char *content, struct string **te
 bool get_largest_piece_from_item_attachments(const char *attachments, struct string **text, render_block_format *type);
 
 // See "items-metadata-links.c" file for implementation.
+char *complete_url(const char *base, const char *rel);
 int64_t add_url_to_links_list(struct links_list *links, const char *url, size_t url_len);
-bool populate_link_list_with_links_of_item(struct links_list *links, sqlite3_stmt *res);
 struct wstring *generate_link_list_wstring_for_pager(struct config_context **ctx, const struct links_list *links);
+bool add_item_attachments_to_links_list(struct links_list *links, sqlite3_stmt *res);
 
 // See "items-metadata-persons.c" file for implementation.
 struct string *deserialize_persons_string(const char *src);

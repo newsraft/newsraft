@@ -8,7 +8,12 @@ populate_render_blocks_list_with_data_from_item(const struct item_entry *item, s
 	if (res == NULL) {
 		return false;
 	}
-	if (populate_link_list_with_links_of_item(&blocks->links, res) == false) {
+	if (item->url != NULL && item->url->len > 0) {
+		if (add_url_to_links_list(&blocks->links, item->url->ptr, item->url->len) < 0) {
+			goto error;
+		}
+	}
+	if (add_item_attachments_to_links_list(&blocks->links, res) == false) {
 		goto error;
 	}
 	if (generate_render_blocks_based_on_item_data(blocks, item, res) == false) {

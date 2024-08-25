@@ -320,6 +320,7 @@ setup_json_parser(struct feed_update_state *data)
 		free_string(data->text);
 		return false;
 	}
+	data->media_type = MEDIA_TYPE_JSON;
 	data->depth = 0;
 	data->path[0] = JSON_OBJECT_UNKNOWN;
 	return true;

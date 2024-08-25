@@ -53,7 +53,6 @@ parse_stream_callback(char *contents, size_t length, size_t nmemb, void *userdat
 					FAIL("Failed to setup XML parser!");
 					return CURL_WRITEFUNC_ERROR;
 				}
-				data->media_type = MEDIA_TYPE_XML;
 				break;
 			} else if (contents[i] == '{') {
 				INFO("The stream has \"{\" character in the beginning - engaging JSON parser.");
@@ -61,7 +60,6 @@ parse_stream_callback(char *contents, size_t length, size_t nmemb, void *userdat
 					FAIL("Failed to setup JSON parser!");
 					return CURL_WRITEFUNC_ERROR;
 				}
-				data->media_type = MEDIA_TYPE_JSON;
 				break;
 			}
 		}
@@ -86,34 +84,53 @@ header_callback(char *contents, size_t length, size_t nmemb, void *userdata)
 {
 	struct getfeed_feed *feed = userdata;
 	const size_t real_size = nmemb * length;
-	struct string *header = crtas(contents, real_size);
-	if (header == NULL) {
-		return 0;
-	}
-	trim_whitespace_from_string(header);
-	INFO("Received header - %s", header->ptr);
-	if (strncasecmp(header->ptr, "ETag:", 5) == 0) {
-		struct string *etag = crtas(header->ptr + 5, header->len - 5);
-		if (etag != NULL) {
-			trim_whitespace_from_string(etag);
-			cpyss(&feed->http_header_etag, etag);
-			free_string(etag);
+
+	size_t header_name_len = 0;
+	for (size_t i = 0; i < real_size; ++i) {
+		if (contents[i] == ':') {
+			header_name_len = i;
+			break;
 		}
-	} else if (strncasecmp(header->ptr, "Last-Modified: ", 15) == 0) {
-		feed->http_header_last_modified = curl_getdate(header->ptr + 15, NULL);
+	}
+	if (header_name_len == 0) {
+		return real_size; // Ignore invalid headers.
+	}
+
+	struct string *header_name = crtas(contents, header_name_len);
+	struct string *header_value = crtas(contents + header_name_len + 1, real_size - header_name_len - 1);
+	if (header_name == NULL || header_value == NULL) {
+		free_string(header_name);
+		free_string(header_value);
+		return CURL_WRITEFUNC_ERROR;
+	}
+	trim_whitespace_from_string(header_name);
+	trim_whitespace_from_string(header_value);
+
+	if (strcasecmp(header_name->ptr, "ETag") == 0) {
+		INFO("Got ETag header > %s", header_value->ptr);
+		cpyss(&feed->http_header_etag, header_value);
+	} else if (strcasecmp(header_name->ptr, "Last-Modified") == 0) {
+		INFO("Got Last-Modified header > %s", header_value->ptr);
+		feed->http_header_last_modified = curl_getdate(header_value->ptr, NULL);
 		if (feed->http_header_last_modified < 0) {
 			FAIL("Curl failed to parse date string!");
 			feed->http_header_last_modified = 0;
 		}
-	} else if (strncasecmp(header->ptr, "Expires: ", 9) == 0) {
-		feed->http_header_expires = curl_getdate(header->ptr + 9, NULL);
+	} else if (strcasecmp(header_name->ptr, "Expires") == 0) {
+		INFO("Got Expires header > %s", header_value->ptr);
+		feed->http_header_expires = curl_getdate(header_value->ptr, NULL);
 		if (feed->http_header_expires < 0) {
 			FAIL("Curl failed to parse date string!");
 			feed->http_header_expires = 0;
 		}
+	} else {
+		INFO("Got needless header > %s: %s", header_name->ptr, header_value->ptr);
 	}
-	free_string(header);
-	return real_size;
+
+	free_string(header_name);
+	free_string(header_value);
+
+	return they_want_us_to_stop ? CURL_WRITEFUNC_ERROR : real_size;
 }
 
 static inline struct string *

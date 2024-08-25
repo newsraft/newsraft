@@ -28,6 +28,20 @@ log_init(const char *path)
 }
 
 void
+log_write(const char *prefix, const char *format, ...)
+{
+	if (log_stream != NULL) {
+		va_list args;
+		va_start(args, format);
+		fputs(prefix, log_stream);
+		vfprintf(log_stream, format, args);
+		fputc('\n', log_stream);
+		fflush(log_stream);
+		va_end(args);
+	}
+}
+
+void
 log_stop(int error_code)
 {
 	if (log_stream != NULL) {

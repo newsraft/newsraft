@@ -21,9 +21,9 @@
 #define ISWHITESPACEEXCEPTNEWLINE(A) (((A)==' ')||((A)=='\t')||((A)=='\v')||((A)=='\f')||((A)=='\r'))
 #define ISWIDEWHITESPACE(A) (((A)==L' ')||((A)==L'\n')||((A)==L'\t')||((A)==L'\v')||((A)==L'\f')||((A)==L'\r'))
 #define ISDIGIT(A) (((A)=='0')||((A)=='1')||((A)=='2')||((A)=='3')||((A)=='4')||((A)=='5')||((A)=='6')||((A)=='7')||((A)=='8')||((A)=='9'))
-#define INFO(...) do { if (log_stream) { fputs("[INFO] ", log_stream); fprintf(log_stream, __VA_ARGS__); fputc('\n', log_stream); } } while (0)
-#define WARN(...) do { if (log_stream) { fputs("[WARN] ", log_stream); fprintf(log_stream, __VA_ARGS__); fputc('\n', log_stream); } } while (0)
-#define FAIL(...) do { if (log_stream) { fputs("[FAIL] ", log_stream); fprintf(log_stream, __VA_ARGS__); fputc('\n', log_stream); } } while (0)
+#define INFO(...) log_write("[INFO] ", __VA_ARGS__)
+#define WARN(...) log_write("[WARN] ", __VA_ARGS__)
+#define FAIL(...) log_write("[FAIL] ", __VA_ARGS__)
 #define info_status(...) status_write(CFG_COLOR_STATUS_INFO, __VA_ARGS__)
 #define fail_status(...) status_write(CFG_COLOR_STATUS_FAIL, __VA_ARGS__)
 #define MIN(A, B) ((A) < (B) ? (A) : (B))
@@ -545,6 +545,7 @@ void queue_examine(void);
 // To write to the log stream use macros INFO, WARN or FAIL.
 // See "log.c" file for implementation.
 bool log_init(const char *path);
+void log_write(const char *prefix, const char *format, ...);
 void log_stop(int error_code);
 
 // Functions for buffering errors to prevent
@@ -584,7 +585,6 @@ bool prepend_item(struct getfeed_item **head_item_ptr);
 void free_item(struct getfeed_item *item);
 
 extern volatile bool they_want_us_to_stop;
-extern FILE *log_stream;
 extern size_t list_menu_height;
 extern size_t list_menu_width;
 extern bool search_mode_is_enabled;

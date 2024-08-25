@@ -75,6 +75,7 @@ setup_xml_parser(struct feed_update_state *data)
 		return false;
 	}
 	static char ptr_for_decoy[1];
+	data->media_type = MEDIA_TYPE_XML;
 	data->decoy.ptr = ptr_for_decoy;
 	data->emptying_target = data->text;
 	XML_SetUserData(data->xml_parser, data);

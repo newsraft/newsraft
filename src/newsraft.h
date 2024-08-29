@@ -448,7 +448,6 @@ int get_color_pair_unprotected(int fg, int bg);
 // See "interface-status.c" file for implementation.
 void update_status_window_content_unprotected(void);
 bool status_recreate_unprotected(void);
-bool allocate_status_messages_buffer(void);
 void status_clean_unprotected(void);
 void status_clean(void);
 void prevent_status_cleaning(void);
@@ -525,7 +524,6 @@ void wait_a_second_for_wake_up_signal(void);
 // See "load_config" directory for implementation.
 bool process_config_line(struct feed_entry *feed, const char *str, size_t len);
 bool parse_config_file(void);
-bool load_config(void);
 bool get_cfg_bool(struct config_context **ctx, config_entry_id id);
 size_t get_cfg_uint(struct config_context **ctx, config_entry_id id);
 unsigned int get_cfg_color(struct config_context **ctx, config_entry_id id);

@@ -155,6 +155,7 @@ parse_config_file(void)
 {
 	const char *config_path = get_config_path();
 	if (config_path == NULL) {
+		log_config_settings();
 		return true; // Since a config file is optional, don't return the error.
 	}
 	FILE *f = fopen(config_path, "r");
@@ -173,5 +174,6 @@ parse_config_file(void)
 	}
 	free(line);
 	fclose(f);
+	log_config_settings();
 	return true;
 }

@@ -1,4 +1,5 @@
 #include <string.h>
+#include <wctype.h>
 #include "render_data.h"
 
 #define MAX_NESTED_LISTS_DEPTH 10

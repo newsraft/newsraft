@@ -48,5 +48,5 @@ render_data(struct config_context **ctx, struct render_result *result, struct re
 		}
 	}
 	free(line.style_stack);
-	return result->lines_len > 1 ? true : false;
+	return result->lines_len > 1 || result->lines[0].ws->len > 0 ? true : false;
 }

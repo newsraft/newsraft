@@ -4,7 +4,7 @@
 #include "newsraft.h"
 
 /*
-find -name '*.c' | sed 's/^\.\///' | grep -v '^newsraft.c$' | sort | sed 's/^/#include "/' | sed 's/$/"/'
+find -name '*.c' | sed -e 's/^\.\//#include "/' -e 's/$/"/' | grep -v 'newsraft.c' | sort
 */
 #include "binds.c"
 #include "commands.c"
@@ -106,16 +106,18 @@ main(int argc, char **argv)
 		} else if (opt == 'l') {
 			if (log_init(optarg) == false) {
 				error = 5;
-				goto undo0;
+				goto undo1;
 			}
 		} else if (opt == 'p') {
-			if (parse_config_file()     == false) { error = 6;  goto undo1; }
-			if (load_config()           == false) { error = 7;  goto undo3; }
-			if (db_init()               == false) { error = 8;  goto undo3; }
-			if (parse_feeds_file()      == false) { error = 9;  goto undo4; }
-			if (purge_abandoned_feeds() == false) { error = 10; goto undo5; }
-			if (db_vacuum()             == false) { error = 11; goto undo5; }
-			goto undo5;
+			error = 6;
+			if (db_init()) {
+				if (parse_feeds_file()) {
+					error = purge_abandoned_feeds() && db_vacuum() ? 0 : 7;
+					free_sections();
+				}
+				db_stop();
+			}
+			goto undo1;
 		} else if (opt == 'v') {
 			fputs(NEWSRAFT_VERSION "\n", stderr);
 			goto undo1;
@@ -133,15 +135,13 @@ main(int argc, char **argv)
 	if (assign_default_binds()            == false) { error = 7;  goto undo1; }
 	if (curses_init()                     == false) { error = 8;  goto undo2; }
 	if (parse_config_file()               == false) { error = 9;  goto undo3; }
-	if (load_config()                     == false) { error = 10; goto undo4; }
-	if (db_init()                         == false) { error = 11; goto undo4; }
-	if (exec_database_file_optimization() == false) { error = 12; goto undo5; }
-	if (parse_feeds_file()                == false) { error = 13; goto undo5; }
-	if (adjust_list_menu()                == false) { error = 14; goto undo6; }
-	if (status_recreate_unprotected()     == false) { error = 15; goto undo7; }
-	if (allocate_status_messages_buffer() == false) { error = 16; goto undo8; }
-	if (curl_init()                       == false) { error = 17; goto undo8; }
-	if (threads_start()                   == false) { error = 18; goto undo9; }
+	if (db_init()                         == false) { error = 10; goto undo3; }
+	if (exec_database_file_optimization() == false) { error = 11; goto undo4; }
+	if (parse_feeds_file()                == false) { error = 12; goto undo4; }
+	if (adjust_list_menu()                == false) { error = 13; goto undo5; }
+	if (status_recreate_unprotected()     == false) { error = 14; goto undo6; }
+	if (curl_init()                       == false) { error = 15; goto undo7; }
+	if (threads_start()                   == false) { error = 16; goto undo8; }
 
 	struct timespec idling = {0, 100000000}; // 0.1 seconds
 	struct menu_state *menu = setup_menu(&sections_menu_loop, NULL, NULL, 0, MENU_NORMAL);
@@ -158,25 +158,23 @@ main(int argc, char **argv)
 
 	free_menus();
 	threads_stop();
-undo9:
-	curl_stop();
 undo8:
-	status_delete();
+	curl_stop();
 undo7:
-	free_list_menu();
+	status_delete();
 undo6:
-	free_sections();
+	free_list_menu();
 undo5:
-	db_stop();
+	free_sections();
 undo4:
-	free_config();
+	db_stop();
 undo3:
 	endwin();
 undo2:
 	free_binds(NULL);
 undo1:
+	free_config();
 	log_stop(error);
-undo0:
 	flush_errors();
 	return error;
 }

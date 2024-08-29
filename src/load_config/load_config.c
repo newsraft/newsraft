@@ -65,13 +65,21 @@ get_cfg_color(struct config_context **ctx, config_entry_id id)
 const struct string *
 get_cfg_string(struct config_context **ctx, config_entry_id id)
 {
-	return get_global_or_context_config(ctx, id, false)->value.s.actual;
+	struct config_entry *cfg = get_global_or_context_config(ctx, id, false);
+	if (cfg->value.s.actual == NULL) {
+		set_cfg_string(NULL, id, config[id].value.s.base, strlen(config[id].value.s.base));
+	}
+	return cfg->value.s.actual;
 }
 
 const struct wstring *
 get_cfg_wstring(struct config_context **ctx, config_entry_id id)
 {
-	return get_global_or_context_config(ctx, id, false)->value.s.wactual;
+	struct config_entry *cfg = get_global_or_context_config(ctx, id, false);
+	if (cfg->value.s.wactual == NULL) {
+		set_cfg_string(NULL, id, config[id].value.s.base, strlen(config[id].value.s.base));
+	}
+	return cfg->value.s.wactual;
 }
 
 void
@@ -118,21 +126,6 @@ set_cfg_string(struct config_context **ctx, config_entry_id id, const char *src_
 	return status;
 }
 
-static void
-log_config_settings(void)
-{
-	INFO("Current configuration settings:");
-	for (config_entry_id i = 0; config[i].name != NULL; ++i) {
-		if (config[i].type == CFG_BOOL) {
-			INFO("%s = %d", config[i].name, config[i].value.b);
-		} else if (config[i].type == CFG_UINT) {
-			INFO("%s = %zu", config[i].name, config[i].value.u);
-		} else if (config[i].type == CFG_STRING) {
-			INFO("%s = \"%s\"", config[i].name, config[i].value.s.actual->ptr);
-		}
-	}
-}
-
 void
 free_config(void)
 {
@@ -158,18 +151,17 @@ free_config_context(struct config_context *ctx)
 	}
 }
 
-bool
-load_config(void)
+void
+log_config_settings(void)
 {
+	INFO("Current configuration settings:");
 	for (config_entry_id i = 0; config[i].name != NULL; ++i) {
-		if (config[i].type == CFG_STRING && config[i].value.s.actual == NULL) {
-			if (set_cfg_string(NULL, i, config[i].value.s.base, strlen(config[i].value.s.base)) == false) {
-				write_error("Failed to prepare config settings!\n");
-				free_config();
-				return false;
-			}
+		if (config[i].type == CFG_BOOL) {
+			INFO("%-35s = %d", config[i].name, config[i].value.b);
+		} else if (config[i].type == CFG_UINT) {
+			INFO("%-35s = %zu", config[i].name, config[i].value.u);
+		} else if (config[i].type == CFG_STRING) {
+			INFO("%-35s = \"%s\"", config[i].name, get_cfg_string(NULL, i)->ptr);
 		}
 	}
-	log_config_settings();
-	return true;
 }

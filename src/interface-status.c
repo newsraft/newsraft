@@ -4,14 +4,16 @@
 struct status_message {
 	struct string *text;
 	config_entry_id color;
+	struct status_message *next;
+	struct status_message *prev;
 };
 
 static WINDOW *status_window = NULL;
 static bool status_window_is_clean = true;
 static volatile bool status_window_is_cleanable = true;
-static struct status_message *messages;
-static size_t messages_len = 0;
-static size_t messages_lim = 0;
+static volatile bool status_window_is_initialized = false;
+static struct status_message *messages; // Cycled list
+static volatile size_t messages_len = 0;
 
 // We take 999999999 as the maximum value for count variable to avoid overflow
 // of the uint32_t integer. The width of this number is hardcoded into the
@@ -26,6 +28,9 @@ static volatile bool they_want_us_to_break_input = false;
 void
 update_status_window_content_unprotected(void)
 {
+	if (status_window_is_initialized != true) {
+		return;
+	}
 	// FIXME: werase doesn't clear screen garbage, so sometimes artifacts
 	// appear in the window. The solution to this is wclear, but it makes
 	// screen flicker on the old hardware.
@@ -40,8 +45,10 @@ update_status_window_content_unprotected(void)
 		waddwstr(status_window, L"/");
 		waddwstr(status_window, search_mode_text_input->ptr);
 	} else if (status_window_is_clean == false) {
-		wbkgd(status_window, get_cfg_color(NULL, messages[(messages_len - 1) % messages_lim].color));
-		waddnstr(status_window, messages[(messages_len - 1) % messages_lim].text->ptr, list_menu_width);
+		if (messages != NULL) {
+			wbkgd(status_window, get_cfg_color(NULL, messages->color));
+			waddnstr(status_window, messages->text->ptr, list_menu_width);
+		}
 	} else {
 		wbkgd(status_window, get_cfg_color(NULL, CFG_COLOR_STATUS));
 		struct string *path = NULL;
@@ -95,29 +102,9 @@ status_recreate_unprotected(void)
 		WARN("Can't enable keypad and function keys reading support for status window!");
 	}
 
+	status_window_is_initialized = true;
 	update_status_window_content_unprotected();
 	return true;
-}
-
-bool
-allocate_status_messages_buffer(void)
-{
-	messages_lim = get_cfg_uint(NULL, CFG_STATUS_MESSAGES_COUNT_LIMIT);
-	messages_lim |= 1; // Make sure it's not a zero.
-	messages = calloc(messages_lim, sizeof(struct status_message));
-	if (messages == NULL) {
-		goto error;
-	}
-	for (size_t i = 0; i < messages_lim; ++i) {
-		messages[i].text = crtes(100);
-		if (messages[i].text == NULL) {
-			goto error; // Since we calloced messages buffer, everything after that remains NULL.
-		}
-	}
-	return true;
-error:
-	write_error("Not enough memory for status messages buffer!\n");
-	return false;
 }
 
 void
@@ -152,15 +139,45 @@ allow_status_cleaning(void)
 void
 status_write(config_entry_id color, const char *format, ...)
 {
+	size_t limit = get_cfg_uint(NULL, CFG_STATUS_MESSAGES_COUNT_LIMIT);
+	if (limit == 0) {
+		return;
+	}
+
 	pthread_mutex_lock(&interface_lock);
+	if (messages_len < limit) {
+		struct status_message *msg = calloc(1, sizeof(struct status_message));
+		if (msg == NULL) {
+			pthread_mutex_unlock(&interface_lock);
+			return;
+		}
+		msg->text = crtes(1);
+		if (msg->text == NULL) {
+			free(msg);
+			pthread_mutex_unlock(&interface_lock);
+			return;
+		}
+		if (messages == NULL) {
+			msg->next = msg;
+			msg->prev = msg;
+		} else {
+			msg->next = messages;
+			msg->prev = messages->prev;
+			messages->prev->next = msg;
+			messages->prev = msg;
+		}
+		messages = msg;
+		messages_len += 1;
+	} else {
+		messages = messages->prev;
+	}
 	va_list args;
 	va_start(args, format);
-	if (string_vprintf(messages[messages_len % messages_lim].text, format, args) == false) {
+	if (string_vprintf(messages->text, format, args) == false) {
 		goto undo;
 	}
-	messages[messages_len % messages_lim].color = color;
-	INFO("Printed status message: %s", messages[messages_len % messages_lim].text->ptr);
-	messages_len += 1;
+	messages->color = color;
+	INFO("Printed status message: %s", messages->text->ptr);
 	status_window_is_clean = false;
 	update_status_window_content_unprotected();
 undo:
@@ -176,28 +193,35 @@ generate_string_with_status_messages_for_pager(void)
 		FAIL("Not enough memory for string with status messages for pager!");
 		return NULL;
 	}
-	size_t i = (messages_len - 1) % messages_lim;
-	for (size_t j = MIN(messages_len, messages_lim); j > 0; --j) {
-		catss(str, messages[i].text);
-		catcs(str, '\n');
-		if (i == 0) {
-			i = messages_lim - 1;
-		} else {
-			i -= 1;
-		}
+	pthread_mutex_lock(&interface_lock);
+	if (messages_len > 0) {
+		struct status_message *m = messages;
+		do {
+			catss(str, m->text);
+			catcs(str, '\n');
+			m = m->next;
+		} while (m != messages);
 	}
+	pthread_mutex_unlock(&interface_lock);
 	return str;
 }
 
 void
 status_delete(void)
 {
-	INFO("Freeing status field resources.");
-	for (size_t i = 0; i < messages_lim; ++i) {
-		free_string(messages[i].text);
+	pthread_mutex_lock(&interface_lock);
+	if (messages_len > 0) {
+		struct status_message *m = messages;
+		do {
+			free_string(m->text);
+			struct status_message *tmp = m;
+			m = m->next;
+			free(tmp);
+		} while (m != messages);
 	}
-	free(messages);
+	messages = NULL;
 	delwin(status_window);
+	pthread_mutex_unlock(&interface_lock);
 }
 
 input_id

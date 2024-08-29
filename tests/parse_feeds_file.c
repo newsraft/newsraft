@@ -47,7 +47,6 @@ main(void)
 
 	set_db_path("./test-database");
 	set_feeds_path("./feeds");
-	load_config();
 	db_init();
 
 	parse_feeds_file();

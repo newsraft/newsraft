@@ -16,10 +16,17 @@ status_pager_loop(struct menu_state *dest)
 		return close_menu();
 	}
 	free_string(messages);
-	struct render_block block = {wmessages, TEXT_PLAIN, false};
-	struct render_blocks_list blocks = {&block, 1, {}};
-	if (start_pager_menu(NULL, &blocks) == false) {
+	struct render_block *block = calloc(1, sizeof(struct render_block));
+	if (block == NULL) {
 		free_wstring(wmessages);
+		return close_menu();
+	}
+	block->content        = wmessages;
+	block->content_type   = TEXT_RAW;
+	block->needs_trimming = false;
+	struct render_blocks_list blocks = {block, 1, {}};
+	if (start_pager_menu(NULL, &blocks) == false) {
+		free_render_blocks(&blocks);
 		return close_menu();
 	}
 	start_menu();
@@ -31,10 +38,10 @@ status_pager_loop(struct menu_state *dest)
 		} else if (cmd == INPUT_NAVIGATE_BACK || cmd == INPUT_QUIT_SOFT) {
 			break;
 		} else if (cmd == INPUT_QUIT_HARD) {
-			free_wstring(wmessages);
+			free_render_blocks(&blocks);
 			return NULL;
 		}
 	}
-	free_wstring(wmessages);
+	free_render_blocks(&blocks);
 	return close_menu();
 }

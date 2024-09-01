@@ -61,11 +61,11 @@ html:
 	mandoc -T html ./doc/newsraft.1 > doc/newsraft.html
 	sed -i 's/<body>/<body style="color: #BBB; background: #111; width: 100vmin; margin-left: auto; margin-right: auto;">/' doc/newsraft.html
 
-clean:
-	rm -rf newsraft tests/makefile tests/src tests/libnewsraft.so tests/a.out flog vlog
-
 check:
 	./tests/run-check.sh
+
+clean:
+	rm -rf newsraft newsraft-test newsraft-test-database* libnewsraft.so flog vlog
 
 cppcheck:
 	find src -name "*.c" -exec cppcheck -q --enable=warning,performance,portability '{}' ';'

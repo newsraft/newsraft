@@ -45,8 +45,8 @@ main(void)
 	int status = 0;
 	setlocale(LC_ALL, "");
 
-	set_db_path("./test-database");
-	set_feeds_path("./feeds");
+	set_db_path("./newsraft-test-database");
+	set_feeds_path("./tests/parse_feeds_file_data.txt");
 	db_init();
 
 	parse_feeds_file();

@@ -74,7 +74,7 @@ do_format(struct wstring *dest, const wchar_t *fmt, const struct format_arg *arg
 					}
 					free_wstring(ws);
 				} else { // Format integer
-					if (swprintf(number, sizeof(number), tmp_buf, args[j].value.i) > 0) {
+					if (swprintf(number, LENGTH(number), tmp_buf, args[j].value.i) > 0) {
 						wcatas(dest, number, wcslen(number));
 					}
 				}

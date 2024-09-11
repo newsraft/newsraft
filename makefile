@@ -49,7 +49,10 @@ newsraft:
 	$(CC) -std=c99 $(CFLAGS) $(AUXCFLAGS) -Isrc -D_XOPEN_SOURCE=700 -D_XOPEN_SOURCE_EXTENDED $(LDFLAGS) -o $@ src/newsraft.c $(LDLIBS)
 
 libnewsraft.so:
-	$(CC) -std=c99 -shared $(CFLAGS) $(AUXCFLAGS) -Isrc -D_XOPEN_SOURCE=700 -D_XOPEN_SOURCE_EXTENDED $(LDFLAGS) -o $@ src/newsraft.c $(LDLIBS)
+	$(CC) -std=c99 -shared $(CFLAGS) $(AUXCFLAGS) -Isrc -D_XOPEN_SOURCE=700 -D_XOPEN_SOURCE_EXTENDED -DTEST $(LDFLAGS) -o $@ src/newsraft.c $(LDLIBS)
+
+test-program:
+	$(CC) -std=c99 $(CFLAGS) $(AUXCFLAGS) -Isrc -D_XOPEN_SOURCE=700 -D_XOPEN_SOURCE_EXTENDED -DTEST -o newsraft-test $(TEST_FILE) -L. -lnewsraft
 
 gperf:
 	gperf -I -t -F ,0,NULL,NULL < src/parse_xml/gperf-data.in > src/parse_xml/gperf-data.c
@@ -65,7 +68,7 @@ check:
 	./tests/run-check.sh
 
 clean:
-	rm -rf newsraft newsraft-test newsraft-test-database* libnewsraft.so flog vlog
+	rm -rf newsraft newsraft-test newsraft-test-log newsraft-test-database* libnewsraft.so flog vlog
 
 cppcheck:
 	find src -name "*.c" -exec cppcheck -q --enable=warning,performance,portability '{}' ';'

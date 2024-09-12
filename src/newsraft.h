@@ -26,8 +26,8 @@
 #define FAIL(...) log_write("[FAIL] ", __VA_ARGS__)
 #define info_status(...) status_write(CFG_COLOR_STATUS_INFO, __VA_ARGS__)
 #define fail_status(...) status_write(CFG_COLOR_STATUS_FAIL, __VA_ARGS__)
-#define MIN(A, B) ((A) < (B) ? (A) : (B))
 #define LENGTH(A) ((sizeof(A))/(sizeof(*A)))
+#define NEWSRAFT_MIN(A, B) (((A) < (B)) ? (A) : (B)) // Need prefix because some platforms have their own MIN definition
 
 typedef uint8_t config_entry_id;
 typedef uint8_t input_id;

@@ -7,15 +7,16 @@ execute_system_command(const char *cmd)
 	// https://stackoverflow.com/questions/18678943/ncurses-shell-escape-drops-parent-process-output
 	info_status("Executing %s", cmd);
 	pthread_mutex_lock(&interface_lock);
-	curs_set(1); // Some programs expect that the cursor is enabled.
-	reset_shell_mode();
+	NEWSRAFT_CURSES(curs_set(1)); // Some programs expect that the cursor is enabled.
+	NEWSRAFT_CURSES(reset_shell_mode());
 	int status = system(cmd);
 	fflush(stdout);
-	reset_prog_mode();
-	curs_set(0);
+	fflush(stderr);
+	NEWSRAFT_CURSES(reset_prog_mode());
+	NEWSRAFT_CURSES(curs_set(0));
 	pthread_mutex_unlock(&interface_lock);
 	// Resizing could be handled by the program running on top, so we have to catch up.
-	if (call_resize_handler_if_current_list_menu_size_is_different_from_actual() == false) {
+	if (curses_is_running() && call_resize_handler_if_current_list_menu_size_is_different_from_actual() == false) {
 		pthread_mutex_lock(&interface_lock);
 		clear();
 		refresh();

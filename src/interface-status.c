@@ -139,6 +139,16 @@ allow_status_cleaning(void)
 void
 status_write(config_entry_id color, const char *format, ...)
 {
+	if (status_window_is_initialized != true) {
+		va_list args;
+		va_start(args, format);
+		vprintf(format, args);
+		putchar('\n');
+		fflush(stdout);
+		va_end(args);
+		return;
+	}
+
 	size_t limit = get_cfg_uint(NULL, CFG_STATUS_MESSAGES_COUNT_LIMIT);
 	if (limit == 0) {
 		return;

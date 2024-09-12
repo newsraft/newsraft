@@ -28,6 +28,7 @@
 #define fail_status(...) status_write(CFG_COLOR_STATUS_FAIL, __VA_ARGS__)
 #define LENGTH(A) ((sizeof(A))/(sizeof(*A)))
 #define NEWSRAFT_MIN(A, B) (((A) < (B)) ? (A) : (B)) // Need prefix because some platforms have their own MIN definition
+#define NEWSRAFT_CURSES(CALL) do { if (curses_is_running()) { CALL; } } while (0) // Make CALL only if Curses is running
 
 typedef uint8_t config_entry_id;
 typedef uint8_t input_id;
@@ -312,6 +313,8 @@ void refresh_unread_items_count_of_all_sections(void);
 bool purge_abandoned_feeds(void);
 struct menu_state *sections_menu_loop(struct menu_state *m);
 void free_sections(void);
+bool start_updating_all_feeds_and_wait_finish(void);
+bool print_unread_items_count(void);
 void process_auto_updating_feeds(void);
 void mark_feeds_read(struct feed_entry **feeds, size_t feeds_count, bool status);
 #ifdef TEST
@@ -432,11 +435,14 @@ sqlite3_stmt *db_find_item_by_rowid(int64_t rowid);
 bool db_mark_item_read(int64_t rowid, bool status);
 bool db_mark_item_important(int64_t rowid, bool status);
 int64_t get_unread_items_count_of_the_feed(const struct string *url);
-int64_t get_items_count_of_feeds(struct feed_entry **feeds, size_t feeds_count);
+int64_t db_count_items(struct feed_entry **feeds, size_t feeds_count, bool count_only_unread);
 bool db_change_unread_status_of_all_items_in_feeds(struct feed_entry **feeds, size_t feeds_count, bool unread);
 
 // See "interface.c" file for implementation.
+bool curses_is_running(void);
 bool curses_init(void);
+void curses_stop(void);
+bool run_menu_loop(void);
 input_id resize_handler(void);
 bool call_resize_handler_if_current_list_menu_size_is_different_from_actual(void);
 bool arent_we_colorful(void);
@@ -470,6 +476,7 @@ bool attach_command_to_bind(struct input_binding *bind, const char *exec, size_t
 bool assign_default_binds(void);
 input_id get_input_id_by_name(const char *name);
 void free_binds(struct input_binding *target);
+void free_default_binds(void);
 
 // Functions related to executing system commands.
 // See "commands.c" file for implementation.
@@ -535,6 +542,7 @@ void free_config_context(struct config_context *cfg);
 // Download, process and store new items of feed.
 // See "queue.c" file for implementation.
 void queue_updates(struct feed_entry **feeds, size_t feeds_count);
+void queue_wait_finish(void);
 struct feed_update_state *queue_pull(bool (*condition)(struct feed_update_state *));
 void queue_destroy(void);
 void queue_examine(void);

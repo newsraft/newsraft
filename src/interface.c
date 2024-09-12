@@ -4,8 +4,15 @@
 bool search_mode_is_enabled = false;
 struct wstring *search_mode_text_input = NULL;
 static bool paint_it_black = true;
+static volatile bool newsraft_has_successfully_initialized_curses = false;
 
 pthread_mutex_t interface_lock = PTHREAD_MUTEX_INITIALIZER;
+
+bool
+curses_is_running(void)
+{
+	return newsraft_has_successfully_initialized_curses;
+}
 
 static bool
 obtain_list_menu_size(size_t *width, size_t *height)
@@ -74,6 +81,32 @@ curses_init(void)
 		INFO("Maximum number of color pairs: %d", COLOR_PAIRS);
 	}
 	INFO("The value of KEY_RESIZE code is %d.", KEY_RESIZE);
+	newsraft_has_successfully_initialized_curses = true;
+	return true;
+}
+
+void
+curses_stop(void)
+{
+	endwin();
+}
+
+bool
+run_menu_loop(void)
+{
+	struct timespec idling = {0, 100000000}; // 0.1 seconds
+	struct menu_state *menu = setup_menu(&sections_menu_loop, NULL, NULL, 0, MENU_NORMAL);
+	if (menu == NULL) {
+		return false;
+	}
+	while (they_want_us_to_stop == false) {
+		menu = menu->run(menu);
+		if (menu == NULL) {
+			break; // TODO: don't stop feed downloader?
+			nanosleep(&idling, NULL); // Avoids CPU cycles waste while awaiting termination
+			menu = setup_menu(&sections_menu_loop, NULL, NULL, 0, MENU_DISABLE_SETTINGS);
+		}
+	}
 	return true;
 }
 

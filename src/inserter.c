@@ -65,7 +65,7 @@ inserter_worker(void *dummy)
 		if (target->is_canceled) {
 			db_set_update_date(feed->link, feed->update_date);
 		}
-		if (need_redraw == true) {
+		if (curses_is_running() && need_redraw == true) {
 			expose_all_visible_entries_of_the_list_menu();
 		}
 		target->is_finished = true;

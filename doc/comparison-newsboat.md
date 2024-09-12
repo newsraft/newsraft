@@ -18,6 +18,7 @@ you're considering switching from Newsboat to Newsraft, it's advised to examine 
 | Item limits                           | +                               | +                      |
 | Per-feed settings                     | +                               | -                      |
 | Command feeds                         | `$(cmd arg1 arg2)`              | `"exec:cmd arg1 arg2"` |
+| Scripting capabilities                | `newsraft -e ACTION`            | `newsboat -x ACTION`   |
 | Download manager                      | -                               | `podboat`              |
 | Integration with third-party services | -                               | +                      |
 | Internal command-line                 | -                               | +                      |

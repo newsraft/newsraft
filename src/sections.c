@@ -246,6 +246,23 @@ free_sections(void)
 	free(sections);
 }
 
+bool
+start_updating_all_feeds_and_wait_finish(void)
+{
+	queue_updates(sections[0].feeds, sections[0].feeds_count);
+	queue_wait_finish();
+	return true;
+}
+
+bool
+print_unread_items_count(void)
+{
+	int64_t count = db_count_items(sections[0].feeds, sections[0].feeds_count, true);
+	fprintf(stdout, "%" PRId64 "\n", count);
+	fflush(stdout);
+	return true;
+}
+
 void
 process_auto_updating_feeds(void)
 {
@@ -273,7 +290,7 @@ sections_menu_loop(struct menu_state *m)
 	m->entry_format = get_cfg_wstring(NULL, CFG_MENU_SECTION_ENTRY_FORMAT);
 	if (!(m->flags & MENU_DISABLE_SETTINGS)) {
 		// Don't set the menu names here because it's redundant!
-		if (get_cfg_bool(NULL, CFG_SECTIONS_MENU_PARAMOUNT_EXPLORE) && get_items_count_of_feeds(sections[0].feeds, sections[0].feeds_count)) {
+		if (get_cfg_bool(NULL, CFG_SECTIONS_MENU_PARAMOUNT_EXPLORE) && db_count_items(sections[0].feeds, sections[0].feeds_count, false)) {
 			return setup_menu(&items_menu_loop, NULL, sections[0].feeds, sections[0].feeds_count, MENU_IS_EXPLORE);
 		} else if (sections_count == 1) {
 			return setup_menu(&feeds_menu_loop, NULL, sections[0].feeds, sections[0].feeds_count, MENU_SWALLOW);

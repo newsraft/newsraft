@@ -36,8 +36,8 @@
 <section class="Sh">
 <h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
 <p class="Pp"><b>newsraft</b> [<b>-f</b> <i>FILE1</i>] [<b>-c</b> <i>FILE2</i>]
-    [<b>-d</b> <i>FILE3</i>] [<b>-l</b> <i>FILE4</i>] [<b>-p</b>] [<b>-v</b>]
-    [<b>-h</b>]</p>
+    [<b>-d</b> <i>FILE3</i>] [<b>-l</b> <i>FILE4</i>] [<b>-e</b> <i>ACTION</i>]
+    [<b>-v</b>] [<b>-h</b>]</p>
 </section>
 <section class="Sh">
 <h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
@@ -65,8 +65,9 @@
     <td>Write log information to <i>FILE</i>.</td>
   </tr>
   <tr>
-    <td><b>-p</b></td>
-    <td>Purge feeds not specified in the <b>feeds</b> file.</td>
+    <td><b>-e</b> <i>ACTION</i></td>
+    <td>Execute <i>ACTION</i> and exit (<b>reload-all</b>
+      <b>print-unread-items-count</b> <b>purge-abandoned</b>).</td>
   </tr>
   <tr>
     <td><b>-v</b></td>
@@ -786,7 +787,7 @@
 </div>
 <table class="foot">
   <tr>
-    <td class="foot-date">2024-08-19</td>
+    <td class="foot-date">2024-09-12</td>
     <td class="foot-os"></td>
   </tr>
 </table>

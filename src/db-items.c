@@ -75,14 +75,18 @@ get_unread_items_count_of_the_feed(const struct string *url)
 }
 
 int64_t
-get_items_count_of_feeds(struct feed_entry **feeds, size_t feeds_count)
+db_count_items(struct feed_entry **feeds, size_t feeds_count, bool count_only_unread)
 {
-	char *query = malloc(sizeof(char) * (47 + feeds_count * 2 + 100));
+	char *query = malloc(sizeof(char) * (60 + feeds_count * 2 + 100));
 	if (feeds_count == 0 || query == NULL) {
 		free(query);
 		return 0;
 	}
-	strcpy(query, "SELECT COUNT(*) FROM items WHERE feed_url IN (?");
+	if (count_only_unread) {
+		strcpy(query, "SELECT COUNT(*) FROM items WHERE unread=1 AND feed_url IN (?");
+	} else {
+		strcpy(query, "SELECT COUNT(*) FROM items WHERE feed_url IN (?");
+	}
 	for (size_t i = 1; i < feeds_count; ++i) {
 		strcat(query, ",?");
 	}

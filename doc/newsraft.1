@@ -5,7 +5,7 @@
 .nh
 .ad l
 .\" Begin generated content:
-.TH "NEWSRAFT" "1" "2024-08-19"
+.TH "NEWSRAFT" "1" "2024-09-12"
 .PP
 .SH NAME
 .PP
@@ -13,7 +13,7 @@ newsraft - feed reader for terminal
 .PP
 .SH SYNOPSIS
 .PP
-\fBnewsraft\fR [\fB-f\fR \fIFILE1\fR] [\fB-c\fR \fIFILE2\fR] [\fB-d\fR \fIFILE3\fR] [\fB-l\fR \fIFILE4\fR] [\fB-p\fR] [\fB-v\fR] [\fB-h\fR]
+\fBnewsraft\fR [\fB-f\fR \fIFILE1\fR] [\fB-c\fR \fIFILE2\fR] [\fB-d\fR \fIFILE3\fR] [\fB-l\fR \fIFILE4\fR] [\fB-e\fR \fIACTION\fR] [\fB-v\fR] [\fB-h\fR]
 .PP
 .SH DESCRIPTION
 .PP
@@ -52,9 +52,9 @@ T}	T{
 Write log information to \fIFILE\fR.\&
 T}
 T{
-\fB-p\fR
+\fB-e\fR \fIACTION\fR
 T}	T{
-Purge feeds not specified in the \fBfeeds\fR file.\&
+Execute \fIACTION\fR and exit (\fBreload-all\fR \fBprint-unread-items-count\fR \fBpurge-abandoned\fR).\&
 T}
 T{
 \fB-v\fR

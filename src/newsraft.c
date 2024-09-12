@@ -64,20 +64,89 @@ find -name '*.c' | sed -e 's/^\.\//#include "/' -e 's/$/"/' | grep -v 'newsraft.
 #include "wstring.c"
 #include "wstring-format.c"
 
+struct newsraft_execution_stage {
+	const char *description;
+	bool (*constructor)(void);
+	void (*destructor)(void);
+};
+
 volatile bool they_want_us_to_stop = false;
 
 static inline void
 print_usage(void)
 {
 	fputs("newsraft - feed reader for terminal\n"
-	      "-f PATH  force use of PATH as feeds file\n"
-	      "-c PATH  force use of PATH as config file\n"
-	      "-d PATH  force use of PATH as database file\n"
-	      "-l PATH  write log information to PATH\n"
-	      "-p       purge feeds not specified in the feeds file\n"
-	      "-v       print version and successfully exit\n"
-	      "-h       print this message and successfully exit\n",
+	      "\n"
+	      "  -f PATH    force use of PATH as feeds file\n"
+	      "  -c PATH    force use of PATH as config file\n"
+	      "  -d PATH    force use of PATH as database file\n"
+	      "  -l PATH    write log information to PATH\n"
+	      "  -e ACTION  execute ACTION and exit\n"
+	      "  -v         print version and successfully exit\n"
+	      "  -h         print this message and successfully exit\n"
+	      "\n"
+	      "ACTION is one of the following: reload-all, print-unread-items-count, purge-abandoned\n",
 	      stderr);
+}
+
+static const struct newsraft_execution_stage regular_mode[] = {
+	{"register signal handlers",      register_signal_handlers,        NULL},
+	{"assign default binds",          assign_default_binds,            free_default_binds},
+	{"initialize curses library",     curses_init,                     curses_stop},
+	{"load config file",              parse_config_file,               NULL},
+	{"initialize database",           db_init,                         db_stop},
+	{"execute database optimization", exec_database_file_optimization, NULL},
+	{"load feeds file",               parse_feeds_file,                free_sections},
+	{"create list menu",              adjust_list_menu,                free_list_menu},
+	{"create status field",           status_recreate_unprotected,     status_delete},
+	{"initialize curl library",       curl_init,                       curl_stop},
+	{"start worker threads",          threads_start,                   threads_stop},
+	{"run menu loop",                 run_menu_loop,                   free_menus},
+};
+
+static const struct newsraft_execution_stage reload_mode[] = {
+	{"register signal handlers",      register_signal_handlers,        NULL},
+	{"load config file",              parse_config_file,               NULL},
+	{"initialize database",           db_init,                         db_stop},
+	{"execute database optimization", exec_database_file_optimization, NULL},
+	{"load feeds file",               parse_feeds_file,                free_sections},
+	{"initialize curl library",       curl_init,                       curl_stop},
+	{"start worker threads",          threads_start,                   threads_stop},
+	{"update all feeds",              start_updating_all_feeds_and_wait_finish, NULL},
+};
+
+static const struct newsraft_execution_stage print_unread_mode[] = {
+	{"initialize database",           db_init,                         db_stop},
+	{"load feeds file",               parse_feeds_file,                free_sections},
+	{"print unread items count",      print_unread_items_count,        NULL},
+};
+
+static const struct newsraft_execution_stage purge_mode[] = {
+	{"initialize database",           db_init,                         db_stop},
+	{"load feeds file",               parse_feeds_file,                free_sections},
+	{"purge abandoned feeds",         purge_abandoned_feeds,           NULL},
+};
+
+static int
+run_scenario(const struct newsraft_execution_stage *scenario, size_t scenario_stages_count)
+{
+	int error = 0;
+	size_t stage = 0;
+	for (stage = 0; stage < scenario_stages_count; ++stage) {
+		INFO("Trying to %s...", scenario[stage].description);
+		if (scenario[stage].constructor() != true) {
+			write_error("Failed to %s\n", scenario[stage].description);
+			error = stage;
+			break;
+		}
+	}
+	for (they_want_us_to_stop = true; stage > 0; --stage) {
+		if (scenario[stage - 1].destructor) {
+			INFO("Cleaning after %s...", scenario[stage - 1].description);
+			scenario[stage - 1].destructor();
+		}
+	}
+	return error;
 }
 
 int
@@ -87,7 +156,7 @@ main(int argc, char **argv)
 
 	int error = 0;
 	int opt;
-	while ((opt = getopt(argc, argv, "f:c:d:l:pvh")) != -1) {
+	while ((opt = getopt(argc, argv, "f:c:d:l:e:vh")) != -1) {
 		if (opt == 'f') {
 			if (set_feeds_path(optarg) == false) {
 				error = 2;
@@ -108,14 +177,16 @@ main(int argc, char **argv)
 				error = 5;
 				goto undo1;
 			}
-		} else if (opt == 'p') {
-			error = 6;
-			if (db_init()) {
-				if (parse_feeds_file()) {
-					error = purge_abandoned_feeds() && db_vacuum() ? 0 : 7;
-					free_sections();
-				}
-				db_stop();
+		} else if (opt == 'e') {
+			if (strcmp(optarg, "reload-all") == 0) {
+				error = run_scenario(reload_mode, LENGTH(reload_mode));
+			} else if (strcmp(optarg, "print-unread-items-count") == 0) {
+				error = run_scenario(print_unread_mode, LENGTH(print_unread_mode));
+			} else if (strcmp(optarg, "purge-abandoned") == 0) {
+				error = run_scenario(purge_mode, LENGTH(purge_mode));
+			} else {
+				fputs("Invalid action for execution. See newsraft(1) for details.\n", stderr);
+				error = 6;
 			}
 			goto undo1;
 		} else if (opt == 'v') {
@@ -131,47 +202,8 @@ main(int argc, char **argv)
 		}
 	}
 
-	if (register_signal_handlers()        == false) { error = 6;  goto undo1; }
-	if (assign_default_binds()            == false) { error = 7;  goto undo1; }
-	if (curses_init()                     == false) { error = 8;  goto undo2; }
-	if (parse_config_file()               == false) { error = 9;  goto undo3; }
-	if (db_init()                         == false) { error = 10; goto undo3; }
-	if (exec_database_file_optimization() == false) { error = 11; goto undo4; }
-	if (parse_feeds_file()                == false) { error = 12; goto undo4; }
-	if (adjust_list_menu()                == false) { error = 13; goto undo5; }
-	if (status_recreate_unprotected()     == false) { error = 14; goto undo6; }
-	if (curl_init()                       == false) { error = 15; goto undo7; }
-	if (threads_start()                   == false) { error = 16; goto undo8; }
+	error = run_scenario(regular_mode, LENGTH(regular_mode));
 
-	struct timespec idling = {0, 100000000}; // 0.1 seconds
-	struct menu_state *menu = setup_menu(&sections_menu_loop, NULL, NULL, 0, MENU_NORMAL);
-	while (they_want_us_to_stop == false) {
-		menu = menu->run(menu);
-		if (menu == NULL) {
-			break; // TODO: don't stop feed downloader?
-			nanosleep(&idling, NULL); // Avoids CPU cycles waste while awaiting termination
-			menu = setup_menu(&sections_menu_loop, NULL, NULL, 0, MENU_DISABLE_SETTINGS);
-		}
-	}
-
-	they_want_us_to_stop = true;
-
-	free_menus();
-	threads_stop();
-undo8:
-	curl_stop();
-undo7:
-	status_delete();
-undo6:
-	free_list_menu();
-undo5:
-	free_sections();
-undo4:
-	db_stop();
-undo3:
-	endwin();
-undo2:
-	free_binds(NULL);
 undo1:
 	free_config();
 	log_stop(error);

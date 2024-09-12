@@ -141,3 +141,16 @@ queue_updates(struct feed_entry **feeds, size_t feeds_count)
 	threads_wake_up(NEWSRAFT_THREAD_DOWNLOAD);
 	threads_wake_up(NEWSRAFT_THREAD_SHRUNNER);
 }
+
+void
+queue_wait_finish(void)
+{
+	bool complete = false;
+	struct timespec check_period = {0, 100000000}; // 0.1 seconds
+	do {
+		nanosleep(&check_period, NULL);
+		pthread_mutex_lock(&update_queue_lock);
+		complete = update_queue == NULL ? true : false;
+		pthread_mutex_unlock(&update_queue_lock);
+	} while (complete == false);
+}

@@ -6,7 +6,7 @@ newsraft - feed reader for terminal
 
 # SYNOPSIS
 
-*newsraft* [*-f* _FILE1_] [*-c* _FILE2_] [*-d* _FILE3_] [*-l* _FILE4_] [*-p*] [*-v*] [*-h*]
+*newsraft* [*-f* _FILE1_] [*-c* _FILE2_] [*-d* _FILE3_] [*-l* _FILE4_] [*-e* _ACTION_] [*-v*] [*-h*]
 
 # DESCRIPTION
 
@@ -24,8 +24,8 @@ streamlined user interface.
 :[ Force *database* file to _FILE_.
 |[ *-l* _FILE_
 :[ Write log information to _FILE_.
-|[ *-p*
-:[ Purge feeds not specified in the *feeds* file.
+|[ *-e* _ACTION_
+:[ Execute _ACTION_ and exit (*reload-all* *print-unread-items-count* *purge-abandoned*).
 |[ *-v*
 :[ Print version information.
 |[ *-h*

@@ -123,7 +123,7 @@ assign_default_binds(void)
 	return true;
 fail:
 	write_error("Failed to assign default binds!\n");
-	free_binds(NULL);
+	free_binds(binds);
 	return false;
 }
 
@@ -144,9 +144,6 @@ get_input_id_by_name(const char *name)
 void
 free_binds(struct input_binding *target)
 {
-	if (target == NULL) {
-		target = binds;
-	}
 	for (struct input_binding *i = target, *tmp = target; tmp != NULL; i = tmp) {
 		free_string(i->key);
 		for (size_t j = 0; j < i->actions_count; ++j) {
@@ -156,4 +153,10 @@ free_binds(struct input_binding *target)
 		tmp = i->next;
 		free(i);
 	}
+}
+
+void
+free_default_binds(void)
+{
+	free_binds(binds);
 }

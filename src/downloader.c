@@ -292,7 +292,7 @@ downloader_worker(void *dummy)
 				target->curl_handle_added_to_multi = true;
 			}
 		} else if (still_running == 0) {
-			wait_a_second_for_wake_up_signal();
+			threads_take_a_nap(NEWSRAFT_THREAD_DOWNLOAD);
 		}
 
 		curl_multi_perform(multi, &still_running);

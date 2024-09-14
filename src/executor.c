@@ -77,7 +77,7 @@ executor_worker(void *dummy)
 	while (they_want_us_to_stop == false) {
 		struct feed_update_state *target = queue_pull(&engage_with_not_executed_feed);
 		if (target == NULL) {
-			wait_a_second_for_wake_up_signal();
+			threads_take_a_nap(NEWSRAFT_THREAD_SHRUNNER);
 			continue;
 		}
 		execute_feed(target->feed_entry->link, target);

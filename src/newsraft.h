@@ -525,7 +525,6 @@ struct string *convert_warray_to_string(const wchar_t *src_ptr, size_t src_len);
 
 // See "signal.c" file for implementation.
 bool register_signal_handlers(void);
-void wait_a_second_for_wake_up_signal(void);
 
 // Parse config file, fill out config_data structure, bind keys to actions.
 // See "load_config" directory for implementation.
@@ -575,6 +574,7 @@ void *inserter_worker(void *dummy);
 // See "threads.c" file for implementation.
 bool threads_start(void);
 void threads_wake_up(int thread_id);
+void threads_take_a_nap(int thread_id);
 void threads_stop(void);
 
 // See "parse_xml" directory for implementation.

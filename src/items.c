@@ -125,6 +125,7 @@ items_menu_loop(struct menu_state *m)
 	m->unread_state = &is_item_unread;
 	m->write_action = &list_menu_writer;
 	m->entry_format = get_cfg_wstring(NULL, m->flags & MENU_IS_EXPLORE ? CFG_MENU_EXPLORE_ITEM_ENTRY_FORMAT : CFG_MENU_ITEM_ENTRY_FORMAT);
+	items_age += 1;
 	if (m->is_initialized == false) {
 		m->items_age = items_age;
 		m->items = create_items_list(m->feeds_original, m->feeds_count, -1, m->flags & MENU_USE_SEARCH ? search_mode_text_input : NULL);
@@ -167,8 +168,8 @@ items_menu_loop(struct menu_state *m)
 				if (m->flags & MENU_IS_EXPLORE) return close_menu();
 				break;
 			case INPUT_GOTO_FEED:
-				if (m->flags & MENU_IS_EXPLORE) return setup_menu(&items_menu_loop, m->items->ptr[m->view_sel].feed[0]->name, m->items->ptr[m->view_sel].feed, 1, MENU_NORMAL);
-				break;
+				if (!(m->flags & MENU_IS_EXPLORE)) break;
+				return setup_menu(&items_menu_loop, m->items->ptr[m->view_sel].feed[0]->name, m->items->ptr[m->view_sel].feed, 1, MENU_NORMAL);
 			case INPUT_APPLY_SEARCH_MODE_FILTER:
 				change_search_filter_of_items_list(&m->items, search_mode_text_input); break;
 			case INPUT_OPEN_IN_BROWSER:

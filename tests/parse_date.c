@@ -7,7 +7,7 @@ test_date(const char *date, int64_t true_time)
 	if (test_time == true_time) {
 		return true;
 	} else {
-		fprintf(stderr, "Mismatch for %s: %ld != %ld\n", date, test_time, true_time);
+		fprintf(stderr, "Mismatch for %s: %lld != %lld\n", date, test_time, true_time);
 		return false;
 	}
 }

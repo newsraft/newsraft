@@ -118,6 +118,11 @@ enum {
 	NEWSRAFT_THREAD_DBWRITER = 2, // Writes the feed to the database
 };
 
+enum {
+	NEWSRAFT_HTTP_NOT_MODIFIED      = 304,
+	NEWSRAFT_HTTP_TOO_MANY_REQUESTS = 429,
+};
+
 struct config_context;
 struct deserialize_stream;
 
@@ -281,6 +286,7 @@ struct feed_update_state {
 	CURL *curl;
 	char curl_error[CURL_ERROR_SIZE];
 	struct curl_slist *download_headers;
+	long http_response_code;
 
 	int8_t media_type;
 	XML_Parser xml_parser;
@@ -428,7 +434,8 @@ const char *db_error_string(void);
 int db_bind_string(sqlite3_stmt *stmt, int pos, const struct string *str);
 int64_t db_get_date_from_feeds_table(const struct string *url, const char *column, size_t column_len);
 struct string *db_get_string_from_feed_table(const struct string *url, const char *column, size_t column_len);
-void db_set_update_date(const struct string *url, int64_t update_date);
+void db_update_feed_int64(const struct string *url, const char *column_name, int64_t value, bool only_positive);
+void db_update_feed_string(const struct string *url, const char *column_name, const struct string *value, bool only_nonempty);
 
 // See "db-items.c" file for implementation.
 sqlite3_stmt *db_find_item_by_rowid(int64_t rowid);

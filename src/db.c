@@ -256,16 +256,43 @@ db_get_string_from_feed_table(const struct string *url, const char *column, size
 }
 
 void
-db_set_update_date(const struct string *url, int64_t update_date)
+db_update_feed_int64(const struct string *url, const char *column_name, int64_t value, bool only_positive)
 {
-	INFO("Setting update_date of %s to %" PRId64, url->ptr, update_date);
-	sqlite3_stmt *res = db_prepare("UPDATE feeds SET update_date=? WHERE feed_url=?", 48);
-	if (res != NULL) {
-		sqlite3_bind_int64(res, 1, update_date);
-		db_bind_string(res, 2, url);
-		if (sqlite3_step(res) != SQLITE_DONE) {
-			FAIL("Failed to set update_date!");
+	if (only_positive == false || value > 0) {
+		char query[100] = {0};
+		strcpy(query, "UPDATE feeds SET ");
+		strcat(query, column_name);
+		strcat(query, "=? WHERE feed_url=?");
+		INFO("Setting %s of %s to %" PRId64, column_name, url->ptr, value);
+		sqlite3_stmt *res = db_prepare(query, strlen(query) + 1);
+		if (res != NULL) {
+			sqlite3_bind_int64(res, 1, value);
+			db_bind_string(res, 2, url);
+			if (sqlite3_step(res) != SQLITE_DONE) {
+				FAIL("Failed to update %s!", column_name);
+			}
+			sqlite3_finalize(res);
 		}
-		sqlite3_finalize(res);
+	}
+}
+
+void
+db_update_feed_string(const struct string *url, const char *column_name, const struct string *value, bool only_nonempty)
+{
+	if (only_nonempty == false || (value != NULL && value->len > 0)) {
+		char query[100] = {0};
+		strcpy(query, "UPDATE feeds SET ");
+		strcat(query, column_name);
+		strcat(query, "=? WHERE feed_url=?");
+		INFO("Setting %s of %s to %s", column_name, url->ptr, value->ptr);
+		sqlite3_stmt *res = db_prepare(query, strlen(query) + 1);
+		if (res != NULL) {
+			db_bind_string(res, 1, value);
+			db_bind_string(res, 2, url);
+			if (sqlite3_step(res) != SQLITE_DONE) {
+				FAIL("Failed to update %s!", column_name);
+			}
+			sqlite3_finalize(res);
+		}
 	}
 }

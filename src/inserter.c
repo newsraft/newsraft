@@ -37,8 +37,22 @@ inserter_worker(void *dummy)
 
 		struct feed_entry *feed = target->feed_entry;
 
-		if (target->is_failed == false && target->is_canceled == false) {
-			insert_feed(target->feed_entry, &target->feed);
+		if (target->is_failed == false) {
+			if (target->is_canceled == false) {
+				insert_feed(target->feed_entry, &target->feed);
+			} else {
+				db_update_feed_int64(feed->link, "update_date", feed->update_date, true);
+
+				// RFC9111, Section 4.3.4
+				// For each stored response identified, the cache MUST update its
+				// header fields with the header fields provided in the 304 (Not
+				// Modified) response, as per Section 3.2.
+				if (target->http_response_code == NEWSRAFT_HTTP_NOT_MODIFIED) {
+					db_update_feed_string(feed->link, "http_header_etag", target->feed.http_header_etag, true);
+					db_update_feed_int64(feed->link,  "http_header_last_modified", target->feed.http_header_last_modified, true);
+					db_update_feed_int64(feed->link,  "http_header_expires", target->feed.http_header_expires, true);
+				}
+			}
 		}
 
 		bool need_redraw = false;
@@ -62,9 +76,6 @@ inserter_worker(void *dummy)
 			}
 		}
 
-		if (target->is_canceled) {
-			db_set_update_date(feed->link, feed->update_date);
-		}
 		if (curses_is_running() && need_redraw == true) {
 			expose_all_visible_entries_of_the_list_menu();
 		}

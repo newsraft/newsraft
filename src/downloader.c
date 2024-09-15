@@ -6,7 +6,7 @@
 static CURLM *multi;
 
 static struct curl_slist *
-create_list_of_headers(const struct getfeed_feed *feed)
+create_list_of_headers(const struct feed_update_state *data)
 {
 	// A-IM header is a hint for servers that they can send only a part of data,
 	// often known as "delta". Server will know which part of data to send
@@ -16,24 +16,28 @@ create_list_of_headers(const struct getfeed_feed *feed)
 		return NULL;
 	}
 	INFO("Attached header - A-IM: feed");
-	if (feed->http_header_etag != NULL) {
-		struct string *if_none_match_header = crtas("If-None-Match: ", 15);
-		if (if_none_match_header == NULL) {
-			goto error;
+
+	if (get_cfg_bool(&data->feed_entry->cfg, CFG_SEND_IF_NONE_MATCH_HEADER) == true) {
+		struct string *etag = db_get_string_from_feed_table(data->feed_entry->link, "http_header_etag", 16);
+		if (etag != NULL) {
+			struct string *if_none_match = crtas("If-None-Match: ", 15);
+			if (if_none_match == NULL || catss(if_none_match, etag) == false) {
+				free_string(if_none_match);
+				free_string(etag);
+				goto error;
+			}
+			free_string(etag);
+			struct curl_slist *tmp = curl_slist_append(headers, if_none_match->ptr);
+			if (tmp == NULL) {
+				free_string(if_none_match);
+				goto error;
+			}
+			headers = tmp;
+			INFO("Attached header - %s", if_none_match->ptr);
+			free_string(if_none_match);
 		}
-		if (catss(if_none_match_header, feed->http_header_etag) == false) {
-			free_string(if_none_match_header);
-			goto error;
-		}
-		struct curl_slist *tmp = curl_slist_append(headers, if_none_match_header->ptr);
-		if (tmp == NULL) {
-			free_string(if_none_match_header);
-			goto error;
-		}
-		headers = tmp;
-		INFO("Attached header - %s", if_none_match_header->ptr);
-		free_string(if_none_match_header);
 	}
+
 	return headers;
 error:
 	curl_slist_free_all(headers);
@@ -153,7 +157,6 @@ get_proxy_auth_info_encoded(const char *user, const char *password)
 static inline bool
 prepare_feed_update_state_for_download(struct feed_update_state *data)
 {
-	int64_t last_modified = 0;
 	struct feed_entry *feed = data->feed_entry;
 
 	if (get_cfg_bool(&feed->cfg, CFG_RESPECT_EXPIRES_HEADER) == true) {
@@ -179,29 +182,16 @@ prepare_feed_update_state_for_download(struct feed_update_state *data)
 		}
 	}
 
-	if (get_cfg_bool(&feed->cfg, CFG_SEND_IF_MODIFIED_SINCE_HEADER) == true) {
-		last_modified = db_get_date_from_feeds_table(feed->link, "http_header_last_modified", 25);
-		if (last_modified < 0) {
-			FAIL("Skipping %s because its http_header_last_modified is invalid", feed->link->ptr);
-			goto fail;
-		}
-	}
-	data->feed.http_header_last_modified = last_modified;
-
-	if (get_cfg_bool(&feed->cfg, CFG_SEND_IF_NONE_MATCH_HEADER) == true) {
-		data->feed.http_header_etag = db_get_string_from_feed_table(feed->link, "http_header_etag", 16);
-	}
-
-	data->curl = curl_easy_init();
+	CURL *curl = curl_easy_init();
+	data->curl = curl;
 	if (data->curl == NULL) {
 		goto fail;
 	}
-	data->download_headers = create_list_of_headers(&data->feed);
+
+	data->download_headers = create_list_of_headers(data);
 	if (data->download_headers == NULL) {
 		goto fail;
 	}
-
-	CURL *curl = data->curl;
 
 	curl_easy_setopt(curl, CURLOPT_URL, feed->link->ptr);
 	curl_easy_setopt(curl, CURLOPT_PRIVATE, data);
@@ -210,10 +200,16 @@ prepare_feed_update_state_for_download(struct feed_update_state *data)
 		INFO("Attached header - User-Agent: %s", useragent->ptr);
 		curl_easy_setopt(curl, CURLOPT_USERAGENT, useragent->ptr);
 	}
-	if (data->feed.http_header_last_modified > 0) {
-		curl_easy_setopt(curl, CURLOPT_TIMEVALUE, data->feed.http_header_last_modified);
-		curl_easy_setopt(curl, CURLOPT_TIMECONDITION, CURL_TIMECOND_IFMODSINCE);
-		INFO("Attached header - If-Modified-Since: %" PRId64 " (it was converted to date string).", data->feed.http_header_last_modified);
+	if (get_cfg_bool(&feed->cfg, CFG_SEND_IF_MODIFIED_SINCE_HEADER) == true) {
+		int64_t last_modified = db_get_date_from_feeds_table(feed->link, "http_header_last_modified", 25);
+		if (last_modified > 0) {
+			curl_easy_setopt(curl, CURLOPT_TIMEVALUE, last_modified);
+			curl_easy_setopt(curl, CURLOPT_TIMECONDITION, CURL_TIMECOND_IFMODSINCE);
+			INFO("Attached header - If-Modified-Since: %" PRId64 " (it was converted to date string).", last_modified);
+		} else if (last_modified < 0) {
+			FAIL("Skipping %s because its http_header_last_modified is invalid", feed->link->ptr);
+			goto fail;
+		}
 	}
 	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, data->download_headers);
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &parse_stream_callback);
@@ -251,11 +247,9 @@ prepare_feed_update_state_for_download(struct feed_update_state *data)
 	}
 
 	return true;
-
 cancel:
 	data->is_canceled = true;
 	return false;
-
 fail:
 	data->is_failed = true;
 	return false;
@@ -301,29 +295,26 @@ downloader_worker(void *dummy)
 			if (msg->msg != CURLMSG_DONE) {
 				continue;
 			}
-			struct feed_update_state *data;
-			curl_easy_getinfo(msg->easy_handle, CURLINFO_PRIVATE, &data);
 
-			long response = 0;
-			curl_easy_getinfo(msg->easy_handle, CURLINFO_RESPONSE_CODE, &response);
-			INFO("Curl response code: %ld", response);
+			struct feed_update_state *data = NULL;
+			curl_easy_getinfo(msg->easy_handle, CURLINFO_PRIVATE, &data); // Set with CURLOPT_PRIVATE
+			curl_easy_getinfo(msg->easy_handle, CURLINFO_RESPONSE_CODE, &data->http_response_code);
+			INFO("HTTP response code: %ld", data->http_response_code);
 
-			if (response == 304) {
-				// 304 (Not Modified) response code indicates that
-				// there is no need to retransmit the requested resources.
-				// There may be two reasons for this:
-				// 1) server's ETag header is equal to our If-None-Match header;
+			if (data->http_response_code == NEWSRAFT_HTTP_NOT_MODIFIED) {
+				// Server says that our stored content is up to date. It knows it based on:
+				// 1) server's ETag header is equal to our If-None-Match header; and/or
 				// 2) server's Last-Modified header is equal to our If-Modified-Since header.
 				data->is_canceled = true;
-			} else if (response == 429) {
+			} else if (data->http_response_code == NEWSRAFT_HTTP_TOO_MANY_REQUESTS) {
 				info_status("The server rejected the download because updates are too frequent.");
 				data->is_canceled = true;
 			}
 
 			if (msg->data.result != CURLE_OK) {
 				fail_status("Curl error: %s; %s", curl_easy_strerror(msg->data.result), data->curl_error);
-				if (response != 0) {
-					fail_status("The server which keeps the feed returned %ld status code!", response);
+				if (data->http_response_code != 0) {
+					fail_status("The server which keeps the feed returned %ld status code!", data->http_response_code);
 				}
 				data->is_failed = true;
 			}

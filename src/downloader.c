@@ -284,12 +284,16 @@ downloader_worker(void *dummy)
 			if (prepare_feed_update_state_for_download(target) == true) {
 				curl_multi_add_handle(multi, target->curl);
 				target->curl_handle_added_to_multi = true;
+				INFO("Populated curl multi handle with %s", target->feed_entry->link->ptr);
 			}
 		} else if (still_running == 0) {
 			threads_take_a_nap(NEWSRAFT_THREAD_DOWNLOAD);
 		}
 
-		curl_multi_perform(multi, &still_running);
+		CURLMcode status = curl_multi_perform(multi, &still_running);
+		if (status != CURLM_OK) {
+			FAIL("Got an error while performing on multi handle: %s", curl_multi_strerror(status));
+		}
 
 		while ((msg = curl_multi_info_read(multi, &msgs_left)) != NULL) {
 			if (msg->msg != CURLMSG_DONE) {
@@ -357,7 +361,7 @@ curl_init(void)
 		return false;
 	}
 	// Initialize "multi stack". This is the way to do asynchronous
-	// downloads in CURL with shared connection and DNS cahce.
+	// downloads in CURL with shared connection and DNS cache.
 	multi = curl_multi_init();
 	if (multi == NULL) {
 		write_error("Failed to initialize curl multi stack!\n");

@@ -3,7 +3,7 @@
 #include <yajl/yajl_version.h>
 #include "newsraft.h"
 
-FILE *log_stream = NULL;
+static FILE *log_stream = NULL;
 
 bool
 log_init(const char *path)
@@ -31,9 +31,17 @@ void
 log_write(const char *prefix, const char *format, ...)
 {
 	if (log_stream != NULL) {
+		struct timespec t = {0};
+		clock_gettime(CLOCK_MONOTONIC_RAW, &t);
 		va_list args;
 		va_start(args, format);
-		fputs(prefix, log_stream);
+		fprintf(log_stream, "%02d:%02d:%02d.%03d [%s] ",
+			(int)(t.tv_sec / 3600),
+			(int)(t.tv_sec / 60 % 60),
+			(int)(t.tv_sec % 60),
+			(int)(t.tv_nsec / 1000000),
+			prefix
+		);
 		vfprintf(log_stream, format, args);
 		fputc('\n', log_stream);
 		fflush(log_stream);

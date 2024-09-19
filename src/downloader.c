@@ -275,6 +275,7 @@ downloader_worker(void *dummy)
 	int still_running = 0; // Number of active handles
 	CURLMsg *msg;
 	int msgs_left = 0;
+	uint64_t perform_count = 0;
 
 	while (they_want_us_to_stop == false) {
 
@@ -290,6 +291,7 @@ downloader_worker(void *dummy)
 			threads_take_a_nap(NEWSRAFT_THREAD_DOWNLOAD);
 		}
 
+		perform_count += 1;
 		CURLMcode status = curl_multi_perform(multi, &still_running);
 		if (status != CURLM_OK) {
 			FAIL("Got an error while performing on multi handle: %s", curl_multi_strerror(status));
@@ -299,6 +301,12 @@ downloader_worker(void *dummy)
 			if (msg->msg != CURLMSG_DONE) {
 				continue;
 			}
+
+			INFO("Downloader stats: %" PRIu64 " curl performances, %d still running, %d msgs left",
+				perform_count,
+				still_running,
+				msgs_left
+			);
 
 			struct feed_update_state *data = NULL;
 			curl_easy_getinfo(msg->easy_handle, CURLINFO_PRIVATE, &data); // Set with CURLOPT_PRIVATE

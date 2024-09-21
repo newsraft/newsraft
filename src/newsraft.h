@@ -558,6 +558,7 @@ void queue_examine(void);
 // See "log.c" file for implementation.
 bool log_init(const char *path);
 void log_write(const char *prefix, const char *format, ...);
+FILE *log_get_stream(void);
 void log_stop(int error_code);
 
 // Functions for buffering errors to prevent

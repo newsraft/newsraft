@@ -225,7 +225,14 @@ prepare_feed_update_state_for_download(struct feed_update_state *data)
 	curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, ""); // Enable all supported built-in encodings.
 	curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
 	curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1);
-	curl_easy_setopt(curl, CURLOPT_VERBOSE, 0);
+
+	FILE *log_stream = log_get_stream();
+	if (log_stream) {
+		curl_easy_setopt(curl, CURLOPT_VERBOSE, 1);
+		curl_easy_setopt(curl, CURLOPT_STDERR, log_stream);
+	} else {
+		curl_easy_setopt(curl, CURLOPT_VERBOSE, 0);
+	}
 
 	const struct string *proxy = get_cfg_string(&feed->cfg, CFG_PROXY);
 	if (proxy->len != 0) {

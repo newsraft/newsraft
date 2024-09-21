@@ -49,6 +49,12 @@ log_write(const char *prefix, const char *format, ...)
 	}
 }
 
+FILE *
+log_get_stream(void)
+{
+	return log_stream;
+}
+
 void
 log_stop(int error_code)
 {

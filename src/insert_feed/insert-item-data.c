@@ -25,7 +25,7 @@ bool
 delete_excess_items(const struct string *feed_url, int64_t limit)
 {
 	INFO("Deleting excess items...");
-	sqlite3_stmt *s = db_prepare("DELETE FROM items WHERE rowid IN (SELECT rowid FROM items WHERE feed_url=? ORDER BY unread DESC, publication_date DESC, update_date DESC, rowid DESC LIMIT -1 OFFSET ?) AND important=0", 184);
+	sqlite3_stmt *s = db_prepare("DELETE FROM items WHERE rowid IN (SELECT rowid FROM items WHERE feed_url=? ORDER BY unread ASC, publication_date DESC, update_date DESC, rowid DESC LIMIT -1 OFFSET ?) AND important=0", 183);
 	if (s == NULL) {
 		FAIL("Failed to prepare an excess items deletion statement!");
 		return false;

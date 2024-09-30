@@ -92,6 +92,11 @@ Making changes: [doc/contributing-change.md](https://codeberg.org/newsraft/newsr
 </details>
 
 <details>
+	<summary>Where I can find a change log?</summary>
+	<a href="https://codeberg.org/newsraft/newsraft/src/branch/main/doc/changes.md">doc/changes.md</a>
+</details>
+
+<details>
 	<summary>How is Newsraft licensed?</summary>
 	The license is <a href="https://codeberg.org/newsraft/newsraft/src/branch/main/doc/license.txt">ISC</a> because its name is sweet.
 </details>

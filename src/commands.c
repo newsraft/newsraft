@@ -27,7 +27,7 @@ execute_system_command(const char *cmd)
 	if (status == 0) {
 		status_clean();
 	} else {
-		fail_status("Failed to execute %s", cmd);
+		fail_status("Failed with status %d to run %s", status, cmd);
 	}
 }
 

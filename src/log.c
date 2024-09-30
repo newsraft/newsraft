@@ -32,7 +32,7 @@ log_write(const char *prefix, const char *format, ...)
 {
 	if (log_stream != NULL) {
 		struct timespec t = {0};
-		clock_gettime(CLOCK_MONOTONIC_RAW, &t);
+		clock_gettime(CLOCK_REALTIME, &t);
 		va_list args;
 		va_start(args, format);
 		fprintf(log_stream, "%02d:%02d:%02d.%03d [%s] ",

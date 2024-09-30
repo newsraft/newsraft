@@ -571,6 +571,7 @@ void flush_errors(void);
 void *downloader_worker(void *dummy);
 bool curl_init(void);
 void curl_stop(void);
+void downloader_curl_wakeup(void);
 void remove_downloader_handle(struct feed_update_state *data);
 
 // See "executor.c" file for implementation.

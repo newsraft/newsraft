@@ -296,6 +296,9 @@ downloader_worker(void *dummy)
 			}
 		} else if (still_running == 0) {
 			threads_take_a_nap(NEWSRAFT_THREAD_DOWNLOAD);
+		} else {
+			// This one is waken up with curl_multi_wakeup()
+			curl_multi_poll(multi, NULL, 0, 1 /* ms */, NULL);
 		}
 
 		perform_count += 1;
@@ -358,6 +361,12 @@ downloader_worker(void *dummy)
 	}
 
 	return NULL;
+}
+
+void
+downloader_curl_wakeup(void)
+{
+	curl_multi_wakeup(multi);
 }
 
 void

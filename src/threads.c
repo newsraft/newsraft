@@ -29,6 +29,9 @@ void
 threads_wake_up(int thread_id)
 {
 	pthread_cond_signal(&newsraft_threads[thread_id].cond);
+	if (thread_id == NEWSRAFT_THREAD_DOWNLOAD) {
+		downloader_curl_wakeup();
+	}
 }
 
 void

@@ -1,3 +1,13 @@
+# newsraft 0.27 "confusing query"
+
+fixed erroneous logic of `item-limit` setting and split its special behavior into new `item-limit-unread` and `item-limit-important` settings. also now `[X]` and `{Y}` counters are no longer supported in the feeds file. `< reload-period X` should be used instead of `[X]` and `< item-limit Y` should be used instead of `{Y}`
+
+sorry to bother you with the second update in such a short time!
+
+* add `item-limit-unread` setting
+* add `item-limit-important` setting
+* drop support for bracketed [update timers] and {item limits} in feeds file (#94)
+
 # newsraft 0.26 "delicious tvorozhok"
 
 apart from other nice things, threading logic is changed completely to make use of caching for dns, connections, tls sessions, ca certs. now there's just 4 threads in the process and `update-threads-count` is gone.

@@ -118,28 +118,12 @@ parse_feeds_file(void)
 		}
 		trim_whitespace_from_string(line);
 
-		// Process deprecated timers
-		while (line->ptr[0] == '[' || line->ptr[0] == '{') {
-			char *close = strchr(line->ptr, line->ptr[0] == '[' ? ']' : '}');
-			if (close == NULL) {
-				write_error("Unclosed counter!\n");
-				goto error;
-			}
-			long value = -1;
-			if (sscanf(line->ptr + 1, "%ld", &value) != 1 || value < 0) {
-				write_error("Bracketed value contains invalid integer!\n");
-				goto error;
-			}
-			char setting[500];
-			int setting_len = 0;
-			if (line->ptr[0] == '[') {
-				setting_len = sprintf(setting, "reload-period %ld; ", value);
-			} else {
-				setting_len = sprintf(setting, "item-limit %ld; ", value);
-			}
-			catas(is_section ? section_cfg : feed_cfg, setting, setting_len);
-			remove_start_of_string(line, close + 1 - line->ptr);
-			trim_whitespace_from_string(line);
+		if (line->ptr[0] == '[' || line->ptr[0] == '{') {
+			write_error("Counters in square and curly brackets are deprecated!\n");
+			write_error("You must assign reload-period and item-limit settings to individual feeds and sections instead.\n");
+			write_error("For example:\n");
+			write_error("http://example.org/feed.xml < reload-period 30; item-limit 100\n");
+			goto error;
 		}
 
 		if (line->ptr[0] == '<') {

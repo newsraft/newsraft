@@ -28,15 +28,13 @@ struct feed_test feed_tests[] = {
 	{"$(curl foo://bar.baz/feed15)",            NULL,   0,   0,             "127.0.0.1"},
 	{"$(curl foo://bar.baz/feed16)",            NULL,   0,   0,             "127.0.0.1"},
 	{"$(curl foo://bar.baz/feed17)",            NULL,   0,   0,             "127.0.0.1"},
-	{"$(curl foo://bar.baz/feed18)",            NULL,  60, 100,                      ""},
-	{"$(curl foo://bar.baz/feed19)",            NULL, 120, 200,                      ""},
-	{"$(curl foo://bar.baz/feed20)",            NULL,   0,   0,                      ""},
-	{"$(curl foo://bar.baz/feed21)", "Feed 21 title",   0,   0,                      ""},
-	{"$(curl foo://bar.baz/feed22)",            NULL, 720,   0,                      ""},
-	{"$(curl foo://bar.baz/feed23)",            NULL,   0,   0,                      ""},
+	{"$(curl foo://bar.baz/feed18)",            NULL,   0,   0,                      ""},
+	{"$(curl foo://bar.baz/feed19)", "Feed 21 title",   0,   0,                      ""},
+	{"$(curl foo://bar.baz/feed20)",            NULL, 720,   0,                      ""},
+	{"$(curl foo://bar.baz/feed21)",            NULL,   0,   0,                      ""},
+	{"$(curl foo://bar.baz/feed22)",            NULL, 360,   0,                      ""},
+	{"$(curl foo://bar.baz/feed23)",            NULL, 180,   0,                      ""},
 	{"$(curl foo://bar.baz/feed24)",            NULL, 360,   0,                      ""},
-	{"$(curl foo://bar.baz/feed25)",            NULL, 180,   0,                      ""},
-	{"$(curl foo://bar.baz/feed26)",            NULL, 360,   0,                      ""},
 };
 
 int
@@ -54,8 +52,8 @@ main(void)
 	size_t feeds_count = 0;
 	struct feed_entry **feeds = get_all_feeds(&feeds_count);
 
-	if (feeds_count != 26) {
-		fprintf(stderr, "Feeds count %zu != %d\n", feeds_count, 26);
+	if (feeds_count != LENGTH(feed_tests)) {
+		fprintf(stderr, "Feeds count %zu != %zu\n", feeds_count, LENGTH(feed_tests));
 		return 1;
 	}
 

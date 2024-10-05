@@ -15,16 +15,14 @@ $(curl foo://bar.baz/feed14) < proxy "127.0.0.1";
 $(curl foo://bar.baz/feed15) < proxy '127.0.0.1';
 $(curl foo://bar.baz/feed16) < proxy "127.0.0.1";;
 $(curl foo://bar.baz/feed17) < proxy '127.0.0.1';;
-$(curl foo://bar.baz/feed18) [60] {100}
-$(curl foo://bar.baz/feed19) [60] {100} < reload-period 120; item-limit 200
 
 @ Section 1
-$(curl foo://bar.baz/feed20) ""
-$(curl foo://bar.baz/feed21) "Feed 21 title"
+$(curl foo://bar.baz/feed18) ""
+$(curl foo://bar.baz/feed19) "Feed 21 title"
 
 @ Section 2 < reload-period 360
-$(curl foo://bar.baz/feed22) < reload-period 720
-$(curl foo://bar.baz/feed23) < reload-period 0
+$(curl foo://bar.baz/feed20) < reload-period 720
+$(curl foo://bar.baz/feed21) < reload-period 0
+$(curl foo://bar.baz/feed22)
+$(curl foo://bar.baz/feed23) < reload-period 180
 $(curl foo://bar.baz/feed24)
-$(curl foo://bar.baz/feed25) < reload-period 180
-$(curl foo://bar.baz/feed26)

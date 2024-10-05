@@ -22,15 +22,25 @@ fnv_1a_string(struct string **target, const char *src)
 }
 
 bool
-delete_excess_items(const struct string *feed_url, int64_t limit)
+delete_excess_items(struct feed_entry *feed, int64_t limit)
 {
+	char query[300] = "DELETE FROM items WHERE rowid IN "
+		"(SELECT rowid FROM items WHERE feed_url=? ORDER BY publication_date DESC, update_date DESC, rowid DESC LIMIT -1 OFFSET ?)";
+
+	if (get_cfg_bool(&feed->cfg, CFG_ITEM_LIMIT_UNREAD) == false) {
+		strcat(query, " AND unread=0");
+	}
+	if (get_cfg_bool(&feed->cfg, CFG_ITEM_LIMIT_IMPORTANT) == false) {
+		strcat(query, " AND important=0");
+	}
+
 	INFO("Deleting excess items...");
-	sqlite3_stmt *s = db_prepare("DELETE FROM items WHERE rowid IN (SELECT rowid FROM items WHERE feed_url=? ORDER BY unread ASC, publication_date DESC, update_date DESC, rowid DESC LIMIT -1 OFFSET ?) AND important=0", 183);
+	sqlite3_stmt *s = db_prepare(query, strlen(query) + 1);
 	if (s == NULL) {
 		FAIL("Failed to prepare an excess items deletion statement!");
 		return false;
 	}
-	db_bind_string(s, 1, feed_url);
+	db_bind_string(s, 1, feed->link);
 	sqlite3_bind_int64(s, 2, limit);
 	sqlite3_step(s);
 	sqlite3_finalize(s);

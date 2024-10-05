@@ -200,6 +200,12 @@ _reload-period_ (*scalable*, default: *0*)
 _item-limit_ (*scalable*, default: *0*)
 	Maximum number of items stored in a feed. If set to *0*, no limit is set.
 
+_item-limit-unread_ (*scalable*, default: *true*)
+	If set to *true*, _item-limit_ setting will also cap unread items.
+
+_item-limit-important_ (*scalable*, default: *false*)
+	If set to *true*, _item-limit_ setting will also cap important items.
+
 _scrolloff_ (default: *0*)
 	Minimal number of list menu entries to keep above and below the selected
 	entry. If you set it to a very large value the selected entry will always be

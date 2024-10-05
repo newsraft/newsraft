@@ -14,7 +14,7 @@ insert_feed(struct feed_entry *feed, struct getfeed_feed *feed_data)
 		}
 	}
 	size_t limit = get_cfg_uint(&feed->cfg, CFG_ITEM_LIMIT);
-	if (limit > 0 && delete_excess_items(feed->link, limit) == false) {
+	if (limit > 0 && delete_excess_items(feed, limit) == false) {
 		WARN("Failed to delete excess items!");
 	}
 	return true;

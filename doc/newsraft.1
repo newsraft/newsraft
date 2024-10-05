@@ -5,7 +5,7 @@
 .nh
 .ad l
 .\" Begin generated content:
-.TH "NEWSRAFT" "1" "2024-09-12"
+.TH "NEWSRAFT" "1" "2024-10-05"
 .PP
 .SH NAME
 .PP
@@ -283,6 +283,16 @@ Feed auto reload period in minutes.\& If set to \fB0\fR, no auto reloads are run
 \fIitem-limit\fR (\fBscalable\fR, default: \fB0\fR)
 .RS 4
 Maximum number of items stored in a feed.\& If set to \fB0\fR, no limit is set.\&
+.PP
+.RE
+\fIitem-limit-unread\fR (\fBscalable\fR, default: \fBtrue\fR)
+.RS 4
+If set to \fBtrue\fR, \fIitem-limit\fR setting will also cap unread items.\&
+.PP
+.RE
+\fIitem-limit-important\fR (\fBscalable\fR, default: \fBfalse\fR)
+.RS 4
+If set to \fBtrue\fR, \fIitem-limit\fR setting will also cap important items.\&
 .PP
 .RE
 \fIscrolloff\fR (default: \fB0\fR)

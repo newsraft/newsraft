@@ -6,24 +6,24 @@ you're considering switching from Newsboat to Newsraft, it's advised to examine 
 
 ## TL;DR
 
-| Criterion                             | Newsraft                        | Newsboat               |
-|:--------------------------------------|:--------------------------------|:-----------------------|
-| Feeds grouping                        | Sections                        | Query feeds            |
-| Parallel downloads                    | +                               | +                      |
-| Multiple actions key bindings         | +                               | +                      |
-| Interactive content pager             | +                               | +                      |
-| Built-in HTML renderer                | +                               | +                      |
-| Sorting                               | +                               | +                      |
-| Automatic updates                     | +                               | +                      |
-| Item limits                           | +                               | +                      |
-| Per-feed settings                     | +                               | -                      |
-| Command feeds                         | `$(cmd arg1 arg2)`              | `"exec:cmd arg1 arg2"` |
-| Scripting capabilities                | `newsraft -e ACTION`            | `newsboat -x ACTION`   |
-| Download manager                      | -                               | `podboat`              |
-| Integration with third-party services | -                               | +                      |
-| Internal command-line                 | -                               | +                      |
-| Programming languages used            | C99                             | C++11, Rust            |
-| Source lines of code                  | ~9k                             | ~41k                   |
+| Criterion                                     | Newsraft                        | Newsboat               |
+|:----------------------------------------------|:--------------------------------|:-----------------------|
+| Feeds grouping                                | Sections                        | Query feeds            |
+| Parallel downloads                            | +                               | +                      |
+| Multiple actions key bindings                 | +                               | +                      |
+| Interactive content pager                     | +                               | +                      |
+| Built-in HTML renderer                        | +                               | +                      |
+| Sorting                                       | +                               | +                      |
+| Automatic updates                             | +                               | +                      |
+| Item limits                                   | +                               | +                      |
+| Per-feed settings                             | +                               | -                      |
+| Command feeds                                 | `$(cmd arg1 arg2)`              | `"exec:cmd arg1 arg2"` |
+| Scripting capabilities                        | `newsraft -e ACTION`            | `newsboat -x ACTION`   |
+| Download manager                              | -                               | `podboat`              |
+| Integration with third-party services         | -                               | +                      |
+| Internal command-line                         | -                               | +                      |
+| Programming languages used                    | C99                             | C++11, Rust            |
+| [Source lines of code](#source-lines-of-code) | ~9k                             | ~44k                   |
 
 Feel free to submit an issue if you think that table above contains outdated information.
 
@@ -86,3 +86,20 @@ and parses feed elements with O(n) time complexity. Newsboat takes
 object-oriented approach to processing feeds which can sometimes result in
 [a huge memory footprint](https://github.com/newsboat/newsboat/issues/977),
 while Newsraft represents feeds as simple structures of strings and numbers.
+
+## Source lines of code
+
+This is how SLOC is calculated. As you can see, Newsraft is almost 5 times smaller than Newsboat.
+
+```
+~/src/newsraft > git show -s --pretty=format:"%H %ad"
+8e8183e4a4b6fc381914d9c8b3e06a4aaa98f2da Sat Oct 5 23:37:33 2024 +0300
+~/src/newsraft > find src -regex ".*\.\(c\|h\)" -exec awk NF {} + | wc -l
+9042
+```
+```
+~/src/newsboat > git show -s --pretty=format:"%H %ad"
+c8b0c648b6a02bc481eb11b7f70611f2d6f2b858 Sun Oct 13 09:08:35 2024 +0300
+~/src/newsboat > find src rust rss filter include newsboat.cpp podboat.cpp config.h -regex ".*\.\(cpp\|h\|rs\)" -exec awk NF {} + | wc -l
+43958
+```

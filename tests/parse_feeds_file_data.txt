@@ -18,7 +18,7 @@ $(curl foo://bar.baz/feed17) < proxy '127.0.0.1';;
 
 @ Section 1
 $(curl foo://bar.baz/feed18) ""
-$(curl foo://bar.baz/feed19) "Feed 21 title"
+$(curl foo://bar.baz/feed19) "Feed 19 title"
 
 @ Section 2 < reload-period 360
 $(curl foo://bar.baz/feed20) < reload-period 720
@@ -26,3 +26,9 @@ $(curl foo://bar.baz/feed21) < reload-period 0
 $(curl foo://bar.baz/feed22)
 $(curl foo://bar.baz/feed23) < reload-period 180
 $(curl foo://bar.baz/feed24)
+
+@ Section 3 < reload-period 180; item-limit 10000
+$(curl foo://bar.baz/feed25)
+$(curl foo://bar.baz/feed26) "Feed 26 title"
+$(curl foo://bar.baz/feed27) "Feed 27 title" < item-limit 0
+$(curl foo://bar.baz/feed28) < item-limit 5000; proxy '127.0.0.1'; reload-period 0

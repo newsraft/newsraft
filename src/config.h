@@ -78,6 +78,7 @@ CFG(CFG_SCROLLOFF,                       "scrolloff",                       CFG_
 CFG(CFG_PAGER_WIDTH,                     "pager-width",                     CFG_UINT,   {.u = 100 })
 CFG(CFG_DOWNLOAD_TIMEOUT,                "download-timeout",                CFG_UINT,   {.u = 20  })
 CFG(CFG_DOWNLOAD_SPEED_LIMIT,            "download-speed-limit",            CFG_UINT,   {.u = 0   })
+CFG(CFG_DOWNLOAD_MAX_HOST_CONNECTIONS,   "download-max-host-connections",   CFG_UINT,   {.u = 0   })
 CFG(CFG_STATUS_MESSAGES_COUNT_LIMIT,     "status-messages-count-limit",     CFG_UINT,   {.u = 1000})
 CFG(CFG_STATUS_PLACEHOLDER,              "status-placeholder",              CFG_STRING, {.s = {.base = "r:reload  R:reload-all  tab:explore  d:read  D:unread  f:important  F:unimportant  n:next-unread  N:prev-unread  p:next-important  P:prev-important"}})
 CFG(CFG_COPY_TO_CLIPBOARD_COMMAND,       "copy-to-clipboard-command",       CFG_STRING, {.s = {.base = "auto", .auto_set = &obtain_clipboard_command}})

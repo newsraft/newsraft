@@ -5,7 +5,7 @@
 .nh
 .ad l
 .\" Begin generated content:
-.TH "NEWSRAFT" "1" "2024-10-05"
+.TH "NEWSRAFT" "1" "2024-10-25"
 .PP
 .SH NAME
 .PP
@@ -524,6 +524,12 @@ to \fB0\fR disables the timeout.\&
 .RS 4
 Maximum download speed in kilobytes per second (kB/s).\& Setting to \fB0\fR disables
 the limit.\&
+.PP
+.RE
+\fIdownload-max-host-connections\fR (default: \fB0\fR)
+.RS 4
+Maximum amount of simultaneously open connections Newsraft may hold a single
+host.\& If set to \fB0\fR, there is no limit.\&
 .PP
 .RE
 \fIstatus-messages-count-limit\fR (default: \fB1000\fR)

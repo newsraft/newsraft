@@ -353,6 +353,10 @@ _download-speed-limit_ (*scalable*, default: *0*)
 	Maximum download speed in kilobytes per second (kB/s). Setting to *0* disables
 	the limit.
 
+_download-max-host-connections_ (default: *0*)
+	Maximum amount of simultaneously open connections Newsraft may hold a single
+	host. If set to *0*, there is no limit.
+
 _status-messages-count-limit_ (default: *1000*)
 	Maximum number of status messages stored in memory. If set to *0*, status
 	messages history will not be stored in memory.

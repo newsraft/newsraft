@@ -391,6 +391,7 @@ curl_init(void)
 		write_error("Failed to initialize curl multi stack!\n");
 		return false;
 	}
+	curl_multi_setopt(multi, CURLMOPT_MAX_HOST_CONNECTIONS, get_cfg_uint(NULL, CFG_DOWNLOAD_MAX_HOST_CONNECTIONS));
 	return true;
 }
 

@@ -2,7 +2,7 @@ when:
   - event: push
     branch: main
 steps:
-  alpine:
+  - name: alpine
     image: alpine:latest
     commands:
       - apk add --no-cache

@@ -2,7 +2,7 @@ when:
   - event: push
     branch: main
 steps:
-  arch:
+  - name: arch
     image: archlinux:latest
     commands:
       - pacman --needed --noconfirm -Syu

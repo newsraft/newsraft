@@ -29,7 +29,7 @@ Check out [comparison of Newsraft and Newsboat](https://codeberg.org/newsraft/ne
 |--------------------------------------------------------------------|-----------|-----|-------|--------|
 | [curl](https://curl.se)                                            | >= 7.87.0 | +   | +     | +      |
 | [expat](https://github.com/libexpat/libexpat)                      | >= 2.4.8  | +   | +     | +      |
-| [gumbo-parser](https://codeberg.org/grisha/gumbo-parser)           | >= 0.11.0 | +   | +     | +      |
+| [gumbo-parser](https://codeberg.org/gumbo-parser/gumbo-parser)     | >= 0.11.0 | +   | +     | +      |
 | [ncursesw](https://invisible-island.net/ncurses)                   | >= 6.2    | +   | +     | +      |
 | [sqlite](https://www.sqlite.org)                                   | >= 3.36.0 | +   | +     | +      |
 | [yajl](https://github.com/lloyd/yajl)                              | >= 2.1.0  | +   | +     | +      |

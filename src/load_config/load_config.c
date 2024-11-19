@@ -55,7 +55,7 @@ get_cfg_uint(struct config_context **ctx, config_entry_id id)
 	return get_global_or_context_config(ctx, id, false)->value.u;
 }
 
-unsigned int
+unsigned
 get_cfg_color(struct config_context **ctx, config_entry_id id)
 {
 	struct config_entry *cfg = get_global_or_context_config(ctx, id, false);

@@ -41,15 +41,17 @@ get_item_args(struct menu_state *ctx, size_t index)
 	return item_fmt;
 }
 
-static int
+static unsigned
 paint_item(struct menu_state *ctx, size_t index)
 {
+	struct config_context **cfg = &ctx->items->ptr[index].feed[0]->cfg;
+
 	if (ctx->items->ptr[index].is_important == true) {
-		return CFG_COLOR_LIST_ITEM_IMPORTANT;
+		return get_cfg_color(cfg, CFG_COLOR_LIST_ITEM_IMPORTANT);
 	} else if (ctx->items->ptr[index].is_unread == true) {
-		return CFG_COLOR_LIST_ITEM_UNREAD;
+		return get_cfg_color(cfg, CFG_COLOR_LIST_ITEM_UNREAD);
 	} else {
-		return CFG_COLOR_LIST_ITEM;
+		return get_cfg_color(cfg, CFG_COLOR_LIST_ITEM);
 	}
 }
 

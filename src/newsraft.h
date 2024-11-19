@@ -210,7 +210,7 @@ struct menu_state {
 	const struct wstring *entry_format;
 	bool (*enumerator)(struct menu_state *ctx, size_t index); // Checks if index is valid
 	const struct format_arg *(*get_args)(struct menu_state *ctx, size_t index);
-	int (*paint_action)(struct menu_state *ctx, size_t index);
+	unsigned (*paint_action)(struct menu_state *ctx, size_t index);
 	void (*write_action)(size_t index, WINDOW *w);
 	bool (*unread_state)(struct menu_state *ctx, size_t index);
 	struct menu_state *prev;
@@ -539,7 +539,7 @@ bool process_config_line(struct feed_entry *feed, const char *str, size_t len);
 bool parse_config_file(void);
 bool get_cfg_bool(struct config_context **ctx, config_entry_id id);
 size_t get_cfg_uint(struct config_context **ctx, config_entry_id id);
-unsigned int get_cfg_color(struct config_context **ctx, config_entry_id id);
+unsigned get_cfg_color(struct config_context **ctx, config_entry_id id);
 const struct string *get_cfg_string(struct config_context **ctx, config_entry_id id);
 const struct wstring *get_cfg_wstring(struct config_context **ctx, config_entry_id id);
 void free_config(void);

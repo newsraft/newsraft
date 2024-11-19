@@ -35,11 +35,11 @@ get_section_args(struct menu_state *ctx, size_t index)
 	return section_fmt;
 }
 
-static int
+static unsigned
 paint_section(struct menu_state *ctx, size_t index)
 {
 	(void)ctx;
-	return sections[index].unread_count > 0 ? CFG_COLOR_LIST_SECTION_UNREAD : CFG_COLOR_LIST_SECTION;
+	return get_cfg_color(NULL, sections[index].unread_count > 0 ? CFG_COLOR_LIST_SECTION_UNREAD : CFG_COLOR_LIST_SECTION);
 }
 
 static bool

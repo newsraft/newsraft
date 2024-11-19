@@ -30,10 +30,10 @@ get_feed_args(struct menu_state *ctx, size_t index)
 	return feed_fmt;
 }
 
-static int
+static unsigned
 paint_feed(struct menu_state *ctx, size_t index)
 {
-	return ctx->feeds[index]->unread_count > 0 ? CFG_COLOR_LIST_FEED_UNREAD : CFG_COLOR_LIST_FEED;
+	return get_cfg_color(&ctx->feeds[index]->cfg, ctx->feeds[index]->unread_count > 0 ? CFG_COLOR_LIST_FEED_UNREAD : CFG_COLOR_LIST_FEED);
 }
 
 static bool

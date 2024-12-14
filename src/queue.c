@@ -1,5 +1,10 @@
 #include "newsraft.h"
 
+struct queue_notification_category {
+	const struct wstring *notify_cmd;
+	size_t new_items_count;
+};
+
 static struct feed_update_state *update_queue = NULL;
 static pthread_mutex_t update_queue_lock = PTHREAD_MUTEX_INITIALIZER;
 
@@ -52,6 +57,37 @@ queue_destroy(void)
 	pthread_mutex_unlock(&update_queue_lock);
 }
 
+static void
+queue_execute_update_notifications_unprotected(size_t max_units_count)
+{
+	struct queue_notification_category *units = calloc(max_units_count, sizeof(struct queue_notification_category));
+	if (units == NULL) {
+		return;
+	}
+
+	for (struct feed_update_state *i = update_queue; i != NULL; i = i->next) {
+		const struct wstring *notify_cmd = get_cfg_wstring(&i->feed_entry->cfg, CFG_NOTIFICATION_COMMAND);
+		if (notify_cmd && notify_cmd->len > 0 && i->new_items_count > 0) {
+			struct queue_notification_category *unit = units;
+			while (unit->notify_cmd != NULL && wcscmp(unit->notify_cmd->ptr, notify_cmd->ptr) != 0) {
+				unit += 1;
+			}
+			unit->notify_cmd = notify_cmd;
+			unit->new_items_count += i->new_items_count;
+		}
+	}
+
+	for (size_t i = 0; i < max_units_count && units[i].notify_cmd != NULL; ++i) {
+		struct format_arg notification_cmd_args[] = {
+			{L'q',  L'd',  {.i = units[i].new_items_count}},
+			{L'\0', L'\0', {.i = 0 /* terminator */}},
+		};
+		run_formatted_command(units[i].notify_cmd, notification_cmd_args);
+	}
+
+	free(units);
+}
+
 void
 queue_examine(void)
 {
@@ -60,7 +96,6 @@ queue_examine(void)
 	size_t update_queue_failures = 0;
 	size_t update_queue_cancelations = 0;
 	size_t update_queue_finished_len = 0;
-	size_t new_items_count = 0;
 	for (struct feed_update_state *j = update_queue; j != NULL; j = j->next) {
 		update_queue_len += 1;
 		if (j->is_finished) {
@@ -69,7 +104,6 @@ queue_examine(void)
 		if (j->is_canceled) {
 			update_queue_cancelations += 1;
 		}
-		new_items_count += j->new_items_count;
 	}
 	info_status("Feed updates completed: %zu/%zu", update_queue_finished_len, update_queue_len);
 	if (update_queue_finished_len == update_queue_len) {
@@ -82,16 +116,7 @@ queue_examine(void)
 		} else {
 			status_clean();
 		}
-		if (new_items_count > 0) {
-			const struct wstring *notification_cmd = get_cfg_wstring(NULL, CFG_NOTIFICATION_COMMAND);
-			if (notification_cmd != NULL && notification_cmd->len > 0) {
-				struct format_arg notification_cmd_args[] = {
-					{L'q',  L'd',  {.i = new_items_count    }},
-					{L'\0', L'\0', {.i = 0 /* terminator */ }},
-				};
-				run_formatted_command(notification_cmd, notification_cmd_args);
-			}
-		}
+		queue_execute_update_notifications_unprotected(update_queue_len);
 		db_commit_transaction();
 		destroy_queue_unprotected();
 	} else {

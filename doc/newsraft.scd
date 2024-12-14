@@ -240,7 +240,7 @@ _copy-to-clipboard-command_ (default: *auto*)
 	is set. Systems on macOS will force setting value to *"pbcopy"*. In other
 	cases the setting value will be set to *"false"*.
 
-_notification-command_ (default: *auto*)
+_notification-command_ (*scalable*, default: *auto*)
 	Shell command for invoking system notifications about new news received. If
 	it is set to *"auto"*, then Newsraft will set the setting value to
 	*"notify-send 'Newsraft brought %q news!'"* for most Unix systems and to

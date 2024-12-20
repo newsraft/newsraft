@@ -8,6 +8,8 @@ append_sorting_order_expression_to_query(struct string *q, int order)
 	switch (order) {
 		case SORT_BY_TIME_ASC:       return catas(q, " ORDER BY MAX(publication_date, update_date) ASC, rowid ASC", 59);
 		case SORT_BY_TIME_DESC:      return catas(q, " ORDER BY MAX(publication_date, update_date) DESC, rowid DESC", 61);
+		case SORT_BY_ROWID_ASC:      return catas(q, " ORDER BY rowid ASC", 19);
+		case SORT_BY_ROWID_DESC:     return catas(q, " ORDER BY rowid DESC", 20);
 		case SORT_BY_UNREAD_ASC:     return catas(q, " ORDER BY unread ASC, MAX(publication_date, update_date) DESC, rowid DESC", 73);
 		case SORT_BY_UNREAD_DESC:    return catas(q, " ORDER BY unread DESC, MAX(publication_date, update_date) DESC, rowid DESC", 74);
 		case SORT_BY_IMPORTANT_ASC:  return catas(q, " ORDER BY important ASC, MAX(publication_date, update_date) DESC, rowid DESC", 76);
@@ -220,6 +222,9 @@ change_items_list_sorting(struct items_list **items, input_id cmd)
 	switch (cmd) {
 		case INPUT_SORT_BY_TIME:
 			(*items)->sorting = (*items)->sorting == SORT_BY_TIME_DESC ? SORT_BY_TIME_ASC : SORT_BY_TIME_DESC;
+			break;
+		case INPUT_SORT_BY_ROWID:
+			(*items)->sorting = (*items)->sorting == SORT_BY_ROWID_DESC ? SORT_BY_ROWID_ASC : SORT_BY_ROWID_DESC;
 			break;
 		case INPUT_SORT_BY_UNREAD:
 			(*items)->sorting = (*items)->sorting == SORT_BY_UNREAD_DESC ? SORT_BY_UNREAD_ASC : SORT_BY_UNREAD_DESC;

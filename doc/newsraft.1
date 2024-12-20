@@ -5,7 +5,7 @@
 .nh
 .ad l
 .\" Begin generated content:
-.TH "NEWSRAFT" "1" "2024-12-14"
+.TH "NEWSRAFT" "1" "2024-12-19"
 .PP
 .SH NAME
 .PP
@@ -323,8 +323,8 @@ Sorting order for the feeds menu.\& Available values: \fBunread-desc\fR,
 \fImenu-item-sorting\fR (default: \fBtime-desc\fR)
 .RS 4
 Sorting order for the items menu.\& Available values: \fBtime-desc\fR, \fBtime-asc\fR,
-\fBunread-desc\fR, \fBunread-asc\fR, \fBimportant-desc\fR, \fBimportant-asc\fR,
-\fBalphabet-desc\fR, \fBalphabet-asc\fR.\&
+\fBrowid-desc\fR, \fBrowid-asc\fR, \fBunread-desc\fR, \fBunread-asc\fR,
+\fBimportant-desc\fR, \fBimportant-asc\fR, \fBalphabet-desc\fR, \fBalphabet-asc\fR.\&
 .PP
 .RE
 \fIopen-in-browser-command\fR (\fBscalable\fR, default: \fB${BROWSER:-xdg-open} "%l"\fR)
@@ -703,6 +703,7 @@ l l
 l l
 l l
 l l
+l l
 l l.
 T{
 Keys
@@ -793,6 +794,11 @@ T{
 \fIsort-by-time\fR
 T}	T{
 \fBt\fR
+T}
+T{
+\fIsort-by-rowid\fR
+T}	T{
+\fBw\fR
 T}
 T{
 \fIsort-by-unread\fR

@@ -225,8 +225,8 @@ _menu-feed-sorting_ (default: *none*)
 
 _menu-item-sorting_ (default: *time-desc*)
 	Sorting order for the items menu. Available values: *time-desc*, *time-asc*,
-	*unread-desc*, *unread-asc*, *important-desc*, *important-asc*,
-	*alphabet-desc*, *alphabet-asc*.
+	*rowid-desc*, *rowid-asc*, *unread-desc*, *unread-asc*,
+	*important-desc*, *important-asc*, *alphabet-desc*, *alphabet-asc*.
 
 _open-in-browser-command_ (*scalable*, default: *${BROWSER:-xdg-open} "%l"*)
 	Shell command for opening URL in a web browser. The URL to be opened is put
@@ -465,6 +465,8 @@ and *colorN* (*N* can be a number from *0* to *255*). Available attributes are
 :[ *<*
 |[ _sort-by-time_
 :[ *t*
+|[ _sort-by-rowid_
+:[ *w*
 |[ _sort-by-unread_
 :[ *u*
 |[ _sort-by-important_

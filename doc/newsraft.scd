@@ -429,8 +429,8 @@ and *colorN* (*N* can be a number from *0* to *255*). Available attributes are
 
 # ACTIONS
 
-|[ Keys
-:[ Actions
+|[ Actions
+:[ Keys
 |[ _select-next_
 :[ *j*, *KEY_DOWN*, *^E*
 |[ _select-prev_

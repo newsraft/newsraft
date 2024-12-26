@@ -206,6 +206,21 @@ _item-limit-unread_ (*scalable*, default: *true*)
 _item-limit-important_ (*scalable*, default: *false*)
 	If set to *true*, _item-limit_ setting will also cap important items.
 
+_item-rule_ (*scalable*, default: *""*)
+	Item search condition when accessing database. This can be very useful in
+	managing feeds with a heavy spam flow: you set a condition based on some
+	parameter and only those entries that meet this condition will be shown in
+	the feed. It must be specified in SQL language. It probably only makes sense
+	to set this setting for individual feeds, not globally (see *FEEDS FILE*
+	section to understand how). Available parameters: *guid*, *title*, *link*,
+	*content*, *attachments*, *persons*, *publication_date*, *update_date*.
+
+	Here are some examples of correct setting values:
+
+	*"title NOT LIKE '%Rust%'"*++
+*"persons LIKE '%PHARMACIST%' OR persons LIKE '%OFFL1NX%'"*++
+*"attachments NOT LIKE '%audio/mp3%' AND attachments NOT LIKE '%video/mp4%'"*
+
 _scrolloff_ (default: *0*)
 	Minimal number of list menu entries to keep above and below the selected
 	entry. If you set it to a very large value the selected entry will always be

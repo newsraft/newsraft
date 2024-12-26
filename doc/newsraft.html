@@ -279,6 +279,24 @@
     <b>false</b>)</p>
 <div class="Bd-indent">If set to <b>true</b>, <i>item-limit</i> setting will
   also cap important items.</div>
+<p class="Pp"><i>item-rule</i> (<b>scalable</b>, default:
+  <b>&quot;&quot;</b>)</p>
+<div class="Bd-indent">Item search condition when accessing database. This can
+  be very useful in managing feeds with a heavy spam flow: you set a condition
+  based on some parameter and only those entries that meet this condition will
+  be shown in the feed. It must be specified in SQL language. It probably only
+  makes sense to set this setting for individual feeds, not globally (see
+  <b>FEEDS FILE</b> section to understand how). Available parameters:
+  <b>guid</b>, <b>title</b>, <b>link</b>, <b>content</b>, <b>attachments</b>,
+  <b>persons</b>, <b>publication_date</b>, <b>update_date</b>.
+<p class="Pp">Here are some examples of correct setting values:</p>
+<p class="Pp"><b>&quot;title NOT LIKE '%Rust%'&quot;</b>
+  <br/>
+  <b>&quot;persons LIKE '%PHARMACIST%' OR persons LIKE '%OFFL1NX%'&quot;</b>
+  <br/>
+  <b>&quot;attachments NOT LIKE '%audio/mp3%' AND attachments NOT LIKE
+    '%video/mp4%'&quot;</b></p>
+</div>
 <p class="Pp"><i>scrolloff</i> (default: <b>0</b>)</p>
 <div class="Bd-indent">Minimal number of list menu entries to keep above and
   below the selected entry. If you set it to a very large value the selected

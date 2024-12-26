@@ -24,20 +24,29 @@ append_sorting_order_expression_to_query(struct string *q, int order)
 static inline struct string *
 generate_search_query_string(const struct items_list *items, const struct string *search_filter)
 {
-	struct string *q = crtas("SELECT rowid,feed_url,title,link,publication_date,update_date,unread,important FROM items WHERE feed_url IN (?", 110);
+	struct string *q = crtas("SELECT rowid,feed_url,title,link,publication_date,update_date,unread,important FROM items WHERE (", 97);
 	if (q == NULL) {
 		goto error;
 	}
-	for (size_t i = 1; i < items->feeds_count; ++i) {
-		if (catas(q, ",?", 2) == false) {
+	for (size_t i = 0; i < items->feeds_count; ++i) {
+		if (i > 0 && !catas(q, " OR ", 4)) {
 			goto error;
 		}
+		if (!catas(q, "feed_url=?", 10)) {
+			goto error;
+		}
+		const struct string *item_rule = get_cfg_string(&items->feeds[i]->cfg, CFG_ITEM_RULE);
+		if (item_rule != NULL && item_rule->len > 0) {
+			if (!catas(q, " AND (", 6) || !catss(q, item_rule) || !catcs(q, ')')) {
+				goto error;
+			}
+		}
 	}
-	if (catcs(q, ')') == false) {
+	if (!catcs(q, ')')) {
 		goto error;
 	}
 	if (search_filter != NULL && search_filter->len > 0) {
-		if (catas(q, " AND ((title LIKE '%' || ? || '%') OR (content LIKE '%' || ? || '%'))", 69) == false) {
+		if (!catas(q, " AND ((title LIKE '%' || ? || '%') OR (content LIKE '%' || ? || '%'))", 69)) {
 			goto error;
 		}
 	}
@@ -169,7 +178,7 @@ create_items_list(struct feed_entry **feeds, size_t feeds_count, int sorting, co
 	}
 	items->res = db_prepare(items->query->ptr, items->query->len + 1);
 	if (items->res == NULL) {
-		fail_status("Can't prepare search query for action!");
+		fail_status("Can't run items search query! Make sure the item-rule setting is set correctly.");
 		goto undo2;
 	}
 	for (size_t i = 0; i < feeds_count; ++i) {

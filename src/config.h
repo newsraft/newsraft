@@ -87,6 +87,7 @@ CFG(CFG_PROXY_USER,                      "proxy-user",                      CFG_
 CFG(CFG_PROXY_PASSWORD,                  "proxy-password",                  CFG_STRING, {.s = {.base = ""}})
 CFG(CFG_GLOBAL_SECTION_NAME,             "global-section-name",             CFG_STRING, {.s = {.base = "Global"}})
 CFG(CFG_USER_AGENT,                      "user-agent",                      CFG_STRING, {.s = {.base = "auto", .auto_set = &obtain_useragent_string}})
+CFG(CFG_ITEM_RULE,                       "item-rule",                       CFG_STRING, {.s = {.base = ""}})
 CFG(CFG_ITEM_CONTENT_FORMAT,             "item-content-format",             CFG_STRING, {.s = {.base = "<b>Feed</b>:&nbsp;&nbsp;%f<br>|<b>Title</b>:&nbsp;%t<br>|<b>Date</b>:&nbsp;&nbsp;%d<br>|<br>%c<br>|<br><hr>%L"}})
 CFG(CFG_ITEM_CONTENT_DATE_FORMAT,        "item-content-date-format",        CFG_STRING, {.s = {.base = "%a, %d %b %Y %H:%M:%S %z"}})
 CFG(CFG_ITEM_CONTENT_LINK_FORMAT,        "item-content-link-format",        CFG_STRING, {.s = {.base = "<b>[%i]</b>:&nbsp;%l<br>"}})

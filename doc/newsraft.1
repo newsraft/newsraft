@@ -295,6 +295,25 @@ If set to \fBtrue\fR, \fIitem-limit\fR setting will also cap unread items.\&
 If set to \fBtrue\fR, \fIitem-limit\fR setting will also cap important items.\&
 .PP
 .RE
+\fIitem-rule\fR (\fBscalable\fR, default: \fB""\fR)
+.RS 4
+Item search condition when accessing database.\& This can be very useful in
+managing feeds with a heavy spam flow: you set a condition based on some
+parameter and only those entries that meet this condition will be shown in
+the feed.\& It must be specified in SQL language.\& It probably only makes sense
+to set this setting for individual feeds, not globally (see \fBFEEDS FILE\fR
+section to understand how).\& Available parameters: \fBguid\fR, \fBtitle\fR, \fBlink\fR,
+\fBcontent\fR, \fBattachments\fR, \fBpersons\fR, \fBpublication_date\fR, \fBupdate_date\fR.\&
+.PP
+Here are some examples of correct setting values:
+.PP
+\fB"title NOT LIKE '\&%Rust%'\&"\fR
+.br
+\fB"persons LIKE '\&%PHARMACIST%'\& OR persons LIKE '\&%OFFL1NX%'\&"\fR
+.br
+\fB"attachments NOT LIKE '\&%audio/mp3%'\& AND attachments NOT LIKE '\&%video/mp4%'\&"\fR
+.PP
+.RE
 \fIscrolloff\fR (default: \fB0\fR)
 .RS 4
 Minimal number of list menu entries to keep above and below the selected

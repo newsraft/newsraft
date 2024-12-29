@@ -5,7 +5,7 @@
 .nh
 .ad l
 .\" Begin generated content:
-.TH "NEWSRAFT" "1" "2024-12-26"
+.TH "NEWSRAFT" "1" "2024-12-29"
 .PP
 .SH NAME
 .PP
@@ -174,8 +174,8 @@ them.\& The syntax is as follows:
 .PP
 .RE
 Settings set for feeds take precedence over the settings specified for sections.\&
-Not every setting supports individual assignment - only settings with \fBscalable\fR
-mark in \fBSETTINGS\fR section do.\&
+Not every setting supports individual assignment - only settings with asterisk
+\fB(*)\fR on them do (see \fBSETTINGS\fR section).\&
 .PP
 Search precedence:
 .PD 0
@@ -273,40 +273,34 @@ Search precedence:
 .PP
 .SH SETTINGS
 .PP
-Settings with \fBscalable\fR mark can be set for individual feeds and sections.\&
+Settings with asterisk \fB(*)\fR on them can be set for individual feeds and sections.\&
 .PP
-\fIreload-period\fR (\fBscalable\fR, default: \fB0\fR)
-.RS 4
-Feed auto reload period in minutes.\& If set to \fB0\fR, no auto reloads are run.\&
+.SS reload-period (*)
+Default: \fI0\fR.\& Feed auto reload period in minutes.\& If set to \fI0\fR, no auto reloads
+will be run.\&
 .PP
-.RE
-\fIitem-limit\fR (\fBscalable\fR, default: \fB0\fR)
-.RS 4
-Maximum number of items stored in a feed.\& If set to \fB0\fR, no limit is set.\&
+.SS item-limit (*)
+Default: \fI0\fR.\& Maximum number of items stored in a feed.\& If set to \fI0\fR, no limit
+will be set.\&
 .PP
-.RE
-\fIitem-limit-unread\fR (\fBscalable\fR, default: \fBtrue\fR)
-.RS 4
-If set to \fBtrue\fR, \fIitem-limit\fR setting will also cap unread items.\&
+.SS item-limit-unread (*)
+Default: \fItrue\fR.\& If \fItrue\fR, \fBitem-limit\fR setting will also cap unread items.\&
 .PP
-.RE
-\fIitem-limit-important\fR (\fBscalable\fR, default: \fBfalse\fR)
-.RS 4
-If set to \fBtrue\fR, \fIitem-limit\fR setting will also cap important items.\&
+.SS item-limit-important (*)
+Default: \fIfalse\fR.\& If \fItrue\fR, \fBitem-limit\fR setting will also cap important items.\&
 .PP
-.RE
-\fIitem-rule\fR (\fBscalable\fR, default: \fB""\fR)
-.RS 4
-Item search condition when accessing database.\& This can be very useful in
-managing feeds with a heavy spam flow: you set a condition based on some
-parameter and only those entries that meet this condition will be shown in
-the feed.\& It must be specified in SQL language.\& It probably only makes sense
-to set this setting for individual feeds, not globally (see \fBFEEDS FILE\fR
-section to understand how).\& Available parameters: \fBguid\fR, \fBtitle\fR, \fBlink\fR,
-\fBcontent\fR, \fBattachments\fR, \fBpersons\fR, \fBpublication_date\fR, \fBupdate_date\fR.\&
+.SS item-rule (*)
+Default: \fI""\fR.\& Item search condition when accessing database.\& This can be very
+useful in managing feeds with a heavy spam flow: you set a condition based on
+some parameters and only those entries that meet this condition will be shown in
+the feed.\& It'\&s specified in SQL format.\& It probably only makes sense to set this
+setting for individual feeds, and not globally (see \fBFEEDS FILE\fR section to
+understand how).\& Available parameters: \fBguid\fR, \fBtitle\fR, \fBlink\fR, \fBcontent\fR,
+\fBattachments\fR, \fBpersons\fR, \fBpublication_date\fR, \fBupdate_date\fR.\&
 .PP
 Here are some examples of correct setting values:
 .PP
+.RS 4
 \fB"title NOT LIKE '\&%Rust%'\&"\fR
 .br
 \fB"persons LIKE '\&%PHARMACIST%'\& OR persons LIKE '\&%OFFL1NX%'\&"\fR
@@ -314,303 +308,246 @@ Here are some examples of correct setting values:
 \fB"attachments NOT LIKE '\&%audio/mp3%'\& AND attachments NOT LIKE '\&%video/mp4%'\&"\fR
 .PP
 .RE
-\fIscrolloff\fR (default: \fB0\fR)
-.RS 4
-Minimal number of list menu entries to keep above and below the selected
-entry.\& If you set it to a very large value the selected entry will always be
-in the middle of the list menu (except for start and end of the list menu).\&
+.SS scrolloff
+Default: \fI0\fR.\& Minimal number of list menu entries to keep above and below the
+selected entry.\& If you set it to a very large value the selected entry will
+always be in the middle of the list menu (except for start and end of the list
+menu).\&
 .PP
-.RE
-\fIpager-width\fR (\fBscalable\fR, default: \fB100\fR)
-.RS 4
-Pager width in characters.\& If set to \fB0\fR, the pager will take up all available
-space.\&
+.SS pager-width (*)
+Default: \fI100\fR.\& Pager width in characters.\& If set to \fI0\fR, the pager will take up
+all available space.\&
 .PP
-.RE
-\fIpager-centering\fR (\fBscalable\fR, default: \fBtrue\fR)
-.RS 4
-Whether the pager should center its content when \fIpager-width\fR is not \fB0\fR.\& If
-set to \fBfalse\fR, the pager will be aligned to the left.\&
+.SS pager-centering (*)
+Default: \fItrue\fR.\& If \fItrue\fR and \fBpager-width\fR is not \fI0\fR, pager will center its
+content horizontally.\&
 .PP
-.RE
-\fImenu-feed-sorting\fR (default: \fBnone\fR)
-.RS 4
-Sorting order for the feeds menu.\& Available values: \fBunread-desc\fR,
-\fBunread-asc\fR, \fBalphabet-desc\fR, \fBalphabet-asc\fR.\&
+.SS menu-feed-sorting
+Default: \fInone\fR.\& Sorting order for the feeds menu.\& Available values:
+\fIunread-desc\fR, \fIunread-asc\fR, \fIalphabet-desc\fR, \fIalphabet-asc\fR.\&
 .PP
-.RE
-\fImenu-item-sorting\fR (default: \fBtime-desc\fR)
-.RS 4
-Sorting order for the items menu.\& Available values: \fBtime-desc\fR, \fBtime-asc\fR,
-\fBrowid-desc\fR, \fBrowid-asc\fR, \fBunread-desc\fR, \fBunread-asc\fR,
-\fBimportant-desc\fR, \fBimportant-asc\fR, \fBalphabet-desc\fR, \fBalphabet-asc\fR.\&
+.SS menu-item-sorting
+Default: \fItime-desc\fR.\& Sorting order for the items menu.\& Available values:
+\fItime-desc\fR, \fItime-asc\fR, \fIrowid-desc\fR, \fIrowid-asc\fR, \fIunread-desc\fR, \fIunread-asc\fR,
+\fIimportant-desc\fR, \fIimportant-asc\fR, \fIalphabet-desc\fR, \fIalphabet-asc\fR.\&
 .PP
-.RE
-\fIopen-in-browser-command\fR (\fBscalable\fR, default: \fB${BROWSER:-xdg-open} "%l"\fR)
-.RS 4
-Shell command for opening URL in a web browser.\& The URL to be opened is put
-in place where \fB%l\fR specifier is located.\&
+.SS open-in-browser-command (*)
+Default: \fI${BROWSER:-xdg-open} "%l"\fR.\& Shell command for opening URL in a web
+browser.\& The URL to be opened is put in place where \fI%l\fR specifier is located.\&
 .PP
-.RE
-\fIcopy-to-clipboard-command\fR (default: \fBauto\fR)
-.RS 4
-Shell command for copying text to clipboard.\& All copied data is sent to the
-standard input of the command.\& If it is set to \fB"auto"\fR, then Newsraft will
-set the setting value to \fB"wl-copy"\fR if environment variable WAYLAND_DISPLAY
-is set and to \fB"xclip -selection clipboard"\fR if environment variable DISPLAY
-is set.\& Systems on macOS will force setting value to \fB"pbcopy"\fR.\& In other
-cases the setting value will be set to \fB"false"\fR.\&
+.SS copy-to-clipboard-command
+Default: \fIauto\fR.\& Shell command for copying text to clipboard.\& All copied data is
+sent to the standard input of the command.\& If it is set to \fI"auto"\fR, then
+Newsraft will set the setting value to \fI"wl-copy"\fR if environment variable
+WAYLAND_DISPLAY is set and to \fI"xclip -selection clipboard"\fR if environment
+variable DISPLAY is set.\& Systems on macOS will force setting value to
+\fI"pbcopy"\fR.\& In other cases the setting value will be set to \fI"false"\fR.\&
 .PP
-.RE
-\fInotification-command\fR (\fBscalable\fR, default: \fBauto\fR)
-.RS 4
-Shell command for invoking system notifications about new news received.\& If
-it is set to \fB"auto"\fR, then Newsraft will set the setting value to
-\fB"notify-send '\&Newsraft brought %q news!\&'\&"\fR for most Unix systems and to
-\fB"osascript -e '\&display notification "Newsraft brought %q news!\&"'\&"\fR for macOS.\&
+.SS notification-command (*)
+Default: \fIauto\fR.\& Shell command for invoking system notifications about new news
+received.\& If it is set to \fI"auto"\fR, then Newsraft will set the setting value to
+\fI"notify-send '\&Newsraft brought %q news!\&'\&"\fR for most Unix systems and to
+\fI"osascript -e '\&display notification "Newsraft brought %q news!\&"'\&"\fR for macOS.\&
 .PP
-.RE
-\fIproxy\fR (\fBscalable\fR, default: \fB""\fR)
-.RS 4
-Sets the proxy to use for the network requests.\& It must be either a hostname
-or dotted numerical IPv4 address.\& To specify IPv6 address you have to enclose
-it within square brackets.\& Port number can be set by appending :PORT to the
-end of setting value.\& By default proxy protocol is considered HTTP, but you
+.SS proxy (*)
+Default: \fI""\fR.\& Sets the proxy to use for the network requests.\& It must be either
+a hostname or dotted numerical IPv4 address.\& To specify IPv6 address you have to
+enclose it within square brackets.\& Port number can be set by appending :PORT to
+the end of setting value.\& By default proxy protocol is considered HTTP, but you
 can set a different one by prepending SCHEME:// to the setting value.\&
 .PP
-.RE
-\fIproxy-user\fR (\fBscalable\fR, default: \fB""\fR)
-.RS 4
-User for authentication with the proxy server.\&
+.SS proxy-user (*)
+Default: \fI""\fR.\& User for authentication with the proxy server.\&
 .PP
-.RE
-\fIproxy-password\fR (\fBscalable\fR, default: \fB""\fR)
-.RS 4
-Password for authentication with the proxy server.\&
+.SS proxy-password (*)
+Default: \fI""\fR.\& Password for authentication with the proxy server.\&
 .PP
-.RE
-\fIglobal-section-name\fR (default: \fBGlobal\fR)
-.RS 4
-Name of the section that contains all feeds.\&
+.SS global-section-name
+Default: \fIGlobal\fR.\& Name of the section that contains all feeds.\&
 .PP
-.RE
-\fIstatus-show-menu-path\fR (default: \fBtrue\fR)
-.RS 4
-Print menu path in the status bar.\&
+.SS status-show-menu-path
+Default: \fItrue\fR.\& If \fItrue\fR, print menu path in the status bar.\&
 .PP
-.RE
-\fIstatus-placeholder\fR (default: \fBr:reload  R:reload-all  tab:explore  d:read  D:unread  f:important  F:unimportant  n:next-unread  N:prev-unread  p:next-important  P:prev-important\fR)
-.RS 4
+.SS status-placeholder
+Default: \fIr:reload  R:reload-all  tab:explore  d:read  D:unread  f:important F:unimportant  n:next-unread  N:prev-unread  p:next-important P:prev-important\fR.\&
+.PP
 Placeholder which is put in the status bar if it'\&s empty.\&
 .PP
-.RE
-\fIitem-content-format\fR (\fBscalable\fR, default: \fB<b>Feed</b>:&nbsp;&nbsp;%f<br>|<b>Title</b>:&nbsp;%t<br>|<b>Date</b>:&nbsp;&nbsp;%d<br>|<br>%c<br>|<br><hr>%L\fR)
-.RS 4
-Sets the format according to which the item'\&s content will be generated.\&
-The text in this format string is HTML formatted.\& Fields are separated by \fB|\fR
-character.\& If an item doesn'\&t have a value corresponding to the specifier in
-the field, then the entire field will not be shown.\& Specifiers are as follows:
-.br
-\fBf\fR	feed title if set, feed link otherwise;
-.br
-\fBt\fR	item title;
-.br
-\fBl\fR	item link;
-.br
-\fBd\fR	item date;
-.br
-\fBa\fR	item authors;
-.br
-\fBc\fR	item content;
-.br
-\fBL\fR	item links list.\&
+.SS item-content-format (*)
+Default: \fI<b>Feed</b>:&nbsp;&nbsp;%f<br>|<b>Title</b>:&nbsp;%t<br>|<b>Date</b>:&nbsp;&nbsp;%d<br>|<br>%c<br>|<br><hr>%L\fR.\&
 .PP
-.RE
-\fIitem-content-date-format\fR (\fBscalable\fR, default: \fB%a, %d %b %Y %H:%M:%S %z\fR)
-.RS 4
-Date format in the item'\&s content.\& Specifier values correspond to the
-\fBstrftime\fR(3) format.\&
-.PP
-.RE
-\fIitem-content-link-format\fR (\fBscalable\fR, default: \fB<b>[%i]</b>:&nbsp;%l<br>\fR)
-.RS 4
-Link format in the links list of item'\&s content.\& \fB%i\fR and \fB%l\fR will be
-replaced by link index and link address respectively.\&
-.PP
-.RE
-\fIlist-entry-date-format\fR (default: \fB%b %d\fR)
-.RS 4
-Date format of the list entries.\& Specifier values correspond to the
-\fBstrftime\fR(3) format.\&
-.PP
-.RE
-\fImenu-section-entry-format\fR (default: \fB%5.\&0u @ %t\fR)
-.RS 4
-Format of the section list entries.\& Specifiers are as follows:
-.br
-\fBi\fR	index number;
-.br
-\fBu\fR	unread items count;
-.br
-\fBt\fR	section title.\&
-.PP
-.RE
-\fImenu-feed-entry-format\fR (default: \fB%5.\&0u │ %t\fR)
-.RS 4
-Format of the feed list entries.\& Specifiers are as follows:
-.br
-\fBi\fR	index number;
-.br
-\fBu\fR	unread items count;
-.br
-\fBl\fR	feed link;
-.br
-\fBt\fR	feed name if set, feed link otherwise.\&
-.PP
-.RE
-\fImenu-item-entry-format\fR (default: \fB" %u │ %d │ %o"\fR)
-.RS 4
-Format of the item list entries.\& Specifiers are as follows:
-.br
-\fBi\fR	index number;
-.br
-\fBu\fR	"N" if item is unread, " " otherwise;
-.br
-\fBd\fR	update date formatted according to \fIlist-entry-date-format\fR;
-.br
-\fBD\fR	publication date formatted according to \fIlist-entry-date-format\fR;
-.br
-\fBl\fR	item link;
-.br
-\fBt\fR	item title;
-.br
-\fBo\fR	item title if set, item link otherwise;
-.br
-\fBL\fR	feed link;
-.br
-\fBT\fR	feed title;
-.br
-\fBO\fR	feed title if set, feed link otherwise.\&
-.PP
-.RE
-\fImenu-explore-item-entry-format\fR (default: \fB" %u │ %d │ %-28O │ %o"\fR)
-.RS 4
-Format of the item list entries in explore mode.\& Specifiers are the same as
-in \fImenu-item-entry-format\fR.\&
-.PP
-.RE
-\fIsections-menu-paramount-explore\fR (default: \fBfalse\fR)
-.RS 4
-Enables explore mode in sections menu by default.\&
-.PP
-.RE
-\fIfeeds-menu-paramount-explore\fR (default: \fBfalse\fR)
-.RS 4
-Enables explore mode in feeds menu by default.\&
-.PP
-.RE
-\fImark-item-unread-on-change\fR (\fBscalable\fR, default: \fBfalse\fR)
-.RS 4
-Mark every item that changes on a feed update as unread.\&
-.PP
-.RE
-\fImark-item-read-on-hover\fR (default: \fBfalse\fR)
-.RS 4
-Mark every item that gets selected as read.\&
-.PP
-.RE
-\fIanalyze-database-on-startup\fR (default: \fBtrue\fR)
-.RS 4
-Run "ANALYZE" SQLite command on the database every time you start Newsraft.\&
-It gathers statistics about database and uses it to optimize some queries
-making runtime faster.\&
-.PP
-.RE
-\fIclean-database-on-startup\fR (default: \fBfalse\fR)
-.RS 4
-Run "VACUUM" SQLite command on the database every time you start Newsraft.\&
-It rebuilds the database file by packing it into a minimal amount of disk space.\&
-This can significantly increase startup time.\&
-.PP
-.RE
-\fIdownload-timeout\fR (\fBscalable\fR, default: \fB20\fR)
-.RS 4
-Maximum time in seconds that you allow Newsraft to download one feed.\& Setting
-to \fB0\fR disables the timeout.\&
-.PP
-.RE
-\fIdownload-speed-limit\fR (\fBscalable\fR, default: \fB0\fR)
-.RS 4
-Maximum download speed in kilobytes per second (kB/s).\& Setting to \fB0\fR disables
-the limit.\&
-.PP
-.RE
-\fIdownload-max-host-connections\fR (default: \fB0\fR)
-.RS 4
-Maximum amount of simultaneously open connections Newsraft may hold a single
-host.\& If set to \fB0\fR, there is no limit.\&
-.PP
-.RE
-\fIstatus-messages-count-limit\fR (default: \fB1000\fR)
-.RS 4
-Maximum number of status messages stored in memory.\& If set to \fB0\fR, status
-messages history will not be stored in memory.\&
-.PP
-.RE
-\fIuser-agent\fR (\fBscalable\fR, default: \fBauto\fR)
-.RS 4
-User-Agent header sent with download requests.\& If it is set to \fB"auto"\fR,
-Newsraft will generate it according to the following format:
+Sets the format according to which the item'\&s content will be generated.\& The
+text in this format string is HTML formatted.\& Fields are separated by \fI|\fR
+character.\& If an item doesn'\&t have a value corresponding to the specifier in the
+field, then the entire field will not be shown.\& Specifiers are as follows:
 .PP
 .RS 4
-\fB"newsraft/"\fR + NEWSRAFT_VERSION + \fB" ("\fR + OS_NAME + \fB")"\fR
+\fIf\fR	feed title if set, feed link otherwise;
+.br
+\fIt\fR	item title;
+.br
+\fIl\fR	item link;
+.br
+\fId\fR	item date;
+.br
+\fIa\fR	item authors;
+.br
+\fIc\fR	item content;
+.br
+\fIL\fR	item links list.\&
+.PP
+.RE
+.SS item-content-date-format (*)
+Default: \fI%a, %d %b %Y %H:%M:%S %z\fR.\& Date format in the item'\&s content.\&
+Specifier values correspond to the \fBstrftime\fR(3) format.\&
+.PP
+.SS item-content-link-format (*)
+Default: \fI<b>[%i]</b>:&nbsp;%l<br>\fR.\& Link format in the links list of item'\&s
+content.\& \fI%i\fR and \fI%l\fR will be replaced by link index and link address
+respectively.\&
+.PP
+.SS list-entry-date-format
+Default: \fI%b %d\fR.\& Date format of the list entries.\& Specifier values correspond
+to the \fBstrftime\fR(3) format.\&
+.PP
+.SS menu-section-entry-format
+Default: \fI%5.\&0u @ %t\fR.\& Format of the section list entries.\& Specifiers are as
+follows:
+.PP
+.RS 4
+\fIi\fR	index number;
+.br
+\fIu\fR	unread items count;
+.br
+\fIt\fR	section title.\&
+.PP
+.RE
+.SS menu-feed-entry-format
+Default: \fI%5.\&0u │ %t\fR.\& Format of the feed list entries.\& Specifiers are as
+follows:
+.PP
+.RS 4
+\fIi\fR	index number;
+.br
+\fIu\fR	unread items count;
+.br
+\fIl\fR	feed link;
+.br
+\fIt\fR	feed name if set, feed link otherwise.\&
+.PP
+.RE
+.SS menu-item-entry-format
+Default: \fI" %u │ %d │ %o"\fR.\& Format of the item list entries.\& Specifiers are
+as follows:
+.PP
+.RS 4
+\fIi\fR	index number;
+.br
+\fIu\fR	"N" if item is unread, " " otherwise;
+.br
+\fId\fR	update date formatted according to \fBlist-entry-date-format\fR;
+.br
+\fID\fR	publication date formatted according to \fBlist-entry-date-format\fR;
+.br
+\fIl\fR	item link;
+.br
+\fIt\fR	item title;
+.br
+\fIo\fR	item title if set, item link otherwise;
+.br
+\fIL\fR	feed link;
+.br
+\fIT\fR	feed title;
+.br
+\fIO\fR	feed title if set, feed link otherwise.\&
+.PP
+.RE
+.SS menu-explore-item-entry-format
+Default: \fI" %u │ %d │ %-28O │ %o"\fR.\& Format of the item list entries in
+explore mode.\& Specifiers are the same as in \fBmenu-item-entry-format\fR.\&
+.PP
+.SS sections-menu-paramount-explore
+Default: \fIfalse\fR.\& Enables explore mode in sections menu by default.\&
+.PP
+.SS feeds-menu-paramount-explore
+Default: \fIfalse\fR.\& Enables explore mode in feeds menu by default.\&
+.PP
+.SS mark-item-unread-on-change (*)
+Default: \fIfalse\fR.\& Mark every item that changes on a feed update as unread.\&
+.PP
+.SS mark-item-read-on-hover
+Default: \fIfalse\fR.\& Mark every item that gets selected as read.\&
+.PP
+.SS analyze-database-on-startup
+Default: \fItrue\fR.\& Run "ANALYZE" SQLite command on the database every time you
+start Newsraft.\& It gathers statistics about database and uses it to optimize
+some queries making runtime faster.\&
+.PP
+.SS clean-database-on-startup
+Default: \fIfalse\fR.\& Run "VACUUM" SQLite command on the database every time you
+start Newsraft.\& It rebuilds the database file by packing it into a minimal
+amount of disk space.\& This can significantly increase startup time.\&
+.PP
+.SS download-timeout (*)
+Default: \fI20\fR.\& Maximum time in seconds that you allow Newsraft to download one
+feed.\& Setting to \fI0\fR disables the timeout.\&
+.PP
+.SS download-speed-limit (*)
+Default: \fI0\fR.\& Maximum download speed in kilobytes per second (kB/s).\& Setting to
+\fI0\fR disables the limit.\&
+.PP
+.SS download-max-host-connections
+Default: \fI0\fR.\& Maximum amount of simultaneously open connections Newsraft may
+hold a single host.\& If set to \fI0\fR, there is no limit.\&
+.PP
+.SS status-messages-count-limit
+Default: \fI1000\fR.\& Maximum number of status messages stored in memory.\& If set to
+\fI0\fR, status messages history will not be stored in memory.\&
+.PP
+.SS user-agent (*)
+Default: \fIauto\fR.\& User-Agent header sent with download requests.\& If it is set to
+\fI"auto"\fR, Newsraft will generate it according to the following format:
+.PP
+.RS 4
+\fI"newsraft/"\fR + NEWSRAFT_VERSION + \fI" ("\fR + OS_NAME + \fI")"\fR
 .PP
 .RE
 OS_NAME shouldn'\&t be a matter of privacy concern, because on most systems it
-contains nothing more like \fB"Linux"\fR or \fB"Darwin"\fR.\& If you want to be sure
-of this, check Newsraft log to see how \fIuser-agent\fR is set at startup.\&
+contains nothing more like \fI"Linux"\fR or \fI"Darwin"\fR.\& If you want to be sure of
+this, check Newsraft log to see how \fBuser-agent\fR is set at startup.\&
 .PP
-If set to \fB""\fR, User-Agent header will not be sent.\&
+If set to \fI""\fR, User-Agent header will not be sent.\&
 .PP
-.RE
-\fIrespect-ttl-element\fR (\fBscalable\fR, default: \fBtrue\fR)
-.RS 4
-Prevents too frequent updates for some feeds.\& The limit is set by the
-creators of the feeds in order to save traffic and resources for a very
+.SS respect-ttl-element (*)
+Default: \fItrue\fR.\& Prevents too frequent updates for some feeds.\& The limit is set
+by the creators of the feeds in order to save traffic and resources for a very
 rarely updated feeds.\& Disabling it is strongly discouraged.\&
 .PP
-.RE
-\fIrespect-expires-header\fR (\fBscalable\fR, default: \fBtrue\fR)
-.RS 4
-Prevents feed updates until the expiration date of the previously downloaded
-information in order to save traffic and resources.\& Disabling it is strongly
-discouraged.\&
+.SS respect-expires-header (*)
+Default: \fItrue\fR.\& Prevents feed updates until the expiration date of the
+previously downloaded information in order to save traffic and resources.\&
+Disabling it is strongly discouraged.\&
 .PP
-.RE
-\fIsend-if-none-match-header\fR (\fBscalable\fR, default: \fBtrue\fR)
-.RS 4
-Sends an entity tag corresponding to the previously downloaded information.\&
-If the server from which the feed is downloaded contains information with
-the same tag, then in order to save traffic and resources, it will reject
-the download request.\& Disabling it is strongly discouraged.\&
-.PP
-.RE
-\fIsend-if-modified-since-header\fR (\fBscalable\fR, default: \fBtrue\fR)
-.RS 4
-Sends a date corresponding to the last modification of previously downloaded
+.SS send-if-none-match-header (*)
+Default: \fItrue\fR.\& Sends an entity tag corresponding to the previously downloaded
 information.\& If the server from which the feed is downloaded contains
-information with the same modification date, then in order to save traffic
-and resources, it will reject the download request.\& Disabling it is strongly
-discouraged.\&
+information with the same tag, then in order to save traffic and resources, it
+will reject the download request.\& Disabling it is strongly discouraged.\&
 .PP
-.RE
+.SS send-if-modified-since-header (*)
+Default: \fItrue\fR.\& Sends a date corresponding to the last modification of
+previously downloaded information.\& If the server from which the feed is
+downloaded contains information with the same modification date, then in order
+to save traffic and resources, it will reject the download request.\& Disabling it
+is strongly discouraged.\&
+.PP
 .SH COLOR SETTINGS
 .PP
 Color settings are the same settings as above, but they take two color words
 (foreground and background) and optional attribute words.\& Available colors are
-\fBdefault\fR, \fBblack\fR, \fBred\fR, \fBgreen\fR, \fByellow\fR, \fBblue\fR, \fBmagenta\fR, \fBcyan\fR, \fBwhite\fR
-and \fBcolorN\fR (\fBN\fR can be a number from \fB0\fR to \fB255\fR).\& Available attributes are
-\fBbold\fR, \fBitalic\fR and \fBunderlined\fR.\&
+\fIdefault\fR, \fIblack\fR, \fIred\fR, \fIgreen\fR, \fIyellow\fR, \fIblue\fR, \fImagenta\fR, \fIcyan\fR, \fIwhite\fR
+and \fIcolorN\fR (\fIN\fR can be a number from \fI0\fR to \fI255\fR).\& Available attributes are
+\fIbold\fR, \fIitalic\fR and \fIunderlined\fR.\&
 .PP
 .TS
 l l
@@ -630,54 +567,54 @@ T}	T{
 Default value
 T}
 T{
-\fIcolor-status\fR
+\fBcolor-status\fR
 T}	T{
-\fBgreen default bold\fR
+\fIgreen default bold\fR
 T}
 T{
-\fIcolor-status-info\fR
+\fBcolor-status-info\fR
 T}	T{
-\fBcyan default bold\fR
+\fIcyan default bold\fR
 T}
 T{
-\fIcolor-status-fail\fR
+\fBcolor-status-fail\fR
 T}	T{
-\fBred default bold\fR
+\fIred default bold\fR
 T}
 T{
-\fIcolor-list-item\fR
+\fBcolor-list-item\fR
 T}	T{
-\fBdefault default\fR
+\fIdefault default\fR
 T}
 T{
-\fIcolor-list-item-unread\fR
+\fBcolor-list-item-unread\fR
 T}	T{
-\fByellow default\fR
+\fIyellow default\fR
 T}
 T{
-\fIcolor-list-item-important\fR
+\fBcolor-list-item-important\fR
 T}	T{
-\fBmagenta default\fR
+\fImagenta default\fR
 T}
 T{
-\fIcolor-list-feed\fR
+\fBcolor-list-feed\fR
 T}	T{
-\fBdefault default\fR
+\fIdefault default\fR
 T}
 T{
-\fIcolor-list-feed-unread\fR
+\fBcolor-list-feed-unread\fR
 T}	T{
-\fByellow default\fR
+\fIyellow default\fR
 T}
 T{
-\fIcolor-list-section\fR
+\fBcolor-list-section\fR
 T}	T{
-\fBdefault default\fR
+\fIdefault default\fR
 T}
 T{
-\fIcolor-list-section-unread\fR
+\fBcolor-list-section-unread\fR
 T}	T{
-\fByellow default\fR
+\fIyellow default\fR
 T}
 .TE
 .sp 1
@@ -730,199 +667,199 @@ T}	T{
 Keys
 T}
 T{
-\fIselect-next\fR
+\fBselect-next\fR
 T}	T{
-\fBj\fR, \fBKEY_DOWN\fR, \fB^E\fR
+\fIj\fR, \fIKEY_DOWN\fR, \fI^E\fR
 T}
 T{
-\fIselect-prev\fR
+\fBselect-prev\fR
 T}	T{
-\fBk\fR, \fBKEY_UP\fR, \fB^Y\fR
+\fIk\fR, \fIKEY_UP\fR, \fI^Y\fR
 T}
 T{
-\fIselect-next-page\fR
+\fBselect-next-page\fR
 T}	T{
-\fBspace\fR, \fB^F\fR, \fBKEY_NPAGE\fR
+\fIspace\fR, \fI^F\fR, \fIKEY_NPAGE\fR
 T}
 T{
-\fIselect-prev-page\fR
+\fBselect-prev-page\fR
 T}	T{
-\fB^B\fR, \fBKEY_PPAGE\fR
+\fI^B\fR, \fIKEY_PPAGE\fR
 T}
 T{
-\fIselect-first\fR
+\fBselect-first\fR
 T}	T{
-\fBg\fR, \fBKEY_HOME\fR
+\fIg\fR, \fIKEY_HOME\fR
 T}
 T{
-\fIselect-last\fR
+\fBselect-last\fR
 T}	T{
-\fBG\fR, \fBKEY_END\fR
+\fIG\fR, \fIKEY_END\fR
 T}
 T{
-\fIjump-to-next\fR
+\fBjump-to-next\fR
 T}	T{
-\fBJ\fR
+\fIJ\fR
 T}
 T{
-\fIjump-to-prev\fR
+\fBjump-to-prev\fR
 T}	T{
-\fBK\fR
+\fIK\fR
 T}
 T{
-\fIjump-to-next-unread\fR
+\fBjump-to-next-unread\fR
 T}	T{
-\fBn\fR
+\fIn\fR
 T}
 T{
-\fIjump-to-prev-unread\fR
+\fBjump-to-prev-unread\fR
 T}	T{
-\fBN\fR
+\fIN\fR
 T}
 T{
-\fIjump-to-next-important\fR
+\fBjump-to-next-important\fR
 T}	T{
-\fBp\fR
+\fIp\fR
 T}
 T{
-\fIjump-to-prev-important\fR
+\fBjump-to-prev-important\fR
 T}	T{
-\fBP\fR
+\fIP\fR
 T}
 T{
-\fIgoto-feed\fR
+\fBgoto-feed\fR
 T}	T{
-\fB*\fR
+\fI*\fR
 T}
 T{
-\fIshift-west\fR
+\fBshift-west\fR
 T}	T{
-\fB,\fR
+\fI,\fR
 T}
 T{
-\fIshift-east\fR
+\fBshift-east\fR
 T}	T{
-\fB.\&\fR
+\fI.\&\fR
 T}
 T{
-\fIshift-reset\fR
+\fBshift-reset\fR
 T}	T{
-\fB<\fR
+\fI<\fR
 T}
 T{
-\fIsort-by-time\fR
+\fBsort-by-time\fR
 T}	T{
-\fBt\fR
+\fIt\fR
 T}
 T{
-\fIsort-by-rowid\fR
+\fBsort-by-rowid\fR
 T}	T{
-\fBw\fR
+\fIw\fR
 T}
 T{
-\fIsort-by-unread\fR
+\fBsort-by-unread\fR
 T}	T{
-\fBu\fR
+\fIu\fR
 T}
 T{
-\fIsort-by-important\fR
+\fBsort-by-important\fR
 T}	T{
-\fBi\fR
+\fIi\fR
 T}
 T{
-\fIsort-by-alphabet\fR
+\fBsort-by-alphabet\fR
 T}	T{
-\fBa\fR
+\fIa\fR
 T}
 T{
-\fIenter\fR
+\fBenter\fR
 T}	T{
-\fBenter\fR, \fBl\fR, \fBKEY_ENTER\fR, \fBKEY_RIGHT\fR
+\fIenter\fR, \fIl\fR, \fIKEY_ENTER\fR, \fIKEY_RIGHT\fR
 T}
 T{
-\fIreload\fR
+\fBreload\fR
 T}	T{
-\fBr\fR
+\fIr\fR
 T}
 T{
-\fIreload-all\fR
+\fBreload-all\fR
 T}	T{
-\fBR\fR, \fB^R\fR
+\fIR\fR, \fI^R\fR
 T}
 T{
-\fImark-read\fR; \fIjump-to-next\fR
+\fBmark-read\fR; \fBjump-to-next\fR
 T}	T{
-\fBd\fR
+\fId\fR
 T}
 T{
-\fImark-unread\fR; \fIjump-to-next\fR
+\fBmark-unread\fR; \fBjump-to-next\fR
 T}	T{
-\fBD\fR
+\fID\fR
 T}
 T{
-\fImark-read-all\fR
+\fBmark-read-all\fR
 T}	T{
-\fB^D\fR
+\fI^D\fR
 T}
 T{
-\fImark-unread-all\fR
+\fBmark-unread-all\fR
 T}	T{
 (not set)
 T}
 T{
-\fImark-important\fR
+\fBmark-important\fR
 T}	T{
-\fBf\fR
+\fIf\fR
 T}
 T{
-\fImark-unimportant\fR
+\fBmark-unimportant\fR
 T}	T{
-\fBF\fR
+\fIF\fR
 T}
 T{
-\fItoggle-explore-mode\fR
+\fBtoggle-explore-mode\fR
 T}	T{
-\fBtab\fR, \fBe\fR
+\fItab\fR, \fIe\fR
 T}
 T{
-\fIstatus-history-menu\fR
+\fBstatus-history-menu\fR
 T}	T{
-\fBv\fR
+\fIv\fR
 T}
 T{
-\fIopen-in-browser\fR
+\fBopen-in-browser\fR
 T}	T{
-\fBo\fR
+\fIo\fR
 T}
 T{
-\fIcopy-to-clipboard\fR
+\fBcopy-to-clipboard\fR
 T}	T{
-\fBy\fR, \fBc\fR
+\fIy\fR, \fIc\fR
 T}
 T{
-\fIstart-search-input\fR
+\fBstart-search-input\fR
 T}	T{
-\fB/\fR
+\fI/\fR
 T}
 T{
-\fIclean-status\fR
+\fBclean-status\fR
 T}	T{
-\fBescape\fR
+\fIescape\fR
 T}
 T{
-\fInavigate-back\fR
+\fBnavigate-back\fR
 T}	T{
-\fBh\fR, \fBbackspace\fR, \fBKEY_LEFT\fR, \fBKEY_BACKSPACE\fR
+\fIh\fR, \fIbackspace\fR, \fIKEY_LEFT\fR, \fIKEY_BACKSPACE\fR
 T}
 T{
-\fIquit\fR
+\fBquit\fR
 T}	T{
-\fBq\fR
+\fIq\fR
 T}
 T{
-\fIquit-hard\fR
+\fBquit-hard\fR
 T}	T{
-\fBQ\fR
+\fIQ\fR
 T}
 .TE
 .sp 1

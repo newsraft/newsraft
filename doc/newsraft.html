@@ -178,7 +178,8 @@
   book.sh &quot;%l&quot;</i></div>
 <p class="Pp">Settings set for feeds take precedence over the settings specified
     for sections. Not every setting supports individual assignment - only
-    settings with <b>scalable</b> mark in <b>SETTINGS</b> section do.</p>
+    settings with asterisk <b>(*)</b> on them do (see <b>SETTINGS</b>
+  section).</p>
 <p class="Pp">Search precedence:</p>
 <dl class="Bl-tag">
   <dt>1.</dt>
@@ -263,266 +264,370 @@
 </section>
 <section class="Sh">
 <h1 class="Sh" id="SETTINGS"><a class="permalink" href="#SETTINGS">SETTINGS</a></h1>
-<p class="Pp">Settings with <b>scalable</b> mark can be set for individual feeds
-    and sections.</p>
-<p class="Pp"><i>reload-period</i> (<b>scalable</b>, default: <b>0</b>)</p>
-<div class="Bd-indent">Feed auto reload period in minutes. If set to <b>0</b>,
-  no auto reloads are run.</div>
-<p class="Pp"><i>item-limit</i> (<b>scalable</b>, default: <b>0</b>)</p>
-<div class="Bd-indent">Maximum number of items stored in a feed. If set to
-  <b>0</b>, no limit is set.</div>
-<p class="Pp"><i>item-limit-unread</i> (<b>scalable</b>, default:
-  <b>true</b>)</p>
-<div class="Bd-indent">If set to <b>true</b>, <i>item-limit</i> setting will
-  also cap unread items.</div>
-<p class="Pp"><i>item-limit-important</i> (<b>scalable</b>, default:
-    <b>false</b>)</p>
-<div class="Bd-indent">If set to <b>true</b>, <i>item-limit</i> setting will
-  also cap important items.</div>
-<p class="Pp"><i>item-rule</i> (<b>scalable</b>, default:
-  <b>&quot;&quot;</b>)</p>
-<div class="Bd-indent">Item search condition when accessing database. This can
-  be very useful in managing feeds with a heavy spam flow: you set a condition
-  based on some parameter and only those entries that meet this condition will
-  be shown in the feed. It must be specified in SQL language. It probably only
-  makes sense to set this setting for individual feeds, not globally (see
-  <b>FEEDS FILE</b> section to understand how). Available parameters:
-  <b>guid</b>, <b>title</b>, <b>link</b>, <b>content</b>, <b>attachments</b>,
-  <b>persons</b>, <b>publication_date</b>, <b>update_date</b>.
+<p class="Pp">Settings with asterisk <b>(*)</b> on them can be set for
+    individual feeds and sections.</p>
+<section class="Ss">
+<h2 class="Ss" id="reload-period_(*)"><a class="permalink" href="#reload-period_(*)">reload-period
+  (*)</a></h2>
+<p class="Pp">Default: <i>0</i>. Feed auto reload period in minutes. If set to
+    <i>0</i>, no auto reloads will be run.</p>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="item-limit_(*)"><a class="permalink" href="#item-limit_(*)">item-limit
+  (*)</a></h2>
+<p class="Pp">Default: <i>0</i>. Maximum number of items stored in a feed. If
+    set to <i>0</i>, no limit will be set.</p>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="item-limit-unread_(*)"><a class="permalink" href="#item-limit-unread_(*)">item-limit-unread
+  (*)</a></h2>
+<p class="Pp">Default: <i>true</i>. If <i>true</i>, <b>item-limit</b> setting
+    will also cap unread items.</p>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="item-limit-important_(*)"><a class="permalink" href="#item-limit-important_(*)">item-limit-important
+  (*)</a></h2>
+<p class="Pp">Default: <i>false</i>. If <i>true</i>, <b>item-limit</b> setting
+    will also cap important items.</p>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="item-rule_(*)"><a class="permalink" href="#item-rule_(*)">item-rule
+  (*)</a></h2>
+<p class="Pp">Default: <i>&quot;&quot;</i>. Item search condition when accessing
+    database. This can be very useful in managing feeds with a heavy spam flow:
+    you set a condition based on some parameters and only those entries that
+    meet this condition will be shown in the feed. It's specified in SQL format.
+    It probably only makes sense to set this setting for individual feeds, and
+    not globally (see <b>FEEDS FILE</b> section to understand how). Available
+    parameters: <b>guid</b>, <b>title</b>, <b>link</b>, <b>content</b>,
+    <b>attachments</b>, <b>persons</b>, <b>publication_date</b>,
+    <b>update_date</b>.</p>
 <p class="Pp">Here are some examples of correct setting values:</p>
-<p class="Pp"><b>&quot;title NOT LIKE '%Rust%'&quot;</b>
-  <br/>
-  <b>&quot;persons LIKE '%PHARMACIST%' OR persons LIKE '%OFFL1NX%'&quot;</b>
-  <br/>
-  <b>&quot;attachments NOT LIKE '%audio/mp3%' AND attachments NOT LIKE
-    '%video/mp4%'&quot;</b></p>
-</div>
-<p class="Pp"><i>scrolloff</i> (default: <b>0</b>)</p>
-<div class="Bd-indent">Minimal number of list menu entries to keep above and
-  below the selected entry. If you set it to a very large value the selected
-  entry will always be in the middle of the list menu (except for start and end
-  of the list menu).</div>
-<p class="Pp"><i>pager-width</i> (<b>scalable</b>, default: <b>100</b>)</p>
-<div class="Bd-indent">Pager width in characters. If set to <b>0</b>, the pager
-  will take up all available space.</div>
-<p class="Pp"><i>pager-centering</i> (<b>scalable</b>, default: <b>true</b>)</p>
-<div class="Bd-indent">Whether the pager should center its content when
-  <i>pager-width</i> is not <b>0</b>. If set to <b>false</b>, the pager will be
-  aligned to the left.</div>
-<p class="Pp"><i>menu-feed-sorting</i> (default: <b>none</b>)</p>
-<div class="Bd-indent">Sorting order for the feeds menu. Available values:
-  <b>unread-desc</b>, <b>unread-asc</b>, <b>alphabet-desc</b>,
-  <b>alphabet-asc</b>.</div>
-<p class="Pp"><i>menu-item-sorting</i> (default: <b>time-desc</b>)</p>
-<div class="Bd-indent">Sorting order for the items menu. Available values:
-  <b>time-desc</b>, <b>time-asc</b>, <b>rowid-desc</b>, <b>rowid-asc</b>,
-  <b>unread-desc</b>, <b>unread-asc</b>, <b>important-desc</b>,
-  <b>important-asc</b>, <b>alphabet-desc</b>, <b>alphabet-asc</b>.</div>
-<p class="Pp"><i>open-in-browser-command</i> (<b>scalable</b>, default:
-    <b>${BROWSER:-xdg-open} &quot;%l&quot;</b>)</p>
-<div class="Bd-indent">Shell command for opening URL in a web browser. The URL
-  to be opened is put in place where <b>%l</b> specifier is located.</div>
-<p class="Pp"><i>copy-to-clipboard-command</i> (default: <b>auto</b>)</p>
-<div class="Bd-indent">Shell command for copying text to clipboard. All copied
-  data is sent to the standard input of the command. If it is set to
-  <b>&quot;auto&quot;</b>, then Newsraft will set the setting value to
-  <b>&quot;wl-copy&quot;</b> if environment variable WAYLAND_DISPLAY is set and
-  to <b>&quot;xclip -selection clipboard&quot;</b> if environment variable
-  DISPLAY is set. Systems on macOS will force setting value to
-  <b>&quot;pbcopy&quot;</b>. In other cases the setting value will be set to
-  <b>&quot;false&quot;</b>.</div>
-<p class="Pp"><i>notification-command</i> (<b>scalable</b>, default:
-    <b>auto</b>)</p>
-<div class="Bd-indent">Shell command for invoking system notifications about new
-  news received. If it is set to <b>&quot;auto&quot;</b>, then Newsraft will set
-  the setting value to <b>&quot;notify-send 'Newsraft brought %q
-  news!'&quot;</b> for most Unix systems and to <b>&quot;osascript -e 'display
-  notification &quot;Newsraft brought %q news!&quot;'&quot;</b> for macOS.</div>
-<p class="Pp"><i>proxy</i> (<b>scalable</b>, default: <b>&quot;&quot;</b>)</p>
-<div class="Bd-indent">Sets the proxy to use for the network requests. It must
-  be either a hostname or dotted numerical IPv4 address. To specify IPv6 address
-  you have to enclose it within square brackets. Port number can be set by
-  appending :PORT to the end of setting value. By default proxy protocol is
-  considered HTTP, but you can set a different one by prepending SCHEME:// to
-  the setting value.</div>
-<p class="Pp"><i>proxy-user</i> (<b>scalable</b>, default:
-  <b>&quot;&quot;</b>)</p>
-<div class="Bd-indent">User for authentication with the proxy server.</div>
-<p class="Pp"><i>proxy-password</i> (<b>scalable</b>, default:
-    <b>&quot;&quot;</b>)</p>
-<div class="Bd-indent">Password for authentication with the proxy server.</div>
-<p class="Pp"><i>global-section-name</i> (default: <b>Global</b>)</p>
-<div class="Bd-indent">Name of the section that contains all feeds.</div>
-<p class="Pp"><i>status-show-menu-path</i> (default: <b>true</b>)</p>
-<div class="Bd-indent">Print menu path in the status bar.</div>
-<p class="Pp"><i>status-placeholder</i> (default: <b>r:reload R:reload-all
-    tab:explore d:read D:unread f:important F:unimportant n:next-unread
-    N:prev-unread p:next-important P:prev-important</b>)</p>
-<div class="Bd-indent">Placeholder which is put in the status bar if it's
-  empty.</div>
-<p class="Pp"><i>item-content-format</i> (<b>scalable</b>, default:
-    <b>&lt;b&gt;Feed&lt;/b&gt;:&amp;nbsp;&amp;nbsp;%f&lt;br&gt;|&lt;b&gt;Title&lt;/b&gt;:&amp;nbsp;%t&lt;br&gt;|&lt;b&gt;Date&lt;/b&gt;:&amp;nbsp;&amp;nbsp;%d&lt;br&gt;|&lt;br&gt;%c&lt;br&gt;|&lt;br&gt;&lt;hr&gt;%L</b>)</p>
-<div class="Bd-indent">Sets the format according to which the item's content
-  will be generated. The text in this format string is HTML formatted. Fields
-  are separated by <b>|</b> character. If an item doesn't have a value
-  corresponding to the specifier in the field, then the entire field will not be
-  shown. Specifiers are as follows:
-<br/>
-<b>f</b>	feed title if set, feed link otherwise;
-<br/>
-<b>t</b>	item title;
-<br/>
-<b>l</b>	item link;
-<br/>
-<b>d</b>	item date;
-<br/>
-<b>a</b>	item authors;
-<br/>
-<b>c</b>	item content;
-<br/>
-<b>L</b>	item links list.</div>
-<p class="Pp"><i>item-content-date-format</i> (<b>scalable</b>, default: <b>%a,
-    %d %b %Y %H:%M:%S %z</b>)</p>
-<div class="Bd-indent">Date format in the item's content. Specifier values
-  correspond to the <b>strftime</b>(3) format.</div>
-<p class="Pp"><i>item-content-link-format</i> (<b>scalable</b>, default:
-    <b>&lt;b&gt;[%i]&lt;/b&gt;:&amp;nbsp;%l&lt;br&gt;</b>)</p>
-<div class="Bd-indent">Link format in the links list of item's content.
-  <b>%i</b> and <b>%l</b> will be replaced by link index and link address
-  respectively.</div>
-<p class="Pp"><i>list-entry-date-format</i> (default: <b>%b %d</b>)</p>
-<div class="Bd-indent">Date format of the list entries. Specifier values
-  correspond to the <b>strftime</b>(3) format.</div>
-<p class="Pp"><i>menu-section-entry-format</i> (default: <b>%5.0u @ %t</b>)</p>
-<div class="Bd-indent">Format of the section list entries. Specifiers are as
-  follows:
-<br/>
-<b>i</b>	index number;
-<br/>
-<b>u</b>	unread items count;
-<br/>
-<b>t</b>	section title.</div>
-<p class="Pp"><i>menu-feed-entry-format</i> (default: <b>%5.0u &#x2502;
-  %t</b>)</p>
-<div class="Bd-indent">Format of the feed list entries. Specifiers are as
-  follows:
-<br/>
-<b>i</b>	index number;
-<br/>
-<b>u</b>	unread items count;
-<br/>
-<b>l</b>	feed link;
-<br/>
-<b>t</b>	feed name if set, feed link otherwise.</div>
-<p class="Pp"><i>menu-item-entry-format</i> (default: <b>&quot; %u &#x2502; %d
-    &#x2502; %o&quot;</b>)</p>
-<div class="Bd-indent">Format of the item list entries. Specifiers are as
-  follows:
-<br/>
-<b>i</b>	index number;
-<br/>
-<b>u</b>	&quot;N&quot; if item is unread, &quot; &quot; otherwise;
-<br/>
-<b>d</b>	update date formatted according to <i>list-entry-date-format</i>;
-<br/>
-<b>D</b>	publication date formatted according to <i>list-entry-date-format</i>;
-<br/>
-<b>l</b>	item link;
-<br/>
-<b>t</b>	item title;
-<br/>
-<b>o</b>	item title if set, item link otherwise;
-<br/>
-<b>L</b>	feed link;
-<br/>
-<b>T</b>	feed title;
-<br/>
-<b>O</b>	feed title if set, feed link otherwise.</div>
-<p class="Pp"><i>menu-explore-item-entry-format</i> (default: <b>&quot; %u
-    &#x2502; %d &#x2502; %-28O &#x2502; %o&quot;</b>)</p>
-<div class="Bd-indent">Format of the item list entries in explore mode.
-  Specifiers are the same as in <i>menu-item-entry-format</i>.</div>
-<p class="Pp"><i>sections-menu-paramount-explore</i> (default: <b>false</b>)</p>
-<div class="Bd-indent">Enables explore mode in sections menu by default.</div>
-<p class="Pp"><i>feeds-menu-paramount-explore</i> (default: <b>false</b>)</p>
-<div class="Bd-indent">Enables explore mode in feeds menu by default.</div>
-<p class="Pp"><i>mark-item-unread-on-change</i> (<b>scalable</b>, default:
-    <b>false</b>)</p>
-<div class="Bd-indent">Mark every item that changes on a feed update as
-  unread.</div>
-<p class="Pp"><i>mark-item-read-on-hover</i> (default: <b>false</b>)</p>
-<div class="Bd-indent">Mark every item that gets selected as read.</div>
-<p class="Pp"><i>analyze-database-on-startup</i> (default: <b>true</b>)</p>
-<div class="Bd-indent">Run &quot;ANALYZE&quot; SQLite command on the database
-  every time you start Newsraft. It gathers statistics about database and uses
-  it to optimize some queries making runtime faster.</div>
-<p class="Pp"><i>clean-database-on-startup</i> (default: <b>false</b>)</p>
-<div class="Bd-indent">Run &quot;VACUUM&quot; SQLite command on the database
-  every time you start Newsraft. It rebuilds the database file by packing it
-  into a minimal amount of disk space. This can significantly increase startup
-  time.</div>
-<p class="Pp"><i>download-timeout</i> (<b>scalable</b>, default: <b>20</b>)</p>
-<div class="Bd-indent">Maximum time in seconds that you allow Newsraft to
-  download one feed. Setting to <b>0</b> disables the timeout.</div>
-<p class="Pp"><i>download-speed-limit</i> (<b>scalable</b>, default:
-  <b>0</b>)</p>
-<div class="Bd-indent">Maximum download speed in kilobytes per second (kB/s).
-  Setting to <b>0</b> disables the limit.</div>
-<p class="Pp"><i>download-max-host-connections</i> (default: <b>0</b>)</p>
-<div class="Bd-indent">Maximum amount of simultaneously open connections
-  Newsraft may hold a single host. If set to <b>0</b>, there is no limit.</div>
-<p class="Pp"><i>status-messages-count-limit</i> (default: <b>1000</b>)</p>
-<div class="Bd-indent">Maximum number of status messages stored in memory. If
-  set to <b>0</b>, status messages history will not be stored in memory.</div>
-<p class="Pp"><i>user-agent</i> (<b>scalable</b>, default: <b>auto</b>)</p>
-<div class="Bd-indent">User-Agent header sent with download requests. If it is
-  set to <b>&quot;auto&quot;</b>, Newsraft will generate it according to the
-  following format:
 <p class="Pp"></p>
-<div class="Bd-indent"><b>&quot;newsraft/&quot;</b> + NEWSRAFT_VERSION +
-  <b>&quot; (&quot;</b> + OS_NAME + <b>&quot;)&quot;</b></div>
+<div class="Bd-indent"><b>&quot;title NOT LIKE '%Rust%'&quot;</b>
+<br/>
+<b>&quot;persons LIKE '%PHARMACIST%' OR persons LIKE '%OFFL1NX%'&quot;</b>
+<br/>
+<b>&quot;attachments NOT LIKE '%audio/mp3%' AND attachments NOT LIKE
+  '%video/mp4%'&quot;</b></div>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="scrolloff"><a class="permalink" href="#scrolloff">scrolloff</a></h2>
+<p class="Pp">Default: <i>0</i>. Minimal number of list menu entries to keep
+    above and below the selected entry. If you set it to a very large value the
+    selected entry will always be in the middle of the list menu (except for
+    start and end of the list menu).</p>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="pager-width_(*)"><a class="permalink" href="#pager-width_(*)">pager-width
+  (*)</a></h2>
+<p class="Pp">Default: <i>100</i>. Pager width in characters. If set to
+    <i>0</i>, the pager will take up all available space.</p>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="pager-centering_(*)"><a class="permalink" href="#pager-centering_(*)">pager-centering
+  (*)</a></h2>
+<p class="Pp">Default: <i>true</i>. If <i>true</i> and <b>pager-width</b> is not
+    <i>0</i>, pager will center its content horizontally.</p>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="menu-feed-sorting"><a class="permalink" href="#menu-feed-sorting">menu-feed-sorting</a></h2>
+<p class="Pp">Default: <i>none</i>. Sorting order for the feeds menu. Available
+    values: <i>unread-desc</i>, <i>unread-asc</i>, <i>alphabet-desc</i>,
+    <i>alphabet-asc</i>.</p>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="menu-item-sorting"><a class="permalink" href="#menu-item-sorting">menu-item-sorting</a></h2>
+<p class="Pp">Default: <i>time-desc</i>. Sorting order for the items menu.
+    Available values: <i>time-desc</i>, <i>time-asc</i>, <i>rowid-desc</i>,
+    <i>rowid-asc</i>, <i>unread-desc</i>, <i>unread-asc</i>,
+    <i>important-desc</i>, <i>important-asc</i>, <i>alphabet-desc</i>,
+    <i>alphabet-asc</i>.</p>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="open-in-browser-command_(*)"><a class="permalink" href="#open-in-browser-command_(*)">open-in-browser-command
+  (*)</a></h2>
+<p class="Pp">Default: <i>${BROWSER:-xdg-open} &quot;%l&quot;</i>. Shell command
+    for opening URL in a web browser. The URL to be opened is put in place where
+    <i>%l</i> specifier is located.</p>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="copy-to-clipboard-command"><a class="permalink" href="#copy-to-clipboard-command">copy-to-clipboard-command</a></h2>
+<p class="Pp">Default: <i>auto</i>. Shell command for copying text to clipboard.
+    All copied data is sent to the standard input of the command. If it is set
+    to <i>&quot;auto&quot;</i>, then Newsraft will set the setting value to
+    <i>&quot;wl-copy&quot;</i> if environment variable WAYLAND_DISPLAY is set
+    and to <i>&quot;xclip -selection clipboard&quot;</i> if environment variable
+    DISPLAY is set. Systems on macOS will force setting value to
+    <i>&quot;pbcopy&quot;</i>. In other cases the setting value will be set to
+    <i>&quot;false&quot;</i>.</p>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="notification-command_(*)"><a class="permalink" href="#notification-command_(*)">notification-command
+  (*)</a></h2>
+<p class="Pp">Default: <i>auto</i>. Shell command for invoking system
+    notifications about new news received. If it is set to
+    <i>&quot;auto&quot;</i>, then Newsraft will set the setting value to
+    <i>&quot;notify-send 'Newsraft brought %q news!'&quot;</i> for most Unix
+    systems and to <i>&quot;osascript -e 'display notification &quot;Newsraft
+    brought %q news!&quot;'&quot;</i> for macOS.</p>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="proxy_(*)"><a class="permalink" href="#proxy_(*)">proxy
+  (*)</a></h2>
+<p class="Pp">Default: <i>&quot;&quot;</i>. Sets the proxy to use for the
+    network requests. It must be either a hostname or dotted numerical IPv4
+    address. To specify IPv6 address you have to enclose it within square
+    brackets. Port number can be set by appending :PORT to the end of setting
+    value. By default proxy protocol is considered HTTP, but you can set a
+    different one by prepending SCHEME:// to the setting value.</p>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="proxy-user_(*)"><a class="permalink" href="#proxy-user_(*)">proxy-user
+  (*)</a></h2>
+<p class="Pp">Default: <i>&quot;&quot;</i>. User for authentication with the
+    proxy server.</p>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="proxy-password_(*)"><a class="permalink" href="#proxy-password_(*)">proxy-password
+  (*)</a></h2>
+<p class="Pp">Default: <i>&quot;&quot;</i>. Password for authentication with the
+    proxy server.</p>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="global-section-name"><a class="permalink" href="#global-section-name">global-section-name</a></h2>
+<p class="Pp">Default: <i>Global</i>. Name of the section that contains all
+    feeds.</p>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="status-show-menu-path"><a class="permalink" href="#status-show-menu-path">status-show-menu-path</a></h2>
+<p class="Pp">Default: <i>true</i>. If <i>true</i>, print menu path in the
+    status bar.</p>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="status-placeholder"><a class="permalink" href="#status-placeholder">status-placeholder</a></h2>
+<p class="Pp">Default: <i>r:reload R:reload-all tab:explore d:read D:unread
+    f:important F:unimportant n:next-unread N:prev-unread p:next-important
+    P:prev-important</i>.</p>
+<p class="Pp">Placeholder which is put in the status bar if it's empty.</p>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="item-content-format_(*)"><a class="permalink" href="#item-content-format_(*)">item-content-format
+  (*)</a></h2>
+<p class="Pp">Default:
+    <i>&lt;b&gt;Feed&lt;/b&gt;:&amp;nbsp;&amp;nbsp;%f&lt;br&gt;|&lt;b&gt;Title&lt;/b&gt;:&amp;nbsp;%t&lt;br&gt;|&lt;b&gt;Date&lt;/b&gt;:&amp;nbsp;&amp;nbsp;%d&lt;br&gt;|&lt;br&gt;%c&lt;br&gt;|&lt;br&gt;&lt;hr&gt;%L</i>.</p>
+<p class="Pp">Sets the format according to which the item's content will be
+    generated. The text in this format string is HTML formatted. Fields are
+    separated by <i>|</i> character. If an item doesn't have a value
+    corresponding to the specifier in the field, then the entire field will not
+    be shown. Specifiers are as follows:</p>
+<p class="Pp"></p>
+<div class="Bd-indent"><i>f</i>	feed title if set, feed link otherwise;
+<br/>
+<i>t</i>	item title;
+<br/>
+<i>l</i>	item link;
+<br/>
+<i>d</i>	item date;
+<br/>
+<i>a</i>	item authors;
+<br/>
+<i>c</i>	item content;
+<br/>
+<i>L</i>	item links list.</div>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="item-content-date-format_(*)"><a class="permalink" href="#item-content-date-format_(*)">item-content-date-format
+  (*)</a></h2>
+<p class="Pp">Default: <i>%a, %d %b %Y %H:%M:%S %z</i>. Date format in the
+    item's content. Specifier values correspond to the <b>strftime</b>(3)
+    format.</p>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="item-content-link-format_(*)"><a class="permalink" href="#item-content-link-format_(*)">item-content-link-format
+  (*)</a></h2>
+<p class="Pp">Default: <i>&lt;b&gt;[%i]&lt;/b&gt;:&amp;nbsp;%l&lt;br&gt;</i>.
+    Link format in the links list of item's content. <i>%i</i> and <i>%l</i>
+    will be replaced by link index and link address respectively.</p>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="list-entry-date-format"><a class="permalink" href="#list-entry-date-format">list-entry-date-format</a></h2>
+<p class="Pp">Default: <i>%b %d</i>. Date format of the list entries. Specifier
+    values correspond to the <b>strftime</b>(3) format.</p>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="menu-section-entry-format"><a class="permalink" href="#menu-section-entry-format">menu-section-entry-format</a></h2>
+<p class="Pp">Default: <i>%5.0u @ %t</i>. Format of the section list entries.
+    Specifiers are as follows:</p>
+<p class="Pp"></p>
+<div class="Bd-indent"><i>i</i>	index number;
+<br/>
+<i>u</i>	unread items count;
+<br/>
+<i>t</i>	section title.</div>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="menu-feed-entry-format"><a class="permalink" href="#menu-feed-entry-format">menu-feed-entry-format</a></h2>
+<p class="Pp">Default: <i>%5.0u &#x2502; %t</i>. Format of the feed list
+    entries. Specifiers are as follows:</p>
+<p class="Pp"></p>
+<div class="Bd-indent"><i>i</i>	index number;
+<br/>
+<i>u</i>	unread items count;
+<br/>
+<i>l</i>	feed link;
+<br/>
+<i>t</i>	feed name if set, feed link otherwise.</div>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="menu-item-entry-format"><a class="permalink" href="#menu-item-entry-format">menu-item-entry-format</a></h2>
+<p class="Pp">Default: <i>&quot; %u &#x2502; %d &#x2502; %o&quot;</i>. Format of
+    the item list entries. Specifiers are as follows:</p>
+<p class="Pp"></p>
+<div class="Bd-indent"><i>i</i>	index number;
+<br/>
+<i>u</i>	&quot;N&quot; if item is unread, &quot; &quot; otherwise;
+<br/>
+<i>d</i>	update date formatted according to <b>list-entry-date-format</b>;
+<br/>
+<i>D</i>	publication date formatted according to <b>list-entry-date-format</b>;
+<br/>
+<i>l</i>	item link;
+<br/>
+<i>t</i>	item title;
+<br/>
+<i>o</i>	item title if set, item link otherwise;
+<br/>
+<i>L</i>	feed link;
+<br/>
+<i>T</i>	feed title;
+<br/>
+<i>O</i>	feed title if set, feed link otherwise.</div>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="menu-explore-item-entry-format"><a class="permalink" href="#menu-explore-item-entry-format">menu-explore-item-entry-format</a></h2>
+<p class="Pp">Default: <i>&quot; %u &#x2502; %d &#x2502; %-28O &#x2502;
+    %o&quot;</i>. Format of the item list entries in explore mode. Specifiers
+    are the same as in <b>menu-item-entry-format</b>.</p>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="sections-menu-paramount-explore"><a class="permalink" href="#sections-menu-paramount-explore">sections-menu-paramount-explore</a></h2>
+<p class="Pp">Default: <i>false</i>. Enables explore mode in sections menu by
+    default.</p>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="feeds-menu-paramount-explore"><a class="permalink" href="#feeds-menu-paramount-explore">feeds-menu-paramount-explore</a></h2>
+<p class="Pp">Default: <i>false</i>. Enables explore mode in feeds menu by
+    default.</p>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="mark-item-unread-on-change_(*)"><a class="permalink" href="#mark-item-unread-on-change_(*)">mark-item-unread-on-change
+  (*)</a></h2>
+<p class="Pp">Default: <i>false</i>. Mark every item that changes on a feed
+    update as unread.</p>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="mark-item-read-on-hover"><a class="permalink" href="#mark-item-read-on-hover">mark-item-read-on-hover</a></h2>
+<p class="Pp">Default: <i>false</i>. Mark every item that gets selected as
+  read.</p>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="analyze-database-on-startup"><a class="permalink" href="#analyze-database-on-startup">analyze-database-on-startup</a></h2>
+<p class="Pp">Default: <i>true</i>. Run &quot;ANALYZE&quot; SQLite command on
+    the database every time you start Newsraft. It gathers statistics about
+    database and uses it to optimize some queries making runtime faster.</p>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="clean-database-on-startup"><a class="permalink" href="#clean-database-on-startup">clean-database-on-startup</a></h2>
+<p class="Pp">Default: <i>false</i>. Run &quot;VACUUM&quot; SQLite command on
+    the database every time you start Newsraft. It rebuilds the database file by
+    packing it into a minimal amount of disk space. This can significantly
+    increase startup time.</p>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="download-timeout_(*)"><a class="permalink" href="#download-timeout_(*)">download-timeout
+  (*)</a></h2>
+<p class="Pp">Default: <i>20</i>. Maximum time in seconds that you allow
+    Newsraft to download one feed. Setting to <i>0</i> disables the timeout.</p>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="download-speed-limit_(*)"><a class="permalink" href="#download-speed-limit_(*)">download-speed-limit
+  (*)</a></h2>
+<p class="Pp">Default: <i>0</i>. Maximum download speed in kilobytes per second
+    (kB/s). Setting to <i>0</i> disables the limit.</p>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="download-max-host-connections"><a class="permalink" href="#download-max-host-connections">download-max-host-connections</a></h2>
+<p class="Pp">Default: <i>0</i>. Maximum amount of simultaneously open
+    connections Newsraft may hold a single host. If set to <i>0</i>, there is no
+    limit.</p>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="status-messages-count-limit"><a class="permalink" href="#status-messages-count-limit">status-messages-count-limit</a></h2>
+<p class="Pp">Default: <i>1000</i>. Maximum number of status messages stored in
+    memory. If set to <i>0</i>, status messages history will not be stored in
+    memory.</p>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="user-agent_(*)"><a class="permalink" href="#user-agent_(*)">user-agent
+  (*)</a></h2>
+<p class="Pp">Default: <i>auto</i>. User-Agent header sent with download
+    requests. If it is set to <i>&quot;auto&quot;</i>, Newsraft will generate it
+    according to the following format:</p>
+<p class="Pp"></p>
+<div class="Bd-indent"><i>&quot;newsraft/&quot;</i> + NEWSRAFT_VERSION +
+  <i>&quot; (&quot;</i> + OS_NAME + <i>&quot;)&quot;</i></div>
 <p class="Pp">OS_NAME shouldn't be a matter of privacy concern, because on most
-    systems it contains nothing more like <b>&quot;Linux&quot;</b> or
-    <b>&quot;Darwin&quot;</b>. If you want to be sure of this, check Newsraft
-    log to see how <i>user-agent</i> is set at startup.</p>
-<p class="Pp">If set to <b>&quot;&quot;</b>, User-Agent header will not be
+    systems it contains nothing more like <i>&quot;Linux&quot;</i> or
+    <i>&quot;Darwin&quot;</i>. If you want to be sure of this, check Newsraft
+    log to see how <b>user-agent</b> is set at startup.</p>
+<p class="Pp">If set to <i>&quot;&quot;</i>, User-Agent header will not be
   sent.</p>
-</div>
-<p class="Pp"><i>respect-ttl-element</i> (<b>scalable</b>, default:
-  <b>true</b>)</p>
-<div class="Bd-indent">Prevents too frequent updates for some feeds. The limit
-  is set by the creators of the feeds in order to save traffic and resources for
-  a very rarely updated feeds. Disabling it is strongly discouraged.</div>
-<p class="Pp"><i>respect-expires-header</i> (<b>scalable</b>, default:
-    <b>true</b>)</p>
-<div class="Bd-indent">Prevents feed updates until the expiration date of the
-  previously downloaded information in order to save traffic and resources.
-  Disabling it is strongly discouraged.</div>
-<p class="Pp"><i>send-if-none-match-header</i> (<b>scalable</b>, default:
-    <b>true</b>)</p>
-<div class="Bd-indent">Sends an entity tag corresponding to the previously
-  downloaded information. If the server from which the feed is downloaded
-  contains information with the same tag, then in order to save traffic and
-  resources, it will reject the download request. Disabling it is strongly
-  discouraged.</div>
-<p class="Pp"><i>send-if-modified-since-header</i> (<b>scalable</b>, default:
-    <b>true</b>)</p>
-<div class="Bd-indent">Sends a date corresponding to the last modification of
-  previously downloaded information. If the server from which the feed is
-  downloaded contains information with the same modification date, then in order
-  to save traffic and resources, it will reject the download request. Disabling
-  it is strongly discouraged.</div>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="respect-ttl-element_(*)"><a class="permalink" href="#respect-ttl-element_(*)">respect-ttl-element
+  (*)</a></h2>
+<p class="Pp">Default: <i>true</i>. Prevents too frequent updates for some
+    feeds. The limit is set by the creators of the feeds in order to save
+    traffic and resources for a very rarely updated feeds. Disabling it is
+    strongly discouraged.</p>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="respect-expires-header_(*)"><a class="permalink" href="#respect-expires-header_(*)">respect-expires-header
+  (*)</a></h2>
+<p class="Pp">Default: <i>true</i>. Prevents feed updates until the expiration
+    date of the previously downloaded information in order to save traffic and
+    resources. Disabling it is strongly discouraged.</p>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="send-if-none-match-header_(*)"><a class="permalink" href="#send-if-none-match-header_(*)">send-if-none-match-header
+  (*)</a></h2>
+<p class="Pp">Default: <i>true</i>. Sends an entity tag corresponding to the
+    previously downloaded information. If the server from which the feed is
+    downloaded contains information with the same tag, then in order to save
+    traffic and resources, it will reject the download request. Disabling it is
+    strongly discouraged.</p>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="send-if-modified-since-header_(*)"><a class="permalink" href="#send-if-modified-since-header_(*)">send-if-modified-since-header
+  (*)</a></h2>
+<p class="Pp">Default: <i>true</i>. Sends a date corresponding to the last
+    modification of previously downloaded information. If the server from which
+    the feed is downloaded contains information with the same modification date,
+    then in order to save traffic and resources, it will reject the download
+    request. Disabling it is strongly discouraged.</p>
+</section>
 </section>
 <section class="Sh">
 <h1 class="Sh" id="COLOR_SETTINGS"><a class="permalink" href="#COLOR_SETTINGS">COLOR
   SETTINGS</a></h1>
 <p class="Pp">Color settings are the same settings as above, but they take two
     color words (foreground and background) and optional attribute words.
-    Available colors are <b>default</b>, <b>black</b>, <b>red</b>, <b>green</b>,
-    <b>yellow</b>, <b>blue</b>, <b>magenta</b>, <b>cyan</b>, <b>white</b> and
-    <b>colorN</b> (<b>N</b> can be a number from <b>0</b> to <b>255</b>).
-    Available attributes are <b>bold</b>, <b>italic</b> and
-  <b>underlined</b>.</p>
+    Available colors are <i>default</i>, <i>black</i>, <i>red</i>, <i>green</i>,
+    <i>yellow</i>, <i>blue</i>, <i>magenta</i>, <i>cyan</i>, <i>white</i> and
+    <i>colorN</i> (<i>N</i> can be a number from <i>0</i> to <i>255</i>).
+    Available attributes are <i>bold</i>, <i>italic</i> and
+  <i>underlined</i>.</p>
 <p class="Pp"></p>
 <table class="tbl">
   <tr>
@@ -530,44 +635,44 @@
     <td>Default value</td>
   </tr>
   <tr>
-    <td><i>color-status</i></td>
-    <td><b>green default bold</b></td>
+    <td><b>color-status</b></td>
+    <td><i>green default bold</i></td>
   </tr>
   <tr>
-    <td><i>color-status-info</i></td>
-    <td><b>cyan default bold</b></td>
+    <td><b>color-status-info</b></td>
+    <td><i>cyan default bold</i></td>
   </tr>
   <tr>
-    <td><i>color-status-fail</i></td>
-    <td><b>red default bold</b></td>
+    <td><b>color-status-fail</b></td>
+    <td><i>red default bold</i></td>
   </tr>
   <tr>
-    <td><i>color-list-item</i></td>
-    <td><b>default default</b></td>
+    <td><b>color-list-item</b></td>
+    <td><i>default default</i></td>
   </tr>
   <tr>
-    <td><i>color-list-item-unread</i></td>
-    <td><b>yellow default</b></td>
+    <td><b>color-list-item-unread</b></td>
+    <td><i>yellow default</i></td>
   </tr>
   <tr>
-    <td><i>color-list-item-important</i></td>
-    <td><b>magenta default</b></td>
+    <td><b>color-list-item-important</b></td>
+    <td><i>magenta default</i></td>
   </tr>
   <tr>
-    <td><i>color-list-feed</i></td>
-    <td><b>default default</b></td>
+    <td><b>color-list-feed</b></td>
+    <td><i>default default</i></td>
   </tr>
   <tr>
-    <td><i>color-list-feed-unread</i></td>
-    <td><b>yellow default</b></td>
+    <td><b>color-list-feed-unread</b></td>
+    <td><i>yellow default</i></td>
   </tr>
   <tr>
-    <td><i>color-list-section</i></td>
-    <td><b>default default</b></td>
+    <td><b>color-list-section</b></td>
+    <td><i>default default</i></td>
   </tr>
   <tr>
-    <td><i>color-list-section-unread</i></td>
-    <td><b>yellow default</b></td>
+    <td><b>color-list-section-unread</b></td>
+    <td><i>yellow default</i></td>
   </tr>
 </table>
 <p class="Pp"></p>
@@ -580,160 +685,160 @@
     <td>Keys</td>
   </tr>
   <tr>
-    <td><i>select-next</i></td>
-    <td><b>j</b>, <b>KEY_DOWN</b>, <b>^E</b></td>
+    <td><b>select-next</b></td>
+    <td><i>j</i>, <i>KEY_DOWN</i>, <i>^E</i></td>
   </tr>
   <tr>
-    <td><i>select-prev</i></td>
-    <td><b>k</b>, <b>KEY_UP</b>, <b>^Y</b></td>
+    <td><b>select-prev</b></td>
+    <td><i>k</i>, <i>KEY_UP</i>, <i>^Y</i></td>
   </tr>
   <tr>
-    <td><i>select-next-page</i></td>
-    <td><b>space</b>, <b>^F</b>, <b>KEY_NPAGE</b></td>
+    <td><b>select-next-page</b></td>
+    <td><i>space</i>, <i>^F</i>, <i>KEY_NPAGE</i></td>
   </tr>
   <tr>
-    <td><i>select-prev-page</i></td>
-    <td><b>^B</b>, <b>KEY_PPAGE</b></td>
+    <td><b>select-prev-page</b></td>
+    <td><i>^B</i>, <i>KEY_PPAGE</i></td>
   </tr>
   <tr>
-    <td><i>select-first</i></td>
-    <td><b>g</b>, <b>KEY_HOME</b></td>
+    <td><b>select-first</b></td>
+    <td><i>g</i>, <i>KEY_HOME</i></td>
   </tr>
   <tr>
-    <td><i>select-last</i></td>
-    <td><b>G</b>, <b>KEY_END</b></td>
+    <td><b>select-last</b></td>
+    <td><i>G</i>, <i>KEY_END</i></td>
   </tr>
   <tr>
-    <td><i>jump-to-next</i></td>
-    <td><b>J</b></td>
+    <td><b>jump-to-next</b></td>
+    <td><i>J</i></td>
   </tr>
   <tr>
-    <td><i>jump-to-prev</i></td>
-    <td><b>K</b></td>
+    <td><b>jump-to-prev</b></td>
+    <td><i>K</i></td>
   </tr>
   <tr>
-    <td><i>jump-to-next-unread</i></td>
-    <td><b>n</b></td>
+    <td><b>jump-to-next-unread</b></td>
+    <td><i>n</i></td>
   </tr>
   <tr>
-    <td><i>jump-to-prev-unread</i></td>
-    <td><b>N</b></td>
+    <td><b>jump-to-prev-unread</b></td>
+    <td><i>N</i></td>
   </tr>
   <tr>
-    <td><i>jump-to-next-important</i></td>
-    <td><b>p</b></td>
+    <td><b>jump-to-next-important</b></td>
+    <td><i>p</i></td>
   </tr>
   <tr>
-    <td><i>jump-to-prev-important</i></td>
-    <td><b>P</b></td>
+    <td><b>jump-to-prev-important</b></td>
+    <td><i>P</i></td>
   </tr>
   <tr>
-    <td><i>goto-feed</i></td>
-    <td><b>*</b></td>
+    <td><b>goto-feed</b></td>
+    <td><i>*</i></td>
   </tr>
   <tr>
-    <td><i>shift-west</i></td>
-    <td><b>,</b></td>
+    <td><b>shift-west</b></td>
+    <td><i>,</i></td>
   </tr>
   <tr>
-    <td><i>shift-east</i></td>
-    <td><b>.</b></td>
+    <td><b>shift-east</b></td>
+    <td><i>.</i></td>
   </tr>
   <tr>
-    <td><i>shift-reset</i></td>
-    <td><b>&lt;</b></td>
+    <td><b>shift-reset</b></td>
+    <td><i>&lt;</i></td>
   </tr>
   <tr>
-    <td><i>sort-by-time</i></td>
-    <td><b>t</b></td>
+    <td><b>sort-by-time</b></td>
+    <td><i>t</i></td>
   </tr>
   <tr>
-    <td><i>sort-by-rowid</i></td>
-    <td><b>w</b></td>
+    <td><b>sort-by-rowid</b></td>
+    <td><i>w</i></td>
   </tr>
   <tr>
-    <td><i>sort-by-unread</i></td>
-    <td><b>u</b></td>
+    <td><b>sort-by-unread</b></td>
+    <td><i>u</i></td>
   </tr>
   <tr>
-    <td><i>sort-by-important</i></td>
-    <td><b>i</b></td>
+    <td><b>sort-by-important</b></td>
+    <td><i>i</i></td>
   </tr>
   <tr>
-    <td><i>sort-by-alphabet</i></td>
-    <td><b>a</b></td>
+    <td><b>sort-by-alphabet</b></td>
+    <td><i>a</i></td>
   </tr>
   <tr>
-    <td><i>enter</i></td>
-    <td><b>enter</b>, <b>l</b>, <b>KEY_ENTER</b>, <b>KEY_RIGHT</b></td>
+    <td><b>enter</b></td>
+    <td><i>enter</i>, <i>l</i>, <i>KEY_ENTER</i>, <i>KEY_RIGHT</i></td>
   </tr>
   <tr>
-    <td><i>reload</i></td>
-    <td><b>r</b></td>
+    <td><b>reload</b></td>
+    <td><i>r</i></td>
   </tr>
   <tr>
-    <td><i>reload-all</i></td>
-    <td><b>R</b>, <b>^R</b></td>
+    <td><b>reload-all</b></td>
+    <td><i>R</i>, <i>^R</i></td>
   </tr>
   <tr>
-    <td><i>mark-read</i>; <i>jump-to-next</i></td>
-    <td><b>d</b></td>
+    <td><b>mark-read</b>; <b>jump-to-next</b></td>
+    <td><i>d</i></td>
   </tr>
   <tr>
-    <td><i>mark-unread</i>; <i>jump-to-next</i></td>
-    <td><b>D</b></td>
+    <td><b>mark-unread</b>; <b>jump-to-next</b></td>
+    <td><i>D</i></td>
   </tr>
   <tr>
-    <td><i>mark-read-all</i></td>
-    <td><b>^D</b></td>
+    <td><b>mark-read-all</b></td>
+    <td><i>^D</i></td>
   </tr>
   <tr>
-    <td><i>mark-unread-all</i></td>
+    <td><b>mark-unread-all</b></td>
     <td>(not set)</td>
   </tr>
   <tr>
-    <td><i>mark-important</i></td>
-    <td><b>f</b></td>
+    <td><b>mark-important</b></td>
+    <td><i>f</i></td>
   </tr>
   <tr>
-    <td><i>mark-unimportant</i></td>
-    <td><b>F</b></td>
+    <td><b>mark-unimportant</b></td>
+    <td><i>F</i></td>
   </tr>
   <tr>
-    <td><i>toggle-explore-mode</i></td>
-    <td><b>tab</b>, <b>e</b></td>
+    <td><b>toggle-explore-mode</b></td>
+    <td><i>tab</i>, <i>e</i></td>
   </tr>
   <tr>
-    <td><i>status-history-menu</i></td>
-    <td><b>v</b></td>
+    <td><b>status-history-menu</b></td>
+    <td><i>v</i></td>
   </tr>
   <tr>
-    <td><i>open-in-browser</i></td>
-    <td><b>o</b></td>
+    <td><b>open-in-browser</b></td>
+    <td><i>o</i></td>
   </tr>
   <tr>
-    <td><i>copy-to-clipboard</i></td>
-    <td><b>y</b>, <b>c</b></td>
+    <td><b>copy-to-clipboard</b></td>
+    <td><i>y</i>, <i>c</i></td>
   </tr>
   <tr>
-    <td><i>start-search-input</i></td>
-    <td><b>/</b></td>
+    <td><b>start-search-input</b></td>
+    <td><i>/</i></td>
   </tr>
   <tr>
-    <td><i>clean-status</i></td>
-    <td><b>escape</b></td>
+    <td><b>clean-status</b></td>
+    <td><i>escape</i></td>
   </tr>
   <tr>
-    <td><i>navigate-back</i></td>
-    <td><b>h</b>, <b>backspace</b>, <b>KEY_LEFT</b>, <b>KEY_BACKSPACE</b></td>
+    <td><b>navigate-back</b></td>
+    <td><i>h</i>, <i>backspace</i>, <i>KEY_LEFT</i>, <i>KEY_BACKSPACE</i></td>
   </tr>
   <tr>
-    <td><i>quit</i></td>
-    <td><b>q</b></td>
+    <td><b>quit</b></td>
+    <td><i>q</i></td>
   </tr>
   <tr>
-    <td><i>quit-hard</i></td>
-    <td><b>Q</b></td>
+    <td><b>quit-hard</b></td>
+    <td><i>Q</i></td>
   </tr>
 </table>
 <p class="Pp"></p>
@@ -821,7 +926,7 @@
 </div>
 <table class="foot">
   <tr>
-    <td class="foot-date">2024-12-26</td>
+    <td class="foot-date">2024-12-29</td>
     <td class="foot-os"></td>
   </tr>
 </table>

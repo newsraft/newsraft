@@ -122,8 +122,8 @@ _http://example.org/feed1.xml "Dolor Sit" < reload-period 60; item-limit 500_++
 _http://example.org/feed2.xml "Id Est" < bind b mark-read; exec book.sh "%l"_
 
 Settings set for feeds take precedence over the settings specified for sections.
-Not every setting supports individual assignment - only settings with *scalable*
-mark in *SETTINGS* section do.
+Not every setting supports individual assignment - only settings with asterisk
+*(\*)* on them do (see *SETTINGS* section).
 
 Search precedence:
 . _$XDG_CONFIG_HOME_/newsraft/feeds
@@ -192,338 +192,353 @@ Search precedence:
 
 # SETTINGS
 
-Settings with *scalable* mark can be set for individual feeds and sections.
+Settings with asterisk *(\*)* on them can be set for individual feeds and sections.
 
-_reload-period_ (*scalable*, default: *0*)
-	Feed auto reload period in minutes. If set to *0*, no auto reloads are run.
+## reload-period (*)
+Default: _0_. Feed auto reload period in minutes. If set to _0_, no auto reloads
+will be run.
 
-_item-limit_ (*scalable*, default: *0*)
-	Maximum number of items stored in a feed. If set to *0*, no limit is set.
+## item-limit (*)
+Default: _0_. Maximum number of items stored in a feed. If set to _0_, no limit
+will be set.
 
-_item-limit-unread_ (*scalable*, default: *true*)
-	If set to *true*, _item-limit_ setting will also cap unread items.
+## item-limit-unread (*)
+Default: _true_. If _true_, *item-limit* setting will also cap unread items.
 
-_item-limit-important_ (*scalable*, default: *false*)
-	If set to *true*, _item-limit_ setting will also cap important items.
+## item-limit-important (*)
+Default: _false_. If _true_, *item-limit* setting will also cap important items.
 
-_item-rule_ (*scalable*, default: *""*)
-	Item search condition when accessing database. This can be very useful in
-	managing feeds with a heavy spam flow: you set a condition based on some
-	parameter and only those entries that meet this condition will be shown in
-	the feed. It must be specified in SQL language. It probably only makes sense
-	to set this setting for individual feeds, not globally (see *FEEDS FILE*
-	section to understand how). Available parameters: *guid*, *title*, *link*,
-	*content*, *attachments*, *persons*, *publication_date*, *update_date*.
+## item-rule (*)
+Default: _""_. Item search condition when accessing database. This can be very
+useful in managing feeds with a heavy spam flow: you set a condition based on
+some parameters and only those entries that meet this condition will be shown in
+the feed. It's specified in SQL format. It probably only makes sense to set this
+setting for individual feeds, and not globally (see *FEEDS FILE* section to
+understand how). Available parameters: *guid*, *title*, *link*, *content*,
+*attachments*, *persons*, *publication_date*, *update_date*.
 
-	Here are some examples of correct setting values:
+Here are some examples of correct setting values:
 
 	*"title NOT LIKE '%Rust%'"*++
 *"persons LIKE '%PHARMACIST%' OR persons LIKE '%OFFL1NX%'"*++
 *"attachments NOT LIKE '%audio/mp3%' AND attachments NOT LIKE '%video/mp4%'"*
 
-_scrolloff_ (default: *0*)
-	Minimal number of list menu entries to keep above and below the selected
-	entry. If you set it to a very large value the selected entry will always be
-	in the middle of the list menu (except for start and end of the list menu).
+## scrolloff
+Default: _0_. Minimal number of list menu entries to keep above and below the
+selected entry. If you set it to a very large value the selected entry will
+always be in the middle of the list menu (except for start and end of the list
+menu).
 
-_pager-width_ (*scalable*, default: *100*)
-	Pager width in characters. If set to *0*, the pager will take up all available
-	space.
+## pager-width (*)
+Default: _100_. Pager width in characters. If set to _0_, the pager will take up
+all available space.
 
-_pager-centering_ (*scalable*, default: *true*)
-	Whether the pager should center its content when _pager-width_ is not *0*. If
-	set to *false*, the pager will be aligned to the left.
+## pager-centering (*)
+Default: _true_. If _true_ and *pager-width* is not _0_, pager will center its
+content horizontally.
 
-_menu-feed-sorting_ (default: *none*)
-	Sorting order for the feeds menu. Available values: *unread-desc*,
-	*unread-asc*, *alphabet-desc*, *alphabet-asc*.
+## menu-feed-sorting
+Default: _none_. Sorting order for the feeds menu. Available values:
+_unread-desc_, _unread-asc_, _alphabet-desc_, _alphabet-asc_.
 
-_menu-item-sorting_ (default: *time-desc*)
-	Sorting order for the items menu. Available values: *time-desc*, *time-asc*,
-	*rowid-desc*, *rowid-asc*, *unread-desc*, *unread-asc*,
-	*important-desc*, *important-asc*, *alphabet-desc*, *alphabet-asc*.
+## menu-item-sorting
+Default: _time-desc_. Sorting order for the items menu. Available values:
+_time-desc_, _time-asc_, _rowid-desc_, _rowid-asc_, _unread-desc_, _unread-asc_,
+_important-desc_, _important-asc_, _alphabet-desc_, _alphabet-asc_.
 
-_open-in-browser-command_ (*scalable*, default: *${BROWSER:-xdg-open} "%l"*)
-	Shell command for opening URL in a web browser. The URL to be opened is put
-	in place where *%l* specifier is located.
+## open-in-browser-command (*)
+Default: _${BROWSER:-xdg-open} "%l"_. Shell command for opening URL in a web
+browser. The URL to be opened is put in place where _%l_ specifier is located.
 
-_copy-to-clipboard-command_ (default: *auto*)
-	Shell command for copying text to clipboard. All copied data is sent to the
-	standard input of the command. If it is set to *"auto"*, then Newsraft will
-	set the setting value to *"wl-copy"* if environment variable WAYLAND_DISPLAY
-	is set and to *"xclip -selection clipboard"* if environment variable DISPLAY
-	is set. Systems on macOS will force setting value to *"pbcopy"*. In other
-	cases the setting value will be set to *"false"*.
+## copy-to-clipboard-command
+Default: _auto_. Shell command for copying text to clipboard. All copied data is
+sent to the standard input of the command. If it is set to _"auto"_, then
+Newsraft will set the setting value to _"wl-copy"_ if environment variable
+WAYLAND_DISPLAY is set and to _"xclip -selection clipboard"_ if environment
+variable DISPLAY is set. Systems on macOS will force setting value to
+_"pbcopy"_. In other cases the setting value will be set to _"false"_.
 
-_notification-command_ (*scalable*, default: *auto*)
-	Shell command for invoking system notifications about new news received. If
-	it is set to *"auto"*, then Newsraft will set the setting value to
-	*"notify-send 'Newsraft brought %q news!'"* for most Unix systems and to
-	*"osascript -e 'display notification "Newsraft brought %q news!"'"* for macOS.
+## notification-command (*)
+Default: _auto_. Shell command for invoking system notifications about new news
+received. If it is set to _"auto"_, then Newsraft will set the setting value to
+_"notify-send 'Newsraft brought %q news!'"_ for most Unix systems and to
+_"osascript -e 'display notification "Newsraft brought %q news!"'"_ for macOS.
 
-_proxy_ (*scalable*, default: *""*)
-	Sets the proxy to use for the network requests. It must be either a hostname
-	or dotted numerical IPv4 address. To specify IPv6 address you have to enclose
-	it within square brackets. Port number can be set by appending :PORT to the
-	end of setting value. By default proxy protocol is considered HTTP, but you
-	can set a different one by prepending SCHEME:// to the setting value.
+## proxy (*)
+Default: _""_. Sets the proxy to use for the network requests. It must be either
+a hostname or dotted numerical IPv4 address. To specify IPv6 address you have to
+enclose it within square brackets. Port number can be set by appending :PORT to
+the end of setting value. By default proxy protocol is considered HTTP, but you
+can set a different one by prepending SCHEME:// to the setting value.
 
-_proxy-user_ (*scalable*, default: *""*)
-	User for authentication with the proxy server.
+## proxy-user (*)
+Default: _""_. User for authentication with the proxy server.
 
-_proxy-password_ (*scalable*, default: *""*)
-	Password for authentication with the proxy server.
+## proxy-password (*)
+Default: _""_. Password for authentication with the proxy server.
 
-_global-section-name_ (default: *Global*)
-	Name of the section that contains all feeds.
+## global-section-name
+Default: _Global_. Name of the section that contains all feeds.
 
-_status-show-menu-path_ (default: *true*)
-	Print menu path in the status bar.
+## status-show-menu-path
+Default: _true_. If _true_, print menu path in the status bar.
 
-_status-placeholder_ (default: *r:reload  R:reload-all  tab:explore  d:read  D:unread  f:important  F:unimportant  n:next-unread  N:prev-unread  p:next-important  P:prev-important*)
-	Placeholder which is put in the status bar if it's empty.
+## status-placeholder
+Default: _r:reload  R:reload-all  tab:explore  d:read  D:unread  f:important F:unimportant  n:next-unread  N:prev-unread  p:next-important P:prev-important_.
 
-_item-content-format_ (*scalable*, default: *<b>Feed</b>:&nbsp;&nbsp;%f<br>|<b>Title</b>:&nbsp;%t<br>|<b>Date</b>:&nbsp;&nbsp;%d<br>|<br>%c<br>|<br><hr>%L*)
-	Sets the format according to which the item's content will be generated.
-	The text in this format string is HTML formatted. Fields are separated by *|*
-	character. If an item doesn't have a value corresponding to the specifier in
-	the field, then the entire field will not be shown. Specifiers are as follows:++
-*f*	feed title if set, feed link otherwise;++
-*t*	item title;++
-*l*	item link;++
-*d*	item date;++
-*a*	item authors;++
-*c*	item content;++
-*L*	item links list.
+Placeholder which is put in the status bar if it's empty.
 
-_item-content-date-format_ (*scalable*, default: *%a, %d %b %Y %H:%M:%S %z*)
-	Date format in the item's content. Specifier values correspond to the
-	*strftime*(3) format.
+## item-content-format (*)
+Default: _<b>Feed</b>:&nbsp;&nbsp;%f<br>|<b>Title</b>:&nbsp;%t<br>|<b>Date</b>:&nbsp;&nbsp;%d<br>|<br>%c<br>|<br><hr>%L_.
 
-_item-content-link-format_ (*scalable*, default: *<b>[%i]</b>:&nbsp;%l<br>*)
-	Link format in the links list of item's content. *%i* and *%l* will be
-	replaced by link index and link address respectively.
+Sets the format according to which the item's content will be generated. The
+text in this format string is HTML formatted. Fields are separated by _|_
+character. If an item doesn't have a value corresponding to the specifier in the
+field, then the entire field will not be shown. Specifiers are as follows:
 
-_list-entry-date-format_ (default: *%b %d*)
-	Date format of the list entries. Specifier values correspond to the
-	*strftime*(3) format.
+	_f_	feed title if set, feed link otherwise;++
+_t_	item title;++
+_l_	item link;++
+_d_	item date;++
+_a_	item authors;++
+_c_	item content;++
+_L_	item links list.
 
-_menu-section-entry-format_ (default: *%5.0u @ %t*)
-	Format of the section list entries. Specifiers are as follows:++
-*i*	index number;++
-*u*	unread items count;++
-*t*	section title.
+## item-content-date-format (*)
+Default: _%a, %d %b %Y %H:%M:%S %z_. Date format in the item's content.
+Specifier values correspond to the *strftime*(3) format.
 
-_menu-feed-entry-format_ (default: *%5.0u │ %t*)
-	Format of the feed list entries. Specifiers are as follows:++
-*i*	index number;++
-*u*	unread items count;++
-*l*	feed link;++
-*t*	feed name if set, feed link otherwise.
+## item-content-link-format (*)
+Default: _<b>[%i]</b>:&nbsp;%l<br>_. Link format in the links list of item's
+content. _%i_ and _%l_ will be replaced by link index and link address
+respectively.
 
-_menu-item-entry-format_ (default: *" %u │ %d │ %o"*)
-	Format of the item list entries. Specifiers are as follows:++
-*i*	index number;++
-*u*	"N" if item is unread, " " otherwise;++
-*d*	update date formatted according to _list-entry-date-format_;++
-*D*	publication date formatted according to _list-entry-date-format_;++
-*l*	item link;++
-*t*	item title;++
-*o*	item title if set, item link otherwise;++
-*L*	feed link;++
-*T*	feed title;++
-*O*	feed title if set, feed link otherwise.
+## list-entry-date-format
+Default: _%b %d_. Date format of the list entries. Specifier values correspond
+to the *strftime*(3) format.
 
-_menu-explore-item-entry-format_ (default: *" %u │ %d │ %-28O │ %o"*)
-	Format of the item list entries in explore mode. Specifiers are the same as
-	in _menu-item-entry-format_.
+## menu-section-entry-format
+Default: _%5.0u @ %t_. Format of the section list entries. Specifiers are as
+follows:
 
-_sections-menu-paramount-explore_ (default: *false*)
-	Enables explore mode in sections menu by default.
+	_i_	index number;++
+_u_	unread items count;++
+_t_	section title.
 
-_feeds-menu-paramount-explore_ (default: *false*)
-	Enables explore mode in feeds menu by default.
+## menu-feed-entry-format
+Default: _%5.0u │ %t_. Format of the feed list entries. Specifiers are as
+follows:
 
-_mark-item-unread-on-change_ (*scalable*, default: *false*)
-	Mark every item that changes on a feed update as unread.
+	_i_	index number;++
+_u_	unread items count;++
+_l_	feed link;++
+_t_	feed name if set, feed link otherwise.
 
-_mark-item-read-on-hover_ (default: *false*)
-	Mark every item that gets selected as read.
+## menu-item-entry-format
+Default: _" %u │ %d │ %o"_. Format of the item list entries. Specifiers are
+as follows:
 
-_analyze-database-on-startup_ (default: *true*)
-	Run "ANALYZE" SQLite command on the database every time you start Newsraft.
-	It gathers statistics about database and uses it to optimize some queries
-	making runtime faster.
+	_i_	index number;++
+_u_	"N" if item is unread, " " otherwise;++
+_d_	update date formatted according to *list-entry-date-format*;++
+_D_	publication date formatted according to *list-entry-date-format*;++
+_l_	item link;++
+_t_	item title;++
+_o_	item title if set, item link otherwise;++
+_L_	feed link;++
+_T_	feed title;++
+_O_	feed title if set, feed link otherwise.
 
-_clean-database-on-startup_ (default: *false*)
-	Run "VACUUM" SQLite command on the database every time you start Newsraft.
-	It rebuilds the database file by packing it into a minimal amount of disk space.
-	This can significantly increase startup time.
+## menu-explore-item-entry-format
+Default: _" %u │ %d │ %-28O │ %o"_. Format of the item list entries in
+explore mode. Specifiers are the same as in *menu-item-entry-format*.
 
-_download-timeout_ (*scalable*, default: *20*)
-	Maximum time in seconds that you allow Newsraft to download one feed. Setting
-	to *0* disables the timeout.
+## sections-menu-paramount-explore
+Default: _false_. Enables explore mode in sections menu by default.
 
-_download-speed-limit_ (*scalable*, default: *0*)
-	Maximum download speed in kilobytes per second (kB/s). Setting to *0* disables
-	the limit.
+## feeds-menu-paramount-explore
+Default: _false_. Enables explore mode in feeds menu by default.
 
-_download-max-host-connections_ (default: *0*)
-	Maximum amount of simultaneously open connections Newsraft may hold a single
-	host. If set to *0*, there is no limit.
+## mark-item-unread-on-change (*)
+Default: _false_. Mark every item that changes on a feed update as unread.
 
-_status-messages-count-limit_ (default: *1000*)
-	Maximum number of status messages stored in memory. If set to *0*, status
-	messages history will not be stored in memory.
+## mark-item-read-on-hover
+Default: _false_. Mark every item that gets selected as read.
 
-_user-agent_ (*scalable*, default: *auto*)
-	User-Agent header sent with download requests. If it is set to *"auto"*,
-	Newsraft will generate it according to the following format:
+## analyze-database-on-startup
+Default: _true_. Run "ANALYZE" SQLite command on the database every time you
+start Newsraft. It gathers statistics about database and uses it to optimize
+some queries making runtime faster.
 
-		*"newsraft/"* + NEWSRAFT_VERSION + *" ("* + OS_NAME + *")"*
+## clean-database-on-startup
+Default: _false_. Run "VACUUM" SQLite command on the database every time you
+start Newsraft. It rebuilds the database file by packing it into a minimal
+amount of disk space. This can significantly increase startup time.
 
-	OS_NAME shouldn't be a matter of privacy concern, because on most systems it
-	contains nothing more like *"Linux"* or *"Darwin"*. If you want to be sure
-	of this, check Newsraft log to see how _user-agent_ is set at startup.
+## download-timeout (*)
+Default: _20_. Maximum time in seconds that you allow Newsraft to download one
+feed. Setting to _0_ disables the timeout.
 
-	If set to *""*, User-Agent header will not be sent.
+## download-speed-limit (*)
+Default: _0_. Maximum download speed in kilobytes per second (kB/s). Setting to
+_0_ disables the limit.
 
-_respect-ttl-element_ (*scalable*, default: *true*)
-	Prevents too frequent updates for some feeds. The limit is set by the
-	creators of the feeds in order to save traffic and resources for a very
-	rarely updated feeds. Disabling it is strongly discouraged.
+## download-max-host-connections
+Default: _0_. Maximum amount of simultaneously open connections Newsraft may
+hold a single host. If set to _0_, there is no limit.
 
-_respect-expires-header_ (*scalable*, default: *true*)
-	Prevents feed updates until the expiration date of the previously downloaded
-	information in order to save traffic and resources. Disabling it is strongly
-	discouraged.
+## status-messages-count-limit
+Default: _1000_. Maximum number of status messages stored in memory. If set to
+_0_, status messages history will not be stored in memory.
 
-_send-if-none-match-header_ (*scalable*, default: *true*)
-	Sends an entity tag corresponding to the previously downloaded information.
-	If the server from which the feed is downloaded contains information with
-	the same tag, then in order to save traffic and resources, it will reject
-	the download request. Disabling it is strongly discouraged.
+## user-agent (*)
+Default: _auto_. User-Agent header sent with download requests. If it is set to
+_"auto"_, Newsraft will generate it according to the following format:
 
-_send-if-modified-since-header_ (*scalable*, default: *true*)
-	Sends a date corresponding to the last modification of previously downloaded
-	information. If the server from which the feed is downloaded contains
-	information with the same modification date, then in order to save traffic
-	and resources, it will reject the download request. Disabling it is strongly
-	discouraged.
+	_"newsraft/"_ + NEWSRAFT_VERSION + _" ("_ + OS_NAME + _")"_
+
+OS_NAME shouldn't be a matter of privacy concern, because on most systems it
+contains nothing more like _"Linux"_ or _"Darwin"_. If you want to be sure of
+this, check Newsraft log to see how *user-agent* is set at startup.
+
+If set to _""_, User-Agent header will not be sent.
+
+## respect-ttl-element (*)
+Default: _true_. Prevents too frequent updates for some feeds. The limit is set
+by the creators of the feeds in order to save traffic and resources for a very
+rarely updated feeds. Disabling it is strongly discouraged.
+
+## respect-expires-header (*)
+Default: _true_. Prevents feed updates until the expiration date of the
+previously downloaded information in order to save traffic and resources.
+Disabling it is strongly discouraged.
+
+## send-if-none-match-header (*)
+Default: _true_. Sends an entity tag corresponding to the previously downloaded
+information. If the server from which the feed is downloaded contains
+information with the same tag, then in order to save traffic and resources, it
+will reject the download request. Disabling it is strongly discouraged.
+
+## send-if-modified-since-header (*)
+Default: _true_. Sends a date corresponding to the last modification of
+previously downloaded information. If the server from which the feed is
+downloaded contains information with the same modification date, then in order
+to save traffic and resources, it will reject the download request. Disabling it
+is strongly discouraged.
 
 # COLOR SETTINGS
 
 Color settings are the same settings as above, but they take two color words
 (foreground and background) and optional attribute words. Available colors are
-*default*, *black*, *red*, *green*, *yellow*, *blue*, *magenta*, *cyan*, *white*
-and *colorN* (*N* can be a number from *0* to *255*). Available attributes are
-*bold*, *italic* and *underlined*.
+_default_, _black_, _red_, _green_, _yellow_, _blue_, _magenta_, _cyan_, _white_
+and _colorN_ (_N_ can be a number from _0_ to _255_). Available attributes are
+_bold_, _italic_ and _underlined_.
 
 |[ Color setting
 :[ Default value
-|[ _color-status_
-:[ *green default bold*
-|[ _color-status-info_
-:[ *cyan default bold*
-|[ _color-status-fail_
-:[ *red default bold*
-|[ _color-list-item_
-:[ *default default*
-|[ _color-list-item-unread_
-:[ *yellow default*
-|[ _color-list-item-important_
-:[ *magenta default*
-|[ _color-list-feed_
-:[ *default default*
-|[ _color-list-feed-unread_
-:[ *yellow default*
-|[ _color-list-section_
-:[ *default default*
-|[ _color-list-section-unread_
-:[ *yellow default*
+|[ *color-status*
+:[ _green default bold_
+|[ *color-status-info*
+:[ _cyan default bold_
+|[ *color-status-fail*
+:[ _red default bold_
+|[ *color-list-item*
+:[ _default default_
+|[ *color-list-item-unread*
+:[ _yellow default_
+|[ *color-list-item-important*
+:[ _magenta default_
+|[ *color-list-feed*
+:[ _default default_
+|[ *color-list-feed-unread*
+:[ _yellow default_
+|[ *color-list-section*
+:[ _default default_
+|[ *color-list-section-unread*
+:[ _yellow default_
 
 # ACTIONS
 
 |[ Actions
 :[ Keys
-|[ _select-next_
-:[ *j*, *KEY_DOWN*, *^E*
-|[ _select-prev_
-:[ *k*, *KEY_UP*, *^Y*
-|[ _select-next-page_
-:[ *space*, *^F*, *KEY_NPAGE*
-|[ _select-prev-page_
-:[ *^B*, *KEY_PPAGE*
-|[ _select-first_
-:[ *g*, *KEY_HOME*
-|[ _select-last_
-:[ *G*, *KEY_END*
-|[ _jump-to-next_
-:[ *J*
-|[ _jump-to-prev_
-:[ *K*
-|[ _jump-to-next-unread_
-:[ *n*
-|[ _jump-to-prev-unread_
-:[ *N*
-|[ _jump-to-next-important_
-:[ *p*
-|[ _jump-to-prev-important_
-:[ *P*
-|[ _goto-feed_
-:[ *\**
-|[ _shift-west_
-:[ *,*
-|[ _shift-east_
-:[ *.*
-|[ _shift-reset_
-:[ *<*
-|[ _sort-by-time_
-:[ *t*
-|[ _sort-by-rowid_
-:[ *w*
-|[ _sort-by-unread_
-:[ *u*
-|[ _sort-by-important_
-:[ *i*
-|[ _sort-by-alphabet_
-:[ *a*
-|[ _enter_
-:[ *enter*, *l*, *KEY_ENTER*, *KEY_RIGHT*
-|[ _reload_
-:[ *r*
-|[ _reload-all_
-:[ *R*, *^R*
-|[ _mark-read_; _jump-to-next_
-:[ *d*
-|[ _mark-unread_; _jump-to-next_
-:[ *D*
-|[ _mark-read-all_
-:[ *^D*
-|[ _mark-unread-all_
+|[ *select-next*
+:[ _j_, _KEY_DOWN_, _^E_
+|[ *select-prev*
+:[ _k_, _KEY_UP_, _^Y_
+|[ *select-next-page*
+:[ _space_, _^F_, _KEY_NPAGE_
+|[ *select-prev-page*
+:[ _^B_, _KEY_PPAGE_
+|[ *select-first*
+:[ _g_, _KEY_HOME_
+|[ *select-last*
+:[ _G_, _KEY_END_
+|[ *jump-to-next*
+:[ _J_
+|[ *jump-to-prev*
+:[ _K_
+|[ *jump-to-next-unread*
+:[ _n_
+|[ *jump-to-prev-unread*
+:[ _N_
+|[ *jump-to-next-important*
+:[ _p_
+|[ *jump-to-prev-important*
+:[ _P_
+|[ *goto-feed*
+:[ _\*_
+|[ *shift-west*
+:[ _,_
+|[ *shift-east*
+:[ _._
+|[ *shift-reset*
+:[ _<_
+|[ *sort-by-time*
+:[ _t_
+|[ *sort-by-rowid*
+:[ _w_
+|[ *sort-by-unread*
+:[ _u_
+|[ *sort-by-important*
+:[ _i_
+|[ *sort-by-alphabet*
+:[ _a_
+|[ *enter*
+:[ _enter_, _l_, _KEY_ENTER_, _KEY_RIGHT_
+|[ *reload*
+:[ _r_
+|[ *reload-all*
+:[ _R_, _^R_
+|[ *mark-read*; *jump-to-next*
+:[ _d_
+|[ *mark-unread*; *jump-to-next*
+:[ _D_
+|[ *mark-read-all*
+:[ _^D_
+|[ *mark-unread-all*
 :[ (not set)
-|[ _mark-important_
-:[ *f*
-|[ _mark-unimportant_
-:[ *F*
-|[ _toggle-explore-mode_
-:[ *tab*, *e*
-|[ _status-history-menu_
-:[ *v*
-|[ _open-in-browser_
-:[ *o*
-|[ _copy-to-clipboard_
-:[ *y*, *c*
-|[ _start-search-input_
-:[ */*
-|[ _clean-status_
-:[ *escape*
-|[ _navigate-back_
-:[ *h*, *backspace*, *KEY_LEFT*, *KEY_BACKSPACE*
-|[ _quit_
-:[ *q*
-|[ _quit-hard_
-:[ *Q*
+|[ *mark-important*
+:[ _f_
+|[ *mark-unimportant*
+:[ _F_
+|[ *toggle-explore-mode*
+:[ _tab_, _e_
+|[ *status-history-menu*
+:[ _v_
+|[ *open-in-browser*
+:[ _o_
+|[ *copy-to-clipboard*
+:[ _y_, _c_
+|[ *start-search-input*
+:[ _/_
+|[ *clean-status*
+:[ _escape_
+|[ *navigate-back*
+:[ _h_, _backspace_, _KEY_LEFT_, _KEY_BACKSPACE_
+|[ *quit*
+:[ _q_
+|[ *quit-hard*
+:[ _Q_
 
 # FORMATS SUPPORT
 

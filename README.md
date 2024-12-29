@@ -12,13 +12,15 @@ counterpart.
 * Parallel downloads
 * Section-based feeds grouping
 * Opening links in any program
+* [News filtering using SQL conditions](https://newsraft.codeberg.page/#item-rule_(*))
 * Viewing news from all feeds with explore mode
-* Automatic updates for feeds and sections
+* [Automatic updates for feeds and sections](https://newsraft.codeberg.page/#reload-period_(*))
 * Per-feed settings and key bindings
 * Assigning multiple actions to key bindings
 * Processing feeds from command output
 * Text searching by news titles and content
 * Interactive news content viewing
+* [Support for practically all feed formats](https://newsraft.codeberg.page/#FORMATS_SUPPORT)
 * Come try segfault me, baby ;)
 
 Check out [comparison of Newsraft and Newsboat](https://codeberg.org/newsraft/newsraft/src/branch/main/doc/comparison-newsboat.md).

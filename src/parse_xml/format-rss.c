@@ -57,13 +57,6 @@ rss_pubdate_end(struct feed_update_state *data)
 }
 
 static int8_t
-rss_lastbuilddate_end(struct feed_update_state *data)
-{
-	INFO("Feed lastBuildDate: %s", data->text->ptr);
-	return PARSE_OKAY;
-}
-
-static int8_t
 rss_author_end(struct feed_update_state *data)
 {
 	if (data->path[data->depth] == GENERIC_ITEM) {
@@ -151,13 +144,6 @@ rss_ttl_end(struct feed_update_state *data)
 		}
 		data->feed.time_to_live = minutes * 60;
 	}
-	return PARSE_OKAY;
-}
-
-static int8_t
-rss_webmaster_end(struct feed_update_state *data)
-{
-	INFO("Webmaster of this feed: %s", data->text->ptr);
 	return PARSE_OKAY;
 }
 

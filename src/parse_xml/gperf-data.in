@@ -8,14 +8,14 @@ title,                                            XML_UNKNOWN_POS,  NULL,       
 link,                                             XML_UNKNOWN_POS,  NULL,                    &rss_link_end
 description,                                      XML_UNKNOWN_POS,  NULL,                    &generic_html_content_end
 pubDate,                                          XML_UNKNOWN_POS,  NULL,                    &rss_pubdate_end
-lastBuildDate,                                    XML_UNKNOWN_POS,  NULL,                    &rss_lastbuilddate_end
+lastBuildDate,                                    XML_UNKNOWN_POS,  NULL,                    &log_xml_element_content_end
 author,                                           XML_UNKNOWN_POS,  NULL,                    &rss_author_end
 enclosure,                                        XML_UNKNOWN_POS,  &rss_enclosure_start,    NULL
 category,                                         XML_UNKNOWN_POS,  NULL,                    &generic_category_end
 comments,                                         XML_UNKNOWN_POS,  NULL,                    &rss_comments_end
 ttl,                                              XML_UNKNOWN_POS,  NULL,                    &rss_ttl_end
-generator,                                        XML_UNKNOWN_POS,  NULL,                    &generic_generator_end
-webMaster,                                        XML_UNKNOWN_POS,  NULL,                    &rss_webmaster_end
+generator,                                        XML_UNKNOWN_POS,  NULL,                    &log_xml_element_content_end
+webMaster,                                        XML_UNKNOWN_POS,  NULL,                    &log_xml_element_content_end
 managingEditor,                                   XML_UNKNOWN_POS,  NULL,                    &rss_managingeditor_end
 source,                                           XML_UNKNOWN_POS,  &rss_source_start,       &rss_source_end
 http://www.w3.org/2005/Atom feed,                 GENERIC_FEED,     NULL,                    NULL
@@ -34,7 +34,7 @@ http://www.w3.org/2005/Atom uri,                  XML_UNKNOWN_POS,  NULL,       
 http://www.w3.org/2005/Atom email,                XML_UNKNOWN_POS,  NULL,                    &email_end
 http://www.w3.org/2005/Atom category,             XML_UNKNOWN_POS,  &atom_category_start,    NULL
 http://www.w3.org/2005/Atom subtitle,             XML_UNKNOWN_POS,  &atom_subtitle_start,    &atom_subtitle_end
-http://www.w3.org/2005/Atom generator,            XML_UNKNOWN_POS,  &atom_generator_start,   &generic_generator_end
+http://www.w3.org/2005/Atom generator,            XML_UNKNOWN_POS,  &atom_generator_start,   &log_xml_element_content_end
 http://www.w3.org/1999/02/22-rdf-syntax-ns# RDF,  GENERIC_FEED,     NULL,                    NULL
 http://purl.org/rss/1.0/ item,                    GENERIC_ITEM,     &generic_item_starter,   &generic_item_ender
 http://purl.org/rss/1.0/ title,                   XML_UNKNOWN_POS,  NULL,                    &generic_title_end

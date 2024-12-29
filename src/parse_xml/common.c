@@ -139,17 +139,17 @@ generic_category_end(struct feed_update_state *data)
 }
 
 int8_t
-generic_generator_end(struct feed_update_state *data)
-{
-	INFO("Feed generator name: %s", data->text->ptr);
-	return PARSE_OKAY;
-}
-
-int8_t
 update_date_end(struct feed_update_state *data)
 {
 	if (data->in_item == true) {
 		data->feed.item->update_date = parse_date(data->text->ptr, true);
 	}
+	return PARSE_OKAY;
+}
+
+int8_t
+log_xml_element_content_end(struct feed_update_state *data)
+{
+	INFO("Element content: %s", data->text->ptr);
 	return PARSE_OKAY;
 }

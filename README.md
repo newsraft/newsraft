@@ -83,9 +83,23 @@ Making changes: [doc/contributing-change.md](https://codeberg.org/newsraft/newsr
 </details>
 
 <details>
-	<summary>Can I modify feeds content before Newsraft processes it?</summary>
-	Yes, you can acquire feeds yourself and transform them as you please with custom scripts. Here's an example of scripted feed in a feeds file:<br>
-	<code>$(~/bin/html2rss http://example.org/index.html) "Local news"</code>
+	<summary>How do I filter out things I don't want to see in my feed?</summary>
+	See <a href="https://newsraft.codeberg.page/#item-rule_(*)">item-rule</a> setting.
+</details>
+
+<details>
+	<summary>I want Newsraft to show me a help screen on ? key press.</summary>
+	Easy. Just put <code>bind ? exec man newsraft</code> into your <code>config</code> file.
+</details>
+
+<details>
+	<summary>Can I alter feed's content before Newsraft processes it?</summary>
+	Yes, you can do practically anything before Newsraft takes over. It's done
+	via shell interlayer: any shell command in between of <code>$(</code>
+	and <code>)</code> will be executed on reload and its standard output will
+	be taken for a feed content. Here are examples of such feeds:<br>
+	<code>$(gemget -sq gemini://example.org/feed.xml) "Simple blog"</code><br>
+	<code>$($HOME/bin/html2rss http://example.org/index.html) "Local news"</code>
 </details>
 
 <details>
@@ -94,8 +108,16 @@ Making changes: [doc/contributing-change.md](https://codeberg.org/newsraft/newsr
 </details>
 
 <details>
+	<summary>My database is over 9000 GB now. What do I do?</summary>
+	<ul>
+		<li>Set capacity limit on some of your heavy feeds via <a href="https://newsraft.codeberg.page/#item-limit_(*)">item-limit</a> setting</li>
+		<li>Delete cache of feeds you unsubscribed from with <code>newsraft -e purge-abandoned</code></li>
+	</ul>
+</details>
+
+<details>
 	<summary>Where I can find a change log?</summary>
-	<a href="https://codeberg.org/newsraft/newsraft/src/branch/main/doc/changes.md">doc/changes.md</a>
+	See <a href="https://codeberg.org/newsraft/newsraft/src/branch/main/doc/changes.md">doc/changes.md</a> file.
 </details>
 
 <details>

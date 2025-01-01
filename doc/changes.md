@@ -1,3 +1,26 @@
+# newsraft 0.28 "creeping train"
+
+this one brings a long awaited feature: feeds filtering via `item-rule` setting.
+i will go as far and just dump the setting description from the man page here:
+
+> Item search condition when accessing database. This can be very useful in
+> managing feeds with a heavy spam flow: you set a condition based on some
+> parameters and only those entries that meet this condition will be shown in
+> the feed. It's specified in SQL format. It probably only makes sense to set
+> this setting for individual feeds, and not globally (see *FEEDS FILE* section
+> to understand how). Available parameters: _guid_, _title_, _link_, _content_,
+> _attachments_, _persons_, _publication_date_, _update_date_.
+
+also color settings and notification command can be set for individual feeds now
+
+happy new year to everyone and especially to package maintainers :^)
+
+* add `item-rule` setting (#104)
+* add `download-max-host-connections` setting (#120)
+* add `sort-by-rowid` action (#123)
+* make `notification-command` setting scalable (#130)
+* make color settings scalable (#122)
+
 # newsraft 0.27 "confusing query"
 
 fixed erroneous logic of `item-limit` setting and split its special behavior into new `item-limit-unread` and `item-limit-important` settings. also now `[X]` and `{Y}` counters are no longer supported in the feeds file. `< reload-period X` should be used instead of `[X]` and `< item-limit Y` should be used instead of `{Y}`

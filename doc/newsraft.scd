@@ -214,14 +214,14 @@ useful in managing feeds with a heavy spam flow: you set a condition based on
 some parameters and only those entries that meet this condition will be shown in
 the feed. It's specified in SQL format. It probably only makes sense to set this
 setting for individual feeds, and not globally (see *FEEDS FILE* section to
-understand how). Available parameters: *guid*, *title*, *link*, *content*,
-*attachments*, *persons*, *publication_date*, *update_date*.
+understand how). Available parameters: _guid_, _title_, _link_, _content_,
+_attachments_, _persons_, _publication_date_, _update_date_.
 
 Here are some examples of correct setting values:
 
-	*"title NOT LIKE '%Rust%'"*++
-*"persons LIKE '%PHARMACIST%' OR persons LIKE '%OFFL1NX%'"*++
-*"attachments NOT LIKE '%audio/mp3%' AND attachments NOT LIKE '%video/mp4%'"*
+	_title NOT LIKE '%Rust%'_++
+_persons LIKE '%PHARMACIST%' OR persons LIKE '%OFFL1NX%'_++
+_attachments NOT LIKE '%audio/mp3%' AND attachments NOT LIKE '%video/mp4%'_
 
 ## scrolloff
 Default: _0_. Minimal number of list menu entries to keep above and below the

@@ -362,7 +362,7 @@ Default: _false_. Enables explore mode in feeds menu by default.
 ## mark-item-unread-on-change (*)
 Default: _false_. Mark every item that changes on a feed update as unread.
 
-## mark-item-read-on-hover
+## mark-item-read-on-hover (*)
 Default: _false_. Mark every item that gets selected as read.
 
 ## analyze-database-on-startup

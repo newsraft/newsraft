@@ -142,7 +142,7 @@ items_menu_loop(struct menu_state *m)
 			m->items_age = items_age;
 			recreate_items_list(&m->items);
 		}
-		if (get_cfg_bool(NULL, CFG_MARK_ITEM_READ_ON_HOVER) == true) {
+		if (get_cfg_bool(&m->items->ptr[m->view_sel].feed[0]->cfg, CFG_MARK_ITEM_READ_ON_HOVER)) {
 			mark_item_read(m, m->view_sel, true);
 		}
 		input_id cmd = get_input(m->items->ptr[m->view_sel].feed[0]->binds, NULL, &macro);

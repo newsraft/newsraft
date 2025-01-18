@@ -138,7 +138,7 @@ items_menu_loop(struct menu_state *m)
 	start_menu();
 	const struct wstring *macro, *browser;
 	while (true) {
-		if (m->items_age != items_age) {
+		if (get_cfg_bool(NULL, CFG_MENU_RESPONSIVENESS) && m->items_age != items_age) {
 			m->items_age = items_age;
 			recreate_items_list(&m->items);
 		}

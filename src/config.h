@@ -100,6 +100,7 @@ CFG(CFG_MENU_ITEM_ENTRY_FORMAT,          "menu-item-entry-format",          CFG_
 CFG(CFG_MENU_EXPLORE_ITEM_ENTRY_FORMAT,  "menu-explore-item-entry-format",  CFG_STRING, {.s = {.base = " %u │ %d │ %-28O │ %o"}})
 CFG(CFG_MENU_FEED_SORTING,               "menu-feed-sorting",               CFG_STRING, {.s = {.base = "none"}})
 CFG(CFG_MENU_ITEM_SORTING,               "menu-item-sorting",               CFG_STRING, {.s = {.base = "time-desc"}})
+CFG(CFG_MENU_RESPONSIVENESS,             "menu-responsiveness",             CFG_BOOL,   {.b = true })
 CFG(CFG_ITEM_LIMIT_UNREAD,               "item-limit-unread",               CFG_BOOL,   {.b = true })
 CFG(CFG_ITEM_LIMIT_IMPORTANT,            "item-limit-important",            CFG_BOOL,   {.b = false})
 CFG(CFG_STATUS_SHOW_MENU_PATH,           "status-show-menu-path",           CFG_BOOL,   {.b = true })

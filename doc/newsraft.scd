@@ -246,6 +246,10 @@ Default: _time-desc_. Sorting order for the items menu. Available values:
 _time-desc_, _time-asc_, _rowid-desc_, _rowid-asc_, _unread-desc_, _unread-asc_,
 _important-desc_, _important-asc_, _alphabet-desc_, _alphabet-asc_.
 
+## menu-responsiveness
+Default: _true_. If _true_, update menu contents as soon as possible.
+If _false_, the menu will be updated only when you re-open it.
+
 ## open-in-browser-command (*)
 Default: _${BROWSER:-xdg-open} "%l"_. Shell command for opening URL in a web
 browser. The URL to be opened is put in place where _%l_ specifier is located.

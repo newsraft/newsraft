@@ -55,7 +55,7 @@ test-program:
 	$(CC) -std=c99 $(CFLAGS) $(AUXCFLAGS) -Isrc -D_XOPEN_SOURCE=700 -D_XOPEN_SOURCE_EXTENDED -DTEST -o newsraft-test $(TEST_FILE) -L. -lnewsraft
 
 gperf:
-	gperf -I -t -F ,0,NULL,NULL < src/parse_xml/gperf-data.in > src/parse_xml/gperf-data.c
+	gperf -m 1000 -I -t -F ,0,NULL,NULL < src/parse_xml/gperf-data.in > src/parse_xml/gperf-data.c
 
 man:
 	scdoc < doc/newsraft.scd > doc/newsraft.1

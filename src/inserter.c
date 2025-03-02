@@ -36,10 +36,17 @@ inserter_worker(void *dummy)
 		}
 
 		struct feed_entry *feed = target->feed_entry;
+		bool had_errors = feed->has_errors;
 
-		if (target->is_failed == false) {
+		if (target->is_failed) {
+			feed->has_errors = true;
+		} else {
 			if (target->is_canceled == false) {
-				insert_feed(target->feed_entry, &target->feed);
+				if (insert_feed(feed, &target->feed)) {
+					feed->has_errors = false;
+				} else {
+					feed->has_errors = true;
+				}
 			} else {
 				db_update_feed_int64(feed->link, "update_date", feed->update_date, true);
 
@@ -52,17 +59,24 @@ inserter_worker(void *dummy)
 					db_update_feed_int64(feed->link,  "http_header_last_modified", target->feed.http_header_last_modified, true);
 					db_update_feed_int64(feed->link,  "http_header_expires", target->feed.http_header_expires, true);
 				}
+
+				// This feed is successfully canceled - no need for error indication.
+				feed->has_errors = false;
 			}
 		}
 
 		bool need_redraw = false;
+
+		if (feed->has_errors != had_errors) {
+			need_redraw = true;
+		}
+
 		int64_t new_unread_count = get_unread_items_count_of_the_feed(feed->link);
 		if (new_unread_count >= 0 && new_unread_count != feed->unread_count) {
 			if (new_unread_count > feed->unread_count) {
 				target->new_items_count = new_unread_count - feed->unread_count;
 			}
 			feed->unread_count = new_unread_count;
-			refresh_unread_items_count_of_all_sections();
 			need_redraw = true;
 		}
 
@@ -77,8 +91,10 @@ inserter_worker(void *dummy)
 		}
 
 		if (curses_is_running() && need_redraw == true) {
+			refresh_sections_statistics_about_underlying_feeds();
 			expose_all_visible_entries_of_the_list_menu();
 		}
+
 		target->is_finished = true;
 		queue_examine();
 	}

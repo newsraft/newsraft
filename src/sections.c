@@ -7,6 +7,7 @@ struct feed_section {
 	struct feed_entry **feeds; // Array of pointers to feeds belonging to this section.
 	size_t feeds_count;
 	size_t unread_count;
+	bool has_errors;
 };
 
 static struct feed_section *sections = NULL;
@@ -39,7 +40,13 @@ static unsigned
 paint_section(struct menu_state *ctx, size_t index)
 {
 	(void)ctx;
-	return get_cfg_color(NULL, sections[index].unread_count > 0 ? CFG_COLOR_LIST_SECTION_UNREAD : CFG_COLOR_LIST_SECTION);
+	if (sections[index].has_errors) {
+		return get_cfg_color(NULL, CFG_COLOR_LIST_SECTION_FAILED);
+	} else if (sections[index].unread_count > 0) {
+		return get_cfg_color(NULL, CFG_COLOR_LIST_SECTION_UNREAD);
+	} else {
+		return get_cfg_color(NULL, CFG_COLOR_LIST_SECTION);
+	}
 }
 
 static bool
@@ -68,7 +75,7 @@ mark_feeds_read(struct feed_entry **feeds, size_t feeds_count, bool status)
 				feeds[i]->unread_count = new_unread_count;
 			}
 		}
-		refresh_unread_items_count_of_all_sections();
+		refresh_sections_statistics_about_underlying_feeds();
 		expose_all_visible_entries_of_the_list_menu();
 		tell_items_menu_to_regenerate();
 	}
@@ -88,14 +95,12 @@ make_sure_section_exists(const struct string *section_name)
 		return -1;
 	}
 	sections = tmp;
+	memset(&sections[sections_count], 0, sizeof(struct feed_section));
 	sections[sections_count].name = crtss(section_name);
 	if (sections[sections_count].name == NULL) {
 		write_error("Not enough memory for section name string!\n");
 		return -1;
 	}
-	sections[sections_count].feeds = NULL;
-	sections[sections_count].feeds_count = 0;
-	sections[sections_count].unread_count = 0;
 	INFO("Created section \"%s\".", sections[sections_count].name->ptr);
 	sections_count += 1;
 	return sections_count - 1;
@@ -187,13 +192,18 @@ copy_feed_to_section(const struct feed_entry *feed_data, int64_t section_index)
 }
 
 void
-refresh_unread_items_count_of_all_sections(void)
+refresh_sections_statistics_about_underlying_feeds(void)
 {
 	for (size_t i = 0; i < sections_count; ++i) {
+		bool has_errors = false;
 		sections[i].unread_count = 0;
 		for (size_t j = 0; j < sections[i].feeds_count; ++j) {
+			if (sections[i].feeds[j]->has_errors) {
+				has_errors = true;
+			}
 			sections[i].unread_count += sections[i].feeds[j]->unread_count;
 		}
+		sections[i].has_errors = has_errors;
 	}
 }
 
@@ -296,7 +306,7 @@ sections_menu_loop(struct menu_state *m)
 			return setup_menu(&feeds_menu_loop, NULL, sections[0].feeds, sections[0].feeds_count, MENU_SWALLOW);
 		}
 	}
-	refresh_unread_items_count_of_all_sections();
+	refresh_sections_statistics_about_underlying_feeds();
 	start_menu();
 	const struct wstring *macro;
 	while (true) {

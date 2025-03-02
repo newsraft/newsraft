@@ -456,10 +456,14 @@ _bold_, _italic_ and _underlined_.
 :[ _default default_
 |[ *color-list-feed-unread*
 :[ _yellow default_
+|[ *color-list-feed-failed*
+:[ _red default_
 |[ *color-list-section*
 :[ _default default_
 |[ *color-list-section-unread*
 :[ _yellow default_
+|[ *color-list-section-failed*
+:[ _red default_
 
 # ACTIONS
 

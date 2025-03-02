@@ -33,7 +33,13 @@ get_feed_args(struct menu_state *ctx, size_t index)
 static unsigned
 paint_feed(struct menu_state *ctx, size_t index)
 {
-	return get_cfg_color(&ctx->feeds[index]->cfg, ctx->feeds[index]->unread_count > 0 ? CFG_COLOR_LIST_FEED_UNREAD : CFG_COLOR_LIST_FEED);
+	if (ctx->feeds[index]->has_errors) {
+		return get_cfg_color(&ctx->feeds[index]->cfg, CFG_COLOR_LIST_FEED_FAILED);
+	} else if (ctx->feeds[index]->unread_count > 0) {
+		return get_cfg_color(&ctx->feeds[index]->cfg, CFG_COLOR_LIST_FEED_UNREAD);
+	} else {
+		return get_cfg_color(&ctx->feeds[index]->cfg, CFG_COLOR_LIST_FEED);
+	}
 }
 
 static bool

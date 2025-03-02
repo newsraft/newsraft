@@ -1,4 +1,3 @@
-#include <signal.h>
 #include "newsraft.h"
 
 static void

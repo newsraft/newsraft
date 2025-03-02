@@ -159,6 +159,7 @@ struct feed_entry {
 	int64_t update_date; // Date of last feed update attempt
 	struct config_context *cfg;
 	struct input_binding *binds;
+	bool has_errors;
 };
 
 struct item_entry {
@@ -317,7 +318,7 @@ struct feed_update_state {
 // See "sections.c" file for implementation.
 int64_t make_sure_section_exists(const struct string *section_name);
 struct feed_entry *copy_feed_to_section(const struct feed_entry *feed_data, int64_t section_index);
-void refresh_unread_items_count_of_all_sections(void);
+void refresh_sections_statistics_about_underlying_feeds(void);
 bool purge_abandoned_feeds(void);
 struct menu_state *sections_menu_loop(struct menu_state *m);
 void free_sections(void);

@@ -475,8 +475,12 @@ _bold_, _italic_ and _underlined_.
 :[ _k_, _KEY_UP_, _^Y_
 |[ *select-next-page*
 :[ _space_, _^F_, _KEY_NPAGE_
+|[ *select-next-page-half*
+:[ _^D_
 |[ *select-prev-page*
 :[ _^B_, _KEY_PPAGE_
+|[ *select-prev-page-half*
+:[ _^U_
 |[ *select-first*
 :[ _g_, _KEY_HOME_
 |[ *select-last*
@@ -522,7 +526,7 @@ _bold_, _italic_ and _underlined_.
 |[ *mark-unread*; *jump-to-next*
 :[ _D_
 |[ *mark-read-all*
-:[ _^D_
+:[ _A_
 |[ *mark-unread-all*
 :[ (not set)
 |[ *mark-important*

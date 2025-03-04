@@ -267,8 +267,13 @@ handle_list_menu_control(struct menu_state *m, input_id cmd, const struct wstrin
 		}
 	} else if (cmd == INPUT_SELECT_NEXT_PAGE) {
 		change_list_view_unprotected(m, m->view_sel + list_menu_height);
+	} else if (cmd == INPUT_SELECT_NEXT_PAGE_HALF) {
+		change_list_view_unprotected(m, m->view_sel + list_menu_height / 2);
 	} else if (cmd == INPUT_SELECT_PREV_PAGE) {
 		change_list_view_unprotected(m, m->view_sel > list_menu_height ? m->view_sel - list_menu_height : 0);
+	} else if (cmd == INPUT_SELECT_PREV_PAGE_HALF) {
+		size_t step = list_menu_height / 2;
+		change_list_view_unprotected(m, m->view_sel > step ? m->view_sel - step : 0);
 	} else if (cmd == INPUT_SELECT_FIRST) {
 		change_list_view_unprotected(m, 0);
 	} else if (cmd == INPUT_SELECT_LAST) {
@@ -337,8 +342,13 @@ handle_pager_menu_control(input_id cmd)
 		change_pager_view_unprotected(menu->view_min > 0 ? menu->view_min - 1 : 0);
 	} else if (cmd == INPUT_SELECT_NEXT_PAGE) {
 		change_pager_view_unprotected(menu->view_min + list_menu_height);
+	} else if (cmd == INPUT_SELECT_NEXT_PAGE_HALF) {
+		change_pager_view_unprotected(menu->view_min + list_menu_height / 2);
 	} else if (cmd == INPUT_SELECT_PREV_PAGE) {
 		change_pager_view_unprotected(menu->view_min > list_menu_height ? menu->view_min - list_menu_height : 0);
+	} else if (cmd == INPUT_SELECT_PREV_PAGE_HALF) {
+		size_t step = list_menu_height / 2;
+		change_pager_view_unprotected(menu->view_min > step ? menu->view_min - step : 0);
 	} else if (cmd == INPUT_SELECT_FIRST) {
 		change_pager_view_unprotected(0);
 	} else if (cmd == INPUT_SELECT_LAST) {

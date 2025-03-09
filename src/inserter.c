@@ -80,7 +80,11 @@ inserter_worker(void *dummy)
 			need_redraw = true;
 		}
 
-		if (feed->name == NULL || feed->name->len == 0) {
+		// Interface routines actively access the feed name string in other threads.
+		// The lock is here to prevent race condition which can potentially lead to segmentation fault.
+		// TODO: make it less ugly perhaps?
+		pthread_mutex_lock(&interface_lock);
+		if (STRING_IS_EMPTY(feed->name)) {
 			struct string *title = db_get_string_from_feed_table(feed->link, "title", 5);
 			if (title != NULL) {
 				inlinefy_string(title);
@@ -89,6 +93,7 @@ inserter_worker(void *dummy)
 				need_redraw = true;
 			}
 		}
+		pthread_mutex_unlock(&interface_lock);
 
 		if (curses_is_running() && need_redraw == true) {
 			refresh_sections_statistics_about_underlying_feeds();

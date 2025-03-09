@@ -29,6 +29,7 @@
 #define LENGTH(A) ((sizeof(A))/(sizeof(*A)))
 #define NEWSRAFT_MIN(A, B) (((A) < (B)) ? (A) : (B)) // Need prefix because some platforms have their own MIN definition
 #define NEWSRAFT_CURSES(CALL) do { if (curses_is_running()) { CALL; } } while (0) // Make CALL only if Curses is running
+#define STRING_IS_EMPTY(A) (((A) == NULL) || ((A)->ptr == NULL) || ((A)->len == 0))
 
 typedef uint8_t config_entry_id;
 typedef uint8_t input_id;
@@ -349,7 +350,7 @@ bool handle_list_menu_control(struct menu_state *m, input_id cmd, const struct w
 bool handle_pager_menu_control(input_id cmd);
 void free_menus(void);
 size_t get_menu_depth(void);
-struct menu_state *setup_menu(struct menu_state *(*run)(struct menu_state *), struct string *name, struct feed_entry **feeds, size_t feeds_count, uint32_t flags);
+struct menu_state *setup_menu(struct menu_state *(*run)(struct menu_state *), const struct string *name, struct feed_entry **feeds, size_t feeds_count, uint32_t flags);
 struct menu_state *close_menu(void);
 void start_menu(void);
 void write_menu_path_string(struct string *names, struct menu_state *m);

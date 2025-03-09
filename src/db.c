@@ -204,7 +204,7 @@ db_error_string(void)
 int
 db_bind_string(sqlite3_stmt *stmt, int pos, const struct string *str)
 {
-	if ((str == NULL) || (str->len == 0)) {
+	if (STRING_IS_EMPTY(str)) {
 		return sqlite3_bind_null(stmt, pos);
 	} else {
 		return sqlite3_bind_text(stmt, pos, str->ptr, str->len, SQLITE_STATIC);
@@ -242,8 +242,8 @@ db_get_string_from_feed_table(const struct string *url, const char *column, size
 		if (sqlite3_step(res) == SQLITE_ROW) {
 			const char *str_ptr = (char *)sqlite3_column_text(res, 0);
 			if (str_ptr != NULL) {
-				const size_t str_len = strlen(str_ptr);
-				if (str_len != 0) {
+				size_t str_len = strlen(str_ptr);
+				if (str_len > 0) {
 					struct string *str = crtas(str_ptr, str_len);
 					sqlite3_finalize(res);
 					return str;

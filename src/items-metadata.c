@@ -113,13 +113,15 @@ generate_render_blocks_based_on_item_data(struct render_blocks_list *blocks, con
 					}
 				} else {
 					struct string *value = NULL;
+					pthread_mutex_lock(&interface_lock);
 					switch (specifier) {
-						case 'f': value = block_str(item->feed[0]->name != NULL && item->feed[0]->name->len != 0 ? item->feed[0]->name : item->feed[0]->link); break;
+						case 'f': value = block_str(STRING_IS_EMPTY(item->feed[0]->name) ? item->feed[0]->link : item->feed[0]->name); break;
 						case 't': value = block_str(item->title); break;
 						case 'l': value = block_str(item->url);   break;
 						case 'd': value = block_date(item);       break;
 						case 'a': value = block_persons(res);     break;
 					}
+					pthread_mutex_unlock(&interface_lock);
 					if (value != NULL) {
 						struct string *text = crtas(entry, strlen(entry));
 						catss(text, value);

@@ -4,13 +4,13 @@ static int8_t
 dublincore_title_end(struct feed_update_state *data)
 {
 	if (data->in_item == true) {
-		if ((data->feed.item->title == NULL) || (data->feed.item->title->len == 0)) {
+		if (STRING_IS_EMPTY(data->feed.item->title)) {
 			if (cpyss(&data->feed.item->title, data->text) == false) {
 				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			}
 		}
 	} else {
-		if ((data->feed.title == NULL) || (data->feed.title->len == 0)) {
+		if (STRING_IS_EMPTY(data->feed.title)) {
 			if (cpyss(&data->feed.title, data->text) == false) {
 				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
 			}

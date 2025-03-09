@@ -6,7 +6,7 @@ status_pager_loop(struct menu_state *dest)
 	dest->enumerator   = &is_pager_pos_valid;
 	dest->write_action = &pager_menu_writer;
 	struct string *messages = generate_string_with_status_messages_for_pager();
-	if (messages == NULL || messages->len == 0) {
+	if (STRING_IS_EMPTY(messages)) {
 		free_string(messages);
 		return close_menu();
 	}

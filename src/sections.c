@@ -136,18 +136,13 @@ copy_feed_to_global_section(const struct feed_entry *feed)
 		return NULL;
 	}
 
-	if (feed->name != NULL && feed->name->len > 0) {
-		sections[0].feeds[feed_index]->name = crtss(feed->name);
-	} else {
+	if (STRING_IS_EMPTY(feed->name)) {
 		sections[0].feeds[feed_index]->name = db_get_string_from_feed_table(feed->link, "title", 5);
-		if (sections[0].feeds[feed_index]->name != NULL) {
-			inlinefy_string(sections[0].feeds[feed_index]->name);
-		} else {
-			sections[0].feeds[feed_index]->name = crtss(feed->link);
-		}
+	} else {
+		sections[0].feeds[feed_index]->name = crtss(feed->name);
 	}
-	if (sections[0].feeds[feed_index]->name == NULL) {
-		return NULL;
+	if (sections[0].feeds[feed_index]->name != NULL) {
+		inlinefy_string(sections[0].feeds[feed_index]->name);
 	}
 
 	sections[0].feeds[feed_index]->link = crtss(feed->link);

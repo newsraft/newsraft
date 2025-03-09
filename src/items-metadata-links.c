@@ -121,7 +121,7 @@ free_contents_of_link(const struct link *link)
 static inline bool
 add_another_link_to_trim_link_list(struct links_list *links, const struct link *link)
 {
-	if ((link->url == NULL) || (link->url->len == 0)) {
+	if (STRING_IS_EMPTY(link->url)) {
 		free_contents_of_link(link);
 		return true; // Ignore empty links.
 	}
@@ -202,7 +202,7 @@ generate_link_list_wstring_for_pager(struct config_context **ctx, const struct l
 	char convert_out[CONVERT_OUT_SIZE];
 	int convert_len;
 	for (size_t i = 0; i < links->len; ++i) {
-		if (links->ptr[i].url == NULL || links->ptr[i].url->len == 0) {
+		if (STRING_IS_EMPTY(links->ptr[i].url)) {
 			continue;
 		}
 		if (cpyss(&str, links->ptr[i].url) == false) {

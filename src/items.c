@@ -171,7 +171,7 @@ items_menu_loop(struct menu_state *m)
 				break;
 			case INPUT_GOTO_FEED:
 				if (!(m->flags & MENU_IS_EXPLORE)) break;
-				return setup_menu(&items_menu_loop, m->items->ptr[m->view_sel].feed[0]->name, m->items->ptr[m->view_sel].feed, 1, MENU_NORMAL);
+				return setup_menu(&items_menu_loop, NULL, m->items->ptr[m->view_sel].feed, 1, MENU_NORMAL);
 			case INPUT_APPLY_SEARCH_MODE_FILTER:
 				change_search_filter_of_items_list(&m->items, search_mode_text_input); break;
 			case INPUT_OPEN_IN_BROWSER:

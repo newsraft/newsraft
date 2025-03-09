@@ -47,7 +47,7 @@ Check out [comparison of Newsraft and Newsboat](https://codeberg.org/newsraft/ne
 Some package repositories have Newsraft package so it can be installed with a
 package manager.
 
-[![Packaging status](https://repology.org/badge/vertical-allrepos/newsraft.svg)](https://repology.org/project/newsraft/versions)
+[![Packaging status](https://repology.org/badge/vertical-allrepos/newsraft.svg?columns=4)](https://repology.org/project/newsraft/versions)
 
 If your package repository doesn't provide Newsraft package, you can build it
 from source: see [doc/build-instructions.md](https://codeberg.org/newsraft/newsraft/src/branch/main/doc/build-instructions.md)

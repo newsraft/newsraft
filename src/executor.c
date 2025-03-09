@@ -25,7 +25,7 @@ execute_feed(const struct string *cmd, struct feed_update_state *data)
 				status = XML_Parse(data->xml_parser, NULL, 0, XML_TRUE); // Final parsing call
 			}
 			if (status != XML_STATUS_OK) {
-				fail_status("XML parser ran into an error: %s", XML_ErrorString(XML_GetErrorCode(data->xml_parser)));
+				str_appendf(data->feed_entry->errors, "XML parser failed: %s\n", XML_ErrorString(XML_GetErrorCode(data->xml_parser)));
 				goto error;
 			}
 			break;
@@ -40,7 +40,7 @@ execute_feed(const struct string *cmd, struct feed_update_state *data)
 				status = yajl_complete_parse(data->json_parser); // Final parsing call
 			}
 			if (status != yajl_status_ok) {
-				fail_status("JSON parser ran into an error: %s", yajl_status_to_string(status));
+				str_appendf(data->feed_entry->errors, "JSON parser failed: %s\n", yajl_status_to_string(status));
 				goto error;
 			}
 			break;

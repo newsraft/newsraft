@@ -150,6 +150,11 @@ copy_feed_to_global_section(const struct feed_entry *feed)
 		return NULL;
 	}
 
+	sections[0].feeds[feed_index]->errors = crtes(1);
+	if (sections[0].feeds[feed_index]->errors == NULL) {
+		return NULL;
+	}
+
 	int64_t new_unread_count = get_unread_items_count_of_the_feed(sections[0].feeds[feed_index]->link);
 	if (new_unread_count < 0) {
 		write_error("Failed to get unread items count of the feed from database!\n");
@@ -237,6 +242,7 @@ free_sections(void)
 		if (sections[0].feeds[i] != NULL) {
 			free_string(sections[0].feeds[i]->name);
 			free_string(sections[0].feeds[i]->link);
+			free_string(sections[0].feeds[i]->errors);
 			free_config_context(sections[0].feeds[i]->cfg);
 			if (sections[0].feeds[i]->binds != NULL) {
 				free_binds(sections[0].feeds[i]->binds);
@@ -322,8 +328,6 @@ sections_menu_loop(struct menu_state *m)
 				return setup_menu(&items_menu_loop, NULL, sections[0].feeds, sections[0].feeds_count, MENU_IS_EXPLORE);
 			case INPUT_APPLY_SEARCH_MODE_FILTER:
 				return setup_menu(&items_menu_loop, NULL, sections[0].feeds, sections[0].feeds_count, MENU_IS_EXPLORE | MENU_USE_SEARCH);
-			case INPUT_STATUS_HISTORY_MENU:
-				return setup_menu(&status_pager_loop, NULL, NULL, 0, MENU_NORMAL);
 			case INPUT_QUIT_SOFT:
 			case INPUT_QUIT_HARD:
 				return NULL;

@@ -186,8 +186,6 @@ items_menu_loop(struct menu_state *m)
 				change_items_list_sorting(&m->items, cmd); break;
 			case INPUT_ENTER:
 				return setup_menu(&item_pager_loop, m->items->ptr[m->view_sel].title, NULL, 0, MENU_NORMAL);
-			case INPUT_STATUS_HISTORY_MENU:
-				return setup_menu(&status_pager_loop, NULL, NULL, 0, MENU_NORMAL);
 		}
 	}
 	return close_menu();

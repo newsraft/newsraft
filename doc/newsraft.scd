@@ -391,10 +391,6 @@ _0_ disables the limit.
 Default: _0_. Maximum amount of simultaneously open connections Newsraft may
 hold a single host. If set to _0_, there is no limit.
 
-## status-messages-count-limit
-Default: _1000_. Maximum number of status messages stored in memory. If set to
-_0_, status messages history will not be stored in memory.
-
 ## user-agent (*)
 Default: _auto_. User-Agent header sent with download requests. If it is set to
 _"auto"_, Newsraft will generate it according to the following format:

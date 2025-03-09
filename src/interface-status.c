@@ -1,19 +1,12 @@
 #include <stdlib.h>
 #include "newsraft.h"
 
-struct status_message {
-	struct string *text;
-	config_entry_id color;
-	struct status_message *next;
-	struct status_message *prev;
-};
-
 static WINDOW *status_window = NULL;
 static bool status_window_is_clean = true;
 static volatile bool status_window_is_cleanable = true;
 static volatile bool status_window_is_initialized = false;
-static struct status_message *messages; // Cycled list
-static volatile size_t messages_len = 0;
+static struct string *message_text;
+static config_entry_id message_color;
 
 // We take 999999999 as the maximum value for count variable to avoid overflow
 // of the uint32_t integer. The width of this number is hardcoded into the
@@ -45,9 +38,9 @@ update_status_window_content_unprotected(void)
 		waddwstr(status_window, L"/");
 		waddwstr(status_window, search_mode_text_input->ptr);
 	} else if (status_window_is_clean == false) {
-		if (messages != NULL) {
-			wbkgd(status_window, get_cfg_color(NULL, messages->color));
-			waddnstr(status_window, messages->text->ptr, list_menu_width);
+		if (!STRING_IS_EMPTY(message_text)) {
+			wbkgd(status_window, get_cfg_color(NULL, message_color));
+			waddnstr(status_window, message_text->ptr, list_menu_width);
 		}
 	} else {
 		wbkgd(status_window, get_cfg_color(NULL, CFG_COLOR_STATUS));
@@ -149,87 +142,26 @@ status_write(config_entry_id color, const char *format, ...)
 		return;
 	}
 
-	size_t limit = get_cfg_uint(NULL, CFG_STATUS_MESSAGES_COUNT_LIMIT);
-	if (limit == 0) {
-		return;
-	}
-
 	pthread_mutex_lock(&interface_lock);
-	if (messages_len < limit) {
-		struct status_message *msg = calloc(1, sizeof(struct status_message));
-		if (msg == NULL) {
-			pthread_mutex_unlock(&interface_lock);
-			return;
-		}
-		msg->text = crtes(1);
-		if (msg->text == NULL) {
-			free(msg);
-			pthread_mutex_unlock(&interface_lock);
-			return;
-		}
-		if (messages == NULL) {
-			msg->next = msg;
-			msg->prev = msg;
-		} else {
-			msg->next = messages;
-			msg->prev = messages->prev;
-			messages->prev->next = msg;
-			messages->prev = msg;
-		}
-		messages = msg;
-		messages_len += 1;
-	} else {
-		messages = messages->prev;
-	}
 	va_list args;
 	va_start(args, format);
-	if (string_vprintf(messages->text, format, args) == false) {
-		goto undo;
-	}
-	messages->color = color;
-	INFO("Printed status message: %s", messages->text->ptr);
+	make_string_fit_more(&message_text, 100);
+	empty_string(message_text);
+	str_vappendf(message_text, format, args);
+	message_color = color;
+	INFO("Printed status message: %s", message_text->ptr);
 	status_window_is_clean = false;
 	update_status_window_content_unprotected();
-undo:
 	va_end(args);
 	pthread_mutex_unlock(&interface_lock);
-}
-
-struct string *
-generate_string_with_status_messages_for_pager(void)
-{
-	struct string *str = crtes(1000);
-	if (str == NULL) {
-		FAIL("Not enough memory for string with status messages for pager!");
-		return NULL;
-	}
-	pthread_mutex_lock(&interface_lock);
-	if (messages_len > 0) {
-		struct status_message *m = messages;
-		do {
-			catss(str, m->text);
-			catcs(str, '\n');
-			m = m->next;
-		} while (m != messages);
-	}
-	pthread_mutex_unlock(&interface_lock);
-	return str;
 }
 
 void
 status_delete(void)
 {
 	pthread_mutex_lock(&interface_lock);
-	if (messages_len > 0) {
-		struct status_message *m = messages;
-		do {
-			free_string(m->text);
-			struct status_message *tmp = m;
-			m = m->next;
-			free(tmp);
-		} while (m != messages);
-	}
-	messages = NULL;
+	free_string(message_text);
+	message_text = NULL;
 	delwin(status_window);
 	pthread_mutex_unlock(&interface_lock);
 }

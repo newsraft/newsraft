@@ -161,6 +161,7 @@ struct feed_entry {
 	struct config_context *cfg;
 	struct input_binding *binds;
 	bool has_errors;
+	struct string *errors;
 };
 
 struct item_entry {
@@ -470,13 +471,12 @@ void status_clean(void);
 void prevent_status_cleaning(void);
 void allow_status_cleaning(void);
 void status_write(config_entry_id color, const char *format, ...);
-struct string *generate_string_with_status_messages_for_pager(void);
 void status_delete(void);
 input_id get_input(struct input_binding *ctx, uint32_t *count, const struct wstring **macro_ptr);
 void break_getting_input_command(void);
 
-// See "interface-status-pager.c" file for implementation.
-struct menu_state *status_pager_loop(struct menu_state *dest);
+// See "interface-errors-pager.c" file for implementation.
+struct menu_state *errors_pager_loop(struct menu_state *m);
 
 // Functions responsible for managing of key bindings.
 // See "binds.c" file for implementation.
@@ -504,7 +504,8 @@ bool catas(struct string *dest, const char *src_ptr, size_t src_len);
 bool catss(struct string *dest, const struct string *src);
 bool catcs(struct string *dest, char c);
 bool make_string_fit_more(struct string **dest, size_t n);
-bool string_vprintf(struct string *dest, const char *format, va_list args);
+void str_vappendf(struct string *dest, const char *fmt, va_list args);
+void str_appendf(struct string *dest, const char *fmt, ...);
 void empty_string(struct string *dest);
 void free_string(struct string *str);
 void trim_whitespace_from_string(struct string *str);

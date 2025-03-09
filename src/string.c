@@ -135,29 +135,25 @@ make_string_fit_more(struct string **dest, size_t n)
 	return true;
 }
 
-bool
-string_vprintf(struct string *dest, const char *format, va_list args)
+void
+str_vappendf(struct string *dest, const char *fmt, va_list args)
 {
-	// We need a copy of args because first call to vsnprintf screws original
-	// argument list and we need to call vsnprintf after that.
-	va_list args_copy;
-	va_copy(args_copy, args);
-	int required_len = vsnprintf(dest->ptr, 0, format, args_copy);
-	va_end(args_copy);
-	if (required_len < 0) {
-		return false;
+	char buf[1000];
+	int res = vsnprintf(buf, sizeof(buf), fmt, args);
+	if (res > 0 && res < (int)sizeof(buf)) {
+		catas(dest, buf, res);
+	} else {
+		catas(dest, "appendix was too big!\n", 22);
 	}
-	if (dest->lim <= (size_t)required_len && make_string_fit_more(&dest, required_len) == false) {
-		return false;
-	}
-	required_len = vsnprintf(dest->ptr, dest->lim, format, args);
-	if (required_len < 0) {
-		empty_string(dest);
-		return false;
-	}
-	dest->len = (size_t)required_len;
-	*(dest->ptr + dest->len) = '\0';
-	return true;
+}
+
+void
+str_appendf(struct string *dest, const char *fmt, ...)
+{
+	va_list args;
+	va_start(args, fmt);
+	str_vappendf(dest, fmt, args);
+	va_end(args);
 }
 
 void

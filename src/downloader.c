@@ -70,13 +70,13 @@ parse_stream_callback(char *contents, size_t length, size_t nmemb, void *userdat
 	}
 	if (data->media_type == MEDIA_TYPE_XML) {
 		if (XML_Parse(data->xml_parser, contents, real_size, XML_FALSE) != XML_STATUS_OK) {
-			fail_status("XML parser ran into an error: %s", XML_ErrorString(XML_GetErrorCode(data->xml_parser)));
+			str_appendf(data->feed_entry->errors, "XML parser failed: %s\n", XML_ErrorString(XML_GetErrorCode(data->xml_parser)));
 			return CURL_WRITEFUNC_ERROR;
 		}
 	} else if (data->media_type == MEDIA_TYPE_JSON) {
 		yajl_status status = yajl_parse(data->json_parser, (const unsigned char *)contents, real_size);
 		if (status != yajl_status_ok) {
-			fail_status("JSON parser ran into an error: %s", yajl_status_to_string(status));
+			str_appendf(data->feed_entry->errors, "JSON parser failed: %s\n", yajl_status_to_string(status));
 			return CURL_WRITEFUNC_ERROR;
 		}
 	}
@@ -329,14 +329,14 @@ downloader_worker(void *dummy)
 				// 2) server's Last-Modified header is equal to our If-Modified-Since header.
 				data->is_canceled = true;
 			} else if (data->http_response_code == NEWSRAFT_HTTP_TOO_MANY_REQUESTS) {
-				info_status("The server rejected the download because updates are too frequent.");
+				str_appendf(data->feed_entry->errors, "The server rejected the download because updates are too frequent.\n");
 				data->is_canceled = true;
 			}
 
 			if (msg->data.result != CURLE_OK) {
-				fail_status("Curl error: %s; %s", curl_easy_strerror(msg->data.result), data->curl_error);
+				str_appendf(data->feed_entry->errors, "curl failed: %s, %s\n", curl_easy_strerror(msg->data.result), data->curl_error);
 				if (data->http_response_code != 0) {
-					fail_status("The server which keeps the feed returned %ld status code!", data->http_response_code);
+					str_appendf(data->feed_entry->errors, "The server which keeps the feed returned %ld status code!\n", data->http_response_code);
 				}
 				data->is_failed = true;
 			}

@@ -104,13 +104,16 @@ queue_examine(void)
 		if (j->is_canceled) {
 			update_queue_cancelations += 1;
 		}
+		if (j->is_failed) {
+			update_queue_failures += 1;
+		}
 	}
 	info_status("Feed updates completed: %zu/%zu", update_queue_finished_len, update_queue_len);
 	if (update_queue_finished_len == update_queue_len) {
 		tell_items_menu_to_regenerate();
 		allow_status_cleaning();
 		if (update_queue_failures > 0) {
-			fail_status("Failed to update %zu feeds (check status history for details)", update_queue_failures);
+			fail_status("%zu feeds failed (select failed feed and press v for more info)", update_queue_failures);
 		} else if (update_queue_cancelations > 0) {
 			info_status("%zu feeds are already up-to-date", update_queue_cancelations);
 		} else {
@@ -149,6 +152,8 @@ queue_updates(struct feed_entry **feeds, size_t feeds_count)
 
 		feeds[i]->update_date = current_time;
 		INFO("Feed %s update attempt date: %" PRId64, feeds[i]->link->ptr, feeds[i]->update_date);
+
+		empty_string(feeds[i]->errors);
 
 		struct feed_update_state *item = calloc(1, sizeof(struct feed_update_state));
 		if (item == NULL) {

@@ -1,27 +1,18 @@
 #include "newsraft.h"
 
 struct menu_state *
-status_pager_loop(struct menu_state *dest)
+errors_pager_loop(struct menu_state *m)
 {
-	dest->enumerator   = &is_pager_pos_valid;
-	dest->write_action = &pager_menu_writer;
-	struct string *messages = generate_string_with_status_messages_for_pager();
-	if (STRING_IS_EMPTY(messages)) {
-		free_string(messages);
+	if (m->feeds_original == NULL || m->feeds_count != 1) {
 		return close_menu();
 	}
-	struct wstring *wmessages = convert_string_to_wstring(messages);
-	if (wmessages == NULL) {
-		free_string(messages);
-		return close_menu();
-	}
-	free_string(messages);
+	m->enumerator   = &is_pager_pos_valid;
+	m->write_action = &pager_menu_writer;
 	struct render_block *block = calloc(1, sizeof(struct render_block));
 	if (block == NULL) {
-		free_wstring(wmessages);
 		return close_menu();
 	}
-	block->content        = wmessages;
+	block->content        = convert_string_to_wstring(m->feeds_original[0]->errors);
 	block->content_type   = TEXT_RAW;
 	block->needs_trimming = false;
 	struct render_blocks_list blocks = {block, 1, {}};

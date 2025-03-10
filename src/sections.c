@@ -328,6 +328,8 @@ sections_menu_loop(struct menu_state *m)
 				return setup_menu(&items_menu_loop, NULL, sections[0].feeds, sections[0].feeds_count, MENU_IS_EXPLORE);
 			case INPUT_APPLY_SEARCH_MODE_FILTER:
 				return setup_menu(&items_menu_loop, NULL, sections[0].feeds, sections[0].feeds_count, MENU_IS_EXPLORE | MENU_USE_SEARCH);
+			case INPUT_STATUS_HISTORY_MENU:
+				return setup_menu(&errors_pager_loop, NULL, sections[m->view_sel].feeds, sections[m->view_sel].feeds_count, MENU_NORMAL);
 			case INPUT_QUIT_SOFT:
 			case INPUT_QUIT_HARD:
 				return NULL;

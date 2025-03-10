@@ -531,7 +531,7 @@ _bold_, _italic_ and _underlined_.
 :[ _F_
 |[ *toggle-explore-mode*
 :[ _tab_, _e_
-|[ *status-history-menu*
+|[ *view-errors*
 :[ _v_
 |[ *open-in-browser*
 :[ _o_

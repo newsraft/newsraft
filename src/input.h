@@ -51,7 +51,7 @@ INPUT(INPUT_MARK_UNREAD_ALL,          {}, /* basically unset */                 
 INPUT(INPUT_MARK_IMPORTANT,           {"f"},                                    {"important",   "mark-important"})
 INPUT(INPUT_MARK_UNIMPORTANT,         {"F"},                                    {"unimportant", "mark-unimportant"})
 INPUT(INPUT_TOGGLE_EXPLORE_MODE,      {"tab", "e"},                             {"explore",     "toggle-explore-mode"})
-INPUT(INPUT_STATUS_HISTORY_MENU,      {"v"},                                    {"status-history-menu"})
+INPUT(INPUT_VIEW_ERRORS,              {"v"},                                    {"view-errors"})
 INPUT(INPUT_OPEN_IN_BROWSER,          {"o"},                                    {"open-in-browser"})
 INPUT(INPUT_COPY_TO_CLIPBOARD,        {"y", "c"},                               {"copy-to-clipboard"})
 INPUT(INPUT_START_SEARCH_INPUT,       {"/"},                                    {"start-search-input"})

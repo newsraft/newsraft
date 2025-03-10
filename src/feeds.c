@@ -160,7 +160,7 @@ feeds_menu_loop(struct menu_state *m)
 			case INPUT_SORT_BY_ALPHABET:
 				sort_feeds(m, feeds_sort == SORT_BY_ALPHABET_ASC ? SORT_BY_ALPHABET_DESC : SORT_BY_ALPHABET_ASC, true);
 				break;
-			case INPUT_STATUS_HISTORY_MENU:
+			case INPUT_VIEW_ERRORS:
 				return setup_menu(&errors_pager_loop, NULL, m->feeds + m->view_sel, 1, MENU_NORMAL);
 		}
 	}

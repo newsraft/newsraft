@@ -2,7 +2,6 @@
 #include "newsraft.h"
 
 static WINDOW *status_window = NULL;
-static bool status_window_is_clean = true;
 static volatile bool status_window_is_cleanable = true;
 static volatile bool status_window_is_initialized = false;
 static struct string *message_text;
@@ -37,11 +36,9 @@ update_status_window_content_unprotected(void)
 		wbkgd(status_window, get_cfg_color(NULL, CFG_COLOR_STATUS));
 		waddwstr(status_window, L"/");
 		waddwstr(status_window, search_mode_text_input->ptr);
-	} else if (status_window_is_clean == false) {
-		if (!STRING_IS_EMPTY(message_text)) {
-			wbkgd(status_window, get_cfg_color(NULL, message_color));
-			waddnstr(status_window, message_text->ptr, list_menu_width);
-		}
+	} else if (!STRING_IS_EMPTY(message_text)) {
+		wbkgd(status_window, get_cfg_color(NULL, message_color));
+		waddnstr(status_window, message_text->ptr, list_menu_width);
 	} else {
 		wbkgd(status_window, get_cfg_color(NULL, CFG_COLOR_STATUS));
 		struct string *path = NULL;
@@ -104,7 +101,7 @@ void
 status_clean_unprotected(void)
 {
 	if (status_window_is_cleanable == true) {
-		status_window_is_clean = true;
+		empty_string(message_text);
 		update_status_window_content_unprotected();
 	}
 }
@@ -143,16 +140,15 @@ status_write(config_entry_id color, const char *format, ...)
 	}
 
 	pthread_mutex_lock(&interface_lock);
-	va_list args;
-	va_start(args, format);
 	make_string_fit_more(&message_text, 100);
 	empty_string(message_text);
+	va_list args;
+	va_start(args, format);
 	str_vappendf(message_text, format, args);
+	va_end(args);
 	message_color = color;
 	INFO("Printed status message: %s", message_text->ptr);
-	status_window_is_clean = false;
 	update_status_window_content_unprotected();
-	va_end(args);
 	pthread_mutex_unlock(&interface_lock);
 }
 

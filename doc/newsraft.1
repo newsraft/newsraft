@@ -5,7 +5,7 @@
 .nh
 .ad l
 .\" Begin generated content:
-.TH "NEWSRAFT" "1" "2025-03-10"
+.TH "NEWSRAFT" "1" "2025-03-11"
 .PP
 .SH NAME
 .PP
@@ -322,14 +322,18 @@ all available space.\&
 Default: \fItrue\fR.\& If \fItrue\fR and \fBpager-width\fR is not \fI0\fR, pager will center its
 content horizontally.\&
 .PP
-.SS menu-feed-sorting
-Default: \fInone\fR.\& Sorting order for the feeds menu.\& Available values:
-\fIunread-desc\fR, \fIunread-asc\fR, \fIalphabet-desc\fR, \fIalphabet-asc\fR.\&
-.PP
 .SS menu-item-sorting
 Default: \fItime-desc\fR.\& Sorting order for the items menu.\& Available values:
 \fItime-desc\fR, \fItime-asc\fR, \fIrowid-desc\fR, \fIrowid-asc\fR, \fIunread-desc\fR, \fIunread-asc\fR,
 \fIimportant-desc\fR, \fIimportant-asc\fR, \fIalphabet-desc\fR, \fIalphabet-asc\fR.\&
+.PP
+.SS menu-feed-sorting
+Default: \fInone\fR.\& Sorting order for the feeds menu.\& Available values:
+\fIunread-desc\fR, \fIunread-asc\fR, \fIalphabet-desc\fR, \fIalphabet-asc\fR.\&
+.PP
+.SS menu-section-sorting
+Default: \fInone\fR.\& Sorting order for the sections menu.\& Available values:
+\fIunread-desc\fR, \fIunread-asc\fR, \fIalphabet-desc\fR, \fIalphabet-asc\fR.\&
 .PP
 .SS menu-responsiveness
 Default: \fItrue\fR.\& If \fItrue\fR, update menu contents as soon as possible.\&
@@ -674,6 +678,7 @@ l l
 l l
 l l
 l l
+l l
 l l.
 T{
 Actions
@@ -786,14 +791,19 @@ T}	T{
 \fIu\fR
 T}
 T{
-\fBsort-by-important\fR
+\fBsort-by-initial\fR
 T}	T{
-\fIi\fR
+\fIz\fR
 T}
 T{
 \fBsort-by-alphabet\fR
 T}	T{
 \fIa\fR
+T}
+T{
+\fBsort-by-important\fR
+T}	T{
+\fIi\fR
 T}
 T{
 \fBenter\fR

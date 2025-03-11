@@ -4,7 +4,7 @@
 
 static struct feed_entry **feeds = NULL;
 static size_t feeds_count = 0;
-static int feeds_sort = SORT_BY_ORIGINAL_ASC;
+static sorting_method_t feeds_sort = SORT_BY_INITIAL_ASC;
 static struct feed_entry **feeds_original = NULL;
 
 static bool
@@ -49,7 +49,7 @@ is_feed_unread(struct menu_state *ctx, size_t index)
 }
 
 static int
-compare_feeds_original(const void *data1, const void *data2)
+compare_feeds_initial(const void *data1, const void *data2)
 {
 	struct feed_entry *feed1 = *(struct feed_entry **)data1;
 	struct feed_entry *feed2 = *(struct feed_entry **)data2;
@@ -70,7 +70,7 @@ compare_feeds_unread(const void *data1, const void *data2)
 	struct feed_entry *feed2 = *(struct feed_entry **)data2;
 	if (feed1->unread_count > feed2->unread_count) return feeds_sort & 1 ? -1 : 1;
 	if (feed1->unread_count < feed2->unread_count) return feeds_sort & 1 ? 1 : -1;
-	return compare_feeds_original(data1, data2) * (feeds_sort & 1 ? -1 : 1);
+	return compare_feeds_initial(data1, data2) * (feeds_sort & 1 ? -1 : 1);
 }
 
 static int
@@ -84,16 +84,16 @@ compare_feeds_alphabet(const void *data1, const void *data2)
 }
 
 static inline void
-sort_feeds(struct menu_state *m, int sorting_method, bool we_are_already_in_feeds_menu)
+sort_feeds(struct menu_state *m, sorting_method_t method, bool we_are_already_in_feeds_menu)
 {
+	pthread_mutex_lock(&interface_lock);
 	feeds          = m->feeds;
 	feeds_count    = m->feeds_count;
 	feeds_original = m->feeds_original;
-	feeds_sort     = sorting_method;
-	pthread_mutex_lock(&interface_lock);
+	feeds_sort     = method;
 	switch (feeds_sort & ~1) {
-		case SORT_BY_ORIGINAL_ASC: qsort(feeds, feeds_count, sizeof(struct feed_entry *), &compare_feeds_original); break;
 		case SORT_BY_UNREAD_ASC:   qsort(feeds, feeds_count, sizeof(struct feed_entry *), &compare_feeds_unread);   break;
+		case SORT_BY_INITIAL_ASC:  qsort(feeds, feeds_count, sizeof(struct feed_entry *), &compare_feeds_initial);  break;
 		case SORT_BY_ALPHABET_ASC: qsort(feeds, feeds_count, sizeof(struct feed_entry *), &compare_feeds_alphabet); break;
 	}
 	pthread_mutex_unlock(&interface_lock);
@@ -156,6 +156,9 @@ feeds_menu_loop(struct menu_state *m)
 				return close_menu();
 			case INPUT_SORT_BY_UNREAD:
 				sort_feeds(m, feeds_sort == SORT_BY_UNREAD_DESC ? SORT_BY_UNREAD_ASC : SORT_BY_UNREAD_DESC, true);
+				break;
+			case INPUT_SORT_BY_INITIAL:
+				sort_feeds(m, feeds_sort == SORT_BY_INITIAL_ASC ? SORT_BY_INITIAL_DESC : SORT_BY_INITIAL_ASC, true);
 				break;
 			case INPUT_SORT_BY_ALPHABET:
 				sort_feeds(m, feeds_sort == SORT_BY_ALPHABET_ASC ? SORT_BY_ALPHABET_DESC : SORT_BY_ALPHABET_ASC, true);

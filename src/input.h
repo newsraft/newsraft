@@ -39,6 +39,7 @@ INPUT(INPUT_SHIFT_RESET,              {"<"},                                    
 INPUT(INPUT_SORT_BY_TIME,             {"t"},                                    {"sort-by-time"})
 INPUT(INPUT_SORT_BY_ROWID,            {"w"},                                    {"sort-by-rowid"})
 INPUT(INPUT_SORT_BY_UNREAD,           {"u"},                                    {"sort-by-unread"})
+INPUT(INPUT_SORT_BY_INITIAL,          {"z"},                                    {"sort-by-initial"})
 INPUT(INPUT_SORT_BY_ALPHABET,         {"a"},                                    {"sort-by-alphabet"})
 INPUT(INPUT_SORT_BY_IMPORTANT,        {"i"},                                    {"sort-by-important"})
 INPUT(INPUT_ENTER,                    {"l", "enter", "KEY_RIGHT", "KEY_ENTER"}, {"enter"})

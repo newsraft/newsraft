@@ -84,9 +84,10 @@ enum {
 	MENU_DISABLE_SETTINGS = 8,
 };
 
+typedef uint8_t sorting_method_t;
 enum { // Even is ascending, odd is descending
-	SORT_BY_ORIGINAL_ASC = 0,
-	SORT_BY_ORIGINAL_DESC,
+	SORT_BY_INITIAL_ASC = 0,
+	SORT_BY_INITIAL_DESC,
 	SORT_BY_TIME_ASC,
 	SORT_BY_TIME_DESC,
 	SORT_BY_ROWID_ASC,

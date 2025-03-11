@@ -237,14 +237,18 @@ all available space.
 Default: _true_. If _true_ and *pager-width* is not _0_, pager will center its
 content horizontally.
 
-## menu-feed-sorting
-Default: _none_. Sorting order for the feeds menu. Available values:
-_unread-desc_, _unread-asc_, _alphabet-desc_, _alphabet-asc_.
-
 ## menu-item-sorting
 Default: _time-desc_. Sorting order for the items menu. Available values:
 _time-desc_, _time-asc_, _rowid-desc_, _rowid-asc_, _unread-desc_, _unread-asc_,
 _important-desc_, _important-asc_, _alphabet-desc_, _alphabet-asc_.
+
+## menu-feed-sorting
+Default: _none_. Sorting order for the feeds menu. Available values:
+_unread-desc_, _unread-asc_, _alphabet-desc_, _alphabet-asc_.
+
+## menu-section-sorting
+Default: _none_. Sorting order for the sections menu. Available values:
+_unread-desc_, _unread-asc_, _alphabet-desc_, _alphabet-asc_.
 
 ## menu-responsiveness
 Default: _true_. If _true_, update menu contents as soon as possible.
@@ -507,10 +511,12 @@ _bold_, _italic_ and _underlined_.
 :[ _w_
 |[ *sort-by-unread*
 :[ _u_
-|[ *sort-by-important*
-:[ _i_
+|[ *sort-by-initial*
+:[ _z_
 |[ *sort-by-alphabet*
 :[ _a_
+|[ *sort-by-important*
+:[ _i_
 |[ *enter*
 :[ _enter_, _l_, _KEY_ENTER_, _KEY_RIGHT_
 |[ *reload*

@@ -11,7 +11,9 @@ struct feed_section {
 };
 
 static struct feed_section *sections = NULL;
+static struct feed_section **sections_view = NULL;
 static size_t sections_count = 0;
+static sorting_method_t sections_sort = SORT_BY_INITIAL_ASC;
 
 static bool
 is_section_valid(struct menu_state *ctx, size_t index)
@@ -31,8 +33,8 @@ get_section_args(struct menu_state *ctx, size_t index)
 		{L'\0', L'\0', {.i = 0   }}, // terminator
 	};
 	section_fmt[0].value.i = index + 1;
-	section_fmt[1].value.i = sections[index].unread_count;
-	section_fmt[2].value.s = sections[index].name->ptr;
+	section_fmt[1].value.i = sections_view[index]->unread_count;
+	section_fmt[2].value.s = sections_view[index]->name->ptr;
 	return section_fmt;
 }
 
@@ -40,9 +42,9 @@ static unsigned
 paint_section(struct menu_state *ctx, size_t index)
 {
 	(void)ctx;
-	if (sections[index].has_errors) {
+	if (sections_view[index]->has_errors) {
 		return get_cfg_color(NULL, CFG_COLOR_LIST_SECTION_FAILED);
-	} else if (sections[index].unread_count > 0) {
+	} else if (sections_view[index]->unread_count > 0) {
 		return get_cfg_color(NULL, CFG_COLOR_LIST_SECTION_UNREAD);
 	} else {
 		return get_cfg_color(NULL, CFG_COLOR_LIST_SECTION);
@@ -53,7 +55,7 @@ static bool
 is_section_unread(struct menu_state *ctx, size_t index)
 {
 	(void)ctx;
-	return sections[index].unread_count > 0;
+	return sections_view[index]->unread_count > 0;
 }
 
 #ifdef TEST
@@ -89,12 +91,14 @@ make_sure_section_exists(const struct string *section_name)
 			return i;
 		}
 	}
-	struct feed_section *tmp = realloc(sections, sizeof(struct feed_section) * (sections_count + 1));
-	if (tmp == NULL) {
+	struct feed_section *tmp1 = realloc(sections, sizeof(struct feed_section) * (sections_count + 1));
+	struct feed_section **tmp2 = realloc(sections_view, sizeof(struct feed_section *) * (sections_count + 1));
+	if (tmp1 == NULL || tmp2 == NULL) {
 		write_error("Not enough memory for another section structure!\n");
 		return -1;
 	}
-	sections = tmp;
+	sections = tmp1;
+	sections_view = tmp2;
 	memset(&sections[sections_count], 0, sizeof(struct feed_section));
 	sections[sections_count].name = crtss(section_name);
 	if (sections[sections_count].name == NULL) {
@@ -103,6 +107,12 @@ make_sure_section_exists(const struct string *section_name)
 	}
 	INFO("Created section \"%s\".", sections[sections_count].name->ptr);
 	sections_count += 1;
+
+	// Have to update it every time because primary array is realloc'ed just above.
+	for (size_t i = 0; i < sections_count; ++i) {
+		sections_view[i] = &sections[i];
+	}
+
 	return sections_count - 1;
 }
 
@@ -290,6 +300,56 @@ process_auto_updating_feeds(void)
 	}
 }
 
+static int
+compare_sections_initial(const void *data1, const void *data2)
+{
+	struct feed_section **section1 = (struct feed_section **)data1;
+	struct feed_section **section2 = (struct feed_section **)data2;
+	size_t index1 = 0, index2 = 0;
+	for (size_t i = 0; i < sections_count; ++i) {
+		if (*section1 == &sections[i]) index1 = i;
+		if (*section2 == &sections[i]) index2 = i;
+	}
+	if (index1 > index2) return sections_sort & 1 ? -1 : 1;
+	if (index1 < index2) return sections_sort & 1 ? 1 : -1;
+	return 0;
+}
+
+static int
+compare_sections_unread(const void *data1, const void *data2)
+{
+	struct feed_section *section1 = *(struct feed_section **)data1;
+	struct feed_section *section2 = *(struct feed_section **)data2;
+	if (section1->unread_count > section2->unread_count) return sections_sort & 1 ? -1 : 1;
+	if (section1->unread_count < section2->unread_count) return sections_sort & 1 ? 1 : -1;
+	return compare_sections_initial(data1, data2) * (sections_sort & 1 ? -1 : 1);
+}
+
+static int
+compare_sections_alphabet(const void *data1, const void *data2)
+{
+	struct feed_section *section1 = *(struct feed_section **)data1;
+	struct feed_section *section2 = *(struct feed_section **)data2;
+	return strcmp(section1->name->ptr, section2->name->ptr) * (sections_sort & 1 ? -1 : 1);
+}
+
+static inline void
+sort_sections(sorting_method_t method, bool we_are_already_in_sections_menu)
+{
+	pthread_mutex_lock(&interface_lock);
+	sections_sort = method;
+	switch (sections_sort & ~1) {
+		case SORT_BY_UNREAD_ASC:   qsort(sections_view, sections_count, sizeof(struct feed_section *), &compare_sections_unread);   break;
+		case SORT_BY_INITIAL_ASC:  qsort(sections_view, sections_count, sizeof(struct feed_section *), &compare_sections_initial);  break;
+		case SORT_BY_ALPHABET_ASC: qsort(sections_view, sections_count, sizeof(struct feed_section *), &compare_sections_alphabet); break;
+	}
+	pthread_mutex_unlock(&interface_lock);
+	if (we_are_already_in_sections_menu == true) {
+		expose_all_visible_entries_of_the_list_menu();
+		info_status(get_sorting_message(sections_sort), "sections");
+	}
+}
+
 struct menu_state *
 sections_menu_loop(struct menu_state *m)
 {
@@ -308,6 +368,9 @@ sections_menu_loop(struct menu_state *m)
 		}
 	}
 	refresh_sections_statistics_about_underlying_feeds();
+	if (m->is_initialized == false) {
+		sort_sections(get_sorting_id(get_cfg_string(NULL, CFG_MENU_SECTION_SORTING)->ptr), false);
+	}
 	start_menu();
 	const struct wstring *macro;
 	while (true) {
@@ -316,20 +379,29 @@ sections_menu_loop(struct menu_state *m)
 			continue;
 		}
 		switch (cmd) {
-			case INPUT_MARK_READ:       mark_feeds_read(sections[m->view_sel].feeds, sections[m->view_sel].feeds_count, true);  break;
-			case INPUT_MARK_UNREAD:     mark_feeds_read(sections[m->view_sel].feeds, sections[m->view_sel].feeds_count, false); break;
-			case INPUT_MARK_READ_ALL:   mark_feeds_read(sections[0].feeds, sections[0].feeds_count, true);                      break;
-			case INPUT_MARK_UNREAD_ALL: mark_feeds_read(sections[0].feeds, sections[0].feeds_count, false);                     break;
-			case INPUT_RELOAD:          queue_updates(sections[m->view_sel].feeds, sections[m->view_sel].feeds_count);          break;
-			case INPUT_RELOAD_ALL:      queue_updates(sections[0].feeds, sections[0].feeds_count);                              break;
+			case INPUT_MARK_READ:       mark_feeds_read(sections_view[m->view_sel]->feeds, sections_view[m->view_sel]->feeds_count, true);  break;
+			case INPUT_MARK_UNREAD:     mark_feeds_read(sections_view[m->view_sel]->feeds, sections_view[m->view_sel]->feeds_count, false); break;
+			case INPUT_MARK_READ_ALL:   mark_feeds_read(sections[0].feeds, sections[0].feeds_count, true);                                  break;
+			case INPUT_MARK_UNREAD_ALL: mark_feeds_read(sections[0].feeds, sections[0].feeds_count, false);                                 break;
+			case INPUT_RELOAD:          queue_updates(sections_view[m->view_sel]->feeds, sections_view[m->view_sel]->feeds_count);          break;
+			case INPUT_RELOAD_ALL:      queue_updates(sections[0].feeds, sections[0].feeds_count);                                          break;
 			case INPUT_ENTER:
-				return setup_menu(&feeds_menu_loop, sections[m->view_sel].name, sections[m->view_sel].feeds, sections[m->view_sel].feeds_count, MENU_NORMAL);
+				return setup_menu(&feeds_menu_loop, sections_view[m->view_sel]->name, sections_view[m->view_sel]->feeds, sections_view[m->view_sel]->feeds_count, MENU_NORMAL);
 			case INPUT_TOGGLE_EXPLORE_MODE:
 				return setup_menu(&items_menu_loop, NULL, sections[0].feeds, sections[0].feeds_count, MENU_IS_EXPLORE);
 			case INPUT_APPLY_SEARCH_MODE_FILTER:
 				return setup_menu(&items_menu_loop, NULL, sections[0].feeds, sections[0].feeds_count, MENU_IS_EXPLORE | MENU_USE_SEARCH);
 			case INPUT_VIEW_ERRORS:
-				return setup_menu(&errors_pager_loop, NULL, sections[m->view_sel].feeds, sections[m->view_sel].feeds_count, MENU_NORMAL);
+				return setup_menu(&errors_pager_loop, NULL, sections_view[m->view_sel]->feeds, sections_view[m->view_sel]->feeds_count, MENU_NORMAL);
+			case INPUT_SORT_BY_UNREAD:
+				sort_sections(sections_sort == SORT_BY_UNREAD_DESC ? SORT_BY_UNREAD_ASC : SORT_BY_UNREAD_DESC, true);
+				break;
+			case INPUT_SORT_BY_INITIAL:
+				sort_sections(sections_sort == SORT_BY_INITIAL_ASC ? SORT_BY_INITIAL_DESC : SORT_BY_INITIAL_ASC, true);
+				break;
+			case INPUT_SORT_BY_ALPHABET:
+				sort_sections(sections_sort == SORT_BY_ALPHABET_ASC ? SORT_BY_ALPHABET_DESC : SORT_BY_ALPHABET_ASC, true);
+				break;
 			case INPUT_QUIT_SOFT:
 			case INPUT_QUIT_HARD:
 				return NULL;

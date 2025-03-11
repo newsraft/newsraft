@@ -100,7 +100,7 @@ status_recreate_unprotected(void)
 void
 status_clean_unprotected(void)
 {
-	if (status_window_is_cleanable == true) {
+	if (status_window_is_cleanable == true && !STRING_IS_EMPTY(message_text)) {
 		empty_string(message_text);
 		update_status_window_content_unprotected();
 	}

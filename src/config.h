@@ -99,6 +99,7 @@ CFG(CFG_MENU_SECTION_ENTRY_FORMAT,       "menu-section-entry-format",       CFG_
 CFG(CFG_MENU_FEED_ENTRY_FORMAT,          "menu-feed-entry-format",          CFG_STRING, {.s = {.base = "%5.0u │ %t"}})
 CFG(CFG_MENU_ITEM_ENTRY_FORMAT,          "menu-item-entry-format",          CFG_STRING, {.s = {.base = " %u │ %d │ %o"}})
 CFG(CFG_MENU_EXPLORE_ITEM_ENTRY_FORMAT,  "menu-explore-item-entry-format",  CFG_STRING, {.s = {.base = " %u │ %d │ %-28O │ %o"}})
+CFG(CFG_MENU_SECTION_SORTING,            "menu-section-sorting",            CFG_STRING, {.s = {.base = "none"}})
 CFG(CFG_MENU_FEED_SORTING,               "menu-feed-sorting",               CFG_STRING, {.s = {.base = "none"}})
 CFG(CFG_MENU_ITEM_SORTING,               "menu-item-sorting",               CFG_STRING, {.s = {.base = "time-desc"}})
 CFG(CFG_MENU_RESPONSIVENESS,             "menu-responsiveness",             CFG_BOOL,   {.b = true })

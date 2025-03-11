@@ -7,8 +7,8 @@ struct sorting_bundle {
 };
 
 static struct sorting_bundle sorting_methods[] = {
-	[SORT_BY_ORIGINAL_ASC]   = {"original-asc",   "Sorted %s according to original order (ascending)"},
-	[SORT_BY_ORIGINAL_DESC]  = {"original-desc",  "Sorted %s according to original order (descending)"},
+	[SORT_BY_INITIAL_ASC]    = {"initial-asc",    "Sorted %s according to initial order (ascending)"},
+	[SORT_BY_INITIAL_DESC]   = {"initial-desc",   "Sorted %s according to initial order (descending)"},
 	[SORT_BY_TIME_ASC]       = {"time-asc",       "Sorted %s by time (ascending)"},
 	[SORT_BY_TIME_DESC]      = {"time-desc",      "Sorted %s by time (descending)"},
 	[SORT_BY_ROWID_ASC]      = {"rowid-asc",      "Sorted %s by rowid (ascending)"},
@@ -29,7 +29,7 @@ get_sorting_id(const char *sorting_name)
 			return i;
 		}
 	}
-	return SORT_BY_ORIGINAL_ASC;
+	return SORT_BY_INITIAL_ASC;
 }
 
 const char *

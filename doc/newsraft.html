@@ -273,22 +273,12 @@
     <i>0</i>, no auto reloads will be run.</p>
 </section>
 <section class="Ss">
-<h2 class="Ss" id="item-limit_(*)"><a class="permalink" href="#item-limit_(*)">item-limit
+<h2 class="Ss" id="suppress-errors_(*)"><a class="permalink" href="#suppress-errors_(*)">suppress-errors
   (*)</a></h2>
-<p class="Pp">Default: <i>0</i>. Maximum number of items stored in a feed. If
-    set to <i>0</i>, no limit will be set.</p>
-</section>
-<section class="Ss">
-<h2 class="Ss" id="item-limit-unread_(*)"><a class="permalink" href="#item-limit-unread_(*)">item-limit-unread
-  (*)</a></h2>
-<p class="Pp">Default: <i>true</i>. If <i>true</i>, <b>item-limit</b> setting
-    will also cap unread items.</p>
-</section>
-<section class="Ss">
-<h2 class="Ss" id="item-limit-important_(*)"><a class="permalink" href="#item-limit-important_(*)">item-limit-important
-  (*)</a></h2>
-<p class="Pp">Default: <i>false</i>. If <i>true</i>, <b>item-limit</b> setting
-    will also cap important items.</p>
+<p class="Pp">Default: <i>false</i>. If <i>true</i>, feed update error
+    indication in the menu will be disabled. It's recommended to set this
+    setting only for specific feeds that are expected to fail frequently and you
+    are tired of seeing their errors.</p>
 </section>
 <section class="Ss">
 <h2 class="Ss" id="item-rule_(*)"><a class="permalink" href="#item-rule_(*)">item-rule
@@ -310,6 +300,24 @@
 <br/>
 <i>attachments NOT LIKE '%audio/mp3%' AND attachments NOT LIKE
   '%video/mp4%'</i></div>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="item-limit_(*)"><a class="permalink" href="#item-limit_(*)">item-limit
+  (*)</a></h2>
+<p class="Pp">Default: <i>0</i>. Maximum number of items stored in a feed. If
+    set to <i>0</i>, no limit will be set.</p>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="item-limit-unread_(*)"><a class="permalink" href="#item-limit-unread_(*)">item-limit-unread
+  (*)</a></h2>
+<p class="Pp">Default: <i>true</i>. If <i>true</i>, <b>item-limit</b> setting
+    will also cap unread items.</p>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="item-limit-important_(*)"><a class="permalink" href="#item-limit-important_(*)">item-limit-important
+  (*)</a></h2>
+<p class="Pp">Default: <i>false</i>. If <i>true</i>, <b>item-limit</b> setting
+    will also cap important items.</p>
 </section>
 <section class="Ss">
 <h2 class="Ss" id="scrolloff"><a class="permalink" href="#scrolloff">scrolloff</a></h2>
@@ -953,7 +961,7 @@
 </div>
 <table class="foot">
   <tr>
-    <td class="foot-date">2025-03-11</td>
+    <td class="foot-date">2025-03-12</td>
     <td class="foot-os"></td>
   </tr>
 </table>

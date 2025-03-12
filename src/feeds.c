@@ -33,7 +33,7 @@ get_feed_args(struct menu_state *ctx, size_t index)
 static unsigned
 paint_feed(struct menu_state *ctx, size_t index)
 {
-	if (ctx->feeds[index]->has_errors) {
+	if (ctx->feeds[index]->has_errors && !get_cfg_bool(&ctx->feeds[index]->cfg, CFG_SUPPRESS_ERRORS)) {
 		return get_cfg_color(&ctx->feeds[index]->cfg, CFG_COLOR_LIST_FEED_FAILED);
 	} else if (ctx->feeds[index]->unread_count > 0) {
 		return get_cfg_color(&ctx->feeds[index]->cfg, CFG_COLOR_LIST_FEED_UNREAD);

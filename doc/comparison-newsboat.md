@@ -67,7 +67,7 @@ http://example.org/feed2.xml "Weather"    < proxy socks5h://127.0.0.1:9050
 
 @ News                                    < reload-period 60
 http://example.org/feed3.xml "World news" < reload-period 0; item-limit 50
-http://example.org/feed4.xml "Tech news"
+http://example.org/feed4.xml "Tech news"  < suppress-errors
 ```
 
 ## Vim-like bindings by default

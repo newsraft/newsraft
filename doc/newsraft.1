@@ -5,7 +5,7 @@
 .nh
 .ad l
 .\" Begin generated content:
-.TH "NEWSRAFT" "1" "2025-03-11"
+.TH "NEWSRAFT" "1" "2025-03-12"
 .PP
 .SH NAME
 .PP
@@ -279,15 +279,10 @@ Settings with asterisk \fB(*)\fR on them can be set for individual feeds and sec
 Default: \fI0\fR.\& Feed auto reload period in minutes.\& If set to \fI0\fR, no auto reloads
 will be run.\&
 .PP
-.SS item-limit (*)
-Default: \fI0\fR.\& Maximum number of items stored in a feed.\& If set to \fI0\fR, no limit
-will be set.\&
-.PP
-.SS item-limit-unread (*)
-Default: \fItrue\fR.\& If \fItrue\fR, \fBitem-limit\fR setting will also cap unread items.\&
-.PP
-.SS item-limit-important (*)
-Default: \fIfalse\fR.\& If \fItrue\fR, \fBitem-limit\fR setting will also cap important items.\&
+.SS suppress-errors (*)
+Default: \fIfalse\fR.\& If \fItrue\fR, feed update error indication in the menu will be
+disabled.\& It'\&s recommended to set this setting only for specific feeds that are
+expected to fail frequently and you are tired of seeing their errors.\&
 .PP
 .SS item-rule (*)
 Default: \fI""\fR.\& Item search condition when accessing database.\& This can be very
@@ -308,6 +303,16 @@ Here are some examples of correct setting values:
 \fIattachments NOT LIKE '\&%audio/mp3%'\& AND attachments NOT LIKE '\&%video/mp4%'\&\fR
 .PP
 .RE
+.SS item-limit (*)
+Default: \fI0\fR.\& Maximum number of items stored in a feed.\& If set to \fI0\fR, no limit
+will be set.\&
+.PP
+.SS item-limit-unread (*)
+Default: \fItrue\fR.\& If \fItrue\fR, \fBitem-limit\fR setting will also cap unread items.\&
+.PP
+.SS item-limit-important (*)
+Default: \fIfalse\fR.\& If \fItrue\fR, \fBitem-limit\fR setting will also cap important items.\&
+.PP
 .SS scrolloff
 Default: \fI0\fR.\& Minimal number of list menu entries to keep above and below the
 selected entry.\& If you set it to a very large value the selected entry will

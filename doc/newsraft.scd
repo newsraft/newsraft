@@ -198,15 +198,10 @@ Settings with asterisk *(\*)* on them can be set for individual feeds and sectio
 Default: _0_. Feed auto reload period in minutes. If set to _0_, no auto reloads
 will be run.
 
-## item-limit (*)
-Default: _0_. Maximum number of items stored in a feed. If set to _0_, no limit
-will be set.
-
-## item-limit-unread (*)
-Default: _true_. If _true_, *item-limit* setting will also cap unread items.
-
-## item-limit-important (*)
-Default: _false_. If _true_, *item-limit* setting will also cap important items.
+## suppress-errors (*)
+Default: _false_. If _true_, feed update error indication in the menu will be
+disabled. It's recommended to set this setting only for specific feeds that are
+expected to fail frequently and you are tired of seeing their errors.
 
 ## item-rule (*)
 Default: _""_. Item search condition when accessing database. This can be very
@@ -222,6 +217,16 @@ Here are some examples of correct setting values:
 	_title NOT LIKE '%Rust%'_++
 _persons LIKE '%PHARMACIST%' OR persons LIKE '%OFFL1NX%'_++
 _attachments NOT LIKE '%audio/mp3%' AND attachments NOT LIKE '%video/mp4%'_
+
+## item-limit (*)
+Default: _0_. Maximum number of items stored in a feed. If set to _0_, no limit
+will be set.
+
+## item-limit-unread (*)
+Default: _true_. If _true_, *item-limit* setting will also cap unread items.
+
+## item-limit-important (*)
+Default: _false_. If _true_, *item-limit* setting will also cap important items.
 
 ## scrolloff
 Default: _0_. Minimal number of list menu entries to keep above and below the

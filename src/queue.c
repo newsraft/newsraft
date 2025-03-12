@@ -104,7 +104,7 @@ queue_examine(void)
 		if (j->is_canceled) {
 			update_queue_cancelations += 1;
 		}
-		if (j->is_failed) {
+		if (j->is_failed && !get_cfg_bool(&j->feed_entry->cfg, CFG_SUPPRESS_ERRORS)) {
 			update_queue_failures += 1;
 		}
 	}

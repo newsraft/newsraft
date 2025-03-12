@@ -208,7 +208,7 @@ refresh_sections_statistics_about_underlying_feeds(void)
 		bool has_errors = false;
 		sections[i].unread_count = 0;
 		for (size_t j = 0; j < sections[i].feeds_count; ++j) {
-			if (sections[i].feeds[j]->has_errors) {
+			if (sections[i].feeds[j]->has_errors && !get_cfg_bool(&sections[i].feeds[j]->cfg, CFG_SUPPRESS_ERRORS)) {
 				has_errors = true;
 			}
 			sections[i].unread_count += sections[i].feeds[j]->unread_count;

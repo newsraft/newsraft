@@ -1,3 +1,33 @@
+# newsraft 0.29 "san dian yi xian"
+
+from now on there's no global pager for status messages. status messages related
+to each feed will be saved for each feed individually. if feed has error
+messages, it will be painted in red, as will the sections containing it.
+
+to view errors of individual feed, you need to hover over it and press
+`view-errors` (`v` by default). if `view-errors` is invoked on section, it will
+show all errors of failed feeds in the given section. if some feed is failing
+too frequently and you don't want to see its errors, apply `suppress-errors`
+setting to it.
+
+default binding for `mark-read-all` action is changed to `A` key, because `^D`
+is now occupied by a very neat `select-next-page-half` action just like in vim.
+
+* add `suppress-errors` setting (#141)
+* add `menu-section-sorting` setting (#138)
+* add `menu-responsiveness` setting (#135)
+* add `color-list-feed-failed` setting
+* add `color-list-section-failed` setting
+* add `view-errors` action (`v` key)
+* add `sort-by-initial` action (`z` key)
+* add `select-next-page-half` action (`^D` key)
+* add `select-prev-page-half` action (`^U` key)
+* delete `status-history-menu` action
+* delete `status-messages-count-limit` setting
+* make `mark-item-read-on-hover` setting scalable
+
+glory to package maintainers! <3
+
 # newsraft 0.28 "creeping train"
 
 this one brings a long awaited feature: feeds filtering via `item-rule` setting.

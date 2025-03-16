@@ -17,9 +17,11 @@ counterpart.
 * [Automatic updates for feeds and sections](https://newsraft.codeberg.page/#reload-period_(*))
 * Per-feed settings and key bindings
 * Assigning multiple actions to key bindings
-* Processing feeds from command output
 * Text searching by news titles and content
 * Interactive news content viewing
+* Menu sorting by your most desired parameters
+* Detailed error reports on failed updates
+* Processing feeds from command output
 * [Support for practically all feed formats](https://newsraft.codeberg.page/#FORMATS_SUPPORT)
 * Come try segfault me, baby ;)
 

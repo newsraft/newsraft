@@ -12,11 +12,11 @@ do_format(struct wstring *dest, const wchar_t *fmt, const struct format_arg *arg
 	empty_wstring(dest);
 	for (const wchar_t *iter = fmt; *iter != '\0';) {
 		if (iter[0] != L'%') {
-			if (wcatcs(dest, *iter) == false) return;
+			wcatcs(dest, *iter);
 			iter += 1;
 			continue;
 		} else if (iter[1] == L'%') { // iter[0] and iter[1] are percent signs.
-			if (wcatcs(dest, L'%') == false) return;
+			wcatcs(dest, L'%');
 			iter += 2;
 			continue;
 		}
@@ -68,10 +68,7 @@ do_format(struct wstring *dest, const wchar_t *fmt, const struct format_arg *arg
 							}
 						}
 					}
-					if (wcatss(dest, ws) == false) {
-						free_wstring(ws);
-						return;
-					}
+					wcatss(dest, ws);
 					free_wstring(ws);
 				} else { // Format integer
 					if (swprintf(number, LENGTH(number), tmp_buf, args[j].value.i) > 0) {

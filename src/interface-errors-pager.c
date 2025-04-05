@@ -16,13 +16,7 @@ errors_pager_loop(struct menu_state *m)
 		if (feed->errors->len < 1) {
 			continue;
 		}
-		struct render_block *tmp = realloc(blocks.ptr, sizeof(struct render_block) * (blocks.len + 2));
-		if (tmp == NULL) {
-			free_render_blocks(&blocks);
-			pthread_mutex_unlock(&interface_lock);
-			return NULL;
-		}
-		blocks.ptr = tmp;
+		blocks.ptr = newsraft_realloc(blocks.ptr, sizeof(struct render_block) * (blocks.len + 2));
 		blocks.len += 2;
 		struct string *header_str = blocks.len > 2 ? crtas("<br><hr><br>", 12) : crtes(100);
 		catas(header_str, "<b>Errors of ", 13);

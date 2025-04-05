@@ -60,10 +60,7 @@ queue_destroy(void)
 static void
 queue_execute_update_notifications_unprotected(size_t max_units_count)
 {
-	struct queue_notification_category *units = calloc(max_units_count, sizeof(struct queue_notification_category));
-	if (units == NULL) {
-		return;
-	}
+	struct queue_notification_category *units = newsraft_calloc(max_units_count, sizeof(struct queue_notification_category));
 
 	for (struct feed_update_state *i = update_queue; i != NULL; i = i->next) {
 		const struct wstring *notify_cmd = get_cfg_wstring(&i->feed_entry->cfg, CFG_NOTIFICATION_COMMAND);
@@ -155,10 +152,7 @@ queue_updates(struct feed_entry **feeds, size_t feeds_count)
 
 		empty_string(feeds[i]->errors);
 
-		struct feed_update_state *item = calloc(1, sizeof(struct feed_update_state));
-		if (item == NULL) {
-			return;
-		}
+		struct feed_update_state *item = newsraft_calloc(1, sizeof(struct feed_update_state));
 		item->feed_entry = feeds[i];
 		item->next = update_queue;
 		update_queue = item;

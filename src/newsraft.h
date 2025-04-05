@@ -499,12 +499,12 @@ void run_formatted_command(const struct wstring *wcmd_fmt, const struct format_a
 struct string *crtes(size_t desired_capacity);
 struct string *crtas(const char *src_ptr, size_t src_len);
 struct string *crtss(const struct string *src);
-bool cpyas(struct string **dest, const char *src_ptr, size_t src_len);
-bool cpyss(struct string **dest, const struct string *src);
-bool catas(struct string *dest, const char *src_ptr, size_t src_len);
-bool catss(struct string *dest, const struct string *src);
-bool catcs(struct string *dest, char c);
-bool make_string_fit_more(struct string **dest, size_t n);
+void cpyas(struct string **dest, const char *src_ptr, size_t src_len);
+void cpyss(struct string **dest, const struct string *src);
+void catas(struct string *dest, const char *src_ptr, size_t src_len);
+void catss(struct string *dest, const struct string *src);
+void catcs(struct string *dest, char c);
+void make_string_fit_more(struct string **dest, size_t n);
 void str_vappendf(struct string *dest, const char *fmt, va_list args);
 void str_appendf(struct string *dest, const char *fmt, ...);
 void empty_string(struct string *dest);
@@ -516,21 +516,21 @@ void remove_start_of_string(struct string *str, size_t size);
 void inlinefy_string(struct string *title);
 
 // See "string-serialize.c" file for implementation.
-bool serialize_caret(struct string **target);
-bool serialize_array(register struct string **target, register const char *key, register size_t key_len, register const char *value, register size_t value_len);
-bool serialize_string(struct string **target, const char *key, size_t key_len, const struct string *value);
+void serialize_caret(struct string **target);
+void serialize_array(register struct string **target, register const char *key, register size_t key_len, register const char *value, register size_t value_len);
+void serialize_string(struct string **target, const char *key, size_t key_len, const struct string *value);
 struct deserialize_stream *open_deserialize_stream(const char *serialized_data);
 const struct string *get_next_entry_from_deserialize_stream(struct deserialize_stream *stream);
 void close_deserialize_stream(struct deserialize_stream *stream);
 
 // See "wstring.c" file for implementation.
-bool wstr_set(struct wstring **dest, const wchar_t *src_ptr, size_t src_len, size_t src_lim);
+void wstr_set(struct wstring **dest, const wchar_t *src_ptr, size_t src_len, size_t src_lim);
 struct wstring *wcrtes(size_t desired_capacity);
 struct wstring *wcrtas(const wchar_t *src_ptr, size_t src_len);
-bool wcatas(struct wstring *dest, const wchar_t *src_ptr, size_t src_len);
-bool wcatss(struct wstring *dest, const struct wstring *src);
-bool wcatcs(struct wstring *dest, wchar_t c);
-bool make_sure_there_is_enough_space_in_wstring(struct wstring *dest, size_t need_space);
+void wcatas(struct wstring *dest, const wchar_t *src_ptr, size_t src_len);
+void wcatss(struct wstring *dest, const struct wstring *src);
+void wcatcs(struct wstring *dest, wchar_t c);
+void make_sure_there_is_enough_space_in_wstring(struct wstring *dest, size_t need_space);
 void empty_wstring(struct wstring *dest);
 void free_wstring(struct wstring *wstr);
 struct string *convert_wstring_to_string(const struct wstring *src);
@@ -602,8 +602,14 @@ bool setup_json_parser(struct feed_update_state *data);
 bool insert_feed(struct feed_entry *feed, struct getfeed_feed *feed_data);
 
 // See "struct-item.c" file for implementation.
-bool prepend_item(struct getfeed_item **head_item_ptr);
+void prepend_item(struct getfeed_item **head_item_ptr);
 void free_item(struct getfeed_item *item);
+
+// See "alloc.c" file for implementation.
+void *newsraft_malloc(size_t size);
+void *newsraft_calloc(size_t n, size_t size);
+void *newsraft_realloc(void *ptr, size_t size);
+void newsraft_free(void *ptr);
 
 extern volatile bool they_want_us_to_stop;
 extern size_t list_menu_height;

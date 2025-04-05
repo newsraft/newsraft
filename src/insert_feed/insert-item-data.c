@@ -1,7 +1,7 @@
 #include <string.h>
 #include "insert_feed/insert_feed.h"
 
-static inline bool
+static inline void
 fnv_1a_string(struct string **target, const char *src)
 {
 	// https://en.wikipedia.org/wiki/Fowler%E2%80%93Noll%E2%80%93Vo_hash_function
@@ -18,7 +18,7 @@ fnv_1a_string(struct string **target, const char *src)
 		hash = (hash ^ str[k++]) * 109951183333LLU;
 	}
 	str[str_len] = '\0';
-	return cpyas(target, str, str_len);
+	cpyas(target, str, str_len);
 }
 
 bool
@@ -100,18 +100,12 @@ insert_item_data(struct feed_entry *feed, struct getfeed_item *item)
 {
 	// Create guid if it was not set.
 	if (STRING_IS_EMPTY(item->guid)) {
-		if ((item->url != NULL) && (item->url->len != 0)) {
-			if (cpyss(&item->guid, item->url) == false) {
-				return false;
-			}
-		} else if ((item->title != NULL) && (item->title->len != 0)) {
-			if (cpyss(&item->guid, item->title) == false) {
-				return false;
-			}
-		} else if ((item->content != NULL) && (item->content->len != 0)) {
-			if (fnv_1a_string(&item->guid, item->content->ptr) == false) {
-				return false;
-			}
+		if (!STRING_IS_EMPTY(item->url)) {
+			cpyss(&item->guid, item->url);
+		} else if (!STRING_IS_EMPTY(item->title)) {
+			cpyss(&item->guid, item->title);
+		} else if (!STRING_IS_EMPTY(item->content)) {
+			fnv_1a_string(&item->guid, item->content->ptr);
 		} else {
 			WARN("Couldn't generate GUID for the item!");
 			return true; // Probably this item is just empty. Ignore it.

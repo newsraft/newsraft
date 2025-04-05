@@ -28,27 +28,13 @@ mediarss_content_start(struct feed_update_state *data, const XML_Char **attrs)
 		return PARSE_OKAY; // Ignore empty content entries.
 	}
 	struct string **dest = data->in_item ? &data->feed.item->attachments : &data->feed.attachments;
-	if (serialize_caret(dest) == false) {
-		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-	}
-	if (serialize_array(dest, "url=", 4, attr, attr_len) == false) {
-		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-	}
-	if (serialize_attribute(dest, "type=", 5, attrs, "type") == false) {
-		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-	}
-	if (serialize_attribute(dest, "size=", 5, attrs, "fileSize") == false) {
-		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-	}
-	if (serialize_attribute(dest, "duration=", 9, attrs, "duration") == false) {
-		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-	}
-	if (serialize_attribute(dest, "width=", 6, attrs, "width") == false) {
-		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-	}
-	if (serialize_attribute(dest, "height=", 7, attrs, "height") == false) {
-		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-	}
+	serialize_caret(dest);
+	serialize_array(dest, "url=", 4, attr, attr_len);
+	serialize_attribute(dest, "type=", 5, attrs, "type");
+	serialize_attribute(dest, "size=", 5, attrs, "fileSize");
+	serialize_attribute(dest, "duration=", 9, attrs, "duration");
+	serialize_attribute(dest, "width=", 6, attrs, "width");
+	serialize_attribute(dest, "height=", 7, attrs, "height");
 	return PARSE_OKAY;
 }
 
@@ -64,12 +50,8 @@ embed_or_player_start(struct feed_update_state *data, const XML_Char **attrs)
 		return PARSE_OKAY; // Ignore empty entries.
 	}
 	struct string **dest = data->in_item ? &data->feed.item->attachments : &data->feed.attachments;
-	if (serialize_caret(dest) == false) {
-		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-	}
-	if (serialize_array(dest, "url=", 4, attr, attr_len) == false) {
-		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-	}
+	serialize_caret(dest);
+	serialize_array(dest, "url=", 4, attr, attr_len);
 	return PARSE_OKAY;
 }
 
@@ -85,15 +67,9 @@ peerlink_start(struct feed_update_state *data, const XML_Char **attrs)
 		return PARSE_OKAY; // Ignore empty entries.
 	}
 	struct string **dest = data->in_item ? &data->feed.item->attachments : &data->feed.attachments;
-	if (serialize_caret(dest) == false) {
-		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-	}
-	if (serialize_array(dest, "url=", 4, attr, attr_len) == false) {
-		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-	}
-	if (serialize_attribute(dest, "type=", 5, attrs, "type") == false) {
-		return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-	}
+	serialize_caret(dest);
+	serialize_array(dest, "url=", 4, attr, attr_len);
+	serialize_attribute(dest, "type=", 5, attrs, "type");
 	return PARSE_OKAY;
 }
 
@@ -102,16 +78,10 @@ description_start(struct feed_update_state *data, const XML_Char **attrs)
 {
 	if (data->in_item == true) {
 		if (data->path[data->depth] == MEDIARSS_CONTENT) {
-			if (serialize_attribute(&data->feed.item->attachments, "description_type=", 17, attrs, "type") == false) {
-				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-			}
+			serialize_attribute(&data->feed.item->attachments, "description_type=", 17, attrs, "type");
 		} else {
-			if (serialize_caret(&data->feed.item->content) == false) {
-				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-			}
-			if (serialize_attribute(&data->feed.item->content, "type=", 5, attrs, "type") == false) {
-				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-			}
+			serialize_caret(&data->feed.item->content);
+			serialize_attribute(&data->feed.item->content, "type=", 5, attrs, "type");
 		}
 	}
 	return PARSE_OKAY;
@@ -122,13 +92,9 @@ description_end(struct feed_update_state *data)
 {
 	if (data->in_item == true) {
 		if (data->path[data->depth] == MEDIARSS_CONTENT) {
-			if (serialize_string(&data->feed.item->attachments, "description_text=", 17, data->text) == false) {
-				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-			}
+			serialize_string(&data->feed.item->attachments, "description_text=", 17, data->text);
 		} else {
-			if (serialize_string(&data->feed.item->content, "text=", 5, data->text) == false) {
-				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-			}
+			serialize_string(&data->feed.item->content, "text=", 5, data->text);
 		}
 	}
 	return PARSE_OKAY;

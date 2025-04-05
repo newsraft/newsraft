@@ -22,16 +22,16 @@ block_date(const struct item_entry *item)
 	}
 	struct string *date_entry = crtes(100);
 	struct string *date_str = get_cfg_date(&item->feed[0]->cfg, CFG_ITEM_CONTENT_DATE_FORMAT, item->pub_date == 0 ? item->upd_date : item->pub_date);
-	if (date_entry == NULL || date_str == NULL) goto error;
+	if (date_str == NULL) goto error;
 	if (item->pub_date > 0 && item->upd_date > 0 && item->pub_date != item->upd_date) {
-		if (catss(date_entry, date_str) == false) goto error;
-		if (catas(date_entry, " (updated ", 10) == false) goto error;
+		catss(date_entry, date_str);
+		catas(date_entry, " (updated ", 10);
 		free_string(date_str);
 		date_str = get_cfg_date(&item->feed[0]->cfg, CFG_ITEM_CONTENT_DATE_FORMAT, item->upd_date);
 		if (date_str == NULL) goto error;
-		if (catcs(date_str, ')') == false) goto error;
+		catcs(date_str, ')');
 	}
-	if (catss(date_entry, date_str) == false) goto error;
+	catss(date_entry, date_str);
 	struct string *data = block_str(date_entry);
 	free_string(date_entry);
 	free_string(date_str);

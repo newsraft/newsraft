@@ -17,24 +17,22 @@ struct deserialize_stream {
 
 static const char caret[2] = {DELIMITER, '^'};
 
-bool
+void
 serialize_caret(struct string **target)
 {
 	if (*target == NULL) {
 		*target = crtes(100);
 	}
-	return *target != NULL ? catas(*target, caret, 2) : false;
+	catas(*target, caret, 2);
 }
 
-bool
+void
 serialize_array(register struct string **target, register const char *key, register size_t key_len, register const char *value, register size_t value_len)
 {
 	if (value == NULL || value_len == 0) {
-		return true; // Ignore empty entries.
+		return; // Ignore empty entries.
 	}
-	if (make_string_fit_more(target, 1 + key_len + value_len) == false) {
-		return false;
-	}
+	make_string_fit_more(target, 1 + key_len + value_len);
 
 	// Check tests/serialize_array.c to better understand what this function does.
 
@@ -58,31 +56,26 @@ serialize_array(register struct string **target, register const char *key, regis
 			if ((*target)->len + value_len == end) {
 				(*target)->len -= 1 + key_len;
 				(*target)->ptr[(*target)->len] = '\0';
-				return true; // Value consists only of delimiters!
+				return; // Value consists only of delimiters!
 			}
 		}
 	}
-	return true;
+	return;
 }
 
-bool
+void
 serialize_string(struct string **target, const char *key, size_t key_len, const struct string *value)
 {
-	return value != NULL && value->len > 0 ? serialize_array(target, key, key_len, value->ptr, value->len) : true;
+	if (!STRING_IS_EMPTY(value)) {
+		serialize_array(target, key, key_len, value->ptr, value->len);
+	}
 }
 
 struct deserialize_stream *
 open_deserialize_stream(const char *serialized_data)
 {
-	struct deserialize_stream *stream = malloc(sizeof(struct deserialize_stream));
-	if (stream == NULL) {
-		return NULL;
-	}
+	struct deserialize_stream *stream = newsraft_malloc(sizeof(struct deserialize_stream));
 	stream->entry = crtes(10000);
-	if (stream->entry == NULL) {
-		free(stream);
-		return NULL;
-	}
 	stream->delimiter = *serialized_data;
 	if (stream->delimiter == '\0') {
 		stream->prev_delimiter_pos = NULL;
@@ -97,18 +90,14 @@ open_deserialize_stream(const char *serialized_data)
 const struct string *
 get_next_entry_from_deserialize_stream(struct deserialize_stream *stream)
 {
-	if ((stream->delimiter_pos == NULL) && (stream->prev_delimiter_pos == NULL)) {
+	if (stream->delimiter_pos == NULL && stream->prev_delimiter_pos == NULL) {
 		return NULL;
 	}
 	if (stream->delimiter_pos == NULL) {
-		if (cpyas(&stream->entry, stream->prev_delimiter_pos + 1, strlen(stream->prev_delimiter_pos + 1)) == false) {
-			return NULL;
-		}
+		cpyas(&stream->entry, stream->prev_delimiter_pos + 1, strlen(stream->prev_delimiter_pos + 1));
 		stream->prev_delimiter_pos = NULL;
 	} else {
-		if (cpyas(&stream->entry, stream->prev_delimiter_pos + 1, stream->delimiter_pos - stream->prev_delimiter_pos - 1) == false) {
-			return NULL;
-		}
+		cpyas(&stream->entry, stream->prev_delimiter_pos + 1, stream->delimiter_pos - stream->prev_delimiter_pos - 1);
 		stream->prev_delimiter_pos = stream->delimiter_pos;
 		stream->delimiter_pos = strchr(stream->delimiter_pos + 1, stream->delimiter);
 	}

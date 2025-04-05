@@ -62,9 +62,7 @@ db_count_items(struct feed_entry **feeds, size_t feeds_count, bool count_only_un
 	if (feeds_count == 0 || query == NULL || cond == NULL) {
 		goto error;
 	}
-	if (!catss(query, cond)) {
-		goto error;
-	}
+	catss(query, cond);
 	if (count_only_unread) {
 		catas(query, " AND unread=1", 13);
 	}
@@ -90,11 +88,10 @@ error:
 bool
 db_change_unread_status_of_all_items_in_feeds(struct feed_entry **feeds, size_t feeds_count, bool unread)
 {
-	char *query = malloc(sizeof(char) * (46 + feeds_count * 2 + 100));
-	if (feeds_count == 0 || query == NULL) {
-		free(query);
+	if (feeds_count == 0) {
 		return true;
 	}
+	char *query = newsraft_malloc(sizeof(char) * (46 + feeds_count * 2 + 100));
 	strcpy(query, "UPDATE items SET unread=? WHERE feed_url IN (?");
 	for (size_t i = 1; i < feeds_count; ++i) {
 		strcat(query, ",?");

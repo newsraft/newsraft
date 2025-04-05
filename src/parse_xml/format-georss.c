@@ -8,12 +8,8 @@ static int8_t
 georss_point_end(struct feed_update_state *data)
 {
 	if (data->in_item == true) {
-		if (serialize_caret(&data->feed.item->extras) == false) {
-			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-		}
-		if (serialize_string(&data->feed.item->extras, "coordinates=", 12, data->text) == false) {
-			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-		}
+		serialize_caret(&data->feed.item->extras);
+		serialize_string(&data->feed.item->extras, "coordinates=", 12, data->text);
 	}
 	return PARSE_OKAY;
 }

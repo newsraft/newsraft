@@ -6,21 +6,12 @@
 // When allocating memory, we request more resources than necessary to reduce
 // the number of further realloc calls to expand wstring buffer.
 
-bool
+void
 wstr_set(struct wstring **dest, const wchar_t *src_ptr, size_t src_len, size_t src_lim)
 {
 	if (*dest == NULL) {
-		struct wstring *wstr = malloc(sizeof(struct wstring));
-		if (wstr == NULL) {
-			FAIL("Not enough memory to create wstring!");
-			return false;
-		}
-		wstr->ptr = malloc(sizeof(wchar_t) * (src_lim + 1));
-		if (wstr->ptr == NULL) {
-			FAIL("Not enough memory to populate wstring!");
-			free(wstr);
-			return false;
-		}
+		struct wstring *wstr = newsraft_malloc(sizeof(struct wstring));
+		wstr->ptr = newsraft_malloc(sizeof(wchar_t) * (src_lim + 1));
 		if (src_ptr != NULL && src_len > 0) {
 			memcpy(wstr->ptr, src_ptr, sizeof(wchar_t) * src_len);
 		}
@@ -30,12 +21,7 @@ wstr_set(struct wstring **dest, const wchar_t *src_ptr, size_t src_len, size_t s
 		*dest = wstr;
 	} else {
 		if (src_lim > (*dest)->lim) {
-			wchar_t *tmp = realloc((*dest)->ptr, sizeof(wchar_t) * (src_lim + 1));
-			if (tmp == NULL) {
-				FAIL("Not enough memory to set wstring!");
-				return false;
-			}
-			(*dest)->ptr = tmp;
+			(*dest)->ptr = newsraft_realloc((*dest)->ptr, sizeof(wchar_t) * (src_lim + 1));
 			(*dest)->lim = src_lim;
 		}
 		if (src_ptr != NULL && src_len > 0) {
@@ -44,35 +30,31 @@ wstr_set(struct wstring **dest, const wchar_t *src_ptr, size_t src_len, size_t s
 		*((*dest)->ptr + src_len) = '\0';
 		(*dest)->len = src_len;
 	}
-	return true;
 }
 
 struct wstring *
 wcrtes(size_t desired_capacity)
 {
 	struct wstring *wstr = NULL;
-	return wstr_set(&wstr, NULL, 0, desired_capacity) == true ? wstr : NULL;
+	wstr_set(&wstr, NULL, 0, desired_capacity);
+	return wstr;
 }
 
 struct wstring *
 wcrtas(const wchar_t *src_ptr, size_t src_len)
 {
 	struct wstring *wstr = NULL;
-	return wstr_set(&wstr, src_ptr, src_len, src_len) == true ? wstr : NULL;
+	wstr_set(&wstr, src_ptr, src_len, src_len);
+	return wstr;
 }
 
-bool
+void
 wcatas(struct wstring *dest, const wchar_t *src_ptr, size_t src_len)
 {
 	size_t new_len = dest->len + src_len;
 	if (new_len > dest->lim) {
 		size_t new_lim = new_len * 2 + 67;
-		wchar_t *temp = realloc(dest->ptr, sizeof(wchar_t) * (new_lim + 1));
-		if (temp == NULL) {
-			FAIL("Not enough memory for concatenating array to wstring!");
-			return false;
-		}
-		dest->ptr = temp;
+		dest->ptr = newsraft_realloc(dest->ptr, sizeof(wchar_t) * (new_lim + 1));
 		dest->lim = new_lim;
 	}
 	if (src_ptr != NULL && src_len > 0) {
@@ -80,34 +62,28 @@ wcatas(struct wstring *dest, const wchar_t *src_ptr, size_t src_len)
 	}
 	*(dest->ptr + new_len) = L'\0';
 	dest->len = new_len;
-	return true;
 }
 
-bool
+void
 wcatss(struct wstring *dest, const struct wstring *src)
 {
-	return wcatas(dest, src->ptr, src->len);
+	wcatas(dest, src->ptr, src->len);
 }
 
-bool
+void
 wcatcs(struct wstring *dest, wchar_t c)
 {
-	return wcatas(dest, &c, 1);
+	wcatas(dest, &c, 1);
 }
 
-bool
+void
 make_sure_there_is_enough_space_in_wstring(struct wstring *dest, size_t need_space)
 {
 	if (need_space > dest->lim - dest->len) {
 		const size_t new_lim = dest->len + need_space;
-		wchar_t *new_ptr = realloc(dest->ptr, sizeof(wchar_t) * (new_lim + 1));
-		if (new_ptr == NULL) {
-			return false;
-		}
-		dest->ptr = new_ptr;
+		dest->ptr = newsraft_realloc(dest->ptr, sizeof(wchar_t) * (new_lim + 1));
 		dest->lim = new_lim;
 	}
-	return true;
 }
 
 void

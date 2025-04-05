@@ -6,46 +6,40 @@ static inline bool
 append_sorting_order_expression_to_query(struct string *q, int order)
 {
 	switch (order) {
-		case SORT_BY_TIME_ASC:       return catas(q, " ORDER BY MAX(publication_date, update_date) ASC, rowid ASC", 59);
-		case SORT_BY_TIME_DESC:      return catas(q, " ORDER BY MAX(publication_date, update_date) DESC, rowid DESC", 61);
-		case SORT_BY_ROWID_ASC:      return catas(q, " ORDER BY rowid ASC", 19);
-		case SORT_BY_ROWID_DESC:     return catas(q, " ORDER BY rowid DESC", 20);
-		case SORT_BY_UNREAD_ASC:     return catas(q, " ORDER BY unread ASC, MAX(publication_date, update_date) DESC, rowid DESC", 73);
-		case SORT_BY_UNREAD_DESC:    return catas(q, " ORDER BY unread DESC, MAX(publication_date, update_date) DESC, rowid DESC", 74);
-		case SORT_BY_IMPORTANT_ASC:  return catas(q, " ORDER BY important ASC, MAX(publication_date, update_date) DESC, rowid DESC", 76);
-		case SORT_BY_IMPORTANT_DESC: return catas(q, " ORDER BY important DESC, MAX(publication_date, update_date) DESC, rowid DESC", 77);
-		case SORT_BY_ALPHABET_ASC:   return catas(q, " ORDER BY title ASC, rowid ASC", 30);
-		case SORT_BY_ALPHABET_DESC:  return catas(q, " ORDER BY title DESC, rowid DESC", 32);
+		case SORT_BY_TIME_ASC:       catas(q, " ORDER BY MAX(publication_date, update_date) ASC, rowid ASC", 59); break;
+		case SORT_BY_TIME_DESC:      catas(q, " ORDER BY MAX(publication_date, update_date) DESC, rowid DESC", 61); break;
+		case SORT_BY_ROWID_ASC:      catas(q, " ORDER BY rowid ASC", 19); break;
+		case SORT_BY_ROWID_DESC:     catas(q, " ORDER BY rowid DESC", 20); break;
+		case SORT_BY_UNREAD_ASC:     catas(q, " ORDER BY unread ASC, MAX(publication_date, update_date) DESC, rowid DESC", 73); break;
+		case SORT_BY_UNREAD_DESC:    catas(q, " ORDER BY unread DESC, MAX(publication_date, update_date) DESC, rowid DESC", 74); break;
+		case SORT_BY_IMPORTANT_ASC:  catas(q, " ORDER BY important ASC, MAX(publication_date, update_date) DESC, rowid DESC", 76); break;
+		case SORT_BY_IMPORTANT_DESC: catas(q, " ORDER BY important DESC, MAX(publication_date, update_date) DESC, rowid DESC", 77); break;
+		case SORT_BY_ALPHABET_ASC:   catas(q, " ORDER BY title ASC, rowid ASC", 30); break;
+		case SORT_BY_ALPHABET_DESC:  catas(q, " ORDER BY title DESC, rowid DESC", 32); break;
+		default:
+			fail_status("Unknown sorting method name!");
+			return false;
 	}
-	fail_status("Unknown sorting method name!");
-	return false;
+	return true;
 }
 
 static inline struct string *
 generate_search_query_string(const struct items_list *items, const struct string *search_filter)
 {
-	struct string *q = crtas("SELECT rowid,feed_url,title,link,publication_date,update_date,unread,important FROM items WHERE ", 96);
-	if (q == NULL) {
-		goto error;
-	}
+	struct string *query = crtas("SELECT rowid,feed_url,title,link,publication_date,update_date,unread,important FROM items WHERE ", 96);
 	struct string *cond = generate_items_search_condition(items->feeds, items->feeds_count);
 	if (!STRING_IS_EMPTY(cond)) {
-		catss(q, cond);
+		catss(query, cond);
 	}
 	free_string(cond);
 	if (!STRING_IS_EMPTY(search_filter)) {
-		if (!catas(q, " AND ((title LIKE '%' || ? || '%') OR (content LIKE '%' || ? || '%'))", 69)) {
-			goto error;
-		}
+		catas(query, " AND ((title LIKE '%' || ? || '%') OR (content LIKE '%' || ? || '%'))", 69);
 	}
-	if (append_sorting_order_expression_to_query(q, items->sorting) == false) {
-		goto error;
+	if (append_sorting_order_expression_to_query(query, items->sorting) == false) {
+		free_string(query);
+		return NULL;
 	}
-	return q;
-error:
-	FAIL("Not enough memory for query string!");
-	free_string(q);
-	return NULL;
+	return query;
 }
 
 void
@@ -85,7 +79,6 @@ obtain_items_at_least_up_to_the_given_index(struct items_list *items, size_t ind
 	if (items->finished == true) {
 		return;
 	}
-	void *tmp;
 	const char *text;
 	int status;
 	while (index >= items->len) {
@@ -94,11 +87,8 @@ obtain_items_at_least_up_to_the_given_index(struct items_list *items, size_t ind
 			items->finished = true;
 			return;
 		}
-		tmp = realloc(items->ptr, sizeof(struct item_entry) * (items->len + 1));
-		if (tmp == NULL) {
-			return;
-		}
-		items->ptr = tmp;
+
+		items->ptr = newsraft_realloc(items->ptr, sizeof(struct item_entry) * (items->len + 1));
 
 		items->ptr[items->len].rowid = sqlite3_column_int64(items->res, 0);
 
@@ -147,10 +137,8 @@ create_items_list(struct feed_entry **feeds, size_t feeds_count, int sorting, co
 	if (feeds_count == 0) {
 		return NULL;
 	}
-	struct items_list *items = calloc(1, sizeof(struct items_list));
-	if (items == NULL) {
-		return NULL;
-	}
+
+	struct items_list *items = newsraft_calloc(1, sizeof(struct items_list));
 
 	items->sorting = sorting;
 	if (sorting < 0) {

@@ -22,27 +22,15 @@ atom_link_start(struct feed_update_state *data, const XML_Char **attrs)
 	// Default value of rel is alternate!
 	if (rel == NULL || strcmp(rel, "alternate") == 0) {
 		if (data->path[data->depth] == GENERIC_ITEM) {
-			if (cpyas(&data->feed.item->url, attr, attr_len) == false) {
-				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-			}
+			cpyas(&data->feed.item->url, attr, attr_len);
 		} else if (data->path[data->depth] == GENERIC_FEED) {
-			if (cpyas(&data->feed.url, attr, attr_len) == false) {
-				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-			}
+			cpyas(&data->feed.url, attr, attr_len);
 		}
 	} else if (data->path[data->depth] == GENERIC_ITEM) {
-		if (serialize_caret(&data->feed.item->attachments) == false) {
-			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-		}
-		if (serialize_array(&data->feed.item->attachments, "url=", 4, attr, attr_len) == false) {
-			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-		}
-		if (serialize_attribute(&data->feed.item->attachments, "type=", 5, attrs, "type") == false) {
-			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-		}
-		if (serialize_attribute(&data->feed.item->attachments, "size=", 5, attrs, "length") == false) {
-			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-		}
+		serialize_caret(&data->feed.item->attachments);
+		serialize_array(&data->feed.item->attachments, "url=", 4, attr, attr_len);
+		serialize_attribute(&data->feed.item->attachments, "type=", 5, attrs, "type");
+		serialize_attribute(&data->feed.item->attachments, "size=", 5, attrs, "length");
 	}
 	return PARSE_OKAY;
 }
@@ -51,14 +39,10 @@ static int8_t
 atom_content_start(struct feed_update_state *data, const XML_Char **attrs)
 {
 	if (data->path[data->depth] == GENERIC_ITEM) {
-		if (serialize_caret(&data->feed.item->content) == false) {
-			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-		}
-		if (serialize_attribute(&data->feed.item->content, "type=", 5, attrs, "type") == false) {
-			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-		}
+		serialize_caret(&data->feed.item->content);
+		serialize_attribute(&data->feed.item->content, "type=", 5, attrs, "type");
 		const char *type = get_value_of_attribute_key(attrs, "type");
-		if ((type != NULL) && (strstr(type, "xhtml") != NULL)) {
+		if (type != NULL && strstr(type, "xhtml") != NULL) {
 			data->emptying_target = &data->decoy;
 			empty_string(data->text);
 		}
@@ -71,9 +55,7 @@ atom_content_end(struct feed_update_state *data)
 {
 	if (data->path[data->depth] == GENERIC_ITEM) {
 		data->emptying_target = data->text;
-		if (serialize_string(&data->feed.item->content, "text=", 5, data->text) == false) {
-			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-		}
+		serialize_string(&data->feed.item->content, "text=", 5, data->text);
 	}
 	return PARSE_OKAY;
 }
@@ -92,19 +74,11 @@ author_start(struct feed_update_state *data, const XML_Char **attrs)
 {
 	(void)attrs;
 	if (data->path[data->depth] == GENERIC_ITEM) {
-		if (serialize_caret(&data->feed.item->persons) == false) {
-			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-		}
-		if (serialize_array(&data->feed.item->persons, "type=", 5, "author", 6) == false) {
-			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-		}
+		serialize_caret(&data->feed.item->persons);
+		serialize_array(&data->feed.item->persons, "type=", 5, "author", 6);
 	} else if (data->path[data->depth] == GENERIC_FEED) {
-		if (serialize_caret(&data->feed.persons) == false) {
-			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-		}
-		if (serialize_array(&data->feed.persons, "type=", 5, "author", 6) == false) {
-			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-		}
+		serialize_caret(&data->feed.persons);
+		serialize_array(&data->feed.persons, "type=", 5, "author", 6);
 	}
 	return PARSE_OKAY;
 }
@@ -114,19 +88,11 @@ contributor_start(struct feed_update_state *data, const XML_Char **attrs)
 {
 	(void)attrs;
 	if (data->path[data->depth] == GENERIC_ITEM) {
-		if (serialize_caret(&data->feed.item->persons) == false) {
-			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-		}
-		if (serialize_array(&data->feed.item->persons, "type=", 5, "contributor", 11) == false) {
-			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-		}
+		serialize_caret(&data->feed.item->persons);
+		serialize_array(&data->feed.item->persons, "type=", 5, "contributor", 11);
 	} else if (data->path[data->depth] == GENERIC_FEED) {
-		if (serialize_caret(&data->feed.persons) == false) {
-			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-		}
-		if (serialize_array(&data->feed.persons, "type=", 5, "contributor", 11) == false) {
-			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-		}
+		serialize_caret(&data->feed.persons);
+		serialize_array(&data->feed.persons, "type=", 5, "contributor", 11);
 	}
 	return PARSE_OKAY;
 }
@@ -136,13 +102,9 @@ name_end(struct feed_update_state *data)
 {
 	if (data->path[data->depth] == ATOM_AUTHOR) {
 		if (data->in_item == true) {
-			if (serialize_string(&data->feed.item->persons, "name=", 5, data->text) == false) {
-				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-			}
+			serialize_string(&data->feed.item->persons, "name=", 5, data->text);
 		} else {
-			if (serialize_string(&data->feed.persons, "name=", 5, data->text) == false) {
-				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-			}
+			serialize_string(&data->feed.persons, "name=", 5, data->text);
 		}
 	}
 	return PARSE_OKAY;
@@ -153,13 +115,9 @@ uri_end(struct feed_update_state *data)
 {
 	if (data->path[data->depth] == ATOM_AUTHOR) {
 		if (data->in_item == true) {
-			if (serialize_string(&data->feed.item->persons, "url=", 4, data->text) == false) {
-				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-			}
+			serialize_string(&data->feed.item->persons, "url=", 4, data->text);
 		} else {
-			if (serialize_string(&data->feed.persons, "url=", 4, data->text) == false) {
-				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-			}
+			serialize_string(&data->feed.persons, "url=", 4, data->text);
 		}
 	}
 	return PARSE_OKAY;
@@ -170,13 +128,9 @@ email_end(struct feed_update_state *data)
 {
 	if (data->path[data->depth] == ATOM_AUTHOR) {
 		if (data->in_item == true) {
-			if (serialize_string(&data->feed.item->persons, "email=", 6, data->text) == false) {
-				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-			}
+			serialize_string(&data->feed.item->persons, "email=", 6, data->text);
 		} else {
-			if (serialize_string(&data->feed.persons, "email=", 6, data->text) == false) {
-				return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-			}
+			serialize_string(&data->feed.persons, "email=", 6, data->text);
 		}
 	}
 	return PARSE_OKAY;
@@ -202,12 +156,8 @@ atom_category_start(struct feed_update_state *data, const XML_Char **attrs)
 	}
 	const size_t attr_len = strlen(attr);
 	if (attr_len != 0) {
-		if (serialize_caret(target) == false) {
-			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-		}
-		if (serialize_array(target, "category=", 9, attr, attr_len) == false) {
-			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-		}
+		serialize_caret(target);
+		serialize_array(target, "category=", 9, attr, attr_len);
 	}
 	return PARSE_OKAY;
 }
@@ -216,12 +166,8 @@ static int8_t
 atom_subtitle_start(struct feed_update_state *data, const XML_Char **attrs)
 {
 	if (data->path[data->depth] == GENERIC_FEED) {
-		if (serialize_caret(&data->feed.content) == false) {
-			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-		}
-		if (serialize_attribute(&data->feed.content, "type=", 5, attrs, "type") == false) {
-			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-		}
+		serialize_caret(&data->feed.content);
+		serialize_attribute(&data->feed.content, "type=", 5, attrs, "type");
 	}
 	return PARSE_OKAY;
 }
@@ -230,9 +176,7 @@ static int8_t
 atom_subtitle_end(struct feed_update_state *data)
 {
 	if (data->path[data->depth] == GENERIC_FEED) {
-		if (serialize_string(&data->feed.content, "text=", 5, data->text) == false) {
-			return PARSE_FAIL_NOT_ENOUGH_MEMORY;
-		}
+		serialize_string(&data->feed.content, "text=", 5, data->text);
 	}
 	return PARSE_OKAY;
 }

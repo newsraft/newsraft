@@ -23,16 +23,16 @@ get_largest_text_piece_from_item_serialized_data(
 	struct string *temp_text = crtes(1000);
 	struct deserialize_stream *stream = open_deserialize_stream(data);
 	if ((temp_text == NULL) || (stream == NULL)) {
-		goto error;
+		free_string(temp_text);
+		close_deserialize_stream(stream);
+		return false;
 	}
 	render_block_format temp_type = TEXT_PLAIN;
 	const struct string *entry = get_next_entry_from_deserialize_stream(stream);
 	while (entry != NULL) {
 		if (strcmp(entry->ptr, "^") == 0) {
 			if (temp_text->len > (*text)->len) {
-				if (cpyss(text, temp_text) == false) {
-					goto error;
-				}
+				cpyss(text, temp_text);
 				*type = temp_type;
 			}
 			empty_string(temp_text);
@@ -40,25 +40,17 @@ get_largest_text_piece_from_item_serialized_data(
 		} else if (strncmp(entry->ptr, type_prefix, type_prefix_len) == 0) {
 			temp_type = get_content_type_by_string(entry->ptr + type_prefix_len);
 		} else if (strncmp(entry->ptr, text_prefix, text_prefix_len) == 0) {
-			if (cpyas(&temp_text, entry->ptr + text_prefix_len, entry->len - text_prefix_len) == false) {
-				goto error;
-			}
+			cpyas(&temp_text, entry->ptr + text_prefix_len, entry->len - text_prefix_len);
 		}
 		entry = get_next_entry_from_deserialize_stream(stream);
 	}
 	if (temp_text->len > (*text)->len) {
-		if (cpyss(text, temp_text) == false) {
-			goto error;
-		}
+		cpyss(text, temp_text);
 		*type = temp_type;
 	}
 	free_string(temp_text);
 	close_deserialize_stream(stream);
 	return true;
-error:
-	free_string(temp_text);
-	close_deserialize_stream(stream);
-	return false;
 }
 
 bool

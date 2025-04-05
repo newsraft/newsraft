@@ -42,39 +42,37 @@ write_person_to_result(struct string *result, const struct person *person)
 	if (person->type->len == 0 || (person->name->len == 0 && person->email->len == 0 && person->url->len == 0)) {
 		return true; // Ignore empty persons >,<
 	}
-	if (result->len > 0       && catas(result, ", ", 2)      == false) return false;
-	if (person->name->len > 0 && catss(result, person->name) == false) return false;
+	if (result->len > 0) {
+		catas(result, ", ", 2);
+	}
+	if (person->name->len > 0) {
+		catss(result, person->name);
+	}
 	if (person->email->len > 0) {
-		if (person->name->len > 0 && catas(result, " <", 2) == false) {
-			return false;
+		if (person->name->len > 0) {
+			catas(result, " <", 2);
 		}
-		if (catss(result, person->email) == false) {
-			return false;
-		}
-		if (person->name->len > 0 && catcs(result, '>') == false) {
-			return false;
+		catss(result, person->email);
+		if (person->name->len > 0) {
+			catcs(result, '>');
 		}
 	}
 	if (person->url->len > 0) {
-		if ((person->name->len > 0 || person->email->len > 0) && catas(result, " (", 2) == false) {
-			return false;
+		if (person->name->len > 0 || person->email->len > 0) {
+			catas(result, " (", 2);
 		}
-		if (catss(result, person->url) == false) {
-			return false;
-		}
-		if ((person->name->len > 0 || person->email->len > 0) && catcs(result, ')') == false) {
-			return false;
+		catss(result, person->url);
+		if (person->name->len > 0 || person->email->len > 0) {
+			catcs(result, ')');
 		}
 	}
 	if (person->type->len > 0 && strcmp(person->type->ptr, "author") != 0) {
-		if ((person->name->len > 0 || person->email->len > 0 || person->url->len > 0) && catas(result, " [", 2) == false) {
-			return false;
+		if (person->name->len > 0 || person->email->len > 0 || person->url->len > 0) {
+			catas(result, " [", 2);
 		}
-		if (catss(result, person->type) == false) {
-			return false;
-		}
-		if ((person->name->len > 0 || person->email->len > 0 || person->url->len > 0) && catcs(result, ']') == false) {
-			return false;
+		catss(result, person->type);
+		if (person->name->len > 0 || person->email->len > 0 || person->url->len > 0) {
+			catcs(result, ']');
 		}
 	}
 	return true;
@@ -97,21 +95,13 @@ deserialize_persons_string(const char *src)
 			}
 			empty_person(&person);
 		} else if (strncmp(field->ptr, "type=", 5) == 0) {
-			if (cpyas(&person.type, field->ptr + 5, field->len - 5) == false) {
-				goto error;
-			}
+			cpyas(&person.type, field->ptr + 5, field->len - 5);
 		} else if (strncmp(field->ptr, "name=", 5) == 0) {
-			if (cpyas(&person.name, field->ptr + 5, field->len - 5) == false) {
-				goto error;
-			}
+			cpyas(&person.name, field->ptr + 5, field->len - 5);
 		} else if (strncmp(field->ptr, "email=", 6) == 0) {
-			if (cpyas(&person.email, field->ptr + 6, field->len - 6) == false) {
-				goto error;
-			}
+			cpyas(&person.email, field->ptr + 6, field->len - 6);
 		} else if (strncmp(field->ptr, "url=", 4) == 0) {
-			if (cpyas(&person.url, field->ptr + 4, field->len - 4) == false) {
-				goto error;
-			}
+			cpyas(&person.url, field->ptr + 4, field->len - 4);
 		}
 		field = get_next_entry_from_deserialize_stream(stream);
 	}

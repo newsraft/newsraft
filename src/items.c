@@ -75,26 +75,19 @@ generate_items_search_condition(struct feed_entry **feeds, size_t feeds_count)
 	}
 	struct string *cond = crtas("(", 1);
 	for (size_t i = 0; i < feeds_count; ++i) {
-		if (i > 0 && !catas(cond, " OR ", 4)) {
-			goto error;
+		if (i > 0) {
+			catas(cond, " OR ", 4);
 		}
-		if (!catas(cond, "feed_url=?", 10)) {
-			goto error;
-		}
+		catas(cond, "feed_url=?", 10);
 		const struct string *rule = get_cfg_string(&feeds[i]->cfg, CFG_ITEM_RULE);
 		if (!STRING_IS_EMPTY(rule)) {
-			if (!catas(cond, " AND (", 6) || !catss(cond, rule) || !catcs(cond, ')')) {
-				goto error;
-			}
+			catas(cond, " AND (", 6);
+			catss(cond, rule);
+			catcs(cond, ')');
 		}
 	}
-	if (!catcs(cond, ')')) {
-		goto error;
-	}
+	catcs(cond, ')');
 	return cond;
-error:
-	free_string(cond);
-	return NULL;
 }
 
 static void

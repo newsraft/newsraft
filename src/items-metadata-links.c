@@ -93,14 +93,9 @@ add_url_to_links_list(struct links_list *links, const char *url, size_t url_len)
 			return i; // Don't add duplicate.
 		}
 	}
-	struct link *tmp = realloc(links->ptr, sizeof(struct link) * (links->len + 1));
-	if (tmp == NULL) {
-		free(full_url);
-		return -1;
-	}
 
 	int64_t index = (links->len)++;
-	links->ptr = tmp;
+	links->ptr = newsraft_realloc(links->ptr, sizeof(struct link) * (links->len + 1));
 	memset(&links->ptr[index], 0, sizeof(struct link));
 	cpyas(&links->ptr[index].url, url, url_len);
 
@@ -132,12 +127,7 @@ add_another_link_to_trim_link_list(struct links_list *links, const struct link *
 			return true;
 		}
 	}
-	struct link *temp = realloc(links->ptr, sizeof(struct link) * (links->len + 1));
-	if (temp == NULL) {
-		free_contents_of_link(link);
-		return false;
-	}
-	links->ptr = temp;
+	links->ptr = newsraft_realloc(links->ptr, sizeof(struct link) * (links->len + 1));
 	size_t index = (links->len)++;
 	links->ptr[index].url = link->url;
 	links->ptr[index].type = link->type;
@@ -164,31 +154,19 @@ add_item_attachments_to_links_list(struct links_list *links, sqlite3_stmt *res)
 			add_another_link_to_trim_link_list(links, &another_link);
 			memset(&another_link, 0, sizeof(struct link));
 		} else if (strncmp(entry->ptr, "url=", 4) == 0) {
-			if (cpyas(&another_link.url, entry->ptr + 4, entry->len - 4) == false) {
-				goto error;
-			}
+			cpyas(&another_link.url, entry->ptr + 4, entry->len - 4);
 		} else if (strncmp(entry->ptr, "type=", 5) == 0) {
-			if (cpyas(&another_link.type, entry->ptr + 5, entry->len - 5) == false) {
-				goto error;
-			}
+			cpyas(&another_link.type, entry->ptr + 5, entry->len - 5);
 		} else if (strncmp(entry->ptr, "size=", 5) == 0) {
-			if (cpyas(&another_link.size, entry->ptr + 5, entry->len - 5) == false) {
-				goto error;
-			}
+			cpyas(&another_link.size, entry->ptr + 5, entry->len - 5);
 		} else if (strncmp(entry->ptr, "duration=", 9) == 0) {
-			if (cpyas(&another_link.duration, entry->ptr + 9, entry->len - 9) == false) {
-				goto error;
-			}
+			cpyas(&another_link.duration, entry->ptr + 9, entry->len - 9);
 		}
 		entry = get_next_entry_from_deserialize_stream(s);
 	}
 	add_another_link_to_trim_link_list(links, &another_link);
 	close_deserialize_stream(s);
 	return true;
-error:
-	free_contents_of_link(&another_link);
-	close_deserialize_stream(s);
-	return false;
 }
 
 struct wstring *
@@ -205,14 +183,12 @@ generate_link_list_wstring_for_pager(struct config_context **ctx, const struct l
 		if (STRING_IS_EMPTY(links->ptr[i].url)) {
 			continue;
 		}
-		if (cpyss(&str, links->ptr[i].url) == false) {
-			goto error;
-		}
+		cpyss(&str, links->ptr[i].url);
 		bool parentheses_are_open = false;
 
 		if ((links->ptr[i].type != NULL) && (links->ptr[i].type->len != 0)) {
-			if (catas(str, " (type: ", 8) == false) { goto error; }
-			if (catss(str, links->ptr[i].type) == false) { goto error; }
+			catas(str, " (type: ", 8);
+			catss(str, links->ptr[i].type);
 			parentheses_are_open = true;
 		}
 
@@ -222,8 +198,8 @@ generate_link_list_wstring_for_pager(struct config_context **ctx, const struct l
 		{
 			convert_len = convert_bytes_to_human_readable_size_string(convert_out, CONVERT_OUT_SIZE, links->ptr[i].size->ptr);
 			if (convert_len > 0 && convert_len < CONVERT_OUT_SIZE) {
-				if (catas(str, parentheses_are_open ? ", size: " : " (size: ", 8) == false) { goto error; }
-				if (catas(str, convert_out, convert_len) == false) { goto error; }
+				catas(str, parentheses_are_open ? ", size: " : " (size: ", 8);
+				catas(str, convert_out, convert_len);
 				parentheses_are_open = true;
 			}
 		}
@@ -234,13 +210,15 @@ generate_link_list_wstring_for_pager(struct config_context **ctx, const struct l
 		{
 			convert_len = convert_seconds_to_human_readable_duration_string(convert_out, CONVERT_OUT_SIZE, links->ptr[i].duration->ptr);
 			if (convert_len > 0 && convert_len < CONVERT_OUT_SIZE) {
-				if (catas(str, parentheses_are_open ? ", duration: " : " (duration: ", 12) == false) { goto error; }
-				if (catas(str, convert_out, convert_len) == false) { goto error; }
+				catas(str, parentheses_are_open ? ", duration: " : " (duration: ", 12);
+				catas(str, convert_out, convert_len);
 				parentheses_are_open = true;
 			}
 		}
 
-		if (parentheses_are_open == true && catcs(str, ')') == false) goto error;
+		if (parentheses_are_open == true) {
+			catcs(str, ')');
+		}
 
 		struct format_arg link_fmt_args[] = {
 			{L'i',  L'd',  {.i = i + 1   }},
@@ -253,9 +231,4 @@ generate_link_list_wstring_for_pager(struct config_context **ctx, const struct l
 	free_wstring(fmt_out);
 	free_string(str);
 	return list;
-error:
-	free_wstring(list);
-	free_wstring(fmt_out);
-	free_string(str);
-	return NULL;
 }

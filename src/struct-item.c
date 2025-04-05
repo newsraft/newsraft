@@ -1,16 +1,12 @@
 #include <stdlib.h>
 #include "newsraft.h"
 
-bool
+void
 prepend_item(struct getfeed_item **head_item_ptr)
 {
-	struct getfeed_item *item = calloc(1, sizeof(struct getfeed_item));
-	if (item == NULL) {
-		return false;
-	}
+	struct getfeed_item *item = newsraft_calloc(1, sizeof(struct getfeed_item));
 	item->next = *head_item_ptr;
 	*head_item_ptr = item;
-	return true;
 }
 
 void

@@ -198,14 +198,9 @@ abbr_handler(struct html_render *ctx, GumboVector *attrs)
 		free_wstring(w);
 	}
 	line_char(ctx->line, L')');
-	void *tmp = realloc(ctx->abbrs, sizeof(struct string *) * (ctx->abbrs_len + 1));
-	if (tmp != NULL) {
-		ctx->abbrs = tmp;
-		ctx->abbrs[ctx->abbrs_len] = crtas(title, title_len);
-		if (ctx->abbrs[ctx->abbrs_len] != NULL) {
-			ctx->abbrs_len += 1;
-		}
-	}
+	ctx->abbrs = newsraft_realloc(ctx->abbrs, sizeof(struct string *) * (ctx->abbrs_len + 1));
+	ctx->abbrs[ctx->abbrs_len] = crtas(title, title_len);
+	ctx->abbrs_len += 1;
 }
 
 static void
@@ -320,14 +315,11 @@ static void
 html_table_add_row(struct html_render *ctx, GumboVector *attrs)
 {
 	(void)attrs;
-	struct html_table_row *tmp = realloc(ctx->table.rows, sizeof(struct html_table_row) * (ctx->table.rows_count + 1));
-	if (tmp != NULL) {
-		tmp[ctx->table.rows_count].cells = NULL;
-		tmp[ctx->table.rows_count].cells_count = 0;
-		tmp[ctx->table.rows_count].max_cell_height = 1;
-		ctx->table.rows = tmp;
-		ctx->table.rows_count += 1;
-	}
+	ctx->table.rows = newsraft_realloc(ctx->table.rows, sizeof(struct html_table_row) * (ctx->table.rows_count + 1));
+	ctx->table.rows[ctx->table.rows_count].cells = NULL;
+	ctx->table.rows[ctx->table.rows_count].cells_count = 0;
+	ctx->table.rows[ctx->table.rows_count].max_cell_height = 1;
+	ctx->table.rows_count += 1;
 }
 
 static int8_t
@@ -374,30 +366,26 @@ html_table_add_cell(struct html_render *ctx, GumboVector *attrs)
 
 	last_row->cells_count += colspan;
 
-	struct html_table_cell *tmp = realloc(last_row->cells, sizeof(struct html_table_cell) * last_row->cells_count);
-	if (tmp == NULL) {
-		return;
-	}
+	last_row->cells = newsraft_realloc(last_row->cells, sizeof(struct html_table_cell) * last_row->cells_count);
 
 	for (i = old_count; i < last_row->cells_count; ++i) {
-		memset(&tmp[i], 0, sizeof(struct html_table_cell));
-		tmp[i].line.target = &tmp[i].text;
+		memset(&last_row->cells[i], 0, sizeof(struct html_table_cell));
+		last_row->cells[i].line.target = &last_row->cells[i].text;
 		if (i < last_row->cells_count - colspan) {
-			tmp[i].colspan = 1; // TODO borrow colspan from cells above
-			tmp[i].rowspan = -1;
+			last_row->cells[i].colspan = 1; // TODO borrow colspan from cells above
+			last_row->cells[i].rowspan = -1;
 		} else if (i > last_row->cells_count - colspan) {
-			tmp[i].colspan = -1;
-			tmp[i].rowspan = rowspan;
+			last_row->cells[i].colspan = -1;
+			last_row->cells[i].rowspan = rowspan;
 		} else {
-			tmp[i].colspan = colspan;
-			tmp[i].rowspan = rowspan;
+			last_row->cells[i].colspan = colspan;
+			last_row->cells[i].rowspan = rowspan;
 		}
-		tmp[i].index = i;
-		line_bump(&tmp[i].line);
+		last_row->cells[i].index = i;
+		line_bump(&last_row->cells[i].line);
 	}
 
-	last_row->cells = tmp;
-	ctx->line = &tmp[last_row->cells_count - colspan].line;
+	ctx->line = &last_row->cells[last_row->cells_count - colspan].line;
 }
 
 static inline void
@@ -441,7 +429,7 @@ print_html_table(struct line *line, struct html_table *table)
 		}
 	}
 	table->columns_count = max_columns_count;
-	table->column_widths = calloc(table->columns_count, sizeof(size_t));
+	table->column_widths = newsraft_calloc(table->columns_count, sizeof(size_t));
 
 	// Get row heights
 	for (int i = 0; i < table->rows_count; ++i) {

@@ -6,19 +6,10 @@
 bool
 line_bump(struct line *line)
 {
-	struct wstring *line_ws = wcrtes(line->lim);
-	if (line_ws == NULL) {
-		return false;
-	}
-	struct render_line *tmp = realloc(line->target->lines, sizeof(struct render_line) * (line->target->lines_len + 1));
-	if (tmp == NULL) {
-		free_wstring(line_ws);
-		return false;
-	}
-	line->target->lines = tmp;
+	line->target->lines = newsraft_realloc(line->target->lines, sizeof(struct render_line) * (line->target->lines_len + 1));
 	line->target->lines_len += 1;
 	line->head = line->target->lines + line->target->lines_len - 1;
-	line->head->ws = line_ws;
+	line->head->ws = wcrtes(line->lim);
 	line->head->hints = NULL;
 	line->head->hints_len = 0;
 	line->head->indent = line->indent;
@@ -80,7 +71,7 @@ line_append(struct line *line, wchar_t c)
 	wcatcs(line->head->ws, c);
 
 	if (line->head->hints_len < line->head->ws->lim) {
-		line->head->hints = realloc(line->head->hints, sizeof(newsraft_video_t) * (line->head->ws->lim + 1));
+		line->head->hints = newsraft_realloc(line->head->hints, sizeof(newsraft_video_t) * (line->head->ws->lim + 1));
 		line->head->hints_len = line->head->ws->lim;
 	}
 
@@ -154,7 +145,7 @@ line_style_update(struct line *line)
 void
 line_style(struct line *line, newsraft_video_t attrs)
 {
-	line->style_stack = realloc(line->style_stack, sizeof(newsraft_video_t) * (line->style_stack_len + 1));
+	line->style_stack = newsraft_realloc(line->style_stack, sizeof(newsraft_video_t) * (line->style_stack_len + 1));
 	line->style_stack[line->style_stack_len] = attrs;
 	line->style_stack_len += 1;
 	line_style_update(line);

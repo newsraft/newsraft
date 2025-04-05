@@ -7,11 +7,7 @@ add_render_block(struct render_blocks_list *blocks, const char *content, size_t 
 	if (content == NULL || content_len == 0) {
 		return true; // Ignore empty render blocks.
 	}
-	void *tmp = realloc(blocks->ptr, sizeof(struct render_block) * (blocks->len + 1));
-	if (tmp == NULL) {
-		return false;
-	}
-	blocks->ptr = tmp;
+	blocks->ptr = newsraft_realloc(blocks->ptr, sizeof(struct render_block) * (blocks->len + 1));
 	blocks->ptr[blocks->len].content = convert_array_to_wstring(content, content_len);
 	if (blocks->ptr[blocks->len].content == NULL) {
 		return false;

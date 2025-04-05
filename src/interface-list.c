@@ -31,16 +31,13 @@ adjust_list_menu(void)
 	for (size_t i = 0; i < windows_count; ++i) {
 		delwin(windows[i]);
 	}
-	WINDOW **temp = realloc(windows, sizeof(WINDOW *) * list_menu_height);
-	if (temp == NULL) {
-		goto error;
-	}
-	windows = temp;
+	windows = newsraft_realloc(windows, sizeof(WINDOW *) * list_menu_height);
 	for (size_t i = 0; i < list_menu_height; ++i) {
 		windows[i] = newwin(1, list_menu_width, i, 0);
 		if (windows[i] == NULL) {
 			windows_count = i;
-			goto error;
+			FAIL("newwin() returned NULL!");
+			return false;
 		}
 	}
 	windows_count = list_menu_height;
@@ -48,13 +45,8 @@ adjust_list_menu(void)
 	if (scrolloff > (list_menu_height / 2)) {
 		scrolloff = list_menu_height / 2;
 	}
-	if (wstr_set(&list_fmtout, NULL, 0, 200) == false) {
-		goto error;
-	}
+	wstr_set(&list_fmtout, NULL, 0, 200);
 	return true;
-error:
-	FAIL("Not enough memory for adjusting list menu!");
-	return false;
 }
 
 void
@@ -63,7 +55,7 @@ free_list_menu(void)
 	for (size_t i = 0; i < windows_count; ++i) {
 		delwin(windows[i]);
 	}
-	free(windows);
+	newsraft_free(windows);
 	free_wstring(list_fmtout);
 }
 
@@ -371,8 +363,8 @@ free_deleted_menus(void)
 		menus = menus->prev;
 		free_string(tmp->name);
 		free_items_list(tmp->items);
-		free(tmp->feeds);
-		free(tmp);
+		newsraft_free(tmp->feeds);
+		newsraft_free(tmp);
 	}
 }
 
@@ -384,8 +376,8 @@ free_menus(void)
 		menus = menus->prev;
 		free_string(tmp->name);
 		free_items_list(tmp->items);
-		free(tmp->feeds);
-		free(tmp);
+		newsraft_free(tmp->feeds);
+		newsraft_free(tmp);
 	}
 }
 
@@ -414,7 +406,7 @@ setup_menu(struct menu_state *(*run)(struct menu_state *), const struct string *
 {
 	pthread_mutex_lock(&interface_lock);
 	update_unread_items_count_of_last_menu();
-	struct menu_state *new = calloc(1, sizeof(struct menu_state));
+	struct menu_state *new = newsraft_calloc(1, sizeof(struct menu_state));
 	new->run            = run;
 	new->feeds_original = feeds;
 	new->feeds_count    = feeds_count;

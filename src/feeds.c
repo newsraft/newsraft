@@ -124,7 +124,7 @@ feeds_menu_loop(struct menu_state *m)
 		}
 	}
 	if (m->is_initialized == false) {
-		m->feeds = malloc(sizeof(struct feed_entry *) * m->feeds_count);
+		m->feeds = newsraft_malloc(sizeof(struct feed_entry *) * m->feeds_count);
 		memcpy(m->feeds, m->feeds_original, sizeof(struct feed_entry *) * m->feeds_count);
 		sort_feeds(m, get_sorting_id(get_cfg_string(NULL, CFG_MENU_FEED_SORTING)->ptr), false);
 	}

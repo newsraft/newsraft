@@ -6,32 +6,17 @@
 bool
 obtain_useragent_string(struct config_context **ctx, config_type_id id)
 {
-	struct string *ua = NULL;
-	if (cpyas(&ua, "newsraft/", 9) == false) {
-		goto error;
-	}
-	if (catas(ua, NEWSRAFT_VERSION, strlen(NEWSRAFT_VERSION)) == false) {
-		goto error;
-	}
+	struct string *ua = crtas("newsraft/", 9);
+	catas(ua, NEWSRAFT_VERSION, strlen(NEWSRAFT_VERSION));
 	struct utsname sys_data = {0};
 	if (uname(&sys_data) >= 0 && strlen(sys_data.sysname) > 0) {
-		if (catas(ua, " (", 2) == false) {
-			goto error;
-		}
-		if (catas(ua, sys_data.sysname, strlen(sys_data.sysname)) == false) {
-			goto error;
-		}
-		if (catcs(ua, ')') == false) {
-			goto error;
-		}
+		catas(ua, " (", 2);
+		catas(ua, sys_data.sysname, strlen(sys_data.sysname));
+		catcs(ua, ')');
 	}
 	bool status = set_cfg_string(ctx, id, ua->ptr, ua->len);
 	free_string(ua);
 	return status;
-error:
-	write_error("Not enough memory for user-agent setting string!\n");
-	free_string(ua);
-	return false;
 }
 
 bool

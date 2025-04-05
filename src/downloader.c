@@ -21,11 +21,12 @@ create_list_of_headers(const struct feed_update_state *data)
 		struct string *etag = db_get_string_from_feed_table(data->feed_entry->link, "http_header_etag", 16);
 		if (etag != NULL) {
 			struct string *if_none_match = crtas("If-None-Match: ", 15);
-			if (if_none_match == NULL || catss(if_none_match, etag) == false) {
+			if (if_none_match == NULL) {
 				free_string(if_none_match);
 				free_string(etag);
 				goto error;
 			}
+			catss(if_none_match, etag);
 			free_string(etag);
 			struct curl_slist *tmp = curl_slist_append(headers, if_none_match->ptr);
 			if (tmp == NULL) {
@@ -140,18 +141,13 @@ header_callback(char *contents, size_t length, size_t nmemb, void *userdata)
 static inline struct string *
 get_proxy_auth_info_encoded(const char *user, const char *password)
 {
-	if (user != NULL && password != NULL) {
-		struct string *result = crtas(user, strlen(user));
-		if (result != NULL) {
-			if (catcs(result, ':') == true) {
-				if (catas(result, password, strlen(password)) == true) {
-					return result;
-				}
-			}
-			free_string(result);
-		}
+	if (user == NULL || password == NULL) {
+		return NULL;
 	}
-	return NULL;
+	struct string *result = crtas(user, strlen(user));
+	catcs(result, ':');
+	catas(result, password, strlen(password));
+	return result;
 }
 
 static inline bool

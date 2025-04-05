@@ -88,14 +88,8 @@ make_sure_section_exists(const struct string *section_name)
 			return i;
 		}
 	}
-	struct feed_section *tmp1 = realloc(sections, sizeof(struct feed_section) * (sections_count + 1));
-	struct feed_section **tmp2 = realloc(sections_view, sizeof(struct feed_section *) * (sections_count + 1));
-	if (tmp1 == NULL || tmp2 == NULL) {
-		write_error("Not enough memory for another section structure!\n");
-		return -1;
-	}
-	sections = tmp1;
-	sections_view = tmp2;
+	sections = newsraft_realloc(sections, sizeof(struct feed_section) * (sections_count + 1));
+	sections_view = newsraft_realloc(sections_view, sizeof(struct feed_section *) * (sections_count + 1));
 	memset(&sections[sections_count], 0, sizeof(struct feed_section));
 	sections[sections_count].name = crtss(section_name);
 	if (sections[sections_count].name == NULL) {
@@ -133,15 +127,8 @@ copy_feed_to_global_section(const struct feed_entry *feed)
 	}
 	INFO("Adding to global section: %s", feed->link->ptr);
 	size_t feed_index = (sections[0].feeds_count)++;
-	struct feed_entry **temp = realloc(sections[0].feeds, sizeof(struct feed_entry *) * sections[0].feeds_count);
-	if (temp == NULL) {
-		return NULL;
-	}
-	sections[0].feeds = temp;
-	sections[0].feeds[feed_index] = calloc(1, sizeof(struct feed_entry));
-	if (sections[0].feeds[feed_index] == NULL) {
-		return NULL;
-	}
+	sections[0].feeds = newsraft_realloc(sections[0].feeds, sizeof(struct feed_entry *) * sections[0].feeds_count);
+	sections[0].feeds[feed_index] = newsraft_calloc(1, sizeof(struct feed_entry));
 
 	if (STRING_IS_EMPTY(feed->name)) {
 		sections[0].feeds[feed_index]->name = db_get_string_from_feed_table(feed->link, "title", 5);
@@ -180,12 +167,7 @@ copy_feed_to_section(const struct feed_entry *feed_data, int64_t section_index)
 	// User sections contain only pointers to feeds in the global section
 	struct feed_section *section = sections + section_index;
 	if (find_feed_in_section(feed->link, section) == NULL) {
-		struct feed_entry **f = realloc(section->feeds, sizeof(struct feed_entry *) * (section->feeds_count + 1));
-		if (f == NULL) {
-			write_error("Not enough memory!\n");
-			return NULL;
-		}
-		section->feeds = f;
+		section->feeds = newsraft_realloc(section->feeds, sizeof(struct feed_entry *) * (section->feeds_count + 1));
 		section->feeds[section->feeds_count] = feed;
 		section->feeds_count += 1;
 	}
@@ -212,11 +194,10 @@ refresh_sections_statistics_about_underlying_feeds(void)
 bool
 purge_abandoned_feeds(void)
 {
-	char *query = malloc(sizeof(char) * (42 + sections[0].feeds_count * 2 + 100));
-	if (query == NULL || sections[0].feeds_count == 0) {
-		free(query);
+	if (sections[0].feeds_count == 0) {
 		return true;
 	}
+	char *query = newsraft_malloc(sizeof(char) * (42 + sections[0].feeds_count * 2 + 100));
 	strcpy(query, "DELETE FROM items WHERE feed_url NOT IN (?");
 	for (size_t i = 1; i < sections[0].feeds_count; ++i) {
 		strcat(query, ",?");
@@ -249,14 +230,14 @@ free_sections(void)
 			if (sections[0].feeds[i]->binds != NULL) {
 				free_binds(sections[0].feeds[i]->binds);
 			}
-			free(sections[0].feeds[i]);
+			newsraft_free(sections[0].feeds[i]);
 		}
 	}
 	for (i = 0; i < sections_count; ++i) {
 		free_string(sections[i].name);
-		free(sections[i].feeds);
+		newsraft_free(sections[i].feeds);
 	}
-	free(sections);
+	newsraft_free(sections);
 }
 
 bool

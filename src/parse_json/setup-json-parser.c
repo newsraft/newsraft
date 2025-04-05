@@ -30,20 +30,12 @@ static inline int
 feed_string_handler(struct feed_update_state *data, const char *val, size_t len)
 {
 	if (strcmp(data->text->ptr, "home_page_url") == 0) {
-		if (cpyas(&data->feed.url, val, len) == false) {
-			return 0;
-		}
+		cpyas(&data->feed.url, val, len);
 	} else if (strcmp(data->text->ptr, "title") == 0) {
-		if (cpyas(&data->feed.title, val, len) == false) {
-			return 0;
-		}
+		cpyas(&data->feed.title, val, len);
 	} else if (strcmp(data->text->ptr, "description") == 0) {
-		if (serialize_caret(&data->feed.content) == false) {
-			return 0;
-		}
-		if (serialize_array(&data->feed.content, "text=", 5, val, len) == false) {
-			return 0;
-		}
+		serialize_caret(&data->feed.content);
+		serialize_array(&data->feed.content, "text=", 5, val, len);
 	}
 	return 1;
 }
@@ -55,52 +47,28 @@ item_string_handler(struct feed_update_state *data, const char *val, size_t len)
 		return 1;
 	}
 	if (strcmp(data->text->ptr, "id") == 0) {
-		if (cpyas(&data->feed.item->guid, val, len) == false) {
-			return 0;
-		}
+		cpyas(&data->feed.item->guid, val, len);
 	} else if (strcmp(data->text->ptr, "url") == 0) {
-		if (cpyas(&data->feed.item->url, val, len) == false) {
-			return 0;
-		}
+		cpyas(&data->feed.item->url, val, len);
 	} else if (strcmp(data->text->ptr, "title") == 0) {
-		if (cpyas(&data->feed.item->title, val, len) == false) {
-			return 0;
-		}
+		cpyas(&data->feed.item->title, val, len);
 	} else if (strcmp(data->text->ptr, "content_html") == 0) {
-		if (serialize_caret(&data->feed.item->content) == false) {
-			return 0;
-		}
-		if (serialize_array(&data->feed.item->content, "type=", 5, "text/html", 9) == false) {
-			return 0;
-		}
-		if (serialize_array(&data->feed.item->content, "text=", 5, val, len) == false) {
-			return 0;
-		}
+		serialize_caret(&data->feed.item->content);
+		serialize_array(&data->feed.item->content, "type=", 5, "text/html", 9);
+		serialize_array(&data->feed.item->content, "text=", 5, val, len);
 	} else if (strcmp(data->text->ptr, "content_text") == 0) {
-		if (serialize_caret(&data->feed.item->content) == false) {
-			return 0;
-		}
-		if (serialize_array(&data->feed.item->content, "text=", 5, val, len) == false) {
-			return 0;
-		}
+		serialize_caret(&data->feed.item->content);
+		serialize_array(&data->feed.item->content, "text=", 5, val, len);
 	} else if (strcmp(data->text->ptr, "summary") == 0) {
-		if (serialize_caret(&data->feed.item->content) == false) {
-			return 0;
-		}
-		if (serialize_array(&data->feed.item->content, "text=", 5, val, len) == false) {
-			return 0;
-		}
+		serialize_caret(&data->feed.item->content);
+		serialize_array(&data->feed.item->content, "text=", 5, val, len);
 	} else if (strcmp(data->text->ptr, "date_published") == 0) {
 		data->feed.item->publication_date = parse_date_rfc3339(len > 18 ? val : "");
 	} else if (strcmp(data->text->ptr, "date_modified") == 0) {
 		data->feed.item->update_date = parse_date_rfc3339(len > 18 ? val : "");
 	} else if (strcmp(data->text->ptr, "external_url") == 0) {
-		if (serialize_caret(&data->feed.item->attachments) == false) {
-			return 0;
-		}
-		if (serialize_array(&data->feed.item->attachments, "url=", 4, val, len) == false) {
-			return 0;
-		}
+		serialize_caret(&data->feed.item->attachments);
+		serialize_array(&data->feed.item->attachments, "url=", 4, val, len);
 	}
 	return 1;
 }
@@ -115,13 +83,9 @@ static inline int
 person_string_handler(struct string **dest, const struct string *key, const char *val, size_t len)
 {
 	if (strcmp(key->ptr, "name") == 0) {
-		if (serialize_array(dest, "name=", 5, val, len) == false) {
-			return 0;
-		}
+		serialize_array(dest, "name=", 5, val, len);
 	} else if (strcmp(key->ptr, "url") == 0) {
-		if (serialize_array(dest, "url=", 4, val, len) == false) {
-			return 0;
-		}
+		serialize_array(dest, "url=", 4, val, len);
 	}
 	return 1;
 }
@@ -130,13 +94,9 @@ static inline int
 attachment_string_handler(struct string **dest, const struct string *key, const char *val, size_t len)
 {
 	if (strcmp(key->ptr, "url") == 0) {
-		if (serialize_array(dest, "url=", 4, val, len) == false) {
-			return 0;
-		}
+		serialize_array(dest, "url=", 4, val, len);
 	} else if (strcmp(key->ptr, "mime_type") == 0) {
-		if (serialize_array(dest, "type=", 5, val, len) == false) {
-			return 0;
-		}
+		serialize_array(dest, "type=", 5, val, len);
 	}
 	return 1;
 }
@@ -169,13 +129,9 @@ number_handler(void *ctx, const char *val, size_t len)
 	INFO("Stumbled upon number.");
 	if ((we_are_inside_item(data) == true) && (data->path[data->depth] == JSON_OBJECT_ATTACHMENT)) {
 		if (strcmp(data->text->ptr, "size_in_bytes") == 0) {
-			if (serialize_array(&data->feed.item->attachments, "size=", 5, val, len) == false) {
-				return 0;
-			}
+			serialize_array(&data->feed.item->attachments, "size=", 5, val, len);
 		} else if (strcmp(data->text->ptr, "duration_in_seconds") == 0) {
-			if (serialize_array(&data->feed.item->attachments, "duration=", 9, val, len) == false) {
-				return 0;
-			}
+			serialize_array(&data->feed.item->attachments, "duration=", 9, val, len);
 		}
 	}
 	return 1;
@@ -194,12 +150,8 @@ string_handler(void *ctx, const unsigned char *val, size_t len)
 		} else if (data->path[data->depth] == JSON_OBJECT_ATTACHMENT) {
 			return attachment_string_handler(&data->feed.item->attachments, data->text, (char *)val, len);
 		} else if (data->path[data->depth] == JSON_ARRAY_TAGS) {
-			if (serialize_caret(&data->feed.item->extras) == false) {
-				return 0;
-			}
-			if (serialize_array(&data->feed.item->extras, "category=", 9, (char *)val, len) == false) {
-				return 0;
-			}
+			serialize_caret(&data->feed.item->extras);
+			serialize_array(&data->feed.item->extras, "category=", 9, (char *)val, len);
 		}
 	} else if (data->path[data->depth] == JSON_OBJECT_AUTHOR) {
 		return person_string_handler(&data->feed.persons, data->text, (char *)val, len);
@@ -218,33 +170,21 @@ start_map_handler(void *ctx)
 	if (we_are_inside_item(data) == true) {
 		if (data->path[data->depth - 1] == JSON_ARRAY_AUTHORS) {
 			data->path[data->depth] = JSON_OBJECT_AUTHOR;
-			if (serialize_caret(&data->feed.item->persons) == false) {
-				return 0;
-			}
-			if (serialize_array(&data->feed.item->persons, "type=", 5, "author", 6) == false) {
-				return 0;
-			}
+			serialize_caret(&data->feed.item->persons);
+			serialize_array(&data->feed.item->persons, "type=", 5, "author", 6);
 		} else if (data->path[data->depth - 1] == JSON_ARRAY_ATTACHMENTS) {
 			data->path[data->depth] = JSON_OBJECT_ATTACHMENT;
-			if (serialize_caret(&data->feed.item->attachments) == false) {
-				return 0;
-			}
+			serialize_caret(&data->feed.item->attachments);
 		} else {
 			data->path[data->depth] = JSON_OBJECT_UNKNOWN;
 		}
 	} else if (data->path[data->depth - 1] == JSON_ARRAY_ITEMS) {
 		data->path[data->depth] = JSON_OBJECT_ITEM;
-		if (prepend_item(&data->feed.item) == false) {
-			return 0;
-		}
+		prepend_item(&data->feed.item);
 	} else if (data->path[data->depth - 1] == JSON_ARRAY_AUTHORS) {
 		data->path[data->depth] = JSON_OBJECT_AUTHOR;
-		if (serialize_caret(&data->feed.persons) == false) {
-			return 0;
-		}
-		if (serialize_array(&data->feed.persons, "type=", 5, "author", 6) == false) {
-			return 0;
-		}
+		serialize_caret(&data->feed.persons);
+		serialize_array(&data->feed.persons, "type=", 5, "author", 6);
 	} else {
 		data->path[data->depth] = JSON_OBJECT_UNKNOWN;
 	}
@@ -255,9 +195,9 @@ static int
 map_key_handler(void *ctx, const unsigned char *key, size_t key_len)
 {
 	struct feed_update_state *data = ctx;
-	bool success = cpyas(&data->text, (char *)key, key_len);
+	cpyas(&data->text, (char *)key, key_len);
 	INFO("Stumbled upon key: %s", data->text->ptr);
-	return success;
+	return 1;
 }
 
 static int

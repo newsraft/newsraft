@@ -6,6 +6,7 @@
 /*
 find -name '*.c' | sed -e 's/^\.\//#include "/' -e 's/$/"/' | grep -v 'newsraft.c' | sort
 */
+#include "alloc.c"
 #include "binds.c"
 #include "commands.c"
 #include "dates.c"

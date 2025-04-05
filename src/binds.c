@@ -57,14 +57,8 @@ create_or_clean_bind(struct input_binding **target, const char *key)
 			return i;
 		}
 	}
-	struct input_binding *new = calloc(1, sizeof(struct input_binding));
+	struct input_binding *new = newsraft_calloc(1, sizeof(struct input_binding));
 	struct string *new_key = crtas(key, strlen(key));
-	if (new == NULL || new_key == NULL) {
-		write_error("Not enough memory for binding!\n");
-		free(new);
-		free_string(new_key);
-		return NULL;
-	}
 	new->key = new_key;
 	new->next = *target;
 	*target = new;
@@ -74,17 +68,12 @@ create_or_clean_bind(struct input_binding **target, const char *key)
 static inline bool
 attach_action_or_command_to_bind(struct input_binding *bind, input_id cmd, struct wstring *exec)
 {
-	struct binding_action *tmp = realloc(bind->actions, sizeof(struct binding_action) * (bind->actions_count + 1));
-	if (tmp != NULL) {
-		bind->actions = tmp;
-		bind->actions[bind->actions_count].cmd = cmd;
-		bind->actions[bind->actions_count].exec = exec;
-		bind->actions_count += 1;
-		INFO("Attached action: %14s, %zu, %2u, %ls", bind->key->ptr, bind->actions_count, cmd, exec == NULL ? L"none" : exec->ptr);
-		return true;
-	}
-	write_error("Not enough memory for binding!\n");
-	return false;
+	bind->actions = newsraft_realloc(bind->actions, sizeof(struct binding_action) * (bind->actions_count + 1));
+	bind->actions[bind->actions_count].cmd = cmd;
+	bind->actions[bind->actions_count].exec = exec;
+	bind->actions_count += 1;
+	INFO("Attached action: %14s, %zu, %2u, %ls", bind->key->ptr, bind->actions_count, cmd, exec == NULL ? L"none" : exec->ptr);
+	return true;
 }
 
 bool

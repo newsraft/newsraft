@@ -6,21 +6,12 @@
 // When allocating memory, we request more resources than necessary to reduce
 // the number of further realloc calls to expand string buffer.
 
-static inline bool
+static inline void
 str_set(struct string **dest, const char *src_ptr, size_t src_len, size_t src_lim)
 {
 	if (*dest == NULL) {
-		struct string *str = malloc(sizeof(struct string));
-		if (str == NULL) {
-			FAIL("Not enough memory to create string!");
-			return false;
-		}
-		str->ptr = malloc(sizeof(char) * (src_lim + 1));
-		if (str->ptr == NULL) {
-			FAIL("Not enough memory to populate string!");
-			free(str);
-			return false;
-		}
+		struct string *str = newsraft_malloc(sizeof(struct string));
+		str->ptr = newsraft_malloc(sizeof(char) * (src_lim + 1));
 		if (src_ptr != NULL && src_len > 0) {
 			memcpy(str->ptr, src_ptr, sizeof(char) * src_len);
 			*(str->ptr + src_len) = '\0';
@@ -33,12 +24,7 @@ str_set(struct string **dest, const char *src_ptr, size_t src_len, size_t src_li
 		*dest = str;
 	} else {
 		if (src_lim > (*dest)->lim) {
-			char *tmp = realloc((*dest)->ptr, sizeof(char) * (src_lim + 1));
-			if (tmp == NULL) {
-				FAIL("Not enough memory to set string!");
-				return false;
-			}
-			(*dest)->ptr = tmp;
+			(*dest)->ptr = newsraft_realloc((*dest)->ptr, sizeof(char) * (src_lim + 1));
 			(*dest)->lim = src_lim;
 		}
 		if (src_ptr != NULL && src_len > 0) {
@@ -47,21 +33,22 @@ str_set(struct string **dest, const char *src_ptr, size_t src_len, size_t src_li
 		*((*dest)->ptr + src_len) = '\0';
 		(*dest)->len = src_len;
 	}
-	return true;
 }
 
 struct string *
 crtes(size_t desired_capacity)
 {
 	struct string *str = NULL;
-	return str_set(&str, NULL, 0, desired_capacity) == true ? str : NULL;
+	str_set(&str, NULL, 0, desired_capacity);
+	return str;
 }
 
 struct string *
 crtas(const char *src_ptr, size_t src_len)
 {
 	struct string *str = NULL;
-	return str_set(&str, src_ptr, src_len, src_len) == true ? str : NULL;
+	str_set(&str, src_ptr, src_len, src_len);
+	return str;
 }
 
 struct string *
@@ -70,30 +57,25 @@ crtss(const struct string *src)
 	return crtas(src->ptr, src->len);
 }
 
-bool
+void
 cpyas(struct string **dest, const char *src_ptr, size_t src_len)
 {
-	return str_set(dest, src_ptr, src_len, src_len);
+	str_set(dest, src_ptr, src_len, src_len);
 }
 
-bool
+void
 cpyss(struct string **dest, const struct string *src)
 {
-	return str_set(dest, src->ptr, src->len, src->len);
+	str_set(dest, src->ptr, src->len, src->len);
 }
 
-bool
+void
 catas(struct string *dest, const char *src_ptr, size_t src_len)
 {
 	size_t new_len = dest->len + src_len;
 	if (new_len > dest->lim) {
 		size_t new_lim = new_len * 2 + 67;
-		char *temp = realloc(dest->ptr, sizeof(char) * (new_lim + 1));
-		if (temp == NULL) {
-			FAIL("Not enough memory for concatenating array to string!");
-			return false;
-		}
-		dest->ptr = temp;
+		dest->ptr = newsraft_realloc(dest->ptr, sizeof(char) * (new_lim + 1));
 		dest->lim = new_lim;
 	}
 	if (src_ptr != NULL && src_len > 0) {
@@ -101,38 +83,30 @@ catas(struct string *dest, const char *src_ptr, size_t src_len)
 	}
 	*(dest->ptr + new_len) = '\0';
 	dest->len = new_len;
-	return true;
 }
 
-bool
+void
 catss(struct string *dest, const struct string *src)
 {
-	return catas(dest, src->ptr, src->len);
+	catas(dest, src->ptr, src->len);
 }
 
-bool
+void
 catcs(struct string *dest, char c)
 {
-	return catas(dest, &c, 1);
+	catas(dest, &c, 1);
 }
 
-bool
+void
 make_string_fit_more(struct string **dest, size_t n)
 {
 	if (*dest == NULL) {
-		return str_set(dest, NULL, 0, n);
-	}
-	if ((*dest)->len + n > (*dest)->lim) {
+		str_set(dest, NULL, 0, n);
+	} else if ((*dest)->len + n > (*dest)->lim) {
 		size_t new_lim = ((*dest)->len + n) * 2 + 67;
-		char *tmp = realloc((*dest)->ptr, sizeof(char) * (new_lim + 1));
-		if (tmp == NULL) {
-			FAIL("Not enough memory to expand string!");
-			return false;
-		}
-		(*dest)->ptr = tmp;
+		(*dest)->ptr = newsraft_realloc((*dest)->ptr, sizeof(char) * (new_lim + 1));
 		(*dest)->lim = new_lim;
 	}
-	return true;
 }
 
 void
@@ -167,8 +141,8 @@ void
 free_string(struct string *str)
 {
 	if (str != NULL) {
-		free(str->ptr);
-		free(str);
+		newsraft_free(str->ptr);
+		newsraft_free(str);
 	}
 }
 

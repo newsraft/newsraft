@@ -26,7 +26,7 @@ get_global_or_context_config(struct config_context **ctx, config_entry_id id, bo
 			}
 		}
 		if (create == true) {
-			struct config_context *new = calloc(1, sizeof(struct config_context));
+			struct config_context *new = newsraft_calloc(1, sizeof(struct config_context));
 			new->id = id;
 			new->cfg.type = get_cfg_type(id);
 			new->next = *ctx;
@@ -107,15 +107,13 @@ bool
 set_cfg_string(struct config_context **ctx, config_entry_id id, const char *src_ptr, size_t src_len)
 {
 	struct config_entry *cfg = get_global_or_context_config(ctx, id, true);
-	if (cpyas(&cfg->value.s.actual, src_ptr, src_len) != true) {
-		return false;
-	}
+	cpyas(&cfg->value.s.actual, src_ptr, src_len);
 	struct wstring *w = convert_string_to_wstring(cfg->value.s.actual);
 	if (w == NULL) {
 		write_error("Failed to convert %s setting value to wide characters!\n", config[id].name);
 		return false;
 	}
-	bool status = wstr_set(&cfg->value.s.wactual, w->ptr, w->len, w->len);
+	wstr_set(&cfg->value.s.wactual, w->ptr, w->len, w->len);
 	free_wstring(w);
 	if (config[id].value.s.auto_set != NULL && strcmp(cfg->value.s.actual->ptr, "auto") == 0) {
 		if (config[id].value.s.auto_set(ctx, id) == false) {
@@ -123,7 +121,7 @@ set_cfg_string(struct config_context **ctx, config_entry_id id, const char *src_
 			return false;
 		}
 	}
-	return status;
+	return true;
 }
 
 void

@@ -7,3 +7,5 @@ flog
 vlog
 vgcore.*
 callgrind.out*
+compile_commands.json
+.cache

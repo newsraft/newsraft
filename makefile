@@ -75,3 +75,6 @@ cppcheck:
 
 clang-tidy:
 	clang-tidy --checks='-clang-analyzer-security.insecureAPI.*' $$(find src -name '*.c') -- -Isrc -D_XOPEN_SOURCE=700 -D_XOPEN_SOURCE_EXTENDED
+
+compile_commands.json: clean
+	bear -- $(MAKE)

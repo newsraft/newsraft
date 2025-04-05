@@ -371,6 +371,7 @@ int get_sorting_id(const char *sorting_name);
 const char *get_sorting_message(int sorting_id);
 
 // See "items.c" file for implementation.
+struct string *generate_items_search_condition(struct feed_entry **feeds, size_t feeds_count);
 bool important_item_condition(struct menu_state *ctx, size_t index);
 void tell_items_menu_to_regenerate(void);
 struct menu_state *items_menu_loop(struct menu_state *dest);
@@ -447,7 +448,6 @@ void db_update_feed_string(const struct string *url, const char *column_name, co
 sqlite3_stmt *db_find_item_by_rowid(int64_t rowid);
 bool db_mark_item_read(int64_t rowid, bool status);
 bool db_mark_item_important(int64_t rowid, bool status);
-int64_t get_unread_items_count_of_the_feed(const struct string *url);
 int64_t db_count_items(struct feed_entry **feeds, size_t feeds_count, bool count_only_unread);
 bool db_change_unread_status_of_all_items_in_feeds(struct feed_entry **feeds, size_t feeds_count, bool unread);
 

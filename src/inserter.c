@@ -71,7 +71,7 @@ inserter_worker(void *dummy)
 			need_redraw = true;
 		}
 
-		int64_t new_unread_count = get_unread_items_count_of_the_feed(feed->link);
+		int64_t new_unread_count = db_count_items(&feed, 1, true);
 		if (new_unread_count >= 0 && new_unread_count != feed->unread_count) {
 			if (new_unread_count > feed->unread_count) {
 				target->new_items_count = new_unread_count - feed->unread_count;

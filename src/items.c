@@ -67,6 +67,36 @@ important_item_condition(struct menu_state *ctx, size_t index)
 	return ctx->items->ptr[index].is_important;
 }
 
+struct string *
+generate_items_search_condition(struct feed_entry **feeds, size_t feeds_count)
+{
+	if (feeds_count == 0) {
+		return NULL;
+	}
+	struct string *cond = crtas("(", 1);
+	for (size_t i = 0; i < feeds_count; ++i) {
+		if (i > 0 && !catas(cond, " OR ", 4)) {
+			goto error;
+		}
+		if (!catas(cond, "feed_url=?", 10)) {
+			goto error;
+		}
+		const struct string *rule = get_cfg_string(&feeds[i]->cfg, CFG_ITEM_RULE);
+		if (!STRING_IS_EMPTY(rule)) {
+			if (!catas(cond, " AND (", 6) || !catss(cond, rule) || !catcs(cond, ')')) {
+				goto error;
+			}
+		}
+	}
+	if (!catcs(cond, ')')) {
+		goto error;
+	}
+	return cond;
+error:
+	free_string(cond);
+	return NULL;
+}
+
 static void
 mark_item_read(struct menu_state *ctx, size_t view_sel, bool status)
 {

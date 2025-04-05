@@ -24,28 +24,16 @@ append_sorting_order_expression_to_query(struct string *q, int order)
 static inline struct string *
 generate_search_query_string(const struct items_list *items, const struct string *search_filter)
 {
-	struct string *q = crtas("SELECT rowid,feed_url,title,link,publication_date,update_date,unread,important FROM items WHERE (", 97);
+	struct string *q = crtas("SELECT rowid,feed_url,title,link,publication_date,update_date,unread,important FROM items WHERE ", 96);
 	if (q == NULL) {
 		goto error;
 	}
-	for (size_t i = 0; i < items->feeds_count; ++i) {
-		if (i > 0 && !catas(q, " OR ", 4)) {
-			goto error;
-		}
-		if (!catas(q, "feed_url=?", 10)) {
-			goto error;
-		}
-		const struct string *item_rule = get_cfg_string(&items->feeds[i]->cfg, CFG_ITEM_RULE);
-		if (item_rule != NULL && item_rule->len > 0) {
-			if (!catas(q, " AND (", 6) || !catss(q, item_rule) || !catcs(q, ')')) {
-				goto error;
-			}
-		}
+	struct string *cond = generate_items_search_condition(items->feeds, items->feeds_count);
+	if (!STRING_IS_EMPTY(cond)) {
+		catss(q, cond);
 	}
-	if (!catcs(q, ')')) {
-		goto error;
-	}
-	if (search_filter != NULL && search_filter->len > 0) {
+	free_string(cond);
+	if (!STRING_IS_EMPTY(search_filter)) {
 		if (!catas(q, " AND ((title LIKE '%' || ? || '%') OR (content LIKE '%' || ? || '%'))", 69)) {
 			goto error;
 		}
@@ -184,13 +172,13 @@ create_items_list(struct feed_entry **feeds, size_t feeds_count, int sorting, co
 	for (size_t i = 0; i < feeds_count; ++i) {
 		db_bind_string(items->res, i + 1, feeds[i]->link);
 	}
-	if (items->search_filter != NULL && items->search_filter->len > 0) {
+	if (!STRING_IS_EMPTY(items->search_filter)) {
 		db_bind_string(items->res, feeds_count + 1, items->search_filter);
 		db_bind_string(items->res, feeds_count + 2, items->search_filter);
 	}
 	obtain_items_at_least_up_to_the_given_index(items, 0);
 	if (items->len < 1) {
-		if (items->search_filter != NULL && items->search_filter->len > 0) {
+		if (!STRING_IS_EMPTY(items->search_filter)) {
 			info_status("Items not found. Search query didn't get any matches!");
 		} else {
 			fail_status("Items not found. Make sure this feed is updated!");

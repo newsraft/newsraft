@@ -54,57 +54,36 @@ db_mark_item_important(int64_t rowid, bool status)
 }
 
 int64_t
-get_unread_items_count_of_the_feed(const struct string *url)
-{
-	INFO("Counting unread items of the \"%s\" feed.", url->ptr);
-
-	// This variable will be rewritten with proper value if everything goes okay;
-	// otherwise it will remain negative to indicate an error.
-	int64_t unread_count = -1;
-
-	sqlite3_stmt *res = db_prepare("SELECT COUNT(*) FROM items WHERE feed_url=? AND unread=1", 57);
-	if (res != NULL) {
-		db_bind_string(res, 1, url);
-		if (sqlite3_step(res) == SQLITE_ROW) {
-			unread_count = sqlite3_column_int64(res, 0);
-		}
-		sqlite3_finalize(res);
-	}
-
-	return unread_count;
-}
-
-int64_t
 db_count_items(struct feed_entry **feeds, size_t feeds_count, bool count_only_unread)
 {
-	char *query = malloc(sizeof(char) * (60 + feeds_count * 2 + 100));
-	if (feeds_count == 0 || query == NULL) {
-		free(query);
-		return 0;
+	int64_t count = 0;
+	struct string *query = crtas("SELECT COUNT(*) FROM items WHERE ", 33);
+	struct string *cond = generate_items_search_condition(feeds, feeds_count);
+	if (feeds_count == 0 || query == NULL || cond == NULL) {
+		goto error;
+	}
+	if (!catss(query, cond)) {
+		goto error;
 	}
 	if (count_only_unread) {
-		strcpy(query, "SELECT COUNT(*) FROM items WHERE unread=1 AND feed_url IN (?");
-	} else {
-		strcpy(query, "SELECT COUNT(*) FROM items WHERE feed_url IN (?");
+		catas(query, " AND unread=1", 13);
 	}
-	for (size_t i = 1; i < feeds_count; ++i) {
-		strcat(query, ",?");
-	}
-	strcat(query, ")");
-	sqlite3_stmt *res = db_prepare(query, strlen(query) + 1);
+	sqlite3_stmt *res = db_prepare(query->ptr, query->len + 1);
 	if (res == NULL) {
-		free(query);
-		return 0;
+		goto error;
 	}
 	for (size_t i = 0; i < feeds_count; ++i) {
 		db_bind_string(res, i + 1, feeds[i]->link);
 	}
-	int64_t count = 0;
 	if (sqlite3_step(res) == SQLITE_ROW) {
 		count = sqlite3_column_int64(res, 0);
+	} else {
+		FAIL("sqlite3_step() in db_count_items() has failed!");
 	}
 	sqlite3_finalize(res);
-	free(query);
+error:
+	free_string(query);
+	free_string(cond);
 	return count > 0 ? count : 0;
 }
 

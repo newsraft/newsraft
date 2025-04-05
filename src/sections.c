@@ -72,10 +72,7 @@ mark_feeds_read(struct feed_entry **feeds, size_t feeds_count, bool status)
 {
 	if (db_change_unread_status_of_all_items_in_feeds(feeds, feeds_count, !status) == true) {
 		for (size_t i = 0; i < feeds_count; ++i) {
-			int64_t new_unread_count = get_unread_items_count_of_the_feed(feeds[i]->link);
-			if (new_unread_count >= 0) {
-				feeds[i]->unread_count = new_unread_count;
-			}
+			feeds[i]->unread_count = db_count_items(&feeds[i], 1, true);
 		}
 		refresh_sections_statistics_about_underlying_feeds();
 		expose_all_visible_entries_of_the_list_menu();
@@ -165,12 +162,7 @@ copy_feed_to_global_section(const struct feed_entry *feed)
 		return NULL;
 	}
 
-	int64_t new_unread_count = get_unread_items_count_of_the_feed(sections[0].feeds[feed_index]->link);
-	if (new_unread_count < 0) {
-		write_error("Failed to get unread items count of the feed from database!\n");
-		return NULL;
-	}
-	sections[0].feeds[feed_index]->unread_count  = new_unread_count;
+	sections[0].feeds[feed_index]->unread_count = db_count_items(&sections[0].feeds[feed_index], 1, true);
 	sections[0].feeds[feed_index]->update_date = db_get_date_from_feeds_table(feed->link, "update_date", 11);
 	return sections[0].feeds[feed_index];
 }

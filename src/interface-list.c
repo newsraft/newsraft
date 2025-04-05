@@ -404,10 +404,7 @@ update_unread_items_count_of_last_menu(void)
 {
 	if (menus != NULL && menus->feeds_original != NULL && menus->feeds_count > 0) {
 		for (size_t i = 0; i < menus->feeds_count; ++i) {
-			int64_t unread_count = get_unread_items_count_of_the_feed(menus->feeds_original[i]->link);
-			if (unread_count >= 0) {
-				menus->feeds_original[i]->unread_count = unread_count;
-			}
+			menus->feeds_original[i]->unread_count = db_count_items(&menus->feeds_original[i], 1, true);
 		}
 	}
 }

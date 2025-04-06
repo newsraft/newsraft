@@ -149,6 +149,10 @@ parse_feeds_file(void)
 		if (!process_config_line(feed_ptr, global_cfg->ptr,  global_cfg->len))  goto error;
 		if (!process_config_line(feed_ptr, section_cfg->ptr, section_cfg->len)) goto error;
 		if (!process_config_line(feed_ptr, feed_cfg->ptr,    feed_cfg->len))    goto error;
+
+		// Count unread items only after config is applied because some settings
+		// can influence how items are counted, for example item-rule setting.
+		feed_ptr->unread_count = db_count_items(&feed_ptr, 1, true);
 	}
 
 	if (at_least_one_feed_was_added == false) {

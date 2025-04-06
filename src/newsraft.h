@@ -433,7 +433,7 @@ bool db_init(void);
 bool db_vacuum(void);
 bool exec_database_file_optimization(void);
 void db_stop(void);
-sqlite3_stmt *db_prepare(const char *zSql, int nByte);
+sqlite3_stmt *db_prepare(const char *statement, int size, const char **p_error);
 bool db_begin_transaction(void);
 bool db_commit_transaction(void);
 bool db_rollback_transaction(void);

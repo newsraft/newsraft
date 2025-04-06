@@ -152,9 +152,9 @@ create_items_list(struct feed_entry **feeds, size_t feeds_count, int sorting, co
 	if (items->query == NULL) {
 		goto undo1;
 	}
-	items->res = db_prepare(items->query->ptr, items->query->len + 1);
+	items->res = db_prepare(items->query->ptr, items->query->len + 1, NULL);
 	if (items->res == NULL) {
-		fail_status("Can't run items search query! Make sure the item-rule setting is set correctly.");
+		fail_status("Can't run items search query! Make sure all item-rule settings are valid SQL conditions.");
 		goto undo2;
 	}
 	for (size_t i = 0; i < feeds_count; ++i) {

@@ -5,7 +5,7 @@ sqlite3_stmt *
 db_find_item_by_rowid(int64_t rowid)
 {
 	INFO("Looking for item with rowid %" PRId64 "...", rowid);
-	sqlite3_stmt *res = db_prepare("SELECT * FROM items WHERE rowid=? LIMIT 1", 42);
+	sqlite3_stmt *res = db_prepare("SELECT * FROM items WHERE rowid=? LIMIT 1", 42, NULL);
 	if (res == NULL) {
 		return NULL;
 	}
@@ -22,23 +22,20 @@ db_find_item_by_rowid(int64_t rowid)
 static inline bool
 db_set_item_int(int64_t rowid, const char *column, size_t column_len, int value)
 {
-	INFO("Updating column \"%s\" with integer \"%d\" of item with rowid \"%" PRId64 "\".", column, value, rowid);
-	char cmd[100];
+	INFO("Updating column \"%s\" with \"%d\" for item with rowid \"%" PRId64 "\".", column, value, rowid);
+	char cmd[100] = {0};
 	memcpy(cmd, "UPDATE items SET ", 17);
 	memcpy(cmd + 17, column, column_len);
 	memcpy(cmd + 17 + column_len, "=? WHERE rowid=?", 17);
-	sqlite3_stmt *res = db_prepare(cmd, 17 + column_len + 17);
-	if (res != NULL) {
-		sqlite3_bind_int(res, 1, value);
-		sqlite3_bind_int64(res, 2, rowid);
-		if (sqlite3_step(res) == SQLITE_DONE) {
-			sqlite3_finalize(res);
-			return true;
-		}
-		sqlite3_finalize(res);
+	sqlite3_stmt *res = db_prepare(cmd, 17 + column_len + 17, NULL);
+	if (res == NULL) {
+		return false;
 	}
-	FAIL("Column wasn't updated for some reason!");
-	return false;
+	sqlite3_bind_int(res, 1, value);
+	sqlite3_bind_int64(res, 2, rowid);
+	int status = sqlite3_step(res);
+	sqlite3_finalize(res);
+	return status == SQLITE_DONE;
 }
 
 bool
@@ -66,8 +63,13 @@ db_count_items(struct feed_entry **feeds, size_t feeds_count, bool count_only_un
 	if (count_only_unread) {
 		catas(query, " AND unread=1", 13);
 	}
-	sqlite3_stmt *res = db_prepare(query->ptr, query->len + 1);
+	const char *error = "unknown error";
+	sqlite3_stmt *res = db_prepare(query->ptr, query->len + 1, &error);
 	if (res == NULL) {
+		if (feeds_count == 1) {
+			str_appendf((*feeds)->errors, "Failed to prepare statement, %s: %s\n", error, query->ptr);
+			(*feeds)->has_errors = true;
+		}
 		goto error;
 	}
 	for (size_t i = 0; i < feeds_count; ++i) {
@@ -97,7 +99,7 @@ db_change_unread_status_of_all_items_in_feeds(struct feed_entry **feeds, size_t 
 		strcat(query, ",?");
 	}
 	strcat(query, ")");
-	sqlite3_stmt *res = db_prepare(query, strlen(query) + 1);
+	sqlite3_stmt *res = db_prepare(query, strlen(query) + 1, NULL);
 	if (res == NULL) {
 		free(query);
 		return false;

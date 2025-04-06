@@ -35,7 +35,7 @@ delete_excess_items(struct feed_entry *feed, int64_t limit)
 	}
 
 	INFO("Deleting excess items...");
-	sqlite3_stmt *s = db_prepare(query, strlen(query) + 1);
+	sqlite3_stmt *s = db_prepare(query, strlen(query) + 1, NULL);
 	if (s == NULL) {
 		FAIL("Failed to prepare an excess items deletion statement!");
 		return false;
@@ -53,12 +53,12 @@ db_insert_item(struct feed_entry *feed, struct getfeed_item *item, int64_t rowid
 	sqlite3_stmt *s;
 
 	if (rowid == -1) {
-		s = db_prepare("INSERT INTO items(feed_url,guid,title,link,content,attachments,persons,extras,publication_date,update_date,unread) VALUES(?,?,?,?,?,?,?,?,?,?,1)", 145);
+		s = db_prepare("INSERT INTO items(feed_url,guid,title,link,content,attachments,persons,extras,publication_date,update_date,unread) VALUES(?,?,?,?,?,?,?,?,?,?,1)", 145, NULL);
 	} else {
 		if (get_cfg_bool(&feed->cfg, CFG_MARK_ITEM_UNREAD_ON_CHANGE) == true) {
-			s = db_prepare("UPDATE items SET feed_url=?,guid=?,title=?,link=?,content=?,attachments=?,persons=?,extras=?,publication_date=?,update_date=?,unread=1 WHERE rowid=?", 149);
+			s = db_prepare("UPDATE items SET feed_url=?,guid=?,title=?,link=?,content=?,attachments=?,persons=?,extras=?,publication_date=?,update_date=?,unread=1 WHERE rowid=?", 149, NULL);
 		} else {
-			s = db_prepare("UPDATE items SET feed_url=?,guid=?,title=?,link=?,content=?,attachments=?,persons=?,extras=?,publication_date=?,update_date=? WHERE rowid=?", 140);
+			s = db_prepare("UPDATE items SET feed_url=?,guid=?,title=?,link=?,content=?,attachments=?,persons=?,extras=?,publication_date=?,update_date=? WHERE rowid=?", 140, NULL);
 		}
 	}
 	if (s == NULL) {
@@ -114,7 +114,7 @@ insert_item_data(struct feed_entry *feed, struct getfeed_item *item)
 
 	// Before trying to write some item to the database we have to check if this
 	// item is duplicate or not.
-	sqlite3_stmt *s = db_prepare("SELECT rowid,content FROM items WHERE feed_url=? AND guid=? LIMIT 1", 68);
+	sqlite3_stmt *s = db_prepare("SELECT rowid,content FROM items WHERE feed_url=? AND guid=? LIMIT 1", 68, NULL);
 	if (s == NULL) {
 		FAIL("Failed to prepare SELECT statement for searching item duplicate by guid!");
 		return false;

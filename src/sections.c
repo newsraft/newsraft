@@ -149,7 +149,6 @@ copy_feed_to_global_section(const struct feed_entry *feed)
 		return NULL;
 	}
 
-	sections[0].feeds[feed_index]->unread_count = db_count_items(&sections[0].feeds[feed_index], 1, true);
 	sections[0].feeds[feed_index]->update_date = db_get_date_from_feeds_table(feed->link, "update_date", 11);
 	return sections[0].feeds[feed_index];
 }
@@ -203,7 +202,7 @@ purge_abandoned_feeds(void)
 		strcat(query, ",?");
 	}
 	strcat(query, ")");
-	sqlite3_stmt *res = db_prepare(query, strlen(query) + 1);
+	sqlite3_stmt *res = db_prepare(query, strlen(query) + 1, NULL);
 	if (res == NULL) {
 		free(query);
 		return false;

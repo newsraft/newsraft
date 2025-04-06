@@ -3,7 +3,7 @@
 bool
 insert_feed_data(const struct feed_entry *feed_entry, struct getfeed_feed *feed)
 {
-	sqlite3_stmt *s = db_prepare("INSERT OR REPLACE INTO feeds VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)", 63);
+	sqlite3_stmt *s = db_prepare("INSERT OR REPLACE INTO feeds VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)", 63, NULL);
 	if (s == NULL) {
 		return false;
 	}

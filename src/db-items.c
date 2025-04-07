@@ -68,7 +68,6 @@ db_count_items(struct feed_entry **feeds, size_t feeds_count, bool count_only_un
 	if (res == NULL) {
 		if (feeds_count == 1) {
 			str_appendf((*feeds)->errors, "Failed to prepare statement, %s: %s\n", error, query->ptr);
-			(*feeds)->has_errors = true;
 		}
 		goto error;
 	}

@@ -139,15 +139,8 @@ copy_feed_to_global_section(const struct feed_entry *feed)
 		inlinefy_string(sections[0].feeds[feed_index]->name);
 	}
 
-	sections[0].feeds[feed_index]->link = crtss(feed->link);
-	if (sections[0].feeds[feed_index]->link == NULL) {
-		return NULL;
-	}
-
+	sections[0].feeds[feed_index]->link   = crtss(feed->link);
 	sections[0].feeds[feed_index]->errors = crtes(1);
-	if (sections[0].feeds[feed_index]->errors == NULL) {
-		return NULL;
-	}
 
 	sections[0].feeds[feed_index]->update_date = db_get_date_from_feeds_table(feed->link, "update_date", 11);
 	return sections[0].feeds[feed_index];
@@ -177,17 +170,19 @@ copy_feed_to_section(const struct feed_entry *feed_data, int64_t section_index)
 void
 refresh_sections_statistics_about_underlying_feeds(void)
 {
+	pthread_mutex_lock(&interface_lock);
 	for (size_t i = 0; i < sections_count; ++i) {
 		bool has_errors = false;
 		sections[i].unread_count = 0;
 		for (size_t j = 0; j < sections[i].feeds_count; ++j) {
-			if (sections[i].feeds[j]->has_errors && !get_cfg_bool(&sections[i].feeds[j]->cfg, CFG_SUPPRESS_ERRORS)) {
+			if (sections[i].feeds[j]->errors->len > 0 && !get_cfg_bool(&sections[i].feeds[j]->cfg, CFG_SUPPRESS_ERRORS)) {
 				has_errors = true;
 			}
 			sections[i].unread_count += sections[i].feeds[j]->unread_count;
 		}
 		sections[i].has_errors = has_errors;
 	}
+	pthread_mutex_unlock(&interface_lock);
 }
 
 bool

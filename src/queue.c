@@ -27,6 +27,7 @@ destroy_queue_unprotected(void)
 {
 	struct feed_update_state *k = NULL;
 	for (struct feed_update_state *j = update_queue; j != NULL; j = j->next, free(k)) {
+		free_string(j->new_errors);
 		remove_downloader_handle(j);
 		curl_easy_cleanup(j->curl);
 		curl_slist_free_all(j->download_headers);
@@ -150,10 +151,9 @@ queue_updates(struct feed_entry **feeds, size_t feeds_count)
 		feeds[i]->update_date = current_time;
 		INFO("Feed %s update attempt date: %" PRId64, feeds[i]->link->ptr, feeds[i]->update_date);
 
-		empty_string(feeds[i]->errors);
-
 		struct feed_update_state *item = newsraft_calloc(1, sizeof(struct feed_update_state));
 		item->feed_entry = feeds[i];
+		item->new_errors = crtes(1);
 		item->next = update_queue;
 		update_queue = item;
 	}

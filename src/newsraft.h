@@ -161,7 +161,6 @@ struct feed_entry {
 	int64_t update_date; // Date of last feed update attempt
 	struct config_context *cfg;
 	struct input_binding *binds;
-	bool has_errors;
 	struct string *errors;
 };
 
@@ -288,6 +287,7 @@ struct getfeed_feed {
 
 struct feed_update_state {
 	struct feed_entry *feed_entry;
+	struct string *new_errors;
 
 	CURL *curl;
 	char curl_error[CURL_ERROR_SIZE];

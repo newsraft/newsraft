@@ -22,7 +22,7 @@ you're considering switching from Newsboat to Newsraft, it's advised to examine 
 | Download manager                              | -                               | `podboat`              |
 | Integration with third-party services         | -                               | +                      |
 | Internal command-line                         | -                               | +                      |
-| Programming languages used                    | C99                             | C++11, Rust            |
+| Programming languages used                    | C99                             | C++17, Rust            |
 | [Source lines of code](#source-lines-of-code) | ~9k                             | ~44k                   |
 
 Feel free to submit an issue if you think that table above contains outdated information.
@@ -89,17 +89,17 @@ while Newsraft represents feeds as simple structures of strings and numbers.
 
 ## Source lines of code
 
-This is how SLOC is calculated. As you can see, Newsraft is almost 5 times smaller than Newsboat.
+This is how SLOC is calculated. As you can see, Newsraft is more than 5 times smaller than Newsboat.
 
 ```
 ~/src/newsraft > git show -s --pretty=format:"%H %ad"
-67be0f9cd3257874129aa38a24ad50c2d95161e7 Sun Mar 9 16:42:51 2025 +0300
+af9b01757d52cc61954455b477b0314968f66e78 Mon Apr 7 04:16:47 2025 +0300
 ~/src/newsraft > find src -regex ".*\.\(c\|h\)" -exec awk NF {} + | wc -l
-9109
+8621
 ```
 ```
 ~/src/newsboat > git show -s --pretty=format:"%H %ad"
-bae1aedd843081f2f00766845ad6778a70bd8e2a Sat Mar 1 12:27:52 2025 +0100
+2b1baa8be41986fd1e0ae49a14310ba84d76aa9b Fri Apr 4 23:52:10 2025 +0300
 ~/src/newsboat > find src rust rss filter include newsboat.cpp podboat.cpp config.h -regex ".*\.\(cpp\|h\|rs\)" -exec awk NF {} + | wc -l
-44311
+44440
 ```

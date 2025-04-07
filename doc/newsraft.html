@@ -288,18 +288,64 @@
     you set a condition based on some parameters and only those entries that
     meet this condition will be shown in the feed. It's specified in SQL format.
     It probably only makes sense to set this setting for individual feeds, and
-    not globally (see <b>FEEDS FILE</b> section to understand how). Available
-    parameters: <i>guid</i>, <i>title</i>, <i>link</i>, <i>content</i>,
-    <i>attachments</i>, <i>persons</i>, <i>publication_date</i>,
-    <i>update_date</i>.</p>
+    not globally (see <b>FEEDS FILE</b> section to understand how).</p>
+<p class="Pp">Available parameters:</p>
+<table class="tbl">
+  <tr>
+    <td><i>guid</i></td>
+    <td>(string)</td>
+    <td>Globally unique identifier of the article which is expected to be unique
+      within the originating feed</td>
+  </tr>
+  <tr>
+    <td><i>title</i></td>
+    <td>(string)</td>
+    <td>Title of the article</td>
+  </tr>
+  <tr>
+    <td><i>link</i></td>
+    <td>(string)</td>
+    <td>URL of the article</td>
+  </tr>
+  <tr>
+    <td><i>content</i></td>
+    <td>(string)</td>
+    <td>Content of the article which is stored exactly as it appears in the
+      feed, with all original HTML preserved</td>
+  </tr>
+  <tr>
+    <td><i>attachments</i></td>
+    <td>(string)</td>
+    <td>Serialized string of all attachments with URL links, MIME types and byte
+      sizes</td>
+  </tr>
+  <tr>
+    <td><i>persons</i></td>
+    <td>(string)</td>
+    <td>Serialized string of all people related to the article with names and
+      email addresses</td>
+  </tr>
+  <tr>
+    <td><i>publication_date</i></td>
+    <td>(integer)</td>
+    <td>Timestamp of publication date in seconds since 1970</td>
+  </tr>
+  <tr>
+    <td><i>update_date</i></td>
+    <td>(integer)</td>
+    <td>Timestamp of update date in seconds since 1970</td>
+  </tr>
+</table>
 <p class="Pp">Here are some examples of correct setting values:</p>
 <p class="Pp"></p>
 <div class="Bd-indent"><i>title NOT LIKE '%Rust%'</i>
 <br/>
 <i>persons LIKE '%PHARMACIST%' OR persons LIKE '%OFFL1NX%'</i>
 <br/>
-<i>attachments NOT LIKE '%audio/mp3%' AND attachments NOT LIKE
-  '%video/mp4%'</i></div>
+<i>NOT (attachments LIKE '%audio/mp3%' OR attachments LIKE '%video/mp4%')</i>
+<br/>
+<i>CAST(strftime('%Y', publication_date, 'unixepoch') AS INTEGER) &gt;=
+  2024</i></div>
 </section>
 <section class="Ss">
 <h2 class="Ss" id="item-limit_(*)"><a class="permalink" href="#item-limit_(*)">item-limit
@@ -961,7 +1007,7 @@
 </div>
 <table class="foot">
   <tr>
-    <td class="foot-date">2025-03-12</td>
+    <td class="foot-date">2025-04-07</td>
     <td class="foot-os"></td>
   </tr>
 </table>

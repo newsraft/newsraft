@@ -5,7 +5,7 @@
 .nh
 .ad l
 .\" Begin generated content:
-.TH "NEWSRAFT" "1" "2025-03-12"
+.TH "NEWSRAFT" "1" "2025-04-07"
 .PP
 .SH NAME
 .PP
@@ -290,9 +290,76 @@ useful in managing feeds with a heavy spam flow: you set a condition based on
 some parameters and only those entries that meet this condition will be shown in
 the feed.\& It'\&s specified in SQL format.\& It probably only makes sense to set this
 setting for individual feeds, and not globally (see \fBFEEDS FILE\fR section to
-understand how).\& Available parameters: \fIguid\fR, \fItitle\fR, \fIlink\fR, \fIcontent\fR,
-\fIattachments\fR, \fIpersons\fR, \fIpublication_date\fR, \fIupdate_date\fR.\&
+understand how).\&
 .PP
+Available parameters:
+.TS
+l l lx
+l l l
+l l l
+l l l
+l l l
+l l l
+l l l
+l l l.
+T{
+\fIguid\fR
+T}	T{
+(string)
+T}	T{
+Globally unique identifier of the article which is expected to be unique within the originating feed
+T}
+T{
+\fItitle\fR
+T}	T{
+(string)
+T}	T{
+Title of the article
+T}
+T{
+\fIlink\fR
+T}	T{
+(string)
+T}	T{
+URL of the article
+T}
+T{
+\fIcontent\fR
+T}	T{
+(string)
+T}	T{
+Content of the article which is stored exactly as it appears in the feed, with all original HTML preserved
+T}
+T{
+\fIattachments\fR
+T}	T{
+(string)
+T}	T{
+Serialized string of all attachments with URL links, MIME types and byte sizes
+T}
+T{
+\fIpersons\fR
+T}	T{
+(string)
+T}	T{
+Serialized string of all people related to the article with names and email addresses
+T}
+T{
+\fIpublication_date\fR
+T}	T{
+(integer)
+T}	T{
+Timestamp of publication date in seconds since 1970
+T}
+T{
+\fIupdate_date\fR
+T}	T{
+(integer)
+T}	T{
+Timestamp of update date in seconds since 1970
+T}
+.TE
+.sp 1
 Here are some examples of correct setting values:
 .PP
 .RS 4
@@ -300,7 +367,9 @@ Here are some examples of correct setting values:
 .br
 \fIpersons LIKE '\&%PHARMACIST%'\& OR persons LIKE '\&%OFFL1NX%'\&\fR
 .br
-\fIattachments NOT LIKE '\&%audio/mp3%'\& AND attachments NOT LIKE '\&%video/mp4%'\&\fR
+\fINOT (attachments LIKE '\&%audio/mp3%'\& OR attachments LIKE '\&%video/mp4%'\&)\fR
+.br
+\fICAST(strftime('\&%Y'\&, publication_date, '\&unixepoch'\&) AS INTEGER) >= 2024\fR
 .PP
 .RE
 .SS item-limit (*)

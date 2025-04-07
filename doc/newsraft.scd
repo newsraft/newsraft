@@ -209,14 +209,40 @@ useful in managing feeds with a heavy spam flow: you set a condition based on
 some parameters and only those entries that meet this condition will be shown in
 the feed. It's specified in SQL format. It probably only makes sense to set this
 setting for individual feeds, and not globally (see *FEEDS FILE* section to
-understand how). Available parameters: _guid_, _title_, _link_, _content_,
-_attachments_, _persons_, _publication_date_, _update_date_.
+understand how).
+
+Available parameters:
+|[ _guid_
+:[ (string)
+:< Globally unique identifier of the article which is expected to be unique within the originating feed
+|[ _title_
+:[ (string)
+:[ Title of the article
+|[ _link_
+:[ (string)
+:[ URL of the article
+|[ _content_
+:[ (string)
+:[ Content of the article which is stored exactly as it appears in the feed, with all original HTML preserved
+|[ _attachments_
+:[ (string)
+:[ Serialized string of all attachments with URL links, MIME types and byte sizes
+|[ _persons_
+:[ (string)
+:[ Serialized string of all people related to the article with names and email addresses
+|[ _publication_date_
+:[ (integer)
+:[ Timestamp of publication date in seconds since 1970
+|[ _update_date_
+:[ (integer)
+:[ Timestamp of update date in seconds since 1970
 
 Here are some examples of correct setting values:
 
 	_title NOT LIKE '%Rust%'_++
 _persons LIKE '%PHARMACIST%' OR persons LIKE '%OFFL1NX%'_++
-_attachments NOT LIKE '%audio/mp3%' AND attachments NOT LIKE '%video/mp4%'_
+_NOT (attachments LIKE '%audio/mp3%' OR attachments LIKE '%video/mp4%')_++
+_CAST(strftime('%Y', publication_date, 'unixepoch') AS INTEGER) >= 2024_
 
 ## item-limit (*)
 Default: _0_. Maximum number of items stored in a feed. If set to _0_, no limit

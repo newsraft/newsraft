@@ -18,7 +18,7 @@
 // https://web.archive.org/web/20211208135333/https://validator.w3.org/feed/docs/rss2.html
 // https://web.archive.org/web/20240201121905/https://www.rssboard.org/rss-specification
 
-static int8_t
+static void
 rss_guid_start(struct feed_update_state *data, const XML_Char **attrs)
 {
 	if (data->path[data->depth] == GENERIC_ITEM) {
@@ -26,10 +26,9 @@ rss_guid_start(struct feed_update_state *data, const XML_Char **attrs)
 		// Default value of isPermaLink is considered true!
 		data->feed.item->guid_is_url = val == NULL || strcmp(val, "true") == 0;
 	}
-	return PARSE_OKAY;
 }
 
-static int8_t
+static void
 rss_link_end(struct feed_update_state *data)
 {
 	if (data->path[data->depth] == GENERIC_ITEM) {
@@ -37,10 +36,9 @@ rss_link_end(struct feed_update_state *data)
 	} else if (data->path[data->depth] == GENERIC_FEED) {
 		cpyss(&data->feed.url, data->text);
 	}
-	return PARSE_OKAY;
 }
 
-static int8_t
+static void
 rss_pubdate_end(struct feed_update_state *data)
 {
 	if (data->path[data->depth] == GENERIC_ITEM) {
@@ -49,10 +47,9 @@ rss_pubdate_end(struct feed_update_state *data)
 			data->feed.item->publication_date = 0;
 		}
 	}
-	return PARSE_OKAY;
 }
 
-static int8_t
+static void
 rss_author_end(struct feed_update_state *data)
 {
 	if (data->path[data->depth] == GENERIC_ITEM) {
@@ -64,31 +61,29 @@ rss_author_end(struct feed_update_state *data)
 		serialize_array(&data->feed.persons, "type=", 5, "author", 6);
 		serialize_string(&data->feed.persons, "email=", 6, data->text);
 	}
-	return PARSE_OKAY;
 }
 
-static int8_t
+static void
 rss_enclosure_start(struct feed_update_state *data, const XML_Char **attrs)
 {
 	if (data->path[data->depth] != GENERIC_ITEM) {
-		return PARSE_OKAY;
+		return;
 	}
 	const char *attr = get_value_of_attribute_key(attrs, "url");
 	if (attr == NULL) {
-		return PARSE_OKAY;
+		return;
 	}
 	const size_t attr_len = strlen(attr);
 	if (attr_len == 0) {
-		return PARSE_OKAY;
+		return;
 	}
 	serialize_caret(&data->feed.item->attachments);
 	serialize_array(&data->feed.item->attachments, "url=", 4, attr, attr_len);
 	serialize_attribute(&data->feed.item->attachments, "type=", 5, attrs, "type");
 	serialize_attribute(&data->feed.item->attachments, "size=", 5, attrs, "length");
-	return PARSE_OKAY;
 }
 
-static int8_t
+static void
 rss_comments_end(struct feed_update_state *data)
 {
 	if (data->path[data->depth] == GENERIC_ITEM) {
@@ -96,28 +91,26 @@ rss_comments_end(struct feed_update_state *data)
 		serialize_string(&data->feed.item->attachments, "url=", 4, data->text);
 		serialize_array(&data->feed.item->attachments, "content=", 8, "comments", 8);
 	}
-	return PARSE_OKAY;
 }
 
-static int8_t
+static void
 rss_ttl_end(struct feed_update_state *data)
 {
 	if (data->path[data->depth] == GENERIC_FEED) {
-		int64_t minutes;
+		int64_t minutes = -1;
 		if (sscanf(data->text->ptr, "%" SCNd64, &minutes) != 1) {
 			WARN("Couldn't convert value of <ttl> element to a number!");
-			return PARSE_OKAY; // Continue parsing like nothing happened.
+			return; // Continue parsing like nothing happened.
 		}
 		if (minutes < 0) {
 			WARN("Value of <ttl> element is negative!");
-			return PARSE_OKAY; // Continue parsing like nothing happened.
+			return; // Continue parsing like nothing happened.
 		}
 		data->feed.time_to_live = minutes * 60;
 	}
-	return PARSE_OKAY;
 }
 
-static int8_t
+static void
 rss_managingeditor_end(struct feed_update_state *data)
 {
 	if (data->path[data->depth] == GENERIC_FEED) {
@@ -125,34 +118,31 @@ rss_managingeditor_end(struct feed_update_state *data)
 		serialize_array(&data->feed.persons, "type=", 5, "editor", 6);
 		serialize_string(&data->feed.persons, "email=", 6, data->text);
 	}
-	return PARSE_OKAY;
 }
 
-static int8_t
+static void
 rss_source_start(struct feed_update_state *data, const XML_Char **attrs)
 {
 	if (data->path[data->depth] != GENERIC_ITEM) {
-		return PARSE_OKAY;
+		return;
 	}
 	const char *attr = get_value_of_attribute_key(attrs, "url");
 	if (attr == NULL) {
-		return PARSE_OKAY;
+		return;
 	}
 	const size_t attr_len = strlen(attr);
 	if (attr_len == 0) {
-		return PARSE_OKAY;
+		return;
 	}
 	serialize_caret(&data->feed.item->attachments);
 	serialize_array(&data->feed.item->attachments, "url=", 4, attr, attr_len);
 	serialize_array(&data->feed.item->attachments, "content=", 8, "source", 6);
-	return PARSE_OKAY;
 }
 
-static int8_t
+static void
 rss_source_end(struct feed_update_state *data)
 {
 	if (data->path[data->depth] == GENERIC_ITEM) {
 		serialize_string(&data->feed.item->attachments, "title=", 6, data->text);
 	}
-	return PARSE_OKAY;
 }

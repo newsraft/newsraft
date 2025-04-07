@@ -16,16 +16,16 @@
 // not make sense and is ignored by the parser. Also, this grouping is difficult
 // to reflect in the database and requires various sophistications.
 
-static int8_t
+static void
 mediarss_content_start(struct feed_update_state *data, const XML_Char **attrs)
 {
 	const char *attr = get_value_of_attribute_key(attrs, "url");
 	if (attr == NULL) {
-		return PARSE_OKAY; // Ignore empty content entries.
+		return; // Ignore empty content entries.
 	}
 	const size_t attr_len = strlen(attr);
 	if (attr_len == 0) {
-		return PARSE_OKAY; // Ignore empty content entries.
+		return; // Ignore empty content entries.
 	}
 	struct string **dest = data->in_item ? &data->feed.item->attachments : &data->feed.attachments;
 	serialize_caret(dest);
@@ -35,48 +35,45 @@ mediarss_content_start(struct feed_update_state *data, const XML_Char **attrs)
 	serialize_attribute(dest, "duration=", 9, attrs, "duration");
 	serialize_attribute(dest, "width=", 6, attrs, "width");
 	serialize_attribute(dest, "height=", 7, attrs, "height");
-	return PARSE_OKAY;
 }
 
-static int8_t
+static void
 embed_or_player_start(struct feed_update_state *data, const XML_Char **attrs)
 {
 	const char *attr = get_value_of_attribute_key(attrs, "url");
 	if (attr == NULL) {
-		return PARSE_OKAY; // Ignore empty entries.
+		return; // Ignore empty entries.
 	}
 	const size_t attr_len = strlen(attr);
 	if (attr_len == 0) {
-		return PARSE_OKAY; // Ignore empty entries.
+		return; // Ignore empty entries.
 	}
 	struct string **dest = data->in_item ? &data->feed.item->attachments : &data->feed.attachments;
 	serialize_caret(dest);
 	serialize_array(dest, "url=", 4, attr, attr_len);
-	return PARSE_OKAY;
 }
 
-static int8_t
+static void
 peerlink_start(struct feed_update_state *data, const XML_Char **attrs)
 {
 	const char *attr = get_value_of_attribute_key(attrs, "href");
 	if (attr == NULL) {
-		return PARSE_OKAY; // Ignore empty entries.
+		return; // Ignore empty entries.
 	}
 	const size_t attr_len = strlen(attr);
 	if (attr_len == 0) {
-		return PARSE_OKAY; // Ignore empty entries.
+		return; // Ignore empty entries.
 	}
 	struct string **dest = data->in_item ? &data->feed.item->attachments : &data->feed.attachments;
 	serialize_caret(dest);
 	serialize_array(dest, "url=", 4, attr, attr_len);
 	serialize_attribute(dest, "type=", 5, attrs, "type");
-	return PARSE_OKAY;
 }
 
-static int8_t
+static void
 description_start(struct feed_update_state *data, const XML_Char **attrs)
 {
-	if (data->in_item == true) {
+	if (data->in_item) {
 		if (data->path[data->depth] == MEDIARSS_CONTENT) {
 			serialize_attribute(&data->feed.item->attachments, "description_type=", 17, attrs, "type");
 		} else {
@@ -84,18 +81,16 @@ description_start(struct feed_update_state *data, const XML_Char **attrs)
 			serialize_attribute(&data->feed.item->content, "type=", 5, attrs, "type");
 		}
 	}
-	return PARSE_OKAY;
 }
 
-static int8_t
+static void
 description_end(struct feed_update_state *data)
 {
-	if (data->in_item == true) {
+	if (data->in_item) {
 		if (data->path[data->depth] == MEDIARSS_CONTENT) {
 			serialize_string(&data->feed.item->attachments, "description_text=", 17, data->text);
 		} else {
 			serialize_string(&data->feed.item->content, "text=", 5, data->text);
 		}
 	}
-	return PARSE_OKAY;
 }

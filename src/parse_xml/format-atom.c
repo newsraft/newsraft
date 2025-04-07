@@ -4,20 +4,20 @@
 // https://web.archive.org/web/20211118181732/https://validator.w3.org/feed/docs/atom.html
 // https://web.archive.org/web/20211201194224/https://datatracker.ietf.org/doc/html/rfc4287
 
-static int8_t
+static void
 atom_link_start(struct feed_update_state *data, const XML_Char **attrs)
 {
 	const char *attr = get_value_of_attribute_key(attrs, "href");
 	if (attr == NULL) {
-		return PARSE_OKAY; // Ignore empty links.
+		return; // Ignore empty links.
 	}
 	const size_t attr_len = strlen(attr);
 	if (attr_len == 0) {
-		return PARSE_OKAY; // Ignore empty links.
+		return; // Ignore empty links.
 	}
 	const char *rel = get_value_of_attribute_key(attrs, "rel");
 	if (rel != NULL && strcmp(rel, "self") == 0) {
-		return PARSE_OKAY; // Ignore links to feed itself.
+		return; // Ignore links to feed itself.
 	}
 	// Default value of rel is alternate!
 	if (rel == NULL || strcmp(rel, "alternate") == 0) {
@@ -32,10 +32,9 @@ atom_link_start(struct feed_update_state *data, const XML_Char **attrs)
 		serialize_attribute(&data->feed.item->attachments, "type=", 5, attrs, "type");
 		serialize_attribute(&data->feed.item->attachments, "size=", 5, attrs, "length");
 	}
-	return PARSE_OKAY;
 }
 
-static int8_t
+static void
 atom_content_start(struct feed_update_state *data, const XML_Char **attrs)
 {
 	if (data->path[data->depth] == GENERIC_ITEM) {
@@ -47,29 +46,26 @@ atom_content_start(struct feed_update_state *data, const XML_Char **attrs)
 			empty_string(data->text);
 		}
 	}
-	return PARSE_OKAY;
 }
 
-static int8_t
+static void
 atom_content_end(struct feed_update_state *data)
 {
 	if (data->path[data->depth] == GENERIC_ITEM) {
 		data->emptying_target = data->text;
 		serialize_string(&data->feed.item->content, "text=", 5, data->text);
 	}
-	return PARSE_OKAY;
 }
 
-static int8_t
+static void
 published_end(struct feed_update_state *data)
 {
 	if (data->path[data->depth] == GENERIC_ITEM) {
 		data->feed.item->publication_date = parse_date(data->text->ptr, true);
 	}
-	return PARSE_OKAY;
 }
 
-static int8_t
+static void
 author_start(struct feed_update_state *data, const XML_Char **attrs)
 {
 	(void)attrs;
@@ -80,10 +76,9 @@ author_start(struct feed_update_state *data, const XML_Char **attrs)
 		serialize_caret(&data->feed.persons);
 		serialize_array(&data->feed.persons, "type=", 5, "author", 6);
 	}
-	return PARSE_OKAY;
 }
 
-static int8_t
+static void
 contributor_start(struct feed_update_state *data, const XML_Char **attrs)
 {
 	(void)attrs;
@@ -94,49 +89,45 @@ contributor_start(struct feed_update_state *data, const XML_Char **attrs)
 		serialize_caret(&data->feed.persons);
 		serialize_array(&data->feed.persons, "type=", 5, "contributor", 11);
 	}
-	return PARSE_OKAY;
 }
 
-static int8_t
+static void
 name_end(struct feed_update_state *data)
 {
 	if (data->path[data->depth] == ATOM_AUTHOR) {
-		if (data->in_item == true) {
+		if (data->in_item) {
 			serialize_string(&data->feed.item->persons, "name=", 5, data->text);
 		} else {
 			serialize_string(&data->feed.persons, "name=", 5, data->text);
 		}
 	}
-	return PARSE_OKAY;
 }
 
-static int8_t
+static void
 uri_end(struct feed_update_state *data)
 {
 	if (data->path[data->depth] == ATOM_AUTHOR) {
-		if (data->in_item == true) {
+		if (data->in_item) {
 			serialize_string(&data->feed.item->persons, "url=", 4, data->text);
 		} else {
 			serialize_string(&data->feed.persons, "url=", 4, data->text);
 		}
 	}
-	return PARSE_OKAY;
 }
 
-static int8_t
+static void
 email_end(struct feed_update_state *data)
 {
 	if (data->path[data->depth] == ATOM_AUTHOR) {
-		if (data->in_item == true) {
+		if (data->in_item) {
 			serialize_string(&data->feed.item->persons, "email=", 6, data->text);
 		} else {
 			serialize_string(&data->feed.persons, "email=", 6, data->text);
 		}
 	}
-	return PARSE_OKAY;
 }
 
-static int8_t
+static void
 atom_category_start(struct feed_update_state *data, const XML_Char **attrs)
 {
 	struct string **target;
@@ -145,13 +136,13 @@ atom_category_start(struct feed_update_state *data, const XML_Char **attrs)
 	} else if (data->path[data->depth] == GENERIC_FEED) {
 		target = &data->feed.extras;
 	} else {
-		return PARSE_OKAY; // Ignore misplaced categories.
+		return; // Ignore misplaced categories.
 	}
 	const char *attr = get_value_of_attribute_key(attrs, "label");
 	if (attr == NULL) {
 		attr = get_value_of_attribute_key(attrs, "term");
 		if (attr == NULL) {
-			return PARSE_OKAY; // Ignore empty categories.
+			return; // Ignore empty categories.
 		}
 	}
 	const size_t attr_len = strlen(attr);
@@ -159,29 +150,26 @@ atom_category_start(struct feed_update_state *data, const XML_Char **attrs)
 		serialize_caret(target);
 		serialize_array(target, "category=", 9, attr, attr_len);
 	}
-	return PARSE_OKAY;
 }
 
-static int8_t
+static void
 atom_subtitle_start(struct feed_update_state *data, const XML_Char **attrs)
 {
 	if (data->path[data->depth] == GENERIC_FEED) {
 		serialize_caret(&data->feed.content);
 		serialize_attribute(&data->feed.content, "type=", 5, attrs, "type");
 	}
-	return PARSE_OKAY;
 }
 
-static int8_t
+static void
 atom_subtitle_end(struct feed_update_state *data)
 {
 	if (data->path[data->depth] == GENERIC_FEED) {
 		serialize_string(&data->feed.content, "text=", 5, data->text);
 	}
-	return PARSE_OKAY;
 }
 
-static int8_t
+static void
 atom_generator_start(struct feed_update_state *data, const XML_Char **attrs)
 {
 	(void)data;
@@ -197,5 +185,4 @@ atom_generator_start(struct feed_update_state *data, const XML_Char **attrs)
 	if (attr != NULL) {
 		INFO("Feed generator version: %s", attr);
 	}
-	return PARSE_OKAY;
 }

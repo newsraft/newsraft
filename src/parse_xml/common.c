@@ -21,32 +21,29 @@ serialize_attribute(struct string **dest, const char *key, size_t key_len, const
 	}
 }
 
-int8_t
+void
 generic_item_starter(struct feed_update_state *data, const XML_Char **attrs)
 {
 	(void)attrs;
 	prepend_item(&data->feed.item);
 	data->in_item = true;
-	return PARSE_OKAY;
 }
 
-int8_t
+void
 generic_item_ender(struct feed_update_state *data)
 {
 	data->in_item = false;
-	return PARSE_OKAY;
 }
 
-int8_t
+void
 generic_guid_end(struct feed_update_state *data)
 {
 	if (data->path[data->depth] == GENERIC_ITEM) {
 		cpyss(&data->feed.item->guid, data->text);
 	}
-	return PARSE_OKAY;
 }
 
-int8_t
+void
 generic_title_end(struct feed_update_state *data)
 {
 	if (data->path[data->depth] == GENERIC_ITEM) {
@@ -54,13 +51,12 @@ generic_title_end(struct feed_update_state *data)
 	} else if (data->path[data->depth] == GENERIC_FEED) {
 		cpyss(&data->feed.title, data->text);
 	}
-	return PARSE_OKAY;
 }
 
-int8_t
+void
 generic_plain_content_end(struct feed_update_state *data)
 {
-	if (data->in_item == true) {
+	if (data->in_item) {
 		serialize_caret(&data->feed.item->content);
 		serialize_array(&data->feed.item->content, "type=", 5, "text/plain", 10);
 		serialize_string(&data->feed.item->content, "text=", 5, data->text);
@@ -69,13 +65,12 @@ generic_plain_content_end(struct feed_update_state *data)
 		serialize_array(&data->feed.content, "type=", 5, "text/plain", 10);
 		serialize_string(&data->feed.content, "text=", 5, data->text);
 	}
-	return PARSE_OKAY;
 }
 
-int8_t
+void
 generic_html_content_end(struct feed_update_state *data)
 {
-	if (data->in_item == true) {
+	if (data->in_item) {
 		serialize_caret(&data->feed.item->content);
 		serialize_array(&data->feed.item->content, "type=", 5, "text/html", 9);
 		serialize_string(&data->feed.item->content, "text=", 5, data->text);
@@ -84,34 +79,30 @@ generic_html_content_end(struct feed_update_state *data)
 		serialize_array(&data->feed.content, "type=", 5, "text/html", 9);
 		serialize_string(&data->feed.content, "text=", 5, data->text);
 	}
-	return PARSE_OKAY;
 }
 
-int8_t
+void
 generic_category_end(struct feed_update_state *data)
 {
-	if (data->in_item == true) {
+	if (data->in_item) {
 		serialize_caret(&data->feed.item->extras);
 		serialize_string(&data->feed.item->extras, "category=", 9, data->text);
 	} else {
 		serialize_caret(&data->feed.extras);
 		serialize_string(&data->feed.extras, "category=", 9, data->text);
 	}
-	return PARSE_OKAY;
 }
 
-int8_t
+void
 update_date_end(struct feed_update_state *data)
 {
-	if (data->in_item == true) {
+	if (data->in_item) {
 		data->feed.item->update_date = parse_date(data->text->ptr, true);
 	}
-	return PARSE_OKAY;
 }
 
-int8_t
+void
 log_xml_element_content_end(struct feed_update_state *data)
 {
 	INFO("Element content: %s", data->text->ptr);
-	return PARSE_OKAY;
 }

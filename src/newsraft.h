@@ -514,6 +514,7 @@ struct wstring *convert_string_to_wstring(const struct string *src);
 struct wstring *convert_array_to_wstring(const char *src_ptr, size_t src_len);
 void remove_start_of_string(struct string *str, size_t size);
 void inlinefy_string(struct string *title);
+struct string *newsraft_base64_encode(const uint8_t *data, size_t size);
 
 // See "string-serialize.c" file for implementation.
 void serialize_caret(struct string **target);

@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 #include "newsraft.h"
 
 static inline void
@@ -36,13 +37,20 @@ copy_string_to_clipboard(const struct string *src)
 {
 	if (src != NULL && src->len > 0) {
 		const struct string *cmd = get_cfg_string(NULL, CFG_COPY_TO_CLIPBOARD_COMMAND);
-		FILE *p = popen(cmd->ptr, "w");
-		if (p == NULL) {
-			fail_status("Failed to execute clipboard command!");
-			return;
+		if (strcmp(cmd->ptr, "newsraft-osc-52") == 0) {
+			struct string *encoded_src = newsraft_base64_encode((uint8_t *)src->ptr, src->len);
+			printf("\x1b]52;c;%s\x07", encoded_src->ptr);
+			fflush(stdout);
+			free_string(encoded_src);
+		} else {
+			FILE *p = popen(cmd->ptr, "w");
+			if (p == NULL) {
+				fail_status("Failed to execute clipboard command!");
+				return;
+			}
+			fwrite(src->ptr, sizeof(char), src->len, p);
+			pclose(p);
 		}
-		fwrite(src->ptr, sizeof(char), src->len, p);
-		pclose(p);
 		info_status("Copied %s", src->ptr);
 	}
 }

@@ -5,7 +5,7 @@
 .nh
 .ad l
 .\" Begin generated content:
-.TH "NEWSRAFT" "1" "2025-04-07"
+.TH "NEWSRAFT" "1" "2025-04-08"
 .PP
 .SH NAME
 .PP
@@ -419,11 +419,25 @@ browser.\& The URL to be opened is put in place where \fI%l\fR specifier is loca
 .PP
 .SS copy-to-clipboard-command
 Default: \fIauto\fR.\& Shell command for copying text to clipboard.\& All copied data is
-sent to the standard input of the command.\& If it is set to \fI"auto"\fR, then
-Newsraft will set the setting value to \fI"wl-copy"\fR if environment variable
-WAYLAND_DISPLAY is set and to \fI"xclip -selection clipboard"\fR if environment
-variable DISPLAY is set.\& Systems on macOS will force setting value to
-\fI"pbcopy"\fR.\& In other cases the setting value will be set to \fI"false"\fR.\&
+piped into the standard input of the specified command.\& If it'\&s set to \fI"auto"\fR,
+Newsraft will determine the appropriate command based on the user environment:
+.PP
+.PD 0
+.IP \(bu 4
+\fI"wl-copy"\fR if environment variable WAYLAND_DISPLAY is set
+.IP \(bu 4
+\fI"xclip -selection clipboard"\fR if environment variable DISPLAY is set
+.IP \(bu 4
+\fI"pbcopy"\fR if Newsraft was built for macOS operating system
+.IP \(bu 4
+\fI"newsraft-osc-52"\fR otherwise
+.PD
+.PP
+\fI"newsraft-osc-52"\fR is a special value that doesn'\&t run an external command but
+instead triggers the OSC 52 escape sequence, instructing the terminal to copy
+data directly to the system clipboard.\& This behavior is especially useful when
+running Newsraft over \fBssh\fR(1), as it allows clipboard operations to affect the
+local system rather than the remote one.\&
 .PP
 .SS notification-command (*)
 Default: \fIauto\fR.\& Shell command for invoking system notifications about new news
@@ -1049,7 +1063,7 @@ T}
 .sp 1
 .SH SEE ALSO
 .PP
-\fBmpv\fR(1), \fBfeh\fR(1), \fBsqlite3\fR(1), \fBstrftime\fR(3), \fBncurses\fR(3), \fBlibcurl\fR(3), \fBlibcurl-env\fR(3)
+\fBmpv\fR(1), \fBfeh\fR(1), \fBsqlite3\fR(1), \fBstrftime\fR(3), \fBssh\fR(1), \fBncurses\fR(3), \fBlibcurl\fR(3), \fBlibcurl-env\fR(3)
 .PP
 .SH BUGS
 .PP

@@ -229,3 +229,34 @@ inlinefy_string(struct string *str)
 	*dest = '\0';
 	str->len = dest - str->ptr;
 }
+
+struct string *
+newsraft_base64_encode(const uint8_t *data, size_t size)
+{
+	static char base64_encoding_table[] = {
+		'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
+		'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P',
+		'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X',
+		'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f',
+		'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n',
+		'o', 'p', 'q', 'r', 's', 't', 'u', 'v',
+		'w', 'x', 'y', 'z', '0', '1', '2', '3',
+		'4', '5', '6', '7', '8', '9', '+', '/'
+	};
+	struct string *out = crtes(size * 4);
+	for (size_t i = 0; i < size;) {
+		uint32_t octet_a = i < size ? data[i++] : 0;
+		uint32_t octet_b = i < size ? data[i++] : 0;
+		uint32_t octet_c = i < size ? data[i++] : 0;
+		uint32_t triple = (octet_a << 16) + (octet_b << 8) + octet_c;
+		catcs(out, base64_encoding_table[(triple >> 3 * 6) & 0x3F]);
+		catcs(out, base64_encoding_table[(triple >> 2 * 6) & 0x3F]);
+		catcs(out, base64_encoding_table[(triple >> 1 * 6) & 0x3F]);
+		catcs(out, base64_encoding_table[(triple >> 0 * 6) & 0x3F]);
+	}
+	switch (size % 3) {
+		case 1: if (out->len >= 2) out->ptr[out->len - 2] = '='; // fall through
+		case 2: if (out->len >= 1) out->ptr[out->len - 1] = '='; // fall through
+	}
+	return out;
+}

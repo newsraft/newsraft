@@ -291,11 +291,19 @@ browser. The URL to be opened is put in place where _%l_ specifier is located.
 
 ## copy-to-clipboard-command
 Default: _auto_. Shell command for copying text to clipboard. All copied data is
-sent to the standard input of the command. If it is set to _"auto"_, then
-Newsraft will set the setting value to _"wl-copy"_ if environment variable
-WAYLAND_DISPLAY is set and to _"xclip -selection clipboard"_ if environment
-variable DISPLAY is set. Systems on macOS will force setting value to
-_"pbcopy"_. In other cases the setting value will be set to _"false"_.
+piped into the standard input of the specified command. If it's set to _"auto"_,
+Newsraft will determine the appropriate command based on the user environment:
+
+- _"wl-copy"_ if environment variable WAYLAND_DISPLAY is set
+- _"xclip -selection clipboard"_ if environment variable DISPLAY is set
+- _"pbcopy"_ if Newsraft was built for macOS operating system
+- _"newsraft-osc-52"_ otherwise
+
+_"newsraft-osc-52"_ is a special value that doesn't run an external command but
+instead triggers the OSC 52 escape sequence, instructing the terminal to copy
+data directly to the system clipboard. This behavior is especially useful when
+running Newsraft over *ssh*(1), as it allows clipboard operations to affect the
+local system rather than the remote one.
 
 ## notification-command (*)
 Default: _auto_. Shell command for invoking system notifications about new news
@@ -628,7 +636,7 @@ in *ncurses*(3), but many may prefer a value much less than that or even 0.
 
 # SEE ALSO
 
-*mpv*(1), *feh*(1), *sqlite3*(1), *strftime*(3), *ncurses*(3), *libcurl*(3), *libcurl-env*(3)
+*mpv*(1), *feh*(1), *sqlite3*(1), *strftime*(3), *ssh*(1), *ncurses*(3), *libcurl*(3), *libcurl-env*(3)
 
 # BUGS
 

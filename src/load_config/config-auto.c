@@ -30,7 +30,7 @@ obtain_clipboard_command(struct config_context **ctx, config_type_id id)
 	} else if (getenv("DISPLAY") != NULL) {
 		return set_cfg_string(ctx, id, "xclip -selection clipboard", 26);
 	} else {
-		return set_cfg_string(ctx, id, "false", 5);
+		return set_cfg_string(ctx, id, "newsraft-osc-52", 15);
 	}
 }
 

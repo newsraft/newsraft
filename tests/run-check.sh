@@ -12,19 +12,17 @@ make CFLAGS='-O3 -fPIC' libnewsraft.so
 test -e libnewsraft.so
 
 echo
-tests_count=0
-okays_count=0
 for test_file in tests/*.c; do
-	status='FAIL'
-	tests_count="$((tests_count + 1))"
+	status=0
 	rm -rf newsraft-test-database*
 	make TEST_FILE="$test_file" test-program 1>>"$log_file" 2>&1
-	if env LD_LIBRARY_PATH=. ./newsraft-test 2>&1 | tee -a "$log_file"; then
-		status='OKAY'
-		okays_count="$((okays_count + 1))"
-	fi
-	echo "[$status] $test_file" | tee -a "$log_file"
-done
+	env LD_LIBRARY_PATH=. ./newsraft-test 2>&1 || status="$?"
+	echo "TEST_STATUS:$status" >> "$log_file"
+	echo "[$([ "$status" = 0 ] && echo 'OKAY' || echo 'FAIL')] $test_file"
+done | tee -a "$log_file"
+
+okays_count="$(grep -c TEST_STATUS:0 "$log_file")"
+tests_count="$(grep -c TEST_STATUS:  "$log_file")"
 
 echo
 echo "$okays_count/$tests_count TESTS PASSED"

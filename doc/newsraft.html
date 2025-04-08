@@ -420,13 +420,25 @@
 <section class="Ss">
 <h2 class="Ss" id="copy-to-clipboard-command"><a class="permalink" href="#copy-to-clipboard-command">copy-to-clipboard-command</a></h2>
 <p class="Pp">Default: <i>auto</i>. Shell command for copying text to clipboard.
-    All copied data is sent to the standard input of the command. If it is set
-    to <i>&quot;auto&quot;</i>, then Newsraft will set the setting value to
-    <i>&quot;wl-copy&quot;</i> if environment variable WAYLAND_DISPLAY is set
-    and to <i>&quot;xclip -selection clipboard&quot;</i> if environment variable
-    DISPLAY is set. Systems on macOS will force setting value to
-    <i>&quot;pbcopy&quot;</i>. In other cases the setting value will be set to
-    <i>&quot;false&quot;</i>.</p>
+    All copied data is piped into the standard input of the specified command.
+    If it's set to <i>&quot;auto&quot;</i>, Newsraft will determine the
+    appropriate command based on the user environment:</p>
+<p class="Pp"></p>
+<ul class="Bl-bullet">
+  <li><i>&quot;wl-copy&quot;</i> if environment variable WAYLAND_DISPLAY is
+    set</li>
+  <li><i>&quot;xclip -selection clipboard&quot;</i> if environment variable
+      DISPLAY is set</li>
+  <li><i>&quot;pbcopy&quot;</i> if Newsraft was built for macOS operating
+    system</li>
+  <li><i>&quot;newsraft-osc-52&quot;</i> otherwise</li>
+</ul>
+<p class="Pp"><i>&quot;newsraft-osc-52&quot;</i> is a special value that doesn't
+    run an external command but instead triggers the OSC 52 escape sequence,
+    instructing the terminal to copy data directly to the system clipboard. This
+    behavior is especially useful when running Newsraft over <b>ssh</b>(1), as
+    it allows clipboard operations to affect the local system rather than the
+    remote one.</p>
 </section>
 <section class="Ss">
 <h2 class="Ss" id="notification-command_(*)"><a class="permalink" href="#notification-command_(*)">notification-command
@@ -993,7 +1005,7 @@
 <h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
   ALSO</a></h1>
 <p class="Pp"><b>mpv</b>(1), <b>feh</b>(1), <b>sqlite3</b>(1),
-    <b>strftime</b>(3), <b>ncurses</b>(3), <b>libcurl</b>(3),
+    <b>strftime</b>(3), <b>ssh</b>(1), <b>ncurses</b>(3), <b>libcurl</b>(3),
     <b>libcurl-env</b>(3)</p>
 </section>
 <section class="Sh">
@@ -1007,7 +1019,7 @@
 </div>
 <table class="foot">
   <tr>
-    <td class="foot-date">2025-04-07</td>
+    <td class="foot-date">2025-04-08</td>
     <td class="foot-os"></td>
   </tr>
 </table>

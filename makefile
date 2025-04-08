@@ -26,11 +26,12 @@ DESTDIR       =
 PREFIX        = /usr/local
 BINDIR        = $(PREFIX)/bin
 MANDIR        = $(PREFIX)/share/man
+ICONSDIR      = $(PREFIX)/share/icons/hicolor/scalable/apps
 EXAMPLES_DIR  = $(PREFIX)/share/newsraft/examples
 
 all: newsraft
 
-install: install-newsraft install-man install-examples
+install: install-newsraft install-man install-icon install-examples
 
 install-newsraft: newsraft
 	mkdir -p $(DESTDIR)$(BINDIR)
@@ -39,6 +40,10 @@ install-newsraft: newsraft
 install-man:
 	mkdir -p $(DESTDIR)$(MANDIR)/man1
 	install -m644 doc/newsraft.1 $(DESTDIR)$(MANDIR)/man1/.
+
+install-icon:
+	mkdir -p $(DESTDIR)$(ICONSDIR)
+	install -m644 doc/newsraft.svg $(DESTDIR)$(ICONSDIR)/.
 
 install-examples:
 	mkdir -p $(DESTDIR)$(EXAMPLES_DIR)

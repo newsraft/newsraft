@@ -483,7 +483,7 @@ struct menu_state *errors_pager_loop(struct menu_state *m);
 // See "binds.c" file for implementation.
 input_id get_action_of_bind(struct input_binding *ctx, const char *key, size_t action_index, const struct wstring **macro_ptr);
 struct input_binding *create_or_clean_bind(struct input_binding **target, const char *key);
-bool attach_action_to_bind(struct input_binding *bind, input_id action);
+void attach_action_to_bind(struct input_binding *bind, input_id action);
 bool attach_command_to_bind(struct input_binding *bind, const char *exec, size_t exec_len);
 bool assign_default_binds(void);
 input_id get_input_id_by_name(const char *name);

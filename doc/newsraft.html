@@ -444,11 +444,19 @@
 <h2 class="Ss" id="notification-command_(*)"><a class="permalink" href="#notification-command_(*)">notification-command
   (*)</a></h2>
 <p class="Pp">Default: <i>auto</i>. Shell command for invoking system
-    notifications about new news received. If it is set to
-    <i>&quot;auto&quot;</i>, then Newsraft will set the setting value to
-    <i>&quot;notify-send 'Newsraft brought %q news!'&quot;</i> for most Unix
-    systems and to <i>&quot;osascript -e 'display notification &quot;Newsraft
-    brought %q news!&quot;'&quot;</i> for macOS.</p>
+    notifications about new news received. If it's set to
+    <i>&quot;auto&quot;</i>, Newsraft will determine the appropriate command
+    based on the user environment:</p>
+<p class="Pp"></p>
+<ul class="Bl-bullet">
+  <li><i>&quot;notify-send 'Newsraft brought %q news!'&quot;</i> if
+      WAYLAND_DISPLAY or DISPLAY is set in environment</li>
+  <li><i>&quot;osascript -e 'display notification &quot;Newsraft brought %q
+      news!&quot;'&quot;</i> if Newsraft was built for macOS operating
+    system</li>
+  <li><i>&quot;printf '\e]9;Newsraft brought %q news!\a'&quot;</i> (OSC 9 escape
+      sequence) otherwise</li>
+</ul>
 </section>
 <section class="Ss">
 <h2 class="Ss" id="proxy_(*)"><a class="permalink" href="#proxy_(*)">proxy
@@ -1019,7 +1027,7 @@
 </div>
 <table class="foot">
   <tr>
-    <td class="foot-date">2025-04-08</td>
+    <td class="foot-date">2025-04-13</td>
     <td class="foot-os"></td>
   </tr>
 </table>

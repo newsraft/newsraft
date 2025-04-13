@@ -40,5 +40,9 @@ obtain_notification_command(struct config_context **ctx, config_type_id id)
 #ifdef __APPLE__
 	return set_cfg_string(ctx, id, "osascript -e 'display notification \"Newsraft brought %q news!\"'", 63);
 #endif
-	return set_cfg_string(ctx, id, "notify-send 'Newsraft brought %q news!'", 39);
+	if (getenv("WAYLAND_DISPLAY") != NULL || getenv("DISPLAY") != NULL) {
+		return set_cfg_string(ctx, id, "notify-send 'Newsraft brought %q news!'", 39);
+	} else {
+		return set_cfg_string(ctx, id, "printf '\\e]9;Newsraft brought %q news!\\a'", 41);
+	}
 }

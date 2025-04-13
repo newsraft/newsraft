@@ -130,9 +130,10 @@ process_config_line(struct feed_entry *feed, const char *str, size_t len)
 				}
 			} else {
 				input_id cmd = get_input_id_by_name(token->ptr);
-				if (cmd == INPUT_ERROR || attach_action_to_bind(bind, cmd) == false) {
+				if (cmd == INPUT_ERROR) {
 					goto error;
 				}
+				attach_action_to_bind(bind, cmd);
 			}
 			continue;
 

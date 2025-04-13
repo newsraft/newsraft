@@ -307,9 +307,12 @@ local system rather than the remote one.
 
 ## notification-command (*)
 Default: _auto_. Shell command for invoking system notifications about new news
-received. If it is set to _"auto"_, then Newsraft will set the setting value to
-_"notify-send 'Newsraft brought %q news!'"_ for most Unix systems and to
-_"osascript -e 'display notification "Newsraft brought %q news!"'"_ for macOS.
+received. If it's set to _"auto"_, Newsraft will determine the appropriate
+command based on the user environment:
+
+- _"notify-send 'Newsraft brought %q news!'"_ if WAYLAND_DISPLAY or DISPLAY is set in environment
+- _"osascript -e 'display notification "Newsraft brought %q news!"'"_ if Newsraft was built for macOS operating system
+- _"printf '\\e]9;Newsraft brought %q news!\\a'"_ (OSC 9 escape sequence) otherwise
 
 ## proxy (*)
 Default: _""_. Sets the proxy to use for the network requests. It must be either

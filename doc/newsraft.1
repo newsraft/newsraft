@@ -5,7 +5,7 @@
 .nh
 .ad l
 .\" Begin generated content:
-.TH "NEWSRAFT" "1" "2025-04-08"
+.TH "NEWSRAFT" "1" "2025-04-13"
 .PP
 .SH NAME
 .PP
@@ -441,9 +441,17 @@ local system rather than the remote one.\&
 .PP
 .SS notification-command (*)
 Default: \fIauto\fR.\& Shell command for invoking system notifications about new news
-received.\& If it is set to \fI"auto"\fR, then Newsraft will set the setting value to
-\fI"notify-send '\&Newsraft brought %q news!\&'\&"\fR for most Unix systems and to
-\fI"osascript -e '\&display notification "Newsraft brought %q news!\&"'\&"\fR for macOS.\&
+received.\& If it'\&s set to \fI"auto"\fR, Newsraft will determine the appropriate
+command based on the user environment:
+.PP
+.PD 0
+.IP \(bu 4
+\fI"notify-send '\&Newsraft brought %q news!\&'\&"\fR if WAYLAND_DISPLAY or DISPLAY is set in environment
+.IP \(bu 4
+\fI"osascript -e '\&display notification "Newsraft brought %q news!\&"'\&"\fR if Newsraft was built for macOS operating system
+.IP \(bu 4
+\fI"printf '\&\ee]9;Newsraft brought %q news!\&\ea'\&"\fR (OSC 9 escape sequence) otherwise
+.PD
 .PP
 .SS proxy (*)
 Default: \fI""\fR.\& Sets the proxy to use for the network requests.\& It must be either

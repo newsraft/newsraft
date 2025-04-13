@@ -58,14 +58,13 @@ create_or_clean_bind(struct input_binding **target, const char *key)
 		}
 	}
 	struct input_binding *new = newsraft_calloc(1, sizeof(struct input_binding));
-	struct string *new_key = crtas(key, strlen(key));
-	new->key = new_key;
+	new->key = crtas(key, strlen(key));
 	new->next = *target;
 	*target = new;
 	return *target;
 }
 
-static inline bool
+static inline void
 attach_action_or_command_to_bind(struct input_binding *bind, input_id cmd, struct wstring *exec)
 {
 	bind->actions = newsraft_realloc(bind->actions, sizeof(struct binding_action) * (bind->actions_count + 1));
@@ -73,27 +72,31 @@ attach_action_or_command_to_bind(struct input_binding *bind, input_id cmd, struc
 	bind->actions[bind->actions_count].exec = exec;
 	bind->actions_count += 1;
 	INFO("Attached action: %14s, %zu, %2u, %ls", bind->key->ptr, bind->actions_count, cmd, exec == NULL ? L"none" : exec->ptr);
-	return true;
 }
 
-bool
+void
 attach_action_to_bind(struct input_binding *bind, input_id action)
 {
-	return attach_action_or_command_to_bind(bind, action, NULL);
+	attach_action_or_command_to_bind(bind, action, NULL);
 }
 
 bool
 attach_command_to_bind(struct input_binding *bind, const char *exec, size_t exec_len)
 {
 	struct wstring *wstr = convert_array_to_wstring(exec, exec_len);
-	return wstr != NULL && attach_action_or_command_to_bind(bind, INPUT_SYSTEM_COMMAND, wstr);
+	if (wstr == NULL) {
+		return false;
+	}
+	attach_action_or_command_to_bind(bind, INPUT_SYSTEM_COMMAND, wstr);
+	return true;
 }
 
-static bool
+static void
 create2bind(const char *key, input_id action1, input_id action2)
 {
 	struct input_binding *bind = create_or_clean_bind(NULL, key);
-	return bind && attach_action_to_bind(bind, action1) && attach_action_to_bind(bind, action2);
+	attach_action_to_bind(bind, action1);
+	attach_action_to_bind(bind, action2);
 }
 
 bool
@@ -102,18 +105,12 @@ assign_default_binds(void)
 	for (size_t i = 0; inputs[i].names[0] != NULL; ++i) {
 		for (size_t j = 0; inputs[i].default_binds[j] != NULL; ++j) {
 			struct input_binding *bind = create_or_clean_bind(NULL, inputs[i].default_binds[j]);
-			if (bind == NULL || attach_action_to_bind(bind, i) == false) {
-				goto fail;
-			}
+			attach_action_to_bind(bind, i);
 		}
 	}
-	if (create2bind("d", INPUT_MARK_READ, INPUT_JUMP_TO_NEXT)   == false) { goto fail; }
-	if (create2bind("D", INPUT_MARK_UNREAD, INPUT_JUMP_TO_NEXT) == false) { goto fail; }
+	create2bind("d", INPUT_MARK_READ, INPUT_JUMP_TO_NEXT);
+	create2bind("D", INPUT_MARK_UNREAD, INPUT_JUMP_TO_NEXT);
 	return true;
-fail:
-	write_error("Failed to assign default binds!\n");
-	free_binds(binds);
-	return false;
 }
 
 input_id

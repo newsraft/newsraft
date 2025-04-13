@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=Newsraft
+GenericName=Feed reader
+Comment=Feed reader for terminal
+Type=Application
+Exec=newsraft
+Icon=newsraft
+Terminal=true
+Categories=Feed;News;Network;ConsoleOnly;
+Keywords=feed;news;network;console;

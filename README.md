@@ -66,6 +66,8 @@ Examples on how to configure Newsraft are located in the
 [doc/examples](https://codeberg.org/newsraft/newsraft/src/branch/main/doc/examples)
 directory.
 
+If you want to connect with fellow users of Newsraft, come to **#newsraft** at [libera.chat](https://libera.chat) IRC server.
+
 ## Contributing
 
 Reporting bugs: [doc/contributing-report.md](https://codeberg.org/newsraft/newsraft/src/branch/main/doc/contributing-report.md)

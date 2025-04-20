@@ -1,5 +1,5 @@
 .POSIX:
-.PHONY: all install install-newsraft install-man install-examples man html clean check cppcheck clang-tidy
+.PHONY: all install install-newsraft install-man install-icon install-examples man html clean check gperf cppcheck clang-tidy
 
 CC            = cc
 CFLAGS        = -O3

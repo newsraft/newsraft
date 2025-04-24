@@ -1,5 +1,5 @@
 .POSIX:
-.PHONY: all install install-newsraft install-man install-icon install-examples man html clean check gperf cppcheck clang-tidy
+.PHONY: all install install-newsraft install-man install-icon install-desktop install-examples man html clean check gperf cppcheck clang-tidy
 
 CC            = cc
 CFLAGS        = -O3
@@ -27,6 +27,7 @@ PREFIX        = /usr/local
 BINDIR        = $(PREFIX)/bin
 MANDIR        = $(PREFIX)/share/man
 ICONSDIR      = $(PREFIX)/share/icons/hicolor/scalable/apps
+DESKTOPDIR    = $(PREFIX)/share/applications
 EXAMPLES_DIR  = $(PREFIX)/share/newsraft/examples
 
 all: newsraft
@@ -44,6 +45,10 @@ install-man:
 install-icon:
 	mkdir -p $(DESTDIR)$(ICONSDIR)
 	install -m644 doc/newsraft.svg $(DESTDIR)$(ICONSDIR)/.
+
+install-desktop:
+	mkdir -p $(DESTDIR)$(DESKTOPDIR)
+	install -m644 doc/newsraft.desktop $(DESTDIR)$(DESKTOPDIR)/.
 
 install-examples:
 	mkdir -p $(DESTDIR)$(EXAMPLES_DIR)

@@ -541,6 +541,10 @@ _bold_, _italic_ and _underlined_.
 |[ *jump-to-next-important*
 :[ _p_
 |[ *jump-to-prev-important*
+:[ _e_
+|[ *next-error*
+:[ _E_
+|[ *prev-error*
 :[ _P_
 |[ *goto-feed*
 :[ _\*_
@@ -581,7 +585,7 @@ _bold_, _italic_ and _underlined_.
 |[ *mark-unimportant*
 :[ _F_
 |[ *toggle-explore-mode*
-:[ _tab_, _e_
+:[ _tab_
 |[ *view-errors*
 :[ _v_
 |[ *open-in-browser*

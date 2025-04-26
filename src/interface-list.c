@@ -257,6 +257,31 @@ handle_list_menu_control(struct menu_state *m, input_id cmd, const struct wstrin
 				i = obtain_list_entries_count_unprotected(m);
 			}
 		}
+	} else if (cmd == INPUT_JUMP_TO_NEXT_ERROR && m->failed_state != NULL) {
+		for (size_t i = m->view_sel + 1, j = 0; j < 2; i = 0, ++j) {
+			while (m->enumerator(m, i) == true) {
+				if (m->failed_state(m, i) == true) {
+					change_list_view_unprotected(m, i);
+					j = 2;
+					break;
+				}
+				i += 1;
+			}
+		}
+	} else if (cmd == INPUT_JUMP_TO_PREV_ERROR && m->failed_state != NULL) {
+		for (size_t i = m->view_sel, j = 0; j < 2; ++j) {
+			while (i > 0 && m->enumerator(m, i - 1) == true) {
+				if (m->failed_state(m, i - 1) == true) {
+					change_list_view_unprotected(m, i - 1);
+					j = 2;
+					break;
+				}
+				i -= 1;
+			}
+			if (j < 2) {
+				i = obtain_list_entries_count_unprotected(m);
+			}
+		}
 	} else if (cmd == INPUT_SELECT_NEXT_PAGE) {
 		change_list_view_unprotected(m, m->view_sel + list_menu_height);
 	} else if (cmd == INPUT_SELECT_NEXT_PAGE_HALF) {

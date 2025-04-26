@@ -48,6 +48,12 @@ is_feed_unread(struct menu_state *ctx, size_t index)
 	return ctx->feeds[index]->unread_count > 0;
 }
 
+static bool
+is_feed_failed(struct menu_state *ctx, size_t index)
+{
+	return ctx->feeds[index]->errors->len > 0;
+}
+
 static int
 compare_feeds_initial(const void *data1, const void *data2)
 {
@@ -110,6 +116,7 @@ feeds_menu_loop(struct menu_state *m)
 	m->get_args     = &get_feed_args;
 	m->paint_action = &paint_feed;
 	m->unread_state = &is_feed_unread;
+	m->failed_state = &is_feed_failed;
 	m->write_action = &list_menu_writer;
 	m->entry_format = get_cfg_wstring(NULL, CFG_MENU_FEED_ENTRY_FORMAT);
 	if (m->feeds_count < 1) {

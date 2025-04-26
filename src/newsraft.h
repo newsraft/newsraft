@@ -218,6 +218,7 @@ struct menu_state {
 	unsigned (*paint_action)(struct menu_state *ctx, size_t index);
 	void (*write_action)(size_t index, WINDOW *w);
 	bool (*unread_state)(struct menu_state *ctx, size_t index);
+	bool (*failed_state)(struct menu_state *ctx, size_t index);
 	struct menu_state *prev;
 };
 

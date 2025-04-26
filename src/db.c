@@ -1,7 +1,34 @@
 #include <string.h>
+#include <regex.h>
 #include "newsraft.h"
 
 static sqlite3 *db;
+
+static void
+newsraft_regexp_cmp(sqlite3_context *ctx, int argc, sqlite3_value **argv)
+{
+	if (argc != 2) {
+		sqlite3_result_error(ctx, "regexp() called with invalid number of arguments.\n", -1);
+		return;
+	}
+
+	const char *exp = (const char *)sqlite3_value_text(argv[0]);
+	const char *text = (const char *)sqlite3_value_text(argv[1]);
+	if (exp == NULL || text == NULL) {
+		sqlite3_result_error(ctx, "regexp() called with invalid argument values.\n", -1);
+		return;
+	}
+
+	regex_t regex;
+	if (regcomp(&regex, exp, REG_EXTENDED | REG_NOSUB) != 0) {
+		sqlite3_result_error(ctx, "regexp() failed to compile regular expression.\n", -1);
+		return;
+	}
+
+	int ret = regexec(&regex, text , 0, NULL, 0);
+	regfree(&regex);
+	sqlite3_result_int(ctx, ret != REG_NOMATCH);
+}
 
 bool
 db_init(void)
@@ -28,6 +55,11 @@ db_init(void)
 	sqlite3_exec(db, "PRAGMA locking_mode = EXCLUSIVE;", NULL, NULL, &errmsg);
 	if (errmsg != NULL) {
 		write_error("Failed to open database in exclusive locking mode: %s!\n", errmsg);
+		goto error;
+	}
+
+	if (sqlite3_create_function(db, "regexp", 2, SQLITE_ANY, 0, &newsraft_regexp_cmp, 0, 0) != SQLITE_OK) {
+		write_error("Failed to register REGEXP database function!\n");
 		goto error;
 	}
 

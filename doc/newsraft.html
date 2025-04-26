@@ -342,10 +342,14 @@
 <br/>
 <i>persons LIKE '%PHARMACIST%' OR persons LIKE '%OFFL1NX%'</i>
 <br/>
-<i>NOT (attachments LIKE '%audio/mp3%' OR attachments LIKE '%video/mp4%')</i>
+<i>attachments LIKE '%audio/mp3%' OR attachments LIKE '%video/mp4%'</i>
 <br/>
-<i>CAST(strftime('%Y', publication_date, 'unixepoch') AS INTEGER) &gt;=
-  2024</i></div>
+<i>CAST(strftime('%Y', publication_date, 'unixepoch') AS INTEGER) &gt;= 2024</i>
+<br/>
+<i>NOT (title REGEXP '.+:.+\&quot;.+\&quot;.+by' OR title LIKE '%(ultra
+  slowed)%' OR title LIKE '%(1 hour version)%')</i></div>
+<p class="Pp">REGEXP operator uses POSIX Extended Regular Expression syntax, see
+    <b>regex</b>(7).</p>
 </section>
 <section class="Ss">
 <h2 class="Ss" id="item-limit_(*)"><a class="permalink" href="#item-limit_(*)">item-limit
@@ -1012,8 +1016,8 @@
 <section class="Sh">
 <h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
   ALSO</a></h1>
-<p class="Pp"><b>mpv</b>(1), <b>feh</b>(1), <b>sqlite3</b>(1),
-    <b>strftime</b>(3), <b>ssh</b>(1), <b>ncurses</b>(3), <b>libcurl</b>(3),
+<p class="Pp"><b>mpv</b>(1), <b>feh</b>(1), <b>sqlite3</b>(1), <b>regex</b>(7),
+    <b>ssh</b>(1), <b>strftime</b>(3), <b>ncurses</b>(3), <b>libcurl</b>(3),
     <b>libcurl-env</b>(3)</p>
 </section>
 <section class="Sh">
@@ -1027,7 +1031,7 @@
 </div>
 <table class="foot">
   <tr>
-    <td class="foot-date">2025-04-13</td>
+    <td class="foot-date">2025-04-26</td>
     <td class="foot-os"></td>
   </tr>
 </table>

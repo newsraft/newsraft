@@ -241,8 +241,11 @@ Here are some examples of correct setting values:
 
 	_title NOT LIKE '%Rust%'_++
 _persons LIKE '%PHARMACIST%' OR persons LIKE '%OFFL1NX%'_++
-_NOT (attachments LIKE '%audio/mp3%' OR attachments LIKE '%video/mp4%')_++
-_CAST(strftime('%Y', publication_date, 'unixepoch') AS INTEGER) >= 2024_
+_attachments LIKE '%audio/mp3%' OR attachments LIKE '%video/mp4%'_++
+_CAST(strftime('%Y', publication_date, 'unixepoch') AS INTEGER) >= 2024_++
+_NOT (title REGEXP '.+:.+\\".+\\".+by' OR title LIKE '%(ultra slowed)%' OR title LIKE '%(1 hour version)%')_
+
+REGEXP operator uses POSIX Extended Regular Expression syntax, see *regex*(7).
 
 ## item-limit (*)
 Default: _0_. Maximum number of items stored in a feed. If set to _0_, no limit
@@ -639,7 +642,7 @@ in *ncurses*(3), but many may prefer a value much less than that or even 0.
 
 # SEE ALSO
 
-*mpv*(1), *feh*(1), *sqlite3*(1), *strftime*(3), *ssh*(1), *ncurses*(3), *libcurl*(3), *libcurl-env*(3)
+*mpv*(1), *feh*(1), *sqlite3*(1), *regex*(7), *ssh*(1), *strftime*(3), *ncurses*(3), *libcurl*(3), *libcurl-env*(3)
 
 # BUGS
 

@@ -5,7 +5,7 @@
 .nh
 .ad l
 .\" Begin generated content:
-.TH "NEWSRAFT" "1" "2025-04-13"
+.TH "NEWSRAFT" "1" "2025-04-26"
 .PP
 .SH NAME
 .PP
@@ -367,11 +367,15 @@ Here are some examples of correct setting values:
 .br
 \fIpersons LIKE '\&%PHARMACIST%'\& OR persons LIKE '\&%OFFL1NX%'\&\fR
 .br
-\fINOT (attachments LIKE '\&%audio/mp3%'\& OR attachments LIKE '\&%video/mp4%'\&)\fR
+\fIattachments LIKE '\&%audio/mp3%'\& OR attachments LIKE '\&%video/mp4%'\&\fR
 .br
 \fICAST(strftime('\&%Y'\&, publication_date, '\&unixepoch'\&) AS INTEGER) >= 2024\fR
+.br
+\fINOT (title REGEXP '\&.\&+:.\&+\e".\&+\e".\&+by'\& OR title LIKE '\&%(ultra slowed)%'\& OR title LIKE '\&%(1 hour version)%'\&)\fR
 .PP
 .RE
+REGEXP operator uses POSIX Extended Regular Expression syntax, see \fBregex\fR(7).\&
+.PP
 .SS item-limit (*)
 Default: \fI0\fR.\& Maximum number of items stored in a feed.\& If set to \fI0\fR, no limit
 will be set.\&
@@ -1071,7 +1075,7 @@ T}
 .sp 1
 .SH SEE ALSO
 .PP
-\fBmpv\fR(1), \fBfeh\fR(1), \fBsqlite3\fR(1), \fBstrftime\fR(3), \fBssh\fR(1), \fBncurses\fR(3), \fBlibcurl\fR(3), \fBlibcurl-env\fR(3)
+\fBmpv\fR(1), \fBfeh\fR(1), \fBsqlite3\fR(1), \fBregex\fR(7), \fBssh\fR(1), \fBstrftime\fR(3), \fBncurses\fR(3), \fBlibcurl\fR(3), \fBlibcurl-env\fR(3)
 .PP
 .SH BUGS
 .PP

@@ -13,12 +13,12 @@
 
 ## Compilation
 
-| Operating system  | Command                                                                             |
-|-------------------|-------------------------------------------------------------------------------------|
-| General Unix-like | `make`                                                                              |
-| Ubuntu            | `make CFLAGS="-DCURL_WRITEFUNC_ERROR=0xFFFFFFFF"`                                   |
-| OpenBSD           | `make CFLAGS="-I/usr/local/include" LDFLAGS="-L/usr/local/lib"`                     |
-| macOS             | `make CFLAGS="-DCURL_WRITEFUNC_ERROR=0xFFFFFFFF" -D_C99_SOURCE -D_DARWIN_C_SOURCE"` |
+| Operating system      | Command                                                                             |
+|-----------------------|-------------------------------------------------------------------------------------|
+| General Unix-like     | `make`                                                                              |
+| OpenBSD               | `make CFLAGS="-I/usr/local/include" LDFLAGS="-L/usr/local/lib"`                     |
+| macOS (Apple Silicon) | `make CFLAGS="-I/opt/homebrew/include"`                                             |
+| macOS (Intel)         | `make CFLAGS="-I/usr/local/include"`                                                |
 
 ## Examination
 

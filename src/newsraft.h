@@ -330,9 +330,7 @@ bool start_updating_all_feeds_and_wait_finish(void);
 bool print_unread_items_count(void);
 void process_auto_updating_feeds(void);
 void mark_feeds_read(struct feed_entry **feeds, size_t feeds_count, bool status);
-#ifdef TEST
 struct feed_entry **get_all_feeds(size_t *feeds_count);
-#endif
 
 // See "feeds-parse.c" file for implementation.
 bool parse_feeds_file(void);
@@ -596,6 +594,8 @@ void threads_stop(void);
 
 // See "parse_xml" directory for implementation.
 bool setup_xml_parser(struct feed_update_state *data);
+bool convert_opml_to_feeds(void);
+bool convert_feeds_to_opml(void);
 
 // See "parse_json" directory for implementation.
 bool setup_json_parser(struct feed_update_state *data);

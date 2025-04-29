@@ -46,12 +46,11 @@ main(void)
 {
 	int status = 0;
 	setlocale(LC_ALL, "");
-
 	set_db_path("./newsraft-test-database");
-	set_feeds_path("./tests/parse_feeds_file_data.txt");
+	set_feeds_path("./tests/assets/parse_feeds_file.txt");
 	db_init();
-
 	parse_feeds_file();
+	db_stop();
 
 	size_t feeds_count = 0;
 	struct feed_entry **feeds = get_all_feeds(&feeds_count);

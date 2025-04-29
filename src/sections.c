@@ -65,14 +65,12 @@ is_section_failed(struct menu_state *ctx, size_t index)
 	return sections_view[index]->has_errors;
 }
 
-#ifdef TEST
 struct feed_entry **
 get_all_feeds(size_t *feeds_count)
 {
 	*feeds_count = sections[0].feeds_count;
 	return sections[0].feeds;
 }
-#endif
 
 void
 mark_feeds_read(struct feed_entry **feeds, size_t feeds_count, bool status)

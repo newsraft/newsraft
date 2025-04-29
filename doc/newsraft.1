@@ -5,7 +5,7 @@
 .nh
 .ad l
 .\" Begin generated content:
-.TH "NEWSRAFT" "1" "2025-04-26"
+.TH "NEWSRAFT" "1" "2025-04-29"
 .PP
 .SH NAME
 .PP
@@ -23,51 +23,52 @@ streamlined user interface.\&
 .PP
 .SH OPTIONS
 .PP
-.TS
-l lx
-l l
-l l
-l l
-l l
-l l
-l l.
-T{
 \fB-f\fR \fIFILE\fR
-T}	T{
+.RS 4
 Force \fBfeeds\fR file to \fIFILE\fR.\&
-T}
-T{
+.PP
+.RE
 \fB-c\fR \fIFILE\fR
-T}	T{
+.RS 4
 Force \fBconfig\fR file to \fIFILE\fR.\&
-T}
-T{
+.PP
+.RE
 \fB-d\fR \fIFILE\fR
-T}	T{
+.RS 4
 Force \fBdatabase\fR file to \fIFILE\fR.\&
-T}
-T{
+.PP
+.RE
 \fB-l\fR \fIFILE\fR
-T}	T{
-Write log information to \fIFILE\fR.\&
-T}
-T{
+.RS 4
+Write logs to \fIFILE\fR.\&
+.PP
+.RE
 \fB-e\fR \fIACTION\fR
-T}	T{
-Execute \fIACTION\fR and exit (\fBreload-all\fR \fBprint-unread-items-count\fR \fBpurge-abandoned\fR).\&
-T}
-T{
+.RS 4
+Execute one-time \fIACTION\fR from the following list:
+.RS 4
+\fBconvert-opml-to-feeds\fR (takes OPML from standard input)
+.br
+\fBconvert-feeds-to-opml\fR (takes feeds from \fBfeeds\fR file)
+.br
+\fBreload-all\fR
+.br
+\fBprint-unread-items-count\fR
+.br
+\fBpurge-abandoned\fR
+.PP
+.RE
+.RE
 \fB-v\fR
-T}	T{
+.RS 4
 Print version information.\&
-T}
-T{
+.PP
+.RE
 \fB-h\fR
-T}	T{
+.RS 4
 Print usage information.\&
-T}
-.TE
-.sp 1
+.PP
+.RE
 .SH STARTER GUIDE
 .PP
 To start using Newsraft you have to create a \fBfeeds\fR file with the list of links
@@ -855,17 +856,17 @@ T}
 T{
 \fBjump-to-prev-important\fR
 T}	T{
-\fIe\fR
+\fIP\fR
 T}
 T{
 \fBnext-error\fR
 T}	T{
-\fIE\fR
+\fIe\fR
 T}
 T{
 \fBprev-error\fR
 T}	T{
-\fIP\fR
+\fIE\fR
 T}
 T{
 \fBgoto-feed\fR

@@ -16,20 +16,31 @@ streamlined user interface.
 
 # OPTIONS
 
-|[ *-f* _FILE_
-:< Force *feeds* file to _FILE_.
-|[ *-c* _FILE_
-:[ Force *config* file to _FILE_.
-|[ *-d* _FILE_
-:[ Force *database* file to _FILE_.
-|[ *-l* _FILE_
-:[ Write log information to _FILE_.
-|[ *-e* _ACTION_
-:[ Execute _ACTION_ and exit (*reload-all* *print-unread-items-count* *purge-abandoned*).
-|[ *-v*
-:[ Print version information.
-|[ *-h*
-:[ Print usage information.
+*-f* _FILE_
+	Force *feeds* file to _FILE_.
+
+*-c* _FILE_
+	Force *config* file to _FILE_.
+
+*-d* _FILE_
+	Force *database* file to _FILE_.
+
+*-l* _FILE_
+	Write logs to _FILE_.
+
+*-e* _ACTION_
+	Execute one-time _ACTION_ from the following list:
+		*convert-opml-to-feeds* (takes OPML from standard input)++
+*convert-feeds-to-opml* (takes feeds from *feeds* file)++
+*reload-all*++
+*print-unread-items-count*++
+*purge-abandoned*
+
+*-v*
+	Print version information.
+
+*-h*
+	Print usage information.
 
 # STARTER GUIDE
 
@@ -541,11 +552,11 @@ _bold_, _italic_ and _underlined_.
 |[ *jump-to-next-important*
 :[ _p_
 |[ *jump-to-prev-important*
-:[ _e_
-|[ *next-error*
-:[ _E_
-|[ *prev-error*
 :[ _P_
+|[ *next-error*
+:[ _e_
+|[ *prev-error*
+:[ _E_
 |[ *goto-feed*
 :[ _\*_
 |[ *shift-west*

@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<opml version="2.0">
+	<head>
+		<title>Newsraft - Exported Feeds</title>
+	</head>
+	<body>
+		<outline type="rss" xmlUrl="http://news.com.com/2547-1_3-0-5.xml" title="CNET News.com" />
+		<outline type="rss" xmlUrl="http://www.washingtonpost.com/wp-srv/politics/rssheadlines.xml" title="washingtonpost.com - Politics" />
+		<outline type="rss" xmlUrl="http://radio.weblogs.com/0001011/rss.xml" title="Scobleizer: Microsoft Geek Blogger" />
+		<outline type="rss" xmlUrl="http://rss.news.yahoo.com/rss/tech" title="Yahoo! News: Technology" />
+		<outline type="rss" xmlUrl="http://www.cadenhead.org/workbench/rss.xml" title="Workbench" />
+		<outline type="rss" xmlUrl="http://www.csmonitor.com/rss/top.rss" title="Christian Science Monitor | Top Stories" />
+		<outline type="rss" xmlUrl="http://www.dictionary.com/wordoftheday/wotd.rss" title="Dictionary.com Word of the Day" />
+		<outline type="rss" xmlUrl="http://www.fool.com/xml/foolnews_rss091.xml" title="The Motley Fool" />
+		<outline type="rss" xmlUrl="http://www.infoworld.com/rss/news.xml" title="InfoWorld: Top News" />
+		<outline type="rss" xmlUrl="http://www.nytimes.com/services/xml/rss/nyt/Business.xml" title="NYT > Business" />
+		<outline type="rss" xmlUrl="http://www.nytimes.com/services/xml/rss/nyt/Technology.xml" title="NYT > Technology" />
+		<outline type="rss" xmlUrl="http://www.scripting.com/rss.xml" title="Scripting News" />
+		<outline type="rss" xmlUrl="http://www.wired.com/news_drop/netcenter/netcenter.rdf" title="Wired News" />
+	</body>
+</opml>

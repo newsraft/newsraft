@@ -1,6 +1,7 @@
 newsraft
 newsraft-test
 newsraft-test-log
+newsraft-test-feeds
 newsraft-test-database*
 libnewsraft.so
 flog

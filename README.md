@@ -23,6 +23,7 @@ counterpart.
 * Detailed error reports on failed updates
 * Processing feeds from command output
 * [Support for practically all feed formats](https://newsraft.codeberg.page/#FORMATS_SUPPORT)
+* Import/export OPML
 * Come try segfault me, baby ;)
 
 Check out [comparison of Newsraft and Newsboat](https://codeberg.org/newsraft/newsraft/src/branch/main/doc/comparison-newsboat.md).

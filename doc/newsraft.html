@@ -47,38 +47,31 @@
 </section>
 <section class="Sh">
 <h1 class="Sh" id="OPTIONS"><a class="permalink" href="#OPTIONS">OPTIONS</a></h1>
-<table class="tbl">
-  <tr>
-    <td><b>-f</b> <i>FILE</i></td>
-    <td>Force <b>feeds</b> file to <i>FILE</i>.</td>
-  </tr>
-  <tr>
-    <td><b>-c</b> <i>FILE</i></td>
-    <td>Force <b>config</b> file to <i>FILE</i>.</td>
-  </tr>
-  <tr>
-    <td><b>-d</b> <i>FILE</i></td>
-    <td>Force <b>database</b> file to <i>FILE</i>.</td>
-  </tr>
-  <tr>
-    <td><b>-l</b> <i>FILE</i></td>
-    <td>Write log information to <i>FILE</i>.</td>
-  </tr>
-  <tr>
-    <td><b>-e</b> <i>ACTION</i></td>
-    <td>Execute <i>ACTION</i> and exit (<b>reload-all</b>
-      <b>print-unread-items-count</b> <b>purge-abandoned</b>).</td>
-  </tr>
-  <tr>
-    <td><b>-v</b></td>
-    <td>Print version information.</td>
-  </tr>
-  <tr>
-    <td><b>-h</b></td>
-    <td>Print usage information.</td>
-  </tr>
-</table>
-<p class="Pp"></p>
+<p class="Pp"><b>-f</b> <i>FILE</i></p>
+<div class="Bd-indent">Force <b>feeds</b> file to <i>FILE</i>.</div>
+<p class="Pp"><b>-c</b> <i>FILE</i></p>
+<div class="Bd-indent">Force <b>config</b> file to <i>FILE</i>.</div>
+<p class="Pp"><b>-d</b> <i>FILE</i></p>
+<div class="Bd-indent">Force <b>database</b> file to <i>FILE</i>.</div>
+<p class="Pp"><b>-l</b> <i>FILE</i></p>
+<div class="Bd-indent">Write logs to <i>FILE</i>.</div>
+<p class="Pp"><b>-e</b> <i>ACTION</i></p>
+<div class="Bd-indent">Execute one-time <i>ACTION</i> from the following list:
+<div class="Bd-indent"><b>convert-opml-to-feeds</b> (takes OPML from standard
+  input)
+<br/>
+<b>convert-feeds-to-opml</b> (takes feeds from <b>feeds</b> file)
+<br/>
+<b>reload-all</b>
+<br/>
+<b>print-unread-items-count</b>
+<br/>
+<b>purge-abandoned</b></div>
+</div>
+<p class="Pp"><b>-v</b></p>
+<div class="Bd-indent">Print version information.</div>
+<p class="Pp"><b>-h</b></p>
+<div class="Bd-indent">Print usage information.</div>
 </section>
 <section class="Sh">
 <h1 class="Sh" id="STARTER_GUIDE"><a class="permalink" href="#STARTER_GUIDE">STARTER
@@ -831,15 +824,15 @@
   </tr>
   <tr>
     <td><b>jump-to-prev-important</b></td>
-    <td><i>e</i></td>
+    <td><i>P</i></td>
   </tr>
   <tr>
     <td><b>next-error</b></td>
-    <td><i>E</i></td>
+    <td><i>e</i></td>
   </tr>
   <tr>
     <td><b>prev-error</b></td>
-    <td><i>P</i></td>
+    <td><i>E</i></td>
   </tr>
   <tr>
     <td><b>goto-feed</b></td>
@@ -1039,7 +1032,7 @@
 </div>
 <table class="foot">
   <tr>
-    <td class="foot-date">2025-04-26</td>
+    <td class="foot-date">2025-04-29</td>
     <td class="foot-os"></td>
   </tr>
 </table>

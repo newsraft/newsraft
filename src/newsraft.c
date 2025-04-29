@@ -47,6 +47,7 @@ find -name '*.c' | sed -e 's/^\.\//#include "/' -e 's/$/"/' | grep -v 'newsraft.
 #include "parse_xml/format-mediarss.c"
 #include "parse_xml/format-rss.c"
 #include "parse_xml/gperf-data.c"
+#include "parse_xml/setup-opml-parser.c"
 #include "parse_xml/setup-xml-parser.c"
 #include "path.c"
 #include "queue.c"
@@ -116,6 +117,16 @@ static const struct newsraft_execution_stage reload_mode[] = {
 	{"update all feeds",              start_updating_all_feeds_and_wait_finish, NULL},
 };
 
+static const struct newsraft_execution_stage convert_opml_to_feeds_mode[] = {
+	{"convert OPML stream to feeds",  convert_opml_to_feeds,           NULL},
+};
+
+static const struct newsraft_execution_stage convert_feeds_to_opml_mode[] = {
+	{"initialize database",           db_init,                         db_stop},
+	{"load feeds file",               parse_feeds_file,                free_sections},
+	{"convert parsed feeds to OPML",  convert_feeds_to_opml,           NULL},
+};
+
 static const struct newsraft_execution_stage print_unread_mode[] = {
 	{"initialize database",           db_init,                         db_stop},
 	{"load feeds file",               parse_feeds_file,                free_sections},
@@ -183,6 +194,10 @@ main(int argc, char **argv)
 				error = run_scenario(reload_mode, LENGTH(reload_mode));
 			} else if (strcmp(optarg, "print-unread-items-count") == 0) {
 				error = run_scenario(print_unread_mode, LENGTH(print_unread_mode));
+			} else if (strcmp(optarg, "convert-opml-to-feeds") == 0) {
+				error = run_scenario(convert_opml_to_feeds_mode, LENGTH(convert_opml_to_feeds_mode));
+			} else if (strcmp(optarg, "convert-feeds-to-opml") == 0) {
+				error = run_scenario(convert_feeds_to_opml_mode, LENGTH(convert_feeds_to_opml_mode));
 			} else if (strcmp(optarg, "purge-abandoned") == 0) {
 				error = run_scenario(purge_mode, LENGTH(purge_mode));
 			} else {

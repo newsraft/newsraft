@@ -429,6 +429,12 @@ Default: _false_. Mark every item that changes on a feed update as unread.
 ## mark-item-read-on-hover (*)
 Default: _false_. Mark every item that gets selected as read.
 
+## database-batch-transactions
+Default: _true_. Apply all changes to the *database* file in one big transaction
+after all feed updates have finished instead of using a separate transaction for
+each feed update. This improves update performance a lot with the downside that
+fetched content will not be saved if you quit Newsraft before update finishes.
+
 ## analyze-database-on-startup
 Default: _true_. Run "ANALYZE" SQLite command on the database every time you
 start Newsraft. It gathers statistics about database and uses it to optimize

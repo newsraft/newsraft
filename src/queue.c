@@ -23,7 +23,7 @@ queue_pull(bool (*condition)(struct feed_update_state *))
 }
 
 static void
-destroy_queue_unprotected(void)
+queue_destroy_unprotected(void)
 {
 	struct feed_update_state *k = NULL;
 	for (struct feed_update_state *j = update_queue; j != NULL; j = j->next, free(k)) {
@@ -54,7 +54,7 @@ void
 queue_destroy(void)
 {
 	pthread_mutex_lock(&update_queue_lock);
-	destroy_queue_unprotected();
+	queue_destroy_unprotected();
 	pthread_mutex_unlock(&update_queue_lock);
 }
 
@@ -118,8 +118,8 @@ queue_examine(void)
 			status_clean();
 		}
 		queue_execute_update_notifications_unprotected(update_queue_len);
-		db_commit_transaction();
-		destroy_queue_unprotected();
+		db_transaction_commit();
+		queue_destroy_unprotected();
 	} else {
 		prevent_status_cleaning();
 	}
@@ -158,7 +158,7 @@ queue_updates(struct feed_entry **feeds, size_t feeds_count)
 		update_queue = item;
 	}
 	if (this_is_new_queue) {
-		db_begin_transaction();
+		db_transaction_begin();
 	}
 	pthread_mutex_unlock(&update_queue_lock);
 	queue_examine();

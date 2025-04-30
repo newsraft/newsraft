@@ -616,6 +616,14 @@
   read.</p>
 </section>
 <section class="Ss">
+<h2 class="Ss" id="database-batch-transactions"><a class="permalink" href="#database-batch-transactions">database-batch-transactions</a></h2>
+<p class="Pp">Default: <i>true</i>. Apply all changes to the <b>database</b>
+    file in one big transaction after all feed updates have finished instead of
+    using a separate transaction for each feed update. This improves update
+    performance a lot with the downside that fetched content will not be saved
+    if you quit Newsraft before update finishes.</p>
+</section>
+<section class="Ss">
 <h2 class="Ss" id="analyze-database-on-startup"><a class="permalink" href="#analyze-database-on-startup">analyze-database-on-startup</a></h2>
 <p class="Pp">Default: <i>true</i>. Run &quot;ANALYZE&quot; SQLite command on
     the database every time you start Newsraft. It gathers statistics about
@@ -1032,7 +1040,7 @@
 </div>
 <table class="foot">
   <tr>
-    <td class="foot-date">2025-04-29</td>
+    <td class="foot-date">2025-04-30</td>
     <td class="foot-os"></td>
   </tr>
 </table>

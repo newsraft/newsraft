@@ -165,8 +165,12 @@ exec_database_file_optimization(void)
 }
 
 bool
-db_begin_transaction(void)
+db_transaction_begin(void)
 {
+	if (!get_cfg_bool(NULL, CFG_DATABASE_BATCH_TRANSACTIONS)) {
+		INFO("Not beginning database transaction because it's turned off.");
+		return true;
+	}
 	INFO("Starting database transaction.");
 	char *errmsg;
 	sqlite3_exec(db, "BEGIN TRANSACTION;", NULL, NULL, &errmsg);
@@ -179,8 +183,12 @@ db_begin_transaction(void)
 }
 
 bool
-db_commit_transaction(void)
+db_transaction_commit(void)
 {
+	if (!get_cfg_bool(NULL, CFG_DATABASE_BATCH_TRANSACTIONS)) {
+		INFO("Not committing database transaction because it's turned off.");
+		return true;
+	}
 	INFO("Committing database transaction.");
 	char *errmsg;
 	sqlite3_exec(db, "COMMIT;", NULL, NULL, &errmsg);

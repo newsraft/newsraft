@@ -5,7 +5,7 @@
 .nh
 .ad l
 .\" Begin generated content:
-.TH "NEWSRAFT" "1" "2025-04-29"
+.TH "NEWSRAFT" "1" "2025-04-30"
 .PP
 .SH NAME
 .PP
@@ -586,6 +586,12 @@ Default: \fIfalse\fR.\& Mark every item that changes on a feed update as unread.
 .PP
 .SS mark-item-read-on-hover (*)
 Default: \fIfalse\fR.\& Mark every item that gets selected as read.\&
+.PP
+.SS database-batch-transactions
+Default: \fItrue\fR.\& Apply all changes to the \fBdatabase\fR file in one big transaction
+after all feed updates have finished instead of using a separate transaction for
+each feed update.\& This improves update performance a lot with the downside that
+fetched content will not be saved if you quit Newsraft before update finishes.\&
 .PP
 .SS analyze-database-on-startup
 Default: \fItrue\fR.\& Run "ANALYZE" SQLite command on the database every time you

@@ -113,7 +113,7 @@ CFG(CFG_MARK_ITEM_UNREAD_ON_CHANGE,      "mark-item-unread-on-change",      CFG_
 CFG(CFG_MARK_ITEM_READ_ON_HOVER,         "mark-item-read-on-hover",         CFG_BOOL,   {.b = false})
 CFG(CFG_DATABASE_BATCH_TRANSACTIONS,     "database-batch-transactions",     CFG_BOOL,   {.b = true })
 CFG(CFG_DATABASE_ANALYZE_ON_STARTUP,     "database-analyze-on-startup",     CFG_BOOL,   {.b = true })
-CFG(CFG_CLEAN_DATABASE_ON_STARTUP,       "clean-database-on-startup",       CFG_BOOL,   {.b = false})
+CFG(CFG_DATABASE_CLEAN_ON_STARTUP,       "database-clean-on-startup",       CFG_BOOL,   {.b = false})
 CFG(CFG_RESPECT_TTL_ELEMENT,             "respect-ttl-element",             CFG_BOOL,   {.b = true })
 CFG(CFG_RESPECT_EXPIRES_HEADER,          "respect-expires-header",          CFG_BOOL,   {.b = true })
 CFG(CFG_SEND_IF_NONE_MATCH_HEADER,       "send-if-none-match-header",       CFG_BOOL,   {.b = true })

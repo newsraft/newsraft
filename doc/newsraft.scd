@@ -440,7 +440,7 @@ Default: _true_. Run "ANALYZE" SQLite command on the database every time you
 start Newsraft. It gathers statistics about database and uses it to optimize
 some queries making runtime faster.
 
-## clean-database-on-startup
+## database-clean-on-startup
 Default: _false_. Run "VACUUM" SQLite command on the database every time you
 start Newsraft. It rebuilds the database file by packing it into a minimal
 amount of disk space. This can significantly increase startup time.

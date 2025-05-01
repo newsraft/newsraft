@@ -435,7 +435,7 @@ after all feed updates have finished instead of using a separate transaction for
 each feed update. This improves update performance a lot with the downside that
 fetched content will not be saved if you quit Newsraft before update finishes.
 
-## analyze-database-on-startup
+## database-analyze-on-startup
 Default: _true_. Run "ANALYZE" SQLite command on the database every time you
 start Newsraft. It gathers statistics about database and uses it to optimize
 some queries making runtime faster.

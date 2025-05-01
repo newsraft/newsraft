@@ -5,7 +5,7 @@
 .nh
 .ad l
 .\" Begin generated content:
-.TH "NEWSRAFT" "1" "2025-04-30"
+.TH "NEWSRAFT" "1" "2025-05-01"
 .PP
 .SH NAME
 .PP
@@ -593,7 +593,7 @@ after all feed updates have finished instead of using a separate transaction for
 each feed update.\& This improves update performance a lot with the downside that
 fetched content will not be saved if you quit Newsraft before update finishes.\&
 .PP
-.SS analyze-database-on-startup
+.SS database-analyze-on-startup
 Default: \fItrue\fR.\& Run "ANALYZE" SQLite command on the database every time you
 start Newsraft.\& It gathers statistics about database and uses it to optimize
 some queries making runtime faster.\&

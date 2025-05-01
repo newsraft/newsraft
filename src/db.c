@@ -153,7 +153,7 @@ exec_database_file_optimization(void)
 		}
 	}
 	char *error = NULL;
-	if (get_cfg_bool(NULL, CFG_ANALYZE_DATABASE_ON_STARTUP) == true) {
+	if (get_cfg_bool(NULL, CFG_DATABASE_ANALYZE_ON_STARTUP) == true) {
 		sqlite3_exec(db, "ANALYZE;", NULL, NULL, &error);
 		if (error != NULL) {
 			write_error("Failed to analyze the database: %s!\n", error);

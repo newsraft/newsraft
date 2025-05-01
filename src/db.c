@@ -30,6 +30,45 @@ newsraft_regexp_cmp(sqlite3_context *ctx, int argc, sqlite3_value **argv)
 	sqlite3_result_int(ctx, ret != REG_NOMATCH);
 }
 
+static bool
+db_make_sure_column_exists(const char *table, const char *column, const char *type)
+{
+	char query[100];
+	int len = snprintf(query, sizeof(query), "PRAGMA table_info(%s);", table);
+	if (len <= 0 || len >= (int)sizeof(query)) {
+		return false;
+	}
+	sqlite3_stmt *stmt = db_prepare(query, len + 1, NULL);
+	if (stmt == NULL) {
+		write_error("Failed to query table_info from the database: %s!\n", sqlite3_errmsg(db));
+		return false;
+	}
+	bool column_exists = false;
+	while (sqlite3_step(stmt) == SQLITE_ROW) {
+		const char *name = (const char *)sqlite3_column_text(stmt, 1);
+		if (strcmp(name, column) == 0) {
+			column_exists = true;
+			break;
+		}
+	}
+	sqlite3_finalize(stmt);
+	if (column_exists) {
+		INFO("Column %s (%s) already exists in %s table", column, type, table);
+		return true;
+	}
+	len = snprintf(query, sizeof(query), "ALTER TABLE %s ADD COLUMN %s %s;", table, column, type);
+	if (len <= 0 || len >= (int)sizeof(query)) {
+		return false;
+	}
+	char *errmsg = NULL;
+	if (sqlite3_exec(db, query, NULL, NULL, &errmsg) != SQLITE_OK || errmsg != NULL) {
+		write_error("Failed to add %s column to the %s table in database: %s!\n", column, table, errmsg);
+		sqlite3_free(errmsg);
+		return false;
+	}
+	return true;
+}
+
 bool
 db_init(void)
 {
@@ -85,7 +124,8 @@ db_init(void)
 			"time_to_live INTEGER NOT NULL DEFAULT 0,"
 			"http_header_etag TEXT,"
 			"http_header_last_modified INTEGER NOT NULL DEFAULT 0,"
-			"http_header_expires INTEGER NOT NULL DEFAULT 0"
+			"http_header_expires INTEGER NOT NULL DEFAULT 0,"
+			"user_data TEXT"
 		");"
 		"CREATE TABLE IF NOT EXISTS items("
 			"feed_url TEXT NOT NULL,"
@@ -99,7 +139,8 @@ db_init(void)
 			"publication_date INTEGER NOT NULL DEFAULT 0,"
 			"update_date INTEGER NOT NULL DEFAULT 0,"
 			"unread INTEGER NOT NULL DEFAULT 0,"
-			"important INTEGER NOT NULL DEFAULT 0"
+			"important INTEGER NOT NULL DEFAULT 0,"
+			"user_data TEXT"
 		");"
 		"CREATE INDEX IF NOT EXISTS idx_items_guid ON items("
 			"feed_url,"
@@ -120,6 +161,15 @@ db_init(void)
 	);
 	if (errmsg != NULL) {
 		write_error("Failed to initialize database in exclusive locking mode: %s!\n", errmsg);
+		goto error;
+	}
+
+	// These columns were implemented after users already created their database files,
+	// therefore we have to make sure that existing database tables get them post factum.
+	if (!db_make_sure_column_exists("feeds", "user_data", "TEXT")) {
+		goto error;
+	}
+	if (!db_make_sure_column_exists("items", "user_data", "TEXT")) {
 		goto error;
 	}
 

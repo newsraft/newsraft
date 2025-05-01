@@ -247,6 +247,9 @@ Available parameters:
 |[ _update_date_
 :[ (integer)
 :[ Timestamp of update date in seconds since 1970
+|[ _user_data_
+:[ (string)
+:[ User-defined data for the item. It can be set with a *query* action (see *CONFIG FILE* section)
 
 Here are some examples of correct setting values:
 

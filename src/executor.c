@@ -31,16 +31,8 @@ execute_feed(const struct string *cmd, struct feed_update_state *data)
 			break;
 		} else if (*i == '{') {
 			INFO("The output has \"{\" character in the beginning - engaging JSON parser.");
-			if (setup_json_parser(data) == false) {
-				FAIL("Failed to setup JSON parser!");
-				goto error;
-			}
-			yajl_status status = yajl_parse(data->json_parser, (const unsigned char *)content->ptr, content->len);
-			if (status == yajl_status_ok) {
-				status = yajl_complete_parse(data->json_parser); // Final parsing call
-			}
-			if (status != yajl_status_ok) {
-				str_appendf(data->new_errors, "JSON parser failed: %s\n", yajl_status_to_string(status));
+			setup_json_parser(data);
+			if (!newsraft_json_parse(data, content->ptr, content->len)) {
 				goto error;
 			}
 			break;

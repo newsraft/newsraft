@@ -13,7 +13,6 @@ steps:
         gumbo-parser-dev
         ncurses-dev
         sqlite-dev
-        yajl-dev
       - make
       - ./newsraft -v
       - make check

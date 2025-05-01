@@ -1,267 +1,168 @@
 #include <string.h>
 #include "newsraft.h"
 
-enum json_array {
-	JSON_OBJECT_UNKNOWN,
-	JSON_OBJECT_ITEM,
-	JSON_OBJECT_ATTACHMENT,
-	JSON_OBJECT_AUTHOR,
-	JSON_ARRAY_UNKNOWN,
-	JSON_ARRAY_ITEMS,
-	JSON_ARRAY_ATTACHMENTS,
-	JSON_ARRAY_AUTHORS,
-	JSON_ARRAY_TAGS,
-};
-
-#define ISARRAY(A) ((A) >= JSON_ARRAY_UNKNOWN)
-
-static inline bool
-we_are_inside_item(struct feed_update_state *data)
-{
-	for (uint8_t i = 1; i < data->depth; ++i) {
-		if (data->path[i] == JSON_OBJECT_ITEM) {
-			return true;
-		}
-	}
-	return false;
-}
-
-static inline int
-feed_string_handler(struct feed_update_state *data, const char *val, size_t len)
-{
-	if (strcmp(data->text->ptr, "home_page_url") == 0) {
-		cpyas(&data->feed.url, val, len);
-	} else if (strcmp(data->text->ptr, "title") == 0) {
-		cpyas(&data->feed.title, val, len);
-	} else if (strcmp(data->text->ptr, "description") == 0) {
-		serialize_caret(&data->feed.content);
-		serialize_array(&data->feed.content, "text=", 5, val, len);
-	}
-	return 1;
-}
-
-static inline int
-item_string_handler(struct feed_update_state *data, const char *val, size_t len)
-{
-	if (data->feed.item == NULL) {
-		return 1;
-	}
-	if (strcmp(data->text->ptr, "id") == 0) {
-		cpyas(&data->feed.item->guid, val, len);
-	} else if (strcmp(data->text->ptr, "url") == 0) {
-		cpyas(&data->feed.item->url, val, len);
-	} else if (strcmp(data->text->ptr, "title") == 0) {
-		cpyas(&data->feed.item->title, val, len);
-	} else if (strcmp(data->text->ptr, "content_html") == 0) {
-		serialize_caret(&data->feed.item->content);
-		serialize_array(&data->feed.item->content, "type=", 5, "text/html", 9);
-		serialize_array(&data->feed.item->content, "text=", 5, val, len);
-	} else if (strcmp(data->text->ptr, "content_text") == 0) {
-		serialize_caret(&data->feed.item->content);
-		serialize_array(&data->feed.item->content, "text=", 5, val, len);
-	} else if (strcmp(data->text->ptr, "summary") == 0) {
-		serialize_caret(&data->feed.item->content);
-		serialize_array(&data->feed.item->content, "text=", 5, val, len);
-	} else if (strcmp(data->text->ptr, "date_published") == 0) {
-		data->feed.item->publication_date = parse_date_rfc3339(len > 18 ? val : "");
-	} else if (strcmp(data->text->ptr, "date_modified") == 0) {
-		data->feed.item->update_date = parse_date_rfc3339(len > 18 ? val : "");
-	} else if (strcmp(data->text->ptr, "external_url") == 0) {
-		serialize_caret(&data->feed.item->attachments);
-		serialize_array(&data->feed.item->attachments, "url=", 4, val, len);
-	}
-	return 1;
-}
-
-// Note to the future.
-// Person structure in the JSON Feed have an avatar object. We ignore it just
-// like we ignore thumbnails, icons and other cosmetic stuff. It's worth
-// mentioning that JSON Feed specification doesn't provide email objects.
-// That's truly modern approach for sure...
-
-static inline int
-person_string_handler(struct string **dest, const struct string *key, const char *val, size_t len)
-{
-	if (strcmp(key->ptr, "name") == 0) {
-		serialize_array(dest, "name=", 5, val, len);
-	} else if (strcmp(key->ptr, "url") == 0) {
-		serialize_array(dest, "url=", 4, val, len);
-	}
-	return 1;
-}
-
-static inline int
-attachment_string_handler(struct string **dest, const struct string *key, const char *val, size_t len)
-{
-	if (strcmp(key->ptr, "url") == 0) {
-		serialize_array(dest, "url=", 4, val, len);
-	} else if (strcmp(key->ptr, "mime_type") == 0) {
-		serialize_array(dest, "type=", 5, val, len);
-	}
-	return 1;
-}
-
-// Note to the future.
-// There are two token handlers which we could've set to NULL in yajl_callbacks
-// structure because they have no use in actual JSON Feed, but we have to create
-// these dummy functions to return 1 (no error) anyway because when parser
-// doesn't find appropriate handler for token it returns error and we're screwed.
-
-static int
-null_handler(void *ctx)
-{
-	(void)ctx;
-	return 1; // Null handler is redundant because the spec doesn't mention it.
-}
-
-static int
-boolean_handler(void *ctx, int val)
-{
-	(void)ctx;
-	(void)val;
-	return 1; // Boolean handler might be used for expired object, but it's useless.
-}
-
-static int
-number_handler(void *ctx, const char *val, size_t len)
-{
-	struct feed_update_state *data = ctx;
-	INFO("Stumbled upon number.");
-	if ((we_are_inside_item(data) == true) && (data->path[data->depth] == JSON_OBJECT_ATTACHMENT)) {
-		if (strcmp(data->text->ptr, "size_in_bytes") == 0) {
-			serialize_array(&data->feed.item->attachments, "size=", 5, val, len);
-		} else if (strcmp(data->text->ptr, "duration_in_seconds") == 0) {
-			serialize_array(&data->feed.item->attachments, "duration=", 9, val, len);
-		}
-	}
-	return 1;
-}
-
-static int
-string_handler(void *ctx, const unsigned char *val, size_t len)
-{
-	struct feed_update_state *data = ctx;
-	INFO("Stumbled upon string.");
-	if (data->path[data->depth] == JSON_OBJECT_ITEM) {
-		return item_string_handler(data, (char *)val, len);
-	} else if (we_are_inside_item(data) == true) {
-		if (data->path[data->depth] == JSON_OBJECT_AUTHOR) {
-			return person_string_handler(&data->feed.item->persons, data->text, (char *)val, len);
-		} else if (data->path[data->depth] == JSON_OBJECT_ATTACHMENT) {
-			return attachment_string_handler(&data->feed.item->attachments, data->text, (char *)val, len);
-		} else if (data->path[data->depth] == JSON_ARRAY_TAGS) {
-			serialize_caret(&data->feed.item->extras);
-			serialize_array(&data->feed.item->extras, "category=", 9, (char *)val, len);
-		}
-	} else if (data->path[data->depth] == JSON_OBJECT_AUTHOR) {
-		return person_string_handler(&data->feed.persons, data->text, (char *)val, len);
-	} else if ((data->depth < 2) && (data->path[data->depth] == JSON_OBJECT_UNKNOWN)) {
-		return feed_string_handler(data, (char *)val, len);
-	}
-	return 1;
-}
-
-static int
-start_map_handler(void *ctx)
-{
-	struct feed_update_state *data = ctx;
-	INFO("Stumbled upon the beginning of an object.");
-	data->depth += 1;
-	if (we_are_inside_item(data) == true) {
-		if (data->path[data->depth - 1] == JSON_ARRAY_AUTHORS) {
-			data->path[data->depth] = JSON_OBJECT_AUTHOR;
-			serialize_caret(&data->feed.item->persons);
-			serialize_array(&data->feed.item->persons, "type=", 5, "author", 6);
-		} else if (data->path[data->depth - 1] == JSON_ARRAY_ATTACHMENTS) {
-			data->path[data->depth] = JSON_OBJECT_ATTACHMENT;
-			serialize_caret(&data->feed.item->attachments);
-		} else {
-			data->path[data->depth] = JSON_OBJECT_UNKNOWN;
-		}
-	} else if (data->path[data->depth - 1] == JSON_ARRAY_ITEMS) {
-		data->path[data->depth] = JSON_OBJECT_ITEM;
-		prepend_item(&data->feed.item);
-	} else if (data->path[data->depth - 1] == JSON_ARRAY_AUTHORS) {
-		data->path[data->depth] = JSON_OBJECT_AUTHOR;
-		serialize_caret(&data->feed.persons);
-		serialize_array(&data->feed.persons, "type=", 5, "author", 6);
-	} else {
-		data->path[data->depth] = JSON_OBJECT_UNKNOWN;
-	}
-	return 1;
-}
-
-static int
-map_key_handler(void *ctx, const unsigned char *key, size_t key_len)
-{
-	struct feed_update_state *data = ctx;
-	cpyas(&data->text, (char *)key, key_len);
-	INFO("Stumbled upon key: %s", data->text->ptr);
-	return 1;
-}
-
-static int
-start_array_handler(void *ctx)
-{
-	struct feed_update_state *data = ctx;
-	INFO("Stumbled upon the beginning of an array.");
-	data->depth += 1;
-	if (ISARRAY(data->path[data->depth - 1])) {
-		// JSON Feed doesn't have nested arrays!
-		data->path[data->depth] = JSON_ARRAY_UNKNOWN;
-	} else if (strcmp(data->text->ptr, "items") == 0) {
-		data->path[data->depth] = JSON_ARRAY_ITEMS;
-	} else if (strcmp(data->text->ptr, "attachments") == 0) {
-		data->path[data->depth] = JSON_ARRAY_ATTACHMENTS;
-	} else if (strcmp(data->text->ptr, "authors") == 0) {
-		data->path[data->depth] = JSON_ARRAY_AUTHORS;
-	} else if (strcmp(data->text->ptr, "tags") == 0) {
-		data->path[data->depth] = JSON_ARRAY_TAGS;
-	} else {
-		data->path[data->depth] = JSON_ARRAY_UNKNOWN;
-	}
-	return 1;
-}
-
-static int
-end_of_object_or_array_handler(void *ctx)
-{
-	struct feed_update_state *data = ctx;
-	INFO("Stumbled upon the end of an object/array.");
-	if (data->depth > 0) {
-		data->depth -= 1;
-	}
-	return 1;
-}
-
-static const yajl_callbacks callbacks = {
-	null_handler,
-	boolean_handler,
-	NULL, // Integer handler is ignored when number handler is set.
-	NULL, // Double handler is ignored when number handler is set.
-	&number_handler,
-	&string_handler,
-	&start_map_handler,
-	&map_key_handler,
-	&end_of_object_or_array_handler,
-	&start_array_handler,
-	&end_of_object_or_array_handler
-};
-
-bool
+void
 setup_json_parser(struct feed_update_state *data)
 {
-	data->text = crtes(50000);
-	if (data->text == NULL) {
-		return false;
-	}
-	data->json_parser = yajl_alloc(&callbacks, NULL, data);
-	if (data->json_parser == NULL) {
-		free_string(data->text);
-		return false;
-	}
+	cpyas(&data->text, "", 0);
 	data->media_type = MEDIA_TYPE_JSON;
-	data->depth = 0;
-	data->path[0] = JSON_OBJECT_UNKNOWN;
+}
+
+bool
+newsraft_json_parse(struct feed_update_state *data, const char *content, size_t content_size)
+{
+	sqlite3 *db;
+	if (sqlite3_open(":memory:", &db) != SQLITE_OK) {
+		str_appendf(data->new_errors, "JSON parser failed: %s\n", sqlite3_errmsg(db));
+		return false;
+	}
+	sqlite3_stmt *stmt;
+	const char *sql = "SELECT key, path, value FROM json_tree(?) WHERE type != 'object' AND type != 'array';";
+	if (sqlite3_prepare_v2(db, sql, strlen(sql) + 1, &stmt, 0) != SQLITE_OK) {
+		str_appendf(data->new_errors, "JSON parser failed: %s\n", sqlite3_errmsg(db));
+		sqlite3_close(db);
+		return false;
+	}
+	if (sqlite3_bind_text(stmt, 1, content, content_size, SQLITE_STATIC) != SQLITE_OK) {
+		str_appendf(data->new_errors, "JSON parser failed: %s\n", sqlite3_errmsg(db));
+		sqlite3_finalize(stmt);
+		sqlite3_close(db);
+		return false;
+	}
+
+	int64_t current_item_index = -1;
+	int64_t current_author_index = -1;
+	int64_t current_attachment_index = -1;
+	long long dummy = -1;
+
+	while (true) {
+		int res = sqlite3_step(stmt);
+		if (res == SQLITE_DONE) {
+			break;
+		} else if (res != SQLITE_ROW) {
+			str_appendf(data->new_errors, "JSON parser failed: %s\n", sqlite3_errmsg(db));
+			sqlite3_finalize(stmt);
+			sqlite3_close(db);
+			return false;
+		}
+
+		const char *key = (const char *)sqlite3_column_text(stmt, 0);
+		const char *path = (const char *)sqlite3_column_text(stmt, 1);
+		const char *value = (const char *)sqlite3_column_text(stmt, 2);
+		INFO("%-30s|%-30s|%-30s\n", key ? key : "(null)", path ? path : "(null)", value ? value : "(null)");
+
+		if (!key || !path || !value) {
+			continue;
+		}
+
+		long long new_item_index = -1;
+		long long new_author_index = -1;
+		long long new_attachment_index = -1;
+
+		if (strcmp(path, "$") == 0) {
+			if (strcmp(key, "home_page_url") == 0) {
+				cpyas(&data->feed.url, value, strlen(value));
+			} else if (strcmp(key, "title") == 0) {
+				cpyas(&data->feed.title, value, strlen(value));
+			} else if (strcmp(key, "description") == 0) {
+				serialize_caret(&data->feed.content);
+				serialize_array(&data->feed.content, "text=", 5, value, strlen(value));
+			}
+			continue;
+		}
+
+		if (sscanf(path, "$.authors[%lld]", &new_author_index) == 1 && new_author_index >= 0) {
+			if (new_author_index != current_author_index) {
+				current_author_index = new_author_index;
+				serialize_caret(&data->feed.persons);
+				serialize_array(&data->feed.persons, "type=", 5, "author", 6);
+			}
+			if (strcmp(key, "name") == 0) {
+				serialize_array(&data->feed.persons, "name=", 5, value, strlen(value));
+			} else if (strcmp(key, "url") == 0) {
+				serialize_array(&data->feed.persons, "url=", 4, value, strlen(value));
+			}
+			continue;
+		}
+
+		if (sscanf(path, "$.items[%lld]", &new_item_index) == 1 && new_item_index >= 0) {
+
+			if (new_item_index != current_item_index) {
+				current_item_index = new_item_index;
+				current_author_index = -1;
+				current_attachment_index = -1;
+				prepend_item(&data->feed.item);
+			}
+			if (data->feed.item == NULL) {
+				continue;
+			}
+
+			if (sscanf(path, "$.items[%lld].authors[%lld]", &dummy, &new_author_index) == 2 && new_author_index >= 0) {
+
+				if (new_author_index != current_author_index) {
+					current_author_index = new_author_index;
+					serialize_caret(&data->feed.item->persons);
+					serialize_array(&data->feed.item->persons, "type=", 5, "author", 6);
+				}
+
+				if (strcmp(key, "name") == 0) {
+					serialize_array(&data->feed.item->persons, "name=", 5, value, strlen(value));
+				} else if (strcmp(key, "url") == 0) {
+					serialize_array(&data->feed.item->persons, "url=", 4, value, strlen(value));
+				}
+
+			} else if (sscanf(path, "$.items[%lld].attachments[%lld]", &dummy, &new_attachment_index) == 2 && new_attachment_index >= 0) {
+
+				if (new_attachment_index != current_attachment_index) {
+					current_attachment_index = new_attachment_index;
+					serialize_caret(&data->feed.item->attachments);
+				}
+
+				if (strcmp(key, "url") == 0) {
+					serialize_array(&data->feed.item->attachments, "url=", 4, value, strlen(value));
+				} else if (strcmp(key, "mime_type") == 0) {
+					serialize_array(&data->feed.item->attachments, "type=", 5, value, strlen(value));
+				} else if (strcmp(key, "size_in_bytes") == 0) {
+					serialize_array(&data->feed.item->attachments, "size=", 5, value, strlen(value));
+				} else if (strcmp(key, "duration_in_seconds") == 0) {
+					serialize_array(&data->feed.item->attachments, "duration=", 9, value, strlen(value));
+				}
+
+			} else {
+
+				if (strcmp(key, "id") == 0) {
+					cpyas(&data->feed.item->guid, value, strlen(value));
+				} else if (strcmp(key, "url") == 0) {
+					cpyas(&data->feed.item->url, value, strlen(value));
+				} else if (strcmp(key, "title") == 0) {
+					cpyas(&data->feed.item->title, value, strlen(value));
+				} else if (strcmp(key, "content_html") == 0) {
+					serialize_caret(&data->feed.item->content);
+					serialize_array(&data->feed.item->content, "type=", 5, "text/html", 9);
+					serialize_array(&data->feed.item->content, "text=", 5, value, strlen(value));
+				} else if (strcmp(key, "content_text") == 0) {
+					serialize_caret(&data->feed.item->content);
+					serialize_array(&data->feed.item->content, "text=", 5, value, strlen(value));
+				} else if (strcmp(key, "summary") == 0) {
+					serialize_caret(&data->feed.item->content);
+					serialize_array(&data->feed.item->content, "text=", 5, value, strlen(value));
+				} else if (strcmp(key, "date_published") == 0) {
+					data->feed.item->publication_date = parse_date_rfc3339(strlen(value) > 18 ? value : "");
+				} else if (strcmp(key, "date_modified") == 0) {
+					data->feed.item->update_date = parse_date_rfc3339(strlen(value) > 18 ? value : "");
+				} else if (strcmp(key, "external_url") == 0) {
+					serialize_caret(&data->feed.item->attachments);
+					serialize_array(&data->feed.item->attachments, "url=", 4, value, strlen(value));
+				} else if (strcmp(key, "tags") == 0) {
+					serialize_caret(&data->feed.item->extras);
+					serialize_array(&data->feed.item->extras, "category=", 9, value, strlen(value));
+				}
+
+			}
+		}
+
+	}
+	sqlite3_finalize(stmt);
+	sqlite3_close(db);
 	return true;
 }

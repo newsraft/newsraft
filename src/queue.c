@@ -33,8 +33,6 @@ queue_destroy_unprotected(void)
 		curl_slist_free_all(j->download_headers);
 		if (j->media_type == MEDIA_TYPE_XML) {
 			XML_ParserFree(j->xml_parser);
-		} else if (j->media_type == MEDIA_TYPE_JSON) {
-			yajl_free(j->json_parser);
 		}
 		free_string(j->feed.title);
 		free_string(j->feed.url);

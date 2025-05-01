@@ -61,10 +61,7 @@ parse_stream_callback(char *contents, size_t length, size_t nmemb, void *userdat
 				break;
 			} else if (contents[i] == '{') {
 				INFO("The stream has \"{\" character in the beginning - engaging JSON parser.");
-				if (setup_json_parser(data) == false) {
-					FAIL("Failed to setup JSON parser!");
-					return CURL_WRITEFUNC_ERROR;
-				}
+				setup_json_parser(data);
 				break;
 			}
 		}
@@ -75,11 +72,7 @@ parse_stream_callback(char *contents, size_t length, size_t nmemb, void *userdat
 			return CURL_WRITEFUNC_ERROR;
 		}
 	} else if (data->media_type == MEDIA_TYPE_JSON) {
-		yajl_status status = yajl_parse(data->json_parser, (const unsigned char *)contents, real_size);
-		if (status != yajl_status_ok) {
-			str_appendf(data->new_errors, "JSON parser failed: %s\n", yajl_status_to_string(status));
-			return CURL_WRITEFUNC_ERROR;
-		}
+		catas(data->text, contents, real_size);
 	}
 	return they_want_us_to_stop ? CURL_WRITEFUNC_ERROR : real_size;
 }
@@ -344,7 +337,7 @@ downloader_worker(void *dummy)
 						data->is_failed = true;
 					}
 				} else if (data->media_type == MEDIA_TYPE_JSON) {
-					if (yajl_complete_parse(data->json_parser) != yajl_status_ok) {
+					if (!newsraft_json_parse(data, data->text->ptr, data->text->len)) {
 						data->is_failed = true;
 					}
 				}

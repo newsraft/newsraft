@@ -14,8 +14,7 @@ TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
 THIS SOFTWARE.
 
 The project as it is right now would not be possible without the use of such
-wonderful pieces of software as curl, expat, gumbo, ncurses, scdoc, sqlite and
-yajl. The licenses under which these projects are distributed are provided in
-files license-curl.txt, license-expat.txt, license-gumbo.txt,
-license-ncurses.txt, license-scdoc.txt, license-sqlite.txt and license-yajl.txt
-respectively.
+wonderful pieces of software as curl, expat, gumbo, ncurses, scdoc and sqlite.
+The licenses under which these projects are distributed are provided in files
+license-curl.txt, license-expat.txt, license-gumbo.txt, license-ncurses.txt,
+license-scdoc.txt and license-sqlite.txt respectively.

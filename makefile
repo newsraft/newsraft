@@ -14,14 +14,12 @@ GUMBO_CFLAGS  = `pkg-config --cflags gumbo    2>/dev/null`
 GUMBO_LIBS    = `pkg-config --libs   gumbo    2>/dev/null || echo '-lgumbo'`
 SQLITE_CFLAGS = `pkg-config --cflags sqlite3  2>/dev/null`
 SQLITE_LIBS   = `pkg-config --libs   sqlite3  2>/dev/null || echo '-lsqlite3'`
-YAJL_CFLAGS   = `pkg-config --cflags yajl     2>/dev/null`
-YAJL_LIBS     = `pkg-config --libs   yajl     2>/dev/null || echo '-lyajl'`
 PTHREAD_LIBS  = -lpthread
 # for static linking
 #LDFLAGS       = -static
 #CURL_LIBS     = -lcurl -lbrotlidec -lbrotlienc -lbrotlicommon -lssl -lcrypto -lnghttp2 -lz
-AUXCFLAGS     = $(CURL_CFLAGS) $(CURSES_CFLAGS) $(EXPAT_CFLAGS) $(GUMBO_CFLAGS) $(SQLITE_CFLAGS) $(YAJL_CFLAGS)
-LDLIBS        = $(CURL_LIBS) $(CURSES_LIBS) $(EXPAT_LIBS) $(GUMBO_LIBS) $(SQLITE_LIBS) $(YAJL_LIBS) $(PTHREAD_LIBS)
+AUXCFLAGS     = $(CURL_CFLAGS) $(CURSES_CFLAGS) $(EXPAT_CFLAGS) $(GUMBO_CFLAGS) $(SQLITE_CFLAGS)
+LDLIBS        = $(CURL_LIBS) $(CURSES_LIBS) $(EXPAT_LIBS) $(GUMBO_LIBS) $(SQLITE_LIBS) $(PTHREAD_LIBS)
 DESTDIR       =
 PREFIX        = /usr/local
 BINDIR        = $(PREFIX)/bin

@@ -11,7 +11,6 @@
 #include <curses.h>
 #include <expat.h>
 #include <curl/curl.h>
-#include <yajl/yajl_parse.h>
 
 #ifndef NEWSRAFT_VERSION
 #define NEWSRAFT_VERSION "0.29"
@@ -297,7 +296,6 @@ struct feed_update_state {
 
 	int8_t media_type;
 	XML_Parser xml_parser;
-	yajl_handle json_parser;
 	struct getfeed_feed feed;
 	bool in_item;
 	struct string *text;
@@ -598,7 +596,8 @@ bool convert_opml_to_feeds(void);
 bool convert_feeds_to_opml(void);
 
 // See "parse_json" directory for implementation.
-bool setup_json_parser(struct feed_update_state *data);
+void setup_json_parser(struct feed_update_state *data);
+bool newsraft_json_parse(struct feed_update_state *data, const char *content, size_t content_size);
 
 // See "insert_feed" directory for implementation.
 bool insert_feed(struct feed_entry *feed, struct getfeed_feed *feed_data);

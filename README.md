@@ -36,8 +36,7 @@ Check out [comparison of Newsraft and Newsboat](https://codeberg.org/newsraft/ne
 | [expat](https://github.com/libexpat/libexpat)                      | >= 2.4.8  | +   | +     | +      |
 | [gumbo-parser](https://codeberg.org/gumbo-parser/gumbo-parser)     | >= 0.11.0 | +   | +     | +      |
 | [ncursesw](https://invisible-island.net/ncurses)                   | >= 6.2    | +   | +     | +      |
-| [sqlite](https://www.sqlite.org)                                   | >= 3.36.0 | +   | +     | +      |
-| [yajl](https://github.com/lloyd/yajl)                              | >= 2.1.0  | +   | +     | +      |
+| [sqlite](https://www.sqlite.org)                                   | >= 3.38.0 | +   | +     | +      |
 | C compiler                                                         | Any C99   |     | +     | +      |
 | make                                                               | Any POSIX |     | +     | +      |
 | [pkg-config](https://www.freedesktop.org/wiki/Software/pkg-config) | >= 0.29.2 |     | +     | +      |

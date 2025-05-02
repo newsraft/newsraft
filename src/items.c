@@ -159,7 +159,7 @@ items_menu_loop(struct menu_state *m)
 		}
 	}
 	start_menu();
-	const struct wstring *macro, *browser;
+	const struct wstring *arg, *browser;
 	while (true) {
 		if (get_cfg_bool(NULL, CFG_MENU_RESPONSIVENESS) && m->items_age != items_age) {
 			m->items_age = items_age;
@@ -168,8 +168,8 @@ items_menu_loop(struct menu_state *m)
 		if (get_cfg_bool(&m->items->ptr[m->view_sel].feed[0]->cfg, CFG_MARK_ITEM_READ_ON_HOVER)) {
 			mark_item_read(m, m->view_sel, true);
 		}
-		input_id cmd = get_input(m->items->ptr[m->view_sel].feed[0]->binds, NULL, &macro);
-		if (handle_list_menu_control(m, cmd, macro) == true) {
+		input_id cmd = get_input(m->items->ptr[m->view_sel].feed[0]->binds, NULL, &arg);
+		if (handle_list_menu_control(m, cmd, arg) == true) {
 			continue;
 		}
 		switch (cmd) {
@@ -207,6 +207,9 @@ items_menu_loop(struct menu_state *m)
 			case INPUT_SORT_BY_ALPHABET:
 			case INPUT_SORT_BY_IMPORTANT:
 				change_items_list_sorting(&m->items, cmd); break;
+			case INPUT_DATABASE_COMMAND:
+				db_perform_user_edit(arg, NULL, 0, &m->items->ptr[m->view_sel]);
+				break;
 			case INPUT_ENTER:
 				return setup_menu(&item_pager_loop, m->items->ptr[m->view_sel].title, NULL, 0, MENU_NORMAL);
 		}

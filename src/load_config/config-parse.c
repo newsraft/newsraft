@@ -125,7 +125,12 @@ process_config_line(struct feed_entry *feed, const char *str, size_t len)
 
 			if (strcmp(token->ptr, "exec") == 0) {
 				extract_token_from_line(line, token, false);
-				if (attach_command_to_bind(bind, token->ptr, token->len) == false) {
+				if (!attach_action_to_bind(bind, INPUT_SYSTEM_COMMAND, token->ptr, token->len)) {
+					goto error;
+				}
+			} else if (strcmp(token->ptr, "edit") == 0) {
+				extract_token_from_line(line, token, false);
+				if (!attach_action_to_bind(bind, INPUT_DATABASE_COMMAND, token->ptr, token->len)) {
 					goto error;
 				}
 			} else {
@@ -133,7 +138,9 @@ process_config_line(struct feed_entry *feed, const char *str, size_t len)
 				if (cmd == INPUT_ERROR) {
 					goto error;
 				}
-				attach_action_to_bind(bind, cmd);
+				if (!attach_action_to_bind(bind, cmd, NULL, 0)) {
+					goto error;
+				}
 			}
 			continue;
 

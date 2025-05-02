@@ -136,10 +136,10 @@ feeds_menu_loop(struct menu_state *m)
 		sort_feeds(m, get_sorting_id(get_cfg_string(NULL, CFG_MENU_FEED_SORTING)->ptr), false);
 	}
 	start_menu();
-	const struct wstring *macro;
+	const struct wstring *arg;
 	while (true) {
-		input_id cmd = get_input(m->feeds[m->view_sel]->binds, NULL, &macro);
-		if (handle_list_menu_control(m, cmd, macro) == true) {
+		input_id cmd = get_input(m->feeds[m->view_sel]->binds, NULL, &arg);
+		if (handle_list_menu_control(m, cmd, arg) == true) {
 			continue;
 		}
 		switch (cmd) {
@@ -169,6 +169,9 @@ feeds_menu_loop(struct menu_state *m)
 				break;
 			case INPUT_SORT_BY_ALPHABET:
 				sort_feeds(m, feeds_sort == SORT_BY_ALPHABET_ASC ? SORT_BY_ALPHABET_DESC : SORT_BY_ALPHABET_ASC, true);
+				break;
+			case INPUT_DATABASE_COMMAND:
+				db_perform_user_edit(arg, m->feeds + m->view_sel, 1, NULL);
 				break;
 			case INPUT_VIEW_ERRORS:
 				return setup_menu(&errors_pager_loop, NULL, m->feeds + m->view_sel, 1, MENU_NORMAL);

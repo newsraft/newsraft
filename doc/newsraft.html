@@ -137,6 +137,10 @@
   FILE</a></h2>
 <p class="Pp">This file contains feed entries that Newsraft will display and
     process. There are 4 types of lines in <b>feeds</b> file.</p>
+<p class="Pp">Comment lines start with <i>#</i> character. These lines are
+    completely ignored. For example:</p>
+<p class="Pp"></p>
+<div class="Bd-indent"><i># Look closely. The beautiful may be small.</i></div>
 <p class="Pp">Feed lines start with a URL. After at least one whitespace
     character, the name of the feed may be specified - it must be enclosed in
     double quotes. For example:</p>
@@ -155,10 +159,6 @@
     example:</p>
 <p class="Pp"></p>
 <div class="Bd-indent"><i>@ Software Releases</i></div>
-<p class="Pp">Comment lines start with <b>#</b> character. These lines are
-    completely ignored. For example:</p>
-<p class="Pp"></p>
-<div class="Bd-indent"><i># Look closely. The beautiful may be small.</i></div>
 <p class="Pp">Both feed and section lines allow you to set individual settings
     and binds for them. The syntax is as follows:</p>
 <p class="Pp"></p>
@@ -190,43 +190,53 @@
     Newsraft. Presence of <b>config</b> file is totally optional and Newsraft
     will work without it just fine. There are 3 types of lines in <b>config</b>
     file.</p>
-<p class="Pp">Setting lines start with a setting name and end with a setting
-    value. Available settings are listed in the <b>SETTINGS</b> and <b>COLOR
-    SETTINGS</b> sections. Here are a couple of examples:</p>
-<p class="Pp"></p>
-<div class="Bd-indent"><i>scrolloff 5000</i>
-<br/>
-<i>list-entry-date-format &quot;%D&quot;</i>
-<br/>
-<i>feeds-menu-paramount-explore true</i></div>
-<p class="Pp">Binding lines start with the <b>bind</b> word. They define actions
-    that are performed when certain keys are pressed. Complete list of assigned
-    actions can be found in the <b>ACTIONS</b> section. Format of these lines is
-    as follows:</p>
-<p class="Pp"></p>
-<div class="Bd-indent"><b>bind</b> key <i>action</i></div>
-<p class="Pp">There is also a way to assign command bindings. When a key with
-    assigned command binding is pressed, the specifiers in the <i>command</i>
-    are replaced with values of the corresponding entry and the command is
-    executed. You can find which specifiers are available in the description of
-    the <i>menu-item-entry-format</i> setting. Format of these lines is as
-    follows:</p>
-<p class="Pp"></p>
-<div class="Bd-indent"><b>bind</b> key <b>exec</b> <i>command</i></div>
-<p class="Pp">Binding lines support assigning multiple actions to one key.
-    Assigned actions must be separated with semicolon symbols, for example:</p>
-<p class="Pp"></p>
-<div class="Bd-indent"><b>bind</b> key <i>action1</i>; <i>action2</i>;
-  <b>exec</b> <i>command1</i>; <b>exec</b> <i>command2</i>; <i>action5</i></div>
-<p class="Pp">In case you want to disable some binding which was set in Newsraft
-    by default, you can use a line according to this format:</p>
-<p class="Pp"></p>
-<div class="Bd-indent"><b>unbind</b> key</div>
-<p class="Pp">Comment lines start with <b>#</b> character. These lines are
+<p class="Pp">Comment lines start with <i>#</i> character. These lines are
     completely ignored. For example:</p>
 <p class="Pp"></p>
 <div class="Bd-indent"><i># Good design is as little design as
   possible.</i></div>
+<p class="Pp">Setting lines start with a setting name and end with a setting
+    value. Available settings are listed in the <b>SETTINGS</b> and <b>COLOR
+    SETTINGS</b> sections. Here are a couple of examples:</p>
+<p class="Pp"></p>
+<div class="Bd-indent"><b>scrolloff</b> <i>5000</i>
+<br/>
+<b>list-entry-date-format</b> <i>&quot;%D&quot;</i>
+<br/>
+<b>feeds-menu-paramount-explore</b> <i>true</i></div>
+<p class="Pp">Binding lines start with the <b>bind</b> word. They define actions
+    that are performed when certain keys are pressed. Complete list of available
+    actions can be found in the <b>ACTIONS</b> section. Here's an example:</p>
+<p class="Pp"></p>
+<div class="Bd-indent"><b>bind</b> r <i>reload-all</i></div>
+<p class="Pp">There's a special <i>exec</i> action which makes it possible to
+    run shell commands when the bound key is pressed. Specifiers from
+    <b>menu-item-entry-format</b> are replaced in the command with values
+    corresponding to currently selected entry:</p>
+<p class="Pp"></p>
+<div class="Bd-indent"><b>bind</b> m <i>exec</i> setsid mpv --terminal=no
+  &quot;%l&quot; &amp;</div>
+<p class="Pp">For most experienced of you there's an <i>edit</i> action. It runs
+    a SQL query on the <b>database</b> file, be careful! Special value
+    <i>@selected</i> is replaced with a condition which identifies currently
+    selected entry - make sure to include it if you want to target individual
+    item/feed rather than the whole database:</p>
+<p class="Pp"></p>
+<div class="Bd-indent"><b>bind</b> w <i>edit</i> UPDATE items SET user_data =
+  json_set(IFNULL(user_data, '{}'), '$.toWatch', 1) WHERE <i>@selected</i>
+<br/>
+<b>bind</b> W <i>edit</i> UPDATE items SET user_data =
+  json_set(IFNULL(user_data, '{}'), '$.toWatch', 0) WHERE <i>@selected</i></div>
+<p class="Pp">Binding lines can fit multiple actions on a single key. These
+    actions will be executed in the order in which they are specified. Assigned
+    actions must be separated with semicolon (;) symbols, for example:</p>
+<p class="Pp"></p>
+<div class="Bd-indent"><b>bind</b> key <i>action</i>; <i>exec</i> command;
+  <i>action</i>; <i>edit</i> query; <i>action</i></div>
+<p class="Pp">In case you want to disable some binding which was set in Newsraft
+    by default, you can use a line according to this format:</p>
+<p class="Pp"></p>
+<div class="Bd-indent"><b>unbind</b> key</div>
 <p class="Pp">Search precedence:</p>
 <dl class="Bl-tag">
   <dt>1.</dt>
@@ -331,8 +341,8 @@
   <tr>
     <td><i>user_data</i></td>
     <td>(string)</td>
-    <td>User-defined data for the item. It can be set with a <b>query</b> action
-      (see <b>CONFIG FILE</b> section)</td>
+    <td>User-defined data for the item. It can be modified using the <b>edit</b>
+      action (see <b>CONFIG FILE</b> section)</td>
   </tr>
 </table>
 <p class="Pp">Here are some examples of correct setting values:</p>
@@ -1046,7 +1056,7 @@
 </div>
 <table class="foot">
   <tr>
-    <td class="foot-date">2025-05-01</td>
+    <td class="foot-date">2025-05-02</td>
     <td class="foot-os"></td>
   </tr>
 </table>

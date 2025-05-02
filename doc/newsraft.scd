@@ -103,6 +103,11 @@ make an empty search (press */* and *Enter* in series).
 This file contains feed entries that Newsraft will display and process. There
 are 4 types of lines in *feeds* file.
 
+Comment lines start with _#_ character. These lines are completely ignored. For
+example:
+
+	_# Look closely. The beautiful may be small._
+
 Feed lines start with a URL. After at least one whitespace character, the name
 of the feed may be specified - it must be enclosed in double quotes. For
 example:
@@ -119,11 +124,6 @@ Section lines start with *@* character. After any number of whitespace character
 the name of the section must be specified. For example:
 
 	_@ Software Releases_
-
-Comment lines start with *#* character. These lines are completely ignored. For
-example:
-
-	_# Look closely. The beautiful may be small._
 
 Both feed and section lines allow you to set individual settings and binds for
 them. The syntax is as follows:
@@ -147,42 +147,49 @@ This file is used to override default settings and bindings of Newsraft.
 Presence of *config* file is totally optional and Newsraft will work without it
 just fine. There are 3 types of lines in *config* file.
 
+Comment lines start with _#_ character. These lines are completely ignored. For
+example:
+
+	_# Good design is as little design as possible._
+
 Setting lines start with a setting name and end with a setting value. Available
 settings are listed in the *SETTINGS* and *COLOR SETTINGS* sections. Here are a
 couple of examples:
 
-	_scrolloff 5000_++
-_list-entry-date-format "%D"_++
-_feeds-menu-paramount-explore true_
+	*scrolloff* _5000_++
+*list-entry-date-format* _"%D"_++
+*feeds-menu-paramount-explore* _true_
 
 Binding lines start with the *bind* word. They define actions that are performed
-when certain keys are pressed. Complete list of assigned actions can be found in
-the *ACTIONS* section. Format of these lines is as follows:
+when certain keys are pressed. Complete list of available actions can be found
+in the *ACTIONS* section. Here's an example:
 
-	*bind* key _action_
+	*bind* r _reload-all_
 
-There is also a way to assign command bindings. When a key with assigned command
-binding is pressed, the specifiers in the _command_ are replaced with values of
-the corresponding entry and the command is executed. You can find which
-specifiers are available in the description of the _menu-item-entry-format_
-setting. Format of these lines is as follows:
+There's a special _exec_ action which makes it possible to run shell commands
+when the bound key is pressed. Specifiers from *menu-item-entry-format* are
+replaced in the command with values corresponding to currently selected entry:
 
-	*bind* key *exec* _command_
+	*bind* m _exec_ setsid mpv --terminal=no "%l" &
 
-Binding lines support assigning multiple actions to one key. Assigned actions
-must be separated with semicolon symbols, for example:
+For most experienced of you there's an _edit_ action. It runs a SQL query on the
+*database* file, be careful! Special value _@selected_ is replaced with a
+condition which identifies currently selected entry - make sure to include it if
+you want to target individual item/feed rather than the whole database:
 
-	*bind* key _action1_; _action2_; *exec* _command1_; *exec* _command2_; _action5_
+	*bind* w _edit_ UPDATE items SET user_data = json_set(IFNULL(user_data, '{}'), '$.toWatch', 1) WHERE _@selected_++
+*bind* W _edit_ UPDATE items SET user_data = json_set(IFNULL(user_data, '{}'), '$.toWatch', 0) WHERE _@selected_
+
+Binding lines can fit multiple actions on a single key. These actions will be
+executed in the order in which they are specified. Assigned actions
+must be separated with semicolon (;) symbols, for example:
+
+	*bind* key _action_; _exec_ command; _action_; _edit_ query; _action_
 
 In case you want to disable some binding which was set in Newsraft by default,
 you can use a line according to this format:
 
 	*unbind* key
-
-Comment lines start with *#* character. These lines are completely ignored. For
-example:
-
-	_# Good design is as little design as possible._
 
 Search precedence:
 . _$XDG_CONFIG_HOME_/newsraft/config
@@ -249,7 +256,7 @@ Available parameters:
 :[ Timestamp of update date in seconds since 1970
 |[ _user_data_
 :[ (string)
-:[ User-defined data for the item. It can be set with a *query* action (see *CONFIG FILE* section)
+:[ User-defined data for the item. It can be modified using the *edit* action (see *CONFIG FILE* section)
 
 Here are some examples of correct setting values:
 

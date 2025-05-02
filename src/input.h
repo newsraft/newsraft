@@ -63,6 +63,7 @@ INPUT(INPUT_NAVIGATE_BACK,            {"h", "backspace", "KEY_LEFT", "KEY_BACKSP
 INPUT(INPUT_QUIT_SOFT,                {"q"},                                    {"quit"})
 INPUT(INPUT_QUIT_HARD,                {"Q"},                                    {"quit-hard"})
 INPUT(INPUT_SYSTEM_COMMAND,           {},                                       {})
+INPUT(INPUT_DATABASE_COMMAND,         {},                                       {})
 INPUT(INPUT_ERROR,                    {},                                       {})
 INPUT(INPUT_APPLY_SEARCH_MODE_FILTER, {},                                       {})
 

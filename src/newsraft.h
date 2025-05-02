@@ -143,7 +143,7 @@ struct wstring {
 
 struct binding_action {
 	input_id cmd;
-	struct wstring *exec;
+	struct wstring *arg;
 };
 
 struct input_binding {
@@ -164,6 +164,7 @@ struct feed_entry {
 };
 
 struct item_entry {
+	struct string *guid;
 	struct string *title;
 	struct string *url;
 	struct feed_entry **feed;
@@ -440,6 +441,7 @@ int64_t db_get_date_from_feeds_table(const struct string *url, const char *colum
 struct string *db_get_string_from_feed_table(const struct string *url, const char *column, size_t column_len);
 void db_update_feed_int64(const struct string *url, const char *column_name, int64_t value, bool only_positive);
 void db_update_feed_string(const struct string *url, const char *column_name, const struct string *value, bool only_nonempty);
+void db_perform_user_edit(const struct wstring *fmt, struct feed_entry **feeds, size_t feeds_count, const struct item_entry *item);
 
 // See "db-items.c" file for implementation.
 sqlite3_stmt *db_find_item_by_rowid(int64_t rowid);
@@ -480,8 +482,7 @@ struct menu_state *errors_pager_loop(struct menu_state *m);
 // See "binds.c" file for implementation.
 input_id get_action_of_bind(struct input_binding *ctx, const char *key, size_t action_index, const struct wstring **macro_ptr);
 struct input_binding *create_or_clean_bind(struct input_binding **target, const char *key);
-void attach_action_to_bind(struct input_binding *bind, input_id action);
-bool attach_command_to_bind(struct input_binding *bind, const char *exec, size_t exec_len);
+bool attach_action_to_bind(struct input_binding *bind, input_id cmd, const char *arg, size_t arg_len);
 bool assign_default_binds(void);
 input_id get_input_id_by_name(const char *name);
 void free_binds(struct input_binding *target);

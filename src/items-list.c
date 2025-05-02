@@ -26,7 +26,7 @@ append_sorting_order_expression_to_query(struct string *q, int order)
 static inline struct string *
 generate_search_query_string(const struct items_list *items, const struct string *search_filter)
 {
-	struct string *query = crtas("SELECT rowid,feed_url,title,link,publication_date,update_date,unread,important FROM items WHERE ", 96);
+	struct string *query = crtas("SELECT rowid,feed_url,guid,title,link,publication_date,update_date,unread,important FROM items WHERE ", 101);
 	struct string *cond = generate_items_search_condition(items->feeds, items->feeds_count);
 	if (!STRING_IS_EMPTY(cond)) {
 		catss(query, cond);
@@ -47,6 +47,7 @@ free_items_list(struct items_list *items)
 {
 	if (items != NULL) {
 		for (size_t i = 0; i < items->len; ++i) {
+			free_string(items->ptr[i].guid);
 			free_string(items->ptr[i].title);
 			free_string(items->ptr[i].url);
 			free_string(items->ptr[i].date_str);
@@ -99,10 +100,16 @@ obtain_items_at_least_up_to_the_given_index(struct items_list *items, size_t ind
 		}
 
 		text = (const char *)sqlite3_column_text(items->res, 2);
+		if (text == NULL) {
+			continue;
+		}
+		items->ptr[items->len].guid = crtas(text, strlen(text));
+
+		text = (const char *)sqlite3_column_text(items->res, 3);
 		items->ptr[items->len].title = text == NULL ? crtes(1) : crtas(text, strlen(text));
 		inlinefy_string(items->ptr[items->len].title);
 
-		text = (const char *)sqlite3_column_text(items->res, 3);
+		text = (const char *)sqlite3_column_text(items->res, 4);
 		items->ptr[items->len].url = crtes(1);
 		// Convert URL to absolute notation in case it's stored relative.
 		// For example, convert "/index.xml" to "http://example.org/index.xml"
@@ -112,8 +119,8 @@ obtain_items_at_least_up_to_the_given_index(struct items_list *items, size_t ind
 			free(full_url);
 		}
 
-		items->ptr[items->len].pub_date = sqlite3_column_int64(items->res, 4);
-		items->ptr[items->len].upd_date = sqlite3_column_int64(items->res, 5);
+		items->ptr[items->len].pub_date = sqlite3_column_int64(items->res, 5);
+		items->ptr[items->len].upd_date = sqlite3_column_int64(items->res, 6);
 		if (items->ptr[items->len].pub_date <= 0 && items->ptr[items->len].upd_date > 0) {
 			items->ptr[items->len].pub_date = items->ptr[items->len].upd_date;
 		}
@@ -123,8 +130,8 @@ obtain_items_at_least_up_to_the_given_index(struct items_list *items, size_t ind
 		items->ptr[items->len].date_str = get_cfg_date(NULL, CFG_LIST_ENTRY_DATE_FORMAT, items->ptr[items->len].upd_date);
 		items->ptr[items->len].pub_date_str = get_cfg_date(NULL, CFG_LIST_ENTRY_DATE_FORMAT, items->ptr[items->len].pub_date);
 
-		items->ptr[items->len].is_unread = sqlite3_column_int(items->res, 6); // unread
-		items->ptr[items->len].is_important = sqlite3_column_int(items->res, 7); // important
+		items->ptr[items->len].is_unread = sqlite3_column_int(items->res, 7); // unread
+		items->ptr[items->len].is_important = sqlite3_column_int(items->res, 8); // important
 
 		items->len += 1;
 	}

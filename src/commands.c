@@ -59,13 +59,11 @@ void
 run_formatted_command(const struct wstring *wcmd_fmt, const struct format_arg *args)
 {
 	struct wstring *fmtout = wcrtes(200);
-	if (fmtout != NULL) {
-		do_format(fmtout, wcmd_fmt->ptr, args);
-		struct string *cmd = convert_wstring_to_string(fmtout);
-		if (cmd != NULL) {
-			execute_system_command(cmd->ptr);
-			free_string(cmd);
-		}
-		free_wstring(fmtout);
+	do_format(fmtout, wcmd_fmt->ptr, args);
+	struct string *cmd = convert_wstring_to_string(fmtout);
+	if (cmd != NULL) {
+		execute_system_command(cmd->ptr);
+		free_string(cmd);
 	}
+	free_wstring(fmtout);
 }

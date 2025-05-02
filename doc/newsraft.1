@@ -5,7 +5,7 @@
 .nh
 .ad l
 .\" Begin generated content:
-.TH "NEWSRAFT" "1" "2025-05-01"
+.TH "NEWSRAFT" "1" "2025-05-02"
 .PP
 .SH NAME
 .PP
@@ -133,6 +133,13 @@ make an empty search (press \fB/\fR and \fBEnter\fR in series).\&
 This file contains feed entries that Newsraft will display and process.\& There
 are 4 types of lines in \fBfeeds\fR file.\&
 .PP
+Comment lines start with \fI#\fR character.\& These lines are completely ignored.\& For
+example:
+.PP
+.RS 4
+\fI# Look closely.\& The beautiful may be small.\&\fR
+.PP
+.RE
 Feed lines start with a URL.\& After at least one whitespace character, the name
 of the feed may be specified - it must be enclosed in double quotes.\& For
 example:
@@ -154,13 +161,6 @@ the name of the section must be specified.\& For example:
 .PP
 .RS 4
 \fI@ Software Releases\fR
-.PP
-.RE
-Comment lines start with \fB#\fR character.\& These lines are completely ignored.\& For
-example:
-.PP
-.RS 4
-\fI# Look closely.\& The beautiful may be small.\&\fR
 .PP
 .RE
 Both feed and section lines allow you to set individual settings and binds for
@@ -194,41 +194,58 @@ This file is used to override default settings and bindings of Newsraft.\&
 Presence of \fBconfig\fR file is totally optional and Newsraft will work without it
 just fine.\& There are 3 types of lines in \fBconfig\fR file.\&
 .PP
+Comment lines start with \fI#\fR character.\& These lines are completely ignored.\& For
+example:
+.PP
+.RS 4
+\fI# Good design is as little design as possible.\&\fR
+.PP
+.RE
 Setting lines start with a setting name and end with a setting value.\& Available
 settings are listed in the \fBSETTINGS\fR and \fBCOLOR SETTINGS\fR sections.\& Here are a
 couple of examples:
 .PP
 .RS 4
-\fIscrolloff 5000\fR
+\fBscrolloff\fR \fI5000\fR
 .br
-\fIlist-entry-date-format "%D"\fR
+\fBlist-entry-date-format\fR \fI"%D"\fR
 .br
-\fIfeeds-menu-paramount-explore true\fR
+\fBfeeds-menu-paramount-explore\fR \fItrue\fR
 .PP
 .RE
 Binding lines start with the \fBbind\fR word.\& They define actions that are performed
-when certain keys are pressed.\& Complete list of assigned actions can be found in
-the \fBACTIONS\fR section.\& Format of these lines is as follows:
+when certain keys are pressed.\& Complete list of available actions can be found
+in the \fBACTIONS\fR section.\& Here'\&s an example:
 .PP
 .RS 4
-\fBbind\fR key \fIaction\fR
+\fBbind\fR r \fIreload-all\fR
 .PP
 .RE
-There is also a way to assign command bindings.\& When a key with assigned command
-binding is pressed, the specifiers in the \fIcommand\fR are replaced with values of
-the corresponding entry and the command is executed.\& You can find which
-specifiers are available in the description of the \fImenu-item-entry-format\fR
-setting.\& Format of these lines is as follows:
+There'\&s a special \fIexec\fR action which makes it possible to run shell commands
+when the bound key is pressed.\& Specifiers from \fBmenu-item-entry-format\fR are
+replaced in the command with values corresponding to currently selected entry:
 .PP
 .RS 4
-\fBbind\fR key \fBexec\fR \fIcommand\fR
+\fBbind\fR m \fIexec\fR setsid mpv --terminal=no "%l" &
 .PP
 .RE
-Binding lines support assigning multiple actions to one key.\& Assigned actions
-must be separated with semicolon symbols, for example:
+For most experienced of you there'\&s an \fIedit\fR action.\& It runs a SQL query on the
+\fBdatabase\fR file, be careful!\& Special value \fI@selected\fR is replaced with a
+condition which identifies currently selected entry - make sure to include it if
+you want to target individual item/feed rather than the whole database:
 .PP
 .RS 4
-\fBbind\fR key \fIaction1\fR; \fIaction2\fR; \fBexec\fR \fIcommand1\fR; \fBexec\fR \fIcommand2\fR; \fIaction5\fR
+\fBbind\fR w \fIedit\fR UPDATE items SET user_data = json_set(IFNULL(user_data, '\&{}'\&), '\&$.\&toWatch'\&, 1) WHERE \fI@selected\fR
+.br
+\fBbind\fR W \fIedit\fR UPDATE items SET user_data = json_set(IFNULL(user_data, '\&{}'\&), '\&$.\&toWatch'\&, 0) WHERE \fI@selected\fR
+.PP
+.RE
+Binding lines can fit multiple actions on a single key.\& These actions will be
+executed in the order in which they are specified.\& Assigned actions
+must be separated with semicolon (;) symbols, for example:
+.PP
+.RS 4
+\fBbind\fR key \fIaction\fR; \fIexec\fR command; \fIaction\fR; \fIedit\fR query; \fIaction\fR
 .PP
 .RE
 In case you want to disable some binding which was set in Newsraft by default,
@@ -236,13 +253,6 @@ you can use a line according to this format:
 .PP
 .RS 4
 \fBunbind\fR key
-.PP
-.RE
-Comment lines start with \fB#\fR character.\& These lines are completely ignored.\& For
-example:
-.PP
-.RS 4
-\fI# Good design is as little design as possible.\&\fR
 .PP
 .RE
 Search precedence:
@@ -365,7 +375,7 @@ T{
 T}	T{
 (string)
 T}	T{
-User-defined data for the item.\& It can be set with a \fBquery\fR action (see \fBCONFIG FILE\fR section)
+User-defined data for the item.\& It can be modified using the \fBedit\fR action (see \fBCONFIG FILE\fR section)
 T}
 .TE
 .sp 1

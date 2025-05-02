@@ -345,10 +345,10 @@ sections_menu_loop(struct menu_state *m)
 		sort_sections(get_sorting_id(get_cfg_string(NULL, CFG_MENU_SECTION_SORTING)->ptr), false);
 	}
 	start_menu();
-	const struct wstring *macro;
+	const struct wstring *arg;
 	while (true) {
-		input_id cmd = get_input(NULL, NULL, &macro);
-		if (handle_list_menu_control(m, cmd, macro) == true) {
+		input_id cmd = get_input(NULL, NULL, &arg);
+		if (handle_list_menu_control(m, cmd, arg) == true) {
 			continue;
 		}
 		switch (cmd) {
@@ -374,6 +374,9 @@ sections_menu_loop(struct menu_state *m)
 				break;
 			case INPUT_SORT_BY_ALPHABET:
 				sort_sections(sections_sort == SORT_BY_ALPHABET_ASC ? SORT_BY_ALPHABET_DESC : SORT_BY_ALPHABET_ASC, true);
+				break;
+			case INPUT_DATABASE_COMMAND:
+				db_perform_user_edit(arg, sections_view[m->view_sel]->feeds, sections_view[m->view_sel]->feeds_count, NULL);
 				break;
 			case INPUT_QUIT_SOFT:
 			case INPUT_QUIT_HARD:

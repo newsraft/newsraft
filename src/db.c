@@ -129,7 +129,7 @@ db_init(void)
 		");"
 		"CREATE TABLE IF NOT EXISTS items("
 			"feed_url TEXT NOT NULL,"
-			"guid TEXT,"
+			"guid TEXT NOT NULL,"
 			"title TEXT,"
 			"link TEXT,"
 			"content TEXT,"
@@ -148,6 +148,7 @@ db_init(void)
 		");"
 		"CREATE INDEX IF NOT EXISTS idx_items_essentials ON items("
 			"feed_url,"
+			"guid,"
 			"title,"
 			"link,"
 			"publication_date,"
@@ -394,4 +395,74 @@ db_update_feed_string(const struct string *url, const char *column_name, const s
 			sqlite3_finalize(res);
 		}
 	}
+}
+
+void
+db_perform_user_edit(const struct wstring *fmt, struct feed_entry **feeds, size_t feeds_count, const struct item_entry *item)
+{
+	size_t replacements_count = 0;
+	struct wstring *cmd = wcrtes(1000);
+	for (size_t i = 0; i + 8 < fmt->len; ++i) {
+		if (wcsncmp(fmt->ptr + i, L"@selected", 9) == 0) {
+			i += 8;
+			if (item) {
+				wcatas(cmd, L"(rowid=? AND feed_url=? AND guid=?)", 35);
+				replacements_count += 1;
+				continue;
+			}
+			if (feeds && feeds_count > 0) {
+				wcatcs(cmd, L'(');
+				for (size_t i = 0; i < feeds_count; ++i) {
+					if (i > 0) {
+						wcatas(cmd, L" OR ", 4);
+					}
+					wcatas(cmd, L"feed_url=?", 10);
+				}
+				wcatcs(cmd, L')');
+				replacements_count += 1;
+				continue;
+			}
+		} else {
+			wcatcs(cmd, fmt->ptr[i]);
+		}
+	}
+	struct string *query = convert_wstring_to_string(cmd);
+	free_wstring(cmd);
+	if (query == NULL) {
+		return;
+	}
+	const char *error = "";
+	sqlite3_stmt *stmt = db_prepare(query->ptr, query->len + 1, &error);
+	if (stmt == NULL) {
+		fail_status("%s: %ls", error, fmt->ptr);
+		free_string(query);
+		return;
+	}
+	for (size_t i = 0, j = 1; i < replacements_count; ++i) {
+		if (item) {
+			sqlite3_bind_int64(stmt, j++, item->rowid);
+			db_bind_string(stmt, j++, item->feed[0]->link);
+			db_bind_string(stmt, j++, item->guid);
+			continue;
+		}
+		if (feeds && feeds_count > 0) {
+			for (size_t k = 0; k < feeds_count; ++k) {
+				db_bind_string(stmt, j++, feeds[k]->link);
+			}
+			continue;
+		}
+	}
+	while (true) {
+		int status = sqlite3_step(stmt);
+		if (status == SQLITE_DONE) {
+			info_status("Successful edit (%d changes)", sqlite3_changes(db));
+			break;
+		}
+		if (status != SQLITE_ROW) {
+			fail_status("Failed: %ls", fmt->ptr);
+			break;
+		}
+	}
+	sqlite3_finalize(stmt);
+	free_string(query);
 }

@@ -1,26 +1,6 @@
 #include <string.h>
 #include "insert_feed/insert_feed.h"
 
-static inline void
-fnv_1a_string(struct string **target, const char *src)
-{
-	// https://en.wikipedia.org/wiki/Fowler%E2%80%93Noll%E2%80%93Vo_hash_function
-	// http://isthe.com/chongo/tech/comp/fnv
-	// https://datatracker.ietf.org/doc/html/draft-eastlake-fnv-17.html
-	uint64_t hash = 14695981039346656037LLU;
-	for (const char *i = src; *i != '\0'; ++i) {
-		hash = (hash ^ *i) * 1099511628211LLU;
-	}
-	char str[60];
-	size_t str_len = 47 + hash % 13, k = 0;
-	while (k < str_len) {
-		str[k] = hash % 94 + 33;
-		hash = (hash ^ str[k++]) * 109951183333LLU;
-	}
-	str[str_len] = '\0';
-	cpyas(target, str, str_len);
-}
-
 bool
 delete_excess_items(struct feed_entry *feed, int64_t limit)
 {
@@ -105,7 +85,7 @@ insert_item_data(struct feed_entry *feed, struct getfeed_item *item)
 		} else if (!STRING_IS_EMPTY(item->title)) {
 			cpyss(&item->guid, item->title);
 		} else if (!STRING_IS_EMPTY(item->content)) {
-			fnv_1a_string(&item->guid, item->content->ptr);
+			newsraft_simple_hash(&item->guid, item->content->ptr);
 		} else {
 			WARN("Couldn't generate GUID for the item!");
 			return true; // Probably this item is just empty. Ignore it.

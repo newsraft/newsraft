@@ -230,6 +230,21 @@ inlinefy_string(struct string *str)
 	str->len = dest - str->ptr;
 }
 
+void
+newsraft_simple_hash(struct string **dest, const char *src)
+{
+	uint64_t hash = 14695981039346656037LLU;
+	for (const char *i = src; *i != '\0'; ++i) {
+		hash = (hash ^ *i) * 1099511628211LLU;
+	}
+	char out[64];
+	for (size_t i = 0; i < sizeof(out); ++i) {
+		out[i] = 32 + hash % 95;
+		hash = (hash ^ ((hash << 39) | (hash >> 25))) * 1099511628211LLU;
+	}
+	cpyas(dest, out, sizeof(out));
+}
+
 struct string *
 newsraft_base64_encode(const uint8_t *data, size_t size)
 {

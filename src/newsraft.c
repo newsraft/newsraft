@@ -87,7 +87,13 @@ print_usage(void)
 	      "  -v         print version and successfully exit\n"
 	      "  -h         print this message and successfully exit\n"
 	      "\n"
-	      "ACTION is one of the following: reload-all, print-unread-items-count, purge-abandoned\n",
+	      "ACTION is one of the following:\n"
+	      "\n"
+	      "  convert-opml-to-feeds\n"
+	      "  convert-feeds-to-opml\n"
+	      "  reload-all\n"
+	      "  print-unread-items-count\n"
+	      "  purge-abandoned\n",
 	      stderr);
 }
 

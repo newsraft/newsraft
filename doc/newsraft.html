@@ -209,27 +209,36 @@
     actions can be found in the <b>ACTIONS</b> section. Here's an example:</p>
 <p class="Pp"></p>
 <div class="Bd-indent"><b>bind</b> r <i>reload-all</i></div>
-<p class="Pp">There's a special <i>exec</i> action which makes it possible to
-    run shell commands when the bound key is pressed. Specifiers from
-    <b>menu-item-entry-format</b> are replaced in the command with values
-    corresponding to currently selected entry:</p>
+<p class="Pp">The special <i>exec</i> action makes it possible to run shell
+    commands when the bound key is pressed. Specifiers within the command are
+    replaced with values corresponding to the currently selected entry as per
+    <b>menu-item-entry-format</b>:</p>
 <p class="Pp"></p>
 <div class="Bd-indent"><b>bind</b> m <i>exec</i> setsid mpv --terminal=no
   &quot;%l&quot; &amp;</div>
-<p class="Pp">For most experienced of you there's an <i>edit</i> action. It runs
-    a SQL query on the <b>database</b> file, be careful! Special value
-    <i>@selected</i> is replaced with a condition which identifies currently
-    selected entry - make sure to include it if you want to target individual
-    item/feed rather than the whole database:</p>
+<p class="Pp">The <i>edit</i> action runs a specified SQL query on the
+    <b>database</b>, so please be careful! <i>@selected</i> specifier is
+    replaced with a condition which identifies the currently selected entry -
+    make sure to include it if you want to target individual item/feed rather
+    than the whole database:</p>
 <p class="Pp"></p>
 <div class="Bd-indent"><b>bind</b> w <i>edit</i> UPDATE items SET user_data =
   json_set(IFNULL(user_data, '{}'), '$.toWatch', 1) WHERE <i>@selected</i>
 <br/>
 <b>bind</b> W <i>edit</i> UPDATE items SET user_data =
   json_set(IFNULL(user_data, '{}'), '$.toWatch', 0) WHERE <i>@selected</i></div>
-<p class="Pp">Binding lines can fit multiple actions on a single key. These
+<p class="Pp">Use the <i>find</i> action to retrieve items based on a specified
+    SQL condition in the current context. For instance, to search for items
+    marked as toWatch (as shown in the previous example), one can use the
+    bindings like the following:</p>
+<p class="Pp"></p>
+<div class="Bd-indent"><b>bind</b> f <i>find</i> user_data LIKE
+  '%&quot;toWatch&quot;:1%'
+<br/>
+<b>bind</b> f <i>find</i> json_extract(user_data, '$.toWatch') = 1</div>
+<p class="Pp">Binding lines can fit multiple actions in a single key. These
     actions will be executed in the order in which they are specified. Assigned
-    actions must be separated with semicolon (;) symbols, for example:</p>
+    actions must be separated with semicolon (;) characters, for example:</p>
 <p class="Pp"></p>
 <div class="Bd-indent"><b>bind</b> key <i>action</i>; <i>exec</i> command;
   <i>action</i>; <i>edit</i> query; <i>action</i></div>
@@ -1056,7 +1065,7 @@
 </div>
 <table class="foot">
   <tr>
-    <td class="foot-date">2025-05-02</td>
+    <td class="foot-date">2025-05-03</td>
     <td class="foot-os"></td>
   </tr>
 </table>

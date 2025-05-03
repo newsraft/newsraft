@@ -123,24 +123,13 @@ process_config_line(struct feed_entry *feed, const char *str, size_t len)
 
 		} else if (bind != NULL) { // Takes previous bind entry into account
 
-			if (strcmp(token->ptr, "exec") == 0) {
-				extract_token_from_line(line, token, false);
-				if (!attach_action_to_bind(bind, INPUT_SYSTEM_COMMAND, token->ptr, token->len)) {
-					goto error;
-				}
-			} else if (strcmp(token->ptr, "edit") == 0) {
-				extract_token_from_line(line, token, false);
-				if (!attach_action_to_bind(bind, INPUT_DATABASE_COMMAND, token->ptr, token->len)) {
-					goto error;
-				}
-			} else {
-				input_id cmd = get_input_id_by_name(token->ptr);
-				if (cmd == INPUT_ERROR) {
-					goto error;
-				}
-				if (!attach_action_to_bind(bind, cmd, NULL, 0)) {
-					goto error;
-				}
+			input_id cmd = get_input_id_by_name(token->ptr);
+			if (cmd == INPUT_ERROR) {
+				goto error;
+			}
+			extract_token_from_line(line, token, false);
+			if (!attach_action_to_bind(bind, cmd, token->ptr, token->len)) {
+				goto error;
 			}
 			continue;
 

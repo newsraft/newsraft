@@ -146,7 +146,7 @@ db_init(void)
 			"feed_url,"
 			"guid"
 		");"
-		"CREATE INDEX IF NOT EXISTS idx_items_essentials ON items("
+		"CREATE INDEX IF NOT EXISTS idx_items_eight_way ON items("
 			"feed_url,"
 			"guid,"
 			"title,"

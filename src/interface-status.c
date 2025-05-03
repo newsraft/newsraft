@@ -4,8 +4,10 @@
 static WINDOW *status_window = NULL;
 static volatile bool status_window_is_cleanable = true;
 static volatile bool status_window_is_initialized = false;
-static struct string *message_text;
+static struct string *message_text = NULL;
 static config_entry_id message_color;
+static bool search_mode_is_enabled = false;
+static struct wstring *search_mode_text_input = NULL;
 
 // We take 999999999 as the maximum value for count variable to avoid overflow
 // of the uint32_t integer. The width of this number is hardcoded into the
@@ -140,13 +142,14 @@ status_write(config_entry_id color, const char *format, ...)
 	}
 
 	pthread_mutex_lock(&interface_lock);
-	make_string_fit_more(&message_text, 100);
-	empty_string(message_text);
+	struct string *new_message = crtes(100);
 	va_list args;
 	va_start(args, format);
-	str_vappendf(message_text, format, args);
+	str_vappendf(new_message, format, args);
 	va_end(args);
 	message_color = color;
+	cpyss(&message_text, new_message);
+	free_string(new_message);
 	INFO("Printed status message: %s", message_text->ptr);
 	update_status_window_content_unprotected();
 	pthread_mutex_unlock(&interface_lock);
@@ -163,12 +166,12 @@ status_delete(void)
 }
 
 input_id
-get_input(struct input_binding *ctx, uint32_t *count, const struct wstring **macro_ptr)
+get_input(struct input_binding *ctx, uint32_t *count, const struct wstring **p_arg)
 {
 	static wint_t c = 0;
 	static size_t queued_action_index = 0;
 	if (queued_action_index > 0) {
-		input_id next = get_action_of_bind(ctx, keyname(c), queued_action_index, macro_ptr);
+		input_id next = get_action_of_bind(ctx, keyname(c), queued_action_index, p_arg);
 		if (next != INPUT_ERROR) {
 			queued_action_index += 1;
 			return next;
@@ -218,7 +221,7 @@ get_input(struct input_binding *ctx, uint32_t *count, const struct wstring **mac
 			count_buf[count_buf_len++] = c;
 			update_status_window_content();
 		} else {
-			input_id cmd = get_action_of_bind(ctx, key, 0, macro_ptr);
+			input_id cmd = get_action_of_bind(ctx, key, 0, p_arg);
 			uint32_t count_value = 1;
 			count_buf[count_buf_len] = '\0';
 			if (sscanf(count_buf, "%" SCNu32, &count_value) != 1) {
@@ -247,4 +250,18 @@ void
 break_getting_input_command(void)
 {
 	they_want_us_to_break_input = true;
+}
+
+struct string *
+pop_search_filter(void)
+{
+	if (search_mode_is_enabled == true) {
+		return NULL; // Must not yield search filter when it's not complete yet!
+	}
+	if (search_mode_text_input != NULL && search_mode_text_input->len > 0) {
+		struct string *search_query = convert_wstring_to_string(search_mode_text_input);
+		empty_wstring(search_mode_text_input);
+		return search_query;
+	}
+	return NULL;
 }

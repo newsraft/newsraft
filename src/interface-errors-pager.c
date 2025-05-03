@@ -41,9 +41,9 @@ errors_pager_loop(struct menu_state *m)
 
 	start_menu();
 
-	const struct wstring *macro;
+	const struct wstring *arg;
 	while (true) {
-		input_id cmd = get_input(NULL, NULL, &macro);
+		input_id cmd = get_input(NULL, NULL, &arg);
 		if (handle_pager_menu_control(cmd) == true) {
 			// Rest a little.
 		} else if (cmd == INPUT_NAVIGATE_BACK || cmd == INPUT_QUIT_SOFT) {

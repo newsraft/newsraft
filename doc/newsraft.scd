@@ -166,23 +166,30 @@ in the *ACTIONS* section. Here's an example:
 
 	*bind* r _reload-all_
 
-There's a special _exec_ action which makes it possible to run shell commands
-when the bound key is pressed. Specifiers from *menu-item-entry-format* are
-replaced in the command with values corresponding to currently selected entry:
+The special _exec_ action makes it possible to run shell commands when the bound
+key is pressed. Specifiers within the command are replaced with values
+corresponding to the currently selected entry as per *menu-item-entry-format*:
 
 	*bind* m _exec_ setsid mpv --terminal=no "%l" &
 
-For most experienced of you there's an _edit_ action. It runs a SQL query on the
-*database* file, be careful! Special value _@selected_ is replaced with a
-condition which identifies currently selected entry - make sure to include it if
-you want to target individual item/feed rather than the whole database:
+The _edit_ action runs a specified SQL query on the *database*, so please be
+careful! _@selected_ specifier is replaced with a condition which identifies the
+currently selected entry - make sure to include it if you want to target
+individual item/feed rather than the whole database:
 
 	*bind* w _edit_ UPDATE items SET user_data = json_set(IFNULL(user_data, '{}'), '$.toWatch', 1) WHERE _@selected_++
 *bind* W _edit_ UPDATE items SET user_data = json_set(IFNULL(user_data, '{}'), '$.toWatch', 0) WHERE _@selected_
 
-Binding lines can fit multiple actions on a single key. These actions will be
+Use the _find_ action to retrieve items based on a specified SQL condition in
+the current context. For instance, to search for items marked as toWatch (as
+shown in the previous example), one can use the bindings like the following:
+
+	*bind* f _find_ user_data LIKE '%"toWatch":1%'++
+*bind* f _find_ json_extract(user_data, '$.toWatch') = 1
+
+Binding lines can fit multiple actions in a single key. These actions will be
 executed in the order in which they are specified. Assigned actions
-must be separated with semicolon (;) symbols, for example:
+must be separated with semicolon (;) characters, for example:
 
 	*bind* key _action_; _exec_ command; _action_; _edit_ query; _action_
 

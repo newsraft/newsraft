@@ -1,8 +1,6 @@
 #include <stdlib.h>
 #include "newsraft.h"
 
-bool search_mode_is_enabled = false;
-struct wstring *search_mode_text_input = NULL;
 static bool paint_it_black = true;
 static volatile bool newsraft_has_successfully_initialized_curses = false;
 
@@ -95,7 +93,7 @@ bool
 run_menu_loop(void)
 {
 	struct timespec idling = {0, 100000000}; // 0.1 seconds
-	struct menu_state *menu = setup_menu(&sections_menu_loop, NULL, NULL, 0, MENU_NORMAL);
+	struct menu_state *menu = setup_menu(&sections_menu_loop, NULL, NULL, 0, MENU_NORMAL, NULL);
 	if (menu == NULL) {
 		return false;
 	}
@@ -104,7 +102,7 @@ run_menu_loop(void)
 		if (menu == NULL) {
 			break; // TODO: don't stop feed downloader?
 			nanosleep(&idling, NULL); // Avoids CPU cycles waste while awaiting termination
-			menu = setup_menu(&sections_menu_loop, NULL, NULL, 0, MENU_DISABLE_SETTINGS);
+			menu = setup_menu(&sections_menu_loop, NULL, NULL, 0, MENU_DISABLE_SETTINGS, NULL);
 		}
 	}
 	return true;

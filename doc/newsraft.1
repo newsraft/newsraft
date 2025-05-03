@@ -5,7 +5,7 @@
 .nh
 .ad l
 .\" Begin generated content:
-.TH "NEWSRAFT" "1" "2025-05-02"
+.TH "NEWSRAFT" "1" "2025-05-03"
 .PP
 .SH NAME
 .PP
@@ -221,18 +221,18 @@ in the \fBACTIONS\fR section.\& Here'\&s an example:
 \fBbind\fR r \fIreload-all\fR
 .PP
 .RE
-There'\&s a special \fIexec\fR action which makes it possible to run shell commands
-when the bound key is pressed.\& Specifiers from \fBmenu-item-entry-format\fR are
-replaced in the command with values corresponding to currently selected entry:
+The special \fIexec\fR action makes it possible to run shell commands when the bound
+key is pressed.\& Specifiers within the command are replaced with values
+corresponding to the currently selected entry as per \fBmenu-item-entry-format\fR:
 .PP
 .RS 4
 \fBbind\fR m \fIexec\fR setsid mpv --terminal=no "%l" &
 .PP
 .RE
-For most experienced of you there'\&s an \fIedit\fR action.\& It runs a SQL query on the
-\fBdatabase\fR file, be careful!\& Special value \fI@selected\fR is replaced with a
-condition which identifies currently selected entry - make sure to include it if
-you want to target individual item/feed rather than the whole database:
+The \fIedit\fR action runs a specified SQL query on the \fBdatabase\fR, so please be
+careful!\& \fI@selected\fR specifier is replaced with a condition which identifies the
+currently selected entry - make sure to include it if you want to target
+individual item/feed rather than the whole database:
 .PP
 .RS 4
 \fBbind\fR w \fIedit\fR UPDATE items SET user_data = json_set(IFNULL(user_data, '\&{}'\&), '\&$.\&toWatch'\&, 1) WHERE \fI@selected\fR
@@ -240,9 +240,19 @@ you want to target individual item/feed rather than the whole database:
 \fBbind\fR W \fIedit\fR UPDATE items SET user_data = json_set(IFNULL(user_data, '\&{}'\&), '\&$.\&toWatch'\&, 0) WHERE \fI@selected\fR
 .PP
 .RE
-Binding lines can fit multiple actions on a single key.\& These actions will be
+Use the \fIfind\fR action to retrieve items based on a specified SQL condition in
+the current context.\& For instance, to search for items marked as toWatch (as
+shown in the previous example), one can use the bindings like the following:
+.PP
+.RS 4
+\fBbind\fR f \fIfind\fR user_data LIKE '\&%"toWatch":1%'\&
+.br
+\fBbind\fR f \fIfind\fR json_extract(user_data, '\&$.\&toWatch'\&) = 1
+.PP
+.RE
+Binding lines can fit multiple actions in a single key.\& These actions will be
 executed in the order in which they are specified.\& Assigned actions
-must be separated with semicolon (;) symbols, for example:
+must be separated with semicolon (;) characters, for example:
 .PP
 .RS 4
 \fBbind\fR key \fIaction\fR; \fIexec\fR command; \fIaction\fR; \fIedit\fR query; \fIaction\fR

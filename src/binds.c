@@ -10,7 +10,7 @@
 static struct input_binding *binds = NULL;
 
 input_id
-get_action_of_bind(struct input_binding *ctx, const char *key, size_t action_index, const struct wstring **macro_ptr)
+get_action_of_bind(struct input_binding *ctx, const char *key, size_t action_index, const struct wstring **p_arg)
 {
 	if (key != NULL) {
 		struct input_binding *pool[] = {ctx, binds};
@@ -18,7 +18,7 @@ get_action_of_bind(struct input_binding *ctx, const char *key, size_t action_ind
 			for (struct input_binding *i = pool[p]; i != NULL; i = i->next) {
 				if (strcmp(key, i->key->ptr) == 0) {
 					if (action_index < i->actions_count) {
-						*macro_ptr = i->actions[action_index].arg;
+						*p_arg = i->actions[action_index].arg;
 						return i->actions[action_index].cmd;
 					}
 					return INPUT_ERROR;
@@ -70,7 +70,7 @@ attach_action_to_bind(struct input_binding *bind, input_id cmd, const char *arg,
 	bind->actions = newsraft_realloc(bind->actions, sizeof(struct binding_action) * (bind->actions_count + 1));
 	bind->actions[bind->actions_count].cmd = cmd;
 	bind->actions[bind->actions_count].arg = NULL;
-	if (cmd == INPUT_SYSTEM_COMMAND || cmd == INPUT_DATABASE_COMMAND) {
+	if (arg && arg_len > 0) {
 		bind->actions[bind->actions_count].arg = convert_array_to_wstring(arg, arg_len);
 		if (bind->actions[bind->actions_count].arg == NULL) {
 			return false;

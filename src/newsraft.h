@@ -78,9 +78,8 @@ enum {
 enum {
 	MENU_NORMAL           = 0,
 	MENU_IS_EXPLORE       = 1,  // Tell items menu to use explore mode
-	MENU_USE_SEARCH       = 2,  // Tell items menu to apply search
-	MENU_SWALLOW          = 4,  // Replace current menu with this menu
-	MENU_DISABLE_SETTINGS = 8,
+	MENU_SWALLOW          = 2,  // Replace current menu with this menu
+	MENU_DISABLE_SETTINGS = 4,
 };
 
 typedef uint8_t sorting_method_t;
@@ -180,6 +179,7 @@ struct item_entry {
 struct items_list {
 	sqlite3_stmt *res;
 	struct string *query;
+	struct string *find_filter;
 	struct string *search_filter;
 	struct item_entry *ptr;
 	size_t len;
@@ -213,6 +213,7 @@ struct menu_state {
 	bool is_initialized;
 	bool is_deleted;
 	const struct wstring *entry_format;
+	const struct wstring *find_filter;
 	bool (*enumerator)(struct menu_state *ctx, size_t index); // Checks if index is valid
 	const struct format_arg *(*get_args)(struct menu_state *ctx, size_t index);
 	unsigned (*paint_action)(struct menu_state *ctx, size_t index);
@@ -350,7 +351,7 @@ bool handle_list_menu_control(struct menu_state *m, input_id cmd, const struct w
 bool handle_pager_menu_control(input_id cmd);
 void free_menus(void);
 size_t get_menu_depth(void);
-struct menu_state *setup_menu(struct menu_state *(*run)(struct menu_state *), const struct string *name, struct feed_entry **feeds, size_t feeds_count, uint32_t flags);
+struct menu_state *setup_menu(struct menu_state *(*run)(struct menu_state *), const struct string *name, struct feed_entry **feeds, size_t feeds_count, uint32_t flags, const void *ctx);
 struct menu_state *close_menu(void);
 void start_menu(void);
 void write_menu_path_string(struct string *names, struct menu_state *m);
@@ -375,11 +376,10 @@ void tell_items_menu_to_regenerate(void);
 struct menu_state *items_menu_loop(struct menu_state *dest);
 
 // See "items-list.c" file for implementation.
-struct items_list *create_items_list(struct feed_entry **feeds, size_t feeds_count, int sorting, const struct wstring *search_filter);
+struct items_list *create_items_list(struct feed_entry **feeds, size_t feeds_count, const struct wstring *find_filter, const struct items_list *previous_items);
 bool recreate_items_list(struct items_list **items);
 void obtain_items_at_least_up_to_the_given_index(struct items_list *items, size_t index);
 void change_items_list_sorting(struct items_list **items, input_id cmd);
-void change_search_filter_of_items_list(struct items_list **items, const struct wstring *search_filter);
 void free_items_list(struct items_list *items);
 
 // See "items-pager.c" file for implementation.
@@ -472,15 +472,16 @@ void prevent_status_cleaning(void);
 void allow_status_cleaning(void);
 void status_write(config_entry_id color, const char *format, ...);
 void status_delete(void);
-input_id get_input(struct input_binding *ctx, uint32_t *count, const struct wstring **macro_ptr);
+input_id get_input(struct input_binding *ctx, uint32_t *count, const struct wstring **p_arg);
 void break_getting_input_command(void);
+struct string *pop_search_filter(void);
 
 // See "interface-errors-pager.c" file for implementation.
 struct menu_state *errors_pager_loop(struct menu_state *m);
 
 // Functions responsible for managing of key bindings.
 // See "binds.c" file for implementation.
-input_id get_action_of_bind(struct input_binding *ctx, const char *key, size_t action_index, const struct wstring **macro_ptr);
+input_id get_action_of_bind(struct input_binding *ctx, const char *key, size_t action_index, const struct wstring **p_arg);
 struct input_binding *create_or_clean_bind(struct input_binding **target, const char *key);
 bool attach_action_to_bind(struct input_binding *bind, input_id cmd, const char *arg, size_t arg_len);
 bool assign_default_binds(void);
@@ -617,8 +618,6 @@ void newsraft_free(void *ptr);
 extern volatile bool they_want_us_to_stop;
 extern size_t list_menu_height;
 extern size_t list_menu_width;
-extern bool search_mode_is_enabled;
-extern struct wstring *search_mode_text_input;
 extern pthread_mutex_t interface_lock;
 
 #include "config.h"

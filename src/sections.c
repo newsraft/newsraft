@@ -335,9 +335,9 @@ sections_menu_loop(struct menu_state *m)
 	if (!(m->flags & MENU_DISABLE_SETTINGS)) {
 		// Don't set the menu names here because it's redundant!
 		if (get_cfg_bool(NULL, CFG_SECTIONS_MENU_PARAMOUNT_EXPLORE) && db_count_items(sections[0].feeds, sections[0].feeds_count, false)) {
-			return setup_menu(&items_menu_loop, NULL, sections[0].feeds, sections[0].feeds_count, MENU_IS_EXPLORE);
+			return setup_menu(&items_menu_loop, NULL, sections[0].feeds, sections[0].feeds_count, MENU_IS_EXPLORE, NULL);
 		} else if (sections_count == 1) {
-			return setup_menu(&feeds_menu_loop, NULL, sections[0].feeds, sections[0].feeds_count, MENU_SWALLOW);
+			return setup_menu(&feeds_menu_loop, NULL, sections[0].feeds, sections[0].feeds_count, MENU_SWALLOW, NULL);
 		}
 	}
 	refresh_sections_statistics_about_underlying_feeds();
@@ -359,13 +359,13 @@ sections_menu_loop(struct menu_state *m)
 			case INPUT_RELOAD:          queue_updates(sections_view[m->view_sel]->feeds, sections_view[m->view_sel]->feeds_count);          break;
 			case INPUT_RELOAD_ALL:      queue_updates(sections[0].feeds, sections[0].feeds_count);                                          break;
 			case INPUT_ENTER:
-				return setup_menu(&feeds_menu_loop, sections_view[m->view_sel]->name, sections_view[m->view_sel]->feeds, sections_view[m->view_sel]->feeds_count, MENU_NORMAL);
+				return setup_menu(&feeds_menu_loop, sections_view[m->view_sel]->name, sections_view[m->view_sel]->feeds, sections_view[m->view_sel]->feeds_count, MENU_NORMAL, NULL);
 			case INPUT_TOGGLE_EXPLORE_MODE:
-				return setup_menu(&items_menu_loop, NULL, sections[0].feeds, sections[0].feeds_count, MENU_IS_EXPLORE);
+				return setup_menu(&items_menu_loop, NULL, sections[0].feeds, sections[0].feeds_count, MENU_IS_EXPLORE, NULL);
 			case INPUT_APPLY_SEARCH_MODE_FILTER:
-				return setup_menu(&items_menu_loop, NULL, sections[0].feeds, sections[0].feeds_count, MENU_IS_EXPLORE | MENU_USE_SEARCH);
+				return setup_menu(&items_menu_loop, NULL, sections[0].feeds, sections[0].feeds_count, MENU_IS_EXPLORE, NULL);
 			case INPUT_VIEW_ERRORS:
-				return setup_menu(&errors_pager_loop, NULL, sections_view[m->view_sel]->feeds, sections_view[m->view_sel]->feeds_count, MENU_NORMAL);
+				return setup_menu(&errors_pager_loop, NULL, sections_view[m->view_sel]->feeds, sections_view[m->view_sel]->feeds_count, MENU_NORMAL, NULL);
 			case INPUT_SORT_BY_UNREAD:
 				sort_sections(sections_sort == SORT_BY_UNREAD_DESC ? SORT_BY_UNREAD_ASC : SORT_BY_UNREAD_DESC, true);
 				break;
@@ -378,6 +378,8 @@ sections_menu_loop(struct menu_state *m)
 			case INPUT_DATABASE_COMMAND:
 				db_perform_user_edit(arg, sections_view[m->view_sel]->feeds, sections_view[m->view_sel]->feeds_count, NULL);
 				break;
+			case INPUT_FIND_COMMAND:
+				return setup_menu(&items_menu_loop, NULL, sections[0].feeds, sections[0].feeds_count, MENU_IS_EXPLORE, arg);
 			case INPUT_QUIT_SOFT:
 			case INPUT_QUIT_HARD:
 				return NULL;

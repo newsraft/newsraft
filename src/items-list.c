@@ -24,7 +24,7 @@ append_sorting_order_expression_to_query(struct string *q, int order)
 }
 
 static inline struct string *
-generate_search_query_string(const struct items_list *items, const struct string *search_filter)
+generate_search_query_string(const struct items_list *items)
 {
 	struct string *query = crtas("SELECT rowid,feed_url,guid,title,link,publication_date,update_date,unread,important FROM items WHERE ", 101);
 	struct string *cond = generate_items_search_condition(items->feeds, items->feeds_count);
@@ -32,7 +32,12 @@ generate_search_query_string(const struct items_list *items, const struct string
 		catss(query, cond);
 	}
 	free_string(cond);
-	if (!STRING_IS_EMPTY(search_filter)) {
+	if (!STRING_IS_EMPTY(items->find_filter)) {
+		catas(query, " AND (", 6);
+		catss(query, items->find_filter);
+		catcs(query, ')');
+	}
+	if (!STRING_IS_EMPTY(items->search_filter)) {
 		catas(query, " AND ((title LIKE '%' || ? || '%') OR (content LIKE '%' || ? || '%'))", 69);
 	}
 	if (append_sorting_order_expression_to_query(query, items->sorting) == false) {
@@ -55,6 +60,7 @@ free_items_list(struct items_list *items)
 		}
 		sqlite3_finalize(items->res);
 		free_string(items->query);
+		free_string(items->find_filter);
 		free_string(items->search_filter);
 		free(items->ptr);
 		free(items);
@@ -138,7 +144,7 @@ obtain_items_at_least_up_to_the_given_index(struct items_list *items, size_t ind
 }
 
 struct items_list *
-create_items_list(struct feed_entry **feeds, size_t feeds_count, int sorting, const struct wstring *search_filter)
+create_items_list(struct feed_entry **feeds, size_t feeds_count, const struct wstring *find_filter, const struct items_list *previous_items)
 {
 	INFO("Generating items list.");
 	if (feeds_count == 0) {
@@ -147,15 +153,27 @@ create_items_list(struct feed_entry **feeds, size_t feeds_count, int sorting, co
 
 	struct items_list *items = newsraft_calloc(1, sizeof(struct items_list));
 
-	items->sorting = sorting;
-	if (sorting < 0) {
+	if (previous_items) {
+		items->sorting = previous_items->sorting;
+	} else {
 		items->sorting = get_sorting_id(get_cfg_string(NULL, CFG_MENU_ITEM_SORTING)->ptr);
+	}
+
+	if (previous_items && !STRING_IS_EMPTY(previous_items->find_filter)) {
+		cpyss(&items->find_filter, previous_items->find_filter);
+	} else if (find_filter) {
+		items->find_filter = convert_wstring_to_string(find_filter);
+	}
+
+	if (previous_items && !STRING_IS_EMPTY(previous_items->search_filter)) {
+		cpyss(&items->search_filter, previous_items->search_filter);
+	} else {
+		items->search_filter = pop_search_filter();
 	}
 
 	items->feeds = feeds;
 	items->feeds_count = feeds_count;
-	items->search_filter = search_filter == NULL ? NULL : convert_wstring_to_string(search_filter);
-	items->query = generate_search_query_string(items, items->search_filter);
+	items->query = generate_search_query_string(items);
 	if (items->query == NULL) {
 		goto undo1;
 	}
@@ -174,9 +192,11 @@ create_items_list(struct feed_entry **feeds, size_t feeds_count, int sorting, co
 	obtain_items_at_least_up_to_the_given_index(items, 0);
 	if (items->len < 1) {
 		if (!STRING_IS_EMPTY(items->search_filter)) {
-			info_status("Items not found. Search query didn't get any matches!");
+			info_status("No items found. Search query didn't get any matches!");
+		} else if (!STRING_IS_EMPTY(items->find_filter)) {
+			info_status("No items found. Find query didn't get any matches!");
 		} else {
-			fail_status("Items not found. Make sure this feed is updated!");
+			fail_status("No items found. Make sure this feed is updated!");
 		}
 		goto undo3;
 	}
@@ -186,6 +206,7 @@ undo3:
 undo2:
 	free_string(items->query);
 undo1:
+	free_string(items->find_filter);
 	free_string(items->search_filter);
 	free(items);
 	return NULL;
@@ -194,9 +215,7 @@ undo1:
 bool
 recreate_items_list(struct items_list **items)
 {
-	struct wstring *filter = (*items)->search_filter ? convert_string_to_wstring((*items)->search_filter) : NULL;
-	struct items_list *new_items = create_items_list((*items)->feeds, (*items)->feeds_count, (*items)->sorting, filter);
-	free_wstring(filter);
+	struct items_list *new_items = create_items_list((*items)->feeds, (*items)->feeds_count, NULL, *items);
 	if (new_items == NULL) {
 		return false;
 	}
@@ -230,17 +249,4 @@ change_items_list_sorting(struct items_list **items, input_id cmd)
 	}
 	recreate_items_list(items);
 	info_status(get_sorting_message((*items)->sorting), "items");
-}
-
-void
-change_search_filter_of_items_list(struct items_list **items, const struct wstring *search_filter)
-{
-	struct string *prev_search_filter = (*items)->search_filter;
-	(*items)->search_filter = convert_wstring_to_string(search_filter);
-	if (recreate_items_list(items) == true) {
-		free_string(prev_search_filter);
-	} else {
-		free_string((*items)->search_filter);
-		(*items)->search_filter = prev_search_filter;
-	}
 }

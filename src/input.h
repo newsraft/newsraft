@@ -62,8 +62,9 @@ INPUT(INPUT_CLEAN_STATUS,             {"escape"},                               
 INPUT(INPUT_NAVIGATE_BACK,            {"h", "backspace", "KEY_LEFT", "KEY_BACKSPACE"}, {"return", "navigate-back"})
 INPUT(INPUT_QUIT_SOFT,                {"q"},                                    {"quit"})
 INPUT(INPUT_QUIT_HARD,                {"Q"},                                    {"quit-hard"})
-INPUT(INPUT_SYSTEM_COMMAND,           {},                                       {})
-INPUT(INPUT_DATABASE_COMMAND,         {},                                       {})
+INPUT(INPUT_FIND_COMMAND,             {},                                       {"find"})
+INPUT(INPUT_SYSTEM_COMMAND,           {},                                       {"exec"})
+INPUT(INPUT_DATABASE_COMMAND,         {},                                       {"edit"})
 INPUT(INPUT_ERROR,                    {},                                       {})
 INPUT(INPUT_APPLY_SEARCH_MODE_FILTER, {},                                       {})
 

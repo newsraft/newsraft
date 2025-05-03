@@ -153,7 +153,7 @@ items_menu_loop(struct menu_state *m)
 	items_age += 1;
 	if (m->is_initialized == false) {
 		m->items_age = items_age;
-		m->items = create_items_list(m->feeds_original, m->feeds_count, -1, m->flags & MENU_USE_SEARCH ? search_mode_text_input : NULL);
+		m->items = create_items_list(m->feeds_original, m->feeds_count, m->find_filter, NULL);
 		if (m->items == NULL) {
 			return close_menu(); // Error displayed by create_items_list
 		}
@@ -184,19 +184,20 @@ items_menu_loop(struct menu_state *m)
 			case INPUT_COPY_TO_CLIPBOARD: copy_string_to_clipboard(m->items->ptr[m->view_sel].url); break;
 			case INPUT_QUIT_HARD:         return NULL;
 			case INPUT_NAVIGATE_BACK:
-				if (get_menu_depth() < 3 && (m->flags & MENU_IS_EXPLORE)) break;
+				if (get_menu_depth() < 3 && (m->flags & MENU_IS_EXPLORE && m->find_filter == NULL)) break;
 				// fall through
 			case INPUT_QUIT_SOFT:
-				if (m->flags & MENU_IS_EXPLORE) close_menu();
+				if (m->flags & MENU_IS_EXPLORE && m->find_filter == NULL) close_menu();
 				return close_menu();
 			case INPUT_TOGGLE_EXPLORE_MODE:
 				if (m->flags & MENU_IS_EXPLORE) return close_menu();
 				break;
 			case INPUT_GOTO_FEED:
 				if (!(m->flags & MENU_IS_EXPLORE)) break;
-				return setup_menu(&items_menu_loop, NULL, m->items->ptr[m->view_sel].feed, 1, MENU_NORMAL);
+				return setup_menu(&items_menu_loop, NULL, m->items->ptr[m->view_sel].feed, 1, MENU_NORMAL, NULL);
 			case INPUT_APPLY_SEARCH_MODE_FILTER:
-				change_search_filter_of_items_list(&m->items, search_mode_text_input); break;
+				cpyas(&m->items->search_filter, "", 0);
+				recreate_items_list(&m->items); break;
 			case INPUT_OPEN_IN_BROWSER:
 				browser = get_cfg_wstring(&m->items->ptr[m->view_sel].feed[0]->cfg, CFG_OPEN_IN_BROWSER_COMMAND);
 				run_formatted_command(browser, get_item_args(m, m->view_sel));
@@ -207,11 +208,14 @@ items_menu_loop(struct menu_state *m)
 			case INPUT_SORT_BY_ALPHABET:
 			case INPUT_SORT_BY_IMPORTANT:
 				change_items_list_sorting(&m->items, cmd); break;
+			case INPUT_FIND_COMMAND:
+				if (m->find_filter) return setup_menu(&items_menu_loop, NULL, m->feeds_original, m->feeds_count, MENU_IS_EXPLORE | MENU_SWALLOW, arg);;
+				return setup_menu(&items_menu_loop, NULL, m->feeds_original, m->feeds_count, MENU_IS_EXPLORE, arg);
 			case INPUT_DATABASE_COMMAND:
 				db_perform_user_edit(arg, NULL, 0, &m->items->ptr[m->view_sel]);
 				break;
 			case INPUT_ENTER:
-				return setup_menu(&item_pager_loop, m->items->ptr[m->view_sel].title, NULL, 0, MENU_NORMAL);
+				return setup_menu(&item_pager_loop, m->items->ptr[m->view_sel].title, NULL, 0, MENU_NORMAL, NULL);
 		}
 	}
 	return close_menu();

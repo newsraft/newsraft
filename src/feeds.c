@@ -125,9 +125,9 @@ feeds_menu_loop(struct menu_state *m)
 	} else if (!(m->flags & MENU_DISABLE_SETTINGS)) {
 		// Don't set the menu names here because it's redundant!
 		if (get_cfg_bool(NULL, CFG_FEEDS_MENU_PARAMOUNT_EXPLORE) && db_count_items(m->feeds_original, m->feeds_count, false)) {
-			return setup_menu(&items_menu_loop, NULL, m->feeds_original, m->feeds_count, MENU_IS_EXPLORE);
+			return setup_menu(&items_menu_loop, NULL, m->feeds_original, m->feeds_count, MENU_IS_EXPLORE, NULL);
 		} else if (m->feeds_count == 1 && db_count_items(m->feeds_original, m->feeds_count, false)) {
-			return setup_menu(&items_menu_loop, NULL, m->feeds_original, m->feeds_count, MENU_SWALLOW);
+			return setup_menu(&items_menu_loop, NULL, m->feeds_original, m->feeds_count, MENU_SWALLOW, NULL);
 		}
 	}
 	if (m->is_initialized == false) {
@@ -151,11 +151,11 @@ feeds_menu_loop(struct menu_state *m)
 			case INPUT_RELOAD_ALL:      queue_updates(m->feeds_original, m->feeds_count);  break;
 			case INPUT_QUIT_HARD:       return NULL;
 			case INPUT_ENTER:
-				return setup_menu(&items_menu_loop, NULL, m->feeds + m->view_sel, 1, MENU_NORMAL);
+				return setup_menu(&items_menu_loop, NULL, m->feeds + m->view_sel, 1, MENU_NORMAL, NULL);
 			case INPUT_TOGGLE_EXPLORE_MODE:
-				return setup_menu(&items_menu_loop, NULL, m->feeds, m->feeds_count, MENU_IS_EXPLORE);
+				return setup_menu(&items_menu_loop, NULL, m->feeds, m->feeds_count, MENU_IS_EXPLORE, NULL);
 			case INPUT_APPLY_SEARCH_MODE_FILTER:
-				return setup_menu(&items_menu_loop, NULL, m->feeds, m->feeds_count, MENU_IS_EXPLORE | MENU_USE_SEARCH);
+				return setup_menu(&items_menu_loop, NULL, m->feeds, m->feeds_count, MENU_IS_EXPLORE, NULL);
 			case INPUT_NAVIGATE_BACK:
 				if (get_menu_depth() < 2) break;
 				// fall through
@@ -170,11 +170,13 @@ feeds_menu_loop(struct menu_state *m)
 			case INPUT_SORT_BY_ALPHABET:
 				sort_feeds(m, feeds_sort == SORT_BY_ALPHABET_ASC ? SORT_BY_ALPHABET_DESC : SORT_BY_ALPHABET_ASC, true);
 				break;
+			case INPUT_FIND_COMMAND:
+				return setup_menu(&items_menu_loop, NULL, m->feeds_original, m->feeds_count, MENU_IS_EXPLORE, arg);
 			case INPUT_DATABASE_COMMAND:
 				db_perform_user_edit(arg, m->feeds + m->view_sel, 1, NULL);
 				break;
 			case INPUT_VIEW_ERRORS:
-				return setup_menu(&errors_pager_loop, NULL, m->feeds + m->view_sel, 1, MENU_NORMAL);
+				return setup_menu(&errors_pager_loop, NULL, m->feeds + m->view_sel, 1, MENU_NORMAL, NULL);
 		}
 	}
 	return NULL;

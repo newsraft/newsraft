@@ -69,9 +69,9 @@ item_pager_loop(struct menu_state *m)
 	items_menu->items->ptr[item_id].is_unread = false;
 	start_menu();
 	uint32_t count;
-	const struct wstring *macro;
+	const struct wstring *arg;
 	while (true) {
-		input_id cmd = get_input(items_menu->items->ptr[item_id].feed[0]->binds, &count, &macro);
+		input_id cmd = get_input(items_menu->items->ptr[item_id].feed[0]->binds, &count, &arg);
 		if (handle_pager_menu_control(cmd) == true) {
 			continue;
 		}
@@ -85,7 +85,7 @@ item_pager_loop(struct menu_state *m)
 				handle_list_menu_control(items_menu, cmd, NULL);
 				if (items_menu->view_sel != item_id) {
 					free_render_blocks(&blocks);
-					return setup_menu(&item_pager_loop, items_menu->items->ptr[items_menu->view_sel].title, NULL, 0, MENU_SWALLOW);
+					return setup_menu(&item_pager_loop, items_menu->items->ptr[items_menu->view_sel].title, NULL, 0, MENU_SWALLOW, NULL);
 				}
 				break;
 			case INPUT_NAVIGATE_BACK:
@@ -109,7 +109,7 @@ item_pager_loop(struct menu_state *m)
 			case INPUT_SYSTEM_COMMAND:
 				if (count > 0 && count <= blocks.links.len) {
 					items_pager_fmt_args[0].value.s = blocks.links.ptr[count - 1].url->ptr;
-					run_formatted_command(macro, items_pager_fmt_args);
+					run_formatted_command(arg, items_pager_fmt_args);
 				}
 				break;
 			default:

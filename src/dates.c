@@ -88,3 +88,33 @@ get_cfg_date(struct config_context **ctx, config_entry_id format_id, int64_t dat
 	}
 	return str;
 }
+
+struct timespec
+newsraft_get_monotonic_time(void)
+{
+	struct timespec t = {};
+	clock_gettime(CLOCK_MONOTONIC, &t);
+	return t;
+}
+
+struct string *
+newsraft_get_pretty_time_diff(struct timespec *start, struct timespec *stop)
+{
+	struct string *s = crtes(100);
+	int64_t diff_s = stop->tv_sec - start->tv_sec;
+	int64_t diff_ns = stop->tv_nsec - start->tv_nsec;
+	if (diff_ns < 0 && diff_s > 0) {
+		diff_ns += INT64_C(1000000000);
+		diff_s -= 1;
+	}
+	if (diff_s > 0) {
+		str_appendf(s, "%.2f s", (double)diff_s + (double)diff_ns / 1000000000.0);
+	} else if (diff_ns > 1000000) {
+		str_appendf(s, "%.2f ms", (double)diff_ns / 1000000.0);
+	} else if (diff_ns > 1000) {
+		str_appendf(s, "%.2f us", (double)diff_ns / 1000.0);
+	} else {
+		str_appendf(s, "%" PRId64 " ns", diff_ns);
+	}
+	return s;
+}

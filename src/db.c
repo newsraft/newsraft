@@ -400,6 +400,7 @@ db_update_feed_string(const struct string *url, const char *column_name, const s
 void
 db_perform_user_edit(const struct wstring *fmt, struct feed_entry **feeds, size_t feeds_count, const struct item_entry *item)
 {
+	struct timespec start = newsraft_get_monotonic_time();
 	size_t replacements_count = 0;
 	struct wstring *cmd = wcrtes(1000);
 	for (size_t i = 0; i + 8 < fmt->len; ++i) {
@@ -455,7 +456,11 @@ db_perform_user_edit(const struct wstring *fmt, struct feed_entry **feeds, size_
 	while (true) {
 		int status = sqlite3_step(stmt);
 		if (status == SQLITE_DONE) {
-			info_status("Successful edit (%d changes)", sqlite3_changes(db));
+			int changes = sqlite3_changes(db);
+			struct timespec stop = newsraft_get_monotonic_time();
+			struct string *time_diff = newsraft_get_pretty_time_diff(&start, &stop);
+			info_status("Successful edit (%d change%s took %s)", changes, changes > 1 ? "s" : "", time_diff->ptr);
+			free_string(time_diff);
 			break;
 		}
 		if (status != SQLITE_ROW) {

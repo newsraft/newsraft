@@ -425,6 +425,8 @@ const char *get_db_path(void);
 // See "dates.c" file for implementation.
 int64_t parse_date(const char *str, bool rfc3339_first);
 struct string *get_cfg_date(struct config_context **ctx, config_entry_id format_id, int64_t date);
+struct timespec newsraft_get_monotonic_time(void);
+struct string *newsraft_get_pretty_time_diff(struct timespec *start, struct timespec *stop);
 
 // See "db.c" file for implementation.
 bool db_init(void);

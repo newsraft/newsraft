@@ -1,3 +1,52 @@
+# newsraft 0.30 "one cabbage a day and the doc's never away"
+
+this is a big one. dear repository maintainers, here's an important heads up:
+
+* dependency on `yajl` is gone, it's not needed to build Newsraft anymore
+* requirements for `sqlite` are raised to 3.38.0. now we use its json facilities
+* new metadata file is available for packaging on Linux: `doc/newsraft.desktop`
+
+ok i hope these are visible enough. other substantial changes are:
+
+* add `edit` action (#31, #117, #133)
+* add `find` action (#31, #117, #133)
+* add `user_data` column to feeds and items database tables (#31, #117, #133)
+
+so now you have the ability to play with the database. one example use of
+this is a custom tagging functionality:
+
+```
+# mark item "toWatch"
+bind w edit UPDATE items SET user_data = json_set(IFNULL(user_data, '{}'), '$.toWatch', 1) WHERE @selected
+```
+```
+# unmark item "toWatch"
+bind W edit UPDATE items SET user_data = json_set(IFNULL(user_data, '{}'), '$.toWatch', 0) WHERE @selected
+```
+```
+# find all "toWatch" items in the current context
+bind f find json_extract(user_data, '$.toWatch') = 1
+```
+
+more details on how it all works are in man page. but now we continue:
+
+* add `next-error` action
+* add `prev-error` action
+* add `convert-opml-to-feeds` scenario (argument for `-e`)
+* add `convert-feeds-to-opml` scenario (argument for `-e`)
+* add `database-batch-transactions` setting (#145)
+* add REGEXP operator to `item-rule` setting
+* report error when `item-rule` setting is invalid (#149)
+* make items counting respect applied `item-rule` setting (#149)
+* fallback to OSC 9 in `notification-command` setting (#153)
+* fallback to OSC 52 in `copy-to-clipboard-command` setting (#147)
+* rename `analyze-database-on-startup` setting to `database-analyze-on-startup`
+* rename `clean-database-on-startup` setting to `database-clean-on-startup`
+* clarify that only one specifier can be put per field in `item-content-format` (#184)
+* delete `yajl` dependency, use `json_tree()` from `sqlite` to parse json
+
+big shout out to package maintainers as always, you're the best guys ;)
+
 # newsraft 0.29 "san dian yi xian"
 
 from now on there's no global pager for status messages. status messages related

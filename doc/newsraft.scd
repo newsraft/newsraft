@@ -372,10 +372,10 @@ Placeholder which is put in the status bar if it's empty.
 ## item-content-format (*)
 Default: _<b>Feed</b>:&nbsp;&nbsp;%f<br>|<b>Title</b>:&nbsp;%t<br>|<b>Date</b>:&nbsp;&nbsp;%d<br>|<br>%c<br>|<br><hr>%L_.
 
-Sets the format according to which the item's content will be generated. The
-text in this format string is HTML formatted. Fields are separated by _|_
-character. If an item doesn't have a value corresponding to the specifier in the
-field, then the entire field will not be shown. Specifiers are as follows:
+Sets the HTML format according to which the item's content will be generated.
+Fields are separated by _|_ character and ONLY one specifier can be placed in
+each field. If an item doesn't have a value corresponding to the specifier in
+the field, then the entire field will not be shown. Specifiers are as follows:
 
 	_f_	feed title if set, feed link otherwise;++
 _t_	item title;++

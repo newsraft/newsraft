@@ -524,11 +524,11 @@
   (*)</a></h2>
 <p class="Pp">Default:
     <i>&lt;b&gt;Feed&lt;/b&gt;:&amp;nbsp;&amp;nbsp;%f&lt;br&gt;|&lt;b&gt;Title&lt;/b&gt;:&amp;nbsp;%t&lt;br&gt;|&lt;b&gt;Date&lt;/b&gt;:&amp;nbsp;&amp;nbsp;%d&lt;br&gt;|&lt;br&gt;%c&lt;br&gt;|&lt;br&gt;&lt;hr&gt;%L</i>.</p>
-<p class="Pp">Sets the format according to which the item's content will be
-    generated. The text in this format string is HTML formatted. Fields are
-    separated by <i>|</i> character. If an item doesn't have a value
-    corresponding to the specifier in the field, then the entire field will not
-    be shown. Specifiers are as follows:</p>
+<p class="Pp">Sets the HTML format according to which the item's content will be
+    generated. Fields are separated by <i>|</i> character and ONLY one specifier
+    can be placed in each field. If an item doesn't have a value corresponding
+    to the specifier in the field, then the entire field will not be shown.
+    Specifiers are as follows:</p>
 <p class="Pp"></p>
 <div class="Bd-indent"><i>f</i>	feed title if set, feed link otherwise;
 <br/>

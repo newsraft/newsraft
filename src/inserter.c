@@ -105,7 +105,7 @@ inserter_worker(void *dummy)
 
 		pthread_mutex_unlock(&interface_lock);
 
-		if (curses_is_running() && need_redraw == true) {
+		if (ui_is_running() && need_redraw == true) {
 			refresh_sections_statistics_about_underlying_feeds();
 			expose_all_visible_entries_of_the_list_menu();
 		}

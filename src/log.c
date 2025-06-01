@@ -18,7 +18,6 @@ log_init(const char *path)
 	}
 	INFO("Okay... Here we go. Focus. Speed. I am speed.");
 	INFO("newsraft version: %s", NEWSRAFT_VERSION);
-	INFO("ncurses version: %s", curses_version());
 	INFO("SQLite version: %s", sqlite3_libversion());
 	INFO("curl version: %s", curl_version());
 	INFO("expat version: %s", XML_ExpatVersion());

@@ -28,7 +28,7 @@ render_data(struct config_context **ctx, struct render_result *result, struct re
 	line_char(&line, L'\n'); // Add first line to line processor
 	for (size_t i = 0; i < blocks->len; ++i) {
 		line.indent = 0;
-		line.style = A_NORMAL;
+		line.style = TB_DEFAULT;
 		line.style_stack_len = 0;
 		if (blocks->ptr[i].content_type == TEXT_HTML) {
 			render_text_html(&line, blocks->ptr[i].content, &blocks->links);

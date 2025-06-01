@@ -26,8 +26,7 @@ bool
 adjust_list_menu(void)
 {
 	INFO("Adjusting list menu.");
-	// Delete old windows to create new windows with the new size because
-	// useful in this case resizing is a non-standard curses extension.
+	// Delete old windows to create new windows with the new size.
 	for (size_t i = 0; i < windows_count; ++i) {
 		delwin(windows[i]);
 	}
@@ -67,7 +66,11 @@ list_menu_writer(size_t index, WINDOW *w)
 		if (list_fmtout->len > horizontal_shift) {
 			waddwstr(w, list_fmtout->ptr + horizontal_shift);
 		}
-		wbkgd(w, menu->paint_action(menu, index) | (index == menu->view_sel ? A_REVERSE : 0));
+		struct config_color color = menu->paint_action(menu, index);
+		if (index == menu->view_sel) {
+			color.attributes |= TB_REVERSE;
+		}
+		wbkgd(w, color);
 	}
 }
 
@@ -77,10 +80,9 @@ expose_entry_of_the_list_menu_unprotected(size_t index)
 	WINDOW *w = windows[index - menu->view_min];
 	werase(w);
 	wmove(w, 0, 0);
-	wbkgd(w, A_NORMAL);
-	wattrset(w, A_NORMAL);
+	wbkgd(w, (struct config_color){TB_DEFAULT, TB_DEFAULT, TB_DEFAULT});
+	wattrset(w, TB_DEFAULT);
 	menu->write_action(index, w);
-	wnoutrefresh(w);
 }
 
 void
@@ -89,7 +91,7 @@ expose_entry_of_the_list_menu(size_t index)
 	pthread_mutex_lock(&interface_lock);
 	if (index >= menu->view_min && index <= menu->view_max) {
 		expose_entry_of_the_list_menu_unprotected(index);
-		doupdate();
+		tb_present();
 	}
 	pthread_mutex_unlock(&interface_lock);
 }
@@ -100,7 +102,7 @@ expose_all_visible_entries_of_the_list_menu_unprotected(void)
 	for (size_t i = menu->view_min; i <= menu->view_max; ++i) {
 		expose_entry_of_the_list_menu_unprotected(i);
 	}
-	doupdate();
+	tb_present();
 	update_status_window_content_unprotected();
 }
 
@@ -187,12 +189,12 @@ change_list_view_unprotected(struct menu_state *m, size_t new_sel)
 		if (m == menu) {
 			WINDOW *w = windows[m->view_sel - m->view_min];
 			wbkgd(w, m->paint_action(m, m->view_sel));
-			wnoutrefresh(w);
 			m->view_sel = new_sel;
 			w = windows[m->view_sel - m->view_min];
-			wbkgd(w, m->paint_action(m, m->view_sel) | A_REVERSE);
-			wnoutrefresh(w);
-			doupdate();
+			struct config_color color = m->paint_action(m, m->view_sel);
+			color.attributes |= TB_REVERSE;
+			wbkgd(w, color);
+			tb_present();
 		} else {
 			m->view_sel = new_sel;
 		}

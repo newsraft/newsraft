@@ -5,7 +5,7 @@
 .nh
 .ad l
 .\" Begin generated content:
-.TH "NEWSRAFT" "1" "2025-05-03"
+.TH "NEWSRAFT" "1" "2025-06-01"
 .PP
 .SH NAME
 .PP
@@ -1066,14 +1066,9 @@ carry the most essential information.\&
 .PP
 Newsraft'\&s behavior depends on the environment variables set, however not all
 environment variables affect Newsraft directly - many environment variables
-affect libraries that Newsraft is built on.\& Thus, \fBncurses\fR(3) and \fBlibcurl\fR(3)
-recognize a large number of different environment variables which you can learn
-more about on \fBncurses\fR(3) and \fBlibcurl-env\fR(3) respectively.\&
-.PP
-However, there is one significant \fBncurses\fR(3) environment variable that is
-worth mentioning here - \fBESCDELAY\fR.\& It sets delay for reading Escape key.\& It
-may surprise you that its default value is 1000 ms, which is well explained
-in \fBncurses\fR(3), but many may prefer a value much less than that or even 0.\&
+affect libraries that Newsraft is built on.\& For example, \fBlibcurl\fR(3) recognizes
+a large number of different environment variables which you can learn more about
+on \fBlibcurl-env\fR(3).\&
 .PP
 .TS
 l lx
@@ -1122,7 +1117,7 @@ T}
 .sp 1
 .SH SEE ALSO
 .PP
-\fBmpv\fR(1), \fBfeh\fR(1), \fBsqlite3\fR(1), \fBregex\fR(7), \fBssh\fR(1), \fBstrftime\fR(3), \fBncurses\fR(3), \fBlibcurl\fR(3), \fBlibcurl-env\fR(3)
+\fBmpv\fR(1), \fBfeh\fR(1), \fBsqlite3\fR(1), \fBregex\fR(7), \fBssh\fR(1), \fBstrftime\fR(3), \fBlibcurl\fR(3), \fBlibcurl-env\fR(3)
 .PP
 .SH BUGS
 .PP

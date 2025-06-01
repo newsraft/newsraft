@@ -23,6 +23,7 @@ pager_menu_writer(size_t index, WINDOW *w)
 			wattrset(w, content.lines[index].hints[i]);
 			waddnwstr(w, content.lines[index].ws->ptr + i, 1);
 		}
+		wattrset(w, 0);
 	}
 }
 

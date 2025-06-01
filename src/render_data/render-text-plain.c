@@ -22,7 +22,7 @@ render_text_plain(struct line *line, const struct wstring *source, struct links_
 			size_t url_index = add_url_to_links_list(links, link->ptr, link->len);
 			// Space character before the mark is &nbsp;
 			if (swprintf(url_mark, 100, L" [%" PRId64 "]", url_index + 1) > 0) {
-				line_style(line, A_BOLD);
+				line_style(line, TB_BOLD);
 				line_string(line, url_mark);
 				line_unstyle(line);
 			}

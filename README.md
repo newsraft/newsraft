@@ -1,9 +1,8 @@
 ## Description
 
 Newsraft is a [feed reader](https://en.wikipedia.org/wiki/News_aggregator) with
-[ncurses](https://en.wikipedia.org/wiki/Ncurses) user interface. It's greatly
-inspired by [Newsboat](https://www.newsboat.org) and tries to be its lightweight
-counterpart.
+text-based user interface. It's greatly inspired by
+[Newsboat](https://www.newsboat.org) and tries to be its lightweight counterpart
 
 ![Newsraft in action](doc/newsraft.png)
 
@@ -35,7 +34,6 @@ Check out [comparison of Newsraft and Newsboat](https://codeberg.org/newsraft/ne
 | [curl](https://curl.se)                                            | >= 7.87.0 | +   | +     | +      |
 | [expat](https://github.com/libexpat/libexpat)                      | >= 2.4.8  | +   | +     | +      |
 | [gumbo-parser](https://codeberg.org/gumbo-parser/gumbo-parser)     | >= 0.11.0 | +   | +     | +      |
-| [ncursesw](https://invisible-island.net/ncurses)                   | >= 6.2    | +   | +     | +      |
 | [sqlite](https://www.sqlite.org)                                   | >= 3.38.0 | +   | +     | +      |
 | C compiler                                                         | Any C99   |     | +     | +      |
 | make                                                               | Any POSIX |     | +     | +      |

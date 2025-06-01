@@ -8,9 +8,9 @@
 #include <wchar.h>
 #include <pthread.h>
 #include <sqlite3.h>
-#include <curses.h>
 #include <expat.h>
 #include <curl/curl.h>
+#include "termbox2.h"
 
 #ifndef NEWSRAFT_VERSION
 #define NEWSRAFT_VERSION "0.30"
@@ -27,7 +27,7 @@
 #define fail_status(...) status_write(CFG_COLOR_STATUS_FAIL, __VA_ARGS__)
 #define LENGTH(A) ((sizeof(A))/(sizeof(*A)))
 #define NEWSRAFT_MIN(A, B) (((A) < (B)) ? (A) : (B)) // Need prefix because some platforms have their own MIN definition
-#define NEWSRAFT_CURSES(CALL) do { if (curses_is_running()) { CALL; } } while (0) // Make CALL only if Curses is running
+#define NEWSRAFT_UI(CALL) do { if (ui_is_running()) { CALL; } } while (0) // Make CALL only if UI is running
 #define STRING_IS_EMPTY(A) (((A) == NULL) || ((A)->ptr == NULL) || ((A)->len == 0))
 
 typedef uint8_t config_entry_id;
@@ -198,6 +198,13 @@ struct format_arg {
 	} value;
 };
 
+typedef struct {
+	int pos_y;
+	size_t offset;
+	struct wstring *content;
+	uintmax_t attrs;
+} WINDOW;
+
 struct menu_state {
 	struct string *name;
 	struct menu_state *(*run)(struct menu_state *); // Function used to start menu
@@ -216,7 +223,7 @@ struct menu_state {
 	const struct wstring *find_filter;
 	bool (*enumerator)(struct menu_state *ctx, size_t index); // Checks if index is valid
 	const struct format_arg *(*get_args)(struct menu_state *ctx, size_t index);
-	unsigned (*paint_action)(struct menu_state *ctx, size_t index);
+	struct config_color (*paint_action)(struct menu_state *ctx, size_t index);
 	void (*write_action)(size_t index, WINDOW *w);
 	bool (*unread_state)(struct menu_state *ctx, size_t index);
 	bool (*failed_state)(struct menu_state *ctx, size_t index);
@@ -453,16 +460,13 @@ int64_t db_count_items(struct feed_entry **feeds, size_t feeds_count, bool count
 bool db_change_unread_status_of_all_items_in_feeds(struct feed_entry **feeds, size_t feeds_count, bool unread);
 
 // See "interface.c" file for implementation.
-bool curses_is_running(void);
-bool curses_init(void);
-void curses_stop(void);
+bool ui_init(void);
+void ui_stop(void);
+bool ui_is_running(void);
 bool run_menu_loop(void);
 input_id resize_handler(void);
 bool call_resize_handler_if_current_list_menu_size_is_different_from_actual(void);
 bool arent_we_colorful(void);
-
-// See "interface-colors.c" file for implementation.
-int get_color_pair_unprotected(int fg, int bg);
 
 // Functions related to window which displays status messages.
 // See "interface-status.c" file for implementation.
@@ -548,7 +552,7 @@ bool process_config_line(struct feed_entry *feed, const char *str, size_t len);
 bool parse_config_file(void);
 bool get_cfg_bool(struct config_context **ctx, config_entry_id id);
 size_t get_cfg_uint(struct config_context **ctx, config_entry_id id);
-unsigned get_cfg_color(struct config_context **ctx, config_entry_id id);
+struct config_color get_cfg_color(struct config_context **ctx, config_entry_id id);
 const struct string *get_cfg_string(struct config_context **ctx, config_entry_id id);
 const struct wstring *get_cfg_wstring(struct config_context **ctx, config_entry_id id);
 void free_config(void);
@@ -570,8 +574,7 @@ void log_write(const char *prefix, const char *format, ...);
 FILE *log_get_stream(void);
 void log_stop(int error_code);
 
-// Functions for buffering errors to prevent
-// ncurses calls from erasing printed text.
+// Functions for buffering errors to prevent UI from erasing printed text.
 // See "errors.c" file for implementation.
 void write_error(const char *format, ...);
 void flush_errors(void);

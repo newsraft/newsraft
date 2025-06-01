@@ -7,7 +7,7 @@ config_entry_id find_config_entry_by_name(const char *name);
 config_type_id get_cfg_type(config_entry_id id);
 void set_cfg_bool(struct config_context **ctx, config_entry_id id, bool value);
 void set_cfg_uint(struct config_context **ctx, config_entry_id id, size_t value);
-void set_cfg_color(struct config_context **ctx, config_entry_id id, int fg, int bg, unsigned int attribute);
+void set_cfg_color(struct config_context **ctx, config_entry_id id, uintattr_t fg, uintattr_t bg, uintattr_t attribute);
 bool set_cfg_string(struct config_context **ctx, config_entry_id id, const char *src_ptr, size_t src_len);
 void log_config_settings(void);
 

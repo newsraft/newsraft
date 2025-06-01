@@ -38,7 +38,7 @@ get_section_args(struct menu_state *ctx, size_t index)
 	return section_fmt;
 }
 
-static unsigned
+static struct config_color
 paint_section(struct menu_state *ctx, size_t index)
 {
 	(void)ctx;

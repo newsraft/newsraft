@@ -136,7 +136,7 @@ line_string(struct line *line, const wchar_t *str)
 static inline void
 line_style_update(struct line *line)
 {
-	line->style = A_NORMAL;
+	line->style = TB_DEFAULT;
 	for (size_t i = 0; i < line->style_stack_len; ++i) {
 		line->style |= line->style_stack[i];
 	}

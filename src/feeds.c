@@ -30,7 +30,7 @@ get_feed_args(struct menu_state *ctx, size_t index)
 	return feed_fmt;
 }
 
-static unsigned
+static struct config_color
 paint_feed(struct menu_state *ctx, size_t index)
 {
 	if (ctx->feeds[index]->errors->len > 0 && !get_cfg_bool(&ctx->feeds[index]->cfg, CFG_SUPPRESS_ERRORS)) {

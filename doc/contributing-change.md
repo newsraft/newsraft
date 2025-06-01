@@ -12,7 +12,7 @@ and its source code conforms to C99 language standard and project's code
 guidelines (see below).
 
 In terms of dependencies, Newsraft is very unpretentious - it uses
-[ncurses](https://invisible-island.net/ncurses) to draw user interface,
+[termbox2](https://github.com/termbox/termbox2) to draw user interface,
 [SQLite](https://www.sqlite.org) to store data and parse JSON,
 [curl](https://curl.se) to download feeds,
 [Expat](https://github.com/libexpat/libexpat) to parse XML and

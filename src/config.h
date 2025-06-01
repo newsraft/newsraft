@@ -1,13 +1,6 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-// Apparently some Curses implementations don't support italic text
-#ifdef A_ITALIC
-#define NEWSRAFT_ITALIC A_ITALIC
-#else
-#define NEWSRAFT_ITALIC A_NORMAL
-#endif
-
 typedef uint8_t config_type_id;
 enum config_type {
 	CFG_BOOL,
@@ -17,9 +10,9 @@ enum config_type {
 };
 
 struct config_color {
-	int fg;
-	int bg;
-	unsigned int attributes;
+	uintattr_t fg;
+	uintattr_t bg;
+	uintattr_t attributes;
 };
 
 struct config_string {
@@ -62,18 +55,18 @@ static struct config_entry config[] = {
 
 #endif // CONFIG_ARRAY
 
-CFG(CFG_COLOR_STATUS,                    "color-status",                    CFG_COLOR,  {.c = {COLOR_GREEN,   -1, A_BOLD}})
-CFG(CFG_COLOR_STATUS_INFO,               "color-status-info",               CFG_COLOR,  {.c = {COLOR_CYAN,    -1, A_BOLD}})
-CFG(CFG_COLOR_STATUS_FAIL,               "color-status-fail",               CFG_COLOR,  {.c = {COLOR_RED,     -1, A_BOLD}})
-CFG(CFG_COLOR_LIST_ITEM,                 "color-list-item",                 CFG_COLOR,  {.c = {-1,            -1, A_NORMAL}})
-CFG(CFG_COLOR_LIST_ITEM_UNREAD,          "color-list-item-unread",          CFG_COLOR,  {.c = {COLOR_YELLOW,  -1, A_NORMAL}})
-CFG(CFG_COLOR_LIST_ITEM_IMPORTANT,       "color-list-item-important",       CFG_COLOR,  {.c = {COLOR_MAGENTA, -1, A_NORMAL}})
-CFG(CFG_COLOR_LIST_FEED,                 "color-list-feed",                 CFG_COLOR,  {.c = {-1,            -1, A_NORMAL}})
-CFG(CFG_COLOR_LIST_FEED_UNREAD,          "color-list-feed-unread",          CFG_COLOR,  {.c = {COLOR_YELLOW,  -1, A_NORMAL}})
-CFG(CFG_COLOR_LIST_FEED_FAILED,          "color-list-feed-failed",          CFG_COLOR,  {.c = {COLOR_RED,     -1, A_NORMAL}})
-CFG(CFG_COLOR_LIST_SECTION,              "color-list-section",              CFG_COLOR,  {.c = {-1,            -1, A_NORMAL}})
-CFG(CFG_COLOR_LIST_SECTION_UNREAD,       "color-list-section-unread",       CFG_COLOR,  {.c = {COLOR_YELLOW,  -1, A_NORMAL}})
-CFG(CFG_COLOR_LIST_SECTION_FAILED,       "color-list-section-failed",       CFG_COLOR,  {.c = {COLOR_RED,     -1, A_NORMAL}})
+CFG(CFG_COLOR_STATUS,                    "color-status",                    CFG_COLOR,  {.c = {TB_GREEN,   TB_DEFAULT, TB_BOLD}})
+CFG(CFG_COLOR_STATUS_INFO,               "color-status-info",               CFG_COLOR,  {.c = {TB_CYAN,    TB_DEFAULT, TB_BOLD}})
+CFG(CFG_COLOR_STATUS_FAIL,               "color-status-fail",               CFG_COLOR,  {.c = {TB_RED,     TB_DEFAULT, TB_BOLD}})
+CFG(CFG_COLOR_LIST_ITEM,                 "color-list-item",                 CFG_COLOR,  {.c = {TB_DEFAULT, TB_DEFAULT, TB_DEFAULT}})
+CFG(CFG_COLOR_LIST_ITEM_UNREAD,          "color-list-item-unread",          CFG_COLOR,  {.c = {TB_YELLOW,  TB_DEFAULT, TB_DEFAULT}})
+CFG(CFG_COLOR_LIST_ITEM_IMPORTANT,       "color-list-item-important",       CFG_COLOR,  {.c = {TB_MAGENTA, TB_DEFAULT, TB_DEFAULT}})
+CFG(CFG_COLOR_LIST_FEED,                 "color-list-feed",                 CFG_COLOR,  {.c = {TB_DEFAULT, TB_DEFAULT, TB_DEFAULT}})
+CFG(CFG_COLOR_LIST_FEED_UNREAD,          "color-list-feed-unread",          CFG_COLOR,  {.c = {TB_YELLOW,  TB_DEFAULT, TB_DEFAULT}})
+CFG(CFG_COLOR_LIST_FEED_FAILED,          "color-list-feed-failed",          CFG_COLOR,  {.c = {TB_RED,     TB_DEFAULT, TB_DEFAULT}})
+CFG(CFG_COLOR_LIST_SECTION,              "color-list-section",              CFG_COLOR,  {.c = {TB_DEFAULT, TB_DEFAULT, TB_DEFAULT}})
+CFG(CFG_COLOR_LIST_SECTION_UNREAD,       "color-list-section-unread",       CFG_COLOR,  {.c = {TB_YELLOW,  TB_DEFAULT, TB_DEFAULT}})
+CFG(CFG_COLOR_LIST_SECTION_FAILED,       "color-list-section-failed",       CFG_COLOR,  {.c = {TB_RED,     TB_DEFAULT, TB_DEFAULT}})
 CFG(CFG_RELOAD_PERIOD,                   "reload-period",                   CFG_UINT,   {.u = 0   })
 CFG(CFG_ITEM_LIMIT,                      "item-limit",                      CFG_UINT,   {.u = 0   })
 CFG(CFG_SCROLLOFF,                       "scrolloff",                       CFG_UINT,   {.u = 0   })

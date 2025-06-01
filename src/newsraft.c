@@ -6,6 +6,7 @@
 /*
 find -name '*.c' | sed -e 's/^\.\//#include "/' -e 's/$/"/' | grep -v 'newsraft.c' | sort
 */
+#include "curses.c"
 #include "alloc.c"
 #include "binds.c"
 #include "commands.c"
@@ -22,7 +23,6 @@ find -name '*.c' | sed -e 's/^\.\//#include "/' -e 's/$/"/' | grep -v 'newsraft.
 #include "insert_feed/insert-feed-data.c"
 #include "insert_feed/insert-item-data.c"
 #include "interface.c"
-#include "interface-colors.c"
 #include "interface-errors-pager.c"
 #include "interface-list.c"
 #include "interface-list-pager.c"
@@ -100,7 +100,7 @@ print_usage(void)
 static const struct newsraft_execution_stage regular_mode[] = {
 	{"register signal handlers",      register_signal_handlers,        NULL},
 	{"assign default binds",          assign_default_binds,            free_default_binds},
-	{"initialize curses library",     curses_init,                     curses_stop},
+	{"initialize user interface",     ui_init,                         ui_stop},
 	{"load config file",              parse_config_file,               NULL},
 	{"initialize database",           db_init,                         db_stop},
 	{"execute database optimization", exec_database_file_optimization, NULL},

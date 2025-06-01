@@ -2,35 +2,21 @@
 #include "newsraft.h"
 
 static bool paint_it_black = true;
-static volatile bool newsraft_has_successfully_initialized_curses = false;
+static volatile bool newsraft_has_successfully_initialized_ui = false;
 
 pthread_mutex_t interface_lock = PTHREAD_MUTEX_INITIALIZER;
-
-bool
-curses_is_running(void)
-{
-	return newsraft_has_successfully_initialized_curses;
-}
 
 static bool
 obtain_list_menu_size(size_t *width, size_t *height)
 {
-	int terminal_width = getmaxx(stdscr);
-	if (terminal_width == ERR) {
-		FAIL("Failed to get width of the terminal!");
-		return false;
-	}
+	int terminal_width = tb_width();
 	// This is really critical! You will get integer overflow if terminal_width
 	// is less than 12. You have been warned.
 	if (terminal_width < 12) {
 		FAIL("Terminal is too narrow!");
 		return false;
 	}
-	int terminal_height = getmaxy(stdscr);
-	if (terminal_height == ERR) {
-		FAIL("Failed to get height of the terminal!");
-		return false;
-	}
+	int terminal_height = tb_height();
 	if (terminal_height < 5) {
 		FAIL("Terminal is too short!");
 		return false;
@@ -45,48 +31,38 @@ obtain_list_menu_size(size_t *width, size_t *height)
 }
 
 bool
-curses_init(void)
+ui_init(void)
 {
-	if (initscr() == NULL) {
-		write_error("Initialization of curses data structures failed!\n");
-		return false;
-	}
-	if (cbreak() == ERR) {
-		write_error("Can't disable line buffering and erase/kill characters processing!\n");
+	if (tb_init() != 0) {
+		write_error("Initialization of user interface failed!\n");
 		return false;
 	}
 	if (obtain_list_menu_size(&list_menu_width, &list_menu_height) == false) {
 		write_error("Invalid terminal size obtained!\n");
 		return false;
 	}
-	if (curs_set(0) == ERR) {
+	if (tb_hide_cursor() != TB_OK) {
 		WARN("Can't hide cursor!");
-	}
-	if (noecho() == ERR) {
-		WARN("Can't disable echoing of characters typed by the user!");
 	}
 	if (getenv("NO_COLOR") != NULL) {
 		INFO("NO_COLOR environment variable is set, canceling colors initialization.");
-	} else if (has_colors() == FALSE) {
-		WARN("Terminal emulator doesn't support colors!");
-	} else if (use_default_colors() == ERR) {
-		WARN("Can't obtain default terminal colors!");
-	} else if (start_color() == ERR) {
-		WARN("Initialization of curses color structures failed!");
 	} else {
 		paint_it_black = false; // Some iridescent sensation at last!
-		INFO("Maximum number of colors: %d", COLORS);
-		INFO("Maximum number of color pairs: %d", COLOR_PAIRS);
 	}
-	INFO("The value of KEY_RESIZE code is %d.", KEY_RESIZE);
-	newsraft_has_successfully_initialized_curses = true;
+	newsraft_has_successfully_initialized_ui = true;
 	return true;
 }
 
 void
-curses_stop(void)
+ui_stop(void)
 {
-	endwin();
+	tb_shutdown();
+}
+
+bool
+ui_is_running(void)
+{
+	return newsraft_has_successfully_initialized_ui;
 }
 
 bool
@@ -115,8 +91,8 @@ resize_handler(void)
 
 	// We need to call clear and refresh before all resize actions because
 	// the junk text of previous size may remain in inactive areas.
-	clear();
-	refresh();
+	tb_clear();
+	tb_present();
 
 	if (obtain_list_menu_size(&list_menu_width, &list_menu_height) == false) {
 		// Some really crazy resize happend. It is either a glitch or user

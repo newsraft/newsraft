@@ -6,7 +6,7 @@ static char error_buffer[ERROR_BUFFER_SIZE + 1];
 static size_t error_buffer_len = 0;
 
 // We have to write errors to intermediate buffer because when writing to the
-// stderr directly, ncurses calls proactively erase everything that was printed.
+// stderr directly, user interface proactively erase everything that was printed.
 
 void
 write_error(const char *format, ...)

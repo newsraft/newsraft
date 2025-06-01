@@ -55,11 +55,11 @@ get_cfg_uint(struct config_context **ctx, config_entry_id id)
 	return get_global_or_context_config(ctx, id, false)->value.u;
 }
 
-unsigned
+struct config_color
 get_cfg_color(struct config_context **ctx, config_entry_id id)
 {
 	struct config_entry *cfg = get_global_or_context_config(ctx, id, false);
-	return get_color_pair_unprotected(cfg->value.c.fg, cfg->value.c.bg) | cfg->value.c.attributes;
+	return cfg->value.c;
 }
 
 const struct string *
@@ -95,7 +95,7 @@ set_cfg_uint(struct config_context **ctx, config_entry_id id, size_t value)
 }
 
 void
-set_cfg_color(struct config_context **ctx, config_entry_id id, int fg, int bg, unsigned int attribute)
+set_cfg_color(struct config_context **ctx, config_entry_id id, uintattr_t fg, uintattr_t bg, uintattr_t attribute)
 {
 	struct config_entry *cfg = get_global_or_context_config(ctx, id, true);
 	cfg->value.c.fg = fg;

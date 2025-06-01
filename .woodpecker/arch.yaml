@@ -11,7 +11,6 @@ steps:
         curl
         expat
         gumbo-parser
-        ncurses
         sqlite
       - make
       - ./newsraft -v

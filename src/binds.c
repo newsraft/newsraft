@@ -35,17 +35,6 @@ create_or_clean_bind(struct input_binding **target, const char *key)
 	if (target == NULL) {
 		target = &binds;
 	}
-	if (strcasecmp(key, "space") == 0) {
-		key = " ";
-	} else if (strcasecmp(key, "tab") == 0) {
-		key = "^I";
-	} else if (strcasecmp(key, "enter") == 0) {
-		key = "^J";
-	} else if (strcasecmp(key, "escape") == 0) {
-		key = "^[";
-	} else if (strcasecmp(key, "backspace") == 0) {
-		key = "^?";
-	}
 	for (struct input_binding *i = *target; i != NULL; i = i->next) {
 		if (strcmp(key, i->key->ptr) == 0) {
 			for (size_t j = 0; j < i->actions_count; ++j) {

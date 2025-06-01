@@ -41,7 +41,7 @@ get_item_args(struct menu_state *ctx, size_t index)
 	return item_fmt;
 }
 
-static unsigned
+static struct config_color
 paint_item(struct menu_state *ctx, size_t index)
 {
 	struct config_context **cfg = &ctx->items->ptr[index].feed[0]->cfg;

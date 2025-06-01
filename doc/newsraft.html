@@ -1005,15 +1005,10 @@
 <h1 class="Sh" id="ENVIRONMENT"><a class="permalink" href="#ENVIRONMENT">ENVIRONMENT</a></h1>
 <p class="Pp">Newsraft's behavior depends on the environment variables set,
     however not all environment variables affect Newsraft directly - many
-    environment variables affect libraries that Newsraft is built on. Thus,
-    <b>ncurses</b>(3) and <b>libcurl</b>(3) recognize a large number of
-    different environment variables which you can learn more about on
-    <b>ncurses</b>(3) and <b>libcurl-env</b>(3) respectively.</p>
-<p class="Pp">However, there is one significant <b>ncurses</b>(3) environment
-    variable that is worth mentioning here - <b>ESCDELAY</b>. It sets delay for
-    reading Escape key. It may surprise you that its default value is 1000 ms,
-    which is well explained in <b>ncurses</b>(3), but many may prefer a value
-    much less than that or even 0.</p>
+    environment variables affect libraries that Newsraft is built on. For
+    example, <b>libcurl</b>(3) recognizes a large number of different
+    environment variables which you can learn more about on
+    <b>libcurl-env</b>(3).</p>
 <p class="Pp"></p>
 <table class="tbl">
   <tr>
@@ -1051,8 +1046,8 @@
 <h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
   ALSO</a></h1>
 <p class="Pp"><b>mpv</b>(1), <b>feh</b>(1), <b>sqlite3</b>(1), <b>regex</b>(7),
-    <b>ssh</b>(1), <b>strftime</b>(3), <b>ncurses</b>(3), <b>libcurl</b>(3),
-    <b>libcurl-env</b>(3)</p>
+    <b>ssh</b>(1), <b>strftime</b>(3), <b>libcurl</b>(3),
+  <b>libcurl-env</b>(3)</p>
 </section>
 <section class="Sh">
 <h1 class="Sh" id="BUGS"><a class="permalink" href="#BUGS">BUGS</a></h1>
@@ -1065,7 +1060,7 @@
 </div>
 <table class="foot">
   <tr>
-    <td class="foot-date">2025-05-03</td>
+    <td class="foot-date">2025-06-01</td>
     <td class="foot-os"></td>
   </tr>
 </table>

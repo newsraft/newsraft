@@ -6,24 +6,25 @@ you're considering switching from Newsboat to Newsraft, it's advised to examine 
 
 ## TL;DR
 
-| Criterion                                     | Newsraft                        | Newsboat               |
-|:----------------------------------------------|:--------------------------------|:-----------------------|
-| Feeds grouping                                | Sections                        | Query feeds            |
-| Parallel downloads                            | +                               | +                      |
-| Multiple actions key bindings                 | +                               | +                      |
-| Interactive content pager                     | +                               | +                      |
-| Built-in HTML renderer                        | +                               | +                      |
-| Sorting                                       | +                               | +                      |
-| Automatic updates                             | +                               | +                      |
-| Item limits                                   | +                               | +                      |
-| Per-feed settings                             | +                               | -                      |
-| Command feeds                                 | `$(cmd arg1 arg2)`              | `"exec:cmd arg1 arg2"` |
-| Scripting capabilities                        | `newsraft -e ACTION`            | `newsboat -x ACTION`   |
-| Download manager                              | -                               | `podboat`              |
-| Integration with third-party services         | -                               | +                      |
-| Internal command-line                         | -                               | +                      |
-| Programming languages used                    | C99                             | C++17, Rust            |
-| [Source lines of code](#source-lines-of-code) | ~9k                             | ~44k                   |
+| Criterion                                     | Newsraft             | Newsboat               |
+|:----------------------------------------------|:---------------------|:-----------------------|
+| Feeds grouping                                | Sections             | Query feeds            |
+| Parallel downloads                            | +                    | +                      |
+| Multiple actions key bindings                 | +                    | +                      |
+| Interactive content pager                     | +                    | +                      |
+| Built-in HTML renderer                        | +                    | +                      |
+| Sorting                                       | +                    | +                      |
+| Automatic updates                             | +                    | +                      |
+| Item limits                                   | +                    | +                      |
+| Per-feed settings                             | +                    | -                      |
+| Command feeds                                 | `$(cmd arg1 arg2)`   | `"exec:cmd arg1 arg2"` |
+| Scripting capabilities                        | `newsraft -e ACTION` | `newsboat -x ACTION`   |
+| Download manager                              | -                    | `podboat`              |
+| Integration with third-party services         | -                    | +                      |
+| Internal command-line                         | -                    | +                      |
+| Programming languages used                    | C99                  | C++17, Rust            |
+| User interface libraries used                 | termbox2             | NCURSES, STFL          |
+| [Source lines of code](#source-lines-of-code) | 9k + 4k (termbox2)   | 44k                    |
 
 Feel free to submit an issue if you think that table above contains outdated information.
 
@@ -93,9 +94,9 @@ This is how SLOC is calculated. As you can see, Newsraft is more than 3 times sm
 
 ```
 ~/src/newsraft > git show -s --pretty=format:"%H %ad"
-246c34b06339819d3ea50b9af1f01dde873c16db Sun Jun 1 03:29:45 2025 +0300
+fccdf56e7afab9b829bf96a4d3771629afbc05a2 Sun Jun 1 14:03:53 2025 +0300
 ~/src/newsraft > find src -regex ".*\.\(c\|h\)" -exec awk NF {} + | wc -l
-12912
+12908
 ```
 ```
 ~/src/newsboat > git show -s --pretty=format:"%H %ad"

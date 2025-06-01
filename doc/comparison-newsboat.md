@@ -89,17 +89,17 @@ while Newsraft represents feeds as simple structures of strings and numbers.
 
 ## Source lines of code
 
-This is how SLOC is calculated. As you can see, Newsraft is roughly 5 times smaller than Newsboat:
+This is how SLOC is calculated. As you can see, Newsraft is more than 3 times smaller than Newsboat:
 
 ```
 ~/src/newsraft > git show -s --pretty=format:"%H %ad"
-ca1a6bfcd43c3cc6c7c68076b46a8346863afa02 Sat May 3 22:42:07 2025 +0300
+246c34b06339819d3ea50b9af1f01dde873c16db Sun Jun 1 03:29:45 2025 +0300
 ~/src/newsraft > find src -regex ".*\.\(c\|h\)" -exec awk NF {} + | wc -l
-8909
+12912
 ```
 ```
 ~/src/newsboat > git show -s --pretty=format:"%H %ad"
-0141cfc90e4150f18aeefa7c478da0fdf9a1ab38 Thu May 1 20:51:09 2025 +0200
+978b64b0b2669184ab72daee46a22a00acc5155a Sun May 25 21:53:56 2025 +0200
 ~/src/newsboat > find src rust rss filter include newsboat.cpp podboat.cpp config.h -regex ".*\.\(cpp\|h\|rs\)" -exec awk NF {} + | wc -l
-44508
+44287
 ```

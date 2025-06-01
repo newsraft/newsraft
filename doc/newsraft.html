@@ -435,16 +435,17 @@
 <section class="Ss">
 <h2 class="Ss" id="open-in-browser-command_(*)"><a class="permalink" href="#open-in-browser-command_(*)">open-in-browser-command
   (*)</a></h2>
-<p class="Pp">Default: <i>auto</i>. Shell command for browsing web. For most
-    operating systems it's set to <i>${BROWSER:-xdg-open} &quot;%l&quot;</i>
-    while value for macOS is <i>open &quot;%l&quot;</i>.</p>
+<p class="Pp">Default: <i>auto</i>. Shell command for <b>open-in-browser</b>
+    action. If set to <i>auto</i>, most operating systems will get
+    <i>${BROWSER:-xdg-open} &quot;%l&quot;</i> while macOS users have it set to
+    <i>open &quot;%l&quot;</i>.</p>
 </section>
 <section class="Ss">
 <h2 class="Ss" id="copy-to-clipboard-command"><a class="permalink" href="#copy-to-clipboard-command">copy-to-clipboard-command</a></h2>
 <p class="Pp">Default: <i>auto</i>. Shell command for copying text to clipboard.
     All copied data is piped into the standard input of the specified command.
-    If it's set to <i>&quot;auto&quot;</i>, Newsraft will determine the
-    appropriate command based on the user environment:</p>
+    If set to <i>auto</i>, Newsraft will determine the appropriate command based
+    on the user environment:</p>
 <p class="Pp"></p>
 <ul class="Bl-bullet">
   <li><i>&quot;wl-copy&quot;</i> if environment variable WAYLAND_DISPLAY is
@@ -466,9 +467,8 @@
 <h2 class="Ss" id="notification-command_(*)"><a class="permalink" href="#notification-command_(*)">notification-command
   (*)</a></h2>
 <p class="Pp">Default: <i>auto</i>. Shell command for invoking system
-    notifications about new news received. If it's set to
-    <i>&quot;auto&quot;</i>, Newsraft will determine the appropriate command
-    based on the user environment:</p>
+    notifications about new news received. If set to <i>auto</i>, Newsraft will
+    determine the appropriate command based on the user environment:</p>
 <p class="Pp"></p>
 <ul class="Bl-bullet">
   <li><i>&quot;notify-send 'Newsraft brought %q news!'&quot;</i> if
@@ -693,8 +693,8 @@
 <h2 class="Ss" id="user-agent_(*)"><a class="permalink" href="#user-agent_(*)">user-agent
   (*)</a></h2>
 <p class="Pp">Default: <i>auto</i>. User-Agent header sent with download
-    requests. If it is set to <i>&quot;auto&quot;</i>, Newsraft will generate it
-    according to the following format:</p>
+    requests. If set to <i>auto</i>, Newsraft will generate it according to the
+    following format:</p>
 <p class="Pp"></p>
 <div class="Bd-indent"><i>&quot;newsraft/&quot;</i> + NEWSRAFT_VERSION +
   <i>&quot; (&quot;</i> + OS_NAME + <i>&quot;)&quot;</i></div>
@@ -1021,7 +1021,7 @@
 <h1 class="Sh" id="ENVIRONMENT"><a class="permalink" href="#ENVIRONMENT">ENVIRONMENT</a></h1>
 <p class="Pp">Newsraft's behavior depends on the environment variables set,
     however not all environment variables affect Newsraft directly - many
-    environment variables affect libraries that Newsraft is built on. For
+    environment variables affect libraries that Newsraft is built upon. For
     example, <b>libcurl</b>(3) recognizes a large number of different
     environment variables which you can learn more about on
     <b>libcurl-env</b>(3).</p>

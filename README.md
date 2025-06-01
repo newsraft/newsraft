@@ -25,48 +25,46 @@ text-based user interface. It's greatly inspired by
 * Import/export OPML
 * Come try segfault me, baby ;)
 
-Check out [comparison of Newsraft and Newsboat](https://codeberg.org/newsraft/newsraft/src/branch/main/doc/comparison-newsboat.md).
+Check out [comparison of Newsraft and Newsboat](https://codeberg.org/newsraft/newsraft/src/branch/main/doc/comparison-newsboat.md)
 
 ## Dependencies
 
-| Library                                                        | Version   |
-|:---------------------------------------------------------------|:----------|
-| [curl](https://curl.se)                                        | >= 7.87.0 |
-| [expat](https://github.com/libexpat/libexpat)                  | >= 2.4.8  |
-| [gumbo-parser](https://codeberg.org/gumbo-parser/gumbo-parser) | >= 0.11.0 |
-| [sqlite](https://www.sqlite.org)                               | >= 3.38.0 |
+* [curl](https://curl.se) >= `7.87.0`
+* [expat](https://github.com/libexpat/libexpat) >= `2.4.8`
+* [gumbo-parser](https://codeberg.org/gumbo-parser/gumbo-parser) >= `0.11.0`
+* [sqlite](https://www.sqlite.org) >= `3.38.0`
 
-Development tools: C99 compiler, POSIX make, [pkg-config](https://www.freedesktop.org/wiki/Software/pkg-config), [gperf](https://www.gnu.org/software/gperf), [scdoc](https://git.sr.ht/~sircmpwn/scdoc), [mandoc](https://mandoc.bsd.lv)
+Build-time: C99 compiler, POSIX make
 
-## Installing
+Only for developers: [gperf](https://www.gnu.org/software/gperf), [scdoc](https://git.sr.ht/~sircmpwn/scdoc), [mandoc](https://mandoc.bsd.lv)
 
-Some package repositories have Newsraft package so it can be installed with a
-package manager.
+## Install
 
 [![Packaging status](https://repology.org/badge/vertical-allrepos/newsraft.svg?columns=4)](https://repology.org/project/newsraft/versions)
 
-If your package repository doesn't provide Newsraft package, you can build it
-from source: see [doc/build-instructions.md](https://codeberg.org/newsraft/newsraft/src/branch/main/doc/build-instructions.md)
-for instructions.
+## Build
 
-## Learning more
+```
+make
+```
+```
+make install
+```
 
-The essential source of information about Newsraft is its
-[man page](https://codeberg.org/newsraft/newsraft/src/branch/main/doc/newsraft.1)
-(if you already have Newsraft installed, you can open it with the `man newsraft` command).
-Alternatively you can read the HTML version of this man page [here](https://newsraft.codeberg.page).
+For more details see [doc/build-instructions.md](https://codeberg.org/newsraft/newsraft/src/branch/main/doc/build-instructions.md)
 
-Examples on how to configure Newsraft are located in the
-[doc/examples](https://codeberg.org/newsraft/newsraft/src/branch/main/doc/examples)
-directory.
+## Learn more
 
-If you want to connect with fellow users of Newsraft, come to **#newsraft** at [libera.chat](https://libera.chat) IRC server.
+* `man newsraft`
+* [newsraft.codeberg.page](https://newsraft.codeberg.page)
+* [doc/examples](https://codeberg.org/newsraft/newsraft/src/branch/main/doc/examples)
 
-## Contributing
+If you want to connect with fellow users of Newsraft, come to **#newsraft** at [libera.chat](https://libera.chat) IRC server
 
-Reporting bugs: [doc/contributing-report.md](https://codeberg.org/newsraft/newsraft/src/branch/main/doc/contributing-report.md)
+## Contribute
 
-Making changes: [doc/contributing-change.md](https://codeberg.org/newsraft/newsraft/src/branch/main/doc/contributing-change.md)
+* Reporting bugs: [doc/contributing-report.md](https://codeberg.org/newsraft/newsraft/src/branch/main/doc/contributing-report.md)
+* Making changes: [doc/contributing-change.md](https://codeberg.org/newsraft/newsraft/src/branch/main/doc/contributing-change.md)
 
 ## FAQ
 

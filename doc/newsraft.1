@@ -447,12 +447,13 @@ Default: \fItrue\fR.\& If \fItrue\fR, update menu contents as soon as possible.\
 If \fIfalse\fR, the menu will be updated only when you re-open it.\&
 .PP
 .SS open-in-browser-command (*)
-Default: \fIauto\fR.\& Shell command for browsing web.\& For most operating systems it'\&s
-set to \fI${BROWSER:-xdg-open} "%l"\fR while value for macOS is \fIopen "%l"\fR.\&
+Default: \fIauto\fR.\& Shell command for \fBopen-in-browser\fR action.\& If set to \fIauto\fR,
+most operating systems will get \fI${BROWSER:-xdg-open} "%l"\fR while macOS users
+have it set to \fIopen "%l"\fR.\&
 .PP
 .SS copy-to-clipboard-command
 Default: \fIauto\fR.\& Shell command for copying text to clipboard.\& All copied data is
-piped into the standard input of the specified command.\& If it'\&s set to \fI"auto"\fR,
+piped into the standard input of the specified command.\& If set to \fIauto\fR,
 Newsraft will determine the appropriate command based on the user environment:
 .PP
 .PD 0
@@ -474,8 +475,8 @@ local system rather than the remote one.\&
 .PP
 .SS notification-command (*)
 Default: \fIauto\fR.\& Shell command for invoking system notifications about new news
-received.\& If it'\&s set to \fI"auto"\fR, Newsraft will determine the appropriate
-command based on the user environment:
+received.\& If set to \fIauto\fR, Newsraft will determine the appropriate command
+based on the user environment:
 .PP
 .PD 0
 .IP \(bu 4
@@ -652,8 +653,8 @@ Default: \fI0\fR.\& Maximum amount of simultaneously open connections Newsraft m
 hold a single host.\& If set to \fI0\fR, there is no limit.\&
 .PP
 .SS user-agent (*)
-Default: \fIauto\fR.\& User-Agent header sent with download requests.\& If it is set to
-\fI"auto"\fR, Newsraft will generate it according to the following format:
+Default: \fIauto\fR.\& User-Agent header sent with download requests.\& If set to
+\fIauto\fR, Newsraft will generate it according to the following format:
 .PP
 .RS 4
 \fI"newsraft/"\fR + NEWSRAFT_VERSION + \fI" ("\fR + OS_NAME + \fI")"\fR
@@ -1078,9 +1079,9 @@ carry the most essential information.\&
 .PP
 Newsraft'\&s behavior depends on the environment variables set, however not all
 environment variables affect Newsraft directly - many environment variables
-affect libraries that Newsraft is built on.\& For example, \fBlibcurl\fR(3) recognizes
-a large number of different environment variables which you can learn more about
-on \fBlibcurl-env\fR(3).\&
+affect libraries that Newsraft is built upon.\& For example, \fBlibcurl\fR(3)
+recognizes a large number of different environment variables which you can learn
+more about on \fBlibcurl-env\fR(3).\&
 .PP
 .TS
 l lx

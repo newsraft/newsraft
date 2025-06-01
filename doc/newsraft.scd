@@ -317,12 +317,13 @@ Default: _true_. If _true_, update menu contents as soon as possible.
 If _false_, the menu will be updated only when you re-open it.
 
 ## open-in-browser-command (*)
-Default: _auto_. Shell command for browsing web. For most operating systems it's
-set to _${BROWSER:-xdg-open} "%l"_ while value for macOS is _open "%l"_.
+Default: _auto_. Shell command for *open-in-browser* action. If set to _auto_,
+most operating systems will get _${BROWSER:-xdg-open} "%l"_ while macOS users
+have it set to _open "%l"_.
 
 ## copy-to-clipboard-command
 Default: _auto_. Shell command for copying text to clipboard. All copied data is
-piped into the standard input of the specified command. If it's set to _"auto"_,
+piped into the standard input of the specified command. If set to _auto_,
 Newsraft will determine the appropriate command based on the user environment:
 
 - _"wl-copy"_ if environment variable WAYLAND_DISPLAY is set
@@ -338,8 +339,8 @@ local system rather than the remote one.
 
 ## notification-command (*)
 Default: _auto_. Shell command for invoking system notifications about new news
-received. If it's set to _"auto"_, Newsraft will determine the appropriate
-command based on the user environment:
+received. If set to _auto_, Newsraft will determine the appropriate command
+based on the user environment:
 
 - _"notify-send 'Newsraft brought %q news!'"_ if WAYLAND_DISPLAY or DISPLAY is set in environment
 - _"osascript -e 'display notification "Newsraft brought %q news!"'"_ if Newsraft was built for macOS operating system
@@ -483,8 +484,8 @@ Default: _0_. Maximum amount of simultaneously open connections Newsraft may
 hold a single host. If set to _0_, there is no limit.
 
 ## user-agent (*)
-Default: _auto_. User-Agent header sent with download requests. If it is set to
-_"auto"_, Newsraft will generate it according to the following format:
+Default: _auto_. User-Agent header sent with download requests. If set to
+_auto_, Newsraft will generate it according to the following format:
 
 	_"newsraft/"_ + NEWSRAFT_VERSION + _" ("_ + OS_NAME + _")"_
 
@@ -666,9 +667,9 @@ _JSON Feed_
 
 Newsraft's behavior depends on the environment variables set, however not all
 environment variables affect Newsraft directly - many environment variables
-affect libraries that Newsraft is built on. For example, *libcurl*(3) recognizes
-a large number of different environment variables which you can learn more about
-on *libcurl-env*(3).
+affect libraries that Newsraft is built upon. For example, *libcurl*(3)
+recognizes a large number of different environment variables which you can learn
+more about on *libcurl-env*(3).
 
 |[ *XDG_CONFIG_HOME*
 :< Directory in which user-specific configuration files are stored.

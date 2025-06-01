@@ -29,18 +29,14 @@ Check out [comparison of Newsraft and Newsboat](https://codeberg.org/newsraft/ne
 
 ## Dependencies
 
-| Name                                                               | Version   | Run | Build | Change |
-|--------------------------------------------------------------------|-----------|-----|-------|--------|
-| [curl](https://curl.se)                                            | >= 7.87.0 | +   | +     | +      |
-| [expat](https://github.com/libexpat/libexpat)                      | >= 2.4.8  | +   | +     | +      |
-| [gumbo-parser](https://codeberg.org/gumbo-parser/gumbo-parser)     | >= 0.11.0 | +   | +     | +      |
-| [sqlite](https://www.sqlite.org)                                   | >= 3.38.0 | +   | +     | +      |
-| C compiler                                                         | Any C99   |     | +     | +      |
-| make                                                               | Any POSIX |     | +     | +      |
-| [pkg-config](https://www.freedesktop.org/wiki/Software/pkg-config) | >= 0.29.2 |     | +     | +      |
-| [gperf](https://www.gnu.org/software/gperf)                        | >= 3.1    |     |       | +      |
-| [scdoc](https://git.sr.ht/~sircmpwn/scdoc)                         | >= 1.9.1  |     |       | +      |
-| [mandoc](https://mandoc.bsd.lv)                                    | >= 1.14.6 |     |       | +      |
+| Library                                                        | Version   |
+|:---------------------------------------------------------------|:----------|
+| [curl](https://curl.se)                                        | >= 7.87.0 |
+| [expat](https://github.com/libexpat/libexpat)                  | >= 2.4.8  |
+| [gumbo-parser](https://codeberg.org/gumbo-parser/gumbo-parser) | >= 0.11.0 |
+| [sqlite](https://www.sqlite.org)                               | >= 3.38.0 |
+
+Development tools: C99 compiler, POSIX make, [pkg-config](https://www.freedesktop.org/wiki/Software/pkg-config), [gperf](https://www.gnu.org/software/gperf), [scdoc](https://git.sr.ht/~sircmpwn/scdoc), [mandoc](https://mandoc.bsd.lv)
 
 ## Installing
 

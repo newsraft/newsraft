@@ -17,6 +17,7 @@ PTHREAD_LIBS  = -lpthread
 #LDFLAGS       = -static
 #CURL_LIBS     = -lcurl -lbrotlidec -lbrotlienc -lbrotlicommon -lssl -lcrypto -lnghttp2 -lz
 AUXCFLAGS     = $(CURL_CFLAGS) $(EXPAT_CFLAGS) $(GUMBO_CFLAGS) $(SQLITE_CFLAGS)
+FEATURECFLAGS = -D_DEFAULT_SOURCE -D_BSD_SOURCE -D_XOPEN_SOURCE=700
 LDLIBS        = $(CURL_LIBS) $(EXPAT_LIBS) $(GUMBO_LIBS) $(SQLITE_LIBS) $(PTHREAD_LIBS)
 DESTDIR       =
 PREFIX        = /usr/local
@@ -52,13 +53,13 @@ install-examples:
 	install -m644 doc/examples/config $(DESTDIR)$(EXAMPLES_DIR)/.
 
 newsraft:
-	$(CC) -std=c99 $(CFLAGS) $(AUXCFLAGS) -Isrc -D_DEFAULT_SOURCE -D_XOPEN_SOURCE=700 -D_XOPEN_SOURCE_EXTENDED $(LDFLAGS) -o $@ src/newsraft.c $(LDLIBS)
+	$(CC) -std=c99 $(CFLAGS) $(AUXCFLAGS) $(FEATURECFLAGS) -Isrc $(LDFLAGS) -o $@ src/newsraft.c $(LDLIBS)
 
 libnewsraft.so:
-	$(CC) -std=c99 -shared $(CFLAGS) $(AUXCFLAGS) -Isrc -D_DEFAULT_SOURCE -D_XOPEN_SOURCE=700 -D_XOPEN_SOURCE_EXTENDED $(LDFLAGS) -o $@ src/newsraft.c $(LDLIBS)
+	$(CC) -std=c99 -shared $(CFLAGS) $(AUXCFLAGS) $(FEATURECFLAGS) -Isrc $(LDFLAGS) -o $@ src/newsraft.c $(LDLIBS)
 
 test-program:
-	$(CC) -std=c99 $(CFLAGS) $(AUXCFLAGS) -Isrc -D_DEFAULT_SOURCE -D_XOPEN_SOURCE=700 -D_XOPEN_SOURCE_EXTENDED -o newsraft-test $(TEST_FILE) -L. -lnewsraft
+	$(CC) -std=c99 $(CFLAGS) $(AUXCFLAGS) $(FEATURECFLAGS) -Isrc -o newsraft-test $(TEST_FILE) -L. -lnewsraft
 
 gperf:
 	gperf -m 1000 -I -t -F ,0,NULL,NULL < src/parse_xml/gperf-data.in > src/parse_xml/gperf-data.c
@@ -80,7 +81,7 @@ cppcheck:
 	find src -name "*.c" -exec cppcheck -q --enable=warning,performance,portability '{}' ';'
 
 clang-tidy:
-	clang-tidy --checks='-clang-analyzer-security.insecureAPI.*' $$(find src -name '*.c') -- -Isrc -D_DEFAULT_SOURCE -D_XOPEN_SOURCE=700 -D_XOPEN_SOURCE_EXTENDED
+	clang-tidy --checks='-clang-analyzer-security.insecureAPI.*' $$(find src -name '*.c') -- $(FEATURECFLAGS) -Isrc
 
 compile_commands.json: clean
 	bear -- $(MAKE)

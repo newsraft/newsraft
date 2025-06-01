@@ -43,6 +43,9 @@ werase(WINDOW *win)
 uintattr_t
 real_color(uintattr_t color)
 {
+	if (!arent_we_colorful()) {
+		return TB_DEFAULT;
+	}
 	int mode = tb_set_output_mode(TB_OUTPUT_CURRENT);
 	if (mode == TB_OUTPUT_256) {
 		if (color == TB_DEFAULT) {

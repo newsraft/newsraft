@@ -470,6 +470,14 @@ feed. Setting to _0_ disables the timeout.
 Default: _0_. Maximum download speed in kilobytes per second (kB/s). Setting to
 _0_ disables the limit.
 
+## download-max-connections
+Default: _500_. Maximum amount of simultaneously open connections Newsraft may
+hold in total. If set to _0_, there is no limit. You can try to increase this
+value or even set it to _0_ if you want to squeeze out all performance to the
+last drop but be aware that things can start to break at high setting values.
+One obvious example is getaddrinfo() starts to choke with a large number of
+simultaneous requests trying to resolve domain names.
+
 ## download-max-host-connections
 Default: _0_. Maximum amount of simultaneously open connections Newsraft may
 hold a single host. If set to _0_, there is no limit.

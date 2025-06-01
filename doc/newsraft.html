@@ -674,6 +674,16 @@
     (kB/s). Setting to <i>0</i> disables the limit.</p>
 </section>
 <section class="Ss">
+<h2 class="Ss" id="download-max-connections"><a class="permalink" href="#download-max-connections">download-max-connections</a></h2>
+<p class="Pp">Default: <i>500</i>. Maximum amount of simultaneously open
+    connections Newsraft may hold in total. If set to <i>0</i>, there is no
+    limit. You can try to increase this value or even set it to <i>0</i> if you
+    want to squeeze out all performance to the last drop but be aware that
+    things can start to break at high setting values. One obvious example is
+    getaddrinfo() starts to choke with a large number of simultaneous requests
+    trying to resolve domain names.</p>
+</section>
+<section class="Ss">
 <h2 class="Ss" id="download-max-host-connections"><a class="permalink" href="#download-max-host-connections">download-max-host-connections</a></h2>
 <p class="Pp">Default: <i>0</i>. Maximum amount of simultaneously open
     connections Newsraft may hold a single host. If set to <i>0</i>, there is no

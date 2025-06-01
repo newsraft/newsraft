@@ -106,6 +106,11 @@ Making changes: [doc/contributing-change.md](https://codeberg.org/newsraft/newsr
 </details>
 
 <details>
+	<summary>I get a lot of getaddrinfo() thread failed to start errors. What do I do?</summary>
+	Usually it happens because your setup can't handle many concurrent DNS resolves. Try to reduce the value of setting <code>download-max-connections</code>.
+</details>
+
+<details>
 	<summary>My database is over 9000 GB now. What do I do?</summary>
 	<ul>
 		<li>Set capacity limit on some of your heavy feeds via <a href="https://newsraft.codeberg.page/#item-limit_(*)">item-limit</a> setting</li>

@@ -369,6 +369,9 @@ remove_downloader_handle(struct feed_update_state *data)
 bool
 curl_init(void)
 {
+	curl_version_info_data *ver = curl_version_info(CURLVERSION_NOW);
+	INFO("libcurl AsynchDNS feature: %s", ver->features & CURL_VERSION_ASYNCHDNS ? "enabled" : "disabled");
+
 	if (curl_global_init(CURL_GLOBAL_DEFAULT) != 0) {
 		write_error("Failed to initialize curl!\n");
 		return false;
@@ -380,6 +383,7 @@ curl_init(void)
 		write_error("Failed to initialize curl multi stack!\n");
 		return false;
 	}
+	curl_multi_setopt(multi, CURLMOPT_MAX_TOTAL_CONNECTIONS, get_cfg_uint(NULL, CFG_DOWNLOAD_MAX_CONNECTIONS));
 	curl_multi_setopt(multi, CURLMOPT_MAX_HOST_CONNECTIONS, get_cfg_uint(NULL, CFG_DOWNLOAD_MAX_HOST_CONNECTIONS));
 	return true;
 }

@@ -29,7 +29,7 @@ update_status_window_content_unprotected(void)
 	// appear in the window. The solution to this is wclear, but it makes
 	// screen flicker on the old hardware.
 	werase(status_window);
-	wmove(status_window, 0, 0);
+	wmove(status_window, 0);
 
 	if (they_want_us_to_stop == true) {
 		waddnstr(status_window, "Terminating...", list_menu_width);
@@ -57,7 +57,7 @@ update_status_window_content_unprotected(void)
 	}
 
 	// Print count value
-	wmove(status_window, 0, list_menu_width - 11);
+	wmove(status_window, list_menu_width - 11);
 	if (count_buf_len > 0) {
 		waddstr(status_window, "  "); // Little divider to separate from previous stuff
 		waddnstr(status_window, count_buf, count_buf_len);
@@ -80,7 +80,7 @@ status_recreate_unprotected(void)
 	if (status_window != NULL) {
 		delwin(status_window);
 	}
-	status_window = newwin(1, list_menu_width, list_menu_height, 0);
+	status_window = newwin(list_menu_height);
 	INFO("Created status window");
 	status_window_is_initialized = true;
 	update_status_window_content_unprotected();

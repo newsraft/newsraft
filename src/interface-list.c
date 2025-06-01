@@ -32,7 +32,7 @@ adjust_list_menu(void)
 	}
 	windows = newsraft_realloc(windows, sizeof(WINDOW *) * list_menu_height);
 	for (size_t i = 0; i < list_menu_height; ++i) {
-		windows[i] = newwin(1, list_menu_width, i, 0);
+		windows[i] = newwin(i);
 		if (windows[i] == NULL) {
 			windows_count = i;
 			FAIL("newwin() returned NULL!");
@@ -79,7 +79,7 @@ expose_entry_of_the_list_menu_unprotected(size_t index)
 {
 	WINDOW *w = windows[index - menu->view_min];
 	werase(w);
-	wmove(w, 0, 0);
+	wmove(w, 0);
 	wbkgd(w, (struct config_color){TB_DEFAULT, TB_DEFAULT, TB_DEFAULT});
 	wattrset(w, TB_DEFAULT);
 	menu->write_action(index, w);

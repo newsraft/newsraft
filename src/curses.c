@@ -3,13 +3,11 @@
 #include "termbox2.h"
 
 WINDOW *
-newwin(int height, int width, int pos_y, int pos_x)
+newwin(int pos_y)
 {
-	(void)height;
-	(void)width;
-	(void)pos_x;
 	WINDOW *win = newsraft_calloc(1, sizeof(*win));
 	win->pos_y = pos_y;
+	win->content = wcrtes(list_menu_width + 10);
 	return win;
 }
 
@@ -23,18 +21,15 @@ delwin(WINDOW *win)
 }
 
 void
-wmove(WINDOW *win, int offset_y, int offset_x)
+wmove(WINDOW *win, int offset_x)
 {
-	(void)offset_y;
 	win->offset = offset_x;
 }
 
 void
 werase(WINDOW *win)
 {
-	if (!STRING_IS_EMPTY(win->content)) {
-		empty_wstring(win->content);
-	}
+	empty_wstring(win->content);
 	for (int i = 0; i < tb_width(); ++i) {
 		tb_set_cell(i, win->pos_y, ' ', TB_DEFAULT, TB_DEFAULT);
 	}
@@ -64,7 +59,7 @@ wbkgd(WINDOW *win, struct config_color color)
 {
 	int shift = 0;
 	for (int i = 0; i < tb_width(); ++i) {
-		if (!STRING_IS_EMPTY(win->content) && (size_t)i < win->content->len) {
+		if ((size_t)i < win->content->len) {
 			tb_set_cell(shift, win->pos_y, win->content->ptr[i], real_color(color.fg) | color.attributes | win->attrs, real_color(color.bg));
 			shift += wcwidth(win->content->ptr[i]);
 		} else {
@@ -83,9 +78,6 @@ wattrset(WINDOW *win, int attrs)
 void
 waddnwstr(WINDOW *win, const wchar_t *wstr, size_t lim)
 {
-	if (STRING_IS_EMPTY(win->content)) {
-		wstr_set(&win->content, NULL, 0, 0);
-	}
 	size_t wstr_len = wcslen(wstr);
 	if (wstr_len > lim) {
 		wstr_len = lim;
@@ -149,7 +141,7 @@ get_wch(char *keyname)
 		[TB_KEY_CTRL_U]           = "^U",     // ok
 		[TB_KEY_CTRL_V]           = "^V",     // ok
 		[TB_KEY_CTRL_W]           = "^W",     // ok
-		[TB_KEY_CTRL_X]           = "^X",
+		[TB_KEY_CTRL_X]           = "^X",     // ok
 		[TB_KEY_CTRL_Y]           = "^Y",     // ok
 		[TB_KEY_CTRL_Z]           = "^Z",
 		[TB_KEY_ESC]              = "escape", // ok

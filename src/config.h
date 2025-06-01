@@ -86,7 +86,7 @@ CFG(CFG_ITEM_CONTENT_FORMAT,             "item-content-format",             CFG_
 CFG(CFG_ITEM_CONTENT_DATE_FORMAT,        "item-content-date-format",        CFG_STRING, {.s = {.base = "%a, %d %b %Y %H:%M:%S %z"}})
 CFG(CFG_ITEM_CONTENT_LINK_FORMAT,        "item-content-link-format",        CFG_STRING, {.s = {.base = "<b>[%i]</b>:&nbsp;%l<br>"}})
 CFG(CFG_LIST_ENTRY_DATE_FORMAT,          "list-entry-date-format",          CFG_STRING, {.s = {.base = "%b %d"}})
-CFG(CFG_OPEN_IN_BROWSER_COMMAND,         "open-in-browser-command",         CFG_STRING, {.s = {.base = "${BROWSER:-xdg-open} \"%l\""}})
+CFG(CFG_OPEN_IN_BROWSER_COMMAND,         "open-in-browser-command",         CFG_STRING, {.s = {.base = "auto", .auto_set = &obtain_browser_command}})
 CFG(CFG_NOTIFICATION_COMMAND,            "notification-command",            CFG_STRING, {.s = {.base = "auto", .auto_set = &obtain_notification_command}})
 CFG(CFG_MENU_SECTION_ENTRY_FORMAT,       "menu-section-entry-format",       CFG_STRING, {.s = {.base = "%5.0u @ %t"}})
 CFG(CFG_MENU_FEED_ENTRY_FORMAT,          "menu-feed-entry-format",          CFG_STRING, {.s = {.base = "%5.0u │ %t"}})

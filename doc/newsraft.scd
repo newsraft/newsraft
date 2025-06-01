@@ -317,8 +317,8 @@ Default: _true_. If _true_, update menu contents as soon as possible.
 If _false_, the menu will be updated only when you re-open it.
 
 ## open-in-browser-command (*)
-Default: _${BROWSER:-xdg-open} "%l"_. Shell command for opening URL in a web
-browser. The URL to be opened is put in place where _%l_ specifier is located.
+Default: _auto_. Shell command for browsing web. For most operating systems it's
+set to _${BROWSER:-xdg-open} "%l"_ while value for macOS is _open "%l"_.
 
 ## copy-to-clipboard-command
 Default: _auto_. Shell command for copying text to clipboard. All copied data is

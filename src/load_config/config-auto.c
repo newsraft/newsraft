@@ -20,6 +20,15 @@ obtain_useragent_string(struct config_context **ctx, config_type_id id)
 }
 
 bool
+obtain_browser_command(struct config_context **ctx, config_type_id id)
+{
+#ifdef __APPLE__
+	return set_cfg_string(ctx, id, "open \"%l\"", 9);
+#endif
+	return set_cfg_string(ctx, id, "${BROWSER:-xdg-open} \"%l\"", 25);
+}
+
+bool
 obtain_clipboard_command(struct config_context **ctx, config_type_id id)
 {
 #ifdef __APPLE__

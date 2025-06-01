@@ -447,8 +447,8 @@ Default: \fItrue\fR.\& If \fItrue\fR, update menu contents as soon as possible.\
 If \fIfalse\fR, the menu will be updated only when you re-open it.\&
 .PP
 .SS open-in-browser-command (*)
-Default: \fI${BROWSER:-xdg-open} "%l"\fR.\& Shell command for opening URL in a web
-browser.\& The URL to be opened is put in place where \fI%l\fR specifier is located.\&
+Default: \fIauto\fR.\& Shell command for browsing web.\& For most operating systems it'\&s
+set to \fI${BROWSER:-xdg-open} "%l"\fR while value for macOS is \fIopen "%l"\fR.\&
 .PP
 .SS copy-to-clipboard-command
 Default: \fIauto\fR.\& Shell command for copying text to clipboard.\& All copied data is

@@ -13,6 +13,7 @@ void log_config_settings(void);
 
 // See "config-auto.c" file for implementation.
 bool obtain_useragent_string(struct config_context **ctx, config_type_id id);
+bool obtain_browser_command(struct config_context **ctx, config_type_id id);
 bool obtain_clipboard_command(struct config_context **ctx, config_type_id id);
 bool obtain_notification_command(struct config_context **ctx, config_type_id id);
 

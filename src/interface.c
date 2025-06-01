@@ -44,7 +44,7 @@ ui_init(void)
 	if (tb_hide_cursor() != TB_OK) {
 		WARN("Can't hide cursor!");
 	}
-	if (getenv("NO_COLOR") != NULL) {
+	if (!get_cfg_bool(NULL, CFG_IGNORE_NO_COLOR) && getenv("NO_COLOR") != NULL) {
 		INFO("NO_COLOR environment variable is set, canceling colors initialization.");
 	} else {
 		paint_it_black = false; // Some iridescent sensation at last!

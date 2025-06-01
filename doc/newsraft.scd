@@ -509,6 +509,10 @@ downloaded contains information with the same modification date, then in order
 to save traffic and resources, it will reject the download request. Disabling it
 is strongly discouraged.
 
+## ignore-no-color
+Default: _false_. If _true_, Newsraft will use colors regardless of whether
+*NO_COLOR* environment variable is present or not.
+
 # COLOR SETTINGS
 
 Color settings are the same settings as above, but they take two color words

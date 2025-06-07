@@ -58,8 +58,7 @@ For more details see [doc/build-instructions.md](https://codeberg.org/newsraft/n
 * `man newsraft`
 * [newsraft.codeberg.page](https://newsraft.codeberg.page)
 * [doc/examples](https://codeberg.org/newsraft/newsraft/src/branch/main/doc/examples)
-
-If you want to connect with fellow users of Newsraft, come to **#newsraft** at [libera.chat](https://libera.chat) IRC server
+* **#newsraft** at [libera.chat](https://libera.chat)
 
 ## Contribute
 
@@ -74,8 +73,13 @@ If you want to connect with fellow users of Newsraft, come to **#newsraft** at [
 </details>
 
 <details>
+	<summary>Why a raccoon in Newsraft's logo?</summary>
+	Because it's cute, dummy.
+</details>
+
+<details>
 	<summary>How do I bind mpv to run in the background?</summary>
-	<code>bind m exec setsid mpv --terminal=no "%l" &amp;</code>
+	<pre>bind m exec setsid mpv --terminal=no "%l" &amp;</pre>
 </details>
 
 <details>
@@ -85,7 +89,8 @@ If you want to connect with fellow users of Newsraft, come to **#newsraft** at [
 
 <details>
 	<summary>I want Newsraft to show me a help screen on ? key press.</summary>
-	Easy. Just put <code>bind ? exec man newsraft</code> into your <code>config</code> file.
+	Easy. Just put this into your <code>config</code> file:
+	<pre>bind ? exec man newsraft</pre>
 </details>
 
 <details>
@@ -93,9 +98,9 @@ If you want to connect with fellow users of Newsraft, come to **#newsraft** at [
 	Yes, you can do practically anything before Newsraft takes over. It's done
 	via shell interlayer: any shell command in between of <code>$(</code>
 	and <code>)</code> will be executed on reload and its standard output will
-	be taken for a feed content. Here are examples of such feeds:<br>
-	<code>$(gemget -sq gemini://example.org/feed.xml) "Simple blog"</code><br>
-	<code>$($HOME/bin/html2rss http://example.org/index.html) "Local news"</code>
+	be taken for a feed content. Here are examples of such feeds:<br><br>
+	<pre>$(gemget -sq gemini://example.org/feed.xml) "Simple blog"</pre>
+	<pre>$($HOME/bin/html2rss http://example.org/index.html) "Local news"</pre>
 </details>
 
 <details>

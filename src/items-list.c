@@ -6,16 +6,20 @@ static inline bool
 append_sorting_order_expression_to_query(struct string *q, int order)
 {
 	switch (order) {
-		case SORT_BY_TIME_ASC:       catas(q, " ORDER BY MAX(publication_date, update_date) ASC, rowid ASC", 59); break;
-		case SORT_BY_TIME_DESC:      catas(q, " ORDER BY MAX(publication_date, update_date) DESC, rowid DESC", 61); break;
-		case SORT_BY_ROWID_ASC:      catas(q, " ORDER BY rowid ASC", 19); break;
-		case SORT_BY_ROWID_DESC:     catas(q, " ORDER BY rowid DESC", 20); break;
-		case SORT_BY_UNREAD_ASC:     catas(q, " ORDER BY unread ASC, MAX(publication_date, update_date) DESC, rowid DESC", 73); break;
-		case SORT_BY_UNREAD_DESC:    catas(q, " ORDER BY unread DESC, MAX(publication_date, update_date) DESC, rowid DESC", 74); break;
-		case SORT_BY_IMPORTANT_ASC:  catas(q, " ORDER BY important ASC, MAX(publication_date, update_date) DESC, rowid DESC", 76); break;
-		case SORT_BY_IMPORTANT_DESC: catas(q, " ORDER BY important DESC, MAX(publication_date, update_date) DESC, rowid DESC", 77); break;
-		case SORT_BY_ALPHABET_ASC:   catas(q, " ORDER BY title ASC, rowid ASC", 30); break;
-		case SORT_BY_ALPHABET_DESC:  catas(q, " ORDER BY title DESC, rowid DESC", 32); break;
+		case SORT_BY_TIME_ASC:              catas(q, " ORDER BY MAX(publication_date, update_date) ASC, rowid ASC", 59); break;
+		case SORT_BY_TIME_DESC:             catas(q, " ORDER BY MAX(publication_date, update_date) DESC, rowid DESC", 61); break;
+		case SORT_BY_TIME_UPDATE_ASC:       catas(q, " ORDER BY update_date ASC, rowid ASC", 36); break;
+		case SORT_BY_TIME_UPDATE_DESC:      catas(q, " ORDER BY update_date DESC, rowid DESC", 38); break;
+		case SORT_BY_TIME_PUBLICATION_ASC:  catas(q, " ORDER BY publication_date ASC, rowid ASC", 41); break;
+		case SORT_BY_TIME_PUBLICATION_DESC: catas(q, " ORDER BY publication_date DESC, rowid DESC", 43); break;
+		case SORT_BY_ROWID_ASC:             catas(q, " ORDER BY rowid ASC", 19); break;
+		case SORT_BY_ROWID_DESC:            catas(q, " ORDER BY rowid DESC", 20); break;
+		case SORT_BY_UNREAD_ASC:            catas(q, " ORDER BY unread ASC, MAX(publication_date, update_date) DESC, rowid DESC", 73); break;
+		case SORT_BY_UNREAD_DESC:           catas(q, " ORDER BY unread DESC, MAX(publication_date, update_date) DESC, rowid DESC", 74); break;
+		case SORT_BY_IMPORTANT_ASC:         catas(q, " ORDER BY important ASC, MAX(publication_date, update_date) DESC, rowid DESC", 76); break;
+		case SORT_BY_IMPORTANT_DESC:        catas(q, " ORDER BY important DESC, MAX(publication_date, update_date) DESC, rowid DESC", 77); break;
+		case SORT_BY_ALPHABET_ASC:          catas(q, " ORDER BY title ASC, rowid ASC", 30); break;
+		case SORT_BY_ALPHABET_DESC:         catas(q, " ORDER BY title DESC, rowid DESC", 32); break;
 		default:
 			fail_status("Unknown sorting method name!");
 			return false;
@@ -230,23 +234,16 @@ recreate_items_list(struct items_list **items)
 void
 change_items_list_sorting(struct items_list **items, input_id cmd)
 {
-	switch (cmd) {
-		case INPUT_SORT_BY_TIME:
-			(*items)->sorting = (*items)->sorting == SORT_BY_TIME_DESC ? SORT_BY_TIME_ASC : SORT_BY_TIME_DESC;
-			break;
-		case INPUT_SORT_BY_ROWID:
-			(*items)->sorting = (*items)->sorting == SORT_BY_ROWID_DESC ? SORT_BY_ROWID_ASC : SORT_BY_ROWID_DESC;
-			break;
-		case INPUT_SORT_BY_UNREAD:
-			(*items)->sorting = (*items)->sorting == SORT_BY_UNREAD_DESC ? SORT_BY_UNREAD_ASC : SORT_BY_UNREAD_DESC;
-			break;
-		case INPUT_SORT_BY_ALPHABET:
-			(*items)->sorting = (*items)->sorting == SORT_BY_ALPHABET_ASC ? SORT_BY_ALPHABET_DESC : SORT_BY_ALPHABET_ASC;
-			break;
-		case INPUT_SORT_BY_IMPORTANT:
-			(*items)->sorting = (*items)->sorting == SORT_BY_IMPORTANT_DESC ? SORT_BY_IMPORTANT_ASC : SORT_BY_IMPORTANT_DESC;
-			break;
-	}
+	static const struct { int primary; int secondary; } sort_map[] = {
+		[INPUT_SORT_BY_TIME]             = {SORT_BY_TIME_DESC,             SORT_BY_TIME_ASC},
+		[INPUT_SORT_BY_TIME_UPDATE]      = {SORT_BY_TIME_UPDATE_DESC,      SORT_BY_TIME_UPDATE_ASC},
+		[INPUT_SORT_BY_TIME_PUBLICATION] = {SORT_BY_TIME_PUBLICATION_DESC, SORT_BY_TIME_PUBLICATION_ASC},
+		[INPUT_SORT_BY_ROWID]            = {SORT_BY_ROWID_DESC,            SORT_BY_ROWID_ASC},
+		[INPUT_SORT_BY_UNREAD]           = {SORT_BY_UNREAD_DESC,           SORT_BY_UNREAD_ASC},
+		[INPUT_SORT_BY_ALPHABET]         = {SORT_BY_ALPHABET_ASC,          SORT_BY_ALPHABET_DESC},
+		[INPUT_SORT_BY_IMPORTANT]        = {SORT_BY_IMPORTANT_DESC,        SORT_BY_IMPORTANT_ASC},
+	};
+	(*items)->sorting = (*items)->sorting == sort_map[cmd].primary ? sort_map[cmd].secondary : sort_map[cmd].primary;
 	recreate_items_list(items);
 	info_status(get_sorting_message((*items)->sorting), "items");
 }

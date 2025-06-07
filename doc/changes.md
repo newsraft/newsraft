@@ -1,3 +1,20 @@
+# newsraft 0.31 "way fare"
+
+* dependency on `ncurses` is gone, it's not needed to build Newsraft anymore
+
+so currently only 4 libraries are needed to build Newsraft: libcurl, libexpat,
+libgumbo and libsqlite3. note that you don't need scdoc/mandoc during the build
+
+* add `download-max-connections` setting (#187)
+* add `ignore-no-color` setting (#204)
+* add `sort-by-time-update` action (#185)
+* add `sort-by-time-publication` action (#185)
+* fallback to `open` in `open-in-browser-command` setting on macOS (#203)
+* don't call `make clean` before running tests every time
+* prevent rebuild in some cases when calling `make install`
+
+and yet again, a low bow to every one of you who lead Newsraft ports!
+
 # newsraft 0.30 "one cabbage a day and the doc's never away"
 
 this is a big one. dear repository maintainers, here's an important heads up:

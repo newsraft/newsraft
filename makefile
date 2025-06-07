@@ -31,7 +31,7 @@ all: newsraft
 
 install: install-newsraft install-man install-icon install-examples
 
-install-newsraft: newsraft
+install-newsraft:
 	mkdir -p $(DESTDIR)$(BINDIR)
 	install -m755 newsraft $(DESTDIR)$(BINDIR)/.
 

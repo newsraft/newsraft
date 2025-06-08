@@ -2078,7 +2078,9 @@ const char *tb_strerror(int err) {
         case TB_ERR_RESIZE_POLL:
         case TB_ERR_RESIZE_READ:
         default:
-            strerror_r(global.last_errno, global.errbuf, sizeof(global.errbuf));
+            if (strerror_r(global.last_errno, global.errbuf, sizeof(global.errbuf)) != 0) {
+                return "(malfunction)";
+            }
             return (const char *)global.errbuf;
     }
 }

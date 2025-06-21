@@ -208,19 +208,19 @@ prepare_feed_update_state_for_download(struct feed_update_state *data)
 	curl_easy_setopt(curl, CURLOPT_TIMEOUT, get_cfg_uint(&feed->cfg, CFG_DOWNLOAD_TIMEOUT));
 	curl_easy_setopt(curl, CURLOPT_MAX_RECV_SPEED_LARGE, (curl_off_t)get_cfg_uint(&feed->cfg, CFG_DOWNLOAD_SPEED_LIMIT) * 1024);
 	curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, data->curl_error);
-	curl_easy_setopt(curl, CURLOPT_FAILONERROR, 1);
-	curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1);
-	curl_easy_setopt(curl, CURLOPT_MAXREDIRS, 10);
+	curl_easy_setopt(curl, CURLOPT_FAILONERROR, 1L);
+	curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+	curl_easy_setopt(curl, CURLOPT_MAXREDIRS, 10L);
 	curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, ""); // Enable all supported built-in encodings.
-	curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
-	curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1);
+	curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1L);
+	curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1L);
 
 	FILE *log_stream = log_get_stream();
 	if (log_stream) {
-		curl_easy_setopt(curl, CURLOPT_VERBOSE, 1);
+		curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
 		curl_easy_setopt(curl, CURLOPT_STDERR, log_stream);
 	} else {
-		curl_easy_setopt(curl, CURLOPT_VERBOSE, 0);
+		curl_easy_setopt(curl, CURLOPT_VERBOSE, 0L);
 	}
 
 	const struct string *proxy = get_cfg_string(&feed->cfg, CFG_PROXY);

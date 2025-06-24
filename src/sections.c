@@ -15,11 +15,21 @@ static struct feed_section **sections_view = NULL;
 static size_t sections_count = 0;
 static sorting_method_t sections_sort = SORT_BY_INITIAL_ASC;
 
+static size_t
+get_sections_view_len(void)
+{
+	if (get_cfg_bool(NULL, CFG_GLOBAL_SECTION_HIDE)) {
+		return sections_count - 1;
+	} else {
+		return sections_count;
+	}
+}
+
 static bool
 is_section_valid(struct menu_state *ctx, size_t index)
 {
 	(void)ctx;
-	return index < sections_count ? true : false;
+	return index < get_sections_view_len() ? true : false;
 }
 
 static const struct format_arg *
@@ -105,8 +115,14 @@ make_sure_section_exists(const struct string *section_name)
 	sections_count += 1;
 
 	// Have to update it every time because primary array is realloc'ed just above.
-	for (size_t i = 0; i < sections_count; ++i) {
-		sections_view[i] = &sections[i];
+	if (get_cfg_bool(NULL, CFG_GLOBAL_SECTION_HIDE)) {
+		for (size_t i = 1; i < sections_count; ++i) {
+			sections_view[i - 1] = &sections[i];
+		}
+	} else {
+		for (size_t i = 0; i < sections_count; ++i) {
+			sections_view[i] = &sections[i];
+		}
 	}
 
 	return sections_count - 1;
@@ -236,6 +252,7 @@ free_sections(void)
 		free_string(sections[i].name);
 		newsraft_free(sections[i].feeds);
 	}
+	newsraft_free(sections_view);
 	newsraft_free(sections);
 }
 
@@ -311,9 +328,9 @@ sort_sections(sorting_method_t method, bool we_are_already_in_sections_menu)
 	pthread_mutex_lock(&interface_lock);
 	sections_sort = method;
 	switch (sections_sort & ~1) {
-		case SORT_BY_UNREAD_ASC:   qsort(sections_view, sections_count, sizeof(struct feed_section *), &compare_sections_unread);   break;
-		case SORT_BY_INITIAL_ASC:  qsort(sections_view, sections_count, sizeof(struct feed_section *), &compare_sections_initial);  break;
-		case SORT_BY_ALPHABET_ASC: qsort(sections_view, sections_count, sizeof(struct feed_section *), &compare_sections_alphabet); break;
+		case SORT_BY_UNREAD_ASC:   qsort(sections_view, get_sections_view_len(), sizeof(struct feed_section *), &compare_sections_unread);   break;
+		case SORT_BY_INITIAL_ASC:  qsort(sections_view, get_sections_view_len(), sizeof(struct feed_section *), &compare_sections_initial);  break;
+		case SORT_BY_ALPHABET_ASC: qsort(sections_view, get_sections_view_len(), sizeof(struct feed_section *), &compare_sections_alphabet); break;
 	}
 	pthread_mutex_unlock(&interface_lock);
 	if (we_are_already_in_sections_menu == true) {

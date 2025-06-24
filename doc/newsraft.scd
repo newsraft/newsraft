@@ -364,6 +364,9 @@ Default: _""_. Password for authentication with the proxy server.
 ## global-section-name
 Default: _Global_. Name of the section that contains all feeds.
 
+## global-section-hide
+Default: _false_. If _true_, global section will not be shown.
+
 ## status-show-menu-path
 Default: _true_. If _true_, print menu path in the status bar.
 

@@ -5,3 +5,7 @@ charset = utf-8
 end_of_line = lf
 indent_style = tab
 insert_final_newline = true
+
+[src/termbox2.h]
+indent_style = space
+indent_size = 4

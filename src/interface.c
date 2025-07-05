@@ -33,16 +33,18 @@ obtain_list_menu_size(size_t *width, size_t *height)
 bool
 ui_init(void)
 {
-	if (tb_init() != 0) {
-		write_error("Initialization of user interface failed!\n");
+	int status = tb_init();
+	if (status != TB_OK) {
+		write_error("Initialization of user interface failed: %s.\n", tb_strerror(status));
 		return false;
 	}
 	if (obtain_list_menu_size(&list_menu_width, &list_menu_height) == false) {
 		write_error("Invalid terminal size obtained!\n");
 		return false;
 	}
-	if (tb_hide_cursor() != TB_OK) {
-		WARN("Can't hide cursor!");
+	status = tb_hide_cursor();
+	if (status != TB_OK) {
+		WARN("Can't hide cursor: %s.", tb_strerror(status));
 	}
 	if (!get_cfg_bool(NULL, CFG_IGNORE_NO_COLOR) && getenv("NO_COLOR") != NULL) {
 		INFO("NO_COLOR environment variable is set, canceling colors initialization.");

@@ -30,9 +30,16 @@ obtain_list_menu_size(size_t *width, size_t *height)
 	return true;
 }
 
+static int
+ui_log_function(const char *fmt, va_list args)
+{
+	return log_vprint("TERMBOX2", fmt, args);
+}
+
 bool
 ui_init(void)
 {
+	tb_set_log_function(ui_log_function);
 	int status = tb_init();
 	if (status != TB_OK) {
 		write_error("Initialization of user interface failed: %s.\n", tb_strerror(status));

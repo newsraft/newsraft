@@ -31,6 +31,7 @@ void
 flush_errors(void)
 {
 	if (error_buffer_len > 0) {
+		FAIL("Final error buffer:\n\n%s", error_buffer);
 		fputs(error_buffer, stderr);
 	}
 }

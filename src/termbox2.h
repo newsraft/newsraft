@@ -710,6 +710,7 @@ int tb_attr_width(void);
 const char *tb_version(void);
 int tb_iswprint(uint32_t ch);
 int tb_wcwidth(uint32_t ch);
+void tb_set_log_function(int (*fn)(const char *fmt, va_list args));
 
 /* Deprecation notice!
  *
@@ -815,6 +816,7 @@ struct tb_global_t {
     int initialized;
     int (*fn_extract_esc_pre)(struct tb_event *, size_t *);
     int (*fn_extract_esc_post)(struct tb_event *, size_t *);
+    int (*fn_print_log)(const char *fmt, va_list arg);
     char errbuf[1024];
 };
 
@@ -1577,6 +1579,7 @@ static int bytebuf_flush(struct bytebuf_t *b, int fd);
 static int bytebuf_reserve(struct bytebuf_t *b, size_t sz);
 static int bytebuf_free(struct bytebuf_t *b);
 static int tb_iswprint_ex(uint32_t ch, int *width);
+static int tb_log(const char *fmt, ...);
 
 int tb_init(void) {
     return tb_init_file("/dev/tty");
@@ -2111,6 +2114,7 @@ const char *tb_version(void) {
 
 static int tb_reset(void) {
     int ttyfd_open = global.ttyfd_open;
+    int (*fn)(const char *fmt, va_list arg) = global.fn_print_log;
     memset(&global, 0, sizeof(global));
     global.ttyfd = -1;
     global.rfd = -1;
@@ -2130,6 +2134,7 @@ static int tb_reset(void) {
     global.last_bg = ~global.bg;
     global.input_mode = TB_INPUT_ESC;
     global.output_mode = TB_OUTPUT_NORMAL;
+    global.fn_print_log = fn;
     return TB_OK;
 }
 
@@ -2517,9 +2522,10 @@ static int load_terminfo_from_path(const char *path, const char *term) {
 #ifdef __APPLE__
     // Try the Darwin equivalent path, e.g., <terminfo>/78/xterm
     snprintf_or_return(rv, tmp, sizeof(tmp), "%s/%x/%s", path, term[0], term);
-    return read_terminfo_path(tmp);
+    if_ok_return(rv, read_terminfo_path(tmp));
 #endif
 
+    tb_log("Couldn't find %s term in terminfo database %s", term, path);
     return TB_ERR;
 }
 
@@ -2548,6 +2554,7 @@ static int read_terminfo_path(const char *path) {
 
     global.terminfo = data;
     global.nterminfo = fsize;
+    tb_log("Successfully read terminfo from %s (%zu bytes)", path, fsize);
 
     fclose(fp);
     return TB_OK;
@@ -3516,6 +3523,21 @@ int tb_wcwidth(uint32_t ch) {
 static int tb_iswprint_ex(uint32_t ch, int *w) {
     if (w) *w = wcwidth((wint_t)ch);
     return iswprint(ch);
+}
+
+void tb_set_log_function(int (*fn)(const char *fmt, va_list args)) {
+    global.fn_print_log = fn;
+}
+
+static int tb_log(const char *fmt, ...) {
+    int len = -1;
+    if (global.fn_print_log) {
+        va_list args;
+        va_start(args, fmt);
+        len = global.fn_print_log(fmt, args);
+        va_end(args);
+    }
+    return len;
 }
 
 #endif // TB_IMPL

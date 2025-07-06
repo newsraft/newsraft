@@ -20,9 +20,9 @@
 #define ISWHITESPACEEXCEPTNEWLINE(A) (((A)==' ')||((A)=='\t')||((A)=='\v')||((A)=='\f')||((A)=='\r'))
 #define ISWIDEWHITESPACE(A) (((A)==L' ')||((A)==L'\n')||((A)==L'\t')||((A)==L'\v')||((A)==L'\f')||((A)==L'\r'))
 #define ISDIGIT(A) (((A)=='0')||((A)=='1')||((A)=='2')||((A)=='3')||((A)=='4')||((A)=='5')||((A)=='6')||((A)=='7')||((A)=='8')||((A)=='9'))
-#define INFO(...) log_write("INFO", __VA_ARGS__)
-#define WARN(...) log_write("WARN", __VA_ARGS__)
-#define FAIL(...) log_write("FAIL", __VA_ARGS__)
+#define INFO(...) log_print("INFO", __VA_ARGS__)
+#define WARN(...) log_print("WARN", __VA_ARGS__)
+#define FAIL(...) log_print("FAIL", __VA_ARGS__)
 #define info_status(...) status_write(CFG_COLOR_STATUS_INFO, __VA_ARGS__)
 #define fail_status(...) status_write(CFG_COLOR_STATUS_FAIL, __VA_ARGS__)
 #define LENGTH(A) ((sizeof(A))/(sizeof(*A)))
@@ -574,7 +574,8 @@ void queue_examine(void);
 // To write to the log stream use macros INFO, WARN or FAIL.
 // See "log.c" file for implementation.
 bool log_init(const char *path);
-void log_write(const char *prefix, const char *format, ...);
+int log_vprint(const char *prefix, const char *format, va_list args);
+int log_print(const char *prefix, const char *format, ...);
 FILE *log_get_stream(void);
 void log_stop(int error_code);
 

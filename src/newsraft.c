@@ -228,7 +228,7 @@ main(int argc, char **argv)
 
 undo1:
 	free_config();
-	log_stop(error);
 	flush_errors();
+	log_stop(error);
 	return error;
 }

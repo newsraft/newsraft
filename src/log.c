@@ -24,15 +24,14 @@ log_init(const char *path)
 	return true;
 }
 
-void
-log_write(const char *prefix, const char *format, ...)
+int
+log_vprint(const char *prefix, const char *format, va_list args)
 {
+	int len = -1;
 	if (log_stream != NULL) {
 		struct timespec t = {0};
 		clock_gettime(CLOCK_REALTIME, &t);
-		va_list args;
-		va_start(args, format);
-		fprintf(log_stream, "%02d:%02d:%02d.%03d [%s] ",
+		len = fprintf(log_stream, "%02d:%02d:%02d.%03d [%s] ",
 			(int)(t.tv_sec / 3600),
 			(int)(t.tv_sec / 60 % 60),
 			(int)(t.tv_sec % 60),
@@ -42,8 +41,21 @@ log_write(const char *prefix, const char *format, ...)
 		vfprintf(log_stream, format, args);
 		fputc('\n', log_stream);
 		fflush(log_stream);
+	}
+	return len;
+}
+
+int
+log_print(const char *prefix, const char *format, ...)
+{
+	int len = -1;
+	if (log_stream != NULL) {
+		va_list args;
+		va_start(args, format);
+		len = log_vprint(prefix, format, args);
 		va_end(args);
 	}
+	return len;
 }
 
 FILE *

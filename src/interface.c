@@ -31,9 +31,13 @@ obtain_list_menu_size(size_t *width, size_t *height)
 }
 
 static int
-ui_log_function(const char *fmt, va_list args)
+ui_log_function(const char *fmt, ...)
 {
-	return log_vprint("TERMBOX2", fmt, args);
+	va_list args;
+	va_start(args, fmt);
+	int len = log_vprint("TERMBOX", fmt, args);
+	va_end(args);
+	return len;
 }
 
 bool

@@ -383,6 +383,8 @@ extern "C" {
 #define tb_free    free
 #endif
 
+#define tb_log(...) if (global.fn_print_log_msg) global.fn_print_log_msg(__VA_ARGS__)
+
 #if TB_OPT_ATTR_W == 64
 typedef uint64_t uintattr_t;
 #elif TB_OPT_ATTR_W == 32
@@ -710,7 +712,7 @@ int tb_attr_width(void);
 const char *tb_version(void);
 int tb_iswprint(uint32_t ch);
 int tb_wcwidth(uint32_t ch);
-void tb_set_log_function(int (*fn)(const char *fmt, va_list args));
+void tb_set_log_function(int (*fn)(const char *fmt, ...));
 
 /* Deprecation notice!
  *
@@ -816,7 +818,7 @@ struct tb_global_t {
     int initialized;
     int (*fn_extract_esc_pre)(struct tb_event *, size_t *);
     int (*fn_extract_esc_post)(struct tb_event *, size_t *);
-    int (*fn_print_log)(const char *fmt, va_list arg);
+    int (*fn_print_log_msg)(const char *fmt, ...);
     char errbuf[1024];
 };
 
@@ -1579,7 +1581,6 @@ static int bytebuf_flush(struct bytebuf_t *b, int fd);
 static int bytebuf_reserve(struct bytebuf_t *b, size_t sz);
 static int bytebuf_free(struct bytebuf_t *b);
 static int tb_iswprint_ex(uint32_t ch, int *width);
-static int tb_log(const char *fmt, ...);
 
 int tb_init(void) {
     return tb_init_file("/dev/tty");
@@ -2082,7 +2083,7 @@ const char *tb_strerror(int err) {
         case TB_ERR_RESIZE_READ:
         default:
             if (strerror_r(global.last_errno, global.errbuf, sizeof(global.errbuf)) != 0) {
-                return "(malfunction)";
+                return "(strerror_r failed to store error description)";
             }
             return (const char *)global.errbuf;
     }
@@ -2114,7 +2115,7 @@ const char *tb_version(void) {
 
 static int tb_reset(void) {
     int ttyfd_open = global.ttyfd_open;
-    int (*fn)(const char *fmt, va_list arg) = global.fn_print_log;
+    int (*fn_print_log_msg)(const char *fmt, ...) = global.fn_print_log_msg;
     memset(&global, 0, sizeof(global));
     global.ttyfd = -1;
     global.rfd = -1;
@@ -2134,7 +2135,7 @@ static int tb_reset(void) {
     global.last_bg = ~global.bg;
     global.input_mode = TB_INPUT_ESC;
     global.output_mode = TB_OUTPUT_NORMAL;
-    global.fn_print_log = fn;
+    global.fn_print_log_msg = fn_print_log_msg;
     return TB_OK;
 }
 
@@ -2525,7 +2526,7 @@ static int load_terminfo_from_path(const char *path, const char *term) {
     if_ok_return(rv, read_terminfo_path(tmp));
 #endif
 
-    tb_log("Couldn't find %s term in terminfo database %s", term, path);
+    tb_log("Couldn't find term %s in terminfo database %s", term, path);
     return TB_ERR;
 }
 
@@ -2675,8 +2676,7 @@ static const char *get_terminfo_string(int16_t offsets_pos, int16_t offsets_len,
 
     int str_offset = (int)table_pos + (int)table_offset;
     if (str_offset >= (int)global.nterminfo) {
-        // string beyond end of terminfo entry
-        // Truncated/corrupt terminfo entry?
+        tb_log("Offset %d is beyond end of terminfo data. Is terminfo corrupted?", str_offset);
         return NULL;
     }
 
@@ -2684,7 +2684,8 @@ static const char *get_terminfo_string(int16_t offsets_pos, int16_t offsets_len,
 }
 
 static int get_terminfo_int16(int offset, int16_t *val) {
-    if (offset < 0 || offset >= (int)global.nterminfo) {
+    if (offset < 0 || offset + sizeof(int16_t) > global.nterminfo) {
+        tb_log("Invalid offset %d for reading int16 from terminfo", offset);
         *val = -1;
         return TB_ERR;
     }
@@ -2740,7 +2741,7 @@ static int wait_event(struct tb_event *event, int timeout) {
         if (resize_has_events) {
             int ignore = 0;
             if (read(global.resize_pipefd[0], &ignore, sizeof(ignore)) < 0) {
-                // haha
+                tb_log("Couldn't read data from resize pipe even though file descriptor was set!");
             }
             // TODO: Harden against errors encountered mid-resize
             if_err_return(rv, update_term_size());
@@ -2977,10 +2978,10 @@ static int extract_esc_mouse(struct tb_event *event) {
                 int start = (type == TYPE_1015 ? 2 : 3);
 
                 unsigned n1 = strtoul(&in->buf[start], NULL, 10);
-                unsigned n2 =
-                    strtoul(&in->buf[indices[FIRST_SEMICOLON] + 1], NULL, 10);
-                unsigned n3 =
-                    strtoul(&in->buf[indices[LAST_SEMICOLON] + 1], NULL, 10);
+                int n2 =
+                    atoi(&in->buf[indices[FIRST_SEMICOLON] + 1]);
+                int n3 =
+                    atoi(&in->buf[indices[LAST_SEMICOLON] + 1]);
 
                 if (type == TYPE_1015) {
                     n1 -= 0x20;
@@ -3021,8 +3022,8 @@ static int extract_esc_mouse(struct tb_event *event) {
                         event->mod |= TB_MOD_MOTION;
                     }
 
-                    event->x = ((uint8_t)n2) - 1;
-                    event->y = ((uint8_t)n3) - 1;
+                    event->x = (n2 - 1 < 0) ? 0 : n2 - 1;
+                    event->y = (n3 - 1 < 0) ? 0 : n3 - 1;
 
                     ret = TB_OK;
                 }
@@ -3053,7 +3054,7 @@ static int resize_cellbufs(void) {
 static void handle_resize(int sig) {
     int errno_copy = errno;
     if (write(global.resize_pipefd[1], &sig, sizeof(sig)) < 0) {
-        // haha
+        tb_log("Couldn't write to resize pipe to notify about resize signal!");
     }
     errno = errno_copy;
 }
@@ -3525,19 +3526,8 @@ static int tb_iswprint_ex(uint32_t ch, int *w) {
     return iswprint(ch);
 }
 
-void tb_set_log_function(int (*fn)(const char *fmt, va_list args)) {
-    global.fn_print_log = fn;
-}
-
-static int tb_log(const char *fmt, ...) {
-    int len = -1;
-    if (global.fn_print_log) {
-        va_list args;
-        va_start(args, fmt);
-        len = global.fn_print_log(fmt, args);
-        va_end(args);
-    }
-    return len;
+void tb_set_log_function(int (*fn)(const char *fmt, ...)) {
+    global.fn_print_log_msg = fn;
 }
 
 #endif // TB_IMPL

@@ -113,6 +113,18 @@ mark_item_important(struct menu_state *ctx, size_t view_sel, bool status)
 }
 
 static void
+toggle_item_read(struct menu_state *ctx, size_t view_sel)
+{
+	mark_item_read(ctx, view_sel, ctx->items->ptr[view_sel].is_unread);
+}
+
+static void
+toggle_item_important(struct menu_state *ctx, size_t view_sel)
+{
+	mark_item_important(ctx, view_sel, !ctx->items->ptr[view_sel].is_important);
+}
+
+static void
 mark_all_items_read(struct menu_state *ctx, bool status)
 {
 	pthread_mutex_lock(&interface_lock);
@@ -175,10 +187,12 @@ items_menu_loop(struct menu_state *m)
 		switch (cmd) {
 			case INPUT_MARK_READ:         mark_item_read(m, m->view_sel, true);                     break;
 			case INPUT_MARK_UNREAD:       mark_item_read(m, m->view_sel, false);                    break;
+			case INPUT_TOGGLE_READ:       toggle_item_read(m, m->view_sel);                         break;
 			case INPUT_MARK_READ_ALL:     mark_all_items_read(m, true);                             break;
 			case INPUT_MARK_UNREAD_ALL:   mark_all_items_read(m, false);                            break;
 			case INPUT_MARK_IMPORTANT:    mark_item_important(m, m->view_sel, true);                break;
 			case INPUT_MARK_UNIMPORTANT:  mark_item_important(m, m->view_sel, false);               break;
+			case INPUT_TOGGLE_IMPORTANT:  toggle_item_important(m, m->view_sel);                    break;
 			case INPUT_RELOAD:            queue_updates(m->items->ptr[m->view_sel].feed, 1);        break;
 			case INPUT_RELOAD_ALL:        queue_updates(m->feeds_original, m->feeds_count);         break;
 			case INPUT_COPY_TO_CLIPBOARD: copy_string_to_clipboard(m->items->ptr[m->view_sel].url); break;

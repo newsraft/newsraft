@@ -640,6 +640,10 @@ _bold_, _italic_ and _underlined_.
 :[ _f_
 |[ *mark-unimportant*
 :[ _F_
+|[ *toggle-read*
+:[ (not set)
+|[ *toggle-important*
+:[ (not set)
 |[ *toggle-explore-mode*
 :[ _tab_
 |[ *view-errors*

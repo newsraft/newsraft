@@ -55,6 +55,8 @@ INPUT(INPUT_MARK_READ_ALL,            {"read-all",    "mark-read-all"},         
 INPUT(INPUT_MARK_UNREAD_ALL,          {"unread-all",  "mark-unread-all"},           {/* not set by default */})
 INPUT(INPUT_MARK_IMPORTANT,           {"important",   "mark-important"},            {"f"})
 INPUT(INPUT_MARK_UNIMPORTANT,         {"unimportant", "mark-unimportant"},          {"F"})
+INPUT(INPUT_TOGGLE_READ,              {"toggle-read"},                              {/* not set by default */})
+INPUT(INPUT_TOGGLE_IMPORTANT,         {"toggle-important"},                         {/* not set by default */})
 INPUT(INPUT_TOGGLE_EXPLORE_MODE,      {"explore",     "toggle-explore-mode"},       {"tab"})
 INPUT(INPUT_VIEW_ERRORS,              {"view-errors"},                              {"v"})
 INPUT(INPUT_OPEN_IN_BROWSER,          {"open-in-browser"},                          {"o"})

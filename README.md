@@ -51,7 +51,7 @@ make
 make install
 ```
 
-For more details see [doc/build-instructions.md](https://codeberg.org/newsraft/newsraft/src/branch/main/doc/build-instructions.md)
+More details: [doc/build-instructions.md](https://codeberg.org/newsraft/newsraft/src/branch/main/doc/build-instructions.md)
 
 ## Learn more
 
@@ -110,7 +110,7 @@ For more details see [doc/build-instructions.md](https://codeberg.org/newsraft/n
 
 <details>
 	<summary>I get a lot of getaddrinfo() thread failed to start errors. What do I do?</summary>
-	Usually it happens because your setup can't handle many concurrent DNS resolves. Try to reduce the value of setting <code>download-max-connections</code>.
+	Usually it happens because your setup can't handle many concurrent DNS resolves. Try to reduce the value of <code>download-max-connections</code> setting.
 </details>
 
 <details>

@@ -6,8 +6,8 @@ errors_pager_loop(struct menu_state *m)
 	if (m->feeds_original == NULL || m->feeds_count < 1) {
 		return close_menu();
 	}
-	m->enumerator   = &is_pager_pos_valid;
-	m->write_action = &pager_menu_writer;
+	m->enumerator = &is_pager_pos_valid;
+	m->printer    = &pager_menu_writer;
 
 	struct render_blocks_list blocks = {NULL, 0, {}};
 	pthread_mutex_lock(&interface_lock);

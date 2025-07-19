@@ -157,10 +157,10 @@ struct menu_state *
 items_menu_loop(struct menu_state *m)
 {
 	m->enumerator   = &is_item_valid;
+	m->printer      = &list_menu_writer;
 	m->get_args     = &get_item_args;
 	m->paint_action = &paint_item;
 	m->unread_state = &is_item_unread;
-	m->write_action = &list_menu_writer;
 	m->entry_format = get_cfg_wstring(NULL, m->flags & MENU_IS_EXPLORE ? CFG_MENU_EXPLORE_ITEM_ENTRY_FORMAT : CFG_MENU_ITEM_ENTRY_FORMAT);
 	items_age += 1;
 	if (m->is_initialized == false) {

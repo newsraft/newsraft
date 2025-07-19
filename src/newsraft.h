@@ -226,9 +226,9 @@ struct menu_state {
 	const struct wstring *entry_format;
 	const struct wstring *find_filter;
 	bool (*enumerator)(struct menu_state *ctx, size_t index); // Checks if index is valid
+	void (*printer)(size_t index, WINDOW *w);                 // Prints to list entry
 	const struct format_arg *(*get_args)(struct menu_state *ctx, size_t index);
 	struct config_color (*paint_action)(struct menu_state *ctx, size_t index);
-	void (*write_action)(size_t index, WINDOW *w);
 	bool (*unread_state)(struct menu_state *ctx, size_t index);
 	bool (*failed_state)(struct menu_state *ctx, size_t index);
 	struct menu_state *prev;

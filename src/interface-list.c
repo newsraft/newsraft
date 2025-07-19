@@ -83,7 +83,7 @@ expose_entry_of_the_list_menu_unprotected(size_t index)
 	wmove(w, 0);
 	wbkgd(w, (struct config_color){TB_DEFAULT, TB_DEFAULT, TB_DEFAULT});
 	wattrset(w, TB_DEFAULT);
-	menu->write_action(index, w);
+	menu->printer(index, w);
 }
 
 void
@@ -188,13 +188,11 @@ change_list_view_unprotected(struct menu_state *m, size_t new_sel)
 		}
 	} else if (new_sel != m->view_sel) {
 		if (m == menu) {
-			WINDOW *w = windows[m->view_sel - m->view_min];
-			wbkgd(w, m->paint_action(m, m->view_sel));
+			wbkgd(windows[m->view_sel - m->view_min], m->paint_action(m, m->view_sel));
 			m->view_sel = new_sel;
-			w = windows[m->view_sel - m->view_min];
 			struct config_color color = m->paint_action(m, m->view_sel);
 			color.attributes |= TB_REVERSE;
-			wbkgd(w, color);
+			wbkgd(windows[m->view_sel - m->view_min], color);
 			tb_present();
 		} else {
 			m->view_sel = new_sel;
@@ -485,8 +483,11 @@ start_menu(void)
 	pthread_mutex_lock(&interface_lock);
 	free_deleted_menus();
 	menu = menus;
+
+	// These methods are mandatory for all menus.
 	assert(menu->enumerator);
-	assert(menu->write_action);
+	assert(menu->printer);
+
 	horizontal_shift = 0;
 	if (menu->is_initialized == false) {
 		menu->view_sel = 0;

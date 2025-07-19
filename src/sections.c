@@ -343,11 +343,11 @@ struct menu_state *
 sections_menu_loop(struct menu_state *m)
 {
 	m->enumerator   = &is_section_valid;
+	m->printer      = &list_menu_writer;
 	m->get_args     = &get_section_args;
 	m->paint_action = &paint_section;
 	m->unread_state = &is_section_unread;
 	m->failed_state = &is_section_failed;
-	m->write_action = &list_menu_writer;
 	m->entry_format = get_cfg_wstring(NULL, CFG_MENU_SECTION_ENTRY_FORMAT);
 	if (!(m->flags & MENU_DISABLE_SETTINGS)) {
 		// Don't set the menu names here because it's redundant!

@@ -39,8 +39,8 @@ error:
 struct menu_state *
 item_pager_loop(struct menu_state *m)
 {
-	m->enumerator   = &is_pager_pos_valid;
-	m->write_action = &pager_menu_writer;
+	m->enumerator = &is_pager_pos_valid;
+	m->printer    = &pager_menu_writer;
 	struct render_blocks_list blocks = {0};
 	struct menu_state *items_menu = NULL;
 	size_t item_id = 0;

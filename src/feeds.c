@@ -113,11 +113,11 @@ struct menu_state *
 feeds_menu_loop(struct menu_state *m)
 {
 	m->enumerator   = &is_feed_valid;
+	m->printer      = &list_menu_writer;
 	m->get_args     = &get_feed_args;
 	m->paint_action = &paint_feed;
 	m->unread_state = &is_feed_unread;
 	m->failed_state = &is_feed_failed;
-	m->write_action = &list_menu_writer;
 	m->entry_format = get_cfg_wstring(NULL, CFG_MENU_FEED_ENTRY_FORMAT);
 	if (m->feeds_count < 1) {
 		info_status("There are no feeds in this section");

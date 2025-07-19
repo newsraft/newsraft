@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <stdlib.h>
 #include "newsraft.h"
 
@@ -484,6 +485,8 @@ start_menu(void)
 	pthread_mutex_lock(&interface_lock);
 	free_deleted_menus();
 	menu = menus;
+	assert(menu->enumerator);
+	assert(menu->write_action);
 	horizontal_shift = 0;
 	if (menu->is_initialized == false) {
 		menu->view_sel = 0;

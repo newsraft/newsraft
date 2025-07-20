@@ -31,9 +31,7 @@ queue_destroy_unprotected(void)
 		remove_downloader_handle(j);
 		curl_easy_cleanup(j->curl);
 		curl_slist_free_all(j->download_headers);
-		if (j->media_type == MEDIA_TYPE_XML) {
-			XML_ParserFree(j->xml_parser);
-		}
+		XML_ParserFree(j->xml_parser);
 		free_string(j->feed.title);
 		free_string(j->feed.url);
 		free_string(j->feed.content);
@@ -152,6 +150,7 @@ queue_updates(struct feed_entry **feeds, size_t feeds_count)
 		struct feed_update_state *item = newsraft_calloc(1, sizeof(struct feed_update_state));
 		item->feed_entry = feeds[i];
 		item->new_errors = crtes(1);
+		item->text = crtes(50000);
 		item->next = update_queue;
 		update_queue = item;
 	}

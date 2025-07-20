@@ -45,34 +45,53 @@ error:
 	return NULL;
 }
 
-static size_t
-parse_stream_callback(char *contents, size_t length, size_t nmemb, void *userdata)
+static bool
+parse_xml_data(struct feed_update_state *ctx, const char *data, size_t size, bool is_final)
 {
-	struct feed_update_state *data = userdata;
+	if (XML_Parse(ctx->xml_parser, data, size, is_final ? XML_TRUE : XML_FALSE) != XML_STATUS_OK) {
+		str_appendf(ctx->new_errors, "XML parser failed: %s\n", XML_ErrorString(XML_GetErrorCode(ctx->xml_parser)));
+		return false;
+	}
+	return true;
+}
+
+static bool
+parse_json_data(struct feed_update_state *ctx, const char *data, size_t size, bool is_final)
+{
+	if (is_final) {
+		return newsraft_json_parse(ctx, ctx->text->ptr, ctx->text->len);
+	} else {
+		catas(ctx->text, data, size);
+	}
+	return true;
+}
+
+static size_t
+parse_stream_callback(char *data, size_t length, size_t nmemb, void *userdata)
+{
+	struct feed_update_state *ctx = userdata;
 	const size_t real_size = length * nmemb;
-	if (data->media_type == MEDIA_TYPE_UNKNOWN) {
+	if (!ctx->process_fn) {
 		for (size_t i = 0; i < real_size; ++i) {
-			if (contents[i] == '<') {
+			if (data[i] == '<') {
 				INFO("The stream has \"<\" character in the beginning - engaging XML parser.");
-				if (setup_xml_parser(data) == false) {
+				if (setup_xml_parser(ctx) == false) {
 					FAIL("Failed to setup XML parser!");
 					return CURL_WRITEFUNC_ERROR;
 				}
+				ctx->process_fn = parse_xml_data;
 				break;
-			} else if (contents[i] == '{') {
+			} else if (data[i] == '{') {
 				INFO("The stream has \"{\" character in the beginning - engaging JSON parser.");
-				setup_json_parser(data);
+				ctx->process_fn = parse_json_data;
 				break;
 			}
 		}
 	}
-	if (data->media_type == MEDIA_TYPE_XML) {
-		if (XML_Parse(data->xml_parser, contents, real_size, XML_FALSE) != XML_STATUS_OK) {
-			str_appendf(data->new_errors, "XML parser failed: %s\n", XML_ErrorString(XML_GetErrorCode(data->xml_parser)));
+	if (ctx->process_fn) {
+		if (!ctx->process_fn(ctx, data, real_size, false)) {
 			return CURL_WRITEFUNC_ERROR;
 		}
-	} else if (data->media_type == MEDIA_TYPE_JSON) {
-		catas(data->text, contents, real_size);
 	}
 	return they_want_us_to_stop ? CURL_WRITEFUNC_ERROR : real_size;
 }
@@ -332,14 +351,11 @@ downloader_worker(void *dummy)
 
 			// Final parsing call
 			if (data->is_failed == false && data->is_canceled == false) {
-				if (data->media_type == MEDIA_TYPE_XML) {
-					if (XML_Parse(data->xml_parser, NULL, 0, XML_TRUE) != XML_STATUS_OK) {
-						data->is_failed = true;
-					}
-				} else if (data->media_type == MEDIA_TYPE_JSON) {
-					if (!newsraft_json_parse(data, data->text->ptr, data->text->len)) {
-						data->is_failed = true;
-					}
+				if (data->process_fn) {
+					data->is_failed = !data->process_fn(data, NULL, 0, true);
+				} else {
+					str_appendf(data->new_errors, "Couldn't determine feed format!\n");
+					data->is_failed = true;
 				}
 			}
 

@@ -5,7 +5,6 @@ int
 test1(const char *content, size_t size)
 {
 	struct feed_update_state data = {};
-	setup_json_parser(&data);
 	if (!newsraft_json_parse(&data, content, size)) {
 		return 1;
 	}
@@ -36,7 +35,6 @@ int
 test2(const char *content, size_t size)
 {
 	struct feed_update_state data = {};
-	setup_json_parser(&data);
 	if (!newsraft_json_parse(&data, content, size)) {
 		return 1;
 	}
@@ -80,7 +78,6 @@ int
 test3(const char *content, size_t size)
 {
 	struct feed_update_state data = {};
-	setup_json_parser(&data);
 	if (!newsraft_json_parse(&data, content, size)) {
 		return 1;
 	}

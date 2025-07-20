@@ -31,7 +31,6 @@ execute_feed(const struct string *cmd, struct feed_update_state *data)
 			break;
 		} else if (*i == '{') {
 			INFO("The output has \"{\" character in the beginning - engaging JSON parser.");
-			setup_json_parser(data);
 			if (!newsraft_json_parse(data, content->ptr, content->len)) {
 				goto error;
 			}

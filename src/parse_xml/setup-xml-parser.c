@@ -65,17 +65,11 @@ xml_default_handler(void *userData, const XML_Char *s, int len)
 bool
 setup_xml_parser(struct feed_update_state *data)
 {
-	data->text = crtes(50000);
-	if (data->text == NULL) {
-		return false;
-	}
 	data->xml_parser = XML_ParserCreateNS(NULL, XML_NAMESPACE_SEPARATOR);
 	if (data->xml_parser == NULL) {
-		free_string(data->text);
 		return false;
 	}
 	static char ptr_for_decoy[1];
-	data->media_type = MEDIA_TYPE_XML;
 	data->decoy.ptr = ptr_for_decoy;
 	data->emptying_target = data->text;
 	XML_SetUserData(data->xml_parser, data);

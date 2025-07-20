@@ -1,13 +1,6 @@
 #include <string.h>
 #include "newsraft.h"
 
-void
-setup_json_parser(struct feed_update_state *data)
-{
-	cpyas(&data->text, "", 0);
-	data->media_type = MEDIA_TYPE_JSON;
-}
-
 bool
 newsraft_json_parse(struct feed_update_state *data, const char *content, size_t content_size)
 {

@@ -111,13 +111,6 @@ enum {
 	TEXT_LINKS, // Special block type which has to be populated with links
 };
 
-// Unknown type must have 0 value!
-enum {
-	MEDIA_TYPE_UNKNOWN = 0,
-	MEDIA_TYPE_XML,
-	MEDIA_TYPE_JSON,
-};
-
 enum {
 	NEWSRAFT_THREAD_DOWNLOAD = 0, // Downloads the feed from the web
 	NEWSRAFT_THREAD_SHRUNNER = 1, // Reads the feed from the command
@@ -307,7 +300,9 @@ struct feed_update_state {
 	struct curl_slist *download_headers;
 	long http_response_code;
 
-	int8_t media_type;
+	// This function processes pieces of feed coming to us during the download.
+	bool (*process_fn)(struct feed_update_state *, const char *, size_t, bool);
+
 	XML_Parser xml_parser;
 	struct getfeed_feed feed;
 	bool in_item;
@@ -609,7 +604,6 @@ bool convert_opml_to_feeds(void);
 bool convert_feeds_to_opml(void);
 
 // See "parse_json" directory for implementation.
-void setup_json_parser(struct feed_update_state *data);
 bool newsraft_json_parse(struct feed_update_state *data, const char *content, size_t content_size);
 
 // See "insert_feed" directory for implementation.

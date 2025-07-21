@@ -279,7 +279,7 @@ struct getfeed_item {
 
 struct getfeed_feed {
 	struct string *title;
-	struct string *url;
+	struct string *link;
 	struct string *content;
 	struct string *attachments;
 	struct string *persons;

@@ -33,7 +33,7 @@ queue_destroy_unprotected(void)
 		curl_slist_free_all(j->download_headers);
 		XML_ParserFree(j->xml_parser);
 		free_string(j->feed.title);
-		free_string(j->feed.url);
+		free_string(j->feed.link);
 		free_string(j->feed.content);
 		free_string(j->feed.attachments);
 		free_string(j->feed.persons);

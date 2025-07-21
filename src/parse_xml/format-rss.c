@@ -34,7 +34,7 @@ rss_link_end(struct feed_update_state *data)
 	if (data->path[data->depth] == GENERIC_ITEM) {
 		cpyss(&data->feed.item->url, data->text);
 	} else if (data->path[data->depth] == GENERIC_FEED) {
-		cpyss(&data->feed.url, data->text);
+		cpyss(&data->feed.link, data->text);
 	}
 }
 

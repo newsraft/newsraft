@@ -24,7 +24,7 @@ atom_link_start(struct feed_update_state *data, const XML_Char **attrs)
 		if (data->path[data->depth] == GENERIC_ITEM) {
 			cpyas(&data->feed.item->url, attr, attr_len);
 		} else if (data->path[data->depth] == GENERIC_FEED) {
-			cpyas(&data->feed.url, attr, attr_len);
+			cpyas(&data->feed.link, attr, attr_len);
 		}
 	} else if (data->path[data->depth] == GENERIC_ITEM) {
 		serialize_caret(&data->feed.item->attachments);

@@ -54,7 +54,7 @@ newsraft_json_parse(struct feed_update_state *data, const char *content, size_t 
 
 		if (strcmp(path, "$") == 0) {
 			if (strcmp(key, "home_page_url") == 0) {
-				cpyas(&data->feed.url, value, strlen(value));
+				cpyas(&data->feed.link, value, strlen(value));
 			} else if (strcmp(key, "title") == 0) {
 				cpyas(&data->feed.title, value, strlen(value));
 			} else if (strcmp(key, "description") == 0) {

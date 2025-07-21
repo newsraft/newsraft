@@ -126,7 +126,7 @@ newsraft_json_parse(struct feed_update_state *data, const char *content, size_t 
 				if (strcmp(key, "id") == 0) {
 					cpyas(&data->feed.item->guid, value, strlen(value));
 				} else if (strcmp(key, "url") == 0) {
-					cpyas(&data->feed.item->url, value, strlen(value));
+					cpyas(&data->feed.item->link, value, strlen(value));
 				} else if (strcmp(key, "title") == 0) {
 					cpyas(&data->feed.item->title, value, strlen(value));
 				} else if (strcmp(key, "content_html") == 0) {

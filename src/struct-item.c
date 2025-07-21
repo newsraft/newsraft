@@ -15,7 +15,7 @@ free_item(struct getfeed_item *item)
 	for (struct getfeed_item *i = item; i != NULL; item = i) {
 		free_string(item->guid);
 		free_string(item->title);
-		free_string(item->url);
+		free_string(item->link);
 		free_string(item->content);
 		free_string(item->attachments);
 		free_string(item->persons);

@@ -49,7 +49,7 @@ db_insert_item(struct feed_entry *feed, struct getfeed_item *item, int64_t rowid
 	db_bind_string(s,     1 + ITEM_COLUMN_FEED_URL,         feed->url);
 	db_bind_string(s,     1 + ITEM_COLUMN_GUID,             item->guid);
 	db_bind_string(s,     1 + ITEM_COLUMN_TITLE,            item->title);
-	db_bind_string(s,     1 + ITEM_COLUMN_LINK,             STRING_IS_EMPTY(item->url) && item->guid_is_url == true ? item->guid : item->url);
+	db_bind_string(s,     1 + ITEM_COLUMN_LINK,             STRING_IS_EMPTY(item->link) && item->guid_is_link == true ? item->guid : item->link);
 	db_bind_string(s,     1 + ITEM_COLUMN_CONTENT,          item->content);
 	db_bind_string(s,     1 + ITEM_COLUMN_ATTACHMENTS,      item->attachments);
 	db_bind_string(s,     1 + ITEM_COLUMN_PERSONS,          item->persons);
@@ -80,8 +80,8 @@ insert_item_data(struct feed_entry *feed, struct getfeed_item *item)
 {
 	// Create guid if it was not set.
 	if (STRING_IS_EMPTY(item->guid)) {
-		if (!STRING_IS_EMPTY(item->url)) {
-			cpyss(&item->guid, item->url);
+		if (!STRING_IS_EMPTY(item->link)) {
+			cpyss(&item->guid, item->link);
 		} else if (!STRING_IS_EMPTY(item->title)) {
 			cpyss(&item->guid, item->title);
 		} else if (!STRING_IS_EMPTY(item->content)) {

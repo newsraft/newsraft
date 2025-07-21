@@ -24,7 +24,7 @@ rss_guid_start(struct feed_update_state *data, const XML_Char **attrs)
 	if (data->path[data->depth] == GENERIC_ITEM) {
 		const char *val = get_value_of_attribute_key(attrs, "isPermaLink");
 		// Default value of isPermaLink is considered true!
-		data->feed.item->guid_is_url = val == NULL || strcmp(val, "true") == 0;
+		data->feed.item->guid_is_link = val == NULL || strcmp(val, "true") == 0;
 	}
 }
 
@@ -32,7 +32,7 @@ static void
 rss_link_end(struct feed_update_state *data)
 {
 	if (data->path[data->depth] == GENERIC_ITEM) {
-		cpyss(&data->feed.item->url, data->text);
+		cpyss(&data->feed.item->link, data->text);
 	} else if (data->path[data->depth] == GENERIC_FEED) {
 		cpyss(&data->feed.link, data->text);
 	}

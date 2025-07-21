@@ -266,14 +266,14 @@ struct render_result {
 struct getfeed_item {
 	struct string *guid;
 	struct string *title;
-	struct string *url;
+	struct string *link;
 	struct string *content;
 	struct string *attachments;
 	struct string *persons;
 	struct string *extras;
 	int64_t publication_date; // Publication date in seconds since the Epoch (0 means unset).
 	int64_t update_date; // Update date in seconds since the Epoch (0 means unset).
-	bool guid_is_url;
+	bool guid_is_link;
 	struct getfeed_item *next;
 };
 

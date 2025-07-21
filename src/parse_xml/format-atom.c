@@ -22,7 +22,7 @@ atom_link_start(struct feed_update_state *data, const XML_Char **attrs)
 	// Default value of rel is alternate!
 	if (rel == NULL || strcmp(rel, "alternate") == 0) {
 		if (data->path[data->depth] == GENERIC_ITEM) {
-			cpyas(&data->feed.item->url, attr, attr_len);
+			cpyas(&data->feed.item->link, attr, attr_len);
 		} else if (data->path[data->depth] == GENERIC_FEED) {
 			cpyas(&data->feed.link, attr, attr_len);
 		}

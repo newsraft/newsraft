@@ -122,9 +122,22 @@ obtain_items_at_least_up_to_the_given_index(struct items_list *items, size_t ind
 		text = (const char *)sqlite3_column_text(items->res, 4);
 		items->ptr[items->len].url = crtes(1);
 		// Convert URL to absolute notation in case it's stored relative.
+		//
 		// For example, convert "/index.xml" to "http://example.org/index.xml"
-		char *full_url = complete_url(items->ptr[items->len].feed[0]->url->ptr, text);
-		if (full_url != NULL) {
+		// We consider 2 base URLs for conversion to absolute notation:
+		//
+		// 1. link to webpage related to item's feed
+		// 2. feed URL specified by the user
+		//
+		// If the first method doesn't yield a valid absolute notation, we try the second one.
+		char *full_url = NULL;
+		if (!STRING_IS_EMPTY(items->ptr[items->len].feed[0]->link)) {
+			full_url = complete_url(items->ptr[items->len].feed[0]->link->ptr, text);
+		}
+		if (full_url == NULL) {
+			full_url = complete_url(items->ptr[items->len].feed[0]->url->ptr, text);
+		}
+		if (full_url) {
 			cpyas(&items->ptr[items->len].url, full_url, strlen(full_url));
 			free(full_url);
 		}

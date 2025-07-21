@@ -152,6 +152,7 @@ struct input_binding {
 struct feed_entry {
 	struct string *url;  // feed URL specified by the user
 	struct string *name;
+	struct string *link; // link to webpage related to this feed
 	int64_t unread_count;
 	int64_t update_date; // date of last feed update attempt
 	struct config_context *cfg;

@@ -160,7 +160,8 @@ copy_feed_to_global_section(const struct feed_entry *feed)
 		inlinefy_string(sections[0].feeds[feed_index]->name);
 	}
 
-	sections[0].feeds[feed_index]->url   = crtss(feed->url);
+	sections[0].feeds[feed_index]->url    = crtss(feed->url);
+	sections[0].feeds[feed_index]->link   = db_get_string_from_feed_table(feed->url, "link", 4);
 	sections[0].feeds[feed_index]->errors = crtes(1);
 
 	sections[0].feeds[feed_index]->update_date = db_get_date_from_feeds_table(feed->url, "update_date", 11);
@@ -240,6 +241,7 @@ free_sections(void)
 		if (sections[0].feeds[i] != NULL) {
 			free_string(sections[0].feeds[i]->url);
 			free_string(sections[0].feeds[i]->name);
+			free_string(sections[0].feeds[i]->link);
 			free_string(sections[0].feeds[i]->errors);
 			free_config_context(sections[0].feeds[i]->cfg);
 			if (sections[0].feeds[i]->binds != NULL) {

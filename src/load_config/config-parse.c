@@ -67,7 +67,7 @@ process_config_line(struct feed_entry *feed, const char *str, size_t len)
 	trim_whitespace_from_string(line);
 
 	if (line->len > 0) {
-		INFO("Config line %s -> %s", feed == NULL ? "" : feed->link->ptr, line->ptr);
+		INFO("Config line %s -> %s", feed == NULL ? "" : feed->url->ptr, line->ptr);
 	}
 
 	struct input_binding *bind = NULL;

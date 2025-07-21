@@ -145,7 +145,7 @@ queue_updates(struct feed_entry **feeds, size_t feeds_count)
 		}
 
 		feeds[i]->update_date = current_time;
-		INFO("Feed %s update attempt date: %" PRId64, feeds[i]->link->ptr, feeds[i]->update_date);
+		INFO("Feed %s update attempt date: %" PRId64, feeds[i]->url->ptr, feeds[i]->update_date);
 
 		struct feed_update_state *item = newsraft_calloc(1, sizeof(struct feed_update_state));
 		item->feed_entry = feeds[i];

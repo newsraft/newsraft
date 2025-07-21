@@ -18,7 +18,7 @@ create_list_of_headers(const struct feed_update_state *data)
 	INFO("Attached header - A-IM: feed");
 
 	if (get_cfg_bool(&data->feed_entry->cfg, CFG_SEND_IF_NONE_MATCH_HEADER) == true) {
-		struct string *etag = db_get_string_from_feed_table(data->feed_entry->link, "http_header_etag", 16);
+		struct string *etag = db_get_string_from_feed_table(data->feed_entry->url, "http_header_etag", 16);
 		if (etag != NULL) {
 			struct string *if_none_match = crtas("If-None-Match: ", 15);
 			if (if_none_match == NULL) {
@@ -168,24 +168,24 @@ prepare_feed_update_state_for_download(struct feed_update_state *data)
 	struct feed_entry *feed = data->feed_entry;
 
 	if (get_cfg_bool(&feed->cfg, CFG_RESPECT_EXPIRES_HEADER) == true) {
-		int64_t expires_date = db_get_date_from_feeds_table(feed->link, "http_header_expires", 19);
+		int64_t expires_date = db_get_date_from_feeds_table(feed->url, "http_header_expires", 19);
 		if (expires_date < 0) {
-			FAIL("Skipping %s because its HTTP header is invalid", feed->link->ptr);
+			FAIL("Skipping %s because its HTTP header is invalid", feed->url->ptr);
 			goto fail;
 		} else if (expires_date > 0 && feed->update_date < expires_date) {
-			INFO("Skipping %s because its HTTP header is not expired yet", feed->link->ptr);
+			INFO("Skipping %s because its HTTP header is not expired yet", feed->url->ptr);
 			goto cancel;
 		}
 	}
 
 	if (get_cfg_bool(&feed->cfg, CFG_RESPECT_TTL_ELEMENT) == true) {
-		int64_t download_date = db_get_date_from_feeds_table(feed->link, "download_date", 13);
-		int64_t ttl = db_get_date_from_feeds_table(feed->link, "time_to_live", 12);
+		int64_t download_date = db_get_date_from_feeds_table(feed->url, "download_date", 13);
+		int64_t ttl = db_get_date_from_feeds_table(feed->url, "time_to_live", 12);
 		if (download_date < 0 || ttl < 0) {
-			FAIL("Skipping %s because its ttl element is invalid", feed->link->ptr);
+			FAIL("Skipping %s because its ttl element is invalid", feed->url->ptr);
 			goto fail;
 		} else if (download_date > 0 && ttl > 0 && (download_date + ttl) > feed->update_date) {
-			INFO("Skipping %s because its ttl element is not expired yet", feed->link->ptr);
+			INFO("Skipping %s because its ttl element is not expired yet", feed->url->ptr);
 			goto cancel;
 		}
 	}
@@ -201,7 +201,7 @@ prepare_feed_update_state_for_download(struct feed_update_state *data)
 		goto fail;
 	}
 
-	curl_easy_setopt(curl, CURLOPT_URL, feed->link->ptr);
+	curl_easy_setopt(curl, CURLOPT_URL, feed->url->ptr);
 	curl_easy_setopt(curl, CURLOPT_PRIVATE, data);
 	const struct string *useragent = get_cfg_string(&feed->cfg, CFG_USER_AGENT);
 	if (useragent->len > 0) {
@@ -209,13 +209,13 @@ prepare_feed_update_state_for_download(struct feed_update_state *data)
 		curl_easy_setopt(curl, CURLOPT_USERAGENT, useragent->ptr);
 	}
 	if (get_cfg_bool(&feed->cfg, CFG_SEND_IF_MODIFIED_SINCE_HEADER) == true) {
-		int64_t last_modified = db_get_date_from_feeds_table(feed->link, "http_header_last_modified", 25);
+		int64_t last_modified = db_get_date_from_feeds_table(feed->url, "http_header_last_modified", 25);
 		if (last_modified > 0) {
 			curl_easy_setopt(curl, CURLOPT_TIMEVALUE, last_modified);
 			curl_easy_setopt(curl, CURLOPT_TIMECONDITION, CURL_TIMECOND_IFMODSINCE);
 			INFO("Attached header - If-Modified-Since: %" PRId64 " (it was converted to date string).", last_modified);
 		} else if (last_modified < 0) {
-			FAIL("Skipping %s because its http_header_last_modified is invalid", feed->link->ptr);
+			FAIL("Skipping %s because its http_header_last_modified is invalid", feed->url->ptr);
 			goto fail;
 		}
 	}
@@ -275,7 +275,7 @@ engage_with_not_downloaded_feed(struct feed_update_state *data)
 {
 	if (data->is_finished == false
 		&& data->is_in_progress == false
-		&& data->feed_entry->link->ptr[0] != '$')
+		&& data->feed_entry->url->ptr[0] != '$')
 	{
 		data->is_in_progress = true;
 		return true;
@@ -300,7 +300,7 @@ downloader_worker(void *dummy)
 			if (prepare_feed_update_state_for_download(target) == true) {
 				curl_multi_add_handle(multi, target->curl);
 				target->curl_handle_added_to_multi = true;
-				INFO("Populated curl multi handle with %s", target->feed_entry->link->ptr);
+				INFO("Populated curl multi handle with %s", target->feed_entry->url->ptr);
 			}
 		} else if (still_running == 0) {
 			threads_take_a_nap(NEWSRAFT_THREAD_DOWNLOAD);

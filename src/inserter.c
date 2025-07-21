@@ -45,16 +45,16 @@ inserter_worker(void *dummy)
 					str_appendf(target->new_errors, "Feed insertion failed!\n");
 				}
 			} else {
-				db_update_feed_int64(feed->link, "update_date", feed->update_date, true);
+				db_update_feed_int64(feed->url, "update_date", feed->update_date, true);
 
 				// RFC9111, Section 4.3.4
 				// For each stored response identified, the cache MUST update its
 				// header fields with the header fields provided in the 304 (Not
 				// Modified) response, as per Section 3.2.
 				if (target->http_response_code == NEWSRAFT_HTTP_NOT_MODIFIED) {
-					db_update_feed_string(feed->link, "http_header_etag", target->feed.http_header_etag, true);
-					db_update_feed_int64(feed->link,  "http_header_last_modified", target->feed.http_header_last_modified, true);
-					db_update_feed_int64(feed->link,  "http_header_expires", target->feed.http_header_expires, true);
+					db_update_feed_string(feed->url, "http_header_etag", target->feed.http_header_etag, true);
+					db_update_feed_int64(feed->url,  "http_header_last_modified", target->feed.http_header_last_modified, true);
+					db_update_feed_int64(feed->url,  "http_header_expires", target->feed.http_header_expires, true);
 				}
 			}
 		}
@@ -94,7 +94,7 @@ inserter_worker(void *dummy)
 		}
 
 		if (STRING_IS_EMPTY(feed->name)) {
-			struct string *title = db_get_string_from_feed_table(feed->link, "title", 5);
+			struct string *title = db_get_string_from_feed_table(feed->url, "title", 5);
 			if (title != NULL) {
 				inlinefy_string(title);
 				cpyss(&feed->name, title);

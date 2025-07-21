@@ -444,7 +444,7 @@ setup_menu(struct menu_state *(*run)(struct menu_state *), const struct string *
 	} else if (new->find_filter) {
 		new->name = convert_wstring_to_string(new->find_filter);
 	} else if (feeds != NULL && feeds_count == 1) {
-		cpyss(&new->name, STRING_IS_EMPTY(feeds[0]->name) ? feeds[0]->link : feeds[0]->name);
+		cpyss(&new->name, STRING_IS_EMPTY(feeds[0]->name) ? feeds[0]->url : feeds[0]->name);
 	}
 	if ((flags & MENU_SWALLOW) && menus != NULL) {
 		menus->is_deleted = true;

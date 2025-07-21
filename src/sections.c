@@ -132,7 +132,7 @@ static inline struct feed_entry *
 find_feed_in_section(const struct string *link, const struct feed_section *section)
 {
 	for (size_t i = 0; i < section->feeds_count; ++i) {
-		if ((link->len == section->feeds[i]->link->len) && (strcmp(link->ptr, section->feeds[i]->link->ptr) == 0)) {
+		if ((link->len == section->feeds[i]->url->len) && (strcmp(link->ptr, section->feeds[i]->url->ptr) == 0)) {
 			return section->feeds[i];
 		}
 	}
@@ -142,17 +142,17 @@ find_feed_in_section(const struct string *link, const struct feed_section *secti
 static inline struct feed_entry *
 copy_feed_to_global_section(const struct feed_entry *feed)
 {
-	struct feed_entry *duplicate = find_feed_in_section(feed->link, &sections[0]);
+	struct feed_entry *duplicate = find_feed_in_section(feed->url, &sections[0]);
 	if (duplicate != NULL) {
 		return duplicate;
 	}
-	INFO("Adding to global section: %s", feed->link->ptr);
+	INFO("Adding to global section: %s", feed->url->ptr);
 	size_t feed_index = (sections[0].feeds_count)++;
 	sections[0].feeds = newsraft_realloc(sections[0].feeds, sizeof(struct feed_entry *) * sections[0].feeds_count);
 	sections[0].feeds[feed_index] = newsraft_calloc(1, sizeof(struct feed_entry));
 
 	if (STRING_IS_EMPTY(feed->name)) {
-		sections[0].feeds[feed_index]->name = db_get_string_from_feed_table(feed->link, "title", 5);
+		sections[0].feeds[feed_index]->name = db_get_string_from_feed_table(feed->url, "title", 5);
 	} else {
 		sections[0].feeds[feed_index]->name = crtss(feed->name);
 	}
@@ -160,10 +160,10 @@ copy_feed_to_global_section(const struct feed_entry *feed)
 		inlinefy_string(sections[0].feeds[feed_index]->name);
 	}
 
-	sections[0].feeds[feed_index]->link   = crtss(feed->link);
+	sections[0].feeds[feed_index]->url   = crtss(feed->url);
 	sections[0].feeds[feed_index]->errors = crtes(1);
 
-	sections[0].feeds[feed_index]->update_date = db_get_date_from_feeds_table(feed->link, "update_date", 11);
+	sections[0].feeds[feed_index]->update_date = db_get_date_from_feeds_table(feed->url, "update_date", 11);
 	return sections[0].feeds[feed_index];
 }
 
@@ -179,7 +179,7 @@ copy_feed_to_section(const struct feed_entry *feed_data, int64_t section_index)
 
 	// User sections contain only pointers to feeds in the global section
 	struct feed_section *section = sections + section_index;
-	if (find_feed_in_section(feed->link, section) == NULL) {
+	if (find_feed_in_section(feed->url, section) == NULL) {
 		section->feeds = newsraft_realloc(section->feeds, sizeof(struct feed_entry *) * (section->feeds_count + 1));
 		section->feeds[section->feeds_count] = feed;
 		section->feeds_count += 1;
@@ -224,7 +224,7 @@ purge_abandoned_feeds(void)
 		return false;
 	}
 	for (size_t i = 0; i < sections[0].feeds_count; ++i) {
-		db_bind_string(res, i + 1, sections[0].feeds[i]->link);
+		db_bind_string(res, i + 1, sections[0].feeds[i]->url);
 	}
 	bool status = sqlite3_step(res) == SQLITE_DONE ? true : false;
 	sqlite3_finalize(res);
@@ -238,8 +238,8 @@ free_sections(void)
 	size_t i;
 	for (i = 0; i < sections[0].feeds_count; ++i) {
 		if (sections[0].feeds[i] != NULL) {
+			free_string(sections[0].feeds[i]->url);
 			free_string(sections[0].feeds[i]->name);
-			free_string(sections[0].feeds[i]->link);
 			free_string(sections[0].feeds[i]->errors);
 			free_config_context(sections[0].feeds[i]->cfg);
 			if (sections[0].feeds[i]->binds != NULL) {

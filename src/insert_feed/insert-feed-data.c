@@ -7,7 +7,7 @@ insert_feed_data(const struct feed_entry *feed_entry, struct getfeed_feed *feed)
 	if (s == NULL) {
 		return false;
 	}
-	db_bind_string(s,     1 + FEED_COLUMN_FEED_URL,                  feed_entry->link);
+	db_bind_string(s,     1 + FEED_COLUMN_FEED_URL,                  feed_entry->url);
 	db_bind_string(s,     1 + FEED_COLUMN_TITLE,                     feed->title);
 	db_bind_string(s,     1 + FEED_COLUMN_LINK,                      feed->url);
 	db_bind_string(s,     1 + FEED_COLUMN_CONTENT,                   feed->content);

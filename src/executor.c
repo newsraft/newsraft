@@ -52,7 +52,7 @@ engage_with_not_executed_feed(struct feed_update_state *data)
 {
 	if (data->is_finished == false
 		&& data->is_in_progress == false
-		&& data->feed_entry->link->ptr[0] == '$')
+		&& data->feed_entry->url->ptr[0] == '$')
 	{
 		data->is_in_progress = true;
 		return true;
@@ -70,7 +70,7 @@ executor_worker(void *dummy)
 			threads_take_a_nap(NEWSRAFT_THREAD_SHRUNNER);
 			continue;
 		}
-		execute_feed(target->feed_entry->link, target);
+		execute_feed(target->feed_entry->url, target);
 		target->is_downloaded = true;
 		threads_wake_up(NEWSRAFT_THREAD_DBWRITER);
 	}

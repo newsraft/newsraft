@@ -72,7 +72,7 @@ db_count_items(struct feed_entry **feeds, size_t feeds_count, bool count_only_un
 		goto error;
 	}
 	for (size_t i = 0; i < feeds_count; ++i) {
-		db_bind_string(res, i + 1, feeds[i]->link);
+		db_bind_string(res, i + 1, feeds[i]->url);
 	}
 	if (sqlite3_step(res) == SQLITE_ROW) {
 		count = sqlite3_column_int64(res, 0);
@@ -105,7 +105,7 @@ db_change_unread_status_of_all_items_in_feeds(struct feed_entry **feeds, size_t 
 	}
 	sqlite3_bind_int(res, 1, unread);
 	for (size_t i = 0; i < feeds_count; ++i) {
-		db_bind_string(res, i + 2, feeds[i]->link);
+		db_bind_string(res, i + 2, feeds[i]->url);
 	}
 	bool status = sqlite3_step(res) == SQLITE_DONE ? true : false;
 	sqlite3_finalize(res);

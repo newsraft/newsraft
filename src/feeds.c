@@ -25,8 +25,8 @@ get_feed_args(struct menu_state *ctx, size_t index)
 	};
 	feed_fmt[0].value.i = index + 1;
 	feed_fmt[1].value.i = ctx->feeds[index]->unread_count;
-	feed_fmt[2].value.s = ctx->feeds[index]->link->ptr;
-	feed_fmt[3].value.s = STRING_IS_EMPTY(ctx->feeds[index]->name) ? ctx->feeds[index]->link->ptr : ctx->feeds[index]->name->ptr;
+	feed_fmt[2].value.s = ctx->feeds[index]->url->ptr;
+	feed_fmt[3].value.s = STRING_IS_EMPTY(ctx->feeds[index]->name) ? ctx->feeds[index]->url->ptr : ctx->feeds[index]->name->ptr;
 	return feed_fmt;
 }
 
@@ -84,8 +84,8 @@ compare_feeds_alphabet(const void *data1, const void *data2)
 {
 	struct feed_entry *feed1 = *(struct feed_entry **)data1;
 	struct feed_entry *feed2 = *(struct feed_entry **)data2;
-	const char *token1 = STRING_IS_EMPTY(feed1->name) ? feed1->link->ptr : feed1->name->ptr;
-	const char *token2 = STRING_IS_EMPTY(feed2->name) ? feed2->link->ptr : feed2->name->ptr;
+	const char *token1 = STRING_IS_EMPTY(feed1->name) ? feed1->url->ptr : feed1->name->ptr;
+	const char *token2 = STRING_IS_EMPTY(feed2->name) ? feed2->url->ptr : feed2->name->ptr;
 	return strcmp(token1, token2) * (feeds_sort & 1 ? -1 : 1);
 }
 

@@ -35,9 +35,9 @@ get_item_args(struct menu_state *ctx, size_t index)
 	item_fmt[4].value.s = ctx->items->ptr[index].url->ptr;
 	item_fmt[5].value.s = ctx->items->ptr[index].title->ptr;
 	item_fmt[6].value.s = ctx->items->ptr[index].title->len > 0 ? ctx->items->ptr[index].title->ptr : ctx->items->ptr[index].url->ptr;
-	item_fmt[7].value.s = ctx->items->ptr[index].feed[0]->link->ptr;
+	item_fmt[7].value.s = ctx->items->ptr[index].feed[0]->url->ptr;
 	item_fmt[8].value.s = ctx->items->ptr[index].feed[0]->name ? ctx->items->ptr[index].feed[0]->name->ptr : "";
-	item_fmt[9].value.s = ctx->items->ptr[index].feed[0]->name ? ctx->items->ptr[index].feed[0]->name->ptr : ctx->items->ptr[index].feed[0]->link->ptr;
+	item_fmt[9].value.s = ctx->items->ptr[index].feed[0]->name ? ctx->items->ptr[index].feed[0]->name->ptr : ctx->items->ptr[index].feed[0]->url->ptr;
 	return item_fmt;
 }
 

@@ -442,13 +442,13 @@ db_perform_user_edit(const struct wstring *fmt, struct feed_entry **feeds, size_
 	for (size_t i = 0, j = 1; i < replacements_count; ++i) {
 		if (item) {
 			sqlite3_bind_int64(stmt, j++, item->rowid);
-			db_bind_string(stmt, j++, item->feed[0]->link);
+			db_bind_string(stmt, j++, item->feed[0]->url);
 			db_bind_string(stmt, j++, item->guid);
 			continue;
 		}
 		if (feeds && feeds_count > 0) {
 			for (size_t k = 0; k < feeds_count; ++k) {
-				db_bind_string(stmt, j++, feeds[k]->link);
+				db_bind_string(stmt, j++, feeds[k]->url);
 			}
 			continue;
 		}

@@ -51,13 +51,10 @@ parse_feeds_file(void)
 	struct string *section_cfg  = crtes(200);
 	struct string *global_cfg   = crtes(200);
 	bool at_least_one_feed_was_added = false;
-	struct feed_entry feed;
-	feed.name = crtes(100);
-	feed.link = crtes(200);
-	if (!line || !section_name || !feed_cfg || !section_cfg || !global_cfg || !feed.name || !feed.link) {
-		write_error("Not enough memory for parsing feeds file!\n");
-		goto error;
-	}
+	struct feed_entry feed = {
+		.url  = crtes(200),
+		.name = crtes(100),
+	};
 
 	int c = '@';
 	while (c != EOF) {
@@ -92,13 +89,13 @@ parse_feeds_file(void)
 					break;
 				}
 			}
-			cpyas(&feed.link, line->ptr, len);
+			cpyas(&feed.url, line->ptr, len);
 			remove_start_of_string(line, len);
 		} else {
 			for (const char *i = line->ptr; !ISWHITESPACE(*i) && *i != '\0'; ++i) {
 				len += 1;
 			}
-			cpyas(&feed.link, line->ptr, len);
+			cpyas(&feed.url, line->ptr, len);
 			remove_start_of_string(line, len);
 		}
 		trim_whitespace_from_string(line);
@@ -119,8 +116,8 @@ parse_feeds_file(void)
 		trim_whitespace_from_string(line);
 
 		if (line->ptr[0] == '[' || line->ptr[0] == '{') {
-			write_error("Counters in square and curly brackets are deprecated!\n");
-			write_error("You must assign reload-period and item-limit settings to individual feeds and sections instead.\n");
+			write_error("Counters in [square] and {curly} brackets are deprecated!\n");
+			write_error("You must set reload-period and item-limit settings to individual feeds and sections instead.\n");
 			write_error("For example:\n");
 			write_error("http://example.org/feed.xml < reload-period 30; item-limit 100\n");
 			goto error;
@@ -136,8 +133,8 @@ parse_feeds_file(void)
 		if (is_section == true)
 			continue;
 
-		remove_trailing_slashes_from_string(feed.link);
-		if (feed.link->ptr[0] != '$' && check_url_for_validity(feed.link) == false)
+		remove_trailing_slashes_from_string(feed.url);
+		if (feed.url->ptr[0] != '$' && check_url_for_validity(feed.url) == false)
 			goto error;
 
 		struct feed_entry *feed_ptr = copy_feed_to_section(&feed, section_index);
@@ -167,7 +164,7 @@ error:
 	free_string(feed_cfg);
 	free_string(section_cfg);
 	free_string(global_cfg);
-	free_string(feed.link);
+	free_string(feed.url);
 	free_string(feed.name);
 	fclose(f);
 	return status;

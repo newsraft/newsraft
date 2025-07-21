@@ -76,7 +76,7 @@ find_feed_entry_by_url(struct feed_entry **feeds, size_t feeds_count, const char
 {
 	if (feed_url != NULL) {
 		for (size_t i = 0; i < feeds_count; ++i) {
-			if (strcmp(feed_url, feeds[i]->link->ptr) == 0) {
+			if (strcmp(feed_url, feeds[i]->url->ptr) == 0) {
 				return feeds + i;
 			}
 		}
@@ -123,7 +123,7 @@ obtain_items_at_least_up_to_the_given_index(struct items_list *items, size_t ind
 		items->ptr[items->len].url = crtes(1);
 		// Convert URL to absolute notation in case it's stored relative.
 		// For example, convert "/index.xml" to "http://example.org/index.xml"
-		char *full_url = complete_url(items->ptr[items->len].feed[0]->link->ptr, text);
+		char *full_url = complete_url(items->ptr[items->len].feed[0]->url->ptr, text);
 		if (full_url != NULL) {
 			cpyas(&items->ptr[items->len].url, full_url, strlen(full_url));
 			free(full_url);
@@ -187,7 +187,7 @@ create_items_list(struct feed_entry **feeds, size_t feeds_count, const struct ws
 		goto undo2;
 	}
 	for (size_t i = 0; i < feeds_count; ++i) {
-		db_bind_string(items->res, i + 1, feeds[i]->link);
+		db_bind_string(items->res, i + 1, feeds[i]->url);
 	}
 	if (!STRING_IS_EMPTY(items->search_filter)) {
 		db_bind_string(items->res, feeds_count + 1, items->search_filter);

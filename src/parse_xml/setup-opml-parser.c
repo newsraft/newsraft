@@ -92,13 +92,13 @@ convert_feeds_to_opml(void)
 	catas(opml, header, strlen(header));
 
 	for (size_t i = 0; i < feeds_count; ++i) {
-		if (feeds[i]->link->ptr[0] == '$') {
+		if (feeds[i]->url->ptr[0] == '$') {
 			continue; // skip command feeds
 		}
 		if (!STRING_IS_EMPTY(feeds[i]->name)) {
-			str_appendf(opml, "\t\t<outline type=\"rss\" xmlUrl=\"%s\" title=\"%s\" />\n", feeds[i]->link->ptr, feeds[i]->name->ptr);
+			str_appendf(opml, "\t\t<outline type=\"rss\" xmlUrl=\"%s\" title=\"%s\" />\n", feeds[i]->url->ptr, feeds[i]->name->ptr);
 		} else {
-			str_appendf(opml, "\t\t<outline type=\"rss\" xmlUrl=\"%s\" />\n", feeds[i]->link->ptr);
+			str_appendf(opml, "\t\t<outline type=\"rss\" xmlUrl=\"%s\" />\n", feeds[i]->url->ptr);
 		}
 	}
 

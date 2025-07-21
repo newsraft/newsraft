@@ -20,7 +20,7 @@ errors_pager_loop(struct menu_state *m)
 		blocks.len += 2;
 		struct string *header_str = blocks.len > 2 ? crtas("<br><hr><br>", 12) : crtes(100);
 		catas(header_str, "<b>Errors of ", 13);
-		catss(header_str, feed->link);
+		catss(header_str, feed->url);
 		catas(header_str, "</b><br><br>", 12);
 		struct render_block *header_block = &blocks.ptr[blocks.len - 2];
 		struct render_block *content_block = &blocks.ptr[blocks.len - 1];

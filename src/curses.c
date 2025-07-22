@@ -88,10 +88,12 @@ waddnwstr(WINDOW *win, const wchar_t *wstr, size_t lim)
 			WARN("Invalid wide character: %d", (int)wstr[i]);
 			continue;
 		}
-		tb_set_cell(win->offset, win->pos_y, wstr[i], win->attrs, TB_DEFAULT);
+		if (tb_set_cell(win->offset, win->pos_y, wstr[i], win->attrs, TB_DEFAULT) != TB_OK) {
+			break;
+		}
 		win->offset += width;
+		wcatcs(win->content, wstr[i]);
 	}
-	wcatas(win->content, wstr, wstr_len);
 }
 
 void

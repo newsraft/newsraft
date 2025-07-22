@@ -1,3 +1,15 @@
+# newsraft 0.32 "conflagratio"
+
+* add `toggle-read` action (#213)
+* add `toggle-important` action (#213)
+* add `global-section-hide` setting (#144)
+* make `FEATURECFLAGS` in makefile universally correct for most platforms
+* fix termbox2 behavior to handle `TERMINFO` environment variable as in ncurses (#212, [github](https://github.com/termbox/termbox2/pull/104))
+* provide more log information during termbox2 initialization (#212)
+* prefer a link to webpage instead of feed URL when converting relative item links to absolute notation
+
+thank you to all of you who keep ports updated, i see your work <3 <3 <3
+
 # newsraft 0.31 "way fare"
 
 * dependency on `ncurses` is gone, it's not needed to build Newsraft anymore

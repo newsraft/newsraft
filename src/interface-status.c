@@ -32,14 +32,14 @@ update_status_window_content_unprotected(void)
 	wmove(status_window, 0);
 
 	if (they_want_us_to_stop == true) {
-		waddnstr(status_window, "Terminating...", list_menu_width);
+		waddwstr(status_window, L"Terminating...");
 		wbkgd(status_window, get_cfg_color(NULL, CFG_COLOR_STATUS_FAIL));
 	} else if (search_mode_is_enabled == true) {
 		waddwstr(status_window, L"/");
 		waddwstr(status_window, search_mode_text_input->ptr);
 		wbkgd(status_window, get_cfg_color(NULL, CFG_COLOR_STATUS));
 	} else if (!STRING_IS_EMPTY(message_text)) {
-		waddnstr(status_window, message_text->ptr, list_menu_width);
+		waddstr(status_window, message_text->ptr);
 		wbkgd(status_window, get_cfg_color(NULL, message_color));
 	} else {
 		struct string *path = NULL;
@@ -48,9 +48,9 @@ update_status_window_content_unprotected(void)
 			write_menu_path_string(path, NULL);
 		}
 		if (path != NULL && path->len > 0) {
-			waddnstr(status_window, path->ptr, list_menu_width);
+			waddstr(status_window, path->ptr);
 		} else {
-			waddnstr(status_window, get_cfg_string(NULL, CFG_STATUS_PLACEHOLDER)->ptr, list_menu_width);
+			waddwstr(status_window, get_cfg_wstring(NULL, CFG_STATUS_PLACEHOLDER)->ptr);
 		}
 		wbkgd(status_window, get_cfg_color(NULL, CFG_COLOR_STATUS));
 		free_string(path);
@@ -59,8 +59,8 @@ update_status_window_content_unprotected(void)
 	// Print count value
 	wmove(status_window, list_menu_width - 11);
 	if (count_buf_len > 0) {
-		waddstr(status_window, "  "); // Little divider to separate from previous stuff
-		waddnstr(status_window, count_buf, count_buf_len);
+		waddwstr(status_window, L"  "); // Little divider to separate from previous stuff
+		waddstr(status_window, count_buf);
 	}
 
 	tb_present();
@@ -208,14 +208,15 @@ get_input(struct input_binding *ctx, uint32_t *count, const struct wstring **p_a
 		} else if (ISDIGIT(key[0])) {
 			count_buf_len %= 9;
 			count_buf[count_buf_len++] = key[0];
+			count_buf[count_buf_len] = '\0';
 			update_status_window_content();
 		} else {
 			input_id cmd = get_action_of_bind(ctx, key, 0, p_arg);
 			uint32_t count_value = 1;
-			count_buf[count_buf_len] = '\0';
 			if (sscanf(count_buf, "%" SCNu32, &count_value) != 1) {
 				count_value = 1;
 			}
+			count_buf[0] = '\0';
 			count_buf_len = 0;
 			if (cmd == INPUT_START_SEARCH_INPUT) {
 				wstr_set(&search_mode_text_input, L"", 0, 100);

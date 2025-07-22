@@ -101,17 +101,11 @@ waddwstr(WINDOW *win, const wchar_t *wstr)
 }
 
 void
-waddnstr(WINDOW *win, const char *str, size_t lim)
-{
-	struct wstring *new = convert_array_to_wstring(str, strlen(str));
-	waddnwstr(win, new->ptr, lim);
-	free_wstring(new);
-}
-
-void
 waddstr(WINDOW *win, const char *str)
 {
-	waddnstr(win, str, SIZE_MAX);
+	struct wstring *new = convert_array_to_wstring(str, strlen(str));
+	waddnwstr(win, new->ptr, SIZE_MAX);
+	free_wstring(new);
 }
 
 int

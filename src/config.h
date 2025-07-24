@@ -115,6 +115,7 @@ CFG(CFG_SEND_IF_NONE_MATCH_HEADER,       "send-if-none-match-header",       CFG_
 CFG(CFG_SEND_IF_MODIFIED_SINCE_HEADER,   "send-if-modified-since-header",   CFG_BOOL,   {.b = true })
 CFG(CFG_PAGER_CENTERING,                 "pager-centering",                 CFG_BOOL,   {.b = true })
 CFG(CFG_IGNORE_NO_COLOR,                 "ignore-no-color",                 CFG_BOOL,   {.b = false})
+CFG(CFG_SCROLLWRAP,                      "scrollwrap",                      CFG_BOOL,   {.b = false})
 CFG(CFG_ENTRIES_COUNT,                   NULL,                              CFG_BOOL,   {.b = false})
 
 #ifdef CFG

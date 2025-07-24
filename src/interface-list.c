@@ -151,8 +151,19 @@ obtain_list_entries_count_unprotected(struct menu_state *m)
 }
 
 static void
-change_list_view_unprotected(struct menu_state *m, size_t new_sel)
+change_list_view_unprotected(struct menu_state *m, size_t new_sel, bool is_wrappable)
 {
+	if (is_wrappable && get_cfg_bool(NULL, CFG_SCROLLWRAP)) {
+		if (new_sel > m->view_sel) {
+			// Tried to go forward
+			if (m->enumerator(m, m->view_sel) && !m->enumerator(m, m->view_sel + 1)) {
+				new_sel = 0;
+			}
+		} else if (new_sel == 0 && m->view_sel == 0) {
+			// Tried to go backward
+			new_sel = obtain_list_entries_count_unprotected(m);
+		}
+	}
 	while (m->enumerator(m, new_sel) == false && new_sel > 0) {
 		new_sel -= 1;
 	}
@@ -205,14 +216,14 @@ handle_list_menu_control(struct menu_state *m, input_id cmd, const struct wstrin
 {
 	pthread_mutex_lock(&interface_lock);
 	if (cmd == INPUT_SELECT_NEXT || cmd == INPUT_JUMP_TO_NEXT) {
-		change_list_view_unprotected(m, m->view_sel + 1);
+		change_list_view_unprotected(m, m->view_sel + 1, true);
 	} else if (cmd == INPUT_SELECT_PREV || cmd == INPUT_JUMP_TO_PREV) {
-		change_list_view_unprotected(m, m->view_sel > 1 ? m->view_sel - 1 : 0);
+		change_list_view_unprotected(m, m->view_sel > 1 ? m->view_sel - 1 : 0, true);
 	} else if (cmd == INPUT_JUMP_TO_NEXT_UNREAD) {
 		for (size_t i = m->view_sel + 1, j = 0; j < 2; i = 0, ++j) {
 			while (m->enumerator(m, i) == true) {
 				if (m->unread_state(m, i) == true) {
-					change_list_view_unprotected(m, i);
+					change_list_view_unprotected(m, i, false);
 					j = 2;
 					break;
 				}
@@ -223,7 +234,7 @@ handle_list_menu_control(struct menu_state *m, input_id cmd, const struct wstrin
 		for (size_t i = m->view_sel, j = 0; j < 2; ++j) {
 			while (i > 0 && m->enumerator(m, i - 1) == true) {
 				if (m->unread_state(m, i - 1) == true) {
-					change_list_view_unprotected(m, i - 1);
+					change_list_view_unprotected(m, i - 1, false);
 					j = 2;
 					break;
 				}
@@ -237,7 +248,7 @@ handle_list_menu_control(struct menu_state *m, input_id cmd, const struct wstrin
 		for (size_t i = m->view_sel + 1, j = 0; j < 2; i = 0, ++j) {
 			while (m->enumerator(m, i) == true) {
 				if (important_item_condition(m, i) == true) {
-					change_list_view_unprotected(m, i);
+					change_list_view_unprotected(m, i, false);
 					j = 2;
 					break;
 				}
@@ -248,7 +259,7 @@ handle_list_menu_control(struct menu_state *m, input_id cmd, const struct wstrin
 		for (size_t i = m->view_sel, j = 0; j < 2; ++j) {
 			while (i > 0 && m->enumerator(m, i - 1) == true) {
 				if (important_item_condition(m, i - 1) == true) {
-					change_list_view_unprotected(m, i - 1);
+					change_list_view_unprotected(m, i - 1, false);
 					j = 2;
 					break;
 				}
@@ -262,7 +273,7 @@ handle_list_menu_control(struct menu_state *m, input_id cmd, const struct wstrin
 		for (size_t i = m->view_sel + 1, j = 0; j < 2; i = 0, ++j) {
 			while (m->enumerator(m, i) == true) {
 				if (m->failed_state(m, i) == true) {
-					change_list_view_unprotected(m, i);
+					change_list_view_unprotected(m, i, false);
 					j = 2;
 					break;
 				}
@@ -273,7 +284,7 @@ handle_list_menu_control(struct menu_state *m, input_id cmd, const struct wstrin
 		for (size_t i = m->view_sel, j = 0; j < 2; ++j) {
 			while (i > 0 && m->enumerator(m, i - 1) == true) {
 				if (m->failed_state(m, i - 1) == true) {
-					change_list_view_unprotected(m, i - 1);
+					change_list_view_unprotected(m, i - 1, false);
 					j = 2;
 					break;
 				}
@@ -284,18 +295,18 @@ handle_list_menu_control(struct menu_state *m, input_id cmd, const struct wstrin
 			}
 		}
 	} else if (cmd == INPUT_SELECT_NEXT_PAGE) {
-		change_list_view_unprotected(m, m->view_sel + list_menu_height);
+		change_list_view_unprotected(m, m->view_sel + list_menu_height, true);
 	} else if (cmd == INPUT_SELECT_NEXT_PAGE_HALF) {
-		change_list_view_unprotected(m, m->view_sel + list_menu_height / 2);
+		change_list_view_unprotected(m, m->view_sel + list_menu_height / 2, true);
 	} else if (cmd == INPUT_SELECT_PREV_PAGE) {
-		change_list_view_unprotected(m, m->view_sel > list_menu_height ? m->view_sel - list_menu_height : 0);
+		change_list_view_unprotected(m, m->view_sel > list_menu_height ? m->view_sel - list_menu_height : 0, true);
 	} else if (cmd == INPUT_SELECT_PREV_PAGE_HALF) {
 		size_t step = list_menu_height / 2;
-		change_list_view_unprotected(m, m->view_sel > step ? m->view_sel - step : 0);
+		change_list_view_unprotected(m, m->view_sel > step ? m->view_sel - step : 0, true);
 	} else if (cmd == INPUT_SELECT_FIRST) {
-		change_list_view_unprotected(m, 0);
+		change_list_view_unprotected(m, 0, false);
 	} else if (cmd == INPUT_SELECT_LAST) {
-		change_list_view_unprotected(m, obtain_list_entries_count_unprotected(m));
+		change_list_view_unprotected(m, obtain_list_entries_count_unprotected(m), false);
 	} else if (cmd == INPUT_SHIFT_WEST) {
 		size_t shift_delta = 1 + list_menu_width / 50;
 		if (horizontal_shift >= shift_delta) {

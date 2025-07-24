@@ -291,6 +291,10 @@ selected entry. If you set it to a very large value the selected entry will
 always be in the middle of the list menu (except for start and end of the list
 menu).
 
+## scrollwrap
+Default: _false_. If _true_, moving down while on the last item in a list
+will wrap around to the top and vice versa.
+
 ## pager-width (*)
 Default: _100_. Pager width in characters. If set to _0_, the pager will take up
 all available space.

@@ -2349,6 +2349,7 @@ static int update_term_size(void) {
 
     // Try ioctl TIOCGWINSZ
     if (ioctl(global.ttyfd, TIOCGWINSZ, &sz) == 0) {
+        tb_log("TIOCGWINSZ operation yielded %hu cols, %hu rows.", sz.ws_col, sz.ws_row);
         global.width = sz.ws_col;
         global.height = sz.ws_row;
         return TB_OK;
@@ -2378,9 +2379,10 @@ static int update_term_size_via_esc(void) {
     FD_ZERO(&fds);
     FD_SET(global.rfd, &fds);
 
-    struct timeval timeout;
-    timeout.tv_sec = 0;
-    timeout.tv_usec = TB_RESIZE_FALLBACK_MS * 1000;
+    struct timeval timeout = {
+        .tv_sec = 0,
+        .tv_usec = TB_RESIZE_FALLBACK_MS * 1000,
+    };
 
     int select_rv = select(global.rfd + 1, &fds, NULL, NULL, &timeout);
 
@@ -2402,6 +2404,7 @@ static int update_term_size_via_esc(void) {
         return TB_ERR_RESIZE_SSCANF;
     }
 
+    tb_log("Cursor boundary check yielded %d cols, %d rows.", rw, rh);
     global.width = rw;
     global.height = rh;
     return TB_OK;

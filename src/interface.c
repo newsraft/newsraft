@@ -13,12 +13,12 @@ obtain_list_menu_size(size_t *width, size_t *height)
 	// This is really critical! You will get integer overflow if terminal_width
 	// is less than 12. You have been warned.
 	if (terminal_width < 12) {
-		FAIL("Terminal is too narrow!");
+		FAIL("Terminal width of %d is too small!", terminal_width);
 		return false;
 	}
 	int terminal_height = tb_height();
 	if (terminal_height < 5) {
-		FAIL("Terminal is too short!");
+		FAIL("Terminal height of %d is too small!", terminal_height);
 		return false;
 	}
 

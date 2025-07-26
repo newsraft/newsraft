@@ -211,6 +211,46 @@ change_list_view_unprotected(struct menu_state *m, size_t new_sel, bool is_wrapp
 	}
 }
 
+static void
+change_list_view_filtered_unprotected(struct menu_state *m, bool (*filter)(struct menu_state *, size_t), bool is_forward)
+{
+	if (!filter) {
+		return;
+	}
+	if (is_forward) {
+		for (size_t i = m->view_sel + 1, j = 0; j < 2; i = 0, ++j) {
+			while (m->enumerator(m, i) == true) {
+				if (filter(m, i) == true) {
+					change_list_view_unprotected(m, i, false);
+					j = 2;
+					break;
+				}
+				i += 1;
+			}
+			if (!get_cfg_bool(NULL, CFG_SCROLLWRAP)) {
+				break;
+			}
+		}
+	} else {
+		for (size_t i = m->view_sel, j = 0; j < 2; ++j) {
+			while (i > 0 && m->enumerator(m, i - 1) == true) {
+				if (filter(m, i - 1) == true) {
+					change_list_view_unprotected(m, i - 1, false);
+					j = 2;
+					break;
+				}
+				i -= 1;
+			}
+			if (j < 2) {
+				i = obtain_list_entries_count_unprotected(m);
+			}
+			if (!get_cfg_bool(NULL, CFG_SCROLLWRAP)) {
+				break;
+			}
+		}
+	}
+}
+
 bool
 handle_list_menu_control(struct menu_state *m, input_id cmd, const struct wstring *arg)
 {
@@ -220,80 +260,17 @@ handle_list_menu_control(struct menu_state *m, input_id cmd, const struct wstrin
 	} else if (cmd == INPUT_SELECT_PREV || cmd == INPUT_JUMP_TO_PREV) {
 		change_list_view_unprotected(m, m->view_sel > 1 ? m->view_sel - 1 : 0, true);
 	} else if (cmd == INPUT_JUMP_TO_NEXT_UNREAD) {
-		for (size_t i = m->view_sel + 1, j = 0; j < 2; i = 0, ++j) {
-			while (m->enumerator(m, i) == true) {
-				if (m->unread_state(m, i) == true) {
-					change_list_view_unprotected(m, i, false);
-					j = 2;
-					break;
-				}
-				i += 1;
-			}
-		}
+		change_list_view_filtered_unprotected(m, m->unread_state, true);
 	} else if (cmd == INPUT_JUMP_TO_PREV_UNREAD) {
-		for (size_t i = m->view_sel, j = 0; j < 2; ++j) {
-			while (i > 0 && m->enumerator(m, i - 1) == true) {
-				if (m->unread_state(m, i - 1) == true) {
-					change_list_view_unprotected(m, i - 1, false);
-					j = 2;
-					break;
-				}
-				i -= 1;
-			}
-			if (j < 2) {
-				i = obtain_list_entries_count_unprotected(m);
-			}
-		}
+		change_list_view_filtered_unprotected(m, m->unread_state, false);
 	} else if (cmd == INPUT_JUMP_TO_NEXT_IMPORTANT && m->run == &items_menu_loop) {
-		for (size_t i = m->view_sel + 1, j = 0; j < 2; i = 0, ++j) {
-			while (m->enumerator(m, i) == true) {
-				if (important_item_condition(m, i) == true) {
-					change_list_view_unprotected(m, i, false);
-					j = 2;
-					break;
-				}
-				i += 1;
-			}
-		}
+		change_list_view_filtered_unprotected(m, important_item_condition, true);
 	} else if (cmd == INPUT_JUMP_TO_PREV_IMPORTANT && m->run == &items_menu_loop) {
-		for (size_t i = m->view_sel, j = 0; j < 2; ++j) {
-			while (i > 0 && m->enumerator(m, i - 1) == true) {
-				if (important_item_condition(m, i - 1) == true) {
-					change_list_view_unprotected(m, i - 1, false);
-					j = 2;
-					break;
-				}
-				i -= 1;
-			}
-			if (j < 2) {
-				i = obtain_list_entries_count_unprotected(m);
-			}
-		}
-	} else if (cmd == INPUT_JUMP_TO_NEXT_ERROR && m->failed_state != NULL) {
-		for (size_t i = m->view_sel + 1, j = 0; j < 2; i = 0, ++j) {
-			while (m->enumerator(m, i) == true) {
-				if (m->failed_state(m, i) == true) {
-					change_list_view_unprotected(m, i, false);
-					j = 2;
-					break;
-				}
-				i += 1;
-			}
-		}
-	} else if (cmd == INPUT_JUMP_TO_PREV_ERROR && m->failed_state != NULL) {
-		for (size_t i = m->view_sel, j = 0; j < 2; ++j) {
-			while (i > 0 && m->enumerator(m, i - 1) == true) {
-				if (m->failed_state(m, i - 1) == true) {
-					change_list_view_unprotected(m, i - 1, false);
-					j = 2;
-					break;
-				}
-				i -= 1;
-			}
-			if (j < 2) {
-				i = obtain_list_entries_count_unprotected(m);
-			}
-		}
+		change_list_view_filtered_unprotected(m, important_item_condition, false);
+	} else if (cmd == INPUT_JUMP_TO_NEXT_ERROR) {
+		change_list_view_filtered_unprotected(m, m->failed_state, true);
+	} else if (cmd == INPUT_JUMP_TO_PREV_ERROR) {
+		change_list_view_filtered_unprotected(m, m->failed_state, false);
 	} else if (cmd == INPUT_SELECT_NEXT_PAGE) {
 		change_list_view_unprotected(m, m->view_sel + list_menu_height, true);
 	} else if (cmd == INPUT_SELECT_NEXT_PAGE_HALF) {

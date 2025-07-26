@@ -27,18 +27,12 @@ bool
 adjust_list_menu(void)
 {
 	INFO("Adjusting list menu.");
-	// Delete old windows to create new windows with the new size.
 	for (size_t i = 0; i < windows_count; ++i) {
 		delwin(windows[i]);
 	}
-	windows = newsraft_realloc(windows, sizeof(WINDOW *) * list_menu_height);
+	windows = newsraft_realloc(windows, sizeof(WINDOW *) * (list_menu_height + 1));
 	for (size_t i = 0; i < list_menu_height; ++i) {
 		windows[i] = newwin(i);
-		if (windows[i] == NULL) {
-			windows_count = i;
-			FAIL("newwin() returned NULL!");
-			return false;
-		}
 	}
 	windows_count = list_menu_height;
 	scrolloff = get_cfg_uint(NULL, CFG_SCROLLOFF);
@@ -78,6 +72,10 @@ list_menu_writer(size_t index, WINDOW *w)
 static inline void
 expose_entry_of_the_list_menu_unprotected(size_t index)
 {
+	if (index < menu->view_min || (index - menu->view_min) >= windows_count) {
+		WARN("Ignoring list entry expose because of zero size.");
+		return;
+	}
 	WINDOW *w = windows[index - menu->view_min];
 	werase(w);
 	wmove(w, 0);
@@ -118,6 +116,10 @@ expose_all_visible_entries_of_the_list_menu(void)
 void
 redraw_list_menu_unprotected(void)
 {
+	if (list_menu_height < 1) {
+		WARN("Ignoring list view redraw because of zero size.");
+		return;
+	}
 	menu->view_max = menu->view_min + (list_menu_height - 1);
 	if (menu->view_sel > menu->view_max) {
 		menu->view_max = menu->view_sel;
@@ -153,6 +155,10 @@ obtain_list_entries_count_unprotected(struct menu_state *m)
 static void
 change_list_view_unprotected(struct menu_state *m, size_t new_sel, bool is_wrappable)
 {
+	if (list_menu_height < 1) {
+		WARN("Ignoring list view change because of zero size.");
+		return;
+	}
 	if (is_wrappable && get_cfg_bool(NULL, CFG_SCROLLWRAP)) {
 		if (new_sel > m->view_sel) {
 			// Tried to go forward
@@ -318,6 +324,10 @@ handle_list_menu_control(struct menu_state *m, input_id cmd, const struct wstrin
 static void
 change_pager_view_unprotected(size_t new_sel)
 {
+	if (list_menu_height < 1) {
+		WARN("Ignoring pager view change because of zero size.");
+		return;
+	}
 	while (menu->enumerator(menu, new_sel) == false && new_sel > 0) {
 		new_sel -= 1;
 	}

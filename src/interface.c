@@ -25,7 +25,7 @@ obtain_list_menu_size(size_t *width, size_t *height)
 	INFO("Obtained terminal size: %d width, %d height.", terminal_width, terminal_height);
 
 	*width = terminal_width;
-	*height = terminal_height - 1; // Subtract 1 because we have status window.
+	*height = terminal_height > 1 ? terminal_height - 1 : 0; // 1 row is reserved for status window
 
 	return true;
 }

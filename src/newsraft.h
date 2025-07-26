@@ -33,6 +33,7 @@
 typedef uint8_t config_entry_id;
 typedef uint8_t input_id;
 typedef int newsraft_video_t;
+typedef struct WINDOW WINDOW;
 
 enum {
 	FEED_COLUMN_FEED_URL,
@@ -195,13 +196,6 @@ struct format_arg {
 		const char *s;
 	} value;
 };
-
-typedef struct {
-	int pos_y;
-	size_t offset;
-	struct wstring *content;
-	uintmax_t attrs;
-} WINDOW;
 
 struct menu_state {
 	struct string *name;

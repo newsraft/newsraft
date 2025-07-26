@@ -56,9 +56,8 @@ update_status_window_content_unprotected(void)
 		free_string(path);
 	}
 
-	// Print count value
-	wmove(status_window, list_menu_width - 11);
-	if (count_buf_len > 0) {
+	if (count_buf_len > 0 && list_menu_width >= 11) {
+		wmove(status_window, list_menu_width - 11);
 		waddwstr(status_window, L"  "); // Little divider to separate from previous stuff
 		waddstr(status_window, count_buf);
 	}

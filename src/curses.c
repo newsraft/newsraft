@@ -2,6 +2,13 @@
 #define TB_IMPL
 #include "termbox2.h"
 
+struct WINDOW {
+	int pos_y;
+	size_t offset;
+	struct wstring *content;
+	uintmax_t attrs;
+};
+
 WINDOW *
 newwin(int pos_y)
 {
@@ -21,7 +28,7 @@ delwin(WINDOW *win)
 }
 
 void
-wmove(WINDOW *win, int offset_x)
+wmove(WINDOW *win, size_t offset_x)
 {
 	win->offset = offset_x;
 }

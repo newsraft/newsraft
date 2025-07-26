@@ -95,8 +95,12 @@ line_char(struct line *line, wchar_t c)
 		return true; // Ignore invalid characters
 	}
 
-	if (line->lim == 0) {
-		return line_append(line, c); // Unconditionally add characters to infinite lines
+	// Forcefully add characters to line if:
+	// 1. line is infinite
+	// 2. line doesn't fit this character
+	// 3. current indentation is too big
+	if (line->lim == 0 || line->lim <= (size_t)c_width || line->lim <= line->head->indent) {
+		return line_append(line, c);
 	}
 
 	if (c == L' '

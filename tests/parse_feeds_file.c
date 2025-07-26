@@ -3,7 +3,7 @@
 #include "newsraft.h"
 
 struct feed_test {
-	const char *link;
+	const char *url;
 	const char *name;
 	size_t reload_period;
 	size_t item_limit;
@@ -66,8 +66,8 @@ main(void)
 		size_t item_limit = get_cfg_uint(&feeds[i]->cfg, CFG_ITEM_LIMIT);
 		const char *proxy = get_cfg_string(&feeds[i]->cfg, CFG_PROXY)->ptr;
 
-		if (strcmp(feeds[i]->link->ptr, feed_tests[i].link) != 0) {
-			fprintf(stderr, "Link: %s != %s\n", feeds[i]->link->ptr, feed_tests[i].link);
+		if (strcmp(feeds[i]->url->ptr, feed_tests[i].url) != 0) {
+			fprintf(stderr, "URL: %s != %s\n", feeds[i]->url->ptr, feed_tests[i].url);
 			status = 1;
 		}
 		if (feeds[i]->name != NULL && feed_tests[i].name != NULL && strcmp(feeds[i]->name->ptr, feed_tests[i].name) != 0) {

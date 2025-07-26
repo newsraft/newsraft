@@ -19,8 +19,8 @@ echo
 for test_file in tests/*.c; do
 	status=0
 	rm -rf newsraft-test-database*
-	make TEST_FILE="$test_file" test-program 1>>"$log_file" 2>&1
-	env LD_LIBRARY_PATH=. ./newsraft-test 2>&1 || status="$?"
+	make TEST_FILE="$test_file" test-program 1>>"$log_file" 2>&1 || status="$?"
+	[ "$status" = 0 ] && env LD_LIBRARY_PATH=. ./newsraft-test 2>&1 || status="$?"
 	echo "TEST_STATUS:$status" >> "$log_file"
 	echo "[$([ "$status" = 0 ] && echo "${green}OKAY" || echo "${red}FAIL")${reset}] $test_file"
 done | tee -a "$log_file"

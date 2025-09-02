@@ -12,7 +12,11 @@ execute_feed(const struct string *cmd, struct feed_update_state *data)
 	for (int c = fgetc(p); c != EOF; c = fgetc(p)) {
 		catcs(content, c);
 	}
-	pclose(p);
+	int exit_status = pclose(p);
+	if (exit_status != 0) {
+		str_appendf(data->new_errors, "Failed to execute %s\nFailed with exit status %d\n", real_cmd->ptr, exit_status);
+		goto error;
+	}
 	for (const char *i = content->ptr; *i != '\0'; ++i) {
 		if (*i == '<') {
 			INFO("The output has \"<\" character in the beginning - engaging XML parser.");

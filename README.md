@@ -74,7 +74,7 @@ More details: [doc/build-instructions.md](https://codeberg.org/newsraft/newsraft
 
 <details>
 	<summary>Why a raccoon in Newsraft's logo?</summary>
-	Because it's cute, dummy.
+	Because he's cute, dummy. You should call him Malin.
 </details>
 
 <details>

@@ -386,6 +386,7 @@ free_deleted_menus(void)
 		struct menu_state *tmp = menus;
 		menus = menus->prev;
 		free_string(tmp->name);
+		free_string(tmp->search_token);
 		free_items_list(tmp->items);
 		newsraft_free(tmp->feeds);
 		newsraft_free(tmp);
@@ -399,6 +400,7 @@ free_menus(void)
 		struct menu_state *tmp = menus;
 		menus = menus->prev;
 		free_string(tmp->name);
+		free_string(tmp->search_token);
 		free_items_list(tmp->items);
 		newsraft_free(tmp->feeds);
 		newsraft_free(tmp);
@@ -430,15 +432,18 @@ setup_menu(struct menu_state *(*run)(struct menu_state *), const struct string *
 {
 	pthread_mutex_lock(&interface_lock);
 	update_unread_items_count_of_last_menu();
-	struct menu_state *new = newsraft_calloc(1, sizeof(struct menu_state));
+	struct menu_state *new = newsraft_calloc(1, sizeof(*new));
 	new->run            = run;
 	new->feeds_original = feeds;
 	new->feeds_count    = feeds_count;
 	new->flags          = flags;
 	new->prev           = menus;
 	new->find_filter    = ctx;
+	new->search_token   = pop_search_filter();
 	if (!STRING_IS_EMPTY(name)) {
 		cpyss(&new->name, name);
+	} else if (!STRING_IS_EMPTY(new->search_token)) {
+		cpyss(&new->name, new->search_token);
 	} else if (new->find_filter) {
 		new->name = convert_wstring_to_string(new->find_filter);
 	} else if (feeds != NULL && feeds_count == 1) {

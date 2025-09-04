@@ -155,7 +155,7 @@ feeds_menu_loop(struct menu_state *m)
 			case INPUT_TOGGLE_EXPLORE_MODE:
 				return setup_menu(&items_menu_loop, NULL, m->feeds, m->feeds_count, MENU_IS_EXPLORE, NULL);
 			case INPUT_APPLY_SEARCH_MODE_FILTER:
-				return setup_menu(&items_menu_loop, NULL, m->feeds, m->feeds_count, MENU_IS_EXPLORE, NULL);
+				return setup_menu(&items_menu_loop, NULL, m->feeds, m->feeds_count, MENU_IS_SEARCH | MENU_IS_EXPLORE, NULL);
 			case INPUT_NAVIGATE_BACK:
 				if (get_menu_depth() < 2) break;
 				// fall through

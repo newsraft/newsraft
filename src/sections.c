@@ -382,7 +382,7 @@ sections_menu_loop(struct menu_state *m)
 			case INPUT_TOGGLE_EXPLORE_MODE:
 				return setup_menu(&items_menu_loop, NULL, sections[0].feeds, sections[0].feeds_count, MENU_IS_EXPLORE, NULL);
 			case INPUT_APPLY_SEARCH_MODE_FILTER:
-				return setup_menu(&items_menu_loop, NULL, sections[0].feeds, sections[0].feeds_count, MENU_IS_EXPLORE, NULL);
+				return setup_menu(&items_menu_loop, NULL, sections[0].feeds, sections[0].feeds_count, MENU_IS_SEARCH | MENU_IS_EXPLORE, NULL);
 			case INPUT_VIEW_ERRORS:
 				return setup_menu(&errors_pager_loop, NULL, sections_view[m->view_sel]->feeds, sections_view[m->view_sel]->feeds_count, MENU_NORMAL, NULL);
 			case INPUT_SORT_BY_UNREAD:

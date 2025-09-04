@@ -8,7 +8,7 @@ is_item_valid(struct menu_state *ctx, size_t index)
 	if (ctx->items == NULL) {
 		return false;
 	}
-	obtain_items_at_least_up_to_the_given_index(ctx->items, index);
+	obtain_items_at_least_up_to_the_given_index(ctx->items, NULL, index);
 	return index < ctx->items->len ? true : false;
 }
 
@@ -128,21 +128,20 @@ static void
 mark_all_items_read(struct menu_state *ctx, bool status)
 {
 	pthread_mutex_lock(&interface_lock);
-	if (ctx->items->search_filter == NULL) {
-		// Use intermediate variables to avoid race condition
-		struct feed_entry **items_feeds = ctx->items->feeds;
-		size_t items_feeds_count = ctx->items->feeds_count;
-		pthread_mutex_unlock(&interface_lock);
-		mark_feeds_read(items_feeds, items_feeds_count, status);
-		pthread_mutex_lock(&interface_lock);
-	} else {
+	if (ctx->flags & MENU_IS_SEARCH) {
 		for (size_t i = 0; i < ctx->items->len; ++i) {
 			if (db_mark_item_read(ctx->items->ptr[i].rowid, status) == true) {
 				ctx->items->ptr[i].is_unread = !status;
 			}
 		}
+		pthread_mutex_unlock(&interface_lock);
+	} else {
+		// Use intermediate variables to avoid race condition
+		struct feed_entry **items_feeds = ctx->items->feeds;
+		size_t items_feeds_count = ctx->items->feeds_count;
+		pthread_mutex_unlock(&interface_lock);
+		mark_feeds_read(items_feeds, items_feeds_count, status);
 	}
-	pthread_mutex_unlock(&interface_lock);
 	expose_all_visible_entries_of_the_list_menu();
 }
 
@@ -165,9 +164,8 @@ items_menu_loop(struct menu_state *m)
 	items_age += 1;
 	if (m->is_initialized == false) {
 		m->items_age = items_age;
-		m->items = create_items_list(m->feeds_original, m->feeds_count, m->find_filter, NULL);
-		if (m->items == NULL) {
-			return close_menu(); // Error displayed by create_items_list
+		if (!update_menu_item_list(m)) {
+			return close_menu(); // Error displayed by update_menu_item_list()
 		}
 	}
 	start_menu();
@@ -175,7 +173,7 @@ items_menu_loop(struct menu_state *m)
 	while (true) {
 		if (get_cfg_bool(NULL, CFG_MENU_RESPONSIVENESS) && m->items_age != items_age) {
 			m->items_age = items_age;
-			recreate_items_list(&m->items);
+			update_menu_item_list(m);
 		}
 		if (get_cfg_bool(&m->items->ptr[m->view_sel].feed[0]->cfg, CFG_MARK_ITEM_READ_ON_HOVER)) {
 			mark_item_read(m, m->view_sel, true);
@@ -198,10 +196,15 @@ items_menu_loop(struct menu_state *m)
 			case INPUT_COPY_TO_CLIPBOARD: copy_string_to_clipboard(m->items->ptr[m->view_sel].url); break;
 			case INPUT_QUIT_HARD:         return NULL;
 			case INPUT_NAVIGATE_BACK:
-				if (get_menu_depth() < 3 && (m->flags & MENU_IS_EXPLORE && m->find_filter == NULL)) break;
+				if (get_menu_depth() < 3 && (!(m->flags & MENU_IS_SEARCH) && (m->flags & MENU_IS_EXPLORE) && (m->find_filter == NULL)))
+				{
+				  break;
+				}
 				// fall through
 			case INPUT_QUIT_SOFT:
-				if (m->flags & MENU_IS_EXPLORE && m->find_filter == NULL) close_menu();
+				if (!(m->flags & MENU_IS_SEARCH) && (m->flags & MENU_IS_EXPLORE) && (m->find_filter == NULL)) {
+					close_menu();
+				}
 				return close_menu();
 			case INPUT_TOGGLE_EXPLORE_MODE:
 				if (m->flags & MENU_IS_EXPLORE) return close_menu();
@@ -210,8 +213,7 @@ items_menu_loop(struct menu_state *m)
 				if (!(m->flags & MENU_IS_EXPLORE)) break;
 				return setup_menu(&items_menu_loop, NULL, m->items->ptr[m->view_sel].feed, 1, MENU_NORMAL, NULL);
 			case INPUT_APPLY_SEARCH_MODE_FILTER:
-				cpyas(&m->items->search_filter, "", 0);
-				recreate_items_list(&m->items); break;
+				return setup_menu(&items_menu_loop, NULL, m->feeds_original, m->feeds_count, MENU_IS_SEARCH | MENU_IS_EXPLORE, m->find_filter);
 			case INPUT_OPEN_IN_BROWSER:
 				browser = get_cfg_wstring(&m->items->ptr[m->view_sel].feed[0]->cfg, CFG_OPEN_IN_BROWSER_COMMAND);
 				run_formatted_command(browser, get_item_args(m, m->view_sel));
@@ -223,7 +225,7 @@ items_menu_loop(struct menu_state *m)
 			case INPUT_SORT_BY_UNREAD:
 			case INPUT_SORT_BY_ALPHABET:
 			case INPUT_SORT_BY_IMPORTANT:
-				change_items_list_sorting(&m->items, cmd); break;
+				change_items_list_sorting(m, cmd); break;
 			case INPUT_FIND_COMMAND:
 				if (m->find_filter) return setup_menu(&items_menu_loop, NULL, m->feeds_original, m->feeds_count, MENU_IS_EXPLORE | MENU_SWALLOW, arg);;
 				return setup_menu(&items_menu_loop, NULL, m->feeds_original, m->feeds_count, MENU_IS_EXPLORE, arg);

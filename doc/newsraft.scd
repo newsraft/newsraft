@@ -91,10 +91,10 @@ the news in the current context (combines news from all feeds of the current
 menu into one list). This mode may come in handy when you want to quickly scroll
 through all the news without switching between sections and feeds back and forth.
 
-And for dessert, I'll tell you about search functionality. You can type */* to
-begin search input - enter the desired query here and press *Enter*. This will
-open an _items_ menu with a search query applied. To make filtering go away just
-make an empty search (press */* and *Enter* in series).
+And for a dessert, I'll tell you about the search functionality. You can type
+*/* to begin search input - enter the desired query here and press *Enter*. This
+will open up an _items_ menu with all the items matching your query in the
+current context.
 
 # CONFIGURATION
 

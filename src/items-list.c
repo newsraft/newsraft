@@ -28,23 +28,25 @@ append_sorting_order_expression_to_query(struct string *q, int order)
 }
 
 static inline struct string *
-generate_search_query_string(const struct items_list *items)
+generate_search_query_string(const struct menu_state *ctx)
 {
 	struct string *query = crtas("SELECT rowid,feed_url,guid,title,link,publication_date,update_date,unread,important FROM items WHERE ", 101);
-	struct string *cond = generate_items_search_condition(items->feeds, items->feeds_count);
+	struct string *cond = generate_items_search_condition(ctx->items->feeds, ctx->items->feeds_count);
 	if (!STRING_IS_EMPTY(cond)) {
 		catss(query, cond);
 	}
 	free_string(cond);
-	if (!STRING_IS_EMPTY(items->find_filter)) {
+	if (!STRING_IS_EMPTY(ctx->items->find_filter)) {
 		catas(query, " AND (", 6);
-		catss(query, items->find_filter);
+		catss(query, ctx->items->find_filter);
 		catcs(query, ')');
 	}
-	if (!STRING_IS_EMPTY(items->search_filter)) {
-		catas(query, " AND ((title LIKE '%' || ? || '%') OR (content LIKE '%' || ? || '%'))", 69);
+	for (const struct menu_state *m = ctx; m != NULL; m = m->prev) {
+		if (m->search_token) {
+			catas(query, " AND ((title LIKE '%' || ? || '%') OR (content LIKE '%' || ? || '%'))", 69);
+		}
 	}
-	if (append_sorting_order_expression_to_query(query, items->sorting) == false) {
+	if (append_sorting_order_expression_to_query(query, ctx->items->sorting) == false) {
 		free_string(query);
 		return NULL;
 	}
@@ -65,7 +67,6 @@ free_items_list(struct items_list *items)
 		sqlite3_finalize(items->res);
 		free_string(items->query);
 		free_string(items->find_filter);
-		free_string(items->search_filter);
 		free(items->ptr);
 		free(items);
 	}
@@ -85,15 +86,16 @@ find_feed_entry_by_url(struct feed_entry **feeds, size_t feeds_count, const char
 }
 
 void
-obtain_items_at_least_up_to_the_given_index(struct items_list *items, size_t index)
+obtain_items_at_least_up_to_the_given_index(struct items_list *items, sqlite3_stmt *force_res, size_t index)
 {
+	sqlite3_stmt *res = force_res ? force_res : items->res;
 	if (items->finished == true) {
 		return;
 	}
 	const char *text;
 	int status;
 	while (index >= items->len) {
-		status = sqlite3_step(items->res);
+		status = sqlite3_step(res);
 		if (status != SQLITE_ROW) {
 			items->finished = true;
 			return;
@@ -101,25 +103,25 @@ obtain_items_at_least_up_to_the_given_index(struct items_list *items, size_t ind
 
 		items->ptr = newsraft_realloc(items->ptr, sizeof(struct item_entry) * (items->len + 1));
 
-		items->ptr[items->len].rowid = sqlite3_column_int64(items->res, 0);
+		items->ptr[items->len].rowid = sqlite3_column_int64(res, 0);
 
-		text = (const char *)sqlite3_column_text(items->res, 1);
+		text = (const char *)sqlite3_column_text(res, 1);
 		items->ptr[items->len].feed = find_feed_entry_by_url(items->feeds, items->feeds_count, text);
 		if (items->ptr[items->len].feed == NULL) {
 			continue;
 		}
 
-		text = (const char *)sqlite3_column_text(items->res, 2);
+		text = (const char *)sqlite3_column_text(res, 2);
 		if (text == NULL) {
 			continue;
 		}
 		items->ptr[items->len].guid = crtas(text, strlen(text));
 
-		text = (const char *)sqlite3_column_text(items->res, 3);
+		text = (const char *)sqlite3_column_text(res, 3);
 		items->ptr[items->len].title = text == NULL ? crtes(1) : crtas(text, strlen(text));
 		inlinefy_string(items->ptr[items->len].title);
 
-		text = (const char *)sqlite3_column_text(items->res, 4);
+		text = (const char *)sqlite3_column_text(res, 4);
 		items->ptr[items->len].url = crtes(1);
 		// Convert URL to absolute notation in case it's stored relative.
 		//
@@ -142,8 +144,8 @@ obtain_items_at_least_up_to_the_given_index(struct items_list *items, size_t ind
 			free(full_url);
 		}
 
-		items->ptr[items->len].pub_date = sqlite3_column_int64(items->res, 5);
-		items->ptr[items->len].upd_date = sqlite3_column_int64(items->res, 6);
+		items->ptr[items->len].pub_date = sqlite3_column_int64(res, 5);
+		items->ptr[items->len].upd_date = sqlite3_column_int64(res, 6);
 		if (items->ptr[items->len].pub_date <= 0 && items->ptr[items->len].upd_date > 0) {
 			items->ptr[items->len].pub_date = items->ptr[items->len].upd_date;
 		}
@@ -153,99 +155,83 @@ obtain_items_at_least_up_to_the_given_index(struct items_list *items, size_t ind
 		items->ptr[items->len].date_str = get_cfg_date(NULL, CFG_LIST_ENTRY_DATE_FORMAT, items->ptr[items->len].upd_date);
 		items->ptr[items->len].pub_date_str = get_cfg_date(NULL, CFG_LIST_ENTRY_DATE_FORMAT, items->ptr[items->len].pub_date);
 
-		items->ptr[items->len].is_unread = sqlite3_column_int(items->res, 7); // unread
-		items->ptr[items->len].is_important = sqlite3_column_int(items->res, 8); // important
+		items->ptr[items->len].is_unread = sqlite3_column_int(res, 7); // unread
+		items->ptr[items->len].is_important = sqlite3_column_int(res, 8); // important
 
 		items->len += 1;
 	}
 }
 
-struct items_list *
-create_items_list(struct feed_entry **feeds, size_t feeds_count, const struct wstring *find_filter, const struct items_list *previous_items)
+bool
+update_menu_item_list(struct menu_state *ctx)
 {
-	INFO("Generating items list.");
-	if (feeds_count == 0) {
-		return NULL;
+	INFO("Updating menu's items list.");
+
+	if (ctx->feeds_count == 0) {
+		return false;
 	}
 
-	struct items_list *items = newsraft_calloc(1, sizeof(struct items_list));
-
-	if (previous_items) {
-		items->sorting = previous_items->sorting;
-	} else {
-		items->sorting = get_sorting_id(get_cfg_string(NULL, CFG_MENU_ITEM_SORTING)->ptr);
+	if (ctx->items == NULL) {
+		INFO("Items list is empty - creating a new one.");
+		ctx->items = newsraft_calloc(1, sizeof(*ctx->items));
+		ctx->items->feeds = ctx->feeds_original;
+		ctx->items->feeds_count = ctx->feeds_count;
+		ctx->items->sorting = get_sorting_id(get_cfg_string(NULL, CFG_MENU_ITEM_SORTING)->ptr);
+		ctx->items->find_filter = ctx->find_filter ? convert_wstring_to_string(ctx->find_filter) : NULL;
 	}
-
-	if (previous_items && !STRING_IS_EMPTY(previous_items->find_filter)) {
-		cpyss(&items->find_filter, previous_items->find_filter);
-	} else if (find_filter) {
-		items->find_filter = convert_wstring_to_string(find_filter);
-	}
-
-	if (previous_items && !STRING_IS_EMPTY(previous_items->search_filter)) {
-		cpyss(&items->search_filter, previous_items->search_filter);
-	} else {
-		items->search_filter = pop_search_filter();
-	}
-
-	items->feeds = feeds;
-	items->feeds_count = feeds_count;
-	items->query = generate_search_query_string(items);
-	if (items->query == NULL) {
+	struct string *new_query = generate_search_query_string(ctx);
+	if (new_query == NULL) {
 		goto undo1;
 	}
-	items->res = db_prepare(items->query->ptr, items->query->len + 1, NULL);
-	if (items->res == NULL) {
+	sqlite3_stmt *new_res = db_prepare(new_query->ptr, new_query->len + 1, NULL);
+	if (new_res == NULL) {
 		fail_status("Can't run items search query! Make sure all item-rule settings are valid SQL conditions.");
 		goto undo2;
 	}
-	for (size_t i = 0; i < feeds_count; ++i) {
-		db_bind_string(items->res, i + 1, feeds[i]->url);
+	for (size_t i = 0; i < ctx->items->feeds_count; ++i) {
+		db_bind_string(new_res, i + 1, ctx->items->feeds[i]->url);
 	}
-	if (!STRING_IS_EMPTY(items->search_filter)) {
-		db_bind_string(items->res, feeds_count + 1, items->search_filter);
-		db_bind_string(items->res, feeds_count + 2, items->search_filter);
+	int search_token_iter = 0;
+	for (const struct menu_state *m = ctx; m != NULL; m = m->prev) {
+		if (m->search_token) {
+			search_token_iter += 1;
+			db_bind_string(new_res, ctx->items->feeds_count + search_token_iter, m->search_token);
+			search_token_iter += 1;
+			db_bind_string(new_res, ctx->items->feeds_count + search_token_iter, m->search_token);
+		}
 	}
-	obtain_items_at_least_up_to_the_given_index(items, 0);
-	if (items->len < 1) {
-		if (!STRING_IS_EMPTY(items->search_filter)) {
+	obtain_items_at_least_up_to_the_given_index(ctx->items, new_res, 0);
+	if (ctx->items->len < 1) {
+		if (search_token_iter > 0) {
 			info_status("No items found. Search query didn't get any matches!");
-		} else if (!STRING_IS_EMPTY(items->find_filter)) {
+		} else if (!STRING_IS_EMPTY(ctx->items->find_filter)) {
 			info_status("No items found. Find query didn't get any matches!");
 		} else {
 			fail_status("No items found. Make sure this feed is updated!");
 		}
 		goto undo3;
 	}
-	return items;
-undo3:
-	sqlite3_finalize(items->res);
-undo2:
-	free_string(items->query);
-undo1:
-	free_string(items->find_filter);
-	free_string(items->search_filter);
-	free(items);
-	return NULL;
-}
-
-bool
-recreate_items_list(struct items_list **items)
-{
-	struct items_list *new_items = create_items_list((*items)->feeds, (*items)->feeds_count, NULL, *items);
-	if (new_items == NULL) {
-		return false;
-	}
 	pthread_mutex_lock(&interface_lock);
-	free_items_list(*items);
-	*items = new_items;
+	sqlite3_finalize(ctx->items->res);
+	free_string(ctx->items->query);
+	ctx->items->res = new_res;
+	ctx->items->query = new_query;
 	reset_list_menu_unprotected();
 	pthread_mutex_unlock(&interface_lock);
 	return true;
+undo3:
+	sqlite3_finalize(new_res);
+undo2:
+	free_string(new_query);
+undo1:
+	free_string(ctx->items->find_filter);
+	newsraft_free(ctx->items);
+	ctx->items = NULL;
+	return false;
 }
 
 void
-change_items_list_sorting(struct items_list **items, input_id cmd)
+change_items_list_sorting(struct menu_state *ctx, input_id cmd)
 {
 	static const struct { int primary; int secondary; } sort_map[] = {
 		[INPUT_SORT_BY_TIME]             = {SORT_BY_TIME_DESC,             SORT_BY_TIME_ASC},
@@ -256,7 +242,7 @@ change_items_list_sorting(struct items_list **items, input_id cmd)
 		[INPUT_SORT_BY_ALPHABET]         = {SORT_BY_ALPHABET_ASC,          SORT_BY_ALPHABET_DESC},
 		[INPUT_SORT_BY_IMPORTANT]        = {SORT_BY_IMPORTANT_DESC,        SORT_BY_IMPORTANT_ASC},
 	};
-	(*items)->sorting = (*items)->sorting == sort_map[cmd].primary ? sort_map[cmd].secondary : sort_map[cmd].primary;
-	recreate_items_list(items);
-	info_status(get_sorting_message((*items)->sorting), "items");
+	ctx->items->sorting = ctx->items->sorting == sort_map[cmd].primary ? sort_map[cmd].secondary : sort_map[cmd].primary;
+	update_menu_item_list(ctx);
+	info_status(get_sorting_message(ctx->items->sorting), "items");
 }

@@ -78,9 +78,10 @@ enum {
 
 enum {
 	MENU_NORMAL           = 0,
-	MENU_IS_EXPLORE       = 1,  // Tell items menu to use explore mode
-	MENU_SWALLOW          = 2,  // Replace current menu with this menu
-	MENU_DISABLE_SETTINGS = 4,
+	MENU_IS_EXPLORE       = 1, // Tell items menu to use explore mode
+	MENU_IS_SEARCH        = 2, // Identifies items search menu
+	MENU_SWALLOW          = 4, // Replace current menu with this menu
+	MENU_DISABLE_SETTINGS = 8,
 };
 
 typedef uint8_t sorting_method_t;
@@ -179,7 +180,6 @@ struct items_list {
 	sqlite3_stmt *res;
 	struct string *query;
 	struct string *find_filter;
-	struct string *search_filter;
 	struct item_entry *ptr;
 	size_t len;
 	bool finished;
@@ -211,6 +211,7 @@ struct menu_state {
 	size_t view_max;                    // Index of the last visible entry
 	bool is_initialized;
 	bool is_deleted;
+	struct string *search_token;
 	const struct wstring *entry_format;
 	const struct wstring *find_filter;
 	bool (*enumerator)(struct menu_state *ctx, size_t index); // Checks if index is valid
@@ -377,10 +378,9 @@ void tell_items_menu_to_regenerate(void);
 struct menu_state *items_menu_loop(struct menu_state *dest);
 
 // See "items-list.c" file for implementation.
-struct items_list *create_items_list(struct feed_entry **feeds, size_t feeds_count, const struct wstring *find_filter, const struct items_list *previous_items);
-bool recreate_items_list(struct items_list **items);
-void obtain_items_at_least_up_to_the_given_index(struct items_list *items, size_t index);
-void change_items_list_sorting(struct items_list **items, input_id cmd);
+bool update_menu_item_list(struct menu_state *ctx);
+void obtain_items_at_least_up_to_the_given_index(struct items_list *items, sqlite3_stmt *force_res, size_t index);
+void change_items_list_sorting(struct menu_state *ctx, input_id cmd);
 void free_items_list(struct items_list *items);
 
 // See "items-pager.c" file for implementation.

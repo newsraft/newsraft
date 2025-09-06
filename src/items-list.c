@@ -216,7 +216,9 @@ update_menu_item_list(struct menu_state *ctx)
 	free_string(ctx->items->query);
 	ctx->items->res = new_res;
 	ctx->items->query = new_query;
-	reset_list_menu_unprotected();
+	if (ctx->is_initialized) {
+		reset_list_menu_unprotected();
+	}
 	pthread_mutex_unlock(&interface_lock);
 	return true;
 undo3:

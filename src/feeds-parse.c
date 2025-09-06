@@ -1,15 +1,6 @@
 #include <string.h>
 #include "newsraft.h"
 
-static inline void
-remove_trailing_slashes_from_string(struct string *str)
-{
-	while ((str->len > 0) && (str->ptr[str->len - 1] == '/')) {
-		str->len -= 1;
-	}
-	str->ptr[str->len] = '\0';
-}
-
 static inline bool
 check_url_for_validity(const struct string *url)
 {
@@ -96,6 +87,14 @@ parse_feeds_file(void)
 				len += 1;
 			}
 			cpyas(&feed.url, line->ptr, len);
+			// Here you may want to remove the trailing slashes at the end of the URL.
+			// We MUST NOT do that, because a URL with and without a trailing slash can
+			// point to different resources. Treating them alike breaks HTTP semantics.
+			// Actually removing the trailing slashes backfired at us once. Here's link:
+			// https://codeberg.org/newsraft/newsraft/issues/224
+			if (!check_url_for_validity(feed.url)) {
+				goto error;
+			}
 			remove_start_of_string(line, len);
 		}
 		trim_whitespace_from_string(line);
@@ -132,10 +131,6 @@ parse_feeds_file(void)
 
 		if (is_section == true)
 			continue;
-
-		remove_trailing_slashes_from_string(feed.url);
-		if (feed.url->ptr[0] != '$' && check_url_for_validity(feed.url) == false)
-			goto error;
 
 		struct feed_entry *feed_ptr = copy_feed_to_section(&feed, section_index);
 		if (feed_ptr == NULL)

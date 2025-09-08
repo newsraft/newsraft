@@ -101,7 +101,7 @@ static const struct newsraft_execution_stage regular_mode[] = {
 	{"register signal handlers",      register_signal_handlers,        NULL},
 	{"assign default binds",          assign_default_binds,            free_default_binds},
 	{"load config file",              parse_config_file,               NULL},
-	{"initialize user interface",     ui_init,                         ui_stop},
+	{"initialize user interface",     ui_init,                         ui_term},
 	{"initialize database",           db_init,                         db_stop},
 	{"execute database optimization", exec_database_file_optimization, NULL},
 	{"load feeds file",               parse_feeds_file,                free_sections},

@@ -455,7 +455,7 @@ bool db_change_unread_status_of_all_items_in_feeds(struct feed_entry **feeds, si
 
 // See "interface.c" file for implementation.
 bool ui_init(void);
-void ui_stop(void);
+void ui_term(void);
 bool ui_is_running(void);
 bool run_menu_loop(void);
 input_id resize_handler(void);

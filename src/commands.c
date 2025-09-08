@@ -7,13 +7,11 @@ execute_system_command(const char *cmd)
 {
 	info_status("Executing %s", cmd);
 	pthread_mutex_lock(&interface_lock);
-	NEWSRAFT_UI(tb_set_cursor(0, 0)); // Some programs expect that the cursor is enabled.
-	NEWSRAFT_UI(tb_present());
+	NEWSRAFT_UI(ui_term());
 	int status = system(cmd);
 	fflush(stdout);
 	fflush(stderr);
-	NEWSRAFT_UI(tb_invalidate());
-	NEWSRAFT_UI(tb_hide_cursor());
+	NEWSRAFT_UI(ui_init());
 	pthread_mutex_unlock(&interface_lock);
 	// Resizing could be handled by the program running on top, so we have to catch up.
 	if (ui_is_running() && call_resize_handler_if_current_list_menu_size_is_different_from_actual() == false) {

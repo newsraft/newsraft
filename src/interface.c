@@ -41,7 +41,10 @@ ui_log_function(const char *fmt, ...)
 bool
 ui_init(void)
 {
+	INFO("Initializing user interface...");
+
 	tb_set_log_function(ui_log_function);
+	// Please, note that tb_init() hides the cursor automatically for us.
 	int status = tb_init();
 	if (status != TB_OK) {
 		write_error("Initialization of user interface failed: %s.\n", tb_strerror(status));
@@ -50,10 +53,6 @@ ui_init(void)
 	if (obtain_list_menu_size(&list_menu_width, &list_menu_height) == false) {
 		write_error("Invalid terminal size obtained!\n");
 		return false;
-	}
-	status = tb_hide_cursor();
-	if (status != TB_OK) {
-		WARN("Can't hide cursor: %s.", tb_strerror(status));
 	}
 	if (!get_cfg_bool(NULL, CFG_IGNORE_NO_COLOR) && getenv("NO_COLOR") != NULL) {
 		INFO("NO_COLOR environment variable is set, canceling colors initialization.");
@@ -65,8 +64,10 @@ ui_init(void)
 }
 
 void
-ui_stop(void)
+ui_term(void)
 {
+	INFO("Terminating user interface...");
+
 	tb_shutdown();
 }
 

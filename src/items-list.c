@@ -28,17 +28,17 @@ append_sorting_order_expression_to_query(struct string *q, int order)
 }
 
 static inline struct string *
-generate_search_query_string(const struct menu_state *ctx)
+generate_search_query_string(const struct menu_state *ctx, const struct items_list *items)
 {
 	struct string *query = crtas("SELECT rowid,feed_url,guid,title,link,publication_date,update_date,unread,important FROM items WHERE ", 101);
-	struct string *cond = generate_items_search_condition(ctx->items->feeds, ctx->items->feeds_count);
+	struct string *cond = generate_items_search_condition(items->feeds, items->feeds_count);
 	if (!STRING_IS_EMPTY(cond)) {
 		catss(query, cond);
 	}
 	free_string(cond);
-	if (!STRING_IS_EMPTY(ctx->items->find_filter)) {
+	if (!STRING_IS_EMPTY(items->find_filter)) {
 		catas(query, " AND (", 6);
-		catss(query, ctx->items->find_filter);
+		catss(query, items->find_filter);
 		catcs(query, ')');
 	}
 	for (const struct menu_state *m = ctx; m != NULL; m = m->prev) {
@@ -46,7 +46,7 @@ generate_search_query_string(const struct menu_state *ctx)
 			catas(query, " AND ((title LIKE '%' || ? || '%') OR (content LIKE '%' || ? || '%'))", 69);
 		}
 	}
-	if (append_sorting_order_expression_to_query(query, ctx->items->sorting) == false) {
+	if (append_sorting_order_expression_to_query(query, items->sorting) == false) {
 		free_string(query);
 		return NULL;
 	}
@@ -171,40 +171,38 @@ update_menu_item_list(struct menu_state *ctx)
 		return false;
 	}
 
-	if (ctx->items == NULL) {
-		INFO("Items list is empty - creating a new one.");
-		ctx->items = newsraft_calloc(1, sizeof(*ctx->items));
-		ctx->items->feeds = ctx->feeds_original;
-		ctx->items->feeds_count = ctx->feeds_count;
-		ctx->items->sorting = get_sorting_id(get_cfg_string(NULL, CFG_MENU_ITEM_SORTING)->ptr);
-		ctx->items->find_filter = ctx->find_filter ? convert_wstring_to_string(ctx->find_filter) : NULL;
-	}
-	struct string *new_query = generate_search_query_string(ctx);
-	if (new_query == NULL) {
+	struct items_list *new_items = newsraft_calloc(1, sizeof(*new_items));
+	new_items->feeds = ctx->feeds_original;
+	new_items->feeds_count = ctx->feeds_count;
+	new_items->sorting = ctx->items ? ctx->items->sorting : get_sorting_id(get_cfg_string(NULL, CFG_MENU_ITEM_SORTING)->ptr);
+	new_items->find_filter = ctx->find_filter ? convert_wstring_to_string(ctx->find_filter) : NULL;
+	new_items->query = generate_search_query_string(ctx, new_items);
+	if (new_items->query == NULL) {
 		goto undo1;
 	}
-	sqlite3_stmt *new_res = db_prepare(new_query->ptr, new_query->len + 1, NULL);
-	if (new_res == NULL) {
+	new_items->res = db_prepare(new_items->query->ptr, new_items->query->len + 1, NULL);
+	if (new_items->res == NULL) {
 		fail_status("Can't run items search query! Make sure all item-rule settings are valid SQL conditions.");
 		goto undo2;
 	}
-	for (size_t i = 0; i < ctx->items->feeds_count; ++i) {
-		db_bind_string(new_res, i + 1, ctx->items->feeds[i]->url);
+	for (size_t i = 0; i < new_items->feeds_count; ++i) {
+		db_bind_string(new_items->res, i + 1, new_items->feeds[i]->url);
 	}
 	int search_token_iter = 0;
 	for (const struct menu_state *m = ctx; m != NULL; m = m->prev) {
 		if (m->search_token) {
 			search_token_iter += 1;
-			db_bind_string(new_res, ctx->items->feeds_count + search_token_iter, m->search_token);
+			db_bind_string(new_items->res, new_items->feeds_count + search_token_iter, m->search_token);
 			search_token_iter += 1;
-			db_bind_string(new_res, ctx->items->feeds_count + search_token_iter, m->search_token);
+			db_bind_string(new_items->res, new_items->feeds_count + search_token_iter, m->search_token);
 		}
 	}
-	obtain_items_at_least_up_to_the_given_index(ctx->items, new_res, 0);
-	if (ctx->items->len < 1) {
+
+	obtain_items_at_least_up_to_the_given_index(new_items, new_items->res, 0);
+	if (new_items->len < 1) {
 		if (search_token_iter > 0) {
 			info_status("No items found. Search query didn't get any matches!");
-		} else if (!STRING_IS_EMPTY(ctx->items->find_filter)) {
+		} else if (!STRING_IS_EMPTY(new_items->find_filter)) {
 			info_status("No items found. Find query didn't get any matches!");
 		} else {
 			fail_status("No items found. Make sure this feed is updated!");
@@ -212,23 +210,20 @@ update_menu_item_list(struct menu_state *ctx)
 		goto undo3;
 	}
 	pthread_mutex_lock(&interface_lock);
-	sqlite3_finalize(ctx->items->res);
-	free_string(ctx->items->query);
-	ctx->items->res = new_res;
-	ctx->items->query = new_query;
+	free_items_list(ctx->items);
+	ctx->items = new_items;
 	if (ctx->is_initialized) {
 		reset_list_menu_unprotected();
 	}
 	pthread_mutex_unlock(&interface_lock);
 	return true;
 undo3:
-	sqlite3_finalize(new_res);
+	sqlite3_finalize(new_items->res);
 undo2:
-	free_string(new_query);
+	free_string(new_items->query);
 undo1:
-	free_string(ctx->items->find_filter);
-	newsraft_free(ctx->items);
-	ctx->items = NULL;
+	free_string(new_items->find_filter);
+	newsraft_free(new_items);
 	return false;
 }
 

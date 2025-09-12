@@ -65,7 +65,7 @@ extern "C" {
 
 // __ffi_start
 
-#define TB_VERSION_STR "2.6.0-dev"
+#define TB_VERSION_STR "2.7.0-dev"
 
 /* The following compile-time options are supported:
  *
@@ -508,6 +508,25 @@ int tb_set_cell_ex(int x, int y, uint32_t *ch, size_t nch, uintattr_t fg,
     uintattr_t bg);
 int tb_extend_cell(int x, int y, uint32_t ch);
 
+/* Return a pointer to the cell at the specified position.
+ *
+ * Cell memory may be invalid or freed after subsequent library calls, so
+ * callers must copy any data that they need to persist across calls. Modifying
+ * cell memory results in undefined behavior.
+ *
+ * Callers may use pointer math to access cells relative to the requested one.
+ * The cell grid memory layout is a contiguous array indexable by the expression
+ * `(y * width) + x`.
+ *
+ * If `back` is non-zero, return cell from the internal back buffer. Otherwise,
+ * return cell from the front buffer. Note the front buffer is updated on each
+ * call to `tb_present`, whereas the back buffer is updated immediately by
+ * `tb_set_cell` and other functions that modify cell contents.
+ *
+ * If the position is invalid, `TB_ERR_OUT_OF_BOUNDS` is returned.
+ */
+int tb_get_cell(int x, int y, int back, struct tb_cell **cell);
+
 /* Set the input mode. Termbox has two input modes:
  *
  * 1. `TB_INPUT_ESC`
@@ -765,28 +784,28 @@ void tb_set_log_function(int (*fn)(const char *fmt, ...));
 #define if_not_init_return()                                                   \
     if (!global.initialized) return TB_ERR_NOT_INIT
 
-struct bytebuf_t {
+struct bytebuf {
     char *buf;
     size_t len;
     size_t cap;
 };
 
-struct cellbuf_t {
+struct cellbuf {
     int width;
     int height;
     struct tb_cell *cells;
 };
 
-struct cap_trie_t {
+struct cap_trie {
     char c;
-    struct cap_trie_t *children;
+    struct cap_trie *children;
     size_t nchildren;
     int is_leaf;
     uint16_t key;
     uint8_t mod;
 };
 
-struct tb_global_t {
+struct tb_global {
     int ttyfd;
     int rfd;
     int wfd;
@@ -807,11 +826,11 @@ struct tb_global_t {
     char *terminfo;
     size_t nterminfo;
     const char *caps[TB_CAP__COUNT];
-    struct cap_trie_t cap_trie;
-    struct bytebuf_t in;
-    struct bytebuf_t out;
-    struct cellbuf_t back;
-    struct cellbuf_t front;
+    struct cap_trie cap_trie;
+    struct bytebuf in;
+    struct bytebuf out;
+    struct cellbuf back;
+    struct cellbuf front;
     struct termios orig_tios;
     int has_orig_tios;
     int last_errno;
@@ -822,7 +841,7 @@ struct tb_global_t {
     char errbuf[1024];
 };
 
-static struct tb_global_t global = {0};
+static struct tb_global global = {0};
 
 /* BEGIN codegen c */
 /* Produced by ./codegen.sh on Tue, 03 Sep 2024 04:17:48 +0000 */
@@ -1529,9 +1548,9 @@ static int init_term_attrs(void);
 static int init_term_caps(void);
 static int init_cap_trie(void);
 static int cap_trie_add(const char *cap, uint16_t key, uint8_t mod);
-static int cap_trie_find(const char *buf, size_t nbuf, struct cap_trie_t **last,
+static int cap_trie_find(const char *buf, size_t nbuf, struct cap_trie **last,
     size_t *depth);
-static int cap_trie_deinit(struct cap_trie_t *node);
+static int cap_trie_deinit(struct cap_trie *node);
 static int init_resize_handler(void);
 static int send_init_escape_codes(void);
 static int send_clear(void);
@@ -1568,18 +1587,18 @@ static int cell_set(struct tb_cell *cell, uint32_t *ch, size_t nch,
     uintattr_t fg, uintattr_t bg);
 static int cell_reserve_ech(struct tb_cell *cell, size_t n);
 static int cell_free(struct tb_cell *cell);
-static int cellbuf_init(struct cellbuf_t *c, int w, int h);
-static int cellbuf_free(struct cellbuf_t *c);
-static int cellbuf_clear(struct cellbuf_t *c);
-static int cellbuf_get(struct cellbuf_t *c, int x, int y, struct tb_cell **out);
-static int cellbuf_in_bounds(struct cellbuf_t *c, int x, int y);
-static int cellbuf_resize(struct cellbuf_t *c, int w, int h);
-static int bytebuf_puts(struct bytebuf_t *b, const char *str);
-static int bytebuf_nputs(struct bytebuf_t *b, const char *str, size_t nstr);
-static int bytebuf_shift(struct bytebuf_t *b, size_t n);
-static int bytebuf_flush(struct bytebuf_t *b, int fd);
-static int bytebuf_reserve(struct bytebuf_t *b, size_t sz);
-static int bytebuf_free(struct bytebuf_t *b);
+static int cellbuf_init(struct cellbuf *c, int w, int h);
+static int cellbuf_free(struct cellbuf *c);
+static int cellbuf_clear(struct cellbuf *c);
+static int cellbuf_get(struct cellbuf *c, int x, int y, struct tb_cell **out);
+static int cellbuf_in_bounds(struct cellbuf *c, int x, int y);
+static int cellbuf_resize(struct cellbuf *c, int w, int h);
+static int bytebuf_puts(struct bytebuf *b, const char *str);
+static int bytebuf_nputs(struct bytebuf *b, const char *str, size_t nstr);
+static int bytebuf_shift(struct bytebuf *b, size_t n);
+static int bytebuf_flush(struct bytebuf *b, int fd);
+static int bytebuf_reserve(struct bytebuf *b, size_t sz);
+static int bytebuf_free(struct bytebuf *b);
 static int tb_iswprint_ex(uint32_t ch, int *width);
 
 int tb_init(void) {
@@ -1605,7 +1624,7 @@ int tb_init_rwfd(int rfd, int wfd) {
     int rv;
 
     tb_reset();
-    global.ttyfd = rfd == wfd && isatty(rfd) ? rfd : -1;
+    global.ttyfd = isatty(rfd) ? rfd : (isatty(wfd) ? wfd : -1);
     global.rfd = rfd;
     global.wfd = wfd;
 
@@ -1773,6 +1792,11 @@ int tb_set_cell_ex(int x, int y, uint32_t *ch, size_t nch, uintattr_t fg,
     if_err_return(rv, cellbuf_get(&global.back, x, y, &cell));
     if_err_return(rv, cell_set(cell, ch, nch, fg, bg));
     return TB_OK;
+}
+
+int tb_get_cell(int x, int y, int back, struct tb_cell **cell) {
+    if_not_init_return();
+    return cellbuf_get(back ? &global.back : &global.front, x, y, cell);
 }
 
 int tb_extend_cell(int x, int y, uint32_t ch) {
@@ -2211,7 +2235,7 @@ static int init_cap_trie(void) {
 }
 
 static int cap_trie_add(const char *cap, uint16_t key, uint8_t mod) {
-    struct cap_trie_t *next, *node = &global.cap_trie;
+    struct cap_trie *next, *node = &global.cap_trie;
     size_t i, j;
 
     if (!cap || strlen(cap) <= 0) return TB_OK; // Nothing to do for empty caps
@@ -2230,7 +2254,7 @@ static int cap_trie_add(const char *cap, uint16_t key, uint8_t mod) {
         if (!next) {
             // We need to add a new child to node
             node->nchildren += 1;
-            node->children = (struct cap_trie_t *)tb_realloc(node->children,
+            node->children = (struct cap_trie *)tb_realloc(node->children,
                 sizeof(*node) * node->nchildren);
             if (!node->children) {
                 return TB_ERR_MEM;
@@ -2255,9 +2279,9 @@ static int cap_trie_add(const char *cap, uint16_t key, uint8_t mod) {
     return TB_OK;
 }
 
-static int cap_trie_find(const char *buf, size_t nbuf, struct cap_trie_t **last,
+static int cap_trie_find(const char *buf, size_t nbuf, struct cap_trie **last,
     size_t *depth) {
-    struct cap_trie_t *next, *node = &global.cap_trie;
+    struct cap_trie *next, *node = &global.cap_trie;
     size_t i, j;
     *last = node;
     *depth = 0;
@@ -2286,7 +2310,7 @@ static int cap_trie_find(const char *buf, size_t nbuf, struct cap_trie_t **last,
     return TB_OK;
 }
 
-static int cap_trie_deinit(struct cap_trie_t *node) {
+static int cap_trie_deinit(struct cap_trie *node) {
     size_t j;
     for (j = 0; j < node->nchildren; j++) {
         cap_trie_deinit(&node->children[j]);
@@ -2379,10 +2403,9 @@ static int update_term_size_via_esc(void) {
     FD_ZERO(&fds);
     FD_SET(global.rfd, &fds);
 
-    struct timeval timeout = {
-        .tv_sec = 0,
-        .tv_usec = TB_RESIZE_FALLBACK_MS * 1000,
-    };
+    struct timeval timeout;
+    timeout.tv_sec = 0;
+    timeout.tv_usec = TB_RESIZE_FALLBACK_MS * 1000;
 
     int select_rv = select(global.rfd + 1, &fds, NULL, NULL, &timeout);
 
@@ -2764,7 +2787,7 @@ static int wait_event(struct tb_event *event, int timeout) {
 
 static int extract_event(struct tb_event *event) {
     int rv;
-    struct bytebuf_t *in = &global.in;
+    struct bytebuf *in = &global.in;
 
     if (in->len == 0) return TB_ERR;
 
@@ -2828,7 +2851,7 @@ static int extract_esc(struct tb_event *event) {
 static int extract_esc_user(struct tb_event *event, int is_post) {
     int rv;
     size_t consumed = 0;
-    struct bytebuf_t *in = &global.in;
+    struct bytebuf *in = &global.in;
     int (*fn)(struct tb_event *, size_t *);
 
     fn = is_post ? global.fn_extract_esc_post : global.fn_extract_esc_pre;
@@ -2844,8 +2867,8 @@ static int extract_esc_user(struct tb_event *event, int is_post) {
 
 static int extract_esc_cap(struct tb_event *event) {
     int rv;
-    struct bytebuf_t *in = &global.in;
-    struct cap_trie_t *node;
+    struct bytebuf *in = &global.in;
+    struct cap_trie *node;
     size_t depth;
 
     if_err_return(rv, cap_trie_find(in->buf, in->len, &node, &depth));
@@ -2866,181 +2889,152 @@ static int extract_esc_cap(struct tb_event *event) {
 }
 
 static int extract_esc_mouse(struct tb_event *event) {
-    struct bytebuf_t *in = &global.in;
+    struct bytebuf *in = &global.in;
+    size_t buf_shift = 0;
 
+    // Bail if not enough to determine type
+    if (in->len < 2) {
+        return TB_ERR_NEED_MORE;
+    } else if (in->buf[1] != '[') {
+        return TB_ERR;
+    } else if (in->len < 3) {
+        return TB_ERR_NEED_MORE;
+    }
+
+    // Discern type of mouse event from 3rd byte
+    int type = 0;
     enum { TYPE_VT200 = 0, TYPE_1006, TYPE_1015, TYPE_MAX };
-
-    const char *cmp[TYPE_MAX] = {//
+    if (in->buf[2] == 'M') {
         // X10 mouse encoding, the simplest one
         // \x1b [ M Cb Cx Cy
-        [TYPE_VT200] = "\x1b[M",
+        type = TYPE_VT200;
+    } else if (in->buf[2] == '<') {
         // xterm 1006 extended mode or urxvt 1015 extended mode
         // xterm: \x1b [ < Cb ; Cx ; Cy (M or m)
-        [TYPE_1006] = "\x1b[<",
+        type = TYPE_1006;
+    } else {
         // urxvt: \x1b [ Cb ; Cx ; Cy M
-        [TYPE_1015] = "\x1b["};
+        type = TYPE_1015;
+    }
 
-    int type = 0;
-    int ret = TB_ERR;
+    switch (type) {
+        case TYPE_VT200: {
+            // In this mode, we need 6 bytes
+            if (in->len < 6) return TB_ERR_NEED_MORE;
 
-    // Unrolled at compile-time (probably)
-    for (; type < TYPE_MAX; type++) {
-        size_t size = strlen(cmp[type]);
+            int b = in->buf[3] - 0x20;
 
-        if (in->len >= size && (strncmp(cmp[type], in->buf, size)) == 0) {
+            switch (b & 3) {
+                case 0:
+                    event->key = ((b & 64) != 0) ? TB_KEY_MOUSE_WHEEL_UP
+                                                 : TB_KEY_MOUSE_LEFT;
+                    break;
+                case 1:
+                    event->key = ((b & 64) != 0) ? TB_KEY_MOUSE_WHEEL_DOWN
+                                                 : TB_KEY_MOUSE_MIDDLE;
+                    break;
+                case 2:
+                    event->key = TB_KEY_MOUSE_RIGHT;
+                    break;
+                case 3:
+                    event->key = TB_KEY_MOUSE_RELEASE;
+                    break;
+                default:
+                    return TB_ERR;
+            }
+
+            if ((b & 32) != 0) event->mod |= TB_MOD_MOTION;
+
+            // the coord is 1,1 for upper left
+            event->x = ((uint8_t)in->buf[4]) - 0x21;
+            event->y = ((uint8_t)in->buf[5]) - 0x21;
+
+            // Eat 6 bytes
+            buf_shift = 6;
+            break;
+        }
+
+        case TYPE_1006:
+            // fallthrough
+
+        case TYPE_1015: {
+            int num[3] = {-1, -1, -1};
+            int num_i = 0;
+            int cur_num = -1;
+            char trail = ' ';
+
+            size_t i = 2;
+            if (type == TYPE_1006) ++i; // skip '<'
+
+            // Parse %d;%d;%d[mM] into `num`
+            while (i < in->len && num_i < 3) {
+                char c = in->buf[i];
+                if (c >= '0' && c <= '9') {
+                    // Digit
+                    if (cur_num == -1) cur_num = 0;
+                    cur_num *= 10;
+                    cur_num += (int)(c - '0');
+                } else if (cur_num != -1 &&
+                           ((num_i < 2 && c == ';') ||
+                               (num_i == 2 && (c == 'm' || c == 'M'))))
+                {
+                    // We're at a semi-colon, 'm', or 'M'
+                    // and we have a number
+                    num[num_i] = cur_num;
+                    ++num_i;
+                    cur_num = -1;
+                    trail = c;
+                } else {
+                    // Something else; not a mouse event
+                    return TB_ERR;
+                }
+                ++i;
+            }
+
+            // If we didn't get to the 3rd number, we need more
+            if (num[2] == -1) return TB_ERR_NEED_MORE;
+
+            // We have a valid mouse event, eat `i` bytes from the buffer
+            buf_shift = i;
+
+            if (type == TYPE_1015) num[0] -= 0x20;
+
+            switch (num[0] & 3) {
+                case 0:
+                    event->key = ((num[0] & 64) != 0) ? TB_KEY_MOUSE_WHEEL_UP
+                                                      : TB_KEY_MOUSE_LEFT;
+                    break;
+                case 1:
+                    event->key = ((num[0] & 64) != 0) ? TB_KEY_MOUSE_WHEEL_DOWN
+                                                      : TB_KEY_MOUSE_MIDDLE;
+                    break;
+                case 2:
+                    event->key = TB_KEY_MOUSE_RIGHT;
+                    break;
+                case 3:
+                    event->key = TB_KEY_MOUSE_RELEASE;
+                    break;
+                default:
+                    return TB_ERR;
+            }
+
+            // on xterm mouse release is signaled by lowercase m
+            if (trail == 'm') event->key = TB_KEY_MOUSE_RELEASE;
+
+            if ((num[0] & 32) != 0) event->mod |= TB_MOD_MOTION;
+
+            event->x = (num[1] - 1 < 0) ? 0 : num[1] - 1;
+            event->y = (num[2] - 1 < 0) ? 0 : num[2] - 1;
+
             break;
         }
     }
 
-    if (type == TYPE_MAX) {
-        ret = TB_ERR; // No match
-        return ret;
-    }
-
-    size_t buf_shift = 0;
-
-    switch (type) {
-        case TYPE_VT200:
-            if (in->len >= 6) {
-                int b = in->buf[3] - 0x20;
-                int fail = 0;
-
-                switch (b & 3) {
-                    case 0:
-                        event->key = ((b & 64) != 0) ? TB_KEY_MOUSE_WHEEL_UP
-                                                     : TB_KEY_MOUSE_LEFT;
-                        break;
-                    case 1:
-                        event->key = ((b & 64) != 0) ? TB_KEY_MOUSE_WHEEL_DOWN
-                                                     : TB_KEY_MOUSE_MIDDLE;
-                        break;
-                    case 2:
-                        event->key = TB_KEY_MOUSE_RIGHT;
-                        break;
-                    case 3:
-                        event->key = TB_KEY_MOUSE_RELEASE;
-                        break;
-                    default:
-                        ret = TB_ERR;
-                        fail = 1;
-                        break;
-                }
-
-                if (!fail) {
-                    if ((b & 32) != 0) {
-                        event->mod |= TB_MOD_MOTION;
-                    }
-
-                    // the coord is 1,1 for upper left
-                    event->x = ((uint8_t)in->buf[4]) - 0x21;
-                    event->y = ((uint8_t)in->buf[5]) - 0x21;
-
-                    ret = TB_OK;
-                }
-
-                buf_shift = 6;
-            }
-            break;
-        case TYPE_1006:
-            // fallthrough
-        case TYPE_1015: {
-            size_t index_fail = (size_t)-1;
-
-            enum {
-                FIRST_M = 0,
-                FIRST_SEMICOLON,
-                LAST_SEMICOLON,
-                FIRST_LAST_MAX
-            };
-
-            size_t indices[FIRST_LAST_MAX] = {index_fail, index_fail,
-                index_fail};
-            int m_is_capital = 0;
-
-            for (size_t i = 0; i < in->len; i++) {
-                if (in->buf[i] == ';') {
-                    if (indices[FIRST_SEMICOLON] == index_fail) {
-                        indices[FIRST_SEMICOLON] = i;
-                    } else {
-                        indices[LAST_SEMICOLON] = i;
-                    }
-                } else if (indices[FIRST_M] == index_fail) {
-                    if (in->buf[i] == 'm' || in->buf[i] == 'M') {
-                        m_is_capital = (in->buf[i] == 'M');
-                        indices[FIRST_M] = i;
-                    }
-                }
-            }
-
-            if (indices[FIRST_M] == index_fail ||
-                indices[FIRST_SEMICOLON] == index_fail ||
-                indices[LAST_SEMICOLON] == index_fail)
-            {
-                ret = TB_ERR;
-            } else {
-                int start = (type == TYPE_1015 ? 2 : 3);
-
-                unsigned n1 = strtoul(&in->buf[start], NULL, 10);
-                int n2 =
-                    atoi(&in->buf[indices[FIRST_SEMICOLON] + 1]);
-                int n3 =
-                    atoi(&in->buf[indices[LAST_SEMICOLON] + 1]);
-
-                if (type == TYPE_1015) {
-                    n1 -= 0x20;
-                }
-
-                int fail = 0;
-
-                switch (n1 & 3) {
-                    case 0:
-                        event->key = ((n1 & 64) != 0) ? TB_KEY_MOUSE_WHEEL_UP
-                                                      : TB_KEY_MOUSE_LEFT;
-                        break;
-                    case 1:
-                        event->key = ((n1 & 64) != 0) ? TB_KEY_MOUSE_WHEEL_DOWN
-                                                      : TB_KEY_MOUSE_MIDDLE;
-                        break;
-                    case 2:
-                        event->key = TB_KEY_MOUSE_RIGHT;
-                        break;
-                    case 3:
-                        event->key = TB_KEY_MOUSE_RELEASE;
-                        break;
-                    default:
-                        ret = TB_ERR;
-                        fail = 1;
-                        break;
-                }
-
-                buf_shift = in->len;
-
-                if (!fail) {
-                    if (!m_is_capital) {
-                        // on xterm mouse release is signaled by lowercase m
-                        event->key = TB_KEY_MOUSE_RELEASE;
-                    }
-
-                    if ((n1 & 32) != 0) {
-                        event->mod |= TB_MOD_MOTION;
-                    }
-
-                    event->x = (n2 - 1 < 0) ? 0 : n2 - 1;
-                    event->y = (n3 - 1 < 0) ? 0 : n3 - 1;
-
-                    ret = TB_OK;
-                }
-            }
-        } break;
-        case TYPE_MAX:
-            ret = TB_ERR;
-    }
-
     if (buf_shift > 0) bytebuf_shift(in, buf_shift);
 
-    if (ret == TB_OK) event->type = TB_EVENT_MOUSE;
+    event->type = TB_EVENT_MOUSE;
 
-    return ret;
+    return TB_OK;
 }
 
 static int resize_cellbufs(void) {
@@ -3371,7 +3365,7 @@ static int cell_free(struct tb_cell *cell) {
     return TB_OK;
 }
 
-static int cellbuf_init(struct cellbuf_t *c, int w, int h) {
+static int cellbuf_init(struct cellbuf *c, int w, int h) {
     c->cells = (struct tb_cell *)tb_malloc(sizeof(struct tb_cell) * w * h);
     if (!c->cells) return TB_ERR_MEM;
     memset(c->cells, 0, sizeof(struct tb_cell) * w * h);
@@ -3380,7 +3374,7 @@ static int cellbuf_init(struct cellbuf_t *c, int w, int h) {
     return TB_OK;
 }
 
-static int cellbuf_free(struct cellbuf_t *c) {
+static int cellbuf_free(struct cellbuf *c) {
     if (c->cells) {
         int i;
         for (i = 0; i < c->width * c->height; i++) {
@@ -3392,7 +3386,7 @@ static int cellbuf_free(struct cellbuf_t *c) {
     return TB_OK;
 }
 
-static int cellbuf_clear(struct cellbuf_t *c) {
+static int cellbuf_clear(struct cellbuf *c) {
     int rv, i;
     uint32_t space = (uint32_t)' ';
     for (i = 0; i < c->width * c->height; i++) {
@@ -3402,7 +3396,7 @@ static int cellbuf_clear(struct cellbuf_t *c) {
     return TB_OK;
 }
 
-static int cellbuf_get(struct cellbuf_t *c, int x, int y,
+static int cellbuf_get(struct cellbuf *c, int x, int y,
     struct tb_cell **out) {
     if (!cellbuf_in_bounds(c, x, y)) {
         *out = NULL;
@@ -3412,14 +3406,14 @@ static int cellbuf_get(struct cellbuf_t *c, int x, int y,
     return TB_OK;
 }
 
-static int cellbuf_in_bounds(struct cellbuf_t *c, int x, int y) {
+static int cellbuf_in_bounds(struct cellbuf *c, int x, int y) {
     if (x < 0 || x >= c->width || y < 0 || y >= c->height) {
         return 0;
     }
     return 1;
 }
 
-static int cellbuf_resize(struct cellbuf_t *c, int w, int h) {
+static int cellbuf_resize(struct cellbuf *c, int w, int h) {
     int rv;
 
     int ow = c->width;
@@ -3455,12 +3449,12 @@ static int cellbuf_resize(struct cellbuf_t *c, int w, int h) {
     return TB_OK;
 }
 
-static int bytebuf_puts(struct bytebuf_t *b, const char *str) {
+static int bytebuf_puts(struct bytebuf *b, const char *str) {
     if (!str || strlen(str) <= 0) return TB_OK; // Nothing to do for empty caps
     return bytebuf_nputs(b, str, (size_t)strlen(str));
 }
 
-static int bytebuf_nputs(struct bytebuf_t *b, const char *str, size_t nstr) {
+static int bytebuf_nputs(struct bytebuf *b, const char *str, size_t nstr) {
     int rv;
     if_err_return(rv, bytebuf_reserve(b, b->len + nstr + 1));
     memcpy(b->buf + b->len, str, nstr);
@@ -3469,7 +3463,7 @@ static int bytebuf_nputs(struct bytebuf_t *b, const char *str, size_t nstr) {
     return TB_OK;
 }
 
-static int bytebuf_shift(struct bytebuf_t *b, size_t n) {
+static int bytebuf_shift(struct bytebuf *b, size_t n) {
     if (n > b->len) n = b->len;
     size_t nmove = b->len - n;
     memmove(b->buf, b->buf + n, nmove);
@@ -3477,7 +3471,7 @@ static int bytebuf_shift(struct bytebuf_t *b, size_t n) {
     return TB_OK;
 }
 
-static int bytebuf_flush(struct bytebuf_t *b, int fd) {
+static int bytebuf_flush(struct bytebuf *b, int fd) {
     if (b->len <= 0) return TB_OK;
     ssize_t write_rv = write(fd, b->buf, b->len);
     if (write_rv < 0 || (size_t)write_rv != b->len) {
@@ -3489,7 +3483,7 @@ static int bytebuf_flush(struct bytebuf_t *b, int fd) {
     return TB_OK;
 }
 
-static int bytebuf_reserve(struct bytebuf_t *b, size_t sz) {
+static int bytebuf_reserve(struct bytebuf *b, size_t sz) {
     if (b->cap >= sz) return TB_OK;
 
     size_t newcap = b->cap > 0 ? b->cap : 1;
@@ -3510,7 +3504,7 @@ static int bytebuf_reserve(struct bytebuf_t *b, size_t sz) {
     return TB_OK;
 }
 
-static int bytebuf_free(struct bytebuf_t *b) {
+static int bytebuf_free(struct bytebuf *b) {
     if (b->buf) tb_free(b->buf);
     memset(b, 0, sizeof(*b));
     return TB_OK;

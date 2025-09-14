@@ -8,6 +8,7 @@
 #undef INPUT_ARRAY
 
 static struct input_binding *binds = NULL;
+static bool was_escape_key_ever_bound = false;
 
 input_id
 get_action_of_bind(struct input_binding *ctx, const char *key, size_t action_index, const struct wstring **p_arg)
@@ -50,6 +51,10 @@ create_or_clean_bind(struct input_binding **target, const char *key)
 	new->key = crtas(key, strlen(key));
 	new->next = *target;
 	*target = new;
+	if (strcmp(key, "escape") == 0) {
+		WARN("Escape key is used for key binding!");
+		was_escape_key_ever_bound = true;
+	}
 	return *target;
 }
 
@@ -103,6 +108,12 @@ get_input_id_by_name(const char *name)
 	}
 	write_error("Action \"%s\" doesn't exist!\n", name);
 	return INPUT_ERROR;
+}
+
+bool
+is_escape_key_used(void)
+{
+	return was_escape_key_ever_bound;
 }
 
 void

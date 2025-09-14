@@ -1008,7 +1008,7 @@
   </tr>
   <tr>
     <td><b>clean-status</b></td>
-    <td><i>escape</i></td>
+    <td><i>`</i></td>
   </tr>
   <tr>
     <td><b>navigate-back</b></td>
@@ -1023,7 +1023,10 @@
     <td><i>Q</i></td>
   </tr>
 </table>
-<p class="Pp"></p>
+<p class="Pp">You can also bind <i>escape</i> key, but this can potentially lead
+    to incomplete processing of escape sequences in the terminal on a very fast
+    input. This is due to the special role of the <i>escape</i> character under
+    the hood of terminals. Your mileage may vary.</p>
 </section>
 <section class="Sh">
 <h1 class="Sh" id="FORMATS_SUPPORT"><a class="permalink" href="#FORMATS_SUPPORT">FORMATS
@@ -1103,7 +1106,7 @@
 </div>
 <table class="foot">
   <tr>
-    <td class="foot-date">2025-09-04</td>
+    <td class="foot-date">2025-09-16</td>
     <td class="foot-os"></td>
   </tr>
 </table>

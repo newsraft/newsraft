@@ -5,7 +5,7 @@
 .nh
 .ad l
 .\" Begin generated content:
-.TH "NEWSRAFT" "1" "2025-09-04"
+.TH "NEWSRAFT" "1" "2025-09-16"
 .PP
 .SH NAME
 .PP
@@ -1071,7 +1071,7 @@ T}
 T{
 \fBclean-status\fR
 T}	T{
-\fIescape\fR
+\fI`\fR
 T}
 T{
 \fBnavigate-back\fR
@@ -1090,6 +1090,11 @@ T}	T{
 T}
 .TE
 .sp 1
+You can also bind \fIescape\fR key, but this can potentially lead to incomplete
+processing of escape sequences in the terminal on a very fast input.\& This is
+due to the special role of the \fIescape\fR character under the hood of terminals.\&
+Your mileage may vary.\&
+.PP
 .SH FORMATS SUPPORT
 .PP
 Data formats of feeds which Newsraft recognizes.\& Not the whole functionality of

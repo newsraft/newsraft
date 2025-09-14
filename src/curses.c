@@ -165,7 +165,7 @@ get_wch(char *keyname)
 		"KEY_UP",
 		"KEY_DOWN",
 		"KEY_LEFT",
-		"KEY_RIGHT"
+		"KEY_RIGHT",
 	};
 	struct tb_event ev;
 	int ret = tb_peek_event(&ev, 0);
@@ -174,8 +174,15 @@ get_wch(char *keyname)
 			INFO("Caught resize interrupt");
 			return TB_EVENT_RESIZE;
 		}
-		if (ret != TB_ERR_NO_EVENT) {
-			FAIL("Invalid input event, ret = %d", ret);
+		switch (ret) {
+			case TB_ERR_NEED_MORE:
+				WARN("Ignoring incomplete input event!");
+				break;
+			case TB_ERR_NO_EVENT:
+				break;
+			default:
+				FAIL("Invalid input event, ret = %d", ret);
+				break;
 		}
 		return TB_ERR;
 	}

@@ -50,6 +50,13 @@ ui_init(void)
 		write_error("Initialization of user interface failed: %s.\n", tb_strerror(status));
 		return false;
 	}
+	if (is_escape_key_used()) {
+		WARN("Escape key has been bound - engaging ESC input mode!");
+		tb_set_input_mode(TB_INPUT_ESC);
+	} else {
+		INFO("No Escape key binds was found - engaging ALT input mode.");
+		tb_set_input_mode(TB_INPUT_ALT);
+	}
 	if (obtain_list_menu_size(&list_menu_width, &list_menu_height) == false) {
 		write_error("Invalid terminal size obtained!\n");
 		return false;

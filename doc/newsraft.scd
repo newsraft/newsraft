@@ -659,13 +659,18 @@ _bold_, _italic_ and _underlined_.
 |[ *start-search-input*
 :[ _/_
 |[ *clean-status*
-:[ _escape_
+:[ _`_
 |[ *navigate-back*
 :[ _h_, _backspace_, _KEY_LEFT_, _KEY_BACKSPACE_
 |[ *quit*
 :[ _q_
 |[ *quit-hard*
 :[ _Q_
+
+You can also bind _escape_ key, but this can potentially lead to incomplete
+processing of escape sequences in the terminal on a very fast input. This is
+due to the special role of the _escape_ character under the hood of terminals.
+Your mileage may vary.
 
 # FORMATS SUPPORT
 

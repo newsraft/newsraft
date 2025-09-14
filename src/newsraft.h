@@ -486,6 +486,7 @@ struct input_binding *create_or_clean_bind(struct input_binding **target, const 
 bool attach_action_to_bind(struct input_binding *bind, input_id cmd, const char *arg, size_t arg_len);
 bool assign_default_binds(void);
 input_id get_input_id_by_name(const char *name);
+bool is_escape_key_used(void);
 void free_binds(struct input_binding *target);
 void free_default_binds(void);
 

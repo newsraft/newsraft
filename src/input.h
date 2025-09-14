@@ -62,7 +62,7 @@ INPUT(INPUT_VIEW_ERRORS,              {"view-errors"},                          
 INPUT(INPUT_OPEN_IN_BROWSER,          {"open-in-browser"},                          {"o"})
 INPUT(INPUT_COPY_TO_CLIPBOARD,        {"copy-to-clipboard"},                        {"y", "c"})
 INPUT(INPUT_START_SEARCH_INPUT,       {"start-search-input"},                       {"/"})
-INPUT(INPUT_CLEAN_STATUS,             {"clean-status"},                             {"escape"})
+INPUT(INPUT_CLEAN_STATUS,             {"clean-status"},                             {"`"})
 INPUT(INPUT_NAVIGATE_BACK,            {"return", "navigate-back"},                  {"h", "backspace", "KEY_LEFT", "KEY_BACKSPACE"})
 INPUT(INPUT_QUIT_SOFT,                {"quit"},                                     {"q"})
 INPUT(INPUT_QUIT_HARD,                {"quit-hard"},                                {"Q"})

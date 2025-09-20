@@ -219,8 +219,9 @@ items_menu_loop(struct menu_state *m)
 				run_formatted_command(browser, get_item_args(m, m->view_sel));
 				break;
 			case INPUT_SORT_BY_TIME:
-			case INPUT_SORT_BY_TIME_UPDATE:
+			case INPUT_SORT_BY_TIME_DOWNLOAD:
 			case INPUT_SORT_BY_TIME_PUBLICATION:
+			case INPUT_SORT_BY_TIME_UPDATE:
 			case INPUT_SORT_BY_ROWID:
 			case INPUT_SORT_BY_UNREAD:
 			case INPUT_SORT_BY_ALPHABET:

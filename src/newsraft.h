@@ -61,6 +61,7 @@ enum {
 	ITEM_COLUMN_ATTACHMENTS,
 	ITEM_COLUMN_PERSONS,
 	ITEM_COLUMN_EXTRAS,
+	ITEM_COLUMN_DOWNLOAD_DATE,
 	ITEM_COLUMN_PUBLICATION_DATE,
 	ITEM_COLUMN_UPDATE_DATE,
 	ITEM_COLUMN_UNREAD,
@@ -84,16 +85,18 @@ enum {
 	MENU_DISABLE_SETTINGS = 8,
 };
 
-typedef uint8_t sorting_method_t;
-enum { // Even is ascending, odd is descending
+typedef enum {
+	// Even is ascending, odd is descending
 	SORT_BY_INITIAL_ASC = 0,
 	SORT_BY_INITIAL_DESC,
 	SORT_BY_TIME_ASC,
 	SORT_BY_TIME_DESC,
-	SORT_BY_TIME_UPDATE_ASC,
-	SORT_BY_TIME_UPDATE_DESC,
+	SORT_BY_TIME_DOWNLOAD_ASC,
+	SORT_BY_TIME_DOWNLOAD_DESC,
 	SORT_BY_TIME_PUBLICATION_ASC,
 	SORT_BY_TIME_PUBLICATION_DESC,
+	SORT_BY_TIME_UPDATE_ASC,
+	SORT_BY_TIME_UPDATE_DESC,
 	SORT_BY_ROWID_ASC,
 	SORT_BY_ROWID_DESC,
 	SORT_BY_UNREAD_ASC,
@@ -103,7 +106,7 @@ enum { // Even is ascending, odd is descending
 	SORT_BY_IMPORTANT_ASC,
 	SORT_BY_IMPORTANT_DESC,
 	SORT_METHODS_COUNT,
-};
+} sorting_method_t;
 
 typedef uint8_t render_block_format;
 enum {
@@ -183,7 +186,7 @@ struct items_list {
 	struct item_entry *ptr;
 	size_t len;
 	bool finished;
-	int sorting;
+	sorting_method_t sorting;
 	struct feed_entry **feeds; // Just a pointer to parent feeds
 	size_t feeds_count;
 };

@@ -305,10 +305,10 @@ content horizontally.
 
 ## menu-item-sorting
 Default: _time-desc_. Sorting order for the items menu. Available values:
-_time-desc_, _time-asc_, _time-update-desc_, _time-update-asc_,
-_time-publication-desc_, _time-publication-asc_, _rowid-desc_, _rowid-asc_,
-_unread-desc_, _unread-asc_, _important-desc_, _important-asc_, _alphabet-desc_,
-_alphabet-asc_.
+_time-desc_, _time-asc_, _time-download-desc_, _time-download-asc_,
+_time-publication-desc_, _time-publication-asc_, _time-update-desc_,
+_time-update-asc_, _rowid-desc_, _rowid-asc_, _unread-desc_, _unread-asc_,
+_important-desc_, _important-asc_, _alphabet-desc_, _alphabet-asc_.
 
 ## menu-feed-sorting
 Default: _none_. Sorting order for the feeds menu. Available values:
@@ -612,9 +612,11 @@ _bold_, _italic_ and _underlined_.
 :[ _<_
 |[ *sort-by-time*
 :[ _t_
-|[ *sort-by-time-update*
+|[ *sort-by-time-download*
 :[ (not set)
 |[ *sort-by-time-publication*
+:[ (not set)
+|[ *sort-by-time-update*
 :[ (not set)
 |[ *sort-by-rowid*
 :[ _w_

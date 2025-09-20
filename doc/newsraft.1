@@ -5,7 +5,7 @@
 .nh
 .ad l
 .\" Begin generated content:
-.TH "NEWSRAFT" "1" "2025-09-16"
+.TH "NEWSRAFT" "1" "2025-09-20"
 .PP
 .SH NAME
 .PP
@@ -435,10 +435,10 @@ content horizontally.\&
 .PP
 .SS menu-item-sorting
 Default: \fItime-desc\fR.\& Sorting order for the items menu.\& Available values:
-\fItime-desc\fR, \fItime-asc\fR, \fItime-update-desc\fR, \fItime-update-asc\fR,
-\fItime-publication-desc\fR, \fItime-publication-asc\fR, \fIrowid-desc\fR, \fIrowid-asc\fR,
-\fIunread-desc\fR, \fIunread-asc\fR, \fIimportant-desc\fR, \fIimportant-asc\fR, \fIalphabet-desc\fR,
-\fIalphabet-asc\fR.\&
+\fItime-desc\fR, \fItime-asc\fR, \fItime-download-desc\fR, \fItime-download-asc\fR,
+\fItime-publication-desc\fR, \fItime-publication-asc\fR, \fItime-update-desc\fR,
+\fItime-update-asc\fR, \fIrowid-desc\fR, \fIrowid-asc\fR, \fIunread-desc\fR, \fIunread-asc\fR,
+\fIimportant-desc\fR, \fIimportant-asc\fR, \fIalphabet-desc\fR, \fIalphabet-asc\fR.\&
 .PP
 .SS menu-feed-sorting
 Default: \fInone\fR.\& Sorting order for the feeds menu.\& Available values:
@@ -842,6 +842,7 @@ l l
 l l
 l l
 l l
+l l
 l l.
 T{
 Actions
@@ -954,12 +955,17 @@ T}	T{
 \fIt\fR
 T}
 T{
-\fBsort-by-time-update\fR
+\fBsort-by-time-download\fR
 T}	T{
 (not set)
 T}
 T{
 \fBsort-by-time-publication\fR
+T}	T{
+(not set)
+T}
+T{
+\fBsort-by-time-update\fR
 T}	T{
 (not set)
 T}

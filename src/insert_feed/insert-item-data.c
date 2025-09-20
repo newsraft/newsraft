@@ -5,7 +5,7 @@ bool
 delete_excess_items(struct feed_entry *feed, int64_t limit)
 {
 	char query[300] = "DELETE FROM items WHERE rowid IN "
-		"(SELECT rowid FROM items WHERE feed_url=? ORDER BY publication_date DESC, update_date DESC, rowid DESC LIMIT -1 OFFSET ?)";
+		"(SELECT rowid FROM items WHERE feed_url=? ORDER BY publication_date DESC, update_date DESC, download_date DESC, rowid DESC LIMIT -1 OFFSET ?)";
 
 	if (get_cfg_bool(&feed->cfg, CFG_ITEM_LIMIT_UNREAD) == false) {
 		strcat(query, " AND unread=0");
@@ -33,12 +33,12 @@ db_insert_item(struct feed_entry *feed, struct getfeed_item *item, int64_t rowid
 	sqlite3_stmt *s;
 
 	if (rowid == -1) {
-		s = db_prepare("INSERT INTO items(feed_url,guid,title,link,content,attachments,persons,extras,publication_date,update_date,unread) VALUES(?,?,?,?,?,?,?,?,?,?,1)", 145, NULL);
+		s = db_prepare("INSERT INTO items(feed_url,guid,title,link,content,attachments,persons,extras,download_date,publication_date,update_date,unread) VALUES(?,?,?,?,?,?,?,?,?,?,?,1)", 161, NULL);
 	} else {
 		if (get_cfg_bool(&feed->cfg, CFG_MARK_ITEM_UNREAD_ON_CHANGE) == true) {
-			s = db_prepare("UPDATE items SET feed_url=?,guid=?,title=?,link=?,content=?,attachments=?,persons=?,extras=?,publication_date=?,update_date=?,unread=1 WHERE rowid=?", 149, NULL);
+			s = db_prepare("UPDATE items SET feed_url=?,guid=?,title=?,link=?,content=?,attachments=?,persons=?,extras=?,download_date=?,publication_date=?,update_date=?,unread=1 WHERE rowid=?", 165, NULL);
 		} else {
-			s = db_prepare("UPDATE items SET feed_url=?,guid=?,title=?,link=?,content=?,attachments=?,persons=?,extras=?,publication_date=?,update_date=? WHERE rowid=?", 140, NULL);
+			s = db_prepare("UPDATE items SET feed_url=?,guid=?,title=?,link=?,content=?,attachments=?,persons=?,extras=?,download_date=?,publication_date=?,update_date=? WHERE rowid=?", 156, NULL);
 		}
 	}
 	if (s == NULL) {
@@ -54,6 +54,7 @@ db_insert_item(struct feed_entry *feed, struct getfeed_item *item, int64_t rowid
 	db_bind_string(s,     1 + ITEM_COLUMN_ATTACHMENTS,      item->attachments);
 	db_bind_string(s,     1 + ITEM_COLUMN_PERSONS,          item->persons);
 	db_bind_string(s,     1 + ITEM_COLUMN_EXTRAS,           item->extras);
+	sqlite3_bind_int64(s, 1 + ITEM_COLUMN_DOWNLOAD_DATE,    feed->update_date);
 	sqlite3_bind_int64(s, 1 + ITEM_COLUMN_PUBLICATION_DATE, item->publication_date);
 	sqlite3_bind_int64(s, 1 + ITEM_COLUMN_UPDATE_DATE,      item->update_date);
 	if (rowid != -1) {

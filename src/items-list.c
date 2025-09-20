@@ -3,23 +3,57 @@
 #include "newsraft.h"
 
 static inline bool
-append_sorting_order_expression_to_query(struct string *q, int order)
+append_sorting_order_expression_to_query(struct string *q, sorting_method_t order)
 {
 	switch (order) {
-		case SORT_BY_TIME_ASC:              catas(q, " ORDER BY MAX(publication_date, update_date) ASC, rowid ASC", 59); break;
-		case SORT_BY_TIME_DESC:             catas(q, " ORDER BY MAX(publication_date, update_date) DESC, rowid DESC", 61); break;
-		case SORT_BY_TIME_UPDATE_ASC:       catas(q, " ORDER BY update_date ASC, rowid ASC", 36); break;
-		case SORT_BY_TIME_UPDATE_DESC:      catas(q, " ORDER BY update_date DESC, rowid DESC", 38); break;
-		case SORT_BY_TIME_PUBLICATION_ASC:  catas(q, " ORDER BY publication_date ASC, rowid ASC", 41); break;
-		case SORT_BY_TIME_PUBLICATION_DESC: catas(q, " ORDER BY publication_date DESC, rowid DESC", 43); break;
-		case SORT_BY_ROWID_ASC:             catas(q, " ORDER BY rowid ASC", 19); break;
-		case SORT_BY_ROWID_DESC:            catas(q, " ORDER BY rowid DESC", 20); break;
-		case SORT_BY_UNREAD_ASC:            catas(q, " ORDER BY unread ASC, MAX(publication_date, update_date) DESC, rowid DESC", 73); break;
-		case SORT_BY_UNREAD_DESC:           catas(q, " ORDER BY unread DESC, MAX(publication_date, update_date) DESC, rowid DESC", 74); break;
-		case SORT_BY_IMPORTANT_ASC:         catas(q, " ORDER BY important ASC, MAX(publication_date, update_date) DESC, rowid DESC", 76); break;
-		case SORT_BY_IMPORTANT_DESC:        catas(q, " ORDER BY important DESC, MAX(publication_date, update_date) DESC, rowid DESC", 77); break;
-		case SORT_BY_ALPHABET_ASC:          catas(q, " ORDER BY title ASC, rowid ASC", 30); break;
-		case SORT_BY_ALPHABET_DESC:         catas(q, " ORDER BY title DESC, rowid DESC", 32); break;
+		case SORT_BY_TIME_ASC:
+			catas(q, " ORDER BY MAX(publication_date, update_date) ASC, download_date ASC, rowid ASC", 79);
+			break;
+		case SORT_BY_TIME_DESC:
+			catas(q, " ORDER BY MAX(publication_date, update_date) DESC, download_date DESC, rowid DESC", 82);
+			break;
+		case SORT_BY_TIME_DOWNLOAD_ASC:
+			catas(q, " ORDER BY download_date ASC, rowid ASC", 38);
+			break;
+		case SORT_BY_TIME_DOWNLOAD_DESC:
+			catas(q, " ORDER BY download_date DESC, rowid DESC", 40);
+			break;
+		case SORT_BY_TIME_PUBLICATION_ASC:
+			catas(q, " ORDER BY publication_date ASC, download_date ASC, rowid ASC", 60);
+			break;
+		case SORT_BY_TIME_PUBLICATION_DESC:
+			catas(q, " ORDER BY publication_date DESC, download_date DESC, rowid DESC", 63);
+			break;
+		case SORT_BY_TIME_UPDATE_ASC:
+			catas(q, " ORDER BY update_date ASC, download_date ASC, rowid ASC", 55);
+			break;
+		case SORT_BY_TIME_UPDATE_DESC:
+			catas(q, " ORDER BY update_date DESC, download_date DESC, rowid DESC", 58);
+			break;
+		case SORT_BY_ROWID_ASC:
+			catas(q, " ORDER BY rowid ASC", 19);
+			break;
+		case SORT_BY_ROWID_DESC:
+			catas(q, " ORDER BY rowid DESC", 20);
+			break;
+		case SORT_BY_UNREAD_ASC:
+			catas(q, " ORDER BY unread ASC, MAX(publication_date, update_date) DESC, download_date DESC, rowid DESC", 93);
+			break;
+		case SORT_BY_UNREAD_DESC:
+			catas(q, " ORDER BY unread DESC, MAX(publication_date, update_date) DESC, download_date DESC, rowid DESC", 94);
+			break;
+		case SORT_BY_IMPORTANT_ASC:
+			catas(q, " ORDER BY important ASC, MAX(publication_date, update_date) DESC, download_date DESC, rowid DESC", 96);
+			break;
+		case SORT_BY_IMPORTANT_DESC:
+			catas(q, " ORDER BY important DESC, MAX(publication_date, update_date) DESC, download_date DESC, rowid DESC", 97);
+			break;
+		case SORT_BY_ALPHABET_ASC:
+			catas(q, " ORDER BY title ASC, rowid ASC", 30);
+			break;
+		case SORT_BY_ALPHABET_DESC:
+			catas(q, " ORDER BY title DESC, rowid DESC", 32);
+			break;
 		default:
 			fail_status("Unknown sorting method name!");
 			return false;
@@ -232,8 +266,9 @@ change_items_list_sorting(struct menu_state *ctx, input_id cmd)
 {
 	static const struct { int primary; int secondary; } sort_map[] = {
 		[INPUT_SORT_BY_TIME]             = {SORT_BY_TIME_DESC,             SORT_BY_TIME_ASC},
-		[INPUT_SORT_BY_TIME_UPDATE]      = {SORT_BY_TIME_UPDATE_DESC,      SORT_BY_TIME_UPDATE_ASC},
+		[INPUT_SORT_BY_TIME_DOWNLOAD]    = {SORT_BY_TIME_DOWNLOAD_DESC,    SORT_BY_TIME_DOWNLOAD_ASC},
 		[INPUT_SORT_BY_TIME_PUBLICATION] = {SORT_BY_TIME_PUBLICATION_DESC, SORT_BY_TIME_PUBLICATION_ASC},
+		[INPUT_SORT_BY_TIME_UPDATE]      = {SORT_BY_TIME_UPDATE_DESC,      SORT_BY_TIME_UPDATE_ASC},
 		[INPUT_SORT_BY_ROWID]            = {SORT_BY_ROWID_DESC,            SORT_BY_ROWID_ASC},
 		[INPUT_SORT_BY_UNREAD]           = {SORT_BY_UNREAD_DESC,           SORT_BY_UNREAD_ASC},
 		[INPUT_SORT_BY_ALPHABET]         = {SORT_BY_ALPHABET_ASC,          SORT_BY_ALPHABET_DESC},

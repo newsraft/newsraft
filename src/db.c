@@ -103,7 +103,7 @@ db_init(void)
 	}
 
 	// All dates are stored as the number of seconds since 1970.
-	// Note that numeric arguments in parentheses that following the type name
+	// Note that numeric arguments in parentheses that follow the type name
 	// are ignored by SQLite - there's no need to impose any length limits.
 	//
 	// feeds' download_date and update_date are special timestamps:
@@ -136,6 +136,7 @@ db_init(void)
 			"attachments TEXT,"
 			"persons TEXT,"
 			"extras TEXT,"
+			"download_date INTEGER NOT NULL DEFAULT 0,"
 			"publication_date INTEGER NOT NULL DEFAULT 0,"
 			"update_date INTEGER NOT NULL DEFAULT 0,"
 			"unread INTEGER NOT NULL DEFAULT 0,"
@@ -168,6 +169,9 @@ db_init(void)
 	// These columns were implemented after users already created their database files,
 	// therefore we have to make sure that existing database tables get them post factum.
 	if (!db_make_sure_column_exists("feeds", "user_data", "TEXT")) {
+		goto error;
+	}
+	if (!db_make_sure_column_exists("items", "download_date", "INTEGER NOT NULL DEFAULT 0")) {
 		goto error;
 	}
 	if (!db_make_sure_column_exists("items", "user_data", "TEXT")) {

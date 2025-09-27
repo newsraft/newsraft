@@ -255,6 +255,9 @@ Available parameters:
 |[ _persons_
 :[ (string)
 :[ Serialized string of all people related to the article with names and email addresses
+|[ _download_date_
+:[ (integer)
+:[ Timestamp of download date in seconds since 1970
 |[ _publication_date_
 :[ (integer)
 :[ Timestamp of publication date in seconds since 1970

@@ -88,12 +88,6 @@ More details: [doc/build-instructions.md](https://codeberg.org/newsraft/newsraft
 </details>
 
 <details>
-	<summary>I want Newsraft to show me a help screen on ? key press.</summary>
-	Easy. Just put this into your <code>config</code> file:
-	<pre>bind ? exec man newsraft</pre>
-</details>
-
-<details>
 	<summary>Can I alter feed's content before Newsraft processes it?</summary>
 	Yes, you can do practically anything before Newsraft takes over. It's done
 	via shell interlayer: any shell command in between of <code>$(</code>

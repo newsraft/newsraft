@@ -190,14 +190,11 @@ get_input(struct input_binding *ctx, uint32_t *count, const struct wstring **p_a
 				status_clean();
 				if (strcmp(key, "enter") == 0 && search_mode_text_input->len > 0) {
 					return INPUT_APPLY_SEARCH_MODE_FILTER;
-				} else {
-					update_status_window_content();
 				}
 			} else if (strcmp(key, "backspace") == 0) {
 				if (search_mode_text_input->len > 0) {
 					search_mode_text_input->len -= 1;
 					search_mode_text_input->ptr[search_mode_text_input->len] = L'\0';
-					update_status_window_content();
 				} else {
 					search_mode_is_enabled = false;
 					status_clean();
@@ -206,8 +203,8 @@ get_input(struct input_binding *ctx, uint32_t *count, const struct wstring **p_a
 				struct wstring *wkey = convert_array_to_wstring(key, strlen(key));
 				wcatss(search_mode_text_input, wkey);
 				free_wstring(wkey);
-				update_status_window_content();
 			}
+			update_status_window_content();
 		} else if (ISDIGIT(key[0])) {
 			count_buf_len %= 9;
 			count_buf[count_buf_len++] = key[0];

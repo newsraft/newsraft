@@ -27,7 +27,7 @@ static struct sorting_bundle sorting_methods[] = {
 	[SORT_BY_IMPORTANT_DESC]        = {"important-desc",        "Sorted %s by importance (descending)"},
 };
 
-int
+sorting_method_t
 get_sorting_id(const char *sorting_name)
 {
 	for (size_t i = 0; i < LENGTH(sorting_methods); ++i) {

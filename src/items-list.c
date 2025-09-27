@@ -264,7 +264,7 @@ undo1:
 void
 change_items_list_sorting(struct menu_state *ctx, input_id cmd)
 {
-	static const struct { int primary; int secondary; } sort_map[] = {
+	static const struct { sorting_method_t primary; sorting_method_t secondary; } sort_map[] = {
 		[INPUT_SORT_BY_TIME]             = {SORT_BY_TIME_DESC,             SORT_BY_TIME_ASC},
 		[INPUT_SORT_BY_TIME_DOWNLOAD]    = {SORT_BY_TIME_DOWNLOAD_DESC,    SORT_BY_TIME_DOWNLOAD_ASC},
 		[INPUT_SORT_BY_TIME_PUBLICATION] = {SORT_BY_TIME_PUBLICATION_DESC, SORT_BY_TIME_PUBLICATION_ASC},

@@ -371,7 +371,7 @@ bool refresh_pager_menu(void);
 void do_format(struct wstring *dest, const wchar_t *fmt, const struct format_arg *args);
 
 // See "sorting.c" file for implementation.
-int get_sorting_id(const char *sorting_name);
+sorting_method_t get_sorting_id(const char *sorting_name);
 const char *get_sorting_message(int sorting_id);
 
 // See "items.c" file for implementation.

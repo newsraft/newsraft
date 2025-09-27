@@ -671,6 +671,8 @@ _bold_, _italic_ and _underlined_.
 :[ _q_
 |[ *quit-hard*
 :[ _Q_
+|[ *exec man newsraft*
+:[ _?_
 
 You can also bind _escape_ key, but this can potentially lead to incomplete
 processing of escape sequences in the terminal on a very fast input. This is

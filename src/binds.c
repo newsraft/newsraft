@@ -76,7 +76,14 @@ attach_action_to_bind(struct input_binding *bind, input_id cmd, const char *arg,
 }
 
 static bool
-create2bind(const char *key, input_id action1, input_id action2)
+bind_exec(const char *key, const char *cmd)
+{
+	struct input_binding *bind = create_or_clean_bind(NULL, key);
+	return attach_action_to_bind(bind, INPUT_SYSTEM_COMMAND, cmd, strlen(cmd));
+}
+
+static bool
+bind_two_actions(const char *key, input_id action1, input_id action2)
 {
 	struct input_binding *bind = create_or_clean_bind(NULL, key);
 	return attach_action_to_bind(bind, action1, NULL, 0) && attach_action_to_bind(bind, action2, NULL, 0);
@@ -93,7 +100,16 @@ assign_default_binds(void)
 			}
 		}
 	}
-	return create2bind("d", INPUT_MARK_READ, INPUT_JUMP_TO_NEXT) && create2bind("D", INPUT_MARK_UNREAD, INPUT_JUMP_TO_NEXT);
+	if (!bind_exec("?", "man newsraft")) {
+		return false;
+	}
+	if (!bind_two_actions("d", INPUT_MARK_READ, INPUT_JUMP_TO_NEXT)) {
+		return false;
+	}
+	if (!bind_two_actions("D", INPUT_MARK_UNREAD, INPUT_JUMP_TO_NEXT)) {
+		return false;
+	}
+	return true;
 }
 
 input_id

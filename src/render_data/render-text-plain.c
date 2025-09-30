@@ -20,8 +20,8 @@ render_text_plain(struct line *line, const struct wstring *source, struct links_
 		if (link != NULL && link->len > 0) {
 			wchar_t url_mark[100];
 			size_t url_index = add_url_to_links_list(links, link->ptr, link->len);
-			// Space character before the mark is &nbsp;
-			if (swprintf(url_mark, 100, L" [%" PRId64 "]", url_index + 1) > 0) {
+			// U+00A0 is non-breaking space
+			if (swprintf(url_mark, 100, L"\u00A0[%" PRId64 "]", url_index + 1) > 0) {
 				line_style(line, TB_BOLD);
 				line_string(line, url_mark);
 				line_unstyle(line);

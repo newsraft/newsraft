@@ -143,7 +143,7 @@ url_mark_handler(struct html_render *ctx, GumboVector *attrs)
 	if (index_len < 2 || index_len > 99) return; // Should never happen
 
 	if (ctx->line->head->ws->len > 0) {
-		line_string(ctx->line, L" "); // It's &nbsp;
+		line_string(ctx->line, L"\u00A0"); // non-breaking space
 	}
 
 	line_style(ctx->line, TB_BOLD);
@@ -190,7 +190,7 @@ abbr_handler(struct html_render *ctx, GumboVector *attrs)
 			return; // It's a duplicate
 		}
 	}
-	line_string(ctx->line, L" "); // It's &nbsp;
+	line_string(ctx->line, L"\u00A0"); // non-breaking space
 	line_char(ctx->line, L'(');
 	struct wstring *w = convert_array_to_wstring(title, title_len);
 	if (w != NULL) {
@@ -486,7 +486,7 @@ print_html_table(struct line *line, struct html_table *table)
 					// Be careful not to add whitespace for trailing column!
 					if (j + 1 < table->rows[i].cells_count) {
 						for (long l = 0; l < w + HTML_TABLE_COLUMN_SPACING; ++l) {
-							line_string(line, L" "); // It's &nbsp;
+							line_string(line, L"\u00A0"); // non-breaking space
 						}
 					}
 				}

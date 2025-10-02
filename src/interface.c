@@ -66,9 +66,9 @@ ui_init(void)
 		INFO("NO_COLOR environment variable is set, canceling colors initialization.");
 	} else {
 		paint_it_black = false; // Some iridescent sensation at last!
-	}
-	if (config_uses_256_colors) {
-		tb_set_output_mode(TB_OUTPUT_256);
+		if (config_uses_256_colors) {
+			tb_set_output_mode(TB_OUTPUT_256);
+		}
 	}
 	newsraft_has_successfully_initialized_ui = true;
 	return true;

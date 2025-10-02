@@ -315,6 +315,29 @@ db_bind_string(sqlite3_stmt *stmt, int pos, const struct string *str)
 	}
 }
 
+// You might wonder why we would ever need a special function to bind a feed URL
+// specifically. Well, that's simple: sometimes user specifies URL with trailing
+// slashes, sometimes without them. These URLs can point to different content in
+// practice, but for the most part it's either
+// * both URLs (with and without trailing slashes) point to the same content, or
+// * one URL points to useful content and the other one is simply empty (404ing)
+//
+// Database-wise, we should treat these URLs as a single entity,
+// so that the user doesn't have to suffer from the fragmentation of the
+// same feed based on the presence or absence of slashes in the URL.
+int
+db_bind_feed_url(sqlite3_stmt *stmt, int pos, const struct string *str)
+{
+	if (STRING_IS_EMPTY(str)) {
+		return sqlite3_bind_null(stmt, pos);
+	}
+	size_t len = str->len;
+	while (len > 0 && str->ptr[len - 1] == '/') {
+		len -= 1;
+	}
+	return sqlite3_bind_text(stmt, pos, str->ptr, len, SQLITE_STATIC);
+}
+
 int64_t
 db_get_date_from_feeds_table(const struct string *url, const char *column, size_t column_len)
 {
@@ -326,7 +349,7 @@ db_get_date_from_feeds_table(const struct string *url, const char *column, size_
 	if (res == NULL) {
 		return -1;
 	}
-	db_bind_string(res, 1, url);
+	db_bind_feed_url(res, 1, url);
 	int64_t date = sqlite3_step(res) == SQLITE_ROW ? sqlite3_column_int64(res, 0) : 0;
 	sqlite3_finalize(res);
 	INFO("%s of %s is %" PRId64, column, url->ptr, date);
@@ -342,7 +365,7 @@ db_get_string_from_feed_table(const struct string *url, const char *column, size
 	memcpy(query + 7 + column_len, " FROM feeds WHERE feed_url=?", 29);
 	sqlite3_stmt *res = db_prepare(query, 7 + column_len + 29, NULL);
 	if (res != NULL) {
-		db_bind_string(res, 1, url);
+		db_bind_feed_url(res, 1, url);
 		if (sqlite3_step(res) == SQLITE_ROW) {
 			const char *str_ptr = (char *)sqlite3_column_text(res, 0);
 			if (str_ptr != NULL) {
@@ -371,7 +394,7 @@ db_update_feed_int64(const struct string *url, const char *column_name, int64_t 
 		sqlite3_stmt *res = db_prepare(query, strlen(query) + 1, NULL);
 		if (res != NULL) {
 			sqlite3_bind_int64(res, 1, value);
-			db_bind_string(res, 2, url);
+			db_bind_feed_url(res, 2, url);
 			if (sqlite3_step(res) != SQLITE_DONE) {
 				FAIL("Failed to update %s!", column_name);
 			}
@@ -392,7 +415,7 @@ db_update_feed_string(const struct string *url, const char *column_name, const s
 		sqlite3_stmt *res = db_prepare(query, strlen(query) + 1, NULL);
 		if (res != NULL) {
 			db_bind_string(res, 1, value);
-			db_bind_string(res, 2, url);
+			db_bind_feed_url(res, 2, url);
 			if (sqlite3_step(res) != SQLITE_DONE) {
 				FAIL("Failed to update %s!", column_name);
 			}
@@ -446,13 +469,13 @@ db_perform_user_edit(const struct wstring *fmt, struct feed_entry **feeds, size_
 	for (size_t i = 0, j = 1; i < replacements_count; ++i) {
 		if (item) {
 			sqlite3_bind_int64(stmt, j++, item->rowid);
-			db_bind_string(stmt, j++, item->feed[0]->url);
+			db_bind_feed_url(stmt, j++, item->feed[0]->url);
 			db_bind_string(stmt, j++, item->guid);
 			continue;
 		}
 		if (feeds && feeds_count > 0) {
 			for (size_t k = 0; k < feeds_count; ++k) {
-				db_bind_string(stmt, j++, feeds[k]->url);
+				db_bind_feed_url(stmt, j++, feeds[k]->url);
 			}
 			continue;
 		}

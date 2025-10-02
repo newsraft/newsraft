@@ -220,7 +220,7 @@ update_menu_item_list(struct menu_state *ctx)
 		goto undo2;
 	}
 	for (size_t i = 0; i < new_items->feeds_count; ++i) {
-		db_bind_string(new_items->res, i + 1, new_items->feeds[i]->url);
+		db_bind_feed_url(new_items->res, i + 1, new_items->feeds[i]->url);
 	}
 	int search_token_iter = 0;
 	for (const struct menu_state *m = ctx; m != NULL; m = m->prev) {

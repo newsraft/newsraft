@@ -443,6 +443,7 @@ bool db_transaction_commit(void);
 bool db_rollback_transaction(void);
 const char *db_error_string(void);
 int db_bind_string(sqlite3_stmt *stmt, int pos, const struct string *str);
+int db_bind_feed_url(sqlite3_stmt *stmt, int pos, const struct string *str);
 int64_t db_get_date_from_feeds_table(const struct string *url, const char *column, size_t column_len);
 struct string *db_get_string_from_feed_table(const struct string *url, const char *column, size_t column_len);
 void db_update_feed_int64(const struct string *url, const char *column_name, int64_t value, bool only_positive);

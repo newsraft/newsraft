@@ -225,7 +225,7 @@ purge_abandoned_feeds(void)
 		return false;
 	}
 	for (size_t i = 0; i < sections[0].feeds_count; ++i) {
-		db_bind_string(res, i + 1, sections[0].feeds[i]->url);
+		db_bind_feed_url(res, i + 1, sections[0].feeds[i]->url);
 	}
 	bool status = sqlite3_step(res) == SQLITE_DONE ? true : false;
 	sqlite3_finalize(res);

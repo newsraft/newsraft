@@ -20,7 +20,7 @@ delete_excess_items(struct feed_entry *feed, int64_t limit)
 		FAIL("Failed to prepare an excess items deletion statement!");
 		return false;
 	}
-	db_bind_string(s, 1, feed->url);
+	db_bind_feed_url(s, 1, feed->url);
 	sqlite3_bind_int64(s, 2, limit);
 	sqlite3_step(s);
 	sqlite3_finalize(s);
@@ -46,7 +46,7 @@ db_insert_item(struct feed_entry *feed, struct getfeed_item *item, int64_t rowid
 		return false;
 	}
 
-	db_bind_string(s,     1 + ITEM_COLUMN_FEED_URL,         feed->url);
+	db_bind_feed_url(s,   1 + ITEM_COLUMN_FEED_URL,         feed->url);
 	db_bind_string(s,     1 + ITEM_COLUMN_GUID,             item->guid);
 	db_bind_string(s,     1 + ITEM_COLUMN_TITLE,            item->title);
 	db_bind_string(s,     1 + ITEM_COLUMN_LINK,             STRING_IS_EMPTY(item->link) && item->guid_is_link == true ? item->guid : item->link);
@@ -100,7 +100,7 @@ insert_item_data(struct feed_entry *feed, struct getfeed_item *item)
 		FAIL("Failed to prepare SELECT statement for searching item duplicate by guid!");
 		return false;
 	}
-	db_bind_string(s, 1, feed->url);
+	db_bind_feed_url(s, 1, feed->url);
 	db_bind_string(s, 2, item->guid);
 
 	int64_t item_rowid;

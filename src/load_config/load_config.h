@@ -17,5 +17,6 @@ bool obtain_browser_command(struct config_context **ctx, config_type_id id);
 bool obtain_clipboard_command(struct config_context **ctx, config_type_id id);
 bool obtain_notification_command(struct config_context **ctx, config_type_id id);
 
+bool config_uses_256_colors;
 bool parse_color_setting(struct config_context **ctx, config_entry_id id, const char *iter);
 #endif // LOAD_CONFIG_H

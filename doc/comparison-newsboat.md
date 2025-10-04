@@ -6,28 +6,28 @@ you're considering switching from Newsboat to Newsraft, it's advised to examine 
 
 ## TL;DR
 
-| Criterion                                     | Newsraft             | Newsboat                             |
-|:----------------------------------------------|:---------------------|:-------------------------------------|
-| Parallel downloads                            | +                    | +                                    |
-| Multiple actions key bindings                 | +                    | +                                    |
-| Interactive content pager                     | +                    | +                                    |
-| Built-in HTML renderer                        | +                    | +                                    |
-| Sorting                                       | +                    | +                                    |
-| Automatic updates                             | +                    | +                                    |
-| Item limits                                   | +                    | +                                    |
-| Per-feed settings                             | +                    | -                                    |
-| Download manager                              | -                    | `podboat`                            |
-| Integration with third-party services         | -                    | FreshRSS, Miniflux, Tiny Tiny RSS... |
-| Feeds grouping                                | Section based        | Query feed based                     |
-| Command feeds                                 | `$(cmd arg1 arg2)`   | `"exec:cmd arg1 arg2"`               |
-| Scripting capabilities                        | `newsraft -e ACTION` | `newsboat -x ACTION`                 |
-| Programming languages used                    | C99                  | C++17, Rust                          |
-| User interface libraries used                 | termbox2             | NCURSES, STFL                        |
-| [Source lines of code](#source-lines-of-code) | 9k + 3k (termbox2)   | 44k                                  |
+| Criterion                                          | Newsraft             | Newsboat                             |
+|:---------------------------------------------------|:---------------------|:-------------------------------------|
+| Parallel downloads                                 | +                    | +                                    |
+| Multiple actions key bindings                      | +                    | +                                    |
+| Interactive content pager                          | +                    | +                                    |
+| Built-in HTML renderer                             | +                    | +                                    |
+| Sorting                                            | +                    | +                                    |
+| Automatic updates                                  | +                    | +                                    |
+| Item limits                                        | +                    | +                                    |
+| [Per-feed settings](#individual-feed-settings)     | +                    | -                                    |
+| Download manager                                   | -                    | `podboat`                            |
+| Integration with third-party services              | -                    | FreshRSS, Miniflux, Tiny Tiny RSS... |
+| [Feeds grouping](#sections-instead-of-query-feeds) | Section based        | Query feed based                     |
+| Command feeds                                      | `$(cmd arg1 arg2)`   | `"exec:cmd arg1 arg2"`               |
+| Scripting capabilities                             | `newsraft -e ACTION` | `newsboat -x ACTION`                 |
+| Programming languages used                         | C99                  | C++17, Rust                          |
+| User interface libraries used                      | termbox2             | NCURSES, STFL                        |
+| [Source lines of code](#source-lines-of-code)      | 9k + 3k (termbox2)   | 45k                                  |
 
 Feel free to submit an issue if you think that table above contains outdated information.
 
-## Grouping of feeds into sections instead of query feeds
+## Sections instead of query feeds
 
 Sections are needed to organize feeds in groups to be able to process them in
 bulk. They are like directories, but for feeds. You can update, explore and
@@ -55,7 +55,7 @@ bind m exec mpv "%l"
 macro m set browser mpv; open-in-browser; set browser elinks
 ```
 
-## Per-feed and per-section settings
+## Individual feed settings
 
 Newsboat [doesn't support individual configuration for feeds](https://github.com/newsboat/newsboat/issues/83).
 Newsraft, on the other hand, supports many settings to be set on individual
@@ -93,13 +93,13 @@ This is how SLOC is calculated. As you can see, Newsraft is more than 3 times sm
 
 ```
 ~/src/newsraft > git show -s --pretty=format:"%H %ad"
-4e7039feef817e0f490e191a0d074791c79f284c Sat Jun 7 12:37:00 2025 +0300
+04d43580c5442ce745a3bbd3afa40474744deec2 Sat Oct 4 21:25:53 2025 +0300
 ~/src/newsraft > find src -regex ".*\.\(c\|h\)" -exec awk NF {} + | wc -l
-12141
+12376
 ```
 ```
 ~/src/newsboat > git show -s --pretty=format:"%H %ad"
-108e811e6d6afdc017c0a39913dbc3a8cc3c439d Thu Jun 5 21:34:11 2025 +0200
+4c0bc735d3c20b084d4463e68d80df6b244b4faa Sun Sep 28 19:39:23 2025 +0300
 ~/src/newsboat > find src rust rss filter include newsboat.cpp podboat.cpp config.h -regex ".*\.\(cpp\|h\|rs\)" -exec awk NF {} + | wc -l
-44295
+44940
 ```

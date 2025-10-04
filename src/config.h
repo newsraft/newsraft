@@ -104,6 +104,7 @@ CFG(CFG_ITEM_LIMIT_IMPORTANT,            "item-limit-important",            CFG_
 CFG(CFG_STATUS_SHOW_MENU_PATH,           "status-show-menu-path",           CFG_BOOL,   {.b = true })
 CFG(CFG_SECTIONS_MENU_PARAMOUNT_EXPLORE, "sections-menu-paramount-explore", CFG_BOOL,   {.b = false})
 CFG(CFG_FEEDS_MENU_PARAMOUNT_EXPLORE,    "feeds-menu-paramount-explore",    CFG_BOOL,   {.b = false})
+CFG(CFG_READ_ON_ARRIVAL,                 "read-on-arrival", /* ha, funny */ CFG_BOOL,   {.b = false})
 CFG(CFG_MARK_ITEM_UNREAD_ON_CHANGE,      "mark-item-unread-on-change",      CFG_BOOL,   {.b = false})
 CFG(CFG_MARK_ITEM_READ_ON_HOVER,         "mark-item-read-on-hover",         CFG_BOOL,   {.b = false})
 CFG(CFG_DATABASE_BATCH_TRANSACTIONS,     "database-batch-transactions",     CFG_BOOL,   {.b = true })

@@ -453,6 +453,9 @@ Default: _false_. Enables explore mode in sections menu by default.
 ## feeds-menu-paramount-explore
 Default: _false_. Enables explore mode in feeds menu by default.
 
+## read-on-arrival (*)
+Default: _false_. Mark new items as read automatically.
+
 ## mark-item-unread-on-change (*)
 Default: _false_. Mark every item that changes on a feed update as unread.
 

@@ -33,7 +33,7 @@ db_insert_item(struct feed_entry *feed, struct getfeed_item *item, int64_t rowid
 	sqlite3_stmt *s;
 
 	if (rowid == -1) {
-		s = db_prepare("INSERT INTO items(feed_url,guid,title,link,content,attachments,persons,extras,download_date,publication_date,update_date,unread) VALUES(?,?,?,?,?,?,?,?,?,?,?,1)", 161, NULL);
+		s = db_prepare("INSERT INTO items(feed_url,guid,title,link,content,attachments,persons,extras,download_date,publication_date,update_date,unread) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)", 161, NULL);
 	} else {
 		if (get_cfg_bool(&feed->cfg, CFG_MARK_ITEM_UNREAD_ON_CHANGE) == true) {
 			s = db_prepare("UPDATE items SET feed_url=?,guid=?,title=?,link=?,content=?,attachments=?,persons=?,extras=?,download_date=?,publication_date=?,update_date=?,unread=1 WHERE rowid=?", 165, NULL);
@@ -57,7 +57,9 @@ db_insert_item(struct feed_entry *feed, struct getfeed_item *item, int64_t rowid
 	sqlite3_bind_int64(s, 1 + ITEM_COLUMN_DOWNLOAD_DATE,    feed->update_date);
 	sqlite3_bind_int64(s, 1 + ITEM_COLUMN_PUBLICATION_DATE, item->publication_date);
 	sqlite3_bind_int64(s, 1 + ITEM_COLUMN_UPDATE_DATE,      item->update_date);
-	if (rowid != -1) {
+	if (rowid == -1) {
+		sqlite3_bind_int(s, 1 + ITEM_COLUMN_UNREAD, get_cfg_bool(&feed->cfg, CFG_READ_ON_ARRIVAL) ? 0 : 1);
+	} else {
 		sqlite3_bind_int64(s, 2 + ITEM_COLUMN_UPDATE_DATE, rowid);
 	}
 

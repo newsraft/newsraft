@@ -25,7 +25,8 @@ parse_color_setting(struct config_context **ctx, config_entry_id id, const char 
 		else if (strncmp(iter, "italic",      6) == 0) { attribute |= TB_ITALIC;         }
 		else if (strncmp(iter, "color",       5) == 0) {
 			config_uses_256_colors = true;
-			colors[i] = strtoll(iter + 5, NULL, 10);
+			// TODO: explain why we need this +1 here. That's some nasty stuff
+			colors[i] = strtoll(iter + 5, NULL, 10) + 1;
 			if (colors[i] < 0 || colors[i] > 255) {
 				write_error("Color number must be in the range from 0 to 255!\n");
 				return false;

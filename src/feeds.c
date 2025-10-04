@@ -19,14 +19,16 @@ get_feed_args(struct menu_state *ctx, size_t index)
 	static struct format_arg feed_fmt[] = {
 		{L'i',  L'd',  {.i = 0   }},
 		{L'u',  L'd',  {.i = 0   }},
+		{L'n',  L'd',  {.i = 0   }},
 		{L'l',  L's',  {.s = NULL}},
 		{L't',  L's',  {.s = NULL}},
 		{L'\0', L'\0', {.i = 0   }}, // terminator
 	};
 	feed_fmt[0].value.i = index + 1;
 	feed_fmt[1].value.i = ctx->feeds[index]->unread_count;
-	feed_fmt[2].value.s = ctx->feeds[index]->url->ptr;
-	feed_fmt[3].value.s = STRING_IS_EMPTY(ctx->feeds[index]->name) ? ctx->feeds[index]->url->ptr : ctx->feeds[index]->name->ptr;
+	feed_fmt[2].value.i = ctx->feeds[index]->items_count;
+	feed_fmt[3].value.s = ctx->feeds[index]->url->ptr;
+	feed_fmt[4].value.s = STRING_IS_EMPTY(ctx->feeds[index]->name) ? ctx->feeds[index]->url->ptr : ctx->feeds[index]->name->ptr;
 	return feed_fmt;
 }
 

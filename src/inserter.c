@@ -80,6 +80,7 @@ inserter_worker(void *dummy)
 
 		size_t errors_len_before_count = feed->errors->len;
 		int64_t new_unread_count = db_count_items(&feed, 1, true);
+		int64_t new_items_count  = db_count_items(&feed, 1, false);
 		size_t errors_len_after_count = feed->errors->len;
 
 		if (new_unread_count >= 0 && new_unread_count != feed->unread_count) {
@@ -87,6 +88,10 @@ inserter_worker(void *dummy)
 				target->new_items_count = new_unread_count - feed->unread_count;
 			}
 			feed->unread_count = new_unread_count;
+			need_redraw = true;
+		}
+		if (new_items_count >= 0 && new_items_count != feed->items_count) {
+			feed->items_count = new_items_count;
 			need_redraw = true;
 		}
 		if (errors_len_before_count != errors_len_after_count) {

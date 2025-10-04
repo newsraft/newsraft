@@ -160,6 +160,7 @@ struct feed_entry {
 	struct string *name;
 	struct string *link; // link to webpage related to this feed
 	int64_t unread_count;
+	int64_t items_count;
 	int64_t update_date; // date of last feed update attempt
 	struct config_context *cfg;
 	struct input_binding *binds;

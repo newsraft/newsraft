@@ -425,6 +425,7 @@ follows:
 
 	_i_	index number;++
 _u_	unread items count;++
+_n_	total items count;++
 _l_	feed link;++
 _t_	feed name if set, feed link otherwise.
 

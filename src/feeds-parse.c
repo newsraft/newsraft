@@ -145,6 +145,7 @@ parse_feeds_file(void)
 		// Count unread items only after config is applied because some settings
 		// can influence how items are counted, for example item-rule setting.
 		feed_ptr->unread_count = db_count_items(&feed_ptr, 1, true);
+		feed_ptr->items_count  = db_count_items(&feed_ptr, 1, false);
 	}
 
 	if (at_least_one_feed_was_added == false) {

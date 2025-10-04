@@ -1,3 +1,36 @@
+# newsraft 0.33 "energizor"
+
+i'd like to start a tradition of mentioning contributors to the release, so here we go:
+
+* caveman (@caveman) thanks for #132, #227
+* David Pedersen (@Limero) thanks for #216, #233, #234
+* Tafnur (@tafnur) thanks for #224, #230, #231
+* W4RH4WK (@W4RH4WK) thanks for #225, #226
+
+this release is a little late because some good stuff has been brewing over the last few days
+
+* add `read-on-arrival` setting
+* add `scrollwrap` setting (#216)
+* add `color-list-item-selected` setting (#132)
+* add `color-list-feed-selected` setting (#132)
+* add `color-list-section-selected` setting (#132)
+* fix colorN value offset by 1 in color settings (#231)
+* gracefully handle zero size state of terminal emulator (#218)
+* apply search cumulatively instead of overwriting previous query
+* don't remove trailing slashes from feed urls (#224)
+* store feed urls without trailing slashes in the database (#224)
+* let go of terminal control while executing commands (#225)
+* add total items count specifier to `menu-feed-entry-format` (#234)
+* provide update error for generator feeds on failed command
+* use esc mode only when escape key is bound (#227)
+* add items sorting by download time (#123)
+* bind `?` to `exec man newsraft` by default
+
+> if you are used to wrapping behavior of list menu jumps (e.g. `next-unread`),
+> now you have to enable `scrollwrap` to make it wrapping just as in 0.32
+
+_**aaaand, big thanks to everyone involved in Newsraft packaging <3**_
+
 # newsraft 0.32 "conflagratio"
 
 * add `toggle-read` action (#213)

@@ -9,3 +9,7 @@ insert_final_newline = true
 [src/termbox2.h]
 indent_style = space
 indent_size = 4
+
+[*.yaml]
+indent_style = space
+indent_size = 2

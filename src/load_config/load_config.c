@@ -124,6 +124,18 @@ set_cfg_string(struct config_context **ctx, config_entry_id id, const char *src_
 	return true;
 }
 
+bool
+is_cfg_color_set(struct config_context **ctx, config_entry_id id)
+{
+	struct config_entry *cfg = get_global_or_context_config(ctx, id, false);
+	struct config_color *c = &cfg->value.c;
+	return (
+		!NEWSRAFT_ALL_BITS_SET(c->fg, uintattr_t)
+		|| !NEWSRAFT_ALL_BITS_SET(c->bg, uintattr_t)
+		|| !NEWSRAFT_ALL_BITS_SET(c->attributes, uintattr_t)
+	);
+}
+
 void
 free_config(void)
 {

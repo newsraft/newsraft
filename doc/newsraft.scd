@@ -555,18 +555,24 @@ _bold_, _italic_ and _underlined_.
 :[ _red default bold_
 |[ *color-list-item*
 :[ _default default_
+|[ *color-list-item-selected*
+:[ (not set)
 |[ *color-list-item-unread*
 :[ _yellow default_
 |[ *color-list-item-important*
 :[ _magenta default_
 |[ *color-list-feed*
 :[ _default default_
+|[ *color-list-feed-selected*
+:[ (not set)
 |[ *color-list-feed-unread*
 :[ _yellow default_
 |[ *color-list-feed-failed*
 :[ _red default_
 |[ *color-list-section*
 :[ _default default_
+|[ *color-list-section-selected*
+:[ (not set)
 |[ *color-list-section-unread*
 :[ _yellow default_
 |[ *color-list-section-failed*

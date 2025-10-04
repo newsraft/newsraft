@@ -49,16 +49,25 @@ get_section_args(struct menu_state *ctx, size_t index)
 }
 
 static struct config_color
-paint_section(struct menu_state *ctx, size_t index)
+paint_section(struct menu_state *ctx, size_t index, bool is_selected)
 {
 	(void)ctx;
+	struct config_color color;
 	if (sections_view[index]->has_errors) {
-		return get_cfg_color(NULL, CFG_COLOR_LIST_SECTION_FAILED);
+		color = get_cfg_color(NULL, CFG_COLOR_LIST_SECTION_FAILED);
 	} else if (sections_view[index]->unread_count > 0) {
-		return get_cfg_color(NULL, CFG_COLOR_LIST_SECTION_UNREAD);
+		color = get_cfg_color(NULL, CFG_COLOR_LIST_SECTION_UNREAD);
 	} else {
-		return get_cfg_color(NULL, CFG_COLOR_LIST_SECTION);
+		color = get_cfg_color(NULL, CFG_COLOR_LIST_SECTION);
 	}
+	if (is_selected) {
+		if (is_cfg_color_set(NULL, CFG_COLOR_LIST_SECTION_SELECTED)) {
+			color = get_cfg_color(NULL, CFG_COLOR_LIST_SECTION_SELECTED);
+		} else {
+			color.attributes |= TB_REVERSE;
+		}
+	}
+	return color;
 }
 
 static bool

@@ -61,11 +61,7 @@ list_menu_writer(size_t index, WINDOW *w)
 		if (list_fmtout->len > horizontal_shift) {
 			waddwstr(w, list_fmtout->ptr + horizontal_shift);
 		}
-		struct config_color color = menu->paint_action(menu, index);
-		if (index == menu->view_sel) {
-			color.attributes |= TB_REVERSE;
-		}
-		wbkgd(w, color);
+		wbkgd(w, menu->paint_action(menu, index, index == menu->view_sel));
 	}
 }
 
@@ -205,11 +201,9 @@ change_list_view_unprotected(struct menu_state *m, size_t new_sel, bool is_wrapp
 		}
 	} else if (new_sel != m->view_sel) {
 		if (m == menu) {
-			wbkgd(windows[m->view_sel - m->view_min], m->paint_action(m, m->view_sel));
+			wbkgd(windows[m->view_sel - m->view_min], m->paint_action(m, m->view_sel, false));
 			m->view_sel = new_sel;
-			struct config_color color = m->paint_action(m, m->view_sel);
-			color.attributes |= TB_REVERSE;
-			wbkgd(windows[m->view_sel - m->view_min], color);
+			wbkgd(windows[m->view_sel - m->view_min], m->paint_action(m, m->view_sel, true));
 			tb_present();
 		} else {
 			m->view_sel = new_sel;

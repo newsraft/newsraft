@@ -29,6 +29,7 @@
 #define NEWSRAFT_MIN(A, B) (((A) < (B)) ? (A) : (B)) // Need prefix because some platforms have their own MIN definition
 #define NEWSRAFT_UI(CALL) do { if (ui_is_running()) { CALL; } } while (0) // Make CALL only if UI is running
 #define STRING_IS_EMPTY(A) (((A) == NULL) || ((A)->ptr == NULL) || ((A)->len == 0))
+#define NEWSRAFT_ALL_BITS_SET(x, type) ((x) == (type)~(type)0)
 
 typedef uint8_t config_entry_id;
 typedef uint8_t input_id;
@@ -220,7 +221,7 @@ struct menu_state {
 	bool (*enumerator)(struct menu_state *ctx, size_t index); // Checks if index is valid
 	void (*printer)(size_t index, WINDOW *w);                 // Prints to list entry
 	const struct format_arg *(*get_args)(struct menu_state *ctx, size_t index);
-	struct config_color (*paint_action)(struct menu_state *ctx, size_t index);
+	struct config_color (*paint_action)(struct menu_state *ctx, size_t index, bool is_selected);
 	bool (*unread_state)(struct menu_state *ctx, size_t index);
 	bool (*failed_state)(struct menu_state *ctx, size_t index);
 	struct menu_state *prev;
@@ -552,6 +553,7 @@ bool parse_config_file(void);
 bool get_cfg_bool(struct config_context **ctx, config_entry_id id);
 size_t get_cfg_uint(struct config_context **ctx, config_entry_id id);
 struct config_color get_cfg_color(struct config_context **ctx, config_entry_id id);
+bool is_cfg_color_set(struct config_context **ctx, config_entry_id id);
 const struct string *get_cfg_string(struct config_context **ctx, config_entry_id id);
 const struct wstring *get_cfg_wstring(struct config_context **ctx, config_entry_id id);
 void free_config(void);

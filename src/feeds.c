@@ -31,15 +31,25 @@ get_feed_args(struct menu_state *ctx, size_t index)
 }
 
 static struct config_color
-paint_feed(struct menu_state *ctx, size_t index)
+paint_feed(struct menu_state *ctx, size_t index, bool is_selected)
 {
+	struct config_context **cfg = &ctx->feeds[index]->cfg;
+	struct config_color color;
 	if (ctx->feeds[index]->errors->len > 0 && !get_cfg_bool(&ctx->feeds[index]->cfg, CFG_SUPPRESS_ERRORS)) {
-		return get_cfg_color(&ctx->feeds[index]->cfg, CFG_COLOR_LIST_FEED_FAILED);
+		color = get_cfg_color(cfg, CFG_COLOR_LIST_FEED_FAILED);
 	} else if (ctx->feeds[index]->unread_count > 0) {
-		return get_cfg_color(&ctx->feeds[index]->cfg, CFG_COLOR_LIST_FEED_UNREAD);
+		color = get_cfg_color(cfg, CFG_COLOR_LIST_FEED_UNREAD);
 	} else {
-		return get_cfg_color(&ctx->feeds[index]->cfg, CFG_COLOR_LIST_FEED);
+		color = get_cfg_color(cfg, CFG_COLOR_LIST_FEED);
 	}
+	if (is_selected) {
+		if (is_cfg_color_set(cfg, CFG_COLOR_LIST_FEED_SELECTED)) {
+			color = get_cfg_color(cfg, CFG_COLOR_LIST_FEED_SELECTED);
+		} else {
+			color.attributes |= TB_REVERSE;
+		}
+	}
+	return color;
 }
 
 static bool

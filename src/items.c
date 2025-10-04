@@ -42,17 +42,25 @@ get_item_args(struct menu_state *ctx, size_t index)
 }
 
 static struct config_color
-paint_item(struct menu_state *ctx, size_t index)
+paint_item(struct menu_state *ctx, size_t index, bool is_selected)
 {
 	struct config_context **cfg = &ctx->items->ptr[index].feed[0]->cfg;
-
-	if (ctx->items->ptr[index].is_important == true) {
-		return get_cfg_color(cfg, CFG_COLOR_LIST_ITEM_IMPORTANT);
-	} else if (ctx->items->ptr[index].is_unread == true) {
-		return get_cfg_color(cfg, CFG_COLOR_LIST_ITEM_UNREAD);
+	struct config_color color;
+	if (ctx->items->ptr[index].is_important) {
+		color = get_cfg_color(cfg, CFG_COLOR_LIST_ITEM_IMPORTANT);
+	} else if (ctx->items->ptr[index].is_unread) {
+		color = get_cfg_color(cfg, CFG_COLOR_LIST_ITEM_UNREAD);
 	} else {
-		return get_cfg_color(cfg, CFG_COLOR_LIST_ITEM);
+		color = get_cfg_color(cfg, CFG_COLOR_LIST_ITEM);
 	}
+	if (is_selected) {
+		if (is_cfg_color_set(cfg, CFG_COLOR_LIST_ITEM_SELECTED)) {
+			color = get_cfg_color(cfg, CFG_COLOR_LIST_ITEM_SELECTED);
+		} else {
+			color.attributes |= TB_REVERSE;
+		}
+	}
+	return color;
 }
 
 static bool

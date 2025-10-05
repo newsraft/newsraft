@@ -1,3 +1,11 @@
+# newsraft 0.34 "potolok ledyanoy"
+
+* Solt Budavári (@solt87) thanks for #236
+
+fixes pretty serious oversight made by me in the previous release. thanks to Solt Budavári for reporting it so fast
+
+sorry to bother you with another release in such a short time, lads. promise this will not happen again (probably)
+
 # newsraft 0.33 "energizor"
 
 i'd like to start a tradition of mentioning contributors to the release, so here we go:

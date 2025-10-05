@@ -110,8 +110,15 @@ static inline struct feed_entry **
 find_feed_entry_by_url(struct feed_entry **feeds, size_t feeds_count, const char *feed_url)
 {
 	if (feed_url != NULL) {
+		size_t feed_url_len = strlen(feed_url);
 		for (size_t i = 0; i < feeds_count; ++i) {
-			if (strcmp(feed_url, feeds[i]->url->ptr) == 0) {
+			// Feed URLs in the database are stored without trailing slashes.
+			// To make the search legit we have to strip slashes from the user's URLs also.
+			size_t clean_len = feeds[i]->url->len;
+			while (clean_len > 0 && feeds[i]->url->ptr[clean_len - 1] == '/') {
+				clean_len -= 1;
+			}
+			if (feed_url_len == clean_len && strncmp(feed_url, feeds[i]->url->ptr, clean_len) == 0) {
 				return feeds + i;
 			}
 		}

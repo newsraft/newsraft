@@ -39,6 +39,24 @@ inserter_worker(void *dummy)
 
 		if (target->is_failed) {
 			str_appendf(target->new_errors, "Feed update failed!\n");
+
+			if (strstr(target->new_errors->ptr, "unknown encoding")) {
+				str_appendf(
+					target->new_errors,
+					"\n"
+					"Looks like Newsraft couldn't recognize the feed encoding.\n"
+					"Please note that Newsraft only supports UTF-8 encoding!\n"
+					"\n"
+					"If you need to read a feed encoded with anything other than UTF-8,\n"
+					"you'll need to do the conversion yourself using a shell interlayer:\n"
+					"\n"
+					"$(curl -s %s | iconv -f FROM -t UTF-8 - | tail -n +2)\n"
+					"\n"
+					"You can add a feed like this to your feed file, and it will\n"
+					"do all the conversion shenanigans automatically on each reload.\n",
+					target->feed_entry->url->ptr
+				);
+			}
 		} else {
 			if (target->is_canceled == false) {
 				if (!insert_feed(feed, &target->feed)) {

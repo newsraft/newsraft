@@ -170,9 +170,15 @@ run_scenario(const struct newsraft_execution_stage *scenario, size_t scenario_st
 int
 main(int argc, char **argv)
 {
-	setlocale(LC_ALL, "");
-
 	int error = 0;
+
+	const char *locale = setlocale(LC_ALL, "");
+	if (!locale || *locale == '\0' || strcmp(locale, "C") == 0) {
+		write_error("Invalid locale settings detected in the environment!\n");
+		write_error("This usually happens when LANG or LC_ALL is not set.\n");
+		goto undo1;
+	}
+
 	int opt;
 	while ((opt = getopt(argc, argv, "f:c:d:l:e:vh")) != -1) {
 		if (opt == 'f') {

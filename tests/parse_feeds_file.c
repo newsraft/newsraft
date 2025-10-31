@@ -39,6 +39,9 @@ struct feed_test feed_tests[] = {
 	{"$(curl foo://bar.baz/feed26)", "Feed 26 title", 180, 10000,                      ""},
 	{"$(curl foo://bar.baz/feed27)", "Feed 27 title", 180,     0,                      ""},
 	{"$(curl foo://bar.baz/feed28)",            NULL,   0,  5000,             "127.0.0.1"},
+	{"$(echo \"test\" | grep \"test\")",            NULL, 180, 10000,                      ""},
+	{"$(curl -s \"http://example.com/feed.xml\" | jq '.items[] | select(.type == \"rss\")')",            NULL, 180, 10000,                      ""},
+	{"$(bash -c \"echo $(date +%s)\")",            NULL, 180, 10000,                      ""},
 };
 
 int

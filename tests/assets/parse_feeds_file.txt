@@ -32,3 +32,6 @@ $(curl foo://bar.baz/feed25)
 $(curl foo://bar.baz/feed26) "Feed 26 title"
 $(curl foo://bar.baz/feed27) "Feed 27 title" < item-limit 0
 $(curl foo://bar.baz/feed28) < item-limit 5000; proxy '127.0.0.1'; reload-period 0
+$(echo "test" | grep "test")
+$(curl -s "http://example.com/feed.xml" | jq '.items[] | select(.type == "rss")')
+$(bash -c "echo $(date +%s)")

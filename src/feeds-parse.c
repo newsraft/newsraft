@@ -74,10 +74,16 @@ parse_feeds_file(void)
 			empty_string(section_cfg);
 			remove_start_of_string(line, 1 + len);
 		} else if (line->ptr[0] == '$' && line->ptr[1] == '(') {
+			int depth = 1;
 			for (len = 2; line->ptr[len] != '\0'; ++len) {
-				if (line->ptr[len] == ')') {
-					len += 1;
-					break;
+				if (line->ptr[len] == '(') {
+					depth++;
+				} else if (line->ptr[len] == ')') {
+					depth--;
+					if (depth == 0) {
+						len += 1;
+						break;
+					}
 				}
 			}
 			cpyas(&feed.url, line->ptr, len);

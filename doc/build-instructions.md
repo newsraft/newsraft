@@ -9,6 +9,7 @@
 | Fedora Linux     | `dnf install gcc make libcurl-devel expat-devel gumbo-parser-devel sqlite-devel`            |
 | Void Linux       | `xbps-install base-devel libcurl-devel expat-devel gumbo-parser-devel sqlite-devel`         |
 | OpenBSD          | `pkg_add curl gumbo sqlite`                                                                 |
+| Haiku            | `pkgman install curl_devel expat_devel gumbo_devel sqlite_devel`                            |
 | macOS            | `brew install gumbo-parser`                                                                 |
 
 ## Compilation

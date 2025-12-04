@@ -35,6 +35,11 @@ mediarss_content_start(struct feed_update_state *data, const XML_Char **attrs)
 	serialize_attribute(dest, "duration=", 9, attrs, "duration");
 	serialize_attribute(dest, "width=", 6, attrs, "width");
 	serialize_attribute(dest, "height=", 7, attrs, "height");
+
+	if (STRING_IS_EMPTY(data->feed.item->link)) {
+		// Fallback to attachment URL if there's still no item link.
+		cpyas(&data->feed.item->link, attr, attr_len);
+	}
 }
 
 static void
@@ -51,6 +56,11 @@ embed_or_player_start(struct feed_update_state *data, const XML_Char **attrs)
 	struct string **dest = data->in_item ? &data->feed.item->attachments : &data->feed.attachments;
 	serialize_caret(dest);
 	serialize_array(dest, "url=", 4, attr, attr_len);
+
+	if (STRING_IS_EMPTY(data->feed.item->link)) {
+		// Fallback to attachment URL if there's still no item link.
+		cpyas(&data->feed.item->link, attr, attr_len);
+	}
 }
 
 static void

@@ -81,6 +81,11 @@ rss_enclosure_start(struct feed_update_state *data, const XML_Char **attrs)
 	serialize_array(&data->feed.item->attachments, "url=", 4, attr, attr_len);
 	serialize_attribute(&data->feed.item->attachments, "type=", 5, attrs, "type");
 	serialize_attribute(&data->feed.item->attachments, "size=", 5, attrs, "length");
+
+	if (STRING_IS_EMPTY(data->feed.item->link)) {
+		// Fallback to attachment URL if there's still no item link.
+		cpyas(&data->feed.item->link, attr, attr_len);
+	}
 }
 
 static void

@@ -28,20 +28,48 @@ struct feed_test feed_tests[] = {
 	{"$(curl foo://bar.baz/feed15)",            NULL,   0,     0,             "127.0.0.1"},
 	{"$(curl foo://bar.baz/feed16)",            NULL,   0,     0,             "127.0.0.1"},
 	{"$(curl foo://bar.baz/feed17)",            NULL,   0,     0,             "127.0.0.1"},
+
+	// Section 1
 	{"$(curl foo://bar.baz/feed18)",            NULL,   0,     0,                      ""},
 	{"$(curl foo://bar.baz/feed19)", "Feed 19 title",   0,     0,                      ""},
+
+	// Section 2
 	{"$(curl foo://bar.baz/feed20)",            NULL, 720,     0,                      ""},
 	{"$(curl foo://bar.baz/feed21)",            NULL,   0,     0,                      ""},
 	{"$(curl foo://bar.baz/feed22)",            NULL, 360,     0,                      ""},
 	{"$(curl foo://bar.baz/feed23)",            NULL, 180,     0,                      ""},
 	{"$(curl foo://bar.baz/feed24)",            NULL, 360,     0,                      ""},
+
+	// Section 3
 	{"$(curl foo://bar.baz/feed25)",            NULL, 180, 10000,                      ""},
 	{"$(curl foo://bar.baz/feed26)", "Feed 26 title", 180, 10000,                      ""},
 	{"$(curl foo://bar.baz/feed27)", "Feed 27 title", 180,     0,                      ""},
 	{"$(curl foo://bar.baz/feed28)",            NULL,   0,  5000,             "127.0.0.1"},
-	{"$(echo \"test\" | grep \"test\")",            NULL, 180, 10000,                      ""},
-	{"$(curl -s \"http://example.com/feed.xml\" | jq '.items[] | select(.type == \"rss\")')",            NULL, 180, 10000,                      ""},
-	{"$(bash -c \"echo $(date +%s)\")",            NULL, 180, 10000,                      ""},
+
+	// Section 4
+	{"$(feed.py foobar | cut -d ')' -f  1)",              NULL,  0, 0, ""},
+	{"$(feed.py foobar | cut -d '(' -f  2)",              NULL,  0, 0, ""},
+	{"$(feed.py foobar | cut -d ')' -f  3)",   "parentheses 1",  0, 0, ""},
+	{"$(feed.py foobar | cut -d '(' -f  4)",   "parentheses 2",  0, 0, ""},
+	{"$(feed.py foobar | cut -d ')' -f  5)",   "parentheses 3", 60, 0, ""},
+	{"$(feed.py foobar | cut -d '(' -f  6)",   "parentheses 4", 60, 0, ""},
+	{"$(feed.py foobar | cut -d \")\" -f  7)",            NULL,  0, 0, ""},
+	{"$(feed.py foobar | cut -d \"(\" -f  8)",            NULL,  0, 0, ""},
+	{"$(feed.py foobar | cut -d \")\" -f  9)", "parentheses 5",  0, 0, ""},
+	{"$(feed.py foobar | cut -d \"(\" -f 10)", "parentheses 6",  0, 0, ""},
+	{"$(feed.py foobar | cut -d \")\" -f 11)", "parentheses 7", 60, 0, ""},
+	{"$(feed.py foobar | cut -d \"(\" -f 12)", "parentheses 8", 60, 0, ""},
+	{"$(feed.py foobar | cut -d \\)  -f 13)",             NULL,  0, 0, ""},
+	{"$(feed.py foobar | cut -d \\(  -f 14)",             NULL,  0, 0, ""},
+	{"$(echo \"test\" | grep \"test\")",                  NULL,  0, 0, ""},
+	{
+		"$(curl -s \"http://example.com/feed.xml\" | jq '.items[] | select(.type == \"rss\")')",
+		NULL, 0, 0, ""
+	},
+	{
+		"$(bash -c \"echo $(date +%s)\")",
+		NULL, 0, 0, ""
+	},
 };
 
 int

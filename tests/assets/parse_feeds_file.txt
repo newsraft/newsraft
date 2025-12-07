@@ -32,6 +32,22 @@ $(curl foo://bar.baz/feed25)
 $(curl foo://bar.baz/feed26) "Feed 26 title"
 $(curl foo://bar.baz/feed27) "Feed 27 title" < item-limit 0
 $(curl foo://bar.baz/feed28) < item-limit 5000; proxy '127.0.0.1'; reload-period 0
+
+@ Section 4
+$(feed.py foobar | cut -d ')' -f  1)
+$(feed.py foobar | cut -d '(' -f  2)
+$(feed.py foobar | cut -d ')' -f  3) "parentheses 1"
+$(feed.py foobar | cut -d '(' -f  4) "parentheses 2"
+$(feed.py foobar | cut -d ')' -f  5) "parentheses 3" < reload-period 60
+$(feed.py foobar | cut -d '(' -f  6) "parentheses 4" < reload-period 60
+$(feed.py foobar | cut -d ")" -f  7)
+$(feed.py foobar | cut -d "(" -f  8)
+$(feed.py foobar | cut -d ")" -f  9) "parentheses 5"
+$(feed.py foobar | cut -d "(" -f 10) "parentheses 6"
+$(feed.py foobar | cut -d ")" -f 11) "parentheses 7" < reload-period 60
+$(feed.py foobar | cut -d "(" -f 12) "parentheses 8" < reload-period 60
+$(feed.py foobar | cut -d \)  -f 13)
+$(feed.py foobar | cut -d \(  -f 14)
 $(echo "test" | grep "test")
 $(curl -s "http://example.com/feed.xml" | jq '.items[] | select(.type == "rss")')
 $(bash -c "echo $(date +%s)")

@@ -74,19 +74,27 @@ parse_feeds_file(void)
 			empty_string(section_cfg);
 			remove_start_of_string(line, 1 + len);
 		} else if (line->ptr[0] == '$' && line->ptr[1] == '(') {
-			int depth = 1;
+			bool need_next_character_escaped = false;
+			bool inside_single_quoted_string = false;
+			bool inside_double_quoted_string = false;
+			cpyas(&feed.url, line->ptr, 2);
 			for (len = 2; line->ptr[len] != '\0'; ++len) {
-				if (line->ptr[len] == '(') {
-					depth++;
-				} else if (line->ptr[len] == ')') {
-					depth--;
-					if (depth == 0) {
+				catcs(feed.url, line->ptr[len]);
+				if (need_next_character_escaped) {
+					need_next_character_escaped = false;
+				} else if (line->ptr[len] == '\\') {
+					need_next_character_escaped = true;
+				} else if (line->ptr[len] == '\'') {
+					inside_single_quoted_string = !inside_single_quoted_string;
+				} else if (line->ptr[len] == '"') {
+					inside_double_quoted_string = !inside_double_quoted_string;
+				} else {
+					if (line->ptr[len] == ')' && !inside_single_quoted_string && !inside_double_quoted_string) {
 						len += 1;
 						break;
 					}
 				}
 			}
-			cpyas(&feed.url, line->ptr, len);
 			remove_start_of_string(line, len);
 		} else {
 			for (const char *i = line->ptr; !ISWHITESPACE(*i) && *i != '\0'; ++i) {

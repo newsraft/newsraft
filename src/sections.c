@@ -91,6 +91,15 @@ get_all_feeds(size_t *feeds_count)
 	return sections[0].feeds;
 }
 
+char *
+get_section_name(size_t section_index)
+{
+	if (section_index >= sections_count)
+		return NULL;
+
+	return sections[section_index].name->ptr;
+}
+
 void
 mark_feeds_read(struct feed_entry **feeds, size_t feeds_count, bool status)
 {
@@ -186,6 +195,7 @@ copy_feed_to_section(const struct feed_entry *feed_data, int64_t section_index)
 		write_error("Not enough memory!\n");
 		return NULL;
 	}
+	feed->section_index = section_index;
 
 	// User sections contain only pointers to feeds in the global section
 	struct feed_section *section = sections + section_index;

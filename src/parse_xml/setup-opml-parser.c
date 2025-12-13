@@ -91,15 +91,44 @@ convert_feeds_to_opml(void)
 
 	catas(opml, header, strlen(header));
 
-	for (size_t i = 0; i < feeds_count; ++i) {
-		if (feeds[i]->url->ptr[0] == '$') {
-			continue; // skip command feeds
+	char *indent;
+	size_t section_index = 0;
+	char *section_name = NULL;
+	while ((section_name = get_section_name(section_index)) != NULL) {
+
+		if (section_index != 0) {
+			str_appendf(opml, "\t\t<outline type=\"newsraft-section\" text=\"%s\">\n", section_name);
 		}
-		if (!STRING_IS_EMPTY(feeds[i]->name)) {
-			str_appendf(opml, "\t\t<outline type=\"rss\" xmlUrl=\"%s\" title=\"%s\" />\n", feeds[i]->url->ptr, feeds[i]->name->ptr);
-		} else {
-			str_appendf(opml, "\t\t<outline type=\"rss\" xmlUrl=\"%s\" />\n", feeds[i]->url->ptr);
+
+		for (size_t i = 0; i < feeds_count; ++i) {
+			if (feeds[i]->section_index != section_index) {
+				continue; // skip feeds from other sections
+			}
+			if (feeds[i]->url->ptr[0] == '$') {
+				continue; // skip command feeds
+			}
+
+			indent = section_index == 0 ? "\t\t" : "\t\t\t";
+
+			if (STRING_IS_EMPTY(feeds[i]->name)) {
+				str_appendf(opml, "%s<outline type=\"rss\" xmlUrl=\"%s\" />\n", indent, feeds[i]->url->ptr);
+			} else {
+				str_appendf(
+					opml,
+					"%s<outline type=\"rss\" xmlUrl=\"%s\" title=\"%s\" text=\"%s\" />\n",
+					indent,
+					feeds[i]->url->ptr,
+					feeds[i]->name->ptr,
+					feeds[i]->name->ptr
+				);
+			}
 		}
+
+		if (section_index != 0) {
+			str_appendf(opml, "\t\t</outline>\n", section_name);
+		}
+
+		section_index++;
 	}
 
 	catas(opml, footer, strlen(footer));

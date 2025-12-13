@@ -162,6 +162,7 @@ struct feed_entry {
 	int64_t unread_count;
 	int64_t items_count;
 	int64_t update_date; // date of last feed update attempt
+	int64_t section_index;
 	struct config_context *cfg;
 	struct input_binding *binds;
 	struct string *errors;
@@ -338,6 +339,7 @@ bool print_unread_items_count(void);
 void process_auto_updating_feeds(void);
 void mark_feeds_read(struct feed_entry **feeds, size_t feeds_count, bool status);
 struct feed_entry **get_all_feeds(size_t *feeds_count);
+char *get_section_name(size_t section_index);
 
 // See "feeds-parse.c" file for implementation.
 bool parse_feeds_file(void);

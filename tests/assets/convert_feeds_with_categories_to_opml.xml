@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<opml version="2.0">
+	<head>
+		<title>Newsraft - Exported Feeds</title>
+	</head>
+	<body>
+		<outline type="rss" xmlUrl="http://www.csmonitor.com/rss/top.rss" title="Christian Science Monitor | Top Stories" text="Christian Science Monitor | Top Stories" />
+		<outline type="rss" xmlUrl="http://www.dictionary.com/wordoftheday/wotd.rss" title="Dictionary.com Word of the Day" text="Dictionary.com Word of the Day" />
+		<outline type="newsraft-section" text="Tech">
+			<outline type="rss" xmlUrl="https://archlinux.org/feeds/news/" title="archlinux" text="archlinux" />
+			<outline type="rss" xmlUrl="https://www.linuxjournal.com/node/feed" title="Linux Journal" text="Linux Journal" />
+			<outline type="rss" xmlUrl="http://lwn.net/headlines/newrss" title="lwn" text="lwn" />
+			<outline type="rss" xmlUrl="https://openwrt.org/feed.php?type=rss&mode=list&sort=date&ns=advisory&linkto=current&content=html" title="OpenWrt Wiki - advisory" text="OpenWrt Wiki - advisory" />
+			<outline type="rss" xmlUrl="http://rss.news.yahoo.com/rss/tech" title="Yahoo! News: Technology" text="Yahoo! News: Technology" />
+		</outline>
+		<outline type="newsraft-section" text="NYTimes">
+			<outline type="rss" xmlUrl="http://www.nytimes.com/services/xml/rss/nyt/Business.xml" title="NYT > Business" text="NYT > Business" />
+			<outline type="rss" xmlUrl="http://www.nytimes.com/services/xml/rss/nyt/Technology.xml" />
+		</outline>
+	</body>
+</opml>

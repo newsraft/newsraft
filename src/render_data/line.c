@@ -14,6 +14,7 @@ line_bump(struct line *line)
 	line->head->hints_len = 0;
 	line->head->indent = line->indent;
 	line->end = SIZE_MAX;
+	line->end_is_hyphenated = false;
 	return true;
 }
 
@@ -38,6 +39,19 @@ line_tab(struct line *line)
 	return status;
 }
 
+static bool
+line_soft_hyphen(struct line *line)
+{
+	if (line->head->ws->len > 0
+		&& line->head->ws->ptr[line->head->ws->len - 1] != ' '
+		&& (size_t)wcswidth(line->head->ws->ptr, line->head->ws->len) < line->lim - line->head->indent)
+	{
+		line->end = line->head->ws->len - 1;
+		line->end_is_hyphenated = true;
+	}
+	return true;
+}
+
 static inline void
 line_split_at_end(struct line *line)
 {
@@ -47,6 +61,7 @@ line_split_at_end(struct line *line)
 	struct wstring *prev_ws      = line->head->ws;
 	newsraft_video_t *prev_hints = line->head->hints;
 	size_t prev_end              = line->end;
+	bool prev_end_is_hyphenated  = line->end_is_hyphenated;
 
 	line_bump(line); // Now line->head points to a new empty line
 
@@ -59,6 +74,11 @@ line_split_at_end(struct line *line)
 		line_char(line, prev_ws->ptr[i++]);
 	}
 
+	if (prev_end_is_hyphenated){
+		prev_ws->ptr[prev_end + 1] = L'-';
+		prev_ws->len = prev_end + 1;
+		prev_end += 1;
+	}
 	prev_ws->ptr[prev_end + 1] = L'\0';
 	prev_ws->len = prev_end + 1;
 }
@@ -89,6 +109,9 @@ line_char(struct line *line, wchar_t c)
 	if (c == L'\t') {
 		return line_tab(line); // Add missing whitespace to align with previous line
 	}
+	if (c == 0xAD){ // 0xAD is a soft hyphen
+		return line_soft_hyphen(line); // Special kind of line end marker with a hyphen
+	}
 
 	int c_width = wcwidth(c);
 	if (c_width < 1) {
@@ -108,6 +131,7 @@ line_char(struct line *line, wchar_t c)
 		&& line->head->ws->ptr[line->head->ws->len - 1] != ' ')
 	{
 		line->end = line->head->ws->len - 1;
+		line->end_is_hyphenated = false;
 	}
 
 	if ((size_t)wcswidth(line->head->ws->ptr, line->head->ws->len) + c_width <= line->lim - line->head->indent) {

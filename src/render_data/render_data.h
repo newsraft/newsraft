@@ -8,6 +8,7 @@ struct line {
 	struct render_line *head;     // Line where text is currently added
 	size_t lim;                   // Capacity of one text line
 	size_t end;                   // Index of character suitable for line ending
+	bool end_is_hyphenated;       // Means we have to put - at the end of line
 	size_t indent;                // Indentation for subsequent line bumps
 
 	newsraft_video_t style;        // Cumulative style value for added text

@@ -1,0 +1,13 @@
+http://www.csmonitor.com/rss/top.rss "Christian Science Monitor | Top Stories"
+http://www.dictionary.com/wordoftheday/wotd.rss "Dictionary.com Word of the Day"
+
+@ Tech
+https://archlinux.org/feeds/news/ "archlinux"
+https://www.linuxjournal.com/node/feed "Linux Journal"
+http://lwn.net/headlines/newrss "lwn"
+https://openwrt.org/feed.php?type=rss&mode=list&sort=date&ns=advisory&linkto=current&content=html "OpenWrt Wiki - advisory"
+http://rss.news.yahoo.com/rss/tech "Yahoo! News: Technology"
+
+@ NYTimes
+http://www.nytimes.com/services/xml/rss/nyt/Business.xml "NYT > Business"
+http://www.nytimes.com/services/xml/rss/nyt/Technology.xml

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<opml version="2.0">
+	<head>
+		<title>Categories</title>
+	</head>
+<body>
+	<outline text="Tech" title="Tech">
+		<outline text="archlinux" title="archlinux" description="" type="rss" version="RSS" htmlUrl="https://archlinux.org/news/" xmlUrl="https://archlinux.org/feeds/news/"/>
+		<outline text="Linux Journal" title="Linux Journal" description="" type="rss" version="RSS" htmlUrl="https://www.linuxjournal.com/" xmlUrl="https://www.linuxjournal.com/node/feed"/>
+		<outline text="lwn" title="lwn" description="" type="rss" version="RSS" htmlUrl="https://lwn.net/" xmlUrl="http://lwn.net/headlines/newrss"/>
+		<outline text="OpenWrt Wiki - advisory" title="OpenWrt Wiki - advisory" description="" type="rss" version="RSS" htmlUrl="https://openwrt.org/" xmlUrl="https://openwrt.org/feed.php?type=rss&amp;mode=list&amp;sort=date&amp;ns=advisory&amp;linkto=current&amp;content=html"/>
+		<!-- Self-enclosing outline without a xmlUrl, this should be ignored. -->
+		<outline text="archlinux-bad" title="archlinux-bad"/>
+
+	</outline>
+
+	<!-- Empty category, not included in the feeds file -->
+	<outline text="Empty">
+	</outline>
+
+	<!-- No category, needs to be placed first in the feeds file -->
+	<outline type="rss" xmlUrl="http://www.csmonitor.com/rss/top.rss" title="Christian Science Monitor | Top Stories" />
+	<outline type="rss" xmlUrl="http://www.dictionary.com/wordoftheday/wotd.rss" title="Dictionary.com Word of the Day" />
+
+	<outline text="NYTimes">
+		<outline type="rss" xmlUrl="http://www.nytimes.com/services/xml/rss/nyt/Business.xml" title="NYT > Business" />
+
+		<!-- Nested categories should be ignored -->
+		<outline text="nested">
+			<outline text="nested-2">
+				<!-- This should still be part of the outer "NYTimes" category -->
+				<outline type="rss" xmlUrl="http://www.nytimes.com/services/xml/rss/nyt/Technology.xml" />
+			</outline>
+		</outline>
+	</outline>
+
+	<!-- Duplicate name, should be made part of the first @ Tech category -->
+	<outline title="Tech">
+		<outline type="rss" xmlUrl="http://rss.news.yahoo.com/rss/tech" title="Yahoo! News: Technology" />
+	</outline>
+
+	</body>
+</opml>

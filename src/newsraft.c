@@ -124,7 +124,7 @@ static const struct newsraft_execution_stage reload_mode[] = {
 };
 
 static const struct newsraft_execution_stage convert_opml_to_feeds_mode[] = {
-	{"convert OPML stream to feeds",  convert_opml_to_feeds,           NULL},
+	{"convert OPML stream to feeds",  convert_opml_to_feeds,           free_sections},
 };
 
 static const struct newsraft_execution_stage convert_feeds_to_opml_mode[] = {

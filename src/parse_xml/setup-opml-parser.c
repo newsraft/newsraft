@@ -1,74 +1,188 @@
 #include <string.h>
 #include "newsraft.h"
 
+struct opml_parser_context {
+	XML_Parser parser;
+	struct string *current_section_name;
+	int outline_depth;
+};
+
 static void
 opml_start_element_handler(void *userData, const XML_Char *name, const XML_Char **atts)
 {
-	struct string *feeds = userData;
-	if (strcmp(name, "outline") == 0) {
-		const char *feed = get_value_of_attribute_key(atts, "xmlUrl");
-		if (feed && strlen(feed) > 0) {
-			catas(feeds, feed, strlen(feed));
+	if (strcmp(name, "outline") != 0)
+		return;
 
-			const char *name = get_value_of_attribute_key(atts, "title");
-			if (name == NULL) {
-				name = get_value_of_attribute_key(atts, "text");
-			}
-			if (name && strlen(name) > 0) {
-				catas(feeds, " \"", 2);
-				catas(feeds, name, strlen(name));
-				catcs(feeds, '"');
-			}
+	struct opml_parser_context *ctx = userData;
+	struct feed_entry feed = {0};
 
-			catcs(feeds, '\n');
-		}
+	const char *title = get_value_of_attribute_key(atts, "title");
+	if (title == NULL) {
+		title = get_value_of_attribute_key(atts, "text");
 	}
+
+	const char *xml_url = get_value_of_attribute_key(atts, "xmlUrl");
+
+	if (xml_url && strlen(xml_url) > 0) {
+		// Treat elements with a xmlUrl as feeds.
+		feed.url = crtas(xml_url, strlen(xml_url));
+
+		if (title && strlen(title) > 0) {
+			feed.name = crtas(title, strlen(title));
+		}
+
+		int64_t section_index = 0;
+		if (ctx->current_section_name) {
+			section_index = make_sure_section_exists(ctx->current_section_name);
+		}
+
+		INFO("Copying '%s' into section #%lld for import", feed.url->ptr, section_index);
+		if (copy_feed_to_section(&feed, section_index) == NULL) {
+			FAIL("Error copying OPML element '%s' to section", feed.url->ptr);
+			XML_StopParser(ctx->parser, XML_TRUE);
+			goto cleanup;
+		}
+
+	} else if (ctx->current_section_name == NULL && title != NULL && strlen(title) > 0) {
+		// Treat top level elements where xmlUrl is missing as a section category.
+		INFO("Set current section for import '%s'", title);
+		ctx->current_section_name = crtas(title, strlen(title));
+	} else {
+		// Ignore elements without a xmlUrl when we already have a section set.
+		INFO("Ignoring outline element for import '%s'", title);
+	}
+
+	ctx->outline_depth++;
+
+cleanup:
+	free_string(feed.url);
+	free_string(feed.name);
 }
 
 static void
 opml_end_element_handler(void *userData, const XML_Char *name)
 {
-	(void)userData;
-	(void)name;
-	return;
+	if (strcmp(name, "outline") != 0)
+		return;
+
+	struct opml_parser_context *ctx = userData;
+
+	if (ctx->outline_depth == 1 && ctx->current_section_name != NULL) {
+		// Unset the current section when an end element at depth 1 is found.
+		INFO("Unset current section for import '%s'", ctx->current_section_name->ptr);
+		free_string(ctx->current_section_name);
+		ctx->current_section_name = NULL;
+	}
+
+	ctx->outline_depth--;
+}
+
+static bool
+has_feed_in_section(struct feed_entry **feeds, size_t feeds_count, int64_t section_index)
+{
+	bool has_feed = false;
+
+	for (size_t i = 0; i < feeds_count; ++i) {
+		if (feeds[i]->section_index == section_index) {
+			has_feed = true;
+			break;
+		}
+	}
+
+	return has_feed;
+}
+
+static bool
+write_feeds_file(void)
+{
+	size_t feeds_count = 0;
+	struct feed_entry **feeds = get_all_feeds(&feeds_count);
+	struct string *output = crtes(20000);
+
+	if (feeds_count == 0 || feeds == NULL || output == NULL) {
+		free_string(output);
+		return false;
+	}
+
+	bool has_global_feed = has_feed_in_section(feeds, feeds_count, 0);
+
+	for (int64_t section_index = 0; true; ++section_index) {
+		char *section_name = get_section_name(section_index);
+		if (!section_name) {
+			break;
+		}
+
+		if (section_index > 0) {
+			bool need_newline = section_index == 1 && has_global_feed || section_index > 1;
+			str_appendf(output, "%s@ %s\n", need_newline ? "\n" : "", section_name);
+		}
+
+		for (size_t i = 0; i < feeds_count; ++i) {
+			if (feeds[i]->section_index != section_index) {
+				continue;
+			}
+			if (STRING_IS_EMPTY(feeds[i]->name)) {
+				str_appendf(output, "%s\n", feeds[i]->url->ptr);
+			} else {
+				str_appendf(
+					output,
+					"%s \"%s\"\n",
+					feeds[i]->url->ptr,
+					feeds[i]->name->ptr
+				);
+			}
+		}
+	}
+
+	fputs(output->ptr, stdout);
+	fflush(stdout);
+
+	free_string(output);
+
+	return true;
 }
 
 bool
 convert_opml_to_feeds(void)
 {
-	FILE *f = fopen("/dev/stdin", "r");
-	if (f == NULL) {
-		return false;
-	}
+	bool ok = false;
 	struct string *opml = crtes(10000);
+	struct opml_parser_context ctx = {
+		.parser = XML_ParserCreateNS(NULL, ' '),
+	};
+	FILE *f = fopen("/dev/stdin", "r");
+
+	if (!f || !ctx.parser || !opml) {
+		goto cleanup;
+	}
+
 	for (int c = fgetc(f); c != EOF; c = fgetc(f)) {
 		catcs(opml, c);
 	}
+
 	if (opml->len == 0) {
-		free_string(opml);
-		return false;
+		goto cleanup;
 	}
-	XML_Parser parser = XML_ParserCreateNS(NULL, ' ');
-	if (parser == NULL) {
-		free_string(opml);
-		return false;
+
+	const struct string* section_name = get_cfg_string(NULL, CFG_GLOBAL_SECTION_NAME);
+	if (make_sure_section_exists(section_name) < 0) {
+		goto cleanup;
 	}
-	struct string *feeds = crtes(50000);
-	XML_SetUserData(parser, feeds);
-	XML_SetElementHandler(parser, &opml_start_element_handler, &opml_end_element_handler);
-	if (XML_Parse(parser, opml->ptr, opml->len, XML_TRUE) != XML_STATUS_OK) {
-		write_error("XML parser failed: %s\n", XML_ErrorString(XML_GetErrorCode(parser)));
-		XML_ParserFree(parser);
-		free_string(opml);
-		free_string(feeds);
-		return false;
+
+	XML_SetUserData(ctx.parser, &ctx);
+	XML_SetElementHandler(ctx.parser, &opml_start_element_handler, &opml_end_element_handler);
+	if (XML_Parse(ctx.parser, opml->ptr, opml->len, XML_TRUE) != XML_STATUS_OK) {
+		write_error("XML parser failed: %s\n", XML_ErrorString(XML_GetErrorCode(ctx.parser)));
+		goto cleanup;
 	}
-	fputs(feeds->ptr, stdout);
-	fflush(stdout);
-	XML_ParserFree(parser);
+
+	ok = write_feeds_file();
+
+cleanup:
+	XML_ParserFree(ctx.parser);
 	free_string(opml);
-	free_string(feeds);
-	return true;
+	if (f) fclose(f);
+	return ok;
 }
 
 bool
@@ -92,7 +206,7 @@ convert_feeds_to_opml(void)
 	catas(opml, header, strlen(header));
 
 	char *indent;
-	size_t section_index = 0;
+	int64_t section_index = 0;
 	char *section_name = NULL;
 	while ((section_name = get_section_name(section_index)) != NULL) {
 

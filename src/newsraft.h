@@ -13,7 +13,7 @@
 #include "termbox2.h"
 
 #ifndef NEWSRAFT_VERSION
-#define NEWSRAFT_VERSION "0.34"
+#define NEWSRAFT_VERSION "0.35"
 #endif
 
 #define ISWHITESPACE(A) (((A)==' ')||((A)=='\n')||((A)=='\t')||((A)=='\v')||((A)=='\f')||((A)=='\r'))

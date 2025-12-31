@@ -1,3 +1,23 @@
+# newsraft 0.35 "physics jitter" (2026-01-01)
+
+* Dung Ngo (@nlqdung) thanks for #242
+* jhhm (@jhhm) thanks for #245
+* Kafva (@kafva) thanks for #246, #248
+* schmijoe (@schmijoe) thanks for #247
+* zhml (@zhml) thanks for #240, #241
+
+oh, it's a new year already - time to throw in some minor improvements
+
+* add support for soft hyphens in pager (#247)
+* fallback to attachment url if there is no item link (#245)
+* fix nested parentheses parsing in `$(...)` feeds (#242, #243)
+* include categories when exporting/importing feeds to/from OPML (#221)
+* exit early on invalid locale settings (#241)
+* add hint about converting encodings to error message (#238)
+* add dependencies list for Haiku OS
+
+thank you to everyone involved in packaging Newsraft in repos!!! <3
+
 # newsraft 0.34 "potolok ledyanoy"
 
 * Solt Budavári (@solt87) thanks for #236

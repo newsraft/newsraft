@@ -113,7 +113,7 @@ write_feeds_file(void)
 		}
 
 		if (section_index > 0) {
-			bool need_newline = section_index == 1 && has_global_feed || section_index > 1;
+			bool need_newline = (section_index == 1 && has_global_feed) || section_index > 1;
 			str_appendf(output, "%s@ %s\n", need_newline ? "\n" : "", section_name);
 		}
 

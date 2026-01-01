@@ -211,7 +211,7 @@ prepare_feed_update_state_for_download(struct feed_update_state *data)
 	if (get_cfg_bool(&feed->cfg, CFG_SEND_IF_MODIFIED_SINCE_HEADER) == true) {
 		int64_t last_modified = db_get_date_from_feeds_table(feed->url, "http_header_last_modified", 25);
 		if (last_modified > 0) {
-			curl_easy_setopt(curl, CURLOPT_TIMEVALUE, last_modified);
+			curl_easy_setopt(curl, CURLOPT_TIMEVALUE_LARGE, (curl_off_t)last_modified);
 			curl_easy_setopt(curl, CURLOPT_TIMECONDITION, CURL_TIMECOND_IFMODSINCE);
 			INFO("Attached header - If-Modified-Since: %" PRId64 " (it was converted to date string).", last_modified);
 		} else if (last_modified < 0) {

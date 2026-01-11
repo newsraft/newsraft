@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdio.h>
 #include "load_config/load_config.h"
 #include "newsraft.h"
 
@@ -71,6 +72,11 @@ ui_init(void)
 		}
 	}
 	newsraft_has_successfully_initialized_ui = true;
+	{
+		// setting the window title! escape codes are confusing
+		printf("\033]0;newsraft\007");
+		fflush(stdout);
+	}
 	return true;
 }
 

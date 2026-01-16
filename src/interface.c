@@ -72,11 +72,6 @@ ui_init(void)
 		}
 	}
 	newsraft_has_successfully_initialized_ui = true;
-	{
-		// setting the window title! escape codes are confusing
-		printf("\033]0;newsraft\007");
-		fflush(stdout);
-	}
 	return true;
 }
 
@@ -92,6 +87,15 @@ bool
 ui_is_running(void)
 {
 	return newsraft_has_successfully_initialized_ui;
+}
+
+bool
+ui_set_window_title(void)
+{
+	// setting the window title! escape codes are confusing
+	fputs("\033]0;newsraft\007", stdout);
+	fflush(stdout);
+	return true;
 }
 
 bool

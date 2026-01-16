@@ -109,6 +109,7 @@ static const struct newsraft_execution_stage regular_mode[] = {
 	{"create status field",           status_recreate_unprotected,     status_delete},
 	{"initialize curl library",       curl_init,                       curl_stop},
 	{"start worker threads",          threads_start,                   threads_stop},
+	{"set terminal window title",     ui_set_window_title,             NULL},
 	{"run menu loop",                 run_menu_loop,                   free_menus},
 };
 

@@ -112,13 +112,24 @@ make_string_fit_more(struct string **dest, size_t n)
 void
 str_vappendf(struct string *dest, const char *fmt, va_list args)
 {
-	char buf[1000];
-	int res = vsnprintf(buf, sizeof(buf), fmt, args);
-	if (res > 0 && res < (int)sizeof(buf)) {
-		catas(dest, buf, res);
-	} else {
-		catas(dest, "appendix was too big!\n", 22);
+	va_list args_copy;
+	va_copy(args_copy, args);
+	char dummy;
+	const int required_len = vsnprintf(&dummy, 0, fmt, args_copy);
+	va_end(args_copy);
+	if (required_len <= 0) {
+		return;
 	}
+
+	char *buf = newsraft_malloc(required_len + 1);
+	const int actual_len = vsnprintf(buf, required_len + 1, fmt, args);
+	if (actual_len != required_len) {
+		FAIL("vsnprintf() yielded invalid length!");
+		newsraft_free(buf);
+		return;
+	}
+	catas(dest, buf, actual_len);
+	newsraft_free(buf);
 }
 
 void

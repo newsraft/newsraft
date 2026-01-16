@@ -1,33 +1,33 @@
-## Description
+### Description
 
 Newsraft is a [feed reader](https://en.wikipedia.org/wiki/News_aggregator) with
 text-based user interface. It's greatly inspired by
-[Newsboat](https://www.newsboat.org) and tries to be its lightweight counterpart
+[Newsboat](https://www.newsboat.org) and is its lightweight counterpart
 
 ![Newsraft in action](doc/newsraft.png)
 
-## Features
+### Features
 
 * Parallel downloads
 * Section-based feeds grouping
-* Opening links in any program
-* [News filtering using SQL conditions](https://newsraft.codeberg.page/#item-rule_(*))
-* Viewing news from all feeds with explore mode
+* Open any link in any program
+* [Filter news with SQL conditions](https://newsraft.codeberg.page/#item-rule_(*))
+* View news from all feeds with explore mode (tab)
 * [Automatic updates for feeds and sections](https://newsraft.codeberg.page/#reload-period_(*))
-* Per-feed settings and key bindings
-* Assigning multiple actions to key bindings
-* Text searching by news titles and content
-* Interactive news content viewing
-* Menu sorting by your most desired parameters
+* Per-feed/per-section settings and key bindings
+* Assign multiple actions to key bindings
+* Text search by news titles and content
+* View news content interactively
+* Sort menus by your most desired parameters
 * Detailed error reports on failed updates
-* Processing feeds from command output
+* Scripted feeds (read from command output)
 * [Support for practically all feed formats](https://newsraft.codeberg.page/#FORMATS_SUPPORT)
 * Import/export OPML
 * Come try segfault me, baby ;)
 
 Check out [comparison of Newsraft and Newsboat](https://codeberg.org/newsraft/newsraft/src/branch/main/doc/comparison-newsboat.md)
 
-## Dependencies
+### Dependencies
 
 * [curl](https://curl.se) >= `7.87.0`
 * [expat](https://github.com/libexpat/libexpat) >= `2.4.8`
@@ -36,13 +36,13 @@ Check out [comparison of Newsraft and Newsboat](https://codeberg.org/newsraft/ne
 
 Build-time: C99 compiler, POSIX make
 
-Only for developers: [gperf](https://www.gnu.org/software/gperf), [scdoc](https://git.sr.ht/~sircmpwn/scdoc), [mandoc](https://mandoc.bsd.lv)
+If you want to change sources: [gperf](https://www.gnu.org/software/gperf), [scdoc](https://git.sr.ht/~sircmpwn/scdoc), [mandoc](https://mandoc.bsd.lv)
 
-## Install
+### Install
 
-[![Packaging status](https://repology.org/badge/vertical-allrepos/newsraft.svg?columns=4)](https://repology.org/project/newsraft/versions)
+[![Packaging status from Repology](https://repology.org/badge/vertical-allrepos/newsraft.svg?columns=4)](https://repology.org/project/newsraft/versions)
 
-## Build
+### Build
 
 ```
 make
@@ -53,19 +53,19 @@ make install
 
 More details: [doc/build-instructions.md](https://codeberg.org/newsraft/newsraft/src/branch/main/doc/build-instructions.md)
 
-## Learn more
+### Learn more
 
 * `man newsraft`
 * [newsraft.codeberg.page](https://newsraft.codeberg.page)
 * [doc/examples](https://codeberg.org/newsraft/newsraft/src/branch/main/doc/examples)
 * **#newsraft** at [libera.chat](https://libera.chat)
 
-## Contribute
+### Contribute
 
 * Reporting bugs: [doc/contributing-report.md](https://codeberg.org/newsraft/newsraft/src/branch/main/doc/contributing-report.md)
 * Making changes: [doc/contributing-change.md](https://codeberg.org/newsraft/newsraft/src/branch/main/doc/contributing-change.md)
 
-## FAQ
+### FAQ
 
 <details>
 	<summary>Why it's called Newsraft?</summary>
@@ -74,7 +74,7 @@ More details: [doc/build-instructions.md](https://codeberg.org/newsraft/newsraft
 
 <details>
 	<summary>Why a raccoon in Newsraft's logo?</summary>
-	Because he's <a href="https://www.youtube.com/watch?v=OtrIDFyVt5M">cute</a>, dummy. You should call him Malin.
+	Because he's <a href="https://www.youtube.com/watch?v=OtrIDFyVt5M">cute</a>, dummy. His name is Malin.
 </details>
 
 <details>

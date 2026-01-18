@@ -18,8 +18,8 @@
 |-----------------------|-------------------------------------------------------------------------------------|
 | General Unix-like     | `make`                                                                              |
 | OpenBSD               | `make CFLAGS="-I/usr/local/include" LDFLAGS="-L/usr/local/lib"`                     |
-| macOS (Apple Silicon) | `make CFLAGS="-I/opt/homebrew/include"`                                             |
-| macOS (Intel)         | `make CFLAGS="-I/usr/local/include"`                                                |
+| macOS (Apple Silicon) | `make CFLAGS="-I/opt/homebrew/include" LDFLAGS="-L/opt/homebrew/lib"`             |
+| macOS (Intel)         | `make CFLAGS="-I/usr/local/include" LDFLAGS="-L/usr/local/lib"`                   |
 
 ## Examination
 

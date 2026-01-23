@@ -185,7 +185,7 @@ get_input(struct input_binding *ctx, uint32_t *count, const struct wstring **p_a
 		}
 		INFO("Read key: %s", key);
 		if (search_mode_is_enabled == true) {
-			if (strcmp(key, "enter") == 0 || strcmp(key, "escape") == 0) {
+			if (strcmp(key, "enter") == 0 || strcmp(key, "^C") == 0 || strcmp(key, "escape") == 0) {
 				search_mode_is_enabled = false;
 				status_clean();
 				if (strcmp(key, "enter") == 0 && search_mode_text_input->len > 0) {

@@ -104,7 +104,8 @@ queue_examine(void)
 	}
 	info_status("Feed updates completed: %zu/%zu", update_queue_finished_len, update_queue_len);
 	if (update_queue_finished_len == update_queue_len) {
-		tell_items_menu_to_regenerate();
+		raise_menu_age();
+		break_getting_input_command();
 		allow_status_cleaning();
 		if (update_queue_failures > 0) {
 			fail_status("%zu feeds failed (select failed feed and press v for more info)", update_queue_failures);

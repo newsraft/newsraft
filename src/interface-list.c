@@ -13,6 +13,7 @@ static size_t windows_count = 0;
 static size_t scrolloff;
 static size_t horizontal_shift = 0;
 static struct wstring *list_fmtout = NULL;
+static uint64_t menu_age = 0;
 
 static struct menu_state *menus = NULL;
 static struct menu_state *menu  = NULL;
@@ -511,4 +512,21 @@ write_menu_path_string(struct string *names, struct menu_state *m)
 		catas(names, "  >  ", 5);
 		catss(names, m->name);
 	}
+}
+
+void
+raise_menu_age(void)
+{
+	pthread_mutex_lock(&interface_lock);
+	menu_age += 1;
+	pthread_mutex_unlock(&interface_lock);
+}
+
+uint64_t
+fetch_menu_age(void)
+{
+	pthread_mutex_lock(&interface_lock);
+	const uint64_t ret = menu_age;
+	pthread_mutex_unlock(&interface_lock);
+	return ret;
 }

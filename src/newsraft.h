@@ -210,7 +210,7 @@ struct menu_state {
 	struct feed_entry **feeds;          // Virtual feeds with user sorting applied
 	size_t feeds_count;                 // Size of feeds_original and feeds arrays
 	struct items_list *items;
-	size_t items_age;                   // Refresh, if it doesn't match global age
+	uint64_t age;                       // Must refresh if it doesn't match global age
 	uint32_t flags;
 	size_t view_sel;                    // Index of the selected entry
 	size_t view_min;                    // Index of the first visible entry
@@ -364,6 +364,8 @@ struct menu_state *setup_menu(struct menu_state *(*run)(struct menu_state *), co
 struct menu_state *close_menu(void);
 void start_menu(void);
 void write_menu_path_string(struct string *names, struct menu_state *m);
+void raise_menu_age(void);
+uint64_t fetch_menu_age(void);
 
 // See "interface-list-pager.c" file for implementation.
 bool is_pager_pos_valid(struct menu_state *ctx, size_t index);
@@ -381,7 +383,6 @@ const char *get_sorting_message(int sorting_id);
 // See "items.c" file for implementation.
 struct string *generate_items_search_condition(struct feed_entry **feeds, size_t feeds_count);
 bool important_item_condition(struct menu_state *ctx, size_t index);
-void tell_items_menu_to_regenerate(void);
 struct menu_state *items_menu_loop(struct menu_state *dest);
 
 // See "items-list.c" file for implementation.

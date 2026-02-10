@@ -143,6 +143,7 @@ feeds_menu_loop(struct menu_state *m)
 		}
 	}
 	if (m->is_initialized == false) {
+		m->age = fetch_menu_age();
 		m->feeds = newsraft_malloc(sizeof(struct feed_entry *) * m->feeds_count);
 		memcpy(m->feeds, m->feeds_original, sizeof(struct feed_entry *) * m->feeds_count);
 		sort_feeds(m, get_sorting_id(get_cfg_string(NULL, CFG_MENU_FEED_SORTING)->ptr), false);
@@ -150,6 +151,10 @@ feeds_menu_loop(struct menu_state *m)
 	start_menu();
 	const struct wstring *arg;
 	while (true) {
+		if (get_cfg_bool(NULL, CFG_MENU_RESPONSIVENESS) && m->age != fetch_menu_age()) {
+			m->age = fetch_menu_age();
+			sort_feeds(m, feeds_sort, true);
+		}
 		input_id cmd = get_input(m->feeds[m->view_sel]->binds, NULL, &arg);
 		if (handle_list_menu_control(m, cmd, arg) == true) {
 			continue;

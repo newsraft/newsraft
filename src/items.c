@@ -1,7 +1,5 @@
 #include "newsraft.h"
 
-static volatile size_t items_age = 0;
-
 static bool
 is_item_valid(struct menu_state *ctx, size_t index)
 {
@@ -153,13 +151,6 @@ mark_all_items_read(struct menu_state *ctx, bool status)
 	expose_all_visible_entries_of_the_list_menu();
 }
 
-void
-tell_items_menu_to_regenerate(void)
-{
-	items_age += 1;
-	break_getting_input_command();
-}
-
 struct menu_state *
 items_menu_loop(struct menu_state *m)
 {
@@ -169,9 +160,9 @@ items_menu_loop(struct menu_state *m)
 	m->paint_action = &paint_item;
 	m->unread_state = &is_item_unread;
 	m->entry_format = get_cfg_wstring(NULL, m->flags & MENU_IS_EXPLORE ? CFG_MENU_EXPLORE_ITEM_ENTRY_FORMAT : CFG_MENU_ITEM_ENTRY_FORMAT);
-	items_age += 1;
+	raise_menu_age();
 	if (m->is_initialized == false) {
-		m->items_age = items_age;
+		m->age = fetch_menu_age();
 		if (!update_menu_item_list(m)) {
 			return close_menu(); // Error displayed by update_menu_item_list()
 		}
@@ -179,8 +170,8 @@ items_menu_loop(struct menu_state *m)
 	start_menu();
 	const struct wstring *arg, *browser;
 	while (true) {
-		if (get_cfg_bool(NULL, CFG_MENU_RESPONSIVENESS) && m->items_age != items_age) {
-			m->items_age = items_age;
+		if (get_cfg_bool(NULL, CFG_MENU_RESPONSIVENESS) && m->age != fetch_menu_age()) {
+			m->age = fetch_menu_age();
 			update_menu_item_list(m);
 		}
 		if (get_cfg_bool(&m->items->ptr[m->view_sel].feed[0]->cfg, CFG_MARK_ITEM_READ_ON_HOVER)) {

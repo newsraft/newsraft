@@ -109,7 +109,8 @@ mark_feeds_read(struct feed_entry **feeds, size_t feeds_count, bool status)
 		}
 		refresh_sections_statistics_about_underlying_feeds();
 		expose_all_visible_entries_of_the_list_menu();
-		tell_items_menu_to_regenerate();
+		raise_menu_age();
+		break_getting_input_command();
 	}
 }
 
@@ -380,11 +381,16 @@ sections_menu_loop(struct menu_state *m)
 	}
 	refresh_sections_statistics_about_underlying_feeds();
 	if (m->is_initialized == false) {
+		m->age = fetch_menu_age();
 		sort_sections(get_sorting_id(get_cfg_string(NULL, CFG_MENU_SECTION_SORTING)->ptr), false);
 	}
 	start_menu();
 	const struct wstring *arg;
 	while (true) {
+		if (get_cfg_bool(NULL, CFG_MENU_RESPONSIVENESS) && m->age != fetch_menu_age()) {
+			m->age = fetch_menu_age();
+			sort_sections(sections_sort, true);
+		}
 		input_id cmd = get_input(NULL, NULL, &arg);
 		if (handle_list_menu_control(m, cmd, arg) == true) {
 			continue;

@@ -348,6 +348,7 @@ static inline void
 sort_sections(sorting_method_t method, bool we_are_already_in_sections_menu)
 {
 	pthread_mutex_lock(&interface_lock);
+	bool need_status_message = method != sections_sort;
 	sections_sort = method;
 	switch (sections_sort & ~1) {
 		case SORT_BY_UNREAD_ASC:   qsort(sections_view, get_sections_view_len(), sizeof(struct feed_section *), &compare_sections_unread);   break;
@@ -357,7 +358,9 @@ sort_sections(sorting_method_t method, bool we_are_already_in_sections_menu)
 	pthread_mutex_unlock(&interface_lock);
 	if (we_are_already_in_sections_menu == true) {
 		expose_all_visible_entries_of_the_list_menu();
-		info_status(get_sorting_message(sections_sort), "sections");
+		if (need_status_message) {
+			info_status(get_sorting_message(sections_sort), "sections");
+		}
 	}
 }
 

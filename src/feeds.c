@@ -105,6 +105,7 @@ static inline void
 sort_feeds(struct menu_state *m, sorting_method_t method, bool we_are_already_in_feeds_menu)
 {
 	pthread_mutex_lock(&interface_lock);
+	bool need_status_message = method != feeds_sort;
 	feeds          = m->feeds;
 	feeds_count    = m->feeds_count;
 	feeds_original = m->feeds_original;
@@ -117,7 +118,9 @@ sort_feeds(struct menu_state *m, sorting_method_t method, bool we_are_already_in
 	pthread_mutex_unlock(&interface_lock);
 	if (we_are_already_in_feeds_menu == true) {
 		expose_all_visible_entries_of_the_list_menu();
-		info_status(get_sorting_message(feeds_sort), "feeds");
+		if (need_status_message) {
+			info_status(get_sorting_message(feeds_sort), "feeds");
+		}
 	}
 }
 

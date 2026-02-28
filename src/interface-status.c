@@ -190,6 +190,9 @@ get_input(struct input_binding *ctx, uint32_t *count, const struct wstring **p_a
 				status_clean();
 				if (strcmp(key, "enter") == 0 && search_mode_text_input->len > 0) {
 					return INPUT_APPLY_SEARCH_MODE_FILTER;
+				} else {
+					search_mode_text_input->len = 0;
+					search_mode_text_input->ptr[0] = L'\0';
 				}
 			} else if (strcmp(key, "backspace") == 0) {
 				if (search_mode_text_input->len > 0) {

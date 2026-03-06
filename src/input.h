@@ -70,8 +70,9 @@ INPUT(INPUT_QUIT_HARD,                {"quit-hard"},                            
 INPUT(INPUT_FIND_COMMAND,             {"find"},                                     {})
 INPUT(INPUT_SYSTEM_COMMAND,           {"exec"},                                     {})
 INPUT(INPUT_DATABASE_COMMAND,         {"edit"},                                     {})
-INPUT(INPUT_ERROR,                    {},                                           {})
 INPUT(INPUT_APPLY_SEARCH_MODE_FILTER, {},                                           {})
+INPUT(INPUT_EMPTY /* does nothing */, {},                                           {})
+INPUT(INPUT_ERROR,                    {},                                           {})
 
 #ifdef INPUT
 };

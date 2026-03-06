@@ -10,7 +10,7 @@ render_text_plain(struct line *line, const struct wstring *source, struct links_
 			j += 1;
 		}
 		struct string *link = NULL;
-		wchar_t *divider = wcsstr(i, L"://");
+		const wchar_t *divider = wcsstr(i, L"://");
 		if (divider > i && divider < j) {
 			link = convert_warray_to_string(i, j - i);
 		}

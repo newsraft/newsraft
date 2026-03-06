@@ -110,7 +110,6 @@ mark_feeds_read(struct feed_entry **feeds, size_t feeds_count, bool status)
 		refresh_sections_statistics_about_underlying_feeds();
 		expose_all_visible_entries_of_the_list_menu();
 		raise_menu_age();
-		break_getting_input_command();
 	}
 }
 

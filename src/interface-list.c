@@ -519,6 +519,7 @@ raise_menu_age(void)
 {
 	pthread_mutex_lock(&interface_lock);
 	menu_age += 1;
+	yield_control_to_menu();
 	pthread_mutex_unlock(&interface_lock);
 }
 

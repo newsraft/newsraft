@@ -483,8 +483,13 @@ void allow_status_cleaning(void);
 void status_write(config_entry_id color, const char *format, ...);
 void status_delete(void);
 input_id get_input(struct input_binding *ctx, uint32_t *count, const struct wstring **p_arg);
-void break_getting_input_command(void);
 struct string *pop_search_filter(void);
+
+// Forces get_input() function to quit waiting for user input and return an empty command.
+// This lets menu routines redraw the screen immediately after a state change,
+// rather than waiting for user to submit a valid action for menu routine to process.
+// Think of it as redraw alarm.
+void yield_control_to_menu(void);
 
 // See "interface-errors-pager.c" file for implementation.
 struct menu_state *errors_pager_loop(struct menu_state *m);

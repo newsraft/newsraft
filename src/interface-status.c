@@ -17,7 +17,7 @@ static char count_buf[10];
 static uint8_t count_buf_len = 0;
 
 static const struct timespec input_polling_period = {0, 30000000}; // 0.03 seconds
-static volatile bool they_want_us_to_break_input = false;
+static volatile bool they_want_us_to_quit_waiting_for_input = false;
 
 void
 update_status_window_content_unprotected(void)
@@ -174,9 +174,9 @@ get_input(struct input_binding *ctx, uint32_t *count, const struct wstring **p_a
 		int status = get_wch(key);
 		pthread_mutex_unlock(&interface_lock);
 		if (status == TB_ERR) {
-			if (they_want_us_to_break_input == true) {
-				they_want_us_to_break_input = false;
-				return INPUT_ERROR;
+			if (they_want_us_to_quit_waiting_for_input == true) {
+				they_want_us_to_quit_waiting_for_input = false;
+				return INPUT_EMPTY;
 			}
 			nanosleep(&input_polling_period, NULL);
 			continue;
@@ -239,12 +239,6 @@ get_input(struct input_binding *ctx, uint32_t *count, const struct wstring **p_a
 	return INPUT_QUIT_HARD;
 }
 
-void
-break_getting_input_command(void)
-{
-	they_want_us_to_break_input = true;
-}
-
 struct string *
 pop_search_filter(void)
 {
@@ -257,4 +251,10 @@ pop_search_filter(void)
 		return search_query;
 	}
 	return NULL;
+}
+
+void
+yield_control_to_menu(void)
+{
+	they_want_us_to_quit_waiting_for_input = true;
 }

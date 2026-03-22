@@ -135,20 +135,22 @@ mark_all_items_read(struct menu_state *ctx, bool status)
 {
 	pthread_mutex_lock(&interface_lock);
 	if (ctx->flags & MENU_IS_SEARCH) {
+		obtain_items_at_least_up_to_the_given_index(ctx->items, SIZE_MAX);
 		for (size_t i = 0; i < ctx->items->len; ++i) {
-			if (db_mark_item_read(ctx->items->ptr[i].rowid, status) == true) {
+			if (db_mark_item_read(ctx->items->ptr[i].rowid, status)) {
 				ctx->items->ptr[i].is_unread = !status;
 			}
 		}
 		pthread_mutex_unlock(&interface_lock);
+		expose_all_visible_entries_of_the_list_menu();
 	} else {
 		// Use intermediate variables to avoid race condition
 		struct feed_entry **items_feeds = ctx->items->feeds;
 		size_t items_feeds_count = ctx->items->feeds_count;
 		pthread_mutex_unlock(&interface_lock);
 		mark_feeds_read(items_feeds, items_feeds_count, status);
+		update_menu_item_list(ctx);
 	}
-	expose_all_visible_entries_of_the_list_menu();
 }
 
 struct menu_state *
@@ -162,7 +164,6 @@ items_menu_loop(struct menu_state *m)
 	m->entry_format = get_cfg_wstring(NULL, m->flags & MENU_IS_EXPLORE ? CFG_MENU_EXPLORE_ITEM_ENTRY_FORMAT : CFG_MENU_ITEM_ENTRY_FORMAT);
 	raise_menu_age();
 	if (m->is_initialized == false) {
-		m->age = fetch_menu_age();
 		if (!update_menu_item_list(m)) {
 			return close_menu(); // Error displayed by update_menu_item_list()
 		}
@@ -171,7 +172,6 @@ items_menu_loop(struct menu_state *m)
 	const struct wstring *arg, *browser;
 	while (true) {
 		if (get_cfg_bool(NULL, CFG_MENU_RESPONSIVENESS) && m->age != fetch_menu_age()) {
-			m->age = fetch_menu_age();
 			update_menu_item_list(m);
 		}
 		if (get_cfg_bool(&m->items->ptr[m->view_sel].feed[0]->cfg, CFG_MARK_ITEM_READ_ON_HOVER)) {

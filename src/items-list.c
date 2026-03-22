@@ -257,6 +257,7 @@ update_menu_item_list(struct menu_state *ctx)
 		reset_list_menu_unprotected();
 	}
 	pthread_mutex_unlock(&interface_lock);
+	ctx->age = fetch_menu_age();
 	return true;
 undo3:
 	sqlite3_finalize(new_items->res);

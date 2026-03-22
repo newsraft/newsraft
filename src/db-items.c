@@ -20,14 +20,10 @@ db_find_item_by_rowid(int64_t rowid)
 }
 
 static inline bool
-db_set_item_int(int64_t rowid, const char *column, size_t column_len, int value)
+db_set_item_int(const char *cmd, size_t cmd_len, int value, int64_t rowid)
 {
-	INFO("Updating column \"%s\" with \"%d\" for item with rowid \"%" PRId64 "\".", column, value, rowid);
-	char cmd[100] = {0};
-	memcpy(cmd, "UPDATE items SET ", 17);
-	memcpy(cmd + 17, column, column_len);
-	memcpy(cmd + 17 + column_len, "=? WHERE rowid=?", 17);
-	sqlite3_stmt *res = db_prepare(cmd, 17 + column_len + 17, NULL);
+	INFO("Running \"%s\" with \"%d\" on item \"%" PRId64 "\".", cmd, value, rowid);
+	sqlite3_stmt *res = db_prepare(cmd, cmd_len + 1, NULL);
 	if (res == NULL) {
 		return false;
 	}
@@ -41,13 +37,13 @@ db_set_item_int(int64_t rowid, const char *column, size_t column_len, int value)
 bool
 db_mark_item_read(int64_t rowid, bool status)
 {
-	return db_set_item_int(rowid, "unread", 6, status == false ? 1 : 0);
+	return db_set_item_int("UPDATE items SET unread=? WHERE rowid=?", 39, status ? 0 : 1, rowid);
 }
 
 bool
 db_mark_item_important(int64_t rowid, bool status)
 {
-	return db_set_item_int(rowid, "important", 9, status == false ? 0 : 1);
+	return db_set_item_int("UPDATE items SET important=? WHERE rowid=?", 42, status ? 1 : 0, rowid);
 }
 
 int64_t

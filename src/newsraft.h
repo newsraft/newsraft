@@ -387,7 +387,7 @@ struct menu_state *items_menu_loop(struct menu_state *dest);
 
 // See "items-list.c" file for implementation.
 bool update_menu_item_list(struct menu_state *ctx);
-void obtain_items_at_least_up_to_the_given_index(struct items_list *items, sqlite3_stmt *force_res, size_t index);
+void obtain_items_at_least_up_to_the_given_index(struct items_list *items, size_t index);
 void change_items_list_sorting(struct menu_state *ctx, input_id cmd);
 void free_items_list(struct items_list *items);
 

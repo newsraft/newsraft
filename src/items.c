@@ -6,7 +6,7 @@ is_item_valid(struct menu_state *ctx, size_t index)
 	if (ctx->items == NULL) {
 		return false;
 	}
-	obtain_items_at_least_up_to_the_given_index(ctx->items, NULL, index);
+	obtain_items_at_least_up_to_the_given_index(ctx->items, index);
 	return index < ctx->items->len ? true : false;
 }
 

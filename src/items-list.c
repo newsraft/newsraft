@@ -127,9 +127,9 @@ find_feed_entry_by_url(struct feed_entry **feeds, size_t feeds_count, const char
 }
 
 void
-obtain_items_at_least_up_to_the_given_index(struct items_list *items, sqlite3_stmt *force_res, size_t index)
+obtain_items_at_least_up_to_the_given_index(struct items_list *items, size_t index)
 {
-	sqlite3_stmt *res = force_res ? force_res : items->res;
+	sqlite3_stmt *res = items->res;
 	if (items->finished == true) {
 		return;
 	}
@@ -239,7 +239,7 @@ update_menu_item_list(struct menu_state *ctx)
 		}
 	}
 
-	obtain_items_at_least_up_to_the_given_index(new_items, new_items->res, 0);
+	obtain_items_at_least_up_to_the_given_index(new_items, 0);
 	if (new_items->len < 1) {
 		if (search_token_iter > 0) {
 			info_status("No items found. Search query didn't get any matches!");

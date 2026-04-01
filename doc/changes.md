@@ -1,3 +1,22 @@
+# newsraft 0.36 "flip a mood" (2026-04-01)
+
+* Stuart Henderson (@sthen) thanks for #249
+* fiore (@fiore) thanks for #251
+* Cobe Liu (@cobeml) thanks for #252
+
+some more little fixes and nice-to-haves
+
+* fix year 2038 overflow in If-Modified-Since header (#249)
+* set window title with an escape sequence (#251)
+* update build instructions for macOS (#252)
+* cancel search input with ^C key (#253)
+* discard search query text on search input canceling (#253)
+* extend menu-responsiveness setting to feeds and sections (#254)
+* update items menu on mark-read-all regardless of menu-responsiveness (#260)
+* respect RFC 3986 when detecting links in pager
+
+what should `( ')>` say to package maintainers? `( ')<` thanks
+
 # newsraft 0.35 "physics jitter" (2026-01-01)
 
 * Dung Ngo (@nlqdung) thanks for #242

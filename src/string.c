@@ -10,29 +10,20 @@ static inline void
 str_set(struct string **dest, const char *src_ptr, size_t src_len, size_t src_lim)
 {
 	if (*dest == NULL) {
-		struct string *str = newsraft_malloc(sizeof(struct string));
-		str->ptr = newsraft_malloc(sizeof(char) * (src_lim + 1));
-		if (src_ptr != NULL && src_len > 0) {
-			memcpy(str->ptr, src_ptr, sizeof(char) * src_len);
-			*(str->ptr + src_len) = '\0';
-			str->len = src_len;
-		} else {
-			*(str->ptr) = '\0';
-			str->len = 0;
-		}
-		str->lim = src_lim;
-		*dest = str;
-	} else {
-		if (src_lim > (*dest)->lim) {
-			(*dest)->ptr = newsraft_realloc((*dest)->ptr, sizeof(char) * (src_lim + 1));
-			(*dest)->lim = src_lim;
-		}
-		if (src_ptr != NULL && src_len > 0) {
-			memcpy((*dest)->ptr, src_ptr, sizeof(char) * src_len);
-		}
-		*((*dest)->ptr + src_len) = '\0';
-		(*dest)->len = src_len;
+		*dest = newsraft_malloc(sizeof(**dest));
+		(*dest)->ptr = newsraft_malloc(sizeof(*(*dest)->ptr) * (src_lim + 1));
+		(*dest)->lim = src_lim;
+	} else if (src_lim > (*dest)->lim) {
+		(*dest)->ptr = newsraft_realloc((*dest)->ptr, sizeof(*(*dest)->ptr) * (src_lim + 1));
+		(*dest)->lim = src_lim;
 	}
+	if (src_ptr == NULL) {
+		src_len = 0;
+	} else if (src_len > 0) {
+		memcpy((*dest)->ptr, src_ptr, sizeof(*(*dest)->ptr) * src_len);
+	}
+	(*dest)->ptr[src_len] = '\0';
+	(*dest)->len = src_len;
 }
 
 struct string *
@@ -170,9 +161,7 @@ trim_whitespace_from_string(struct string *str)
 		}
 		if (left_edge > 0) {
 			str->len -= left_edge;
-			for (size_t i = 0; i < str->len; ++i) {
-				str->ptr[i] = str->ptr[i + left_edge];
-			}
+			memmove(str->ptr, str->ptr + left_edge, str->len);
 		}
 		str->ptr[str->len] = '\0';
 	}
@@ -212,9 +201,7 @@ remove_start_of_string(struct string *str, size_t size)
 	if (size >= str->len) {
 		empty_string(str);
 	} else {
-		for (size_t i = 0; (i + size) < str->len; ++i) {
-			str->ptr[i] = str->ptr[i + size];
-		}
+		memmove(str->ptr, str->ptr + size, str->len - size);
 		str->len -= size;
 		str->ptr[str->len] = '\0';
 	}
@@ -223,19 +210,12 @@ remove_start_of_string(struct string *str, size_t size)
 void
 inlinefy_string(struct string *str)
 {
-	// Replace multiple whitespace with a single space.
 	char *dest = str->ptr;
-	char c = '\0';
-	for (const char *s = str->ptr; *s != '\0'; ++s) {
-		if (ISWHITESPACE(*s)) {
-			if (c == ' ') // previous character was whitespace
-				continue;
-			c = ' ';
-		} else {
-			c = *s;
+	for (const char *s = str->ptr; *s; ++s) {
+		char c = ISWHITESPACE(*s) ? ' ' : *s;
+		if (c != ' ' || dest == str->ptr || dest[-1] != ' ') {
+			*dest++ = c;
 		}
-		*dest = c;
-		++dest;
 	}
 	*dest = '\0';
 	str->len = dest - str->ptr;
@@ -244,14 +224,14 @@ inlinefy_string(struct string *str)
 void
 newsraft_simple_hash(struct string **dest, const char *src)
 {
-	uint64_t hash = 14695981039346656037LLU;
+	uint64_t hash = UINT64_C(14695981039346656037);
 	for (const char *i = src; *i != '\0'; ++i) {
-		hash = (hash ^ *i) * 1099511628211LLU;
+		hash = (hash ^ *i) * UINT64_C(1099511628211);
 	}
 	char out[64];
 	for (size_t i = 0; i < sizeof(out); ++i) {
 		out[i] = 32 + hash % 95;
-		hash = (hash ^ ((hash << 39) | (hash >> 25))) * 1099511628211LLU;
+		hash = (hash ^ ((hash << 39) | (hash >> 25))) * UINT64_C(1099511628211);
 	}
 	cpyas(dest, out, sizeof(out));
 }
@@ -259,7 +239,7 @@ newsraft_simple_hash(struct string **dest, const char *src)
 struct string *
 newsraft_base64_encode(const uint8_t *data, size_t size)
 {
-	static char base64_encoding_table[] = {
+	static const char base64_encoding_table[] = {
 		'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
 		'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P',
 		'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X',

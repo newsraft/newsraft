@@ -21,7 +21,7 @@ add_render_block(struct render_blocks_list *blocks, const char *content, size_t 
 void
 apply_links_render_blocks(struct render_blocks_list *blocks, const struct wstring *data)
 {
-	if (data != NULL && data->ptr != NULL && data->len > 0) {
+	if (!STRING_IS_EMPTY(data)) {
 		for (size_t i = 0; i < blocks->len; ++i) {
 			if (blocks->ptr[i].content_type == TEXT_LINKS) {
 				wstr_set(&blocks->ptr[i].content, data->ptr, data->len, data->len);

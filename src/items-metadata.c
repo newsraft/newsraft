@@ -4,7 +4,7 @@
 static struct string *
 block_str(const struct string *text)
 {
-	if (text != NULL && text->len > 0) {
+	if (!STRING_IS_EMPTY(text)) {
 		struct string *data = crtss(text);
 		if (data != NULL) {
 			inlinefy_string(data);

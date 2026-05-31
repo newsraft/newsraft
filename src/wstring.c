@@ -10,26 +10,20 @@ void
 wstr_set(struct wstring **dest, const wchar_t *src_ptr, size_t src_len, size_t src_lim)
 {
 	if (*dest == NULL) {
-		struct wstring *wstr = newsraft_malloc(sizeof(struct wstring));
-		wstr->ptr = newsraft_malloc(sizeof(wchar_t) * (src_lim + 1));
-		if (src_ptr != NULL && src_len > 0) {
-			memcpy(wstr->ptr, src_ptr, sizeof(wchar_t) * src_len);
-		}
-		*(wstr->ptr + src_len) = '\0';
-		wstr->len = src_len;
-		wstr->lim = src_lim;
-		*dest = wstr;
-	} else {
-		if (src_lim > (*dest)->lim) {
-			(*dest)->ptr = newsraft_realloc((*dest)->ptr, sizeof(wchar_t) * (src_lim + 1));
-			(*dest)->lim = src_lim;
-		}
-		if (src_ptr != NULL && src_len > 0) {
-			memcpy((*dest)->ptr, src_ptr, sizeof(wchar_t) * src_len);
-		}
-		*((*dest)->ptr + src_len) = '\0';
-		(*dest)->len = src_len;
+		*dest = newsraft_malloc(sizeof(**dest));
+		(*dest)->ptr = newsraft_malloc(sizeof(*(*dest)->ptr) * (src_lim + 1));
+		(*dest)->lim = src_lim;
+	} else if (src_lim > (*dest)->lim) {
+		(*dest)->ptr = newsraft_realloc((*dest)->ptr, sizeof(*(*dest)->ptr) * (src_lim + 1));
+		(*dest)->lim = src_lim;
 	}
+	if (src_ptr == NULL) {
+		src_len = 0;
+	} else if (src_len > 0) {
+		memcpy((*dest)->ptr, src_ptr, sizeof(*(*dest)->ptr) * src_len);
+	}
+	(*dest)->ptr[src_len] = '\0';
+	(*dest)->len = src_len;
 }
 
 struct wstring *
@@ -97,8 +91,8 @@ void
 free_wstring(struct wstring *wstr)
 {
 	if (wstr != NULL) {
-		free(wstr->ptr);
-		free(wstr);
+		newsraft_free(wstr->ptr);
+		newsraft_free(wstr);
 	}
 }
 

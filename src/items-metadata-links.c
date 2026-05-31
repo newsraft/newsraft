@@ -186,14 +186,13 @@ generate_link_list_wstring_for_pager(struct config_context **ctx, const struct l
 		cpyss(&str, links->ptr[i].url);
 		bool parentheses_are_open = false;
 
-		if ((links->ptr[i].type != NULL) && (links->ptr[i].type->len != 0)) {
+		if (!STRING_IS_EMPTY(links->ptr[i].type)) {
 			catas(str, " (type: ", 8);
 			catss(str, links->ptr[i].type);
 			parentheses_are_open = true;
 		}
 
-		if ((links->ptr[i].size != NULL)
-			&& (links->ptr[i].size->len != 0)
+		if (!STRING_IS_EMPTY(links->ptr[i].size)
 			&& (strcmp(links->ptr[i].size->ptr, "0") != 0))
 		{
 			convert_len = convert_bytes_to_human_readable_size_string(convert_out, CONVERT_OUT_SIZE, links->ptr[i].size->ptr);
@@ -204,8 +203,7 @@ generate_link_list_wstring_for_pager(struct config_context **ctx, const struct l
 			}
 		}
 
-		if ((links->ptr[i].duration != NULL)
-			&& (links->ptr[i].duration->len != 0)
+		if (!STRING_IS_EMPTY(links->ptr[i].duration)
 			&& (strcmp(links->ptr[i].duration->ptr, "0") != 0))
 		{
 			convert_len = convert_seconds_to_human_readable_duration_string(convert_out, CONVERT_OUT_SIZE, links->ptr[i].duration->ptr);
@@ -216,7 +214,7 @@ generate_link_list_wstring_for_pager(struct config_context **ctx, const struct l
 			}
 		}
 
-		if (parentheses_are_open == true) {
+		if (parentheses_are_open) {
 			catcs(str, ')');
 		}
 

@@ -12,6 +12,7 @@ execute_system_command(const char *cmd)
 	fflush(stdout);
 	fflush(stderr);
 	NEWSRAFT_UI(ui_init());
+	NEWSRAFT_UI(ui_set_window_title());
 	pthread_mutex_unlock(&interface_lock);
 	// Resizing could be handled by the program running on top, so we have to catch up.
 	if (ui_is_running() && call_resize_handler_if_current_list_menu_size_is_different_from_actual() == false) {

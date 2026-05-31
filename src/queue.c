@@ -76,7 +76,7 @@ queue_execute_update_notifications_unprotected(size_t max_units_count)
 			{L'q',  L'd',  {.i = units[i].new_items_count}},
 			{L'\0', L'\0', {.i = 0 /* terminator */}},
 		};
-		run_formatted_command(units[i].notify_cmd, notification_cmd_args);
+		run_formatted_command(units[i].notify_cmd, notification_cmd_args, true);
 	}
 
 	free(units);

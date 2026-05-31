@@ -306,7 +306,11 @@ handle_list_menu_control(struct menu_state *m, input_id cmd, const struct wstrin
 		status_clean_unprotected();
 	} else if (cmd == INPUT_SYSTEM_COMMAND) {
 		pthread_mutex_unlock(&interface_lock);
-		run_formatted_command(arg, m->get_args(m, m->view_sel));
+		run_formatted_command(arg, m->get_args(m, m->view_sel), false);
+		return true;
+	} else if (cmd == INPUT_SYSTEM_COMMAND_QUIET) {
+		pthread_mutex_unlock(&interface_lock);
+		run_formatted_command(arg, m->get_args(m, m->view_sel), true);
 		return true;
 	} else {
 		pthread_mutex_unlock(&interface_lock);

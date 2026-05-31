@@ -69,6 +69,7 @@ INPUT(INPUT_QUIT_SOFT,                {"quit"},                                 
 INPUT(INPUT_QUIT_HARD,                {"quit-hard"},                                {"Q"})
 INPUT(INPUT_FIND_COMMAND,             {"find"},                                     {})
 INPUT(INPUT_SYSTEM_COMMAND,           {"exec"},                                     {})
+INPUT(INPUT_SYSTEM_COMMAND_QUIET,     {"exec-quiet"},                               {})
 INPUT(INPUT_DATABASE_COMMAND,         {"edit"},                                     {})
 INPUT(INPUT_APPLY_SEARCH_MODE_FILTER, {},                                           {})
 INPUT(INPUT_EMPTY /* does nothing */, {},                                           {})

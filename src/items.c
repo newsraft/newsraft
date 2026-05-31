@@ -215,7 +215,7 @@ items_menu_loop(struct menu_state *m)
 				return setup_menu(&items_menu_loop, NULL, m->feeds_original, m->feeds_count, MENU_IS_SEARCH | MENU_IS_EXPLORE, m->find_filter);
 			case INPUT_OPEN_IN_BROWSER:
 				browser = get_cfg_wstring(&m->items->ptr[m->view_sel].feed[0]->cfg, CFG_OPEN_IN_BROWSER_COMMAND);
-				run_formatted_command(browser, get_item_args(m, m->view_sel));
+				run_formatted_command(browser, get_item_args(m, m->view_sel), false);
 				break;
 			case INPUT_SORT_BY_TIME:
 			case INPUT_SORT_BY_TIME_DOWNLOAD:

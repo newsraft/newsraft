@@ -170,7 +170,12 @@ The special _exec_ action makes it possible to run shell commands when the bound
 key is pressed. Specifiers within the command are replaced with values
 corresponding to the currently selected entry as per *menu-item-entry-format*:
 
-	*bind* m _exec_ setsid mpv --terminal=no "%l" &
+	*bind* m _exec_ w3m "%l"
+
+There's also *exec-quiet*, which does the same but doesn't update the UI.
+Useful with commands which are guaranteed not to take over the terminal:
+
+	*bind* m _exec-quiet_ setsid mpv --terminal=no "%l" &
 
 The _edit_ action runs a specified SQL query on the *database*, so please be
 careful! _@selected_ specifier is replaced with a condition which identifies the

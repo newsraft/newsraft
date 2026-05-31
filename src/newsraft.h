@@ -508,7 +508,7 @@ void free_default_binds(void);
 // Functions related to executing system commands.
 // See "commands.c" file for implementation.
 void copy_string_to_clipboard(const struct string *src);
-void run_formatted_command(const struct wstring *wcmd_fmt, const struct format_arg *args);
+void run_formatted_command(const struct wstring *wcmd_fmt, const struct format_arg *args, bool quiet);
 
 // See "string.c" file for implementation.
 struct string *crtes(size_t desired_capacity);

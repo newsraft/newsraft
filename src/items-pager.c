@@ -98,7 +98,7 @@ item_pager_loop(struct menu_state *m)
 					struct config_context **cfg = &items_menu->items->ptr[item_id].feed[0]->cfg;
 					const struct wstring *browser = get_cfg_wstring(cfg, CFG_OPEN_IN_BROWSER_COMMAND);
 					items_pager_fmt_args[0].value.s = blocks.links.ptr[count - 1].url->ptr;
-					run_formatted_command(browser, items_pager_fmt_args);
+					run_formatted_command(browser, items_pager_fmt_args, false);
 				}
 				break;
 			case INPUT_COPY_TO_CLIPBOARD:
@@ -109,7 +109,13 @@ item_pager_loop(struct menu_state *m)
 			case INPUT_SYSTEM_COMMAND:
 				if (count > 0 && count <= blocks.links.len) {
 					items_pager_fmt_args[0].value.s = blocks.links.ptr[count - 1].url->ptr;
-					run_formatted_command(arg, items_pager_fmt_args);
+					run_formatted_command(arg, items_pager_fmt_args, false);
+				}
+				break;
+			case INPUT_SYSTEM_COMMAND_QUIET:
+				if (count > 0 && count <= blocks.links.len) {
+					items_pager_fmt_args[0].value.s = blocks.links.ptr[count - 1].url->ptr;
+					run_formatted_command(arg, items_pager_fmt_args, true);
 				}
 				break;
 			default:

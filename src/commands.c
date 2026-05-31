@@ -3,17 +3,21 @@
 #include "newsraft.h"
 
 static inline void
-execute_system_command(const char *cmd)
+execute_system_command(const char *cmd, bool quiet)
 {
 	info_status("Executing %s", cmd);
-	pthread_mutex_lock(&interface_lock);
-	NEWSRAFT_UI(ui_term());
+	if (!quiet) {
+		pthread_mutex_lock(&interface_lock);
+		NEWSRAFT_UI(ui_term());
+	}
 	int status = system(cmd);
-	fflush(stdout);
-	fflush(stderr);
-	NEWSRAFT_UI(ui_init());
-	NEWSRAFT_UI(ui_set_window_title());
-	pthread_mutex_unlock(&interface_lock);
+	if (!quiet) {
+		fflush(stdout);
+		fflush(stderr);
+		NEWSRAFT_UI(ui_init());
+		NEWSRAFT_UI(ui_set_window_title());
+		pthread_mutex_unlock(&interface_lock);
+	}
 	// Resizing could be handled by the program running on top, so we have to catch up.
 	if (ui_is_running() && call_resize_handler_if_current_list_menu_size_is_different_from_actual() == false) {
 		pthread_mutex_lock(&interface_lock);
@@ -54,13 +58,20 @@ copy_string_to_clipboard(const struct string *src)
 }
 
 void
-run_formatted_command(const struct wstring *wcmd_fmt, const struct format_arg *args)
+run_formatted_command(const struct wstring *wcmd_fmt, const struct format_arg *args, bool quiet)
 {
 	struct wstring *fmtout = wcrtes(200);
 	do_format(fmtout, wcmd_fmt->ptr, args);
 	struct string *cmd = convert_wstring_to_string(fmtout);
 	if (cmd != NULL) {
-		execute_system_command(cmd->ptr);
+		if (quiet) {
+			struct string *quiet_cmd = crtes(cmd->len);
+			str_appendf(quiet_cmd, "(%s) < /dev/null > /dev/null 2> /dev/null", cmd->ptr);
+			execute_system_command(quiet_cmd->ptr, quiet);
+			free_string(quiet_cmd);
+		} else {
+			execute_system_command(cmd->ptr, quiet);
+		}
 		free_string(cmd);
 	}
 	free_wstring(fmtout);

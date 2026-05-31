@@ -79,7 +79,7 @@ More details: [doc/build-instructions.md](https://codeberg.org/newsraft/newsraft
 
 <details>
 	<summary>How do I bind mpv to run in the background?</summary>
-	<pre>bind m exec setsid mpv --terminal=no "%l" &amp;</pre>
+	<pre>bind m exec-quiet setsid mpv --terminal=no "%l" &amp;</pre>
 </details>
 
 <details>

@@ -92,7 +92,7 @@ get_cfg_date(struct config_context **ctx, config_entry_id format_id, int64_t dat
 struct timespec
 newsraft_get_monotonic_time(void)
 {
-	struct timespec t = {};
+	struct timespec t = {0};
 	clock_gettime(CLOCK_MONOTONIC, &t);
 	return t;
 }

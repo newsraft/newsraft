@@ -9,7 +9,7 @@ errors_pager_loop(struct menu_state *m)
 	m->enumerator = &is_pager_pos_valid;
 	m->printer    = &pager_menu_writer;
 
-	struct render_blocks_list blocks = {NULL, 0, {}};
+	struct render_blocks_list blocks = {NULL, 0, {0}};
 	pthread_mutex_lock(&interface_lock);
 	for (size_t i = 0; i < m->feeds_count; ++i) {
 		struct feed_entry *feed = m->feeds_original[i];

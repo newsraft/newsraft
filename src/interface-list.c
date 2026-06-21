@@ -58,7 +58,8 @@ void
 list_menu_writer(size_t index, WINDOW *w)
 {
 	if (menu->enumerator(menu, index) == true) {
-		do_format(list_fmtout, menu->entry_format->ptr, menu->get_args(menu, index));
+		struct format_arg args[100];
+		do_format(list_fmtout, menu->entry_format->ptr, menu->get_args(menu, index, args, LENGTH(args)));
 		if (list_fmtout->len > horizontal_shift) {
 			waddwstr(w, list_fmtout->ptr + horizontal_shift);
 		}
@@ -304,13 +305,10 @@ handle_list_menu_control(struct menu_state *m, input_id cmd, const struct wstrin
 		}
 	} else if (cmd == INPUT_CLEAN_STATUS) {
 		status_clean_unprotected();
-	} else if (cmd == INPUT_SYSTEM_COMMAND) {
+	} else if (cmd == INPUT_SYSTEM_COMMAND || cmd == INPUT_SYSTEM_COMMAND_QUIET) {
+		struct format_arg args[100];
 		pthread_mutex_unlock(&interface_lock);
-		run_formatted_command(arg, m->get_args(m, m->view_sel), false);
-		return true;
-	} else if (cmd == INPUT_SYSTEM_COMMAND_QUIET) {
-		pthread_mutex_unlock(&interface_lock);
-		run_formatted_command(arg, m->get_args(m, m->view_sel), true);
+		run_formatted_command(arg, m->get_args(m, m->view_sel, args, LENGTH(args)), cmd == INPUT_SYSTEM_COMMAND_QUIET);
 		return true;
 	} else {
 		pthread_mutex_unlock(&interface_lock);

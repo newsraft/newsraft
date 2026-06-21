@@ -93,31 +93,35 @@ item_pager_loop(struct menu_state *m)
 			case INPUT_QUIT_HARD:
 				free_render_blocks(&blocks);
 				return cmd == INPUT_QUIT_HARD ? NULL : close_menu();
-			case INPUT_OPEN_IN_BROWSER:
-				if (count > 0 && count <= blocks.links.len) {
-					struct config_context **cfg = &items_menu->items->ptr[item_id].feed[0]->cfg;
-					const struct wstring *browser = get_cfg_wstring(cfg, CFG_OPEN_IN_BROWSER_COMMAND);
-					items_pager_fmt_args[0].value.s = blocks.links.ptr[count - 1].url->ptr;
-					run_formatted_command(browser, items_pager_fmt_args, false);
-				}
-				break;
 			case INPUT_COPY_TO_CLIPBOARD:
 				if (count > 0 && count <= blocks.links.len) {
 					copy_string_to_clipboard(blocks.links.ptr[count - 1].url);
 				}
 				break;
+			case INPUT_OPEN_IN_BROWSER:
 			case INPUT_SYSTEM_COMMAND:
-				if (count > 0 && count <= blocks.links.len) {
-					items_pager_fmt_args[0].value.s = blocks.links.ptr[count - 1].url->ptr;
-					run_formatted_command(arg, items_pager_fmt_args, false);
+			case INPUT_SYSTEM_COMMAND_QUIET: {
+				if (count <= 0 || count > blocks.links.len) {
+					break;
 				}
-				break;
-			case INPUT_SYSTEM_COMMAND_QUIET:
-				if (count > 0 && count <= blocks.links.len) {
-					items_pager_fmt_args[0].value.s = blocks.links.ptr[count - 1].url->ptr;
-					run_formatted_command(arg, items_pager_fmt_args, true);
+				struct format_arg args[100];
+				const char *url = blocks.links.ptr[count - 1].url->ptr;
+				struct config_context **cfg = &items_menu->items->ptr[item_id].feed[0]->cfg;
+				const struct wstring *browser = get_cfg_wstring(cfg, CFG_OPEN_IN_BROWSER_COMMAND);
+				items_menu->get_args(items_menu, item_id, args, LENGTH(args));
+				for (size_t i = 0; i < LENGTH(args); ++i) {
+					if (args[i].specifier == L'l') {
+						args[i].value.s = url;
+						break;
+					}
 				}
+				run_formatted_command(
+					cmd == INPUT_OPEN_IN_BROWSER ? browser : arg,
+					args,
+					cmd == INPUT_SYSTEM_COMMAND_QUIET
+				);
 				break;
+			}
 			default:
 				break;
 		}

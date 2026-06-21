@@ -195,8 +195,8 @@ struct items_list {
 };
 
 struct format_arg {
-	const wchar_t specifier;
-	const wchar_t type_specifier;
+	wchar_t specifier;
+	wchar_t type_specifier;
 	union {
 		int i;
 		const char *s;
@@ -222,7 +222,7 @@ struct menu_state {
 	const struct wstring *find_filter;
 	bool (*enumerator)(struct menu_state *ctx, size_t index); // Checks if index is valid
 	void (*printer)(size_t index, WINDOW *w);                 // Prints to list entry
-	const struct format_arg *(*get_args)(struct menu_state *ctx, size_t index);
+	struct format_arg *(*get_args)(struct menu_state *ctx, size_t index, struct format_arg *args, size_t args_size);
 	struct config_color (*paint_action)(struct menu_state *ctx, size_t index, bool is_selected);
 	bool (*unread_state)(struct menu_state *ctx, size_t index);
 	bool (*failed_state)(struct menu_state *ctx, size_t index);

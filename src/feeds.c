@@ -13,23 +13,20 @@ is_feed_valid(struct menu_state *ctx, size_t index)
 	return index < ctx->feeds_count ? true : false;
 }
 
-static const struct format_arg *
-get_feed_args(struct menu_state *ctx, size_t index)
+static struct format_arg *
+get_feed_args(struct menu_state *ctx, size_t index, struct format_arg *args, size_t args_size)
 {
-	static struct format_arg feed_fmt[] = {
-		{L'i',  L'd',  {.i = 0   }},
-		{L'u',  L'd',  {.i = 0   }},
-		{L'n',  L'd',  {.i = 0   }},
-		{L'l',  L's',  {.s = NULL}},
-		{L't',  L's',  {.s = NULL}},
-		{L'\0', L'\0', {.i = 0   }}, // terminator
-	};
-	feed_fmt[0].value.i = index + 1;
-	feed_fmt[1].value.i = ctx->feeds[index]->unread_count;
-	feed_fmt[2].value.i = ctx->feeds[index]->items_count;
-	feed_fmt[3].value.s = ctx->feeds[index]->url->ptr;
-	feed_fmt[4].value.s = STRING_IS_EMPTY(ctx->feeds[index]->name) ? ctx->feeds[index]->url->ptr : ctx->feeds[index]->name->ptr;
-	return feed_fmt;
+	if (args_size < 6) {
+		return NULL;
+	}
+	struct feed_entry *feed = ctx->feeds[index];
+	args[0] = (struct format_arg){L'i',  L'd',  {.i = index + 1}};
+	args[1] = (struct format_arg){L'u',  L'd',  {.i = feed->unread_count}};
+	args[2] = (struct format_arg){L'n',  L'd',  {.i = feed->items_count}};
+	args[3] = (struct format_arg){L'l',  L's',  {.s = feed->url->ptr}};
+	args[4] = (struct format_arg){L't',  L's',  {.s = STRING_IS_EMPTY(feed->name) ? feed->url->ptr : feed->name->ptr}};
+	args[5] = (struct format_arg){L'\0', L'\0', {/* terminator */}};
+	return args;
 }
 
 static struct config_color

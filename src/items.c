@@ -10,33 +10,25 @@ is_item_valid(struct menu_state *ctx, size_t index)
 	return index < ctx->items->len ? true : false;
 }
 
-static const struct format_arg *
-get_item_args(struct menu_state *ctx, size_t index)
+static struct format_arg *
+get_item_args(struct menu_state *ctx, size_t index, struct format_arg *args, size_t args_size)
 {
-	static struct format_arg item_fmt[] = {
-		{L'i',  L'd',  {.i = 0   }},
-		{L'u',  L's',  {.s = NULL}},
-		{L'd',  L's',  {.s = NULL}},
-		{L'D',  L's',  {.s = NULL}},
-		{L'l',  L's',  {.s = NULL}},
-		{L't',  L's',  {.s = NULL}},
-		{L'o',  L's',  {.s = NULL}},
-		{L'L',  L's',  {.s = NULL}},
-		{L'T',  L's',  {.s = NULL}},
-		{L'O',  L's',  {.s = NULL}},
-		{L'\0', L'\0', {.i = 0   }}, // terminator
-	};
-	item_fmt[0].value.i = index + 1;
-	item_fmt[1].value.s = ctx->items->ptr[index].is_unread == true ? "N" : " ";
-	item_fmt[2].value.s = ctx->items->ptr[index].date_str->ptr;
-	item_fmt[3].value.s = ctx->items->ptr[index].pub_date_str->ptr;
-	item_fmt[4].value.s = ctx->items->ptr[index].url->ptr;
-	item_fmt[5].value.s = ctx->items->ptr[index].title->ptr;
-	item_fmt[6].value.s = ctx->items->ptr[index].title->len > 0 ? ctx->items->ptr[index].title->ptr : ctx->items->ptr[index].url->ptr;
-	item_fmt[7].value.s = ctx->items->ptr[index].feed[0]->url->ptr;
-	item_fmt[8].value.s = ctx->items->ptr[index].feed[0]->name ? ctx->items->ptr[index].feed[0]->name->ptr : "";
-	item_fmt[9].value.s = ctx->items->ptr[index].feed[0]->name ? ctx->items->ptr[index].feed[0]->name->ptr : ctx->items->ptr[index].feed[0]->url->ptr;
-	return item_fmt;
+	if (args_size < 11) {
+		return NULL;
+	}
+	struct item_entry *item = &ctx->items->ptr[index];
+	args[0]  = (struct format_arg){L'i',  L'd',  {.i = index + 1}};
+	args[1]  = (struct format_arg){L'u',  L's',  {.s = item->is_unread == true ? "N" : " "}};
+	args[2]  = (struct format_arg){L'd',  L's',  {.s = item->date_str->ptr}};
+	args[3]  = (struct format_arg){L'D',  L's',  {.s = item->pub_date_str->ptr}};
+	args[4]  = (struct format_arg){L'l',  L's',  {.s = item->url->ptr}};
+	args[5]  = (struct format_arg){L't',  L's',  {.s = item->title->ptr}};
+	args[6]  = (struct format_arg){L'o',  L's',  {.s = item->title->len ? item->title->ptr : item->url->ptr}};
+	args[7]  = (struct format_arg){L'L',  L's',  {.s = item->feed[0]->url->ptr}};
+	args[8]  = (struct format_arg){L'T',  L's',  {.s = item->feed[0]->name ? item->feed[0]->name->ptr : ""}};
+	args[9]  = (struct format_arg){L'O',  L's',  {.s = item->feed[0]->name ? item->feed[0]->name->ptr : item->feed[0]->url->ptr}};
+	args[10] = (struct format_arg){L'\0', L'\0', {/* terminator */}};
+	return args;
 }
 
 static struct config_color
@@ -215,7 +207,8 @@ items_menu_loop(struct menu_state *m)
 				return setup_menu(&items_menu_loop, NULL, m->feeds_original, m->feeds_count, MENU_IS_SEARCH | MENU_IS_EXPLORE, m->find_filter);
 			case INPUT_OPEN_IN_BROWSER:
 				browser = get_cfg_wstring(&m->items->ptr[m->view_sel].feed[0]->cfg, CFG_OPEN_IN_BROWSER_COMMAND);
-				run_formatted_command(browser, get_item_args(m, m->view_sel), false);
+				struct format_arg args[100];
+				run_formatted_command(browser, get_item_args(m, m->view_sel, args, LENGTH(args)), false);
 				break;
 			case INPUT_SORT_BY_TIME:
 			case INPUT_SORT_BY_TIME_DOWNLOAD:

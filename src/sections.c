@@ -32,20 +32,18 @@ is_section_valid(struct menu_state *ctx, size_t index)
 	return index < get_sections_view_len() ? true : false;
 }
 
-static const struct format_arg *
-get_section_args(struct menu_state *ctx, size_t index)
+static struct format_arg *
+get_section_args(struct menu_state *ctx, size_t index, struct format_arg *args, size_t args_size)
 {
 	(void)ctx;
-	static struct format_arg section_fmt[] = {
-		{L'i',  L'd',  {.i = 0   }},
-		{L'u',  L'd',  {.i = 0   }},
-		{L't',  L's',  {.s = NULL}},
-		{L'\0', L'\0', {.i = 0   }}, // terminator
-	};
-	section_fmt[0].value.i = index + 1;
-	section_fmt[1].value.i = sections_view[index]->unread_count;
-	section_fmt[2].value.s = sections_view[index]->name->ptr;
-	return section_fmt;
+	if (args_size < 4) {
+		return NULL;
+	}
+	args[0] = (struct format_arg){L'i',  L'd',  {.i = index + 1}};
+	args[1] = (struct format_arg){L'u',  L'd',  {.i = sections_view[index]->unread_count}};
+	args[2] = (struct format_arg){L't',  L's',  {.s = sections_view[index]->name->ptr}};
+	args[3] = (struct format_arg){L'\0', L'\0', {/* terminator */}};
+	return args;
 }
 
 static struct config_color

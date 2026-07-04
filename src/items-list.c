@@ -7,10 +7,10 @@ append_sorting_order_expression_to_query(struct string *q, sorting_method_t orde
 {
 	switch (order) {
 		case SORT_BY_TIME_ASC:
-			catas(q, " ORDER BY MAX(publication_date, update_date) ASC, download_date ASC, rowid ASC", 79);
+			catas(q, " ORDER BY COALESCE(NULLIF(MAX(publication_date, update_date), 0), download_date) ASC, download_date ASC, rowid ASC", 115);
 			break;
 		case SORT_BY_TIME_DESC:
-			catas(q, " ORDER BY MAX(publication_date, update_date) DESC, download_date DESC, rowid DESC", 82);
+			catas(q, " ORDER BY COALESCE(NULLIF(MAX(publication_date, update_date), 0), download_date) DESC, download_date DESC, rowid DESC", 118);
 			break;
 		case SORT_BY_TIME_DOWNLOAD_ASC:
 			catas(q, " ORDER BY download_date ASC, rowid ASC", 38);

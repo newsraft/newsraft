@@ -9,7 +9,7 @@ So in order to not waste our precious time, make sure that the proposed
 functionality doesn't conflict with the goals of the project (see
 [doc/comparison-newsboat.md](https://codeberg.org/newsraft/newsraft/src/branch/main/doc/comparison-newsboat.md))
 and its source code conforms to C99 language standard and project's code
-guidelines (see below).
+guidelines (see below) and it's not some AI slop.
 
 In terms of dependencies, Newsraft is very unpretentious - it uses
 [termbox2](https://github.com/termbox/termbox2) to draw user interface,

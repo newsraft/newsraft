@@ -122,6 +122,48 @@ item_pager_loop(struct menu_state *m)
 				);
 				break;
 			}
+			case INPUT_MARK_READ:
+				if (items_menu->items->ptr[item_id].is_unread) {
+					if (db_mark_item_read(items_menu->items->ptr[item_id].rowid, true)) {
+						items_menu->items->ptr[item_id].is_unread = false;
+					}
+				}
+				break;
+			case INPUT_MARK_UNREAD:
+				if (!items_menu->items->ptr[item_id].is_unread) {
+					if (db_mark_item_read(items_menu->items->ptr[item_id].rowid, false)) {
+						items_menu->items->ptr[item_id].is_unread = true;
+					}
+				}
+				break;
+			case INPUT_TOGGLE_READ: {
+				bool was_unread = items_menu->items->ptr[item_id].is_unread;
+				if (db_mark_item_read(items_menu->items->ptr[item_id].rowid, was_unread) == true) {
+					items_menu->items->ptr[item_id].is_unread = !was_unread;
+				}
+				break;
+			}
+			case INPUT_MARK_IMPORTANT:
+				if (!items_menu->items->ptr[item_id].is_important) {
+					if (db_mark_item_important(items_menu->items->ptr[item_id].rowid, true)) {
+						items_menu->items->ptr[item_id].is_important = true;
+					}
+				}
+				break;
+			case INPUT_MARK_UNIMPORTANT:
+				if (items_menu->items->ptr[item_id].is_important) {
+					if (db_mark_item_important(items_menu->items->ptr[item_id].rowid, false)) {
+						items_menu->items->ptr[item_id].is_important = false;
+					}
+				}
+				break;
+			case INPUT_TOGGLE_IMPORTANT: {
+				bool new_important = !items_menu->items->ptr[item_id].is_important;
+				if (db_mark_item_important(items_menu->items->ptr[item_id].rowid, new_important) == true) {
+					items_menu->items->ptr[item_id].is_important = new_important;
+				}
+				break;
+			}
 			default:
 				break;
 		}

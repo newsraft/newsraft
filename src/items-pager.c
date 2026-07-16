@@ -138,8 +138,13 @@ item_pager_loop(struct menu_state *m)
 				break;
 			case INPUT_TOGGLE_READ: {
 				bool was_unread = items_menu->items->ptr[item_id].is_unread;
-				if (db_mark_item_read(items_menu->items->ptr[item_id].rowid, was_unread) == true) {
+				if (db_mark_item_read(items_menu->items->ptr[item_id].rowid, was_unread)) {
 					items_menu->items->ptr[item_id].is_unread = !was_unread;
+
+					struct config_context **cfg = &items_menu->items->ptr[item_id].feed[0]->cfg;
+					if (get_cfg_bool(cfg, CFG_CLOSE_PAGER_ON_TOGGLE_READ)) {
+						goto quit;
+					}
 				}
 				break;
 			}
@@ -159,8 +164,13 @@ item_pager_loop(struct menu_state *m)
 				break;
 			case INPUT_TOGGLE_IMPORTANT: {
 				bool new_important = !items_menu->items->ptr[item_id].is_important;
-				if (db_mark_item_important(items_menu->items->ptr[item_id].rowid, new_important) == true) {
+				if (db_mark_item_important(items_menu->items->ptr[item_id].rowid, new_important)) {
 					items_menu->items->ptr[item_id].is_important = new_important;
+
+					struct config_context **cfg = &items_menu->items->ptr[item_id].feed[0]->cfg;
+					if (get_cfg_bool(cfg, CFG_CLOSE_PAGER_ON_TOGGLE_IMPORTANT)) {
+						goto quit;
+					}
 				}
 				break;
 			}

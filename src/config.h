@@ -117,6 +117,8 @@ CFG(CFG_RESPECT_TTL_ELEMENT,             "respect-ttl-element",             CFG_
 CFG(CFG_RESPECT_EXPIRES_HEADER,          "respect-expires-header",          CFG_BOOL,   {.b = true })
 CFG(CFG_SEND_IF_NONE_MATCH_HEADER,       "send-if-none-match-header",       CFG_BOOL,   {.b = true })
 CFG(CFG_SEND_IF_MODIFIED_SINCE_HEADER,   "send-if-modified-since-header",   CFG_BOOL,   {.b = true })
+CFG(CFG_CLOSE_PAGER_ON_TOGGLE_READ,      "close-pager-on-toggle-read",      CFG_BOOL,   {.b = false})
+CFG(CFG_CLOSE_PAGER_ON_TOGGLE_IMPORTANT, "close-pager-on-toggle-important", CFG_BOOL,   {.b = false})
 CFG(CFG_PAGER_CENTERING,                 "pager-centering",                 CFG_BOOL,   {.b = true })
 CFG(CFG_IGNORE_NO_COLOR,                 "ignore-no-color",                 CFG_BOOL,   {.b = false})
 CFG(CFG_SCROLLWRAP,                      "scrollwrap",                      CFG_BOOL,   {.b = false})

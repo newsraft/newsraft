@@ -311,6 +311,12 @@ all available space.
 Default: _true_. If _true_ and *pager-width* is not _0_, pager will center its
 content horizontally.
 
+## close-pager-on-toggle-read (*)
+Default: _false_. If _true_, pager will close on *toggle-read* action.
+
+## close-pager-on-toggle-important (*)
+Default: _false_. If _true_, pager will close on *toggle-important* action.
+
 ## menu-item-sorting
 Default: _time-desc_. Sorting order for the items menu. Available values:
 _time-desc_, _time-asc_, _time-download-desc_, _time-download-asc_,

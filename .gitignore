@@ -10,3 +10,5 @@ vgcore.*
 callgrind.out*
 compile_commands.json
 .cache
+.clang-format
+.clang-format-ignore

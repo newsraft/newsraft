@@ -54,10 +54,6 @@ item_pager_loop(struct menu_state *m)
 	if (items_menu == NULL) {
 		goto quit;
 	}
-	struct format_arg items_pager_fmt_args[] = {
-		{L'l',  L's',  {.s = NULL}},
-		{L'\0', L'\0', {.i = 0   }}, // terminator
-	};
 	INFO("Trying to view an item with the rowid %" PRId64 "...", items_menu->items->ptr[item_id].rowid);
 	if (populate_render_blocks_list_with_data_from_item(&items_menu->items->ptr[item_id], &blocks) == false) {
 		goto quit;

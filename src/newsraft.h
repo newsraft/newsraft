@@ -206,9 +206,10 @@ struct format_arg {
 struct menu_state {
 	struct string *name;
 	struct menu_state *(*run)(struct menu_state *); // Function used to start menu
-	struct feed_entry **feeds_original; // Remains unchanged to use original order
-	struct feed_entry **feeds;          // Virtual feeds with user sorting applied
-	size_t feeds_count;                 // Size of feeds_original and feeds arrays
+	struct feed_entry **feeds_full;     // Original feeds unchanged/ordered per file
+	struct feed_entry **feeds_view;     // Virtual feeds with user filtering applied
+	size_t feeds_full_size;
+	size_t feeds_view_size;
 	struct items_list *items;
 	uint64_t age;                       // Must refresh if it doesn't match global age
 	uint32_t flags;

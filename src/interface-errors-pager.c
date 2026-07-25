@@ -3,7 +3,7 @@
 struct menu_state *
 errors_pager_loop(struct menu_state *m)
 {
-	if (m->feeds_original == NULL || m->feeds_count < 1) {
+	if (m->feeds_full == NULL || m->feeds_full_size < 1) {
 		return close_menu();
 	}
 	m->enumerator = &is_pager_pos_valid;
@@ -11,8 +11,8 @@ errors_pager_loop(struct menu_state *m)
 
 	struct render_blocks_list blocks = {NULL, 0, {0}};
 	pthread_mutex_lock(&interface_lock);
-	for (size_t i = 0; i < m->feeds_count; ++i) {
-		struct feed_entry *feed = m->feeds_original[i];
+	for (size_t i = 0; i < m->feeds_full_size; ++i) {
+		struct feed_entry *feed = m->feeds_full[i];
 		if (feed->errors->len < 1) {
 			continue;
 		}

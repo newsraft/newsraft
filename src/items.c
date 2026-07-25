@@ -183,7 +183,7 @@ items_menu_loop(struct menu_state *m)
 			case INPUT_MARK_UNIMPORTANT:  mark_item_important(m, m->view_sel, false);               break;
 			case INPUT_TOGGLE_IMPORTANT:  toggle_item_important(m, m->view_sel);                    break;
 			case INPUT_RELOAD:            queue_updates(m->items->ptr[m->view_sel].feed, 1);        break;
-			case INPUT_RELOAD_ALL:        queue_updates(m->feeds_original, m->feeds_count);         break;
+			case INPUT_RELOAD_ALL:        queue_updates(m->feeds_full, m->feeds_full_size);         break;
 			case INPUT_COPY_TO_CLIPBOARD: copy_string_to_clipboard(m->items->ptr[m->view_sel].url); break;
 			case INPUT_QUIT_HARD:         return NULL;
 			case INPUT_NAVIGATE_BACK:
@@ -204,7 +204,7 @@ items_menu_loop(struct menu_state *m)
 				if (!(m->flags & MENU_IS_EXPLORE)) break;
 				return setup_menu(&items_menu_loop, NULL, m->items->ptr[m->view_sel].feed, 1, MENU_NORMAL, NULL);
 			case INPUT_APPLY_SEARCH_MODE_FILTER:
-				return setup_menu(&items_menu_loop, NULL, m->feeds_original, m->feeds_count, MENU_IS_SEARCH | MENU_IS_EXPLORE, m->find_filter);
+				return setup_menu(&items_menu_loop, NULL, m->feeds_full, m->feeds_full_size, MENU_IS_SEARCH | MENU_IS_EXPLORE, m->find_filter);
 			case INPUT_OPEN_IN_BROWSER:
 				browser = get_cfg_wstring(&m->items->ptr[m->view_sel].feed[0]->cfg, CFG_OPEN_IN_BROWSER_COMMAND);
 				struct format_arg args[100];
@@ -220,8 +220,10 @@ items_menu_loop(struct menu_state *m)
 			case INPUT_SORT_BY_IMPORTANT:
 				change_items_list_sorting(m, cmd); break;
 			case INPUT_FIND_COMMAND:
-				if (m->find_filter) return setup_menu(&items_menu_loop, NULL, m->feeds_original, m->feeds_count, MENU_IS_EXPLORE | MENU_SWALLOW, arg);;
-				return setup_menu(&items_menu_loop, NULL, m->feeds_original, m->feeds_count, MENU_IS_EXPLORE, arg);
+				if (m->find_filter) {
+					return setup_menu(&items_menu_loop, NULL, m->feeds_full, m->feeds_full_size, MENU_IS_EXPLORE | MENU_SWALLOW, arg);
+				}
+				return setup_menu(&items_menu_loop, NULL, m->feeds_full, m->feeds_full_size, MENU_IS_EXPLORE, arg);
 			case INPUT_DATABASE_COMMAND:
 				db_perform_user_edit(arg, NULL, 0, &m->items->ptr[m->view_sel]);
 				break;

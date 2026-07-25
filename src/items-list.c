@@ -208,13 +208,13 @@ update_menu_item_list(struct menu_state *ctx)
 {
 	INFO("Updating menu's items list.");
 
-	if (ctx->feeds_count == 0) {
+	if (ctx->feeds_full_size < 1) {
 		return false;
 	}
 
 	struct items_list *new_items = newsraft_calloc(1, sizeof(*new_items));
-	new_items->feeds = ctx->feeds_original;
-	new_items->feeds_count = ctx->feeds_count;
+	new_items->feeds = ctx->feeds_full;
+	new_items->feeds_count = ctx->feeds_full_size;
 	new_items->sorting = ctx->items ? ctx->items->sorting : get_sorting_id(get_cfg_string(NULL, CFG_MENU_ITEM_SORTING)->ptr);
 	new_items->find_filter = ctx->find_filter ? convert_wstring_to_string(ctx->find_filter) : NULL;
 	new_items->query = generate_search_query_string(ctx, new_items);

@@ -377,15 +377,15 @@ handle_pager_menu_control(input_id cmd)
 }
 
 static inline void
-free_deleted_menus(void)
+free_deleted_menus(bool purge_them_all)
 {
-	while (menus != NULL && menus->is_deleted == true) {
+	while (menus && (purge_them_all || menus->is_deleted)) {
 		struct menu_state *tmp = menus;
 		menus = menus->prev;
 		free_string(tmp->name);
 		free_string(tmp->search_token);
 		free_items_list(tmp->items);
-		newsraft_free(tmp->feeds);
+		newsraft_free(tmp->feeds_view);
 		newsraft_free(tmp);
 	}
 }
@@ -393,15 +393,7 @@ free_deleted_menus(void)
 void
 free_menus(void)
 {
-	while (menus != NULL) {
-		struct menu_state *tmp = menus;
-		menus = menus->prev;
-		free_string(tmp->name);
-		free_string(tmp->search_token);
-		free_items_list(tmp->items);
-		newsraft_free(tmp->feeds);
-		newsraft_free(tmp);
-	}
+	free_deleted_menus(true);
 }
 
 size_t
@@ -417,9 +409,9 @@ get_menu_depth(void)
 static void
 update_unread_items_count_of_last_menu(void)
 {
-	if (menus != NULL && menus->feeds_original != NULL && menus->feeds_count > 0) {
-		for (size_t i = 0; i < menus->feeds_count; ++i) {
-			menus->feeds_original[i]->unread_count = db_count_items(&menus->feeds_original[i], 1, true);
+	if (menus && menus->feeds_full) {
+		for (size_t i = 0; i < menus->feeds_full_size; ++i) {
+			menus->feeds_full[i]->unread_count = db_count_items(&menus->feeds_full[i], 1, true);
 		}
 	}
 }
@@ -430,20 +422,20 @@ setup_menu(struct menu_state *(*run)(struct menu_state *), const struct string *
 	pthread_mutex_lock(&interface_lock);
 	update_unread_items_count_of_last_menu();
 	struct menu_state *new = newsraft_calloc(1, sizeof(*new));
-	new->run            = run;
-	new->feeds_original = feeds;
-	new->feeds_count    = feeds_count;
-	new->flags          = flags;
-	new->prev           = menus;
-	new->find_filter    = ctx;
-	new->search_token   = pop_search_filter();
+	new->run             = run;
+	new->feeds_full      = feeds;
+	new->feeds_full_size = feeds_count;
+	new->flags           = flags;
+	new->prev            = menus;
+	new->find_filter     = ctx;
+	new->search_token    = pop_search_filter();
 	if (!STRING_IS_EMPTY(name)) {
 		cpyss(&new->name, name);
 	} else if (!STRING_IS_EMPTY(new->search_token)) {
 		cpyss(&new->name, new->search_token);
 	} else if (new->find_filter) {
 		new->name = convert_wstring_to_string(new->find_filter);
-	} else if (feeds != NULL && feeds_count == 1) {
+	} else if (feeds && feeds_count == 1) {
 		cpyss(&new->name, STRING_IS_EMPTY(feeds[0]->name) ? feeds[0]->url : feeds[0]->name);
 	}
 	if ((flags & MENU_SWALLOW) && menus != NULL) {
@@ -481,7 +473,7 @@ void
 start_menu(void)
 {
 	pthread_mutex_lock(&interface_lock);
-	free_deleted_menus();
+	free_deleted_menus(false);
 	menu = menus;
 
 	// These methods are mandatory for all menus.
@@ -489,7 +481,7 @@ start_menu(void)
 	assert(menu->printer);
 
 	horizontal_shift = 0;
-	if (menu->is_initialized == false) {
+	if (!menu->is_initialized) {
 		menu->view_sel = 0;
 		menu->view_min = 0;
 		status_clean_unprotected();

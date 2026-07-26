@@ -104,6 +104,7 @@ CFG(CFG_SUPPRESS_ERRORS,                 "suppress-errors",                 CFG_
 CFG(CFG_MENU_RESPONSIVENESS,             "menu-responsiveness",             CFG_BOOL,   {.b = true })
 CFG(CFG_ITEM_LIMIT_UNREAD,               "item-limit-unread",               CFG_BOOL,   {.b = true })
 CFG(CFG_ITEM_LIMIT_IMPORTANT,            "item-limit-important",            CFG_BOOL,   {.b = false})
+CFG(CFG_SECTIONS_IGNORE_TOGGLE_READ,     "sections-ignore-toggle-read",     CFG_BOOL,   {.b = false})
 CFG(CFG_STATUS_SHOW_MENU_PATH,           "status-show-menu-path",           CFG_BOOL,   {.b = true })
 CFG(CFG_SECTIONS_MENU_PARAMOUNT_EXPLORE, "sections-menu-paramount-explore", CFG_BOOL,   {.b = false})
 CFG(CFG_FEEDS_MENU_PARAMOUNT_EXPLORE,    "feeds-menu-paramount-explore",    CFG_BOOL,   {.b = false})

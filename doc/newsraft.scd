@@ -459,6 +459,9 @@ _O_	feed title if set, feed link otherwise.
 Default: _" %u │ %d │ %-28O │ %o"_. Format of the item list entries in
 explore mode. Specifiers are the same as in *menu-item-entry-format*.
 
+## sections-ignore-toggle-read
+Default: _false_. If _true_, read and unread actions on sections are ignored.
+
 ## sections-menu-paramount-explore
 Default: _false_. Enables explore mode in sections menu by default.
 

@@ -395,6 +395,15 @@ sections_menu_loop(struct menu_state *m)
 		if (handle_list_menu_control(m, cmd, arg) == true) {
 			continue;
 		}
+		if (get_cfg_bool(NULL, CFG_SECTIONS_IGNORE_TOGGLE_READ) == true) {
+			switch (cmd) {
+				case INPUT_MARK_READ:
+				case INPUT_MARK_UNREAD:
+				case INPUT_MARK_READ_ALL:
+				case INPUT_MARK_UNREAD_ALL:
+					continue;
+	           	}
+		}
 		switch (cmd) {
 			case INPUT_MARK_READ:       mark_feeds_read(sections_view[m->view_sel]->feeds, sections_view[m->view_sel]->feeds_count, true);  break;
 			case INPUT_MARK_UNREAD:     mark_feeds_read(sections_view[m->view_sel]->feeds, sections_view[m->view_sel]->feeds_count, false); break;

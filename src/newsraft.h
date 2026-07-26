@@ -357,6 +357,7 @@ void expose_entry_of_the_list_menu(size_t index);
 void expose_all_visible_entries_of_the_list_menu(void);
 void redraw_list_menu_unprotected(void);
 void reset_list_menu_unprotected(void);
+void reset_list_menu(void);
 bool handle_list_menu_control(struct menu_state *m, input_id cmd, const struct wstring *arg);
 bool handle_pager_menu_control(input_id cmd);
 void free_menus(void);
@@ -387,10 +388,12 @@ bool important_item_condition(struct menu_state *ctx, size_t index);
 struct menu_state *items_menu_loop(struct menu_state *dest);
 
 // See "items-list.c" file for implementation.
-bool update_menu_item_list(struct menu_state *ctx);
+bool update_menu_item_list(struct menu_state *ctx, int64_t selected_rowid);
 void obtain_items_at_least_up_to_the_given_index(struct items_list *items, size_t index);
 void change_items_list_sorting(struct menu_state *ctx, input_id cmd);
 void free_items_list(struct items_list *items);
+extern bool hide_read_feeds;
+extern bool hide_read_items;
 
 // See "items-pager.c" file for implementation.
 struct menu_state *item_pager_loop(struct menu_state *m);

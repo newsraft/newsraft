@@ -59,6 +59,8 @@ INPUT(INPUT_MARK_UNIMPORTANT,         {"unimportant", "mark-unimportant"},      
 INPUT(INPUT_TOGGLE_READ,              {"toggle-read"},                              {0 /* not set by default */})
 INPUT(INPUT_TOGGLE_IMPORTANT,         {"toggle-important"},                         {0 /* not set by default */})
 INPUT(INPUT_TOGGLE_EXPLORE_MODE,      {"explore",     "toggle-explore-mode"},       {"tab"})
+INPUT(INPUT_TOGGLE_HIDE_READ_FEEDS,   {"toggle-hide-read-feeds"},                   {0})
+INPUT(INPUT_TOGGLE_HIDE_READ_ITEMS,   {"toggle-hide-read-items"},                   {0})
 INPUT(INPUT_VIEW_ERRORS,              {"view-errors"},                              {"v"})
 INPUT(INPUT_OPEN_IN_BROWSER,          {"open-in-browser"},                          {"o"})
 INPUT(INPUT_COPY_TO_CLIPBOARD,        {"copy-to-clipboard"},                        {"y", "c"})

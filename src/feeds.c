@@ -2,7 +2,6 @@
 #include <string.h>
 #include "newsraft.h"
 
-// Unfortunately this global state has to be used to provide context for qsort.
 static struct feed_entry **feeds_full = NULL;
 static size_t feeds_full_size = 0;
 static sorting_method_t feeds_sort = SORT_BY_INITIAL_ASC;
@@ -11,6 +10,28 @@ static bool
 is_feed_valid(struct menu_state *ctx, size_t index)
 {
 	return index < ctx->feeds_view_size ? true : false;
+}
+
+static void
+filter_feeds(struct menu_state *m)
+{
+	if (!hide_read_feeds) {
+		m->feeds_view_size = m->feeds_full_size;
+		memcpy(m->feeds_view, m->feeds_full, sizeof(*m->feeds_view) * m->feeds_full_size);
+	} else {
+		size_t j = 0;
+		for (size_t i = 0; i < m->feeds_full_size; ++i) {
+			if (m->feeds_full[i]->unread_count > 0) {
+				m->feeds_view[j++] = m->feeds_full[i];
+			}
+		}
+		if (j == 0) {
+			m->feeds_view_size = m->feeds_full_size;
+			memcpy(m->feeds_view, m->feeds_full, sizeof(*m->feeds_view) * m->feeds_full_size);
+		} else {
+			m->feeds_view_size = j;
+		}
+	}
 }
 
 static struct format_arg *
@@ -146,6 +167,7 @@ feeds_menu_loop(struct menu_state *m)
 		m->feeds_view = newsraft_realloc(m->feeds_view, sizeof(*m->feeds_view) * m->feeds_full_size);
 		m->feeds_view_size = m->feeds_full_size;
 		memcpy(m->feeds_view, m->feeds_full, sizeof(*m->feeds_view) * m->feeds_full_size);
+		filter_feeds(m);
 		sort_feeds(m, get_sorting_id(get_cfg_string(NULL, CFG_MENU_FEED_SORTING)->ptr), false);
 	}
 	start_menu();
@@ -153,7 +175,9 @@ feeds_menu_loop(struct menu_state *m)
 	while (true) {
 		if (get_cfg_bool(NULL, CFG_MENU_RESPONSIVENESS) && m->age != fetch_menu_age()) {
 			m->age = fetch_menu_age();
-			sort_feeds(m, feeds_sort, true);
+			filter_feeds(m);
+			sort_feeds(m, feeds_sort, false);
+			reset_list_menu();
 		}
 		input_id cmd = get_input(m->feeds_view[m->view_sel]->binds, NULL, &arg);
 		if (handle_list_menu_control(m, cmd, arg) == true) {
@@ -165,12 +189,31 @@ feeds_menu_loop(struct menu_state *m)
 			case INPUT_MARK_READ_ALL:   mark_feeds_read(m->feeds_view, m->feeds_view_size, true);  break;
 			case INPUT_MARK_UNREAD_ALL: mark_feeds_read(m->feeds_view, m->feeds_view_size, false); break;
 			case INPUT_RELOAD:          queue_updates(m->feeds_view + m->view_sel, 1);             break;
-			case INPUT_RELOAD_ALL:      queue_updates(m->feeds_view, m->feeds_view_size);          break;
+			case INPUT_RELOAD_ALL:      queue_updates(m->feeds_full, m->feeds_full_size);          break;
 			case INPUT_QUIT_HARD:       return NULL;
 			case INPUT_ENTER:
 				return setup_menu(&items_menu_loop, NULL, m->feeds_view + m->view_sel, 1, MENU_NORMAL, NULL);
 			case INPUT_TOGGLE_EXPLORE_MODE:
-				return setup_menu(&items_menu_loop, NULL, m->feeds_view, m->feeds_view_size, MENU_IS_EXPLORE, NULL);
+				return setup_menu(&items_menu_loop, NULL, m->feeds_full, m->feeds_full_size, MENU_IS_EXPLORE, NULL);
+			case INPUT_TOGGLE_HIDE_READ_FEEDS: {
+				hide_read_feeds = !hide_read_feeds;
+				struct feed_entry *current_feed = m->feeds_view[m->view_sel];
+				filter_feeds(m);
+				sort_feeds(m, feeds_sort, false);
+				size_t new_sel = 0;
+				for (size_t i = 0; i < m->feeds_view_size; ++i) {
+					if (m->feeds_view[i] == current_feed) {
+						new_sel = i;
+						break;
+					}
+				}
+				m->view_sel = new_sel;
+				reset_list_menu();
+				break;
+			}
+			case INPUT_TOGGLE_HIDE_READ_ITEMS:
+				hide_read_items = !hide_read_items;
+				break;
 			case INPUT_APPLY_SEARCH_MODE_FILTER:
 				return setup_menu(&items_menu_loop, NULL, m->feeds_view, m->feeds_view_size, MENU_IS_SEARCH | MENU_IS_EXPLORE, NULL);
 			case INPUT_NAVIGATE_BACK:

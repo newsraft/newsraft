@@ -474,6 +474,14 @@ Default: _false_. Mark every item that changes on a feed update as unread.
 ## mark-item-read-on-hover (*)
 Default: _false_. Mark every item that gets selected as read.
 
+## hide-read-feeds
+Default: _false_. If _true_, feeds that have no unread items will not be shown
+in the feeds menu.
+
+## hide-read-items
+Default: _false_. If _true_, items that are read will not be shown in the items
+menu.
+
 ## database-batch-transactions
 Default: _true_. Apply all changes to the *database* file in one big transaction
 after all feed updates have finished instead of using a separate transaction for
@@ -676,6 +684,8 @@ _bold_, _italic_ and _underlined_.
 :[ (not set)
 |[ *toggle-explore-mode*
 :[ _tab_
+|[ *toggle-hide-read-feeds*; *toggle-hide-read-items*
+:[ _H_
 |[ *view-errors*
 :[ _v_
 |[ *open-in-browser*

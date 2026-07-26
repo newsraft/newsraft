@@ -6,6 +6,9 @@
 static bool paint_it_black = true;
 static volatile bool newsraft_has_successfully_initialized_ui = false;
 
+bool hide_read_feeds;
+bool hide_read_items;
+
 pthread_mutex_t interface_lock = PTHREAD_MUTEX_INITIALIZER;
 
 static bool
@@ -101,6 +104,8 @@ ui_set_window_title(void)
 bool
 run_menu_loop(void)
 {
+	hide_read_feeds = get_cfg_bool(NULL, CFG_HIDE_READ_FEEDS);
+	hide_read_items = get_cfg_bool(NULL, CFG_HIDE_READ_ITEMS);
 	struct timespec idling = {0, 100000000}; // 0.1 seconds
 	struct menu_state *menu = setup_menu(&sections_menu_loop, NULL, NULL, 0, MENU_NORMAL, NULL);
 	if (menu == NULL) {

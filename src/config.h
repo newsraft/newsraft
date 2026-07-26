@@ -110,6 +110,8 @@ CFG(CFG_FEEDS_MENU_PARAMOUNT_EXPLORE,    "feeds-menu-paramount-explore",    CFG_
 CFG(CFG_READ_ON_ARRIVAL,                 "read-on-arrival", /* ha, funny */ CFG_BOOL,   {.b = false})
 CFG(CFG_MARK_ITEM_UNREAD_ON_CHANGE,      "mark-item-unread-on-change",      CFG_BOOL,   {.b = false})
 CFG(CFG_MARK_ITEM_READ_ON_HOVER,         "mark-item-read-on-hover",         CFG_BOOL,   {.b = false})
+CFG(CFG_HIDE_READ_FEEDS,                 "hide-read-feeds",                 CFG_BOOL,   {.b = false})
+CFG(CFG_HIDE_READ_ITEMS,                 "hide-read-items",                 CFG_BOOL,   {.b = false})
 CFG(CFG_DATABASE_BATCH_TRANSACTIONS,     "database-batch-transactions",     CFG_BOOL,   {.b = true })
 CFG(CFG_DATABASE_ANALYZE_ON_STARTUP,     "database-analyze-on-startup",     CFG_BOOL,   {.b = true })
 CFG(CFG_DATABASE_CLEAN_ON_STARTUP,       "database-clean-on-startup",       CFG_BOOL,   {.b = false})

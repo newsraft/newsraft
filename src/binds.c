@@ -109,6 +109,9 @@ assign_default_binds(void)
 	if (!bind_two_actions("D", INPUT_MARK_UNREAD, INPUT_JUMP_TO_NEXT)) {
 		return false;
 	}
+	if (!bind_two_actions("H", INPUT_TOGGLE_HIDE_READ_FEEDS, INPUT_TOGGLE_HIDE_READ_ITEMS)) {
+		return false;
+	}
 	return true;
 }
 

@@ -141,7 +141,7 @@ mark_all_items_read(struct menu_state *ctx, bool status)
 		size_t items_feeds_count = ctx->items->feeds_count;
 		pthread_mutex_unlock(&interface_lock);
 		mark_feeds_read(items_feeds, items_feeds_count, status);
-		update_menu_item_list(ctx);
+		update_menu_item_list(ctx, -1);
 	}
 }
 
@@ -156,7 +156,7 @@ items_menu_loop(struct menu_state *m)
 	m->entry_format = get_cfg_wstring(NULL, m->flags & MENU_IS_EXPLORE ? CFG_MENU_EXPLORE_ITEM_ENTRY_FORMAT : CFG_MENU_ITEM_ENTRY_FORMAT);
 	raise_menu_age();
 	if (m->is_initialized == false) {
-		if (!update_menu_item_list(m)) {
+		if (!update_menu_item_list(m, -1)) {
 			return close_menu(); // Error displayed by update_menu_item_list()
 		}
 	}
@@ -164,7 +164,7 @@ items_menu_loop(struct menu_state *m)
 	const struct wstring *arg, *browser;
 	while (true) {
 		if (get_cfg_bool(NULL, CFG_MENU_RESPONSIVENESS) && m->age != fetch_menu_age()) {
-			update_menu_item_list(m);
+			update_menu_item_list(m, -1);
 		}
 		if (get_cfg_bool(&m->items->ptr[m->view_sel].feed[0]->cfg, CFG_MARK_ITEM_READ_ON_HOVER)) {
 			mark_item_read(m, m->view_sel, true);
@@ -200,6 +200,15 @@ items_menu_loop(struct menu_state *m)
 			case INPUT_TOGGLE_EXPLORE_MODE:
 				if (m->flags & MENU_IS_EXPLORE) return close_menu();
 				break;
+			case INPUT_TOGGLE_HIDE_READ_FEEDS:
+				hide_read_feeds = !hide_read_feeds;
+				break;
+			case INPUT_TOGGLE_HIDE_READ_ITEMS: {
+				hide_read_items = !hide_read_items;
+				int64_t current_rowid = m->items->ptr[m->view_sel].rowid;
+				update_menu_item_list(m, current_rowid);
+				break;
+			}
 			case INPUT_GOTO_FEED:
 				if (!(m->flags & MENU_IS_EXPLORE)) break;
 				return setup_menu(&items_menu_loop, NULL, m->items->ptr[m->view_sel].feed, 1, MENU_NORMAL, NULL);

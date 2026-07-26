@@ -75,6 +75,9 @@ generate_search_query_string(const struct menu_state *ctx, const struct items_li
 		catss(query, items->find_filter);
 		catcs(query, ')');
 	}
+	if (hide_read_items) {
+		catas(query, " AND unread=1", 13);
+	}
 	for (const struct menu_state *m = ctx; m != NULL; m = m->prev) {
 		if (m->search_token) {
 			catas(query, " AND ((title LIKE '%' || ? || '%') OR (content LIKE '%' || ? || '%'))", 69);
@@ -204,7 +207,7 @@ obtain_items_at_least_up_to_the_given_index(struct items_list *items, size_t ind
 }
 
 bool
-update_menu_item_list(struct menu_state *ctx)
+update_menu_item_list(struct menu_state *ctx, int64_t selected_rowid)
 {
 	INFO("Updating menu's items list.");
 
@@ -245,6 +248,8 @@ update_menu_item_list(struct menu_state *ctx)
 			info_status("No items found. Search query didn't get any matches!");
 		} else if (!STRING_IS_EMPTY(new_items->find_filter)) {
 			info_status("No items found. Find query didn't get any matches!");
+		} else if (hide_read_items && db_count_items(new_items->feeds, new_items->feeds_count, false) > 0) {
+			// Skip status message since it has read items available
 		} else {
 			fail_status("No items found. Make sure this feed is updated!");
 		}
@@ -254,6 +259,14 @@ update_menu_item_list(struct menu_state *ctx)
 	free_items_list(ctx->items);
 	ctx->items = new_items;
 	if (ctx->is_initialized) {
+		if (selected_rowid >= 0) {
+			for (size_t i = 0; i < ctx->items->len; ++i) {
+				if (ctx->items->ptr[i].rowid == selected_rowid) {
+					ctx->view_sel = i;
+					break;
+				}
+			}
+		}
 		reset_list_menu_unprotected();
 	}
 	pthread_mutex_unlock(&interface_lock);
@@ -283,6 +296,6 @@ change_items_list_sorting(struct menu_state *ctx, input_id cmd)
 		[INPUT_SORT_BY_IMPORTANT]        = {SORT_BY_IMPORTANT_DESC,        SORT_BY_IMPORTANT_ASC},
 	};
 	ctx->items->sorting = ctx->items->sorting == sort_map[cmd].primary ? sort_map[cmd].secondary : sort_map[cmd].primary;
-	update_menu_item_list(ctx);
+	update_menu_item_list(ctx, -1);
 	info_status(get_sorting_message(ctx->items->sorting), "items");
 }

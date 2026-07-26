@@ -140,6 +140,14 @@ reset_list_menu_unprotected(void)
 	redraw_list_menu_unprotected();
 }
 
+void
+reset_list_menu(void)
+{
+	pthread_mutex_lock(&interface_lock);
+	reset_list_menu_unprotected();
+	pthread_mutex_unlock(&interface_lock);
+}
+
 static size_t
 obtain_list_entries_count_unprotected(struct menu_state *m)
 {

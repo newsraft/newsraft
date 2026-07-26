@@ -5,7 +5,7 @@
 .nh
 .ad l
 .\" Begin generated content:
-.TH "NEWSRAFT" "1" "2026-07-16"
+.TH "NEWSRAFT" "1" "2026-07-26"
 .PP
 .SH NAME
 .PP
@@ -651,6 +651,14 @@ Default: \fIfalse\fR.\& Mark every item that changes on a feed update as unread.
 .SS mark-item-read-on-hover (*)
 Default: \fIfalse\fR.\& Mark every item that gets selected as read.\&
 .PP
+.SS hide-read-feeds
+Default: \fIfalse\fR.\& If \fItrue\fR, feeds that have no unread items will not be shown
+in the feeds menu.\&
+.PP
+.SS hide-read-items
+Default: \fIfalse\fR.\& If \fItrue\fR, items that are read will not be shown in the items
+menu.\&
+.PP
 .SS database-batch-transactions
 Default: \fItrue\fR.\& Apply all changes to the \fBdatabase\fR file in one big transaction
 after all feed updates have finished instead of using a separate transaction for
@@ -838,6 +846,7 @@ T}
 .SH ACTIONS
 .PP
 .TS
+l l
 l l
 l l
 l l
@@ -1098,6 +1107,11 @@ T{
 \fBtoggle-explore-mode\fR
 T}	T{
 \fItab\fR
+T}
+T{
+\fBtoggle-hide-read-feeds\fR; \fBtoggle-hide-read-items\fR
+T}	T{
+\fIH\fR
 T}
 T{
 \fBview-errors\fR

@@ -93,13 +93,13 @@ This is how SLOC is calculated. As you can see, Newsraft is more than 3 times sm
 
 ```
 ~/src/newsraft > git show -s --pretty=format:"%H %ad"
-9df65bb858dbaf72e3a5e947ae1b40cbc27d42d4 Fri Jan 16 23:29:33 2026 +0300
+8c3341c00b0abc3117e111728343eb6b02961c66 Sat Aug 1 12:44:54 2026 +0300
 ~/src/newsraft > find src -regex ".*\.\(c\|h\)" -exec awk NF {} + | wc -l
-12596
+12800
 ```
 ```
 ~/src/newsboat > git show -s --pretty=format:"%H %ad"
-90fa5bc13bc43751a8e1463126bef7fc9649bfeb Thu Jan 15 23:32:30 2026 +0100
+5a136f13759095a79820875e9bfe1f6b26cae410 Tue Jul 28 21:45:38 2026 +0200
 ~/src/newsboat > find src rust rss filter include newsboat.cpp podboat.cpp config.h -regex ".*\.\(cpp\|h\|rs\)" -exec awk NF {} + | wc -l
-45132
+45622
 ```

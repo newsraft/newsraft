@@ -1,3 +1,61 @@
+# newsraft 0.37 "fioletovaya pudra" (2026-08-01)
+
+* David Pedersen (@Limero) thanks for #275, #277, #280
+* K4 (@K4) thanks for #281
+* regexghost (@regexghost) thanks for #264
+* Rose Hellsing (@axtlos) thanks for #268
+* Zhaoming Luo (@zhml) thanks for #270
+
+enough good stuff has piled up. release time!
+
+* add `exec-quiet` action (#264)
+* add `hide-read-feeds` setting (#280)
+* add `hide-read-items` setting (#280)
+* add `toggle-read-feeds` action (#280)
+* add `toggle-read-items` action (#280)
+* add `sections-ignore-toggle-read` setting (#281)
+* add `close-pager-on-toggle-read` setting (#277)
+* add `close-pager-on-toggle-important` setting (#277)
+* reset window title after executing system command (#268)
+* inherit item pager format specifiers from parent item (#272)
+* sort by download date when publication/update date unset
+* handle mark actions in pager (#275)
+* replace all `{}` with `{0}` to comply with C99 (#270)
+
+```
+                   ____ _____     ____ _____
+                  / __ `/ __ \   / __ `/ __ \
+                 / /_/ / /_/ /  / /_/ / /_/ /
+                 \__, /\____/   \__, /\____/
+                /____/         /____/
+                    _       __        _                      __
+   ____ ___  ____ _(_)___  / /_____ _(_)___  ___  __________/ /
+  / __ `__ \/ __ `/ / __ \/ __/ __ `/ / __ \/ _ \/ ___/ ___/ /
+ / / / / / / /_/ / / / / / /_/ /_/ / / / / /  __/ /  (__  )_/
+/_/ /_/ /_/\__,_/_/_/ /_/\__/\__,_/_/_/ /_/\___/_/  /____(_)
+
+                         ,       ,
+                        ( \     / (
+                        \  '---'  /
+                        /.--. .--,\   .-'''-,
+                       /\_(o) (o)_/\ /\ | /  \
+                   __.-.___(_c_)_.-./\ \ / / /)
+                  (__(((_________)))__--''/ / /
+                   |  ||  ||  ||  ||  ||   / )
+                   |  ||  ||  ||  ||  ||   |/
+                   |  ||  ||  ||  ||  ||   '
+                   \  ||  ||  ||  ||  ||
+                    \ ||  ||  ||  |.- -'''- -._
+                    /\||  ||  ||  ;            :
+                   |  ||  ||  || :      __      ;
+                   |  ||  ||  ||:      (  (      :
+                   |  ||  ||  ||;               .
+                   |  ||  ||  || ,             ,
+                   .,_c,__.,__ldb__'- -,..,- -'
+```
+
+ascii raccoon by [Laura Brown](https://laurabrown.ca/) under [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/)
+
 # newsraft 0.36 "flip a mood" (2026-04-01)
 
 * Stuart Henderson (@sthen) thanks for #249

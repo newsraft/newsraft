@@ -17,7 +17,7 @@ create_list_of_headers(const struct feed_update_state *data)
 	}
 	INFO("Attached header - A-IM: feed");
 
-	if (get_cfg_bool(&data->feed_entry->cfg, CFG_SEND_IF_NONE_MATCH_HEADER) == true) {
+	if (get_cfg_bool(&data->feed_entry->cfg, CFG_SEND_IF_NONE_MATCH_HEADER)) {
 		struct string *etag = db_get_string_from_feed_table(data->feed_entry->url, "http_header_etag", 16);
 		if (etag != NULL) {
 			struct string *if_none_match = crtas("If-None-Match: ", 15);
@@ -167,7 +167,7 @@ prepare_feed_update_state_for_download(struct feed_update_state *data)
 {
 	struct feed_entry *feed = data->feed_entry;
 
-	if (get_cfg_bool(&feed->cfg, CFG_RESPECT_EXPIRES_HEADER) == true) {
+	if (get_cfg_bool(&feed->cfg, CFG_RESPECT_EXPIRES_HEADER)) {
 		int64_t expires_date = db_get_date_from_feeds_table(feed->url, "http_header_expires", 19);
 		if (expires_date < 0) {
 			FAIL("Skipping %s because its HTTP header is invalid", feed->url->ptr);
@@ -178,7 +178,7 @@ prepare_feed_update_state_for_download(struct feed_update_state *data)
 		}
 	}
 
-	if (get_cfg_bool(&feed->cfg, CFG_RESPECT_TTL_ELEMENT) == true) {
+	if (get_cfg_bool(&feed->cfg, CFG_RESPECT_TTL_ELEMENT)) {
 		int64_t download_date = db_get_date_from_feeds_table(feed->url, "download_date", 13);
 		int64_t ttl = db_get_date_from_feeds_table(feed->url, "time_to_live", 12);
 		if (download_date < 0 || ttl < 0) {
@@ -208,7 +208,7 @@ prepare_feed_update_state_for_download(struct feed_update_state *data)
 		INFO("Attached header - User-Agent: %s", useragent->ptr);
 		curl_easy_setopt(curl, CURLOPT_USERAGENT, useragent->ptr);
 	}
-	if (get_cfg_bool(&feed->cfg, CFG_SEND_IF_MODIFIED_SINCE_HEADER) == true) {
+	if (get_cfg_bool(&feed->cfg, CFG_SEND_IF_MODIFIED_SINCE_HEADER)) {
 		int64_t last_modified = db_get_date_from_feeds_table(feed->url, "http_header_last_modified", 25);
 		if (last_modified > 0) {
 			curl_easy_setopt(curl, CURLOPT_TIMEVALUE_LARGE, (curl_off_t)last_modified);

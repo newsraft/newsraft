@@ -242,14 +242,14 @@ update_menu_item_list(struct menu_state *ctx, int64_t selected_rowid)
 		}
 	}
 
-	obtain_items_at_least_up_to_the_given_index(new_items, 0);
+	obtain_items_at_least_up_to_the_given_index(new_items, selected_rowid < 0 ? 0 : SIZE_MAX);
 	if (new_items->len < 1) {
 		if (search_token_iter > 0) {
 			info_status("No items found. Search query didn't get any matches!");
 		} else if (!STRING_IS_EMPTY(new_items->find_filter)) {
 			info_status("No items found. Find query didn't get any matches!");
 		} else if (hide_read_items && db_count_items(new_items->feeds, new_items->feeds_count, false) > 0) {
-			// Skip status message since it has read items available
+			info_status("No unread items found. Use toggle-read-items to enable read items.");
 		} else {
 			fail_status("No items found. Make sure this feed is updated!");
 		}
@@ -283,7 +283,7 @@ undo1:
 }
 
 void
-change_items_list_sorting(struct menu_state *ctx, input_id cmd)
+change_items_list_sorting(struct menu_state *ctx, input_id cmd, int64_t selected_rowid)
 {
 	static const struct { sorting_method_t primary; sorting_method_t secondary; } sort_map[] = {
 		[INPUT_SORT_BY_TIME]             = {SORT_BY_TIME_DESC,             SORT_BY_TIME_ASC},
@@ -296,6 +296,6 @@ change_items_list_sorting(struct menu_state *ctx, input_id cmd)
 		[INPUT_SORT_BY_IMPORTANT]        = {SORT_BY_IMPORTANT_DESC,        SORT_BY_IMPORTANT_ASC},
 	};
 	ctx->items->sorting = ctx->items->sorting == sort_map[cmd].primary ? sort_map[cmd].secondary : sort_map[cmd].primary;
-	update_menu_item_list(ctx, -1);
+	update_menu_item_list(ctx, selected_rowid);
 	info_status(get_sorting_message(ctx->items->sorting), "items");
 }

@@ -2,6 +2,7 @@
 #include <string.h>
 #include "newsraft.h"
 
+// Unfortunately this global state has to be used to provide context for qsort.
 static struct feed_entry **feeds_full = NULL;
 static size_t feeds_full_size = 0;
 static sorting_method_t feeds_sort = SORT_BY_INITIAL_ASC;
@@ -10,28 +11,6 @@ static bool
 is_feed_valid(struct menu_state *ctx, size_t index)
 {
 	return index < ctx->feeds_view_size ? true : false;
-}
-
-static void
-filter_feeds(struct menu_state *m)
-{
-	if (!hide_read_feeds) {
-		m->feeds_view_size = m->feeds_full_size;
-		memcpy(m->feeds_view, m->feeds_full, sizeof(*m->feeds_view) * m->feeds_full_size);
-	} else {
-		size_t j = 0;
-		for (size_t i = 0; i < m->feeds_full_size; ++i) {
-			if (m->feeds_full[i]->unread_count > 0) {
-				m->feeds_view[j++] = m->feeds_full[i];
-			}
-		}
-		if (j == 0) {
-			m->feeds_view_size = m->feeds_full_size;
-			memcpy(m->feeds_view, m->feeds_full, sizeof(*m->feeds_view) * m->feeds_full_size);
-		} else {
-			m->feeds_view_size = j;
-		}
-	}
 }
 
 static struct format_arg *
@@ -120,10 +99,30 @@ compare_feeds_alphabet(const void *data1, const void *data2)
 }
 
 static inline void
-sort_feeds(struct menu_state *m, sorting_method_t method, bool we_are_already_in_feeds_menu)
+filter_feeds(struct menu_state *m)
 {
-	pthread_mutex_lock(&interface_lock);
-	bool need_status_message = method != feeds_sort;
+	if (hide_read_feeds) {
+		size_t j = 0;
+		for (size_t i = 0; i < m->feeds_full_size; ++i) {
+			if (m->feeds_full[i]->unread_count > 0) {
+				m->feeds_view[j++] = m->feeds_full[i];
+			}
+		}
+		if (j == 0) {
+			m->feeds_view_size = m->feeds_full_size;
+			memcpy(m->feeds_view, m->feeds_full, sizeof(*m->feeds_view) * m->feeds_full_size);
+		} else {
+			m->feeds_view_size = j;
+		}
+	} else {
+		m->feeds_view_size = m->feeds_full_size;
+		memcpy(m->feeds_view, m->feeds_full, sizeof(*m->feeds_view) * m->feeds_full_size);
+	}
+}
+
+static inline void
+sort_feeds(struct menu_state *m, sorting_method_t method, bool need_redraw)
+{
 	feeds_full      = m->feeds_full;
 	feeds_full_size = m->feeds_full_size;
 	feeds_sort      = method;
@@ -132,13 +131,31 @@ sort_feeds(struct menu_state *m, sorting_method_t method, bool we_are_already_in
 		case SORT_BY_INITIAL_ASC:  qsort(m->feeds_view, m->feeds_view_size, sizeof(*m->feeds_view), &compare_feeds_initial);  break;
 		case SORT_BY_ALPHABET_ASC: qsort(m->feeds_view, m->feeds_view_size, sizeof(*m->feeds_view), &compare_feeds_alphabet); break;
 	}
-	pthread_mutex_unlock(&interface_lock);
-	if (we_are_already_in_feeds_menu) {
-		expose_all_visible_entries_of_the_list_menu();
-		if (need_status_message) {
-			info_status(get_sorting_message(feeds_sort), "feeds");
-		}
+	if (need_redraw) {
+		expose_all_visible_entries_of_the_list_menu_unprotected();
 	}
+}
+
+static inline void
+rebuild_feeds(struct menu_state *m, sorting_method_t sort, struct feed_entry *selected_feed, bool need_redraw)
+{
+	pthread_mutex_lock(&interface_lock);
+	filter_feeds(m);
+	sort_feeds(m, sort, false);
+	if (selected_feed) {
+		size_t new_sel = 0;
+		for (size_t i = 0; i < m->feeds_view_size; ++i) {
+			if (m->feeds_view[i] == selected_feed) {
+				new_sel = i;
+				break;
+			}
+		}
+		m->view_sel = new_sel;
+	}
+	if (need_redraw) {
+		reset_list_menu_unprotected();
+	}
+	pthread_mutex_unlock(&interface_lock);
 }
 
 struct menu_state *
@@ -167,20 +184,17 @@ feeds_menu_loop(struct menu_state *m)
 		m->feeds_view = newsraft_realloc(m->feeds_view, sizeof(*m->feeds_view) * m->feeds_full_size);
 		m->feeds_view_size = m->feeds_full_size;
 		memcpy(m->feeds_view, m->feeds_full, sizeof(*m->feeds_view) * m->feeds_full_size);
-		filter_feeds(m);
-		sort_feeds(m, get_sorting_id(get_cfg_string(NULL, CFG_MENU_FEED_SORTING)->ptr), false);
+		rebuild_feeds(m, get_sorting_id(get_cfg_string(NULL, CFG_MENU_FEED_SORTING)->ptr), NULL, false);
 	}
 	start_menu();
 	const struct wstring *arg;
 	while (true) {
 		if (get_cfg_bool(NULL, CFG_MENU_RESPONSIVENESS) && m->age != fetch_menu_age()) {
 			m->age = fetch_menu_age();
-			filter_feeds(m);
-			sort_feeds(m, feeds_sort, false);
-			reset_list_menu();
+			rebuild_feeds(m, feeds_sort, m->feeds_view[m->view_sel], true);
 		}
 		input_id cmd = get_input(m->feeds_view[m->view_sel]->binds, NULL, &arg);
-		if (handle_list_menu_control(m, cmd, arg) == true) {
+		if (handle_list_menu_control(m, cmd, arg)) {
 			continue;
 		}
 		switch (cmd) {
@@ -195,23 +209,12 @@ feeds_menu_loop(struct menu_state *m)
 				return setup_menu(&items_menu_loop, NULL, m->feeds_view + m->view_sel, 1, MENU_NORMAL, NULL);
 			case INPUT_TOGGLE_EXPLORE_MODE:
 				return setup_menu(&items_menu_loop, NULL, m->feeds_full, m->feeds_full_size, MENU_IS_EXPLORE, NULL);
-			case INPUT_TOGGLE_HIDE_READ_FEEDS: {
+			case INPUT_TOGGLE_READ_FEEDS: {
 				hide_read_feeds = !hide_read_feeds;
-				struct feed_entry *current_feed = m->feeds_view[m->view_sel];
-				filter_feeds(m);
-				sort_feeds(m, feeds_sort, false);
-				size_t new_sel = 0;
-				for (size_t i = 0; i < m->feeds_view_size; ++i) {
-					if (m->feeds_view[i] == current_feed) {
-						new_sel = i;
-						break;
-					}
-				}
-				m->view_sel = new_sel;
-				reset_list_menu();
+				rebuild_feeds(m, feeds_sort, m->feeds_view[m->view_sel], true);
 				break;
 			}
-			case INPUT_TOGGLE_HIDE_READ_ITEMS:
+			case INPUT_TOGGLE_READ_ITEMS:
 				hide_read_items = !hide_read_items;
 				break;
 			case INPUT_APPLY_SEARCH_MODE_FILTER:
@@ -222,13 +225,22 @@ feeds_menu_loop(struct menu_state *m)
 			case INPUT_QUIT_SOFT:
 				return close_menu();
 			case INPUT_SORT_BY_UNREAD:
+				pthread_mutex_lock(&interface_lock);
 				sort_feeds(m, feeds_sort == SORT_BY_UNREAD_DESC ? SORT_BY_UNREAD_ASC : SORT_BY_UNREAD_DESC, true);
+				pthread_mutex_unlock(&interface_lock);
+				info_status(get_sorting_message(feeds_sort), "feeds");
 				break;
 			case INPUT_SORT_BY_INITIAL:
+				pthread_mutex_lock(&interface_lock);
 				sort_feeds(m, feeds_sort == SORT_BY_INITIAL_ASC ? SORT_BY_INITIAL_DESC : SORT_BY_INITIAL_ASC, true);
+				pthread_mutex_unlock(&interface_lock);
+				info_status(get_sorting_message(feeds_sort), "feeds");
 				break;
 			case INPUT_SORT_BY_ALPHABET:
+				pthread_mutex_lock(&interface_lock);
 				sort_feeds(m, feeds_sort == SORT_BY_ALPHABET_ASC ? SORT_BY_ALPHABET_DESC : SORT_BY_ALPHABET_ASC, true);
+				pthread_mutex_unlock(&interface_lock);
+				info_status(get_sorting_message(feeds_sort), "feeds");
 				break;
 			case INPUT_FIND_COMMAND:
 				return setup_menu(&items_menu_loop, NULL, m->feeds_view, m->feeds_view_size, MENU_IS_EXPLORE, arg);

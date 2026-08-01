@@ -380,7 +380,7 @@ sections_menu_loop(struct menu_state *m)
 		}
 	}
 	refresh_sections_statistics_about_underlying_feeds();
-	if (m->is_initialized == false) {
+	if (!m->is_initialized) {
 		m->age = fetch_menu_age();
 		sort_sections(get_sorting_id(get_cfg_string(NULL, CFG_MENU_SECTION_SORTING)->ptr), false);
 	}
@@ -392,17 +392,17 @@ sections_menu_loop(struct menu_state *m)
 			sort_sections(sections_sort, true);
 		}
 		input_id cmd = get_input(NULL, NULL, &arg);
-		if (handle_list_menu_control(m, cmd, arg) == true) {
+		if (handle_list_menu_control(m, cmd, arg)) {
 			continue;
 		}
-		if (get_cfg_bool(NULL, CFG_SECTIONS_IGNORE_TOGGLE_READ) == true) {
+		if (get_cfg_bool(NULL, CFG_SECTIONS_IGNORE_TOGGLE_READ)) {
 			switch (cmd) {
 				case INPUT_MARK_READ:
 				case INPUT_MARK_UNREAD:
 				case INPUT_MARK_READ_ALL:
 				case INPUT_MARK_UNREAD_ALL:
 					continue;
-	           	}
+			}
 		}
 		switch (cmd) {
 			case INPUT_MARK_READ:       mark_feeds_read(sections_view[m->view_sel]->feeds, sections_view[m->view_sel]->feeds_count, true);  break;

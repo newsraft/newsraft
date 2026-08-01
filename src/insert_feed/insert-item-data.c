@@ -7,10 +7,10 @@ delete_excess_items(struct feed_entry *feed, int64_t limit)
 	char query[300] = "DELETE FROM items WHERE rowid IN "
 		"(SELECT rowid FROM items WHERE feed_url=? ORDER BY publication_date DESC, update_date DESC, download_date DESC, rowid DESC LIMIT -1 OFFSET ?)";
 
-	if (get_cfg_bool(&feed->cfg, CFG_ITEM_LIMIT_UNREAD) == false) {
+	if (!get_cfg_bool(&feed->cfg, CFG_ITEM_LIMIT_UNREAD)) {
 		strcat(query, " AND unread=0");
 	}
-	if (get_cfg_bool(&feed->cfg, CFG_ITEM_LIMIT_IMPORTANT) == false) {
+	if (!get_cfg_bool(&feed->cfg, CFG_ITEM_LIMIT_IMPORTANT)) {
 		strcat(query, " AND important=0");
 	}
 
@@ -33,13 +33,43 @@ db_insert_item(struct feed_entry *feed, struct getfeed_item *item, int64_t rowid
 	sqlite3_stmt *s;
 
 	if (rowid == -1) {
-		s = db_prepare("INSERT INTO items(feed_url,guid,title,link,content,attachments,persons,extras,download_date,publication_date,update_date,unread) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)", 161, NULL);
+		s = db_prepare(
+			"INSERT INTO items("
+				"feed_url,"
+				"guid,"
+				"title,"
+				"link,"
+				"content,"
+				"attachments,"
+				"persons,"
+				"extras,"
+				"download_date,"
+				"publication_date,"
+				"update_date,"
+				"unread"
+			") VALUES(?,?,?,?,?,?,?,?,?,?,?,?)",
+			161,
+			NULL
+		);
 	} else {
-		if (get_cfg_bool(&feed->cfg, CFG_MARK_ITEM_UNREAD_ON_CHANGE) == true) {
-			s = db_prepare("UPDATE items SET feed_url=?,guid=?,title=?,link=?,content=?,attachments=?,persons=?,extras=?,download_date=?,publication_date=?,update_date=?,unread=1 WHERE rowid=?", 165, NULL);
-		} else {
-			s = db_prepare("UPDATE items SET feed_url=?,guid=?,title=?,link=?,content=?,attachments=?,persons=?,extras=?,download_date=?,publication_date=?,update_date=? WHERE rowid=?", 156, NULL);
+		char cmd[200] =
+			"UPDATE items SET "
+				"feed_url=?,"
+				"guid=?,"
+				"title=?,"
+				"link=?,"
+				"content=?,"
+				"attachments=?,"
+				"persons=?,"
+				"extras=?,"
+				"download_date=?,"
+				"publication_date=?,"
+				"update_date=?";
+		if (get_cfg_bool(&feed->cfg, CFG_MARK_ITEM_UNREAD_ON_CHANGE)) {
+			strcat(cmd, ",unread=1");
 		}
+		strcat(cmd, " WHERE rowid=?");
+		s = db_prepare(cmd, strlen(cmd) + 1, NULL);
 	}
 	if (s == NULL) {
 		FAIL("Failed to prepare item insertion/update statement!");

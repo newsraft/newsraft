@@ -93,7 +93,7 @@ expose_entry_of_the_list_menu(size_t index)
 	pthread_mutex_unlock(&interface_lock);
 }
 
-static inline void
+void
 expose_all_visible_entries_of_the_list_menu_unprotected(void)
 {
 	for (size_t i = menu->view_min; i <= menu->view_max; ++i) {
@@ -118,12 +118,15 @@ redraw_list_menu_unprotected(void)
 		WARN("Ignoring list view redraw because of zero size.");
 		return;
 	}
-	menu->view_max = menu->view_min + (list_menu_height - 1);
-	if (menu->view_sel > menu->view_max) {
-		menu->view_max = menu->view_sel;
-		menu->view_min = menu->view_max - (list_menu_height - 1);
+	const size_t limit = menu->view_sel > scrolloff ? menu->view_sel - scrolloff : 0;
+	if (menu->view_min > limit) {
+		menu->view_min = limit;
 	}
-	while (menu->view_max >= list_menu_height && menu->enumerator(menu, menu->view_max) == false) {
+	menu->view_max = menu->view_min + (list_menu_height - 1);
+	if (menu->view_sel + scrolloff > menu->view_max) {
+		menu->view_max = menu->view_sel + scrolloff;
+	}
+	while (menu->view_max >= list_menu_height && !menu->enumerator(menu, menu->view_max)) {
 		menu->view_max -= 1;
 	}
 	menu->view_min = menu->view_max - (list_menu_height - 1);
@@ -138,14 +141,6 @@ reset_list_menu_unprotected(void)
 		menu->view_min = 0;
 	}
 	redraw_list_menu_unprotected();
-}
-
-void
-reset_list_menu(void)
-{
-	pthread_mutex_lock(&interface_lock);
-	reset_list_menu_unprotected();
-	pthread_mutex_unlock(&interface_lock);
 }
 
 static size_t
@@ -198,7 +193,7 @@ change_list_view_unprotected(struct menu_state *m, size_t new_sel, bool is_wrapp
 		if (new_sel >= scrolloff) {
 			m->view_min = new_sel - scrolloff;
 			if ((scrolloff == list_menu_height / 2) && (list_menu_height % 2 == 0)) {
-				// Makes scrolling with huge scrolloff work consistently in both direcetions.
+				// Makes scrolling with huge scrolloff work consistently in both directions.
 				m->view_min += 1;
 			}
 		} else {

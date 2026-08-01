@@ -68,7 +68,7 @@ item_pager_loop(struct menu_state *m)
 	const struct wstring *arg;
 	while (true) {
 		input_id cmd = get_input(items_menu->items->ptr[item_id].feed[0]->binds, &count, &arg);
-		if (handle_pager_menu_control(cmd) == true) {
+		if (handle_pager_menu_control(cmd)) {
 			continue;
 		}
 		switch (cmd) {

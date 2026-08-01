@@ -123,7 +123,7 @@ toggle_item_important(struct menu_state *ctx, size_t view_sel)
 }
 
 static void
-mark_all_items_read(struct menu_state *ctx, bool status)
+mark_all_items_read(struct menu_state *ctx, bool status, int64_t selected_rowid)
 {
 	pthread_mutex_lock(&interface_lock);
 	if (ctx->flags & MENU_IS_SEARCH) {
@@ -141,7 +141,7 @@ mark_all_items_read(struct menu_state *ctx, bool status)
 		size_t items_feeds_count = ctx->items->feeds_count;
 		pthread_mutex_unlock(&interface_lock);
 		mark_feeds_read(items_feeds, items_feeds_count, status);
-		update_menu_item_list(ctx, -1);
+		update_menu_item_list(ctx, selected_rowid);
 	}
 }
 
@@ -155,7 +155,7 @@ items_menu_loop(struct menu_state *m)
 	m->unread_state = &is_item_unread;
 	m->entry_format = get_cfg_wstring(NULL, m->flags & MENU_IS_EXPLORE ? CFG_MENU_EXPLORE_ITEM_ENTRY_FORMAT : CFG_MENU_ITEM_ENTRY_FORMAT);
 	raise_menu_age();
-	if (m->is_initialized == false) {
+	if (!m->is_initialized) {
 		if (!update_menu_item_list(m, -1)) {
 			return close_menu(); // Error displayed by update_menu_item_list()
 		}
@@ -164,27 +164,27 @@ items_menu_loop(struct menu_state *m)
 	const struct wstring *arg, *browser;
 	while (true) {
 		if (get_cfg_bool(NULL, CFG_MENU_RESPONSIVENESS) && m->age != fetch_menu_age()) {
-			update_menu_item_list(m, -1);
+			update_menu_item_list(m, m->items->ptr[m->view_sel].rowid);
 		}
 		if (get_cfg_bool(&m->items->ptr[m->view_sel].feed[0]->cfg, CFG_MARK_ITEM_READ_ON_HOVER)) {
 			mark_item_read(m, m->view_sel, true);
 		}
 		input_id cmd = get_input(m->items->ptr[m->view_sel].feed[0]->binds, NULL, &arg);
-		if (handle_list_menu_control(m, cmd, arg) == true) {
+		if (handle_list_menu_control(m, cmd, arg)) {
 			continue;
 		}
 		switch (cmd) {
-			case INPUT_MARK_READ:         mark_item_read(m, m->view_sel, true);                     break;
-			case INPUT_MARK_UNREAD:       mark_item_read(m, m->view_sel, false);                    break;
-			case INPUT_TOGGLE_READ:       toggle_item_read(m, m->view_sel);                         break;
-			case INPUT_MARK_READ_ALL:     mark_all_items_read(m, true);                             break;
-			case INPUT_MARK_UNREAD_ALL:   mark_all_items_read(m, false);                            break;
-			case INPUT_MARK_IMPORTANT:    mark_item_important(m, m->view_sel, true);                break;
-			case INPUT_MARK_UNIMPORTANT:  mark_item_important(m, m->view_sel, false);               break;
-			case INPUT_TOGGLE_IMPORTANT:  toggle_item_important(m, m->view_sel);                    break;
-			case INPUT_RELOAD:            queue_updates(m->items->ptr[m->view_sel].feed, 1);        break;
-			case INPUT_RELOAD_ALL:        queue_updates(m->feeds_full, m->feeds_full_size);         break;
-			case INPUT_COPY_TO_CLIPBOARD: copy_string_to_clipboard(m->items->ptr[m->view_sel].url); break;
+			case INPUT_MARK_READ:         mark_item_read(m, m->view_sel, true);                            break;
+			case INPUT_MARK_UNREAD:       mark_item_read(m, m->view_sel, false);                           break;
+			case INPUT_TOGGLE_READ:       toggle_item_read(m, m->view_sel);                                break;
+			case INPUT_MARK_READ_ALL:     mark_all_items_read(m, true, m->items->ptr[m->view_sel].rowid);  break;
+			case INPUT_MARK_UNREAD_ALL:   mark_all_items_read(m, false, m->items->ptr[m->view_sel].rowid); break;
+			case INPUT_MARK_IMPORTANT:    mark_item_important(m, m->view_sel, true);                       break;
+			case INPUT_MARK_UNIMPORTANT:  mark_item_important(m, m->view_sel, false);                      break;
+			case INPUT_TOGGLE_IMPORTANT:  toggle_item_important(m, m->view_sel);                           break;
+			case INPUT_RELOAD:            queue_updates(m->items->ptr[m->view_sel].feed, 1);               break;
+			case INPUT_RELOAD_ALL:        queue_updates(m->feeds_full, m->feeds_full_size);                break;
+			case INPUT_COPY_TO_CLIPBOARD: copy_string_to_clipboard(m->items->ptr[m->view_sel].url);        break;
 			case INPUT_QUIT_HARD:         return NULL;
 			case INPUT_NAVIGATE_BACK:
 				if (get_menu_depth() < 3 && (!(m->flags & MENU_IS_SEARCH) && (m->flags & MENU_IS_EXPLORE) && (m->find_filter == NULL)))
@@ -200,13 +200,12 @@ items_menu_loop(struct menu_state *m)
 			case INPUT_TOGGLE_EXPLORE_MODE:
 				if (m->flags & MENU_IS_EXPLORE) return close_menu();
 				break;
-			case INPUT_TOGGLE_HIDE_READ_FEEDS:
+			case INPUT_TOGGLE_READ_FEEDS:
 				hide_read_feeds = !hide_read_feeds;
 				break;
-			case INPUT_TOGGLE_HIDE_READ_ITEMS: {
+			case INPUT_TOGGLE_READ_ITEMS: {
 				hide_read_items = !hide_read_items;
-				int64_t current_rowid = m->items->ptr[m->view_sel].rowid;
-				update_menu_item_list(m, current_rowid);
+				update_menu_item_list(m, m->items->ptr[m->view_sel].rowid);
 				break;
 			}
 			case INPUT_GOTO_FEED:
@@ -227,7 +226,8 @@ items_menu_loop(struct menu_state *m)
 			case INPUT_SORT_BY_UNREAD:
 			case INPUT_SORT_BY_ALPHABET:
 			case INPUT_SORT_BY_IMPORTANT:
-				change_items_list_sorting(m, cmd); break;
+				change_items_list_sorting(m, cmd, m->items->ptr[m->view_sel].rowid);
+				break;
 			case INPUT_FIND_COMMAND:
 				if (m->find_filter) {
 					return setup_menu(&items_menu_loop, NULL, m->feeds_full, m->feeds_full_size, MENU_IS_EXPLORE | MENU_SWALLOW, arg);

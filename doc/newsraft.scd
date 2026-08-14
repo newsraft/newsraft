@@ -65,7 +65,7 @@ From _feeds_ menu you can get to the _items_ menu by entering some feed.
 _Items_ menu consists of feed item entries (i. e. single pieces of news) which
 you get when you update feeds in the previous menu. Every feed item entry has
 two switchable properties - read state and importance state. Keys to change read
-state: *d* to mark read, *D* to mark unread, *^D* to mark everything read. Keys
+state: *d* to mark read, *D* to mark unread, *A* to mark everything read. Keys
 to change importance state: *f* to flag important, *F* to flag unimportant. To
 view item's content you have to go to _pager_ menu by entering selected item.
 

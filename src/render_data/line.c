@@ -25,8 +25,9 @@ line_tab(struct line *line)
 		return line_string(line, RENDER_TAB_DISPLAY);
 	}
 	struct render_line *prev = &line->target->lines[line->target->lines_len - 2];
+	const size_t tab_width = sizeof(RENDER_TAB_DISPLAY) / sizeof(wchar_t) - 1;
 	size_t whitespace_len = 0;
-	for (size_t i = line->head->ws->len; i < prev->ws->len && ISWIDEWHITESPACE(prev->ws->ptr[i]); ++i) {
+	for (size_t i = line->head->ws->len; whitespace_len < tab_width && i < prev->ws->len && ISWIDEWHITESPACE(prev->ws->ptr[i]); ++i) {
 		whitespace_len += 1;
 	}
 	if (whitespace_len == 0) {

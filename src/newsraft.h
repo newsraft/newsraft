@@ -473,7 +473,6 @@ bool ui_is_running(void);
 bool ui_set_window_title(void);
 bool run_menu_loop(void);
 input_id resize_handler(void);
-bool call_resize_handler_if_current_list_menu_size_is_different_from_actual(void);
 bool arent_we_colorful(void);
 
 // Functions related to window which displays status messages.

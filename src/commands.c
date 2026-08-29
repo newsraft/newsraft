@@ -6,27 +6,44 @@ static inline void
 execute_system_command(const char *cmd, bool quiet)
 {
 	info_status("Executing %s", cmd);
+
+	size_t prev_width = 0;
+	size_t prev_height = 0;
+	bool is_resize_needed = false;
+
 	if (!quiet) {
 		pthread_mutex_lock(&interface_lock);
+		prev_width = list_menu_width;
+		prev_height = list_menu_height;
 		NEWSRAFT_UI(ui_term());
 	}
+
 	int status = system(cmd);
+
 	if (!quiet) {
 		fflush(stdout);
 		fflush(stderr);
 		NEWSRAFT_UI(ui_init());
 		NEWSRAFT_UI(ui_set_window_title());
+		if (list_menu_width != prev_width || list_menu_height != prev_height) {
+			is_resize_needed = true;
+		}
 		pthread_mutex_unlock(&interface_lock);
 	}
-	// Resizing could be handled by the program running on top, so we have to catch up.
-	if (ui_is_running() && call_resize_handler_if_current_list_menu_size_is_different_from_actual() == false) {
-		pthread_mutex_lock(&interface_lock);
-		tb_clear();
-		tb_present();
-		status_recreate_unprotected();
-		redraw_list_menu_unprotected();
-		pthread_mutex_unlock(&interface_lock);
+
+	if (ui_is_running()) {
+		if (is_resize_needed) {
+			resize_handler();
+		} else {
+			pthread_mutex_lock(&interface_lock);
+			tb_clear();
+			tb_present();
+			status_recreate_unprotected();
+			redraw_list_menu_unprotected();
+			pthread_mutex_unlock(&interface_lock);
+		}
 	}
+
 	if (status == 0) {
 		status_clean();
 	} else {

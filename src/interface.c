@@ -157,18 +157,6 @@ error:
 }
 
 bool
-call_resize_handler_if_current_list_menu_size_is_different_from_actual(void)
-{
-	size_t width = 0, height = 0;
-	obtain_list_menu_size(&width, &height);
-	if (width != list_menu_width || height != list_menu_height) {
-		resize_handler();
-		return true;
-	}
-	return false;
-}
-
-bool
 arent_we_colorful(void)
 {
 	return !paint_it_black;

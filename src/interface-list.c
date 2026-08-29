@@ -111,6 +111,28 @@ expose_all_visible_entries_of_the_list_menu(void)
 	pthread_mutex_unlock(&interface_lock);
 }
 
+static void
+adjust_view_range_unprotected(void)
+{
+	if (is_current_menu_a_pager()) {
+		menu->view_max = menu->view_min + (list_menu_height - 1);
+	} else {
+		const size_t limit = menu->view_sel > scrolloff ? menu->view_sel - scrolloff : 0;
+		if (menu->view_min > limit) {
+			menu->view_min = limit;
+		}
+		menu->view_max = menu->view_min + (list_menu_height - 1);
+		if (menu->view_sel + scrolloff > menu->view_max) {
+			menu->view_max = menu->view_sel + scrolloff;
+		}
+	}
+
+	while (menu->view_max >= list_menu_height && !menu->enumerator(menu, menu->view_max)) {
+		menu->view_max -= 1;
+	}
+	menu->view_min = menu->view_max - (list_menu_height - 1);
+}
+
 void
 redraw_list_menu_unprotected(void)
 {
@@ -118,18 +140,7 @@ redraw_list_menu_unprotected(void)
 		WARN("Ignoring list view redraw because of zero size.");
 		return;
 	}
-	const size_t limit = menu->view_sel > scrolloff ? menu->view_sel - scrolloff : 0;
-	if (menu->view_min > limit) {
-		menu->view_min = limit;
-	}
-	menu->view_max = menu->view_min + (list_menu_height - 1);
-	if (menu->view_sel + scrolloff > menu->view_max) {
-		menu->view_max = menu->view_sel + scrolloff;
-	}
-	while (menu->view_max >= list_menu_height && !menu->enumerator(menu, menu->view_max)) {
-		menu->view_max -= 1;
-	}
-	menu->view_min = menu->view_max - (list_menu_height - 1);
+	adjust_view_range_unprotected();
 	expose_all_visible_entries_of_the_list_menu_unprotected();
 }
 

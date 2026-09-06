@@ -1,5 +1,5 @@
 .POSIX:
-.PHONY: all install install-newsraft install-man install-icon install-desktop install-examples man html clean check gperf cppcheck clang-tidy
+.PHONY: all install install-newsraft install-man install-icon install-desktop install-examples uninstall uninstall-newsraft uninstall-man uninstall-icon uninstall-desktop uninstall-examples man html clean check gperf cppcheck clang-tidy
 
 CC            = cc
 CFLAGS        = -O3
@@ -29,7 +29,7 @@ EXAMPLES_DIR  = $(PREFIX)/share/newsraft/examples
 
 all: newsraft
 
-install: install-newsraft install-man install-icon install-examples
+install: install-newsraft install-man install-icon install-desktop install-examples
 
 install-newsraft:
 	mkdir -p $(DESTDIR)$(BINDIR)
@@ -51,6 +51,23 @@ install-examples:
 	mkdir -p $(DESTDIR)$(EXAMPLES_DIR)
 	install -m644 doc/examples/feeds $(DESTDIR)$(EXAMPLES_DIR)/.
 	install -m644 doc/examples/config $(DESTDIR)$(EXAMPLES_DIR)/.
+
+uninstall: uninstall-newsraft uninstall-man uninstall-icon uninstall-desktop uninstall-examples
+
+uninstall-newsraft:
+	rm -rf $(DESTDIR)$(BINDIR)/newsraft
+
+uninstall-man:
+	rm -rf $(DESTDIR)$(MANDIR)/man1/newsraft.1
+
+uninstall-icon:
+	rm -rf $(DESTDIR)$(ICONSDIR)/newsraft.svg
+
+uninstall-desktop:
+	rm -rf $(DESTDIR)$(DESKTOPDIR)/newsraft.desktop
+
+uninstall-examples:
+	rm -rf $(DESTDIR)$(PREFIX)/share/newsraft/
 
 newsraft:
 	$(CC) -std=c99 $(CFLAGS) $(AUXCFLAGS) $(FEATURECFLAGS) -Isrc $(LDFLAGS) -o $@ src/newsraft.c $(LDLIBS)

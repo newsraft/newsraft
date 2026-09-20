@@ -209,6 +209,7 @@ feeds_menu_loop(struct menu_state *m)
 				return setup_menu(&items_menu_loop, NULL, m->feeds_view + m->view_sel, 1, MENU_NORMAL, NULL);
 			case INPUT_TOGGLE_EXPLORE_MODE:
 				return setup_menu(&items_menu_loop, NULL, m->feeds_full, m->feeds_full_size, MENU_IS_EXPLORE, NULL);
+			case INPUT_TOGGLE_READ_MENU:
 			case INPUT_TOGGLE_READ_FEEDS: {
 				hide_read_feeds = !hide_read_feeds;
 				rebuild_feeds(m, feeds_sort, m->feeds_view[m->view_sel], true);

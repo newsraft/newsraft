@@ -203,6 +203,7 @@ items_menu_loop(struct menu_state *m)
 			case INPUT_TOGGLE_READ_FEEDS:
 				hide_read_feeds = !hide_read_feeds;
 				break;
+			case INPUT_TOGGLE_READ_MENU:
 			case INPUT_TOGGLE_READ_ITEMS: {
 				hide_read_items = !hide_read_items;
 				update_menu_item_list(m, m->items->ptr[m->view_sel].rowid);

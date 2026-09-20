@@ -104,6 +104,7 @@ assign_default_binds(void)
 		{{"^U"},                       {INPUT_SELECT_PREV_PAGE_HALF}},
 		{{"g", "KEY_HOME"},            {INPUT_SELECT_FIRST}},
 		{{"G", "KEY_END"},             {INPUT_SELECT_LAST}},
+		{{"H"},                        {INPUT_TOGGLE_READ_MENU}},
 		{{"J"},                        {INPUT_JUMP_TO_NEXT}},
 		{{"K"},                        {INPUT_JUMP_TO_PREV}},
 		{{"n"},                        {INPUT_JUMP_TO_NEXT_UNREAD}},
@@ -139,7 +140,6 @@ assign_default_binds(void)
 		{{"Q"},                        {INPUT_QUIT_HARD}},
 		{{"d"},                        {INPUT_MARK_READ, INPUT_JUMP_TO_NEXT}},
 		{{"D"},                        {INPUT_MARK_UNREAD, INPUT_JUMP_TO_NEXT}},
-		{{"H"},                        {INPUT_TOGGLE_READ_FEEDS, INPUT_TOGGLE_READ_ITEMS}},
 	};
 
 	for (size_t i = 0; i < LENGTH(default_binds); ++i) {

@@ -3,9 +3,9 @@
 #include <strings.h>
 #include "newsraft.h"
 
-#define INPUT_ARRAY
-#include "input.h"
-#undef INPUT_ARRAY
+#define ACTIONS_IMPL
+#include "actions.h"
+#undef ACTIONS_IMPL
 
 static struct input_binding *binds = NULL;
 static bool was_escape_key_ever_bound = false;
@@ -92,35 +92,80 @@ bind_two_actions(const char *key, input_id action1, input_id action2)
 bool
 assign_default_binds(void)
 {
-	for (size_t i = 0; inputs[i].names[0] != NULL; ++i) {
-		for (size_t j = 0; inputs[i].default_binds[j] != NULL; ++j) {
-			struct input_binding *bind = create_or_clean_bind(NULL, inputs[i].default_binds[j]);
-			if (!attach_action_to_bind(bind, i, NULL, 0)) {
-				return false;
+	struct {
+		const char *keys[10];
+		input_id actions[10];
+	} default_binds[] = {
+		{{"j", "KEY_DOWN", "^E"},      {INPUT_SELECT_NEXT}},
+		{{"k", "KEY_UP", "^Y"},        {INPUT_SELECT_PREV}},
+		{{"space", "^F", "KEY_NPAGE"}, {INPUT_SELECT_NEXT_PAGE}},
+		{{"^D"},                       {INPUT_SELECT_NEXT_PAGE_HALF}},
+		{{"^B", "KEY_PPAGE"},          {INPUT_SELECT_PREV_PAGE}},
+		{{"^U"},                       {INPUT_SELECT_PREV_PAGE_HALF}},
+		{{"g", "KEY_HOME"},            {INPUT_SELECT_FIRST}},
+		{{"G", "KEY_END"},             {INPUT_SELECT_LAST}},
+		{{"J"},                        {INPUT_JUMP_TO_NEXT}},
+		{{"K"},                        {INPUT_JUMP_TO_PREV}},
+		{{"n"},                        {INPUT_JUMP_TO_NEXT_UNREAD}},
+		{{"N"},                        {INPUT_JUMP_TO_PREV_UNREAD}},
+		{{"p"},                        {INPUT_JUMP_TO_NEXT_IMPORTANT}},
+		{{"P"},                        {INPUT_JUMP_TO_PREV_IMPORTANT}},
+		{{"e"},                        {INPUT_JUMP_TO_NEXT_ERROR}},
+		{{"E"},                        {INPUT_JUMP_TO_PREV_ERROR}},
+		{{"*"},                        {INPUT_GOTO_FEED}},
+		{{","},                        {INPUT_SHIFT_WEST}},
+		{{"."},                        {INPUT_SHIFT_EAST}},
+		{{"<"},                        {INPUT_SHIFT_RESET}},
+		{{"t"},                        {INPUT_SORT_BY_TIME}},
+		{{"w"},                        {INPUT_SORT_BY_ROWID}},
+		{{"u"},                        {INPUT_SORT_BY_UNREAD}},
+		{{"z"},                        {INPUT_SORT_BY_INITIAL}},
+		{{"a"},                        {INPUT_SORT_BY_ALPHABET}},
+		{{"i"},                        {INPUT_SORT_BY_IMPORTANT}},
+		{{"l", "enter", "KEY_RIGHT", "KEY_ENTER"}, {INPUT_ENTER}},
+		{{"r"},                        {INPUT_RELOAD}},
+		{{"R", "^R"},                  {INPUT_RELOAD_ALL}},
+		{{"A"},                        {INPUT_MARK_READ_ALL}},
+		{{"f"},                        {INPUT_MARK_IMPORTANT}},
+		{{"F"},                        {INPUT_MARK_UNIMPORTANT}},
+		{{"tab"},                      {INPUT_TOGGLE_EXPLORE_MODE}},
+		{{"v"},                        {INPUT_VIEW_ERRORS}},
+		{{"o"},                        {INPUT_OPEN_IN_BROWSER}},
+		{{"y", "c"},                   {INPUT_COPY_TO_CLIPBOARD}},
+		{{"/"},                        {INPUT_START_SEARCH_INPUT}},
+		{{"`"},                        {INPUT_CLEAN_STATUS}},
+		{{"h", "backspace", "KEY_LEFT"}, {INPUT_NAVIGATE_BACK}},
+		{{"q"},                        {INPUT_QUIT_SOFT}},
+		{{"Q"},                        {INPUT_QUIT_HARD}},
+		{{"d"},                        {INPUT_MARK_READ, INPUT_JUMP_TO_NEXT}},
+		{{"D"},                        {INPUT_MARK_UNREAD, INPUT_JUMP_TO_NEXT}},
+		{{"H"},                        {INPUT_TOGGLE_READ_FEEDS, INPUT_TOGGLE_READ_ITEMS}},
+	};
+
+	for (size_t i = 0; i < LENGTH(default_binds); ++i) {
+		for (size_t j = 0; default_binds[i].keys[j] != NULL; ++j) {
+			struct input_binding *bind = create_or_clean_bind(NULL, default_binds[i].keys[j]);
+			for (size_t k = 0; default_binds[i].actions[k] != 0; ++k) {
+				if (!attach_action_to_bind(bind, default_binds[i].actions[k], NULL, 0)) {
+					return false;
+				}
 			}
 		}
 	}
+
 	if (!bind_exec("?", "man newsraft")) {
 		return false;
 	}
-	if (!bind_two_actions("d", INPUT_MARK_READ, INPUT_JUMP_TO_NEXT)) {
-		return false;
-	}
-	if (!bind_two_actions("D", INPUT_MARK_UNREAD, INPUT_JUMP_TO_NEXT)) {
-		return false;
-	}
-	if (!bind_two_actions("H", INPUT_TOGGLE_READ_FEEDS, INPUT_TOGGLE_READ_ITEMS)) {
-		return false;
-	}
+
 	return true;
 }
 
 input_id
 get_input_id_by_name(const char *name)
 {
-	for (size_t i = 0; inputs[i].names[0] != NULL; ++i) {
-		for (size_t j = 0; inputs[i].names[j] != NULL; ++j) {
-			if (strcmp(name, inputs[i].names[j]) == 0) {
+	for (size_t i = 0; LENGTH(g_actions); ++i) {
+		for (size_t j = 0; g_actions[i].names[j] != NULL; ++j) {
+			if (strcmp(name, g_actions[i].names[j]) == 0) {
 				return i;
 			}
 		}

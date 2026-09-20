@@ -639,6 +639,6 @@ extern size_t list_menu_height;
 extern size_t list_menu_width;
 extern pthread_mutex_t interface_lock;
 
+#include "actions.h"
 #include "config.h"
-#include "input.h"
 #endif // NEWSRAFT_H

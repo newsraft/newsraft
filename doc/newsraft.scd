@@ -698,7 +698,7 @@ _bold_, _italic_ and _underlined_.
 |[ *clean-status*
 :[ _`_
 |[ *navigate-back*
-:[ _h_, _backspace_, _KEY_LEFT_, _KEY_BACKSPACE_
+:[ _h_, _backspace_, _KEY_LEFT_
 |[ *quit*
 :[ _q_
 |[ *quit-hard*

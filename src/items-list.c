@@ -242,7 +242,11 @@ update_menu_item_list(struct menu_state *ctx, int64_t selected_rowid)
 		}
 	}
 
-	obtain_items_at_least_up_to_the_given_index(new_items, selected_rowid < 0 ? 0 : SIZE_MAX);
+	obtain_items_at_least_up_to_the_given_index(
+		new_items,
+		selected_rowid == NO_PARTICULAR_ROWID_IS_ELIGIBLE_FOR_FOCUS ? 0 : SIZE_MAX
+	);
+
 	if (new_items->len < 1) {
 		if (search_token_iter > 0) {
 			info_status("No items found. Search query didn't get any matches!");
@@ -259,7 +263,7 @@ update_menu_item_list(struct menu_state *ctx, int64_t selected_rowid)
 	free_items_list(ctx->items);
 	ctx->items = new_items;
 	if (ctx->is_initialized) {
-		if (selected_rowid >= 0) {
+		if (selected_rowid != NO_PARTICULAR_ROWID_IS_ELIGIBLE_FOR_FOCUS) {
 			for (size_t i = 0; i < ctx->items->len; ++i) {
 				if (ctx->items->ptr[i].rowid == selected_rowid) {
 					ctx->view_sel = i;

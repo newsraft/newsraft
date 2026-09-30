@@ -156,7 +156,7 @@ items_menu_loop(struct menu_state *m)
 	m->entry_format = get_cfg_wstring(NULL, m->flags & MENU_IS_EXPLORE ? CFG_MENU_EXPLORE_ITEM_ENTRY_FORMAT : CFG_MENU_ITEM_ENTRY_FORMAT);
 	raise_menu_age();
 	if (!m->is_initialized) {
-		if (!update_menu_item_list(m, -1)) {
+		if (!update_menu_item_list(m, NO_PARTICULAR_ROWID_IS_ELIGIBLE_FOR_FOCUS)) {
 			return close_menu(); // Error displayed by update_menu_item_list()
 		}
 	}

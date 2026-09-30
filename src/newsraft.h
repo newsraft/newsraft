@@ -30,6 +30,7 @@
 #define NEWSRAFT_UI(CALL) do { if (ui_is_running()) { CALL; } } while (0) // Make CALL only if UI is running
 #define STRING_IS_EMPTY(A) (((A) == NULL) || ((A)->ptr == NULL) || ((A)->len == 0))
 #define NEWSRAFT_ALL_BITS_SET(x, type) ((x) == (type)~(type)0)
+#define NO_PARTICULAR_ROWID_IS_ELIGIBLE_FOR_FOCUS (-1)
 
 typedef uint8_t config_entry_id;
 typedef uint8_t input_id;

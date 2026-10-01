@@ -23,7 +23,7 @@ you're considering switching from Newsboat to Newsraft, it's advised to examine 
 | Scripting capabilities                             | `newsraft -e ACTION` | `newsboat -x ACTION`                 |
 | Programming languages used                         | C99                  | C++17, Rust                          |
 | User interface libraries used                      | termbox2             | NCURSES, STFL                        |
-| [Source lines of code](#source-lines-of-code)      | 9k + 3k (termbox2)   | 45k                                  |
+| [Source lines of code](#source-lines-of-code)      | 9k + 3k (termbox2)   | 46k                                  |
 
 Feel free to submit an issue if you think that table above contains outdated information.
 
@@ -93,13 +93,13 @@ This is how SLOC is calculated. As you can see, Newsraft is more than 3 times sm
 
 ```
 ~/src/newsraft > git show -s --pretty=format:"%H %ad"
-8c3341c00b0abc3117e111728343eb6b02961c66 Sat Aug 1 12:44:54 2026 +0300
+98bb84ce6913052b3ff0c8e745d2e0770c170806 Thu Oct 1 11:46:13 2026 +0300
 ~/src/newsraft > find src -regex ".*\.\(c\|h\)" -exec awk NF {} + | wc -l
-12800
+12713
 ```
 ```
 ~/src/newsboat > git show -s --pretty=format:"%H %ad"
-5a136f13759095a79820875e9bfe1f6b26cae410 Tue Jul 28 21:45:38 2026 +0200
+c0fe1be02da0ecfa843ded35c3965f67875a2d39 Sat Sep 26 18:38:54 2026 +0300
 ~/src/newsboat > find src rust rss filter include newsboat.cpp podboat.cpp config.h -regex ".*\.\(cpp\|h\|rs\)" -exec awk NF {} + | wc -l
-45622
+46018
 ```

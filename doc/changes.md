@@ -1,3 +1,19 @@
+# newsraft 0.38 "samarkand tashkent" (2026-10-01)
+
+* Alec Sargent (@alecsargent) thanks for #292
+* voidaere (@voidaere) thanks for #288
+
+a little early release to mend some quite tangible regressions since 0.37
+
+* fix pager position reset caused by command execution (#44)
+* fix rightward drift of tab-indented lines in html pager (#290)
+* fix resized terminal not being detected after command execution
+* fix incorrect mention for default bind of `mark-read-all` action (#288)
+* add `toggle-read-menu` action and bind it to `H` (#289)
+* add `uninstall` command to makefile (#292)
+
+and as always, huge thanks to maintainers!
+
 # newsraft 0.37 "fioletovaya pudra" (2026-08-01)
 
 * David Pedersen (@Limero) thanks for #275, #277, #280

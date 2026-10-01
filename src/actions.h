@@ -11,7 +11,7 @@ enum {
 #endif // ACTIONS_H
 
 #ifdef ACTIONS_IMPL
-#define ACTION(NAME, ...) [NAME] = {__VA_ARGS__},
+#define ACTION(NAME, ...) [NAME] = {{__VA_ARGS__}},
 static struct action_descriptor g_actions[] = {
 #endif // ACTIONS_IMPL
 

@@ -2,7 +2,7 @@
 .PHONY: all install install-newsraft install-man install-icon install-desktop install-examples uninstall uninstall-newsraft uninstall-man uninstall-icon uninstall-desktop uninstall-examples man html clean check gperf cppcheck clang-tidy
 
 CC            = cc
-CFLAGS        = -O3
+CFLAGS        = -Wall -Wextra -O3
 LDFLAGS       =
 CURL_CFLAGS   = `pkg-config --cflags libcurl  2>/dev/null`
 CURL_LIBS     = `pkg-config --libs   libcurl  2>/dev/null || echo '-lcurl'`

@@ -82,13 +82,6 @@ bind_exec(const char *key, const char *cmd)
 	return attach_action_to_bind(bind, INPUT_SYSTEM_COMMAND, cmd, strlen(cmd));
 }
 
-static bool
-bind_two_actions(const char *key, input_id action1, input_id action2)
-{
-	struct input_binding *bind = create_or_clean_bind(NULL, key);
-	return attach_action_to_bind(bind, action1, NULL, 0) && attach_action_to_bind(bind, action2, NULL, 0);
-}
-
 bool
 assign_default_binds(void)
 {

@@ -7,7 +7,7 @@ get_content_type_by_string(const char *type)
 	return (strstr(type, "html") != NULL) || (strstr(type, "HTML") != NULL) ? TEXT_HTML : TEXT_PLAIN;
 }
 
-static bool
+static void
 get_largest_text_piece_from_item_serialized_data(
 	const char *data,
 	struct string **text,
@@ -18,15 +18,10 @@ get_largest_text_piece_from_item_serialized_data(
 	size_t type_prefix_len)
 {
 	if (data == NULL) {
-		return true; // There's no data. Ignore it.
+		return; // There's no data. Ignore it.
 	}
 	struct string *temp_text = crtes(1000);
 	struct deserialize_stream *stream = open_deserialize_stream(data);
-	if ((temp_text == NULL) || (stream == NULL)) {
-		free_string(temp_text);
-		close_deserialize_stream(stream);
-		return false;
-	}
 	render_block_format temp_type = TEXT_PLAIN;
 	const struct string *entry = get_next_entry_from_deserialize_stream(stream);
 	while (entry != NULL) {
@@ -50,17 +45,16 @@ get_largest_text_piece_from_item_serialized_data(
 	}
 	free_string(temp_text);
 	close_deserialize_stream(stream);
-	return true;
 }
 
-bool
+void
 get_largest_piece_from_item_content(const char *content, struct string **text, render_block_format *type)
 {
-	return get_largest_text_piece_from_item_serialized_data(content, text, type, "text=", 5, "type=", 5);
+	get_largest_text_piece_from_item_serialized_data(content, text, type, "text=", 5, "type=", 5);
 }
 
-bool
+void
 get_largest_piece_from_item_attachments(const char *attachments, struct string **text, render_block_format *type)
 {
-	return get_largest_text_piece_from_item_serialized_data(attachments, text, type, "description_text=", 17, "description_type=", 17);
+	get_largest_text_piece_from_item_serialized_data(attachments, text, type, "description_text=", 17, "description_type=", 17);
 }

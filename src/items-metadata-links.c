@@ -74,7 +74,7 @@ complete_url(const char *base, const char *rel)
 	return complete;
 }
 
-// Returns link index in the links list or -1 in case of failure.
+// Returns link index in the links list.
 int64_t
 add_url_to_links_list(struct links_list *links, const char *url, size_t url_len)
 {
@@ -101,7 +101,7 @@ add_url_to_links_list(struct links_list *links, const char *url, size_t url_len)
 
 	free(full_url);
 
-	return links->ptr[index].url == NULL ? -1 : index;
+	return index;
 }
 
 static void
@@ -136,17 +136,14 @@ add_another_link_to_trim_link_list(struct links_list *links, const struct link *
 	return true;
 }
 
-bool
+void
 add_item_attachments_to_links_list(struct links_list *links, sqlite3_stmt *res)
 {
 	const char *text = (const char *)sqlite3_column_text(res, ITEM_COLUMN_ATTACHMENTS);
 	if (text == NULL) {
-		return true; // It is not an error because this item simply does not have attachments set.
+		return; // It is not an error because this item simply does not have attachments set.
 	}
 	struct deserialize_stream *s = open_deserialize_stream(text);
-	if (s == NULL) {
-		return false;
-	}
 	struct link another_link = {0};
 	const struct string *entry = get_next_entry_from_deserialize_stream(s);
 	while (entry != NULL) {
@@ -166,7 +163,6 @@ add_item_attachments_to_links_list(struct links_list *links, sqlite3_stmt *res)
 	}
 	add_another_link_to_trim_link_list(links, &another_link);
 	close_deserialize_stream(s);
-	return true;
 }
 
 struct wstring *

@@ -43,9 +43,6 @@ rss_pubdate_end(struct feed_update_state *data)
 {
 	if (data->path[data->depth] == GENERIC_ITEM) {
 		data->feed.item->publication_date = parse_date(data->text->ptr, false);
-		if (data->feed.item->publication_date < 0) {
-			data->feed.item->publication_date = 0;
-		}
 	}
 }
 

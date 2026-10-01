@@ -70,7 +70,6 @@ parse_feeds_file(void)
 			cpyas(&section_name, line->ptr + 1, len);
 			trim_whitespace_from_string(section_name);
 			section_index = make_sure_section_exists(section_name);
-			if (section_index < 0) goto error;
 			empty_string(section_cfg);
 			remove_start_of_string(line, 1 + len);
 		} else if (line->ptr[0] == '$' && line->ptr[1] == '(') {
@@ -147,8 +146,6 @@ parse_feeds_file(void)
 			continue;
 
 		struct feed_entry *feed_ptr = copy_feed_to_section(&feed, section_index);
-		if (feed_ptr == NULL)
-			goto error;
 
 		at_least_one_feed_was_added = true;
 

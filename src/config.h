@@ -41,8 +41,6 @@ struct config_context {
 	struct config_context *next;
 };
 
-#define COLOR_TO_BIT(X) (1 << (X))
-
 #define CFG(NAME, ...)  NAME,
 enum {
 

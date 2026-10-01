@@ -53,18 +53,10 @@ do_format(struct wstring *dest, const wchar_t *fmt, const struct format_arg *arg
 						}
 						long whitespace_len = need_len - wcswidth(ws->ptr, ws->len);
 						if (whitespace_len > 0 && whitespace_len <= need_len) {
-							if (left_adjusted == true) {
-								for (long i = 0; i < whitespace_len; ++i) {
-									wcatcs(ws, L' ');
-								}
-							} else {
-								struct wstring *new_ws = wcrtes(whitespace_len + ws->lim);
-								for (long i = 0; i < whitespace_len; ++i) {
-									wcatcs(new_ws, L' ');
-								}
-								wcatss(new_ws, ws);
-								free_wstring(ws);
-								ws = new_ws;
+							// ws is appended to dest right below, so left padding can go to dest directly
+							struct wstring *pad_target = left_adjusted ? ws : dest;
+							for (long i = 0; i < whitespace_len; ++i) {
+								wcatcs(pad_target, L' ');
 							}
 						}
 					}

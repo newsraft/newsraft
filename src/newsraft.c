@@ -105,7 +105,6 @@ static const struct newsraft_execution_stage regular_mode[] = {
 	{"execute database optimization", exec_database_file_optimization, NULL},
 	{"load feeds file",               parse_feeds_file,                free_sections},
 	{"initialize user interface",     ui_init,                         ui_term},
-	{"create status field",           status_recreate_unprotected,     status_delete},
 	{"initialize curl library",       curl_init,                       curl_stop},
 	{"start worker threads",          threads_start,                   threads_stop},
 	{"set terminal window title",     ui_set_window_title,             NULL},

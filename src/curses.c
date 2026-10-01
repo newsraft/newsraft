@@ -64,15 +64,12 @@ real_color(uintattr_t color)
 void
 wbkgd(WINDOW *win, struct config_color color)
 {
-	int shift = 0;
-	for (int i = 0; i < tb_width(); ++i) {
-		if ((size_t)i < win->content->len) {
-			tb_set_cell(shift, win->pos_y, win->content->ptr[i], real_color(color.fg) | color.attributes | win->attrs, real_color(color.bg));
-			shift += wcwidth(win->content->ptr[i]);
-		} else {
-			tb_set_cell(shift, win->pos_y, ' ', real_color(color.fg) | color.attributes | win->attrs, real_color(color.bg));
-			shift += 1;
-		}
+	int fg = real_color(color.fg) | color.attributes | win->attrs;
+	int bg = real_color(color.bg);
+	for (int i = 0, x = 0; i < tb_width(); ++i) {
+		wchar_t c = (size_t)i < win->content->len ? win->content->ptr[i] : L' ';
+		tb_set_cell(x, win->pos_y, c, fg, bg);
+		x += wcwidth(c);
 	}
 }
 

@@ -136,7 +136,6 @@ url_mark_handler(struct html_render *ctx, GumboVector *attrs)
 	size_t link_len = strlen(link);
 	if (link_len == 0)   return; // Ignore empty links
 	int64_t link_index = add_url_to_links_list(ctx->links, link, link_len);
-	if (link_index < 0)  return; // Ignore invalid links
 
 	wchar_t index[100];
 	int index_len = swprintf(index, 100, L"[%" PRId64, link_index + 1);

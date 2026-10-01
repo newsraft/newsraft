@@ -171,9 +171,6 @@ struct wstring *
 convert_string_to_wstring(const struct string *src)
 {
 	struct wstring *wstr = wcrtes(src->len);
-	if (wstr == NULL) {
-		return NULL;
-	}
 	wstr->len = mbstowcs(wstr->ptr, src->ptr, wstr->lim + 1);
 	if (wstr->len == (size_t)-1) {
 		free_wstring(wstr);
@@ -187,9 +184,6 @@ struct wstring *
 convert_array_to_wstring(const char *src_ptr, size_t src_len)
 {
 	struct string *str = crtas(src_ptr, src_len);
-	if (str == NULL) {
-		return NULL;
-	}
 	struct wstring *wstr = convert_string_to_wstring(str);
 	free_string(str);
 	return wstr;
@@ -247,7 +241,7 @@ newsraft_base64_encode(const uint8_t *data, size_t size)
 		'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n',
 		'o', 'p', 'q', 'r', 's', 't', 'u', 'v',
 		'w', 'x', 'y', 'z', '0', '1', '2', '3',
-		'4', '5', '6', '7', '8', '9', '+', '/'
+		'4', '5', '6', '7', '8', '9', '+', '/',
 	};
 	struct string *out = crtes(size * 4);
 	for (size_t i = 0; i < size;) {

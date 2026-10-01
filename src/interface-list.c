@@ -1,4 +1,3 @@
-#include <assert.h>
 #include <stdlib.h>
 #include "newsraft.h"
 
@@ -28,10 +27,8 @@ void
 adjust_list_menu(void)
 {
 	INFO("Adjusting list menu.");
-	for (size_t i = 0; i < windows_count; ++i) {
-		delwin(windows[i]);
-	}
-	windows = newsraft_realloc(windows, sizeof(WINDOW *) * (list_menu_height + 1));
+	free_list_menu();
+	windows = newsraft_malloc(sizeof(*windows) * (list_menu_height + 1));
 	for (size_t i = 0; i < list_menu_height; ++i) {
 		windows[i] = newwin(i);
 	}
@@ -40,7 +37,7 @@ adjust_list_menu(void)
 	if (scrolloff > (list_menu_height / 2)) {
 		scrolloff = list_menu_height / 2;
 	}
-	wstr_set(&list_fmtout, NULL, 0, 200);
+	list_fmtout = wcrtes(200);
 }
 
 void
@@ -51,6 +48,9 @@ free_list_menu(void)
 	}
 	newsraft_free(windows);
 	free_wstring(list_fmtout);
+	windows = NULL;
+	windows_count = 0;
+	list_fmtout = NULL;
 }
 
 void
@@ -301,11 +301,8 @@ handle_list_menu_control(struct menu_state *m, input_id cmd, const struct wstrin
 		change_list_view_unprotected(m, obtain_list_entries_count_unprotected(m), false);
 	} else if (cmd == INPUT_SHIFT_WEST) {
 		size_t shift_delta = 1 + list_menu_width / 50;
-		if (horizontal_shift >= shift_delta) {
-			horizontal_shift -= shift_delta;
-			expose_all_visible_entries_of_the_list_menu_unprotected();
-		} else if (horizontal_shift > 0) {
-			horizontal_shift = 0;
+		if (horizontal_shift > 0) {
+			horizontal_shift = horizontal_shift > shift_delta ? horizontal_shift - shift_delta : 0;
 			expose_all_visible_entries_of_the_list_menu_unprotected();
 		}
 	} else if (cmd == INPUT_SHIFT_EAST) {

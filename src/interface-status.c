@@ -73,17 +73,14 @@ update_status_window_content(void)
 	pthread_mutex_unlock(&interface_lock);
 }
 
-bool
+void
 status_recreate_unprotected(void)
 {
-	if (status_window != NULL) {
-		delwin(status_window);
-	}
+	delwin(status_window);
 	status_window = newwin(list_menu_height);
 	INFO("Created status window");
 	status_window_is_initialized = true;
 	update_status_window_content_unprotected();
-	return true;
 }
 
 void
@@ -143,13 +140,13 @@ status_write(config_entry_id color, const char *format, ...)
 }
 
 void
-status_delete(void)
+status_delete_unprotected(void)
 {
-	pthread_mutex_lock(&interface_lock);
 	free_string(message_text);
 	message_text = NULL;
 	delwin(status_window);
-	pthread_mutex_unlock(&interface_lock);
+	status_window = NULL;
+	status_window_is_initialized = false;
 }
 
 input_id

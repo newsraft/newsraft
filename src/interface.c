@@ -75,6 +75,7 @@ ui_init(void)
 		}
 	}
 	adjust_list_menu();
+	status_recreate_unprotected();
 	newsraft_has_successfully_initialized_ui = true;
 	return true;
 }
@@ -84,6 +85,7 @@ ui_term(void)
 {
 	INFO("Terminating user interface...");
 
+	status_delete_unprotected();
 	free_list_menu();
 	tb_shutdown();
 }
@@ -141,9 +143,7 @@ resize_handler(void)
 		goto error;
 	}
 	adjust_list_menu();
-	if (status_recreate_unprotected() == false) {
-		goto error;
-	}
+	status_recreate_unprotected();
 	if (is_current_menu_a_pager() == true) {
 		refresh_pager_menu();
 	}

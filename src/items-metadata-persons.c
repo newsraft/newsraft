@@ -8,14 +8,13 @@ struct person {
 	struct string *url;
 };
 
-static inline bool
+static inline void
 initialize_person(struct person *p)
 {
 	p->type = crtes(17);
 	p->name = crtes(19);
 	p->email = crtes(23);
 	p->url = crtes(29);
-	return p->type != NULL && p->name != NULL && p->email != NULL && p->url != NULL;
 }
 
 static inline void
@@ -36,11 +35,11 @@ free_person(struct person *p)
 	free_string(p->url);
 }
 
-static bool
+static void
 write_person_to_result(struct string *result, const struct person *person)
 {
 	if (person->type->len == 0 || (person->name->len == 0 && person->email->len == 0 && person->url->len == 0)) {
-		return true; // Ignore empty persons >,<
+		return; // Ignore empty persons >,<
 	}
 	if (result->len > 0) {
 		catas(result, ", ", 2);
@@ -75,7 +74,6 @@ write_person_to_result(struct string *result, const struct person *person)
 			catcs(result, ']');
 		}
 	}
-	return true;
 }
 
 struct string *
@@ -84,15 +82,11 @@ deserialize_persons_string(const char *src)
 	struct person person;
 	struct string *result = crtes(100);
 	struct deserialize_stream *stream = open_deserialize_stream(src);
-	if ((initialize_person(&person) == false) || (result == NULL) || (stream == NULL)) {
-		goto error;
-	}
+	initialize_person(&person);
 	const struct string *field = get_next_entry_from_deserialize_stream(stream);
 	while (field != NULL) {
 		if (strcmp(field->ptr, "^") == 0) {
-			if (write_person_to_result(result, &person) == false) {
-				goto error;
-			}
+			write_person_to_result(result, &person);
 			empty_person(&person);
 		} else if (strncmp(field->ptr, "type=", 5) == 0) {
 			cpyas(&person.type, field->ptr + 5, field->len - 5);
@@ -105,15 +99,8 @@ deserialize_persons_string(const char *src)
 		}
 		field = get_next_entry_from_deserialize_stream(stream);
 	}
-	if (write_person_to_result(result, &person) == false) {
-		goto error;
-	}
+	write_person_to_result(result, &person);
 	close_deserialize_stream(stream);
 	free_person(&person);
 	return result;
-error:
-	close_deserialize_stream(stream);
-	free_person(&person);
-	free_string(result);
-	return NULL;
 }

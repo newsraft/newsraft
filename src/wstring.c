@@ -71,16 +71,6 @@ wcatcs(struct wstring *dest, wchar_t c)
 }
 
 void
-make_sure_there_is_enough_space_in_wstring(struct wstring *dest, size_t need_space)
-{
-	if (need_space > dest->lim - dest->len) {
-		const size_t new_lim = dest->len + need_space;
-		dest->ptr = newsraft_realloc(dest->ptr, sizeof(wchar_t) * (new_lim + 1));
-		dest->lim = new_lim;
-	}
-}
-
-void
 empty_wstring(struct wstring *dest)
 {
 	dest->len = 0;
@@ -100,9 +90,6 @@ struct string *
 convert_wstring_to_string(const struct wstring *src)
 {
 	struct string *str = crtes(src->len * 5);
-	if (str == NULL) {
-		return NULL;
-	}
 	str->len = wcstombs(str->ptr, src->ptr, str->lim + 1);
 	if (str->len == (size_t)-1) {
 		free_string(str);
@@ -116,9 +103,6 @@ struct string *
 convert_warray_to_string(const wchar_t *src_ptr, size_t src_len)
 {
 	struct wstring *wstr = wcrtas(src_ptr, src_len);
-	if (wstr == NULL) {
-		return NULL;
-	}
 	struct string *str = convert_wstring_to_string(wstr);
 	free_wstring(wstr);
 	return str;

@@ -37,12 +37,7 @@ opml_start_element_handler(void *userData, const XML_Char *name, const XML_Char 
 		}
 
 		INFO("Copying '%s' into section #%lld for import", feed.url->ptr, section_index);
-		if (copy_feed_to_section(&feed, section_index) == NULL) {
-			FAIL("Error copying OPML element '%s' to section", feed.url->ptr);
-			XML_StopParser(ctx->parser, XML_TRUE);
-			goto cleanup;
-		}
-
+		copy_feed_to_section(&feed, section_index);
 	} else if (ctx->current_section_name == NULL && title != NULL && strlen(title) > 0) {
 		// Treat top level elements where xmlUrl is missing as a section category.
 		INFO("Set current section for import '%s'", title);
@@ -54,7 +49,6 @@ opml_start_element_handler(void *userData, const XML_Char *name, const XML_Char 
 
 	ctx->outline_depth++;
 
-cleanup:
 	free_string(feed.url);
 	free_string(feed.name);
 }
@@ -99,7 +93,7 @@ write_feeds_file(void)
 	struct feed_entry **feeds = get_all_feeds(&feeds_count);
 	struct string *output = crtes(20000);
 
-	if (feeds_count == 0 || feeds == NULL || output == NULL) {
+	if (feeds_count == 0 || feeds == NULL) {
 		free_string(output);
 		return false;
 	}
@@ -152,7 +146,7 @@ convert_opml_to_feeds(void)
 	};
 	FILE *f = fopen("/dev/stdin", "r");
 
-	if (!f || !ctx.parser || !opml) {
+	if (!f || !ctx.parser) {
 		goto cleanup;
 	}
 
@@ -165,9 +159,7 @@ convert_opml_to_feeds(void)
 	}
 
 	const struct string* section_name = get_cfg_string(NULL, CFG_GLOBAL_SECTION_NAME);
-	if (make_sure_section_exists(section_name) < 0) {
-		goto cleanup;
-	}
+	make_sure_section_exists(section_name);
 
 	XML_SetUserData(ctx.parser, &ctx);
 	XML_SetElementHandler(ctx.parser, &opml_start_element_handler, &opml_end_element_handler);
@@ -239,7 +231,7 @@ convert_feeds_to_opml(void)
 		}
 
 		if (section_index != 0) {
-			str_appendf(opml, "\t\t</outline>\n", section_name);
+			catas(opml, "\t\t</outline>\n", 13);
 		}
 
 		section_index++;

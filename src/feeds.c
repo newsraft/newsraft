@@ -101,23 +101,17 @@ compare_feeds_alphabet(const void *data1, const void *data2)
 static inline void
 filter_feeds(struct menu_state *m)
 {
-	if (hide_read_feeds) {
-		size_t j = 0;
-		for (size_t i = 0; i < m->feeds_full_size; ++i) {
-			if (m->feeds_full[i]->unread_count > 0) {
-				m->feeds_view[j++] = m->feeds_full[i];
-			}
+	size_t j = 0;
+	for (size_t i = 0; hide_read_feeds && i < m->feeds_full_size; ++i) {
+		if (m->feeds_full[i]->unread_count > 0) {
+			m->feeds_view[j++] = m->feeds_full[i];
 		}
-		if (j == 0) {
-			m->feeds_view_size = m->feeds_full_size;
-			memcpy(m->feeds_view, m->feeds_full, sizeof(*m->feeds_view) * m->feeds_full_size);
-		} else {
-			m->feeds_view_size = j;
-		}
-	} else {
-		m->feeds_view_size = m->feeds_full_size;
-		memcpy(m->feeds_view, m->feeds_full, sizeof(*m->feeds_view) * m->feeds_full_size);
 	}
+	if (j == 0) { // Not hiding or nothing left after hiding
+		j = m->feeds_full_size;
+		memcpy(m->feeds_view, m->feeds_full, sizeof(*m->feeds_view) * j);
+	}
+	m->feeds_view_size = j;
 }
 
 static inline void

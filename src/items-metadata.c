@@ -4,14 +4,12 @@
 static struct string *
 block_str(const struct string *text)
 {
-	if (!STRING_IS_EMPTY(text)) {
-		struct string *data = crtss(text);
-		if (data != NULL) {
-			inlinefy_string(data);
-			return data;
-		}
+	if (STRING_IS_EMPTY(text)) {
+		return NULL;
 	}
-	return NULL;
+	struct string *data = crtss(text);
+	inlinefy_string(data);
+	return data;
 }
 
 static struct string *
@@ -58,26 +56,18 @@ block_max_content(sqlite3_stmt *res, render_block_format *output_type)
 {
 	const char *content = (char *)sqlite3_column_text(res, ITEM_COLUMN_CONTENT);
 	struct string *text = crtes(50000);
-	if (text == NULL) {
-		return NULL;
-	}
 	render_block_format type = TEXT_PLAIN;
-	if (get_largest_piece_from_item_content(content, &text, &type) == false) {
-		goto error;
-	}
+	get_largest_piece_from_item_content(content, &text, &type);
 	if (text->len == 0) {
 		// There were no texts in the content, let's try to search in
 		// the descriptions for item's attachments.
 		const char *attachments = (char *)sqlite3_column_text(res, ITEM_COLUMN_ATTACHMENTS);
-		if (get_largest_piece_from_item_attachments(attachments, &text, &type) == false) {
-			goto error;
-		}
+		get_largest_piece_from_item_attachments(attachments, &text, &type);
 	}
 	if (text->len > 0) {
 		*output_type = type;
 		return text;
 	}
-error:
 	free_string(text);
 	return NULL;
 }

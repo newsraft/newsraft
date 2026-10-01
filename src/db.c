@@ -255,20 +255,6 @@ db_transaction_commit(void)
 	return true;
 }
 
-bool
-db_rollback_transaction(void)
-{
-	INFO("Rolling back database transaction.");
-	char *errmsg;
-	sqlite3_exec(db, "ROLLBACK;", NULL, NULL, &errmsg);
-	if (errmsg != NULL) {
-		FAIL("Can not rollback transaction: %s", errmsg);
-		sqlite3_free(errmsg);
-		return false;
-	}
-	return true;
-}
-
 void
 db_stop(void)
 {

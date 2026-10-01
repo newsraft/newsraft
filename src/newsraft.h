@@ -1,5 +1,6 @@
 #ifndef NEWSRAFT_H
 #define NEWSRAFT_H
+#include <assert.h>
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -26,7 +27,6 @@
 #define info_status(...) status_write(CFG_COLOR_STATUS_INFO, __VA_ARGS__)
 #define fail_status(...) status_write(CFG_COLOR_STATUS_FAIL, __VA_ARGS__)
 #define LENGTH(A) ((sizeof(A))/(sizeof(*A)))
-#define NEWSRAFT_MIN(A, B) (((A) < (B)) ? (A) : (B)) // Need prefix because some platforms have their own MIN definition
 #define NEWSRAFT_UI(CALL) do { if (ui_is_running()) { CALL; } } while (0) // Make CALL only if UI is running
 #define STRING_IS_EMPTY(A) (((A) == NULL) || ((A)->ptr == NULL) || ((A)->len == 0))
 #define NEWSRAFT_ALL_BITS_SET(x, type) ((x) == (type)~(type)0)
@@ -417,14 +417,14 @@ bool render_data(struct config_context **ctx, struct render_result *result, stru
 bool generate_render_blocks_based_on_item_data(struct render_blocks_list *blocks, const struct item_entry *item, sqlite3_stmt *res);
 
 // See "items-metadata-content.c" file for implementation.
-bool get_largest_piece_from_item_content(const char *content, struct string **text, render_block_format *type);
-bool get_largest_piece_from_item_attachments(const char *attachments, struct string **text, render_block_format *type);
+void get_largest_piece_from_item_content(const char *content, struct string **text, render_block_format *type);
+void get_largest_piece_from_item_attachments(const char *attachments, struct string **text, render_block_format *type);
 
 // See "items-metadata-links.c" file for implementation.
 char *complete_url(const char *base, const char *rel);
 int64_t add_url_to_links_list(struct links_list *links, const char *url, size_t url_len);
 struct wstring *generate_link_list_wstring_for_pager(struct config_context **ctx, const struct links_list *links);
-bool add_item_attachments_to_links_list(struct links_list *links, sqlite3_stmt *res);
+void add_item_attachments_to_links_list(struct links_list *links, sqlite3_stmt *res);
 
 // See "items-metadata-persons.c" file for implementation.
 struct string *deserialize_persons_string(const char *src);
@@ -451,7 +451,6 @@ void db_stop(void);
 sqlite3_stmt *db_prepare(const char *statement, int size, const char **p_error);
 bool db_transaction_begin(void);
 bool db_transaction_commit(void);
-bool db_rollback_transaction(void);
 const char *db_error_string(void);
 int db_bind_string(sqlite3_stmt *stmt, int pos, const struct string *str);
 int db_bind_feed_url(sqlite3_stmt *stmt, int pos, const struct string *str);
@@ -480,13 +479,13 @@ bool arent_we_colorful(void);
 // Functions related to window which displays status messages.
 // See "interface-status.c" file for implementation.
 void update_status_window_content_unprotected(void);
-bool status_recreate_unprotected(void);
+void status_recreate_unprotected(void);
 void status_clean_unprotected(void);
 void status_clean(void);
 void prevent_status_cleaning(void);
 void allow_status_cleaning(void);
 void status_write(config_entry_id color, const char *format, ...);
-void status_delete(void);
+void status_delete_unprotected(void);
 input_id get_input(struct input_binding *ctx, uint32_t *count, const struct wstring **p_arg);
 struct string *pop_search_filter(void);
 
@@ -552,7 +551,6 @@ struct wstring *wcrtas(const wchar_t *src_ptr, size_t src_len);
 void wcatas(struct wstring *dest, const wchar_t *src_ptr, size_t src_len);
 void wcatss(struct wstring *dest, const struct wstring *src);
 void wcatcs(struct wstring *dest, wchar_t c);
-void make_sure_there_is_enough_space_in_wstring(struct wstring *dest, size_t need_space);
 void empty_wstring(struct wstring *dest);
 void free_wstring(struct wstring *wstr);
 struct string *convert_wstring_to_string(const struct wstring *src);

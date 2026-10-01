@@ -52,7 +52,7 @@ db_count_items(struct feed_entry **feeds, size_t feeds_count, bool count_only_un
 	int64_t count = 0;
 	struct string *query = crtas("SELECT COUNT(*) FROM items WHERE ", 33);
 	struct string *cond = generate_items_search_condition(feeds, feeds_count);
-	if (feeds_count == 0 || query == NULL || cond == NULL) {
+	if (feeds_count == 0 || cond == NULL) {
 		goto error;
 	}
 	catss(query, cond);

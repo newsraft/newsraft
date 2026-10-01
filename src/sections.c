@@ -123,22 +123,13 @@ make_sure_section_exists(const struct string *section_name)
 	sections_view = newsraft_realloc(sections_view, sizeof(struct feed_section *) * (sections_count + 1));
 	memset(&sections[sections_count], 0, sizeof(struct feed_section));
 	sections[sections_count].name = crtss(section_name);
-	if (sections[sections_count].name == NULL) {
-		write_error("Not enough memory for section name string!\n");
-		return -1;
-	}
 	INFO("Created section \"%s\".", sections[sections_count].name->ptr);
 	sections_count += 1;
 
 	// Have to update it every time because primary array is realloc'ed just above.
-	if (get_cfg_bool(NULL, CFG_GLOBAL_SECTION_HIDE)) {
-		for (size_t i = 1; i < sections_count; ++i) {
-			sections_view[i - 1] = &sections[i];
-		}
-	} else {
-		for (size_t i = 0; i < sections_count; ++i) {
-			sections_view[i] = &sections[i];
-		}
+	size_t begin = get_cfg_bool(NULL, CFG_GLOBAL_SECTION_HIDE) ? 1 : 0;
+	for (size_t i = begin; i < sections_count; ++i) {
+		sections_view[i - begin] = &sections[i];
 	}
 
 	return sections_count - 1;
@@ -187,12 +178,8 @@ copy_feed_to_global_section(const struct feed_entry *feed)
 struct feed_entry *
 copy_feed_to_section(const struct feed_entry *feed_data, int64_t section_index)
 {
-	// All feeds without exception are stored in the global section
+	// All feeds are stored in the global section.
 	struct feed_entry *feed = copy_feed_to_global_section(feed_data);
-	if (feed == NULL) {
-		write_error("Not enough memory!\n");
-		return NULL;
-	}
 	feed->section_index = section_index;
 
 	// User sections contain only pointers to feeds in the global section
@@ -311,16 +298,11 @@ process_auto_updating_feeds(void)
 static int
 compare_sections_initial(const void *data1, const void *data2)
 {
-	struct feed_section **section1 = (struct feed_section **)data1;
-	struct feed_section **section2 = (struct feed_section **)data2;
-	size_t index1 = 0, index2 = 0;
-	for (size_t i = 0; i < sections_count; ++i) {
-		if (*section1 == &sections[i]) index1 = i;
-		if (*section2 == &sections[i]) index2 = i;
-	}
-	if (index1 > index2) return sections_sort & 1 ? -1 : 1;
-	if (index1 < index2) return sections_sort & 1 ? 1 : -1;
-	return 0;
+	// sections_view points into the sections array, so address order is initial order.
+	const struct feed_section *section1 = *(struct feed_section **)data1;
+	const struct feed_section *section2 = *(struct feed_section **)data2;
+	int cmp = (section1 > section2) - (section1 < section2);
+	return sections_sort & 1 ? -cmp : cmp;
 }
 
 static int

@@ -40,18 +40,13 @@ parse_date_rfc3339(const char *src)
 int64_t
 parse_date(const char *str, bool rfc3339_first)
 {
-	int64_t date = 0;
+	int64_t date = rfc3339_first ? parse_date_rfc3339(str) : 0;
 
-	if (rfc3339_first == true) {
-		date = parse_date_rfc3339(str);
-	}
 	if (date <= 0) {
 		date = (int64_t)curl_getdate(str, NULL);
-		if (date < 0) {
-			date = 0;
-		}
 	}
-	if (date <= 0 && rfc3339_first == false) {
+
+	if (date <= 0 && !rfc3339_first) {
 		date = parse_date_rfc3339(str);
 	}
 
@@ -63,13 +58,10 @@ parse_date(const char *str, bool rfc3339_first)
 		struct tm t = {0};
 		if (strptime(str, formats[i], &t)) {
 			date = (int64_t)mktime(&t) + get_local_offset_relative_to_utc();
-			if (date < 0) {
-				date = 0;
-			}
 		}
 	}
 
-	return date;
+	return date > 0 ? date : 0;
 }
 
 struct string *
@@ -77,9 +69,6 @@ get_cfg_date(struct config_context **ctx, config_entry_id format_id, int64_t dat
 {
 	const struct string *format = get_cfg_string(ctx, format_id);
 	struct string *str = crtes(format->len + 1000);
-	if (str == NULL) {
-		return NULL;
-	}
 	struct tm timedata;
 	str->len = strftime(str->ptr, str->lim, format->ptr, localtime_r((time_t *)&date, &timedata));
 	str->ptr[str->len] = '\0';

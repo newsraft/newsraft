@@ -21,11 +21,6 @@ create_list_of_headers(const struct feed_update_state *data)
 		struct string *etag = db_get_string_from_feed_table(data->feed_entry->url, "http_header_etag", 16);
 		if (etag != NULL) {
 			struct string *if_none_match = crtas("If-None-Match: ", 15);
-			if (if_none_match == NULL) {
-				free_string(if_none_match);
-				free_string(etag);
-				goto error;
-			}
 			catss(if_none_match, etag);
 			free_string(etag);
 			struct curl_slist *tmp = curl_slist_append(headers, if_none_match->ptr);
@@ -115,11 +110,6 @@ header_callback(char *contents, size_t length, size_t nmemb, void *userdata)
 
 	struct string *header_name = crtas(contents, header_name_len);
 	struct string *header_value = crtas(contents + header_name_len + 1, real_size - header_name_len - 1);
-	if (header_name == NULL || header_value == NULL) {
-		free_string(header_name);
-		free_string(header_value);
-		return CURL_WRITEFUNC_ERROR;
-	}
 	trim_whitespace_from_string(header_name);
 	trim_whitespace_from_string(header_value);
 

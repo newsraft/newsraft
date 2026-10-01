@@ -133,10 +133,7 @@ newsraft_json_parse(struct feed_update_state *data, const char *content, size_t 
 					serialize_caret(&data->feed.item->content);
 					serialize_array(&data->feed.item->content, "type=", 5, "text/html", 9);
 					serialize_array(&data->feed.item->content, "text=", 5, value, strlen(value));
-				} else if (strcmp(key, "content_text") == 0) {
-					serialize_caret(&data->feed.item->content);
-					serialize_array(&data->feed.item->content, "text=", 5, value, strlen(value));
-				} else if (strcmp(key, "summary") == 0) {
+				} else if (strcmp(key, "content_text") == 0 || strcmp(key, "summary") == 0) {
 					serialize_caret(&data->feed.item->content);
 					serialize_array(&data->feed.item->content, "text=", 5, value, strlen(value));
 				} else if (strcmp(key, "date_published") == 0) {

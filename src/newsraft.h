@@ -228,6 +228,7 @@ struct menu_state {
 	struct config_color (*paint_action)(struct menu_state *ctx, size_t index, bool is_selected);
 	bool (*unread_state)(struct menu_state *ctx, size_t index);
 	bool (*failed_state)(struct menu_state *ctx, size_t index);
+	void (*age_catch_up)(struct menu_state *m);
 	struct menu_state *prev;
 };
 
@@ -366,9 +367,9 @@ size_t get_menu_depth(void);
 struct menu_state *setup_menu(struct menu_state *(*run)(struct menu_state *), const struct string *name, struct feed_entry **feeds, size_t feeds_count, uint32_t flags, const void *ctx);
 struct menu_state *close_menu(void);
 void start_menu(void);
+bool menu_read(struct input_binding *ctx, input_id *cmd, uint32_t *count, const struct wstring **p_arg);
 void write_menu_path_string(struct string *names, struct menu_state *m);
 void raise_menu_age(void);
-uint64_t fetch_menu_age(void);
 
 // See "interface-list-pager.c" file for implementation.
 bool is_pager_pos_valid(struct menu_state *ctx, size_t index);

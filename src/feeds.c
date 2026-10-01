@@ -158,6 +158,12 @@ rebuild_feeds(struct menu_state *m, sorting_method_t sort, struct feed_entry *se
 	pthread_mutex_unlock(&interface_lock);
 }
 
+static void
+feeds_refresh(struct menu_state *m)
+{
+	rebuild_feeds(m, feeds_sort, m->feeds_view[m->view_sel], true);
+}
+
 struct menu_state *
 feeds_menu_loop(struct menu_state *m)
 {
@@ -167,6 +173,7 @@ feeds_menu_loop(struct menu_state *m)
 	m->paint_action = &paint_feed;
 	m->unread_state = &is_feed_unread;
 	m->failed_state = &is_feed_failed;
+	m->age_catch_up = get_cfg_bool(NULL, CFG_MENU_RESPONSIVENESS) ? feeds_refresh : NULL;
 	m->entry_format = get_cfg_wstring(NULL, CFG_MENU_FEED_ENTRY_FORMAT);
 	if (m->feeds_full_size < 1) {
 		info_status("There are no feeds in this section");
@@ -180,20 +187,15 @@ feeds_menu_loop(struct menu_state *m)
 		}
 	}
 	if (!m->is_initialized) {
-		m->age = fetch_menu_age();
 		m->feeds_view = newsraft_realloc(m->feeds_view, sizeof(*m->feeds_view) * m->feeds_full_size);
 		m->feeds_view_size = m->feeds_full_size;
 		memcpy(m->feeds_view, m->feeds_full, sizeof(*m->feeds_view) * m->feeds_full_size);
 		rebuild_feeds(m, get_sorting_id(get_cfg_string(NULL, CFG_MENU_FEED_SORTING)->ptr), NULL, false);
 	}
 	start_menu();
+	input_id cmd;
 	const struct wstring *arg;
-	while (true) {
-		if (get_cfg_bool(NULL, CFG_MENU_RESPONSIVENESS) && m->age != fetch_menu_age()) {
-			m->age = fetch_menu_age();
-			rebuild_feeds(m, feeds_sort, m->feeds_view[m->view_sel], true);
-		}
-		input_id cmd = get_input(m->feeds_view[m->view_sel]->binds, NULL, &arg);
+	while (menu_read(m->feeds_view[m->view_sel]->binds, &cmd, NULL, &arg)) {
 		if (handle_list_menu_control(m, cmd, arg)) {
 			continue;
 		}

@@ -361,6 +361,13 @@ sort_sections(sorting_method_t method, bool we_are_already_in_sections_menu)
 	}
 }
 
+static void
+sections_refresh(struct menu_state *m)
+{
+	(void)m;
+	sort_sections(sections_sort, true);
+}
+
 struct menu_state *
 sections_menu_loop(struct menu_state *m)
 {
@@ -370,6 +377,7 @@ sections_menu_loop(struct menu_state *m)
 	m->paint_action = &paint_section;
 	m->unread_state = &is_section_unread;
 	m->failed_state = &is_section_failed;
+	m->age_catch_up = get_cfg_bool(NULL, CFG_MENU_RESPONSIVENESS) ? sections_refresh : NULL;
 	m->entry_format = get_cfg_wstring(NULL, CFG_MENU_SECTION_ENTRY_FORMAT);
 	if (!(m->flags & MENU_DISABLE_SETTINGS)) {
 		// Don't set the menu names here because it's redundant!
@@ -381,17 +389,12 @@ sections_menu_loop(struct menu_state *m)
 	}
 	refresh_sections_statistics_about_underlying_feeds();
 	if (!m->is_initialized) {
-		m->age = fetch_menu_age();
 		sort_sections(get_sorting_id(get_cfg_string(NULL, CFG_MENU_SECTION_SORTING)->ptr), false);
 	}
 	start_menu();
+	input_id cmd;
 	const struct wstring *arg;
-	while (true) {
-		if (get_cfg_bool(NULL, CFG_MENU_RESPONSIVENESS) && m->age != fetch_menu_age()) {
-			m->age = fetch_menu_age();
-			sort_sections(sections_sort, true);
-		}
-		input_id cmd = get_input(NULL, NULL, &arg);
+	while (menu_read(NULL, &cmd, NULL, &arg)) {
 		if (handle_list_menu_control(m, cmd, arg)) {
 			continue;
 		}

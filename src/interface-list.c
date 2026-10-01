@@ -443,6 +443,7 @@ setup_menu(struct menu_state *(*run)(struct menu_state *), const struct string *
 	new->prev            = menus;
 	new->find_filter     = ctx;
 	new->search_token    = pop_search_filter();
+	new->age             = menu_age;
 	if (!STRING_IS_EMPTY(name)) {
 		cpyss(&new->name, name);
 	} else if (!STRING_IS_EMPTY(new->search_token)) {
@@ -505,6 +506,20 @@ start_menu(void)
 	pthread_mutex_unlock(&interface_lock);
 }
 
+bool
+menu_read(struct input_binding *ctx, input_id *cmd, uint32_t *count, const struct wstring **p_arg)
+{
+	pthread_mutex_lock(&interface_lock);
+	uint64_t current_menu_age = menu_age;
+	pthread_mutex_unlock(&interface_lock);
+	if (menu->age != current_menu_age && menu->age_catch_up) {
+		menu->age_catch_up(menu);
+	}
+	menu->age = current_menu_age;
+	*cmd = get_input(ctx, count, p_arg);
+	return !they_want_us_to_stop;
+}
+
 void
 write_menu_path_string(struct string *names, struct menu_state *m)
 {
@@ -529,13 +544,4 @@ raise_menu_age(void)
 	menu_age += 1;
 	yield_control_to_menu();
 	pthread_mutex_unlock(&interface_lock);
-}
-
-uint64_t
-fetch_menu_age(void)
-{
-	pthread_mutex_lock(&interface_lock);
-	const uint64_t ret = menu_age;
-	pthread_mutex_unlock(&interface_lock);
-	return ret;
 }

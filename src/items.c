@@ -145,6 +145,12 @@ mark_all_items_read(struct menu_state *ctx, bool status, int64_t selected_rowid)
 	}
 }
 
+static void
+items_refresh(struct menu_state *m)
+{
+	update_menu_item_list(m, m->items->ptr[m->view_sel].rowid);
+}
+
 struct menu_state *
 items_menu_loop(struct menu_state *m)
 {
@@ -153,6 +159,7 @@ items_menu_loop(struct menu_state *m)
 	m->get_args     = &get_item_args;
 	m->paint_action = &paint_item;
 	m->unread_state = &is_item_unread;
+	m->age_catch_up = get_cfg_bool(NULL, CFG_MENU_RESPONSIVENESS) ? items_refresh : NULL;
 	m->entry_format = get_cfg_wstring(NULL, m->flags & MENU_IS_EXPLORE ? CFG_MENU_EXPLORE_ITEM_ENTRY_FORMAT : CFG_MENU_ITEM_ENTRY_FORMAT);
 	raise_menu_age();
 	if (!m->is_initialized) {
@@ -161,15 +168,17 @@ items_menu_loop(struct menu_state *m)
 		}
 	}
 	start_menu();
+
+	if (get_cfg_bool(&m->items->ptr[m->view_sel].feed[0]->cfg, CFG_MARK_ITEM_READ_ON_HOVER)) {
+		mark_item_read(m, m->view_sel, true);
+	}
+
+	input_id cmd;
 	const struct wstring *arg, *browser;
-	while (true) {
-		if (get_cfg_bool(NULL, CFG_MENU_RESPONSIVENESS) && m->age != fetch_menu_age()) {
-			update_menu_item_list(m, m->items->ptr[m->view_sel].rowid);
-		}
+	while (menu_read(m->items->ptr[m->view_sel].feed[0]->binds, &cmd, NULL, &arg)) {
 		if (get_cfg_bool(&m->items->ptr[m->view_sel].feed[0]->cfg, CFG_MARK_ITEM_READ_ON_HOVER)) {
 			mark_item_read(m, m->view_sel, true);
 		}
-		input_id cmd = get_input(m->items->ptr[m->view_sel].feed[0]->binds, NULL, &arg);
 		if (handle_list_menu_control(m, cmd, arg)) {
 			continue;
 		}

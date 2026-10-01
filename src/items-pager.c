@@ -64,10 +64,10 @@ item_pager_loop(struct menu_state *m)
 	db_mark_item_read(items_menu->items->ptr[item_id].rowid, true);
 	items_menu->items->ptr[item_id].is_unread = false;
 	start_menu();
+	input_id cmd;
 	uint32_t count;
 	const struct wstring *arg;
-	while (true) {
-		input_id cmd = get_input(items_menu->items->ptr[item_id].feed[0]->binds, &count, &arg);
+	while (menu_read(items_menu->items->ptr[item_id].feed[0]->binds, &cmd, &count, &arg)) {
 		if (handle_pager_menu_control(cmd)) {
 			continue;
 		}

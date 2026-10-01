@@ -24,7 +24,7 @@ is_current_menu_a_pager(void)
 	return menu != NULL && menu->enumerator == &is_pager_pos_valid ? true : false;
 }
 
-bool
+void
 adjust_list_menu(void)
 {
 	INFO("Adjusting list menu.");
@@ -41,7 +41,6 @@ adjust_list_menu(void)
 		scrolloff = list_menu_height / 2;
 	}
 	wstr_set(&list_fmtout, NULL, 0, 200);
-	return true;
 }
 
 void
@@ -431,7 +430,7 @@ update_unread_items_count_of_last_menu(void)
 }
 
 struct menu_state *
-setup_menu(struct menu_state *(*run)(struct menu_state *), const struct string *name, struct feed_entry **feeds, size_t feeds_count, uint32_t flags, const void *ctx)
+menu_setup(struct menu_state *(*run)(struct menu_state *), const struct string *name, struct feed_entry **feeds, size_t feeds_count, uint32_t flags, const void *ctx)
 {
 	pthread_mutex_lock(&interface_lock);
 	update_unread_items_count_of_last_menu();
@@ -462,7 +461,7 @@ setup_menu(struct menu_state *(*run)(struct menu_state *), const struct string *
 }
 
 struct menu_state *
-close_menu(void)
+menu_close(void)
 {
 	pthread_mutex_lock(&interface_lock);
 	update_unread_items_count_of_last_menu();
@@ -485,11 +484,14 @@ close_menu(void)
 }
 
 void
-start_menu(void)
+menu_start(struct menu_state *m)
 {
 	pthread_mutex_lock(&interface_lock);
 	free_deleted_menus(false);
-	menu = menus;
+	menu = m;
+
+	// It must be called on menus at the top of the stack.
+	assert(m == menus);
 
 	// These methods are mandatory for all menus.
 	assert(menu->enumerator);

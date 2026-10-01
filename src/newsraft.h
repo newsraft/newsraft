@@ -228,7 +228,7 @@ struct menu_state {
 	struct config_color (*paint_action)(struct menu_state *ctx, size_t index, bool is_selected);
 	bool (*unread_state)(struct menu_state *ctx, size_t index);
 	bool (*failed_state)(struct menu_state *ctx, size_t index);
-	void (*age_catch_up)(struct menu_state *m);
+	void (*age_catch_up)(struct menu_state *m); // Runs when menu's age catches up to the current age
 	struct menu_state *prev;
 };
 
@@ -352,7 +352,7 @@ struct menu_state *feeds_menu_loop(struct menu_state *m);
 
 // See "interface-list.c" file for implementation.
 bool is_current_menu_a_pager(void);
-bool adjust_list_menu(void);
+void adjust_list_menu(void);
 void free_list_menu(void);
 void list_menu_writer(size_t index, WINDOW *w);
 void expose_entry_of_the_list_menu(size_t index);
@@ -364,9 +364,9 @@ bool handle_list_menu_control(struct menu_state *m, input_id cmd, const struct w
 bool handle_pager_menu_control(input_id cmd);
 void free_menus(void);
 size_t get_menu_depth(void);
-struct menu_state *setup_menu(struct menu_state *(*run)(struct menu_state *), const struct string *name, struct feed_entry **feeds, size_t feeds_count, uint32_t flags, const void *ctx);
-struct menu_state *close_menu(void);
-void start_menu(void);
+struct menu_state *menu_setup(struct menu_state *(*run)(struct menu_state *), const struct string *name, struct feed_entry **feeds, size_t feeds_count, uint32_t flags, const void *ctx);
+struct menu_state *menu_close(void);
+void menu_start(struct menu_state *m);
 bool menu_read(struct input_binding *ctx, input_id *cmd, uint32_t *count, const struct wstring **p_arg);
 void write_menu_path_string(struct string *names, struct menu_state *m);
 void raise_menu_age(void);

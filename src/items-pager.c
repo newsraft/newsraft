@@ -63,7 +63,7 @@ item_pager_loop(struct menu_state *m)
 	}
 	db_mark_item_read(items_menu->items->ptr[item_id].rowid, true);
 	items_menu->items->ptr[item_id].is_unread = false;
-	start_menu();
+	menu_start(m);
 	input_id cmd;
 	uint32_t count;
 	const struct wstring *arg;
@@ -81,14 +81,14 @@ item_pager_loop(struct menu_state *m)
 				handle_list_menu_control(items_menu, cmd, NULL);
 				if (items_menu->view_sel != item_id) {
 					free_render_blocks(&blocks);
-					return setup_menu(&item_pager_loop, items_menu->items->ptr[items_menu->view_sel].title, NULL, 0, MENU_SWALLOW, NULL);
+					return menu_setup(&item_pager_loop, items_menu->items->ptr[items_menu->view_sel].title, NULL, 0, MENU_SWALLOW, NULL);
 				}
 				break;
 			case INPUT_NAVIGATE_BACK:
 			case INPUT_QUIT_SOFT:
 			case INPUT_QUIT_HARD:
 				free_render_blocks(&blocks);
-				return cmd == INPUT_QUIT_HARD ? NULL : close_menu();
+				return cmd == INPUT_QUIT_HARD ? NULL : menu_close();
 			case INPUT_COPY_TO_CLIPBOARD:
 				if (count > 0 && count <= blocks.links.len) {
 					copy_string_to_clipboard(blocks.links.ptr[count - 1].url);
@@ -176,5 +176,5 @@ item_pager_loop(struct menu_state *m)
 	}
 quit:
 	free_render_blocks(&blocks);
-	return close_menu();
+	return menu_close();
 }

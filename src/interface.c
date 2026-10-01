@@ -74,6 +74,7 @@ ui_init(void)
 			tb_set_output_mode(TB_OUTPUT_256);
 		}
 	}
+	adjust_list_menu();
 	newsraft_has_successfully_initialized_ui = true;
 	return true;
 }
@@ -83,6 +84,7 @@ ui_term(void)
 {
 	INFO("Terminating user interface...");
 
+	free_list_menu();
 	tb_shutdown();
 }
 
@@ -107,7 +109,7 @@ run_menu_loop(void)
 	hide_read_feeds = get_cfg_bool(NULL, CFG_HIDE_READ_FEEDS);
 	hide_read_items = get_cfg_bool(NULL, CFG_HIDE_READ_ITEMS);
 	struct timespec idling = {0, 100000000}; // 0.1 seconds
-	struct menu_state *menu = setup_menu(&sections_menu_loop, NULL, NULL, 0, MENU_NORMAL, NULL);
+	struct menu_state *menu = menu_setup(&sections_menu_loop, NULL, NULL, 0, MENU_NORMAL, NULL);
 	if (menu == NULL) {
 		return false;
 	}
@@ -116,7 +118,7 @@ run_menu_loop(void)
 		if (menu == NULL) {
 			break; // TODO: don't stop feed downloader?
 			nanosleep(&idling, NULL); // Avoids CPU cycles waste while awaiting termination
-			menu = setup_menu(&sections_menu_loop, NULL, NULL, 0, MENU_DISABLE_SETTINGS, NULL);
+			menu = menu_setup(&sections_menu_loop, NULL, NULL, 0, MENU_DISABLE_SETTINGS, NULL);
 		}
 	}
 	return true;
@@ -138,9 +140,7 @@ resize_handler(void)
 		write_error("Don't flex around with me, okay?\n");
 		goto error;
 	}
-	if (adjust_list_menu() == false) {
-		goto error;
-	}
+	adjust_list_menu();
 	if (status_recreate_unprotected() == false) {
 		goto error;
 	}

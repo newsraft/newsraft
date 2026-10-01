@@ -173,17 +173,17 @@ feeds_menu_loop(struct menu_state *m)
 	m->paint_action = &paint_feed;
 	m->unread_state = &is_feed_unread;
 	m->failed_state = &is_feed_failed;
-	m->age_catch_up = get_cfg_bool(NULL, CFG_MENU_RESPONSIVENESS) ? feeds_refresh : NULL;
+	m->age_catch_up = get_cfg_bool(NULL, CFG_MENU_RESPONSIVENESS) ? &feeds_refresh : NULL;
 	m->entry_format = get_cfg_wstring(NULL, CFG_MENU_FEED_ENTRY_FORMAT);
 	if (m->feeds_full_size < 1) {
 		info_status("There are no feeds in this section");
-		return close_menu();
+		return menu_close();
 	} else if (!(m->flags & MENU_DISABLE_SETTINGS)) {
 		// Don't set the menu names here because it's redundant!
 		if (get_cfg_bool(NULL, CFG_FEEDS_MENU_PARAMOUNT_EXPLORE) && db_count_items(m->feeds_full, m->feeds_full_size, false)) {
-			return setup_menu(&items_menu_loop, NULL, m->feeds_full, m->feeds_full_size, MENU_IS_EXPLORE, NULL);
+			return menu_setup(&items_menu_loop, NULL, m->feeds_full, m->feeds_full_size, MENU_IS_EXPLORE, NULL);
 		} else if (m->feeds_full_size == 1 && db_count_items(m->feeds_full, m->feeds_full_size, false)) {
-			return setup_menu(&items_menu_loop, NULL, m->feeds_full, m->feeds_full_size, MENU_SWALLOW, NULL);
+			return menu_setup(&items_menu_loop, NULL, m->feeds_full, m->feeds_full_size, MENU_SWALLOW, NULL);
 		}
 	}
 	if (!m->is_initialized) {
@@ -192,7 +192,7 @@ feeds_menu_loop(struct menu_state *m)
 		memcpy(m->feeds_view, m->feeds_full, sizeof(*m->feeds_view) * m->feeds_full_size);
 		rebuild_feeds(m, get_sorting_id(get_cfg_string(NULL, CFG_MENU_FEED_SORTING)->ptr), NULL, false);
 	}
-	start_menu();
+	menu_start(m);
 	input_id cmd;
 	const struct wstring *arg;
 	while (menu_read(m->feeds_view[m->view_sel]->binds, &cmd, NULL, &arg)) {
@@ -208,9 +208,9 @@ feeds_menu_loop(struct menu_state *m)
 			case INPUT_RELOAD_ALL:      queue_updates(m->feeds_full, m->feeds_full_size);          break;
 			case INPUT_QUIT_HARD:       return NULL;
 			case INPUT_ENTER:
-				return setup_menu(&items_menu_loop, NULL, m->feeds_view + m->view_sel, 1, MENU_NORMAL, NULL);
+				return menu_setup(&items_menu_loop, NULL, m->feeds_view + m->view_sel, 1, MENU_NORMAL, NULL);
 			case INPUT_TOGGLE_EXPLORE_MODE:
-				return setup_menu(&items_menu_loop, NULL, m->feeds_full, m->feeds_full_size, MENU_IS_EXPLORE, NULL);
+				return menu_setup(&items_menu_loop, NULL, m->feeds_full, m->feeds_full_size, MENU_IS_EXPLORE, NULL);
 			case INPUT_TOGGLE_READ_MENU:
 			case INPUT_TOGGLE_READ_FEEDS: {
 				hide_read_feeds = !hide_read_feeds;
@@ -221,12 +221,12 @@ feeds_menu_loop(struct menu_state *m)
 				hide_read_items = !hide_read_items;
 				break;
 			case INPUT_APPLY_SEARCH_MODE_FILTER:
-				return setup_menu(&items_menu_loop, NULL, m->feeds_view, m->feeds_view_size, MENU_IS_SEARCH | MENU_IS_EXPLORE, NULL);
+				return menu_setup(&items_menu_loop, NULL, m->feeds_view, m->feeds_view_size, MENU_IS_SEARCH | MENU_IS_EXPLORE, NULL);
 			case INPUT_NAVIGATE_BACK:
 				if (get_menu_depth() < 2) break;
 				// fall through
 			case INPUT_QUIT_SOFT:
-				return close_menu();
+				return menu_close();
 			case INPUT_SORT_BY_UNREAD:
 				pthread_mutex_lock(&interface_lock);
 				sort_feeds(m, feeds_sort == SORT_BY_UNREAD_DESC ? SORT_BY_UNREAD_ASC : SORT_BY_UNREAD_DESC, true);
@@ -246,12 +246,12 @@ feeds_menu_loop(struct menu_state *m)
 				info_status(get_sorting_message(feeds_sort), "feeds");
 				break;
 			case INPUT_FIND_COMMAND:
-				return setup_menu(&items_menu_loop, NULL, m->feeds_view, m->feeds_view_size, MENU_IS_EXPLORE, arg);
+				return menu_setup(&items_menu_loop, NULL, m->feeds_view, m->feeds_view_size, MENU_IS_EXPLORE, arg);
 			case INPUT_DATABASE_COMMAND:
 				db_perform_user_edit(arg, m->feeds_view + m->view_sel, 1, NULL);
 				break;
 			case INPUT_VIEW_ERRORS:
-				return setup_menu(&errors_pager_loop, NULL, m->feeds_view + m->view_sel, 1, MENU_NORMAL, NULL);
+				return menu_setup(&errors_pager_loop, NULL, m->feeds_view + m->view_sel, 1, MENU_NORMAL, NULL);
 		}
 	}
 	return NULL;

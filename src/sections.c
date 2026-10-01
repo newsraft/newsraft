@@ -377,21 +377,21 @@ sections_menu_loop(struct menu_state *m)
 	m->paint_action = &paint_section;
 	m->unread_state = &is_section_unread;
 	m->failed_state = &is_section_failed;
-	m->age_catch_up = get_cfg_bool(NULL, CFG_MENU_RESPONSIVENESS) ? sections_refresh : NULL;
+	m->age_catch_up = get_cfg_bool(NULL, CFG_MENU_RESPONSIVENESS) ? &sections_refresh : NULL;
 	m->entry_format = get_cfg_wstring(NULL, CFG_MENU_SECTION_ENTRY_FORMAT);
 	if (!(m->flags & MENU_DISABLE_SETTINGS)) {
 		// Don't set the menu names here because it's redundant!
 		if (get_cfg_bool(NULL, CFG_SECTIONS_MENU_PARAMOUNT_EXPLORE) && db_count_items(sections[0].feeds, sections[0].feeds_count, false)) {
-			return setup_menu(&items_menu_loop, NULL, sections[0].feeds, sections[0].feeds_count, MENU_IS_EXPLORE, NULL);
+			return menu_setup(&items_menu_loop, NULL, sections[0].feeds, sections[0].feeds_count, MENU_IS_EXPLORE, NULL);
 		} else if (sections_count == 1) {
-			return setup_menu(&feeds_menu_loop, NULL, sections[0].feeds, sections[0].feeds_count, MENU_SWALLOW, NULL);
+			return menu_setup(&feeds_menu_loop, NULL, sections[0].feeds, sections[0].feeds_count, MENU_SWALLOW, NULL);
 		}
 	}
 	refresh_sections_statistics_about_underlying_feeds();
 	if (!m->is_initialized) {
 		sort_sections(get_sorting_id(get_cfg_string(NULL, CFG_MENU_SECTION_SORTING)->ptr), false);
 	}
-	start_menu();
+	menu_start(m);
 	input_id cmd;
 	const struct wstring *arg;
 	while (menu_read(NULL, &cmd, NULL, &arg)) {
@@ -415,13 +415,13 @@ sections_menu_loop(struct menu_state *m)
 			case INPUT_RELOAD:          queue_updates(sections_view[m->view_sel]->feeds, sections_view[m->view_sel]->feeds_count);          break;
 			case INPUT_RELOAD_ALL:      queue_updates(sections[0].feeds, sections[0].feeds_count);                                          break;
 			case INPUT_ENTER:
-				return setup_menu(&feeds_menu_loop, sections_view[m->view_sel]->name, sections_view[m->view_sel]->feeds, sections_view[m->view_sel]->feeds_count, MENU_NORMAL, NULL);
+				return menu_setup(&feeds_menu_loop, sections_view[m->view_sel]->name, sections_view[m->view_sel]->feeds, sections_view[m->view_sel]->feeds_count, MENU_NORMAL, NULL);
 			case INPUT_TOGGLE_EXPLORE_MODE:
-				return setup_menu(&items_menu_loop, NULL, sections[0].feeds, sections[0].feeds_count, MENU_IS_EXPLORE, NULL);
+				return menu_setup(&items_menu_loop, NULL, sections[0].feeds, sections[0].feeds_count, MENU_IS_EXPLORE, NULL);
 			case INPUT_APPLY_SEARCH_MODE_FILTER:
-				return setup_menu(&items_menu_loop, NULL, sections[0].feeds, sections[0].feeds_count, MENU_IS_SEARCH | MENU_IS_EXPLORE, NULL);
+				return menu_setup(&items_menu_loop, NULL, sections[0].feeds, sections[0].feeds_count, MENU_IS_SEARCH | MENU_IS_EXPLORE, NULL);
 			case INPUT_VIEW_ERRORS:
-				return setup_menu(&errors_pager_loop, NULL, sections_view[m->view_sel]->feeds, sections_view[m->view_sel]->feeds_count, MENU_NORMAL, NULL);
+				return menu_setup(&errors_pager_loop, NULL, sections_view[m->view_sel]->feeds, sections_view[m->view_sel]->feeds_count, MENU_NORMAL, NULL);
 			case INPUT_SORT_BY_UNREAD:
 				sort_sections(sections_sort == SORT_BY_UNREAD_DESC ? SORT_BY_UNREAD_ASC : SORT_BY_UNREAD_DESC, true);
 				break;
@@ -435,7 +435,7 @@ sections_menu_loop(struct menu_state *m)
 				db_perform_user_edit(arg, sections_view[m->view_sel]->feeds, sections_view[m->view_sel]->feeds_count, NULL);
 				break;
 			case INPUT_FIND_COMMAND:
-				return setup_menu(&items_menu_loop, NULL, sections[0].feeds, sections[0].feeds_count, MENU_IS_EXPLORE, arg);
+				return menu_setup(&items_menu_loop, NULL, sections[0].feeds, sections[0].feeds_count, MENU_IS_EXPLORE, arg);
 			case INPUT_QUIT_SOFT:
 			case INPUT_QUIT_HARD:
 				return NULL;

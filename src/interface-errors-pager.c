@@ -4,7 +4,7 @@ struct menu_state *
 errors_pager_loop(struct menu_state *m)
 {
 	if (m->feeds_full == NULL || m->feeds_full_size < 1) {
-		return close_menu();
+		return menu_close();
 	}
 	m->enumerator = &is_pager_pos_valid;
 	m->printer    = &pager_menu_writer;
@@ -36,10 +36,10 @@ errors_pager_loop(struct menu_state *m)
 
 	if (start_pager_menu(NULL, &blocks) == false) {
 		free_render_blocks(&blocks);
-		return close_menu();
+		return menu_close();
 	}
 
-	start_menu();
+	menu_start(m);
 
 	input_id cmd;
 	const struct wstring *arg;
@@ -55,5 +55,5 @@ errors_pager_loop(struct menu_state *m)
 	}
 
 	free_render_blocks(&blocks);
-	return close_menu();
+	return menu_close();
 }

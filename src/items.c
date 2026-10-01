@@ -159,15 +159,15 @@ items_menu_loop(struct menu_state *m)
 	m->get_args     = &get_item_args;
 	m->paint_action = &paint_item;
 	m->unread_state = &is_item_unread;
-	m->age_catch_up = get_cfg_bool(NULL, CFG_MENU_RESPONSIVENESS) ? items_refresh : NULL;
+	m->age_catch_up = get_cfg_bool(NULL, CFG_MENU_RESPONSIVENESS) ? &items_refresh : NULL;
 	m->entry_format = get_cfg_wstring(NULL, m->flags & MENU_IS_EXPLORE ? CFG_MENU_EXPLORE_ITEM_ENTRY_FORMAT : CFG_MENU_ITEM_ENTRY_FORMAT);
 	raise_menu_age();
 	if (!m->is_initialized) {
 		if (!update_menu_item_list(m, NO_PARTICULAR_ROWID_IS_ELIGIBLE_FOR_FOCUS)) {
-			return close_menu(); // Error displayed by update_menu_item_list()
+			return menu_close(); // Error displayed by update_menu_item_list()
 		}
 	}
-	start_menu();
+	menu_start(m);
 
 	if (get_cfg_bool(&m->items->ptr[m->view_sel].feed[0]->cfg, CFG_MARK_ITEM_READ_ON_HOVER)) {
 		mark_item_read(m, m->view_sel, true);
@@ -203,11 +203,11 @@ items_menu_loop(struct menu_state *m)
 				// fall through
 			case INPUT_QUIT_SOFT:
 				if (!(m->flags & MENU_IS_SEARCH) && (m->flags & MENU_IS_EXPLORE) && (m->find_filter == NULL)) {
-					close_menu();
+					menu_close();
 				}
-				return close_menu();
+				return menu_close();
 			case INPUT_TOGGLE_EXPLORE_MODE:
-				if (m->flags & MENU_IS_EXPLORE) return close_menu();
+				if (m->flags & MENU_IS_EXPLORE) return menu_close();
 				break;
 			case INPUT_TOGGLE_READ_FEEDS:
 				hide_read_feeds = !hide_read_feeds;
@@ -220,9 +220,9 @@ items_menu_loop(struct menu_state *m)
 			}
 			case INPUT_GOTO_FEED:
 				if (!(m->flags & MENU_IS_EXPLORE)) break;
-				return setup_menu(&items_menu_loop, NULL, m->items->ptr[m->view_sel].feed, 1, MENU_NORMAL, NULL);
+				return menu_setup(&items_menu_loop, NULL, m->items->ptr[m->view_sel].feed, 1, MENU_NORMAL, NULL);
 			case INPUT_APPLY_SEARCH_MODE_FILTER:
-				return setup_menu(&items_menu_loop, NULL, m->feeds_full, m->feeds_full_size, MENU_IS_SEARCH | MENU_IS_EXPLORE, m->find_filter);
+				return menu_setup(&items_menu_loop, NULL, m->feeds_full, m->feeds_full_size, MENU_IS_SEARCH | MENU_IS_EXPLORE, m->find_filter);
 			case INPUT_OPEN_IN_BROWSER:
 				browser = get_cfg_wstring(&m->items->ptr[m->view_sel].feed[0]->cfg, CFG_OPEN_IN_BROWSER_COMMAND);
 				struct format_arg args[100];
@@ -240,15 +240,15 @@ items_menu_loop(struct menu_state *m)
 				break;
 			case INPUT_FIND_COMMAND:
 				if (m->find_filter) {
-					return setup_menu(&items_menu_loop, NULL, m->feeds_full, m->feeds_full_size, MENU_IS_EXPLORE | MENU_SWALLOW, arg);
+					return menu_setup(&items_menu_loop, NULL, m->feeds_full, m->feeds_full_size, MENU_IS_EXPLORE | MENU_SWALLOW, arg);
 				}
-				return setup_menu(&items_menu_loop, NULL, m->feeds_full, m->feeds_full_size, MENU_IS_EXPLORE, arg);
+				return menu_setup(&items_menu_loop, NULL, m->feeds_full, m->feeds_full_size, MENU_IS_EXPLORE, arg);
 			case INPUT_DATABASE_COMMAND:
 				db_perform_user_edit(arg, NULL, 0, &m->items->ptr[m->view_sel]);
 				break;
 			case INPUT_ENTER:
-				return setup_menu(&item_pager_loop, m->items->ptr[m->view_sel].title, NULL, 0, MENU_NORMAL, NULL);
+				return menu_setup(&item_pager_loop, m->items->ptr[m->view_sel].title, NULL, 0, MENU_NORMAL, NULL);
 		}
 	}
-	return close_menu();
+	return menu_close();
 }

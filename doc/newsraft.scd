@@ -685,7 +685,7 @@ _bold_, _italic_ and _underlined_.
 :[ (not set)
 |[ *toggle-explore-mode*
 :[ _tab_
-|[ *toggle-read-feeds*; *toggle-read-items*
+|[ *toggle-read-menu*
 :[ _H_
 |[ *view-errors*
 :[ _v_

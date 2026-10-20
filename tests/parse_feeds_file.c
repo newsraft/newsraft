@@ -70,6 +70,11 @@ struct feed_test feed_tests[] = {
 		"$(bash -c \"echo $(date +%s)\")",
 		NULL, 0, 0, ""
 	},
+
+	// Section 5
+	{"http://example.com/feed1.xml",      " Feed 1 ",   0,   0, ""},
+	{"http://example.com/feed2.xml",        "Feed 2", 333, 444, ""},
+	{"$( \tcat feed.xml \t| grep '^\\w+$' )",   NULL,   0,   0, ""},
 };
 
 int

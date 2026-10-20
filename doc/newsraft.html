@@ -168,6 +168,13 @@
 <br/>
 <i>http://example.org/feed2.xml &quot;Id Est&quot; &lt; bind b mark-read; exec
   book.sh &quot;%l&quot;</i></div>
+<p class="Pp">You can break any line into multiple lines by using a trailing
+    backslash:</p>
+<p class="Pp"></p>
+<div class="Bd-indent"><i>https://example.org/feed.xml \</i>
+<br/>
+<i> &quot;Feed name on next line&quot; &lt; item-rule title REGEXP
+  'some(\s+)long(\s+)regex'</i></div>
 <p class="Pp">Settings set for feeds take precedence over the settings specified
     for sections. Not every setting supports individual assignment - only
     settings with asterisk <b>(*)</b> on them do (see <b>SETTINGS</b>
@@ -1154,7 +1161,7 @@
 </div>
 <table class="foot">
   <tr>
-    <td class="foot-date">2026-10-01</td>
+    <td class="foot-date">2026-10-20</td>
     <td class="foot-os"></td>
   </tr>
 </table>

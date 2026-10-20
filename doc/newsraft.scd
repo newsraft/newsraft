@@ -132,6 +132,11 @@ them. The syntax is as follows:
 _http://example.org/feed1.xml "Dolor Sit" < reload-period 60; item-limit 500_++
 _http://example.org/feed2.xml "Id Est" < bind b mark-read; exec book.sh "%l"_
 
+You can break any line into multiple lines by using a trailing backslash:
+
+	_https://example.org/feed.xml \\_++
+_  "Feed name on next line" < item-rule title REGEXP 'some(\\s+)long(\\s+)regex'_
+
 Settings set for feeds take precedence over the settings specified for sections.
 Not every setting supports individual assignment - only settings with asterisk
 *(\*)* on them do (see *SETTINGS* section).

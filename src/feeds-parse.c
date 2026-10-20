@@ -52,7 +52,15 @@ parse_feeds_file(void)
 
 		empty_string(line);
 		for (c = fgetc(f); c != '\n' && c != EOF; c = fgetc(f)) {
-			catcs(line, c);
+			if (c == '\\') {
+				int next = fgetc(f);
+				if (next != '\n' && next != EOF) {
+					catcs(line, c);
+					catcs(line, next);
+				}
+			} else {
+				catcs(line, c);
+			}
 		}
 		trim_whitespace_from_string(line);
 

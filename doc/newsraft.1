@@ -5,7 +5,7 @@
 .nh
 .ad l
 .\" Begin generated content:
-.TH "NEWSRAFT" "1" "2026\-10\-01"
+.TH "NEWSRAFT" "1" "2026\-10\-20"
 .PP
 .SH NAME
 .PP
@@ -172,6 +172,14 @@ them.\& The syntax is as follows:
 \fIhttp://example.\&org/feed1.\&xml "Dolor Sit" < reload\-period 60; item\-limit 500\fR
 .br
 \fIhttp://example.\&org/feed2.\&xml "Id Est" < bind b mark\-read; exec book.\&sh "%l"\fR
+.PP
+.RE
+You can break any line into multiple lines by using a trailing backslash:
+.PP
+.RS 4
+\fIhttps://example.\&org/feed.\&xml \e\fR
+.br
+\fI  "Feed name on next line" < item\-rule title REGEXP '\&some(\es+)long(\es+)regex'\&\fR
 .PP
 .RE
 Settings set for feeds take precedence over the settings specified for sections.\&

@@ -51,3 +51,20 @@ $(feed.py foobar | cut -d \(  -f 14)
 $(echo "test" | grep "test")
 $(curl -s "http://example.com/feed.xml" | jq '.items[] | select(.type == "rss")')
 $(bash -c "echo $(date +%s)")
+
+@ Section 5
+http://example.com/feed1.xml "\
+	Feed\
+	1\
+	"
+http://example.com/feed2.xml\
+	"Feed 2"     \
+	<            \
+	reload-period\
+	333;         \
+	item-limit   \
+	444
+$( \
+	cat feed.xml \
+	| grep '^\w+$' \
+)

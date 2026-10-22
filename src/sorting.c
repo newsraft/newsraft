@@ -43,3 +43,20 @@ get_sorting_message(int sorting_id)
 {
 	return sorting_methods[sorting_id].message;
 }
+
+sorting_method_t
+get_next_sorting_method(sorting_method_t current, input_id cmd)
+{
+	static const struct { sorting_method_t primary; sorting_method_t secondary; } sort_map[] = {
+		[INPUT_SORT_BY_TIME]             = {SORT_BY_TIME_DESC,             SORT_BY_TIME_ASC},
+		[INPUT_SORT_BY_TIME_DOWNLOAD]    = {SORT_BY_TIME_DOWNLOAD_DESC,    SORT_BY_TIME_DOWNLOAD_ASC},
+		[INPUT_SORT_BY_TIME_PUBLICATION] = {SORT_BY_TIME_PUBLICATION_DESC, SORT_BY_TIME_PUBLICATION_ASC},
+		[INPUT_SORT_BY_TIME_UPDATE]      = {SORT_BY_TIME_UPDATE_DESC,      SORT_BY_TIME_UPDATE_ASC},
+		[INPUT_SORT_BY_ROWID]            = {SORT_BY_ROWID_DESC,            SORT_BY_ROWID_ASC},
+		[INPUT_SORT_BY_UNREAD]           = {SORT_BY_UNREAD_DESC,           SORT_BY_UNREAD_ASC},
+		[INPUT_SORT_BY_INITIAL]          = {SORT_BY_INITIAL_ASC,           SORT_BY_INITIAL_DESC},
+		[INPUT_SORT_BY_ALPHABET]         = {SORT_BY_ALPHABET_ASC,          SORT_BY_ALPHABET_DESC},
+		[INPUT_SORT_BY_IMPORTANT]        = {SORT_BY_IMPORTANT_DESC,        SORT_BY_IMPORTANT_ASC},
+	};
+	return current == sort_map[cmd].primary ? sort_map[cmd].secondary : sort_map[cmd].primary;
+}

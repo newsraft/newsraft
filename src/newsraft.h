@@ -189,7 +189,7 @@ struct items_list {
 	struct string *find_filter;
 	struct item_entry *ptr;
 	size_t len;
-	bool finished;
+	bool is_finished;
 	sorting_method_t sorting;
 	struct feed_entry **feeds; // Just a pointer to parent feeds
 	size_t feeds_count;
@@ -383,6 +383,7 @@ void do_format(struct wstring *dest, const wchar_t *fmt, const struct format_arg
 // See "sorting.c" file for implementation.
 sorting_method_t get_sorting_id(const char *sorting_name);
 const char *get_sorting_message(int sorting_id);
+sorting_method_t get_next_sorting_method(sorting_method_t current, input_id cmd);
 
 // See "items.c" file for implementation.
 struct string *generate_items_search_condition(struct feed_entry **feeds, size_t feeds_count);
@@ -414,7 +415,7 @@ void free_render_result(struct render_result *render);
 bool render_data(struct config_context **ctx, struct render_result *result, struct render_blocks_list *blocks, size_t content_width);
 
 // See "items-metadata.c" file for implementation.
-bool generate_render_blocks_based_on_item_data(struct render_blocks_list *blocks, const struct item_entry *item, sqlite3_stmt *res);
+void generate_render_blocks_based_on_item_data(struct render_blocks_list *blocks, const struct item_entry *item, sqlite3_stmt *res);
 
 // See "items-metadata-content.c" file for implementation.
 void get_largest_piece_from_item_content(const char *content, struct string **text, render_block_format *type);

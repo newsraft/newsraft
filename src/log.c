@@ -28,7 +28,7 @@ int
 log_vprint(const char *prefix, const char *format, va_list args)
 {
 	int len = -1;
-	if (log_stream != NULL) {
+	if (log_stream) {
 		struct timespec t = {0};
 		clock_gettime(CLOCK_REALTIME, &t);
 		len = fprintf(log_stream, "%02d:%02d:%02d.%03d [%s] ",
@@ -48,13 +48,10 @@ log_vprint(const char *prefix, const char *format, va_list args)
 int
 log_print(const char *prefix, const char *format, ...)
 {
-	int len = -1;
-	if (log_stream != NULL) {
-		va_list args;
-		va_start(args, format);
-		len = log_vprint(prefix, format, args);
-		va_end(args);
-	}
+	va_list args;
+	va_start(args, format);
+	int len = log_vprint(prefix, format, args);
+	va_end(args);
 	return len;
 }
 

@@ -12,24 +12,20 @@ populate_render_blocks_list_with_data_from_item(const struct item_entry *item, s
 		add_url_to_links_list(&blocks->links, item->url->ptr, item->url->len);
 	}
 	add_item_attachments_to_links_list(&blocks->links, res);
-	if (generate_render_blocks_based_on_item_data(blocks, item, res) == false) {
-		goto error;
-	}
+	generate_render_blocks_based_on_item_data(blocks, item, res);
 	start_pager_menu(&item->feed[0]->cfg, blocks);
 	if (blocks->links.len > 0) {
 		struct wstring *links_wstr = generate_link_list_wstring_for_pager(&item->feed[0]->cfg, &blocks->links);
 		if (links_wstr == NULL) {
-			goto error;
+			sqlite3_finalize(res);
+			free_render_blocks(blocks);
+			return false;
 		}
 		apply_links_render_blocks(blocks, links_wstr);
 		free_wstring(links_wstr);
 	}
 	sqlite3_finalize(res);
 	return true;
-error:
-	sqlite3_finalize(res);
-	free_render_blocks(blocks);
-	return false;
 }
 
 struct menu_state *

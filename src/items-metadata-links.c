@@ -113,27 +113,21 @@ free_contents_of_link(const struct link *link)
 	free_string(link->duration);
 }
 
-static inline bool
+static inline void
 add_another_link_to_trim_link_list(struct links_list *links, const struct link *link)
 {
 	if (STRING_IS_EMPTY(link->url)) {
 		free_contents_of_link(link);
-		return true; // Ignore empty links.
+		return; // Ignore empty links
 	}
 	for (int64_t i = 0; i < (int64_t)links->len; ++i) {
 		if (strcmp(link->url->ptr, links->ptr[i].url->ptr) == 0) {
-			// Don't add duplicate.
 			free_contents_of_link(link);
-			return true;
+			return; // Don't add duplicate
 		}
 	}
-	links->ptr = newsraft_realloc(links->ptr, sizeof(struct link) * (links->len + 1));
-	size_t index = (links->len)++;
-	links->ptr[index].url = link->url;
-	links->ptr[index].type = link->type;
-	links->ptr[index].size = link->size;
-	links->ptr[index].duration = link->duration;
-	return true;
+	links->ptr = newsraft_realloc(links->ptr, sizeof(*links->ptr) * (links->len + 1));
+	links->ptr[links->len++] = *link;
 }
 
 void

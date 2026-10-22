@@ -56,41 +56,27 @@ generic_title_end(struct feed_update_state *data)
 void
 generic_plain_content_end(struct feed_update_state *data)
 {
-	if (data->in_item) {
-		serialize_caret(&data->feed.item->content);
-		serialize_array(&data->feed.item->content, "type=", 5, "text/plain", 10);
-		serialize_string(&data->feed.item->content, "text=", 5, data->text);
-	} else {
-		serialize_caret(&data->feed.content);
-		serialize_array(&data->feed.content, "type=", 5, "text/plain", 10);
-		serialize_string(&data->feed.content, "text=", 5, data->text);
-	}
+	struct string **dest = data->in_item ? &data->feed.item->content : &data->feed.content;
+	serialize_caret(dest);
+	serialize_array(dest, "type=", 5, "text/plain", 10);
+	serialize_string(dest, "text=", 5, data->text);
 }
 
 void
 generic_html_content_end(struct feed_update_state *data)
 {
-	if (data->in_item) {
-		serialize_caret(&data->feed.item->content);
-		serialize_array(&data->feed.item->content, "type=", 5, "text/html", 9);
-		serialize_string(&data->feed.item->content, "text=", 5, data->text);
-	} else {
-		serialize_caret(&data->feed.content);
-		serialize_array(&data->feed.content, "type=", 5, "text/html", 9);
-		serialize_string(&data->feed.content, "text=", 5, data->text);
-	}
+	struct string **dest = data->in_item ? &data->feed.item->content : &data->feed.content;
+	serialize_caret(dest);
+	serialize_array(dest, "type=", 5, "text/html", 9);
+	serialize_string(dest, "text=", 5, data->text);
 }
 
 void
 generic_category_end(struct feed_update_state *data)
 {
-	if (data->in_item) {
-		serialize_caret(&data->feed.item->extras);
-		serialize_string(&data->feed.item->extras, "category=", 9, data->text);
-	} else {
-		serialize_caret(&data->feed.extras);
-		serialize_string(&data->feed.extras, "category=", 9, data->text);
-	}
+	struct string **dest = data->in_item ? &data->feed.item->extras : &data->feed.extras;
+	serialize_caret(dest);
+	serialize_string(dest, "category=", 9, data->text);
 }
 
 void

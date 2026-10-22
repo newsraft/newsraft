@@ -96,10 +96,8 @@ provide_newlines(struct html_render *ctx, size_t count, bool force)
 			break;
 		}
 	}
-	if (count > empty_lines) {
-		for (int i = count - empty_lines; i > 0; --i) {
-			line_bump(ctx->line);
-		}
+	for (size_t i = empty_lines; i < count; ++i) {
+		line_bump(ctx->line);
 	}
 }
 
@@ -107,7 +105,7 @@ static const char *
 get_value_of_xml_attribute(GumboVector *attrs, const char *attr_name)
 {
 	GumboAttribute *attr = gumbo_get_attribute(attrs, attr_name);
-	return attr != NULL && attr->value != NULL ? attr->value : "";
+	return attr && attr->value ? attr->value : "";
 }
 
 static void
@@ -177,9 +175,6 @@ static void
 abbr_handler(struct html_render *ctx, GumboVector *attrs)
 {
 	const char *title = get_value_of_xml_attribute(attrs, "title");
-	if (title == NULL) {
-		return;
-	}
 	const size_t title_len = strlen(title);
 	if (title_len == 0) {
 		return;

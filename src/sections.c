@@ -248,9 +248,7 @@ free_sections(void)
 			free_string(sections[0].feeds[i]->link);
 			free_string(sections[0].feeds[i]->errors);
 			free_config_context(sections[0].feeds[i]->cfg);
-			if (sections[0].feeds[i]->binds != NULL) {
-				free_binds(sections[0].feeds[i]->binds);
-			}
+			free_binds(sections[0].feeds[i]->binds);
 			newsraft_free(sections[0].feeds[i]);
 		}
 	}
@@ -405,13 +403,9 @@ sections_menu_loop(struct menu_state *m)
 			case INPUT_VIEW_ERRORS:
 				return menu_setup(&errors_pager_loop, NULL, sections_view[m->view_sel]->feeds, sections_view[m->view_sel]->feeds_count, MENU_NORMAL, NULL);
 			case INPUT_SORT_BY_UNREAD:
-				sort_sections(sections_sort == SORT_BY_UNREAD_DESC ? SORT_BY_UNREAD_ASC : SORT_BY_UNREAD_DESC, true);
-				break;
 			case INPUT_SORT_BY_INITIAL:
-				sort_sections(sections_sort == SORT_BY_INITIAL_ASC ? SORT_BY_INITIAL_DESC : SORT_BY_INITIAL_ASC, true);
-				break;
 			case INPUT_SORT_BY_ALPHABET:
-				sort_sections(sections_sort == SORT_BY_ALPHABET_ASC ? SORT_BY_ALPHABET_DESC : SORT_BY_ALPHABET_ASC, true);
+				sort_sections(get_next_sorting_method(sections_sort, cmd), true);
 				break;
 			case INPUT_DATABASE_COMMAND:
 				db_perform_user_edit(arg, sections_view[m->view_sel]->feeds, sections_view[m->view_sel]->feeds_count, NULL);

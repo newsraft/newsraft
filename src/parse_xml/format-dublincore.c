@@ -17,27 +17,17 @@ dublincore_title_end(struct feed_update_state *data)
 static void
 dublincore_creator_end(struct feed_update_state *data)
 {
-	if (data->in_item) {
-		serialize_caret(&data->feed.item->persons);
-		serialize_array(&data->feed.item->persons, "type=", 5, "author", 6);
-		serialize_string(&data->feed.item->persons, "name=", 5, data->text);
-	} else {
-		serialize_caret(&data->feed.persons);
-		serialize_array(&data->feed.persons, "type=", 5, "author", 6);
-		serialize_string(&data->feed.persons, "name=", 5, data->text);
-	}
+	struct string **dest = data->in_item ? &data->feed.item->persons : &data->feed.persons;
+	serialize_caret(dest);
+	serialize_array(dest, "type=", 5, "author", 6);
+	serialize_string(dest, "name=", 5, data->text);
 }
 
 static void
 dublincore_contributor_end(struct feed_update_state *data)
 {
-	if (data->in_item) {
-		serialize_caret(&data->feed.item->persons);
-		serialize_array(&data->feed.item->persons, "type=", 5, "contributor", 11);
-		serialize_string(&data->feed.item->persons, "name=", 5, data->text);
-	} else {
-		serialize_caret(&data->feed.persons);
-		serialize_array(&data->feed.persons, "type=", 5, "contributor", 11);
-		serialize_string(&data->feed.persons, "name=", 5, data->text);
-	}
+	struct string **dest = data->in_item ? &data->feed.item->persons : &data->feed.persons;
+	serialize_caret(dest);
+	serialize_array(dest, "type=", 5, "contributor", 11);
+	serialize_string(dest, "name=", 5, data->text);
 }

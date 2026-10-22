@@ -74,16 +74,12 @@ opml_end_element_handler(void *userData, const XML_Char *name)
 static bool
 has_feed_in_section(struct feed_entry **feeds, size_t feeds_count, int64_t section_index)
 {
-	bool has_feed = false;
-
 	for (size_t i = 0; i < feeds_count; ++i) {
 		if (feeds[i]->section_index == section_index) {
-			has_feed = true;
-			break;
+			return true;
 		}
 	}
-
-	return has_feed;
+	return false;
 }
 
 static bool

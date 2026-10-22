@@ -55,9 +55,8 @@ parse_json_data(struct feed_update_state *ctx, const char *data, size_t size, bo
 {
 	if (is_final) {
 		return newsraft_json_parse(ctx, ctx->text->ptr, ctx->text->len);
-	} else {
-		catas(ctx->text, data, size);
 	}
+	catas(ctx->text, data, size);
 	return true;
 }
 
@@ -97,16 +96,11 @@ header_callback(char *contents, size_t length, size_t nmemb, void *userdata)
 	struct getfeed_feed *feed = userdata;
 	const size_t real_size = nmemb * length;
 
-	size_t header_name_len = 0;
-	for (size_t i = 0; i < real_size; ++i) {
-		if (contents[i] == ':') {
-			header_name_len = i;
-			break;
-		}
-	}
-	if (header_name_len == 0) {
+	const char *colon = memchr(contents, ':', real_size);
+	if (!colon || colon == contents) {
 		return real_size; // Ignore invalid headers.
 	}
+	size_t header_name_len = colon - contents;
 
 	struct string *header_name = crtas(contents, header_name_len);
 	struct string *header_value = crtas(contents + header_name_len + 1, real_size - header_name_len - 1);

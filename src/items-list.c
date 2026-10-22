@@ -2,62 +2,33 @@
 #include <string.h>
 #include "newsraft.h"
 
+static const char *sorting_order_expressions[] = {
+	[SORT_BY_TIME_ASC]              = " ORDER BY COALESCE(NULLIF(MAX(publication_date, update_date), 0), download_date) ASC, download_date ASC, rowid ASC",
+	[SORT_BY_TIME_DESC]             = " ORDER BY COALESCE(NULLIF(MAX(publication_date, update_date), 0), download_date) DESC, download_date DESC, rowid DESC",
+	[SORT_BY_TIME_DOWNLOAD_ASC]     = " ORDER BY download_date ASC, rowid ASC",
+	[SORT_BY_TIME_DOWNLOAD_DESC]    = " ORDER BY download_date DESC, rowid DESC",
+	[SORT_BY_TIME_PUBLICATION_ASC]  = " ORDER BY publication_date ASC, download_date ASC, rowid ASC",
+	[SORT_BY_TIME_PUBLICATION_DESC] = " ORDER BY publication_date DESC, download_date DESC, rowid DESC",
+	[SORT_BY_TIME_UPDATE_ASC]       = " ORDER BY update_date ASC, download_date ASC, rowid ASC",
+	[SORT_BY_TIME_UPDATE_DESC]      = " ORDER BY update_date DESC, download_date DESC, rowid DESC",
+	[SORT_BY_ROWID_ASC]             = " ORDER BY rowid ASC",
+	[SORT_BY_ROWID_DESC]            = " ORDER BY rowid DESC",
+	[SORT_BY_UNREAD_ASC]            = " ORDER BY unread ASC, MAX(publication_date, update_date) DESC, download_date DESC, rowid DESC",
+	[SORT_BY_UNREAD_DESC]           = " ORDER BY unread DESC, MAX(publication_date, update_date) DESC, download_date DESC, rowid DESC",
+	[SORT_BY_IMPORTANT_ASC]         = " ORDER BY important ASC, MAX(publication_date, update_date) DESC, download_date DESC, rowid DESC",
+	[SORT_BY_IMPORTANT_DESC]        = " ORDER BY important DESC, MAX(publication_date, update_date) DESC, download_date DESC, rowid DESC",
+	[SORT_BY_ALPHABET_ASC]          = " ORDER BY title ASC, rowid ASC",
+	[SORT_BY_ALPHABET_DESC]         = " ORDER BY title DESC, rowid DESC",
+};
+
 static inline bool
 append_sorting_order_expression_to_query(struct string *q, sorting_method_t order)
 {
-	switch (order) {
-		case SORT_BY_TIME_ASC:
-			catas(q, " ORDER BY COALESCE(NULLIF(MAX(publication_date, update_date), 0), download_date) ASC, download_date ASC, rowid ASC", 115);
-			break;
-		case SORT_BY_TIME_DESC:
-			catas(q, " ORDER BY COALESCE(NULLIF(MAX(publication_date, update_date), 0), download_date) DESC, download_date DESC, rowid DESC", 118);
-			break;
-		case SORT_BY_TIME_DOWNLOAD_ASC:
-			catas(q, " ORDER BY download_date ASC, rowid ASC", 38);
-			break;
-		case SORT_BY_TIME_DOWNLOAD_DESC:
-			catas(q, " ORDER BY download_date DESC, rowid DESC", 40);
-			break;
-		case SORT_BY_TIME_PUBLICATION_ASC:
-			catas(q, " ORDER BY publication_date ASC, download_date ASC, rowid ASC", 60);
-			break;
-		case SORT_BY_TIME_PUBLICATION_DESC:
-			catas(q, " ORDER BY publication_date DESC, download_date DESC, rowid DESC", 63);
-			break;
-		case SORT_BY_TIME_UPDATE_ASC:
-			catas(q, " ORDER BY update_date ASC, download_date ASC, rowid ASC", 55);
-			break;
-		case SORT_BY_TIME_UPDATE_DESC:
-			catas(q, " ORDER BY update_date DESC, download_date DESC, rowid DESC", 58);
-			break;
-		case SORT_BY_ROWID_ASC:
-			catas(q, " ORDER BY rowid ASC", 19);
-			break;
-		case SORT_BY_ROWID_DESC:
-			catas(q, " ORDER BY rowid DESC", 20);
-			break;
-		case SORT_BY_UNREAD_ASC:
-			catas(q, " ORDER BY unread ASC, MAX(publication_date, update_date) DESC, download_date DESC, rowid DESC", 93);
-			break;
-		case SORT_BY_UNREAD_DESC:
-			catas(q, " ORDER BY unread DESC, MAX(publication_date, update_date) DESC, download_date DESC, rowid DESC", 94);
-			break;
-		case SORT_BY_IMPORTANT_ASC:
-			catas(q, " ORDER BY important ASC, MAX(publication_date, update_date) DESC, download_date DESC, rowid DESC", 96);
-			break;
-		case SORT_BY_IMPORTANT_DESC:
-			catas(q, " ORDER BY important DESC, MAX(publication_date, update_date) DESC, download_date DESC, rowid DESC", 97);
-			break;
-		case SORT_BY_ALPHABET_ASC:
-			catas(q, " ORDER BY title ASC, rowid ASC", 30);
-			break;
-		case SORT_BY_ALPHABET_DESC:
-			catas(q, " ORDER BY title DESC, rowid DESC", 32);
-			break;
-		default:
-			fail_status("Unknown sorting method name!");
-			return false;
+	if (order >= LENGTH(sorting_order_expressions) || !sorting_order_expressions[order]) {
+		fail_status("Unknown sorting method name!");
+		return false;
 	}
+	catas(q, sorting_order_expressions[order], strlen(sorting_order_expressions[order]));
 	return true;
 }
 
@@ -133,23 +104,20 @@ void
 obtain_items_at_least_up_to_the_given_index(struct items_list *items, size_t index)
 {
 	sqlite3_stmt *res = items->res;
-	if (items->finished == true) {
+	if (items->is_finished) {
 		return;
 	}
-	const char *text;
-	int status;
 	while (index >= items->len) {
-		status = sqlite3_step(res);
-		if (status != SQLITE_ROW) {
-			items->finished = true;
+		if (sqlite3_step(res) != SQLITE_ROW) {
+			items->is_finished = true;
 			return;
 		}
 
-		items->ptr = newsraft_realloc(items->ptr, sizeof(struct item_entry) * (items->len + 1));
+		items->ptr = newsraft_realloc(items->ptr, sizeof(*items->ptr) * (items->len + 1));
 
 		items->ptr[items->len].rowid = sqlite3_column_int64(res, 0);
 
-		text = (const char *)sqlite3_column_text(res, 1);
+		const char *text = (const char *)sqlite3_column_text(res, 1);
 		items->ptr[items->len].feed = find_feed_entry_by_url(items->feeds, items->feeds_count, text);
 		if (items->ptr[items->len].feed == NULL) {
 			continue;
@@ -288,17 +256,7 @@ undo1:
 void
 change_items_list_sorting(struct menu_state *ctx, input_id cmd, int64_t selected_rowid)
 {
-	static const struct { sorting_method_t primary; sorting_method_t secondary; } sort_map[] = {
-		[INPUT_SORT_BY_TIME]             = {SORT_BY_TIME_DESC,             SORT_BY_TIME_ASC},
-		[INPUT_SORT_BY_TIME_DOWNLOAD]    = {SORT_BY_TIME_DOWNLOAD_DESC,    SORT_BY_TIME_DOWNLOAD_ASC},
-		[INPUT_SORT_BY_TIME_PUBLICATION] = {SORT_BY_TIME_PUBLICATION_DESC, SORT_BY_TIME_PUBLICATION_ASC},
-		[INPUT_SORT_BY_TIME_UPDATE]      = {SORT_BY_TIME_UPDATE_DESC,      SORT_BY_TIME_UPDATE_ASC},
-		[INPUT_SORT_BY_ROWID]            = {SORT_BY_ROWID_DESC,            SORT_BY_ROWID_ASC},
-		[INPUT_SORT_BY_UNREAD]           = {SORT_BY_UNREAD_DESC,           SORT_BY_UNREAD_ASC},
-		[INPUT_SORT_BY_ALPHABET]         = {SORT_BY_ALPHABET_ASC,          SORT_BY_ALPHABET_DESC},
-		[INPUT_SORT_BY_IMPORTANT]        = {SORT_BY_IMPORTANT_DESC,        SORT_BY_IMPORTANT_ASC},
-	};
-	ctx->items->sorting = ctx->items->sorting == sort_map[cmd].primary ? sort_map[cmd].secondary : sort_map[cmd].primary;
+	ctx->items->sorting = get_next_sorting_method(ctx->items->sorting, cmd);
 	update_menu_item_list(ctx, selected_rowid);
 	info_status(get_sorting_message(ctx->items->sorting), "items");
 }

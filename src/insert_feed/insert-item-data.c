@@ -135,7 +135,7 @@ insert_item_data(struct feed_entry *feed, struct getfeed_item *item)
 	db_bind_feed_url(s, 1, feed->url);
 	db_bind_string(s, 2, item->guid);
 
-	int64_t item_rowid;
+	int64_t item_rowid = -1;
 	if (sqlite3_step(s) == SQLITE_ROW) {
 		const char *content = (char *)sqlite3_column_text(s, 1);
 		if (((content == NULL) && (item->content == NULL))
@@ -146,8 +146,6 @@ insert_item_data(struct feed_entry *feed, struct getfeed_item *item)
 			return true;
 		}
 		item_rowid = sqlite3_column_int64(s, 0);
-	} else {
-		item_rowid = -1;
 	}
 
 	sqlite3_finalize(s);

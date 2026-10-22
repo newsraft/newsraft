@@ -72,7 +72,7 @@ block_max_content(sqlite3_stmt *res, render_block_format *output_type)
 	return NULL;
 }
 
-bool
+void
 generate_render_blocks_based_on_item_data(struct render_blocks_list *blocks, const struct item_entry *item, sqlite3_stmt *res)
 {
 #define MAX_ENTRY_LENGTH 1000
@@ -112,7 +112,7 @@ generate_render_blocks_based_on_item_data(struct render_blocks_list *blocks, con
 						case 'a': value = block_persons(res);     break;
 					}
 					pthread_mutex_unlock(&interface_lock);
-					if (value != NULL) {
+					if (value) {
 						struct string *text = crtas(entry, strlen(entry));
 						catss(text, value);
 						catas(text, percent_pos + 2, strlen(percent_pos + 2));
@@ -122,11 +122,12 @@ generate_render_blocks_based_on_item_data(struct render_blocks_list *blocks, con
 					}
 				}
 			}
-			if (*i == '\0') break;
+			if (*i == '\0') {
+				break;
+			}
 			entry_len = 0;
 		} else if (entry_len < MAX_ENTRY_LENGTH) {
 			entry[entry_len++] = *i;
 		}
 	}
-	return true;
 }

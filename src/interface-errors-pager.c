@@ -16,20 +16,12 @@ errors_pager_loop(struct menu_state *m)
 		if (feed->errors->len < 1) {
 			continue;
 		}
-		blocks.ptr = newsraft_realloc(blocks.ptr, sizeof(struct render_block) * (blocks.len + 2));
-		blocks.len += 2;
-		struct string *header_str = blocks.len > 2 ? crtas("<br><hr><br>", 12) : crtes(100);
+		struct string *header_str = blocks.len > 0 ? crtas("<br><hr><br>", 12) : crtes(100);
 		catas(header_str, "<b>Errors of ", 13);
 		catss(header_str, feed->url);
 		catas(header_str, "</b><br><br>", 12);
-		struct render_block *header_block = &blocks.ptr[blocks.len - 2];
-		struct render_block *content_block = &blocks.ptr[blocks.len - 1];
-		header_block->content = convert_string_to_wstring(header_str);
-		header_block->content_type   = TEXT_HTML;
-		header_block->needs_trimming = false;
-		content_block->content = convert_string_to_wstring(feed->errors);
-		content_block->content_type   = TEXT_RAW;
-		content_block->needs_trimming = false;
+		add_render_block(&blocks, header_str->ptr, header_str->len, TEXT_HTML, false);
+		add_render_block(&blocks, feed->errors->ptr, feed->errors->len, TEXT_RAW, false);
 		free_string(header_str);
 	}
 	pthread_mutex_unlock(&interface_lock);

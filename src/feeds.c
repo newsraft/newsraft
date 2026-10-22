@@ -222,20 +222,10 @@ feeds_menu_loop(struct menu_state *m)
 			case INPUT_QUIT_SOFT:
 				return menu_close();
 			case INPUT_SORT_BY_UNREAD:
-				pthread_mutex_lock(&interface_lock);
-				sort_feeds(m, feeds_sort == SORT_BY_UNREAD_DESC ? SORT_BY_UNREAD_ASC : SORT_BY_UNREAD_DESC, true);
-				pthread_mutex_unlock(&interface_lock);
-				info_status(get_sorting_message(feeds_sort), "feeds");
-				break;
 			case INPUT_SORT_BY_INITIAL:
-				pthread_mutex_lock(&interface_lock);
-				sort_feeds(m, feeds_sort == SORT_BY_INITIAL_ASC ? SORT_BY_INITIAL_DESC : SORT_BY_INITIAL_ASC, true);
-				pthread_mutex_unlock(&interface_lock);
-				info_status(get_sorting_message(feeds_sort), "feeds");
-				break;
 			case INPUT_SORT_BY_ALPHABET:
 				pthread_mutex_lock(&interface_lock);
-				sort_feeds(m, feeds_sort == SORT_BY_ALPHABET_ASC ? SORT_BY_ALPHABET_DESC : SORT_BY_ALPHABET_ASC, true);
+				sort_feeds(m, get_next_sorting_method(feeds_sort, cmd), true);
 				pthread_mutex_unlock(&interface_lock);
 				info_status(get_sorting_message(feeds_sort), "feeds");
 				break;

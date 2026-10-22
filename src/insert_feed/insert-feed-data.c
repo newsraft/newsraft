@@ -20,11 +20,10 @@ insert_feed_data(const struct feed_entry *feed_entry, struct getfeed_feed *feed)
 	db_bind_string(s,     1 + FEED_COLUMN_HTTP_HEADER_ETAG,          feed->http_header_etag);
 	sqlite3_bind_int64(s, 1 + FEED_COLUMN_HTTP_HEADER_LAST_MODIFIED, feed->http_header_last_modified);
 	sqlite3_bind_int64(s, 1 + FEED_COLUMN_HTTP_HEADER_EXPIRES,       feed->http_header_expires);
-	if (sqlite3_step(s) != SQLITE_DONE) {
+	bool status = sqlite3_step(s) == SQLITE_DONE;
+	if (!status) {
 		FAIL("Failed to insert or replace feed data: %s", db_error_string());
-		sqlite3_finalize(s);
-		return false;
 	}
 	sqlite3_finalize(s);
-	return true;
+	return status;
 }

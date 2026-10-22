@@ -60,7 +60,6 @@ serialize_array(register struct string **target, register const char *key, regis
 			}
 		}
 	}
-	return;
 }
 
 void

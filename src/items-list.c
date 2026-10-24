@@ -189,13 +189,13 @@ update_menu_item_list(struct menu_state *ctx, int64_t selected_rowid)
 	new_items->sorting = ctx->items ? ctx->items->sorting : get_sorting_id(get_cfg_string(NULL, CFG_MENU_ITEM_SORTING)->ptr);
 	new_items->find_filter = ctx->find_filter ? convert_wstring_to_string(ctx->find_filter) : NULL;
 	new_items->query = generate_search_query_string(ctx, new_items);
-	if (new_items->query == NULL) {
-		goto undo1;
+	if (!new_items->query) {
+		goto error;
 	}
 	new_items->res = db_prepare(new_items->query->ptr, new_items->query->len + 1, NULL);
-	if (new_items->res == NULL) {
+	if (!new_items->res) {
 		fail_status("Can't run items search query! Make sure all item-rule settings are valid SQL conditions.");
-		goto undo2;
+		goto error;
 	}
 	for (size_t i = 0; i < new_items->feeds_count; ++i) {
 		db_bind_feed_url(new_items->res, i + 1, new_items->feeds[i]->url);
@@ -225,7 +225,7 @@ update_menu_item_list(struct menu_state *ctx, int64_t selected_rowid)
 		} else {
 			fail_status("No items found. Make sure this feed is updated!");
 		}
-		goto undo3;
+		goto error;
 	}
 	pthread_mutex_lock(&interface_lock);
 	free_items_list(ctx->items);
@@ -243,13 +243,8 @@ update_menu_item_list(struct menu_state *ctx, int64_t selected_rowid)
 	}
 	pthread_mutex_unlock(&interface_lock);
 	return true;
-undo3:
-	sqlite3_finalize(new_items->res);
-undo2:
-	free_string(new_items->query);
-undo1:
-	free_string(new_items->find_filter);
-	newsraft_free(new_items);
+error:
+	free_items_list(new_items);
 	return false;
 }
 

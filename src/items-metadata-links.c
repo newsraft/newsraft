@@ -47,28 +47,22 @@ complete_url(const char *base, const char *rel)
 	// Don't complete links with protocol scheme
 	// Don't complete telephone links
 	// Don't complete email links
-	if (strstr(rel, "://") != NULL || strstr(rel, "tel:") == rel || strstr(rel, "mailto:") == rel) {
+	if (strstr(rel, "://") || strstr(rel, "tel:") == rel || strstr(rel, "mailto:") == rel) {
 		return strdup(rel);
 	}
 	CURLU *link = curl_url();
-	if (link == NULL) {
-		return NULL;
-	}
-	if (curl_url_set(link, CURLUPART_URL, base, 0) != CURLUE_OK) {
-		curl_url_cleanup(link);
-		return NULL;
-	}
-	if (curl_url_set(link, CURLUPART_URL, rel, 0) != CURLUE_OK) {
-		curl_url_cleanup(link);
+	if (!link) {
 		return NULL;
 	}
 	char *new_url = NULL;
-	if (curl_url_get(link, CURLUPART_URL, &new_url, 0) != CURLUE_OK || new_url == NULL) {
-		curl_free(new_url);
-		curl_url_cleanup(link);
-		return NULL;
+	char *complete = NULL;
+	if (curl_url_set(link, CURLUPART_URL, base, 0) == CURLUE_OK
+		&& curl_url_set(link, CURLUPART_URL, rel, 0) == CURLUE_OK
+		&& curl_url_get(link, CURLUPART_URL, &new_url, 0) == CURLUE_OK
+		&& new_url)
+	{
+		complete = strdup(new_url);
 	}
-	char *complete = strdup(new_url);
 	curl_free(new_url);
 	curl_url_cleanup(link);
 	return complete;

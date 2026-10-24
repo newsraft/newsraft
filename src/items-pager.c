@@ -1,4 +1,3 @@
-#include <string.h>
 #include "newsraft.h"
 
 static inline bool
@@ -8,7 +7,7 @@ populate_render_blocks_list_with_data_from_item(const struct item_entry *item, s
 	if (res == NULL) {
 		return false;
 	}
-	if (item->url != NULL && item->url->len > 0) {
+	if (item->url && item->url->len > 0) {
 		add_url_to_links_list(&blocks->links, item->url->ptr, item->url->len);
 	}
 	add_item_attachments_to_links_list(&blocks->links, res);
@@ -16,11 +15,6 @@ populate_render_blocks_list_with_data_from_item(const struct item_entry *item, s
 	start_pager_menu(&item->feed[0]->cfg, blocks);
 	if (blocks->links.len > 0) {
 		struct wstring *links_wstr = generate_link_list_wstring_for_pager(&item->feed[0]->cfg, &blocks->links);
-		if (links_wstr == NULL) {
-			sqlite3_finalize(res);
-			free_render_blocks(blocks);
-			return false;
-		}
 		apply_links_render_blocks(blocks, links_wstr);
 		free_wstring(links_wstr);
 	}

@@ -35,22 +35,13 @@ static struct config_color
 paint_item(struct menu_state *ctx, size_t index, bool is_selected)
 {
 	struct config_context **cfg = &ctx->items->ptr[index].feed[0]->cfg;
-	struct config_color color;
+	config_entry_id id = CFG_COLOR_LIST_ITEM;
 	if (ctx->items->ptr[index].is_important) {
-		color = get_cfg_color(cfg, CFG_COLOR_LIST_ITEM_IMPORTANT);
+		id = CFG_COLOR_LIST_ITEM_IMPORTANT;
 	} else if (ctx->items->ptr[index].is_unread) {
-		color = get_cfg_color(cfg, CFG_COLOR_LIST_ITEM_UNREAD);
-	} else {
-		color = get_cfg_color(cfg, CFG_COLOR_LIST_ITEM);
+		id = CFG_COLOR_LIST_ITEM_UNREAD;
 	}
-	if (is_selected) {
-		if (is_cfg_color_set(cfg, CFG_COLOR_LIST_ITEM_SELECTED)) {
-			color = get_cfg_color(cfg, CFG_COLOR_LIST_ITEM_SELECTED);
-		} else {
-			color.attributes |= TB_REVERSE;
-		}
-	}
-	return color;
+	return get_list_entry_color(cfg, id, CFG_COLOR_LIST_ITEM_SELECTED, is_selected);
 }
 
 static bool
@@ -196,13 +187,11 @@ items_menu_loop(struct menu_state *m)
 			case INPUT_COPY_TO_CLIPBOARD: copy_string_to_clipboard(m->items->ptr[m->view_sel].url);        break;
 			case INPUT_QUIT_HARD:         return NULL;
 			case INPUT_NAVIGATE_BACK:
-				if (get_menu_depth() < 3 && (!(m->flags & MENU_IS_SEARCH) && (m->flags & MENU_IS_EXPLORE) && (m->find_filter == NULL)))
-				{
-				  break;
-				}
-				// fall through
 			case INPUT_QUIT_SOFT:
 				if (!(m->flags & MENU_IS_SEARCH) && (m->flags & MENU_IS_EXPLORE) && (m->find_filter == NULL)) {
+					if (cmd == INPUT_NAVIGATE_BACK && get_menu_depth() < 3) {
+						break;
+					}
 					menu_close();
 				}
 				return menu_close();

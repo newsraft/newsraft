@@ -1,4 +1,3 @@
-#include <stdlib.h>
 #include "newsraft.h"
 
 static struct config_context **pager_context = NULL;

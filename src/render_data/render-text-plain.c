@@ -1,11 +1,9 @@
-#include <stdlib.h>
 #include "render_data.h"
 
-bool
+void
 render_text_plain(struct line *line, const struct wstring *source, struct links_list *links)
 {
 	for (const wchar_t *i = source->ptr, *j = i; *i != L'\0'; i = j) {
-
 		// find end of token
 		while (!ISWIDEWHITESPACE(*j) && *j != L'\0') {
 			j += 1;
@@ -51,8 +49,5 @@ render_text_plain(struct line *line, const struct wstring *source, struct links_
 			line_char(line, *j);
 			j += 1;
 		}
-
 	}
-
-	return true;
 }

@@ -17,10 +17,11 @@ execute_feed(const struct string *cmd, struct feed_update_state *data)
 		str_appendf(data->new_errors, "Failed to execute %s\nFailed with exit status %d\n", real_cmd->ptr, exit_status);
 		goto error;
 	}
-	for (const char *i = content->ptr; *i != '\0'; ++i) {
-		if (*i == '<') {
+	const char *format_char = strpbrk(content->ptr, "<{");
+	if (format_char) {
+		if (*format_char == '<') {
 			INFO("The output has \"<\" character in the beginning - engaging XML parser.");
-			if (setup_xml_parser(data) == false) {
+			if (!setup_xml_parser(data)) {
 				FAIL("Failed to setup XML parser!");
 				goto error;
 			}
@@ -32,13 +33,11 @@ execute_feed(const struct string *cmd, struct feed_update_state *data)
 				str_appendf(data->new_errors, "XML parser failed: %s\n", XML_ErrorString(XML_GetErrorCode(data->xml_parser)));
 				goto error;
 			}
-			break;
-		} else if (*i == '{') {
+		} else if (*format_char == '{') {
 			INFO("The output has \"{\" character in the beginning - engaging JSON parser.");
 			if (!newsraft_json_parse(data, content->ptr, content->len)) {
 				goto error;
 			}
-			break;
 		}
 	}
 	free_string(real_cmd);
@@ -48,7 +47,6 @@ error:
 	free_string(real_cmd);
 	free_string(content);
 	data->is_failed = true;
-	return;
 }
 
 static bool

@@ -3,14 +3,9 @@
 static void
 dublincore_title_end(struct feed_update_state *data)
 {
-	if (data->in_item) {
-		if (STRING_IS_EMPTY(data->feed.item->title)) {
-			cpyss(&data->feed.item->title, data->text);
-		}
-	} else {
-		if (STRING_IS_EMPTY(data->feed.title)) {
-			cpyss(&data->feed.title, data->text);
-		}
+	struct string **dest = data->in_item ? &data->feed.item->title : &data->feed.title;
+	if (STRING_IS_EMPTY(*dest)) {
+		cpyss(dest, data->text);
 	}
 }
 

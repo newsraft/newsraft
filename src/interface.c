@@ -111,14 +111,8 @@ run_menu_loop(void)
 	hide_read_feeds = get_cfg_bool(NULL, CFG_HIDE_READ_FEEDS);
 	hide_read_items = get_cfg_bool(NULL, CFG_HIDE_READ_ITEMS);
 	struct menu_state *menu = menu_setup(&sections_menu_loop, NULL, NULL, 0, MENU_NORMAL, NULL);
-	if (menu == NULL) {
-		return false;
-	}
-	while (they_want_us_to_stop == false) {
-		menu = menu->run(menu);
-		if (menu == NULL) {
-			break; // TODO: don't stop feed downloader?
-		}
+	while (menu && !they_want_us_to_stop) {
+		menu = menu->run(menu); // TODO: don't stop feed downloader on NULL?
 	}
 	return true;
 }

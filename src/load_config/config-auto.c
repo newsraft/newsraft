@@ -10,9 +10,7 @@ obtain_useragent_string(struct config_context **ctx, config_type_id id)
 	catas(ua, NEWSRAFT_VERSION, strlen(NEWSRAFT_VERSION));
 	struct utsname sys_data = {0};
 	if (uname(&sys_data) >= 0 && strlen(sys_data.sysname) > 0) {
-		catas(ua, " (", 2);
-		catas(ua, sys_data.sysname, strlen(sys_data.sysname));
-		catcs(ua, ')');
+		str_appendf(ua, " (%s)", sys_data.sysname);
 	}
 	bool status = set_cfg_string(ctx, id, ua->ptr, ua->len);
 	free_string(ua);

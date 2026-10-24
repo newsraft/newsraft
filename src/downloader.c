@@ -1,4 +1,3 @@
-#include <signal.h>
 #include <string.h>
 #include <strings.h>
 #include "newsraft.h"
@@ -11,33 +10,30 @@ create_list_of_headers(const struct feed_update_state *data)
 	// A-IM header is a hint for servers that they can send only a part of data,
 	// often known as "delta". Server will know which part of data to send
 	// exactly by analyzing our If-None-Match header. See RFC3229 for more info.
+	INFO("Attaching header - A-IM: feed");
 	struct curl_slist *headers = curl_slist_append(NULL, "A-IM: feed");
-	if (headers == NULL) {
+	if (!headers) {
 		return NULL;
 	}
-	INFO("Attached header - A-IM: feed");
 
 	if (get_cfg_bool(&data->feed_entry->cfg, CFG_SEND_IF_NONE_MATCH_HEADER)) {
 		struct string *etag = db_get_string_from_feed_table(data->feed_entry->url, "http_header_etag", 16);
-		if (etag != NULL) {
+		if (etag) {
 			struct string *if_none_match = crtas("If-None-Match: ", 15);
 			catss(if_none_match, etag);
 			free_string(etag);
+			INFO("Attaching header - %s", if_none_match->ptr);
 			struct curl_slist *tmp = curl_slist_append(headers, if_none_match->ptr);
-			if (tmp == NULL) {
-				free_string(if_none_match);
-				goto error;
+			free_string(if_none_match);
+			if (!tmp) {
+				curl_slist_free_all(headers);
+				return NULL;
 			}
 			headers = tmp;
-			INFO("Attached header - %s", if_none_match->ptr);
-			free_string(if_none_match);
 		}
 	}
 
 	return headers;
-error:
-	curl_slist_free_all(headers);
-	return NULL;
 }
 
 static bool
@@ -189,15 +185,15 @@ prepare_feed_update_state_for_download(struct feed_update_state *data)
 	curl_easy_setopt(curl, CURLOPT_PRIVATE, data);
 	const struct string *useragent = get_cfg_string(&feed->cfg, CFG_USER_AGENT);
 	if (useragent->len > 0) {
-		INFO("Attached header - User-Agent: %s", useragent->ptr);
+		INFO("Attaching header - User-Agent: %s", useragent->ptr);
 		curl_easy_setopt(curl, CURLOPT_USERAGENT, useragent->ptr);
 	}
 	if (get_cfg_bool(&feed->cfg, CFG_SEND_IF_MODIFIED_SINCE_HEADER)) {
 		int64_t last_modified = db_get_date_from_feeds_table(feed->url, "http_header_last_modified", 25);
 		if (last_modified > 0) {
+			INFO("Attaching header - If-Modified-Since: %" PRId64 " (it was converted to date string).", last_modified);
 			curl_easy_setopt(curl, CURLOPT_TIMEVALUE_LARGE, (curl_off_t)last_modified);
 			curl_easy_setopt(curl, CURLOPT_TIMECONDITION, CURL_TIMECOND_IFMODSINCE);
-			INFO("Attached header - If-Modified-Since: %" PRId64 " (it was converted to date string).", last_modified);
 		} else if (last_modified < 0) {
 			FAIL("Skipping %s because its http_header_last_modified is invalid", feed->url->ptr);
 			goto fail;

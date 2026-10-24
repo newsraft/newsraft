@@ -133,15 +133,12 @@ queue_updates(struct feed_entry **feeds, size_t feeds_count)
 	pthread_mutex_lock(&update_queue_lock);
 	bool this_is_new_queue = update_queue == NULL ? true : false;
 	for (size_t i = 0; i < feeds_count; ++i) {
-		bool already_present_in_queue = false;
-		for (struct feed_update_state *j = update_queue; j != NULL; j = j->next) {
-			if (feeds[i] == j->feed_entry) {
-				already_present_in_queue = true;
-				break;
-			}
+		struct feed_update_state *j = update_queue;
+		while (j && j->feed_entry != feeds[i]) {
+			j = j->next;
 		}
-		if (already_present_in_queue == true) {
-			continue;
+		if (j) {
+			continue; // Already present in queue
 		}
 
 		feeds[i]->update_date = current_time;

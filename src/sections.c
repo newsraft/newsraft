@@ -50,22 +50,13 @@ static struct config_color
 paint_section(struct menu_state *ctx, size_t index, bool is_selected)
 {
 	(void)ctx;
-	struct config_color color;
+	config_entry_id id = CFG_COLOR_LIST_SECTION;
 	if (sections_view[index]->has_errors) {
-		color = get_cfg_color(NULL, CFG_COLOR_LIST_SECTION_FAILED);
+		id = CFG_COLOR_LIST_SECTION_FAILED;
 	} else if (sections_view[index]->unread_count > 0) {
-		color = get_cfg_color(NULL, CFG_COLOR_LIST_SECTION_UNREAD);
-	} else {
-		color = get_cfg_color(NULL, CFG_COLOR_LIST_SECTION);
+		id = CFG_COLOR_LIST_SECTION_UNREAD;
 	}
-	if (is_selected) {
-		if (is_cfg_color_set(NULL, CFG_COLOR_LIST_SECTION_SELECTED)) {
-			color = get_cfg_color(NULL, CFG_COLOR_LIST_SECTION_SELECTED);
-		} else {
-			color.attributes |= TB_REVERSE;
-		}
-	}
-	return color;
+	return get_list_entry_color(NULL, id, CFG_COLOR_LIST_SECTION_SELECTED, is_selected);
 }
 
 static bool
@@ -121,8 +112,7 @@ make_sure_section_exists(const struct string *section_name)
 	}
 	sections = newsraft_realloc(sections, sizeof(struct feed_section) * (sections_count + 1));
 	sections_view = newsraft_realloc(sections_view, sizeof(struct feed_section *) * (sections_count + 1));
-	memset(&sections[sections_count], 0, sizeof(struct feed_section));
-	sections[sections_count].name = crtss(section_name);
+	sections[sections_count] = (struct feed_section){.name = crtss(section_name)};
 	INFO("Created section \"%s\".", sections[sections_count].name->ptr);
 	sections_count += 1;
 

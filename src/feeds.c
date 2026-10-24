@@ -33,22 +33,13 @@ static struct config_color
 paint_feed(struct menu_state *ctx, size_t index, bool is_selected)
 {
 	struct config_context **cfg = &ctx->feeds_view[index]->cfg;
-	struct config_color color;
+	config_entry_id id = CFG_COLOR_LIST_FEED;
 	if (ctx->feeds_view[index]->errors->len > 0 && !get_cfg_bool(&ctx->feeds_view[index]->cfg, CFG_SUPPRESS_ERRORS)) {
-		color = get_cfg_color(cfg, CFG_COLOR_LIST_FEED_FAILED);
+		id = CFG_COLOR_LIST_FEED_FAILED;
 	} else if (ctx->feeds_view[index]->unread_count > 0) {
-		color = get_cfg_color(cfg, CFG_COLOR_LIST_FEED_UNREAD);
-	} else {
-		color = get_cfg_color(cfg, CFG_COLOR_LIST_FEED);
+		id = CFG_COLOR_LIST_FEED_UNREAD;
 	}
-	if (is_selected) {
-		if (is_cfg_color_set(cfg, CFG_COLOR_LIST_FEED_SELECTED)) {
-			color = get_cfg_color(cfg, CFG_COLOR_LIST_FEED_SELECTED);
-		} else {
-			color.attributes |= TB_REVERSE;
-		}
-	}
-	return color;
+	return get_list_entry_color(cfg, id, CFG_COLOR_LIST_FEED_SELECTED, is_selected);
 }
 
 static bool
@@ -182,8 +173,6 @@ feeds_menu_loop(struct menu_state *m)
 	}
 	if (!m->is_initialized) {
 		m->feeds_view = newsraft_realloc(m->feeds_view, sizeof(*m->feeds_view) * m->feeds_full_size);
-		m->feeds_view_size = m->feeds_full_size;
-		memcpy(m->feeds_view, m->feeds_full, sizeof(*m->feeds_view) * m->feeds_full_size);
 		rebuild_feeds(m, get_sorting_id(get_cfg_string(NULL, CFG_MENU_FEED_SORTING)->ptr), NULL, false);
 	}
 	menu_start(m);

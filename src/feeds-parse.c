@@ -72,9 +72,7 @@ parse_feeds_file(void)
 		size_t len = 0;
 		if (line->ptr[0] == '@') {
 			is_section = true;
-			for (const char *i = line->ptr + 1; *i != '[' && *i != '{' && *i != '<' && *i != '\0'; ++i) {
-				len += 1;
-			}
+			len = strcspn(line->ptr + 1, "[{<");
 			cpyas(&section_name, line->ptr + 1, len);
 			trim_whitespace_from_string(section_name);
 			section_index = make_sure_section_exists(section_name);
@@ -84,9 +82,7 @@ parse_feeds_file(void)
 			bool need_next_character_escaped = false;
 			bool inside_single_quoted_string = false;
 			bool inside_double_quoted_string = false;
-			cpyas(&feed.url, line->ptr, 2);
 			for (len = 2; line->ptr[len] != '\0'; ++len) {
-				catcs(feed.url, line->ptr[len]);
 				if (need_next_character_escaped) {
 					need_next_character_escaped = false;
 				} else if (line->ptr[len] == '\\') {
@@ -102,11 +98,10 @@ parse_feeds_file(void)
 					}
 				}
 			}
+			cpyas(&feed.url, line->ptr, len);
 			remove_start_of_string(line, len);
 		} else {
-			for (const char *i = line->ptr; !ISWHITESPACE(*i) && *i != '\0'; ++i) {
-				len += 1;
-			}
+			len = strcspn(line->ptr, " \n\t\v\f\r");
 			cpyas(&feed.url, line->ptr, len);
 			// Here you may want to remove the trailing slashes at the end of the URL.
 			// We MUST NOT do that, because a URL with and without a trailing slash can

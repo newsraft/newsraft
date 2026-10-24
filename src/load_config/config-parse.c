@@ -17,13 +17,8 @@ extract_token_from_line(struct string *line, struct string *token, bool break_on
 			catcs(token, *i);
 		}
 	} else {
-		for (const char *i = line->ptr; *i != ';' && *i != '\0'; ++i) {
-			if (break_on_whitespace == true && ISWHITESPACE(*i)) {
-				break;
-			}
-			catcs(token, *i);
-			to_remove += 1;
-		}
+		to_remove = strcspn(line->ptr, break_on_whitespace ? "; \n\t\v\f\r" : ";");
+		catas(token, line->ptr, to_remove);
 	}
 	remove_start_of_string(line, to_remove);
 }

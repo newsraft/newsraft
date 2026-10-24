@@ -16,7 +16,7 @@ struct line {
 	size_t style_stack_len;
 };
 
-bool render_text_plain(struct line *line, const struct wstring *source, struct links_list *links);
+void render_text_plain(struct line *line, const struct wstring *source, struct links_list *links);
 bool render_text_html(struct line *line, const struct wstring *source, struct links_list *links);
 
 bool line_char(struct line *line, wchar_t c);

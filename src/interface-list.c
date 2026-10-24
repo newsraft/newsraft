@@ -153,6 +153,20 @@ reset_list_menu_unprotected(void)
 	redraw_list_menu_unprotected();
 }
 
+struct config_color
+get_list_entry_color(struct config_context **cfg, config_entry_id id, config_entry_id selected_id, bool is_selected)
+{
+	struct config_color color = get_cfg_color(cfg, id);
+	if (is_selected) {
+		if (is_cfg_color_set(cfg, selected_id)) {
+			color = get_cfg_color(cfg, selected_id);
+		} else {
+			color.attributes |= TB_REVERSE;
+		}
+	}
+	return color;
+}
+
 static size_t
 obtain_list_entries_count_unprotected(struct menu_state *m)
 {
@@ -237,8 +251,7 @@ change_list_view_filtered_unprotected(struct menu_state *m, bool (*filter)(struc
 			while (m->enumerator(m, i) == true) {
 				if (filter(m, i) == true) {
 					change_list_view_unprotected(m, i, false);
-					j = 2;
-					break;
+					return;
 				}
 				i += 1;
 			}
@@ -251,8 +264,7 @@ change_list_view_filtered_unprotected(struct menu_state *m, bool (*filter)(struc
 			while (i > 0 && m->enumerator(m, i - 1) == true) {
 				if (filter(m, i - 1) == true) {
 					change_list_view_unprotected(m, i - 1, false);
-					j = 2;
-					break;
+					return;
 				}
 				i -= 1;
 			}

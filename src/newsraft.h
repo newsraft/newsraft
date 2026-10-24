@@ -18,7 +18,6 @@
 #endif
 
 #define ISWHITESPACE(A) (((A)==' ')||((A)=='\n')||((A)=='\t')||((A)=='\v')||((A)=='\f')||((A)=='\r'))
-#define ISWHITESPACEEXCEPTNEWLINE(A) (((A)==' ')||((A)=='\t')||((A)=='\v')||((A)=='\f')||((A)=='\r'))
 #define ISWIDEWHITESPACE(A) (((A)==L' ')||((A)==L'\n')||((A)==L'\t')||((A)==L'\v')||((A)==L'\f')||((A)==L'\r'))
 #define ISDIGIT(A) (((A)=='0')||((A)=='1')||((A)=='2')||((A)=='3')||((A)=='4')||((A)=='5')||((A)=='6')||((A)=='7')||((A)=='8')||((A)=='9'))
 #define INFO(...) log_print("INFO", __VA_ARGS__)
@@ -51,7 +50,6 @@ enum {
 	FEED_COLUMN_HTTP_HEADER_ETAG,
 	FEED_COLUMN_HTTP_HEADER_LAST_MODIFIED,
 	FEED_COLUMN_HTTP_HEADER_EXPIRES,
-	FEED_COLUMN_NONE,
 };
 
 enum {
@@ -68,15 +66,6 @@ enum {
 	ITEM_COLUMN_UPDATE_DATE,
 	ITEM_COLUMN_UNREAD,
 	ITEM_COLUMN_IMPORTANT,
-	ITEM_COLUMN_NONE,
-};
-
-enum {
-	SECTIONS_MENU = 0,
-	FEEDS_MENU,
-	ITEMS_MENU,
-	PAGER_MENU,
-	MENUS_COUNT,
 };
 
 enum {
@@ -107,7 +96,6 @@ typedef enum {
 	SORT_BY_ALPHABET_DESC,
 	SORT_BY_IMPORTANT_ASC,
 	SORT_BY_IMPORTANT_DESC,
-	SORT_METHODS_COUNT,
 } sorting_method_t;
 
 typedef uint8_t render_block_format;
@@ -360,6 +348,7 @@ void expose_all_visible_entries_of_the_list_menu_unprotected(void);
 void expose_all_visible_entries_of_the_list_menu(void);
 void redraw_list_menu_unprotected(void);
 void reset_list_menu_unprotected(void);
+struct config_color get_list_entry_color(struct config_context **cfg, config_entry_id id, config_entry_id selected_id, bool is_selected);
 bool handle_list_menu_control(struct menu_state *m, input_id cmd, const struct wstring *arg);
 bool handle_pager_menu_control(input_id cmd);
 void free_menus(void);

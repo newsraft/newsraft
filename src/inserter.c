@@ -1,6 +1,4 @@
-#include <signal.h>
 #include <string.h>
-#include <strings.h>
 #include "newsraft.h"
 
 static bool

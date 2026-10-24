@@ -11,7 +11,6 @@ struct html_table_cell {
 	struct line line;
 	int8_t colspan;
 	int8_t rowspan;
-	int64_t index;
 };
 
 struct html_table_row {
@@ -25,7 +24,6 @@ struct html_table {
 	int64_t rows_count;
 	int64_t columns_count;
 	size_t *column_widths;
-	struct wstring *unmapped_text; // text outside of cells
 };
 
 struct list_level {
@@ -375,7 +373,6 @@ html_table_add_cell(struct html_render *ctx, GumboVector *attrs)
 			last_row->cells[i].colspan = colspan;
 			last_row->cells[i].rowspan = rowspan;
 		}
-		last_row->cells[i].index = i;
 		line_bump(&last_row->cells[i].line);
 	}
 
@@ -628,9 +625,7 @@ render_html(GumboNode *node, struct html_render *ctx)
 			return;
 		}
 		for (const wchar_t *i = wstr->ptr; *i != L'\0'; ++i) {
-			if (ctx->in_pre_depth > 0) {
-				line_char(ctx->line, *i);
-			} else if (!ISWIDEWHITESPACE(*i)) {
+			if (ctx->in_pre_depth > 0 || !ISWIDEWHITESPACE(*i)) {
 				line_char(ctx->line, *i);
 			} else if (ctx->line->head->ws->len > 0) {
 				if (!ISWIDEWHITESPACE(ctx->line->head->ws->ptr[ctx->line->head->ws->len - 1])) {

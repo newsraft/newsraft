@@ -115,28 +115,23 @@ allow_status_cleaning(void)
 void
 status_write(config_entry_id color, const char *format, ...)
 {
-	if (status_window_is_initialized != true) {
-		va_list args;
-		va_start(args, format);
-		vprintf(format, args);
-		putchar('\n');
-		fflush(stdout);
-		va_end(args);
-		return;
-	}
-
-	pthread_mutex_lock(&interface_lock);
 	struct string *new_message = crtes(100);
 	va_list args;
 	va_start(args, format);
 	str_vappendf(new_message, format, args);
 	va_end(args);
-	message_color = color;
-	cpyss(&message_text, new_message);
+	if (status_window_is_initialized) {
+		pthread_mutex_lock(&interface_lock);
+		message_color = color;
+		cpyss(&message_text, new_message);
+		INFO("Printed status message: %s", message_text->ptr);
+		update_status_window_content_unprotected();
+		pthread_mutex_unlock(&interface_lock);
+	} else {
+		puts(new_message->ptr);
+		fflush(stdout);
+	}
 	free_string(new_message);
-	INFO("Printed status message: %s", message_text->ptr);
-	update_status_window_content_unprotected();
-	pthread_mutex_unlock(&interface_lock);
 }
 
 void
@@ -187,10 +182,8 @@ get_input(struct input_binding *ctx, uint32_t *count, const struct wstring **p_a
 				status_clean();
 				if (strcmp(key, "enter") == 0 && search_mode_text_input->len > 0) {
 					return INPUT_APPLY_SEARCH_MODE_FILTER;
-				} else {
-					search_mode_text_input->len = 0;
-					search_mode_text_input->ptr[0] = L'\0';
 				}
+				empty_wstring(search_mode_text_input);
 			} else if (strcmp(key, "backspace") == 0) {
 				if (search_mode_text_input->len > 0) {
 					search_mode_text_input->len -= 1;

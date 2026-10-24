@@ -100,11 +100,8 @@ static void
 name_end(struct feed_update_state *data)
 {
 	if (data->path[data->depth] == ATOM_AUTHOR) {
-		if (data->in_item) {
-			serialize_string(&data->feed.item->persons, "name=", 5, data->text);
-		} else {
-			serialize_string(&data->feed.persons, "name=", 5, data->text);
-		}
+		struct string **dest = data->in_item ? &data->feed.item->persons : &data->feed.persons;
+		serialize_string(dest, "name=", 5, data->text);
 	}
 }
 
@@ -112,11 +109,8 @@ static void
 uri_end(struct feed_update_state *data)
 {
 	if (data->path[data->depth] == ATOM_AUTHOR) {
-		if (data->in_item) {
-			serialize_string(&data->feed.item->persons, "url=", 4, data->text);
-		} else {
-			serialize_string(&data->feed.persons, "url=", 4, data->text);
-		}
+		struct string **dest = data->in_item ? &data->feed.item->persons : &data->feed.persons;
+		serialize_string(dest, "url=", 4, data->text);
 	}
 }
 
@@ -124,11 +118,8 @@ static void
 email_end(struct feed_update_state *data)
 {
 	if (data->path[data->depth] == ATOM_AUTHOR) {
-		if (data->in_item) {
-			serialize_string(&data->feed.item->persons, "email=", 6, data->text);
-		} else {
-			serialize_string(&data->feed.persons, "email=", 6, data->text);
-		}
+		struct string **dest = data->in_item ? &data->feed.item->persons : &data->feed.persons;
+		serialize_string(dest, "email=", 6, data->text);
 	}
 }
 

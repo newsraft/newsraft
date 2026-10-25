@@ -1,4 +1,3 @@
-#include <stdlib.h>
 #include <string.h>
 #include "newsraft.h"
 
@@ -108,6 +107,6 @@ close_deserialize_stream(struct deserialize_stream *stream)
 {
 	if (stream != NULL) {
 		free_string(stream->entry);
-		free(stream);
+		newsraft_free(stream);
 	}
 }

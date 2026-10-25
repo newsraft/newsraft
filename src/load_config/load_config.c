@@ -156,7 +156,7 @@ free_config_context(struct config_context *ctx)
 			free_wstring(ctx->cfg.value.s.wactual);
 		}
 		c = ctx->next;
-		free(ctx);
+		newsraft_free(ctx);
 	}
 }
 

@@ -1,4 +1,3 @@
-#include <stdlib.h>
 #include "render_data.h"
 
 static inline void
@@ -13,7 +12,7 @@ remove_trailing_empty_lines_except_for_first_one(struct line *line)
 			}
 		}
 		free_wstring(line->target->lines[i].ws);
-		free(line->target->lines[i].hints);
+		newsraft_free(line->target->lines[i].hints);
 		line->target->lines_len -= 1;
 		line->head = line->target->lines + line->target->lines_len - 1;
 	}
@@ -47,6 +46,6 @@ render_data(struct config_context **ctx, struct render_result *result, struct re
 			result->lines[i].indent += (content_width - pager_width) / 2;
 		}
 	}
-	free(line.style_stack);
+	newsraft_free(line.style_stack);
 	return result->lines_len > 1 || result->lines[0].ws->len > 0 ? true : false;
 }

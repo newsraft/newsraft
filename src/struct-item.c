@@ -1,4 +1,3 @@
-#include <stdlib.h>
 #include "newsraft.h"
 
 void
@@ -21,6 +20,6 @@ free_item(struct getfeed_item *item)
 		free_string(item->persons);
 		free_string(item->extras);
 		i = item->next;
-		free(item);
+		newsraft_free(item);
 	}
 }

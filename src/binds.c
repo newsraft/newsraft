@@ -1,4 +1,3 @@
-#include <stdlib.h>
 #include <string.h>
 #include <strings.h>
 #include "newsraft.h"
@@ -39,7 +38,7 @@ bind_reset(struct input_binding **target, const char *key)
 			for (size_t j = 0; j < i->actions_count; ++j) {
 				free_wstring(i->actions[j].arg);
 			}
-			free(i->actions);
+			newsraft_free(i->actions);
 			i->actions = NULL;
 			i->actions_count = 0;
 			return i;
@@ -168,9 +167,9 @@ free_binds(struct input_binding *target)
 		for (size_t j = 0; j < i->actions_count; ++j) {
 			free_wstring(i->actions[j].arg);
 		}
-		free(i->actions);
+		newsraft_free(i->actions);
 		tmp = i->next;
-		free(i);
+		newsraft_free(i);
 	}
 }
 

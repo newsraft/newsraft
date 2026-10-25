@@ -84,22 +84,22 @@ main(void)
 	int status = 0;
 
 	for (size_t i = 0; test_cases[i][0] != NULL; ++i) {
-		char *full_url = complete_url(test_cases[i][0], test_cases[i][1]);
-		if (strcmp(full_url, test_cases[i][2]) != 0) {
-			fprintf(stderr, "Relative %zu: \"%s\" != \"%s\"\n", i, full_url, test_cases[i][2]);
+		struct string *full_url = complete_url(test_cases[i][0], test_cases[i][1]);
+		if (strcmp(full_url->ptr, test_cases[i][2]) != 0) {
+			fprintf(stderr, "Relative %zu: \"%s\" != \"%s\"\n", i, full_url->ptr, test_cases[i][2]);
 			status = 1;
 		}
-		free(full_url);
+		free_string(full_url);
 	}
 
 	const char *abs = "https://codeberg.org/newsraft/newsraft";
 	for (size_t i = 0; test_cases[i][0] != NULL; ++i) {
-		char *full_url = complete_url(test_cases[i][0], abs);
-		if (strcmp(full_url, abs) != 0) {
-			fprintf(stderr, "Absolute %zu: \"%s\" != \"%s\"\n", i, full_url, abs);
+		struct string *full_url = complete_url(test_cases[i][0], abs);
+		if (strcmp(full_url->ptr, abs) != 0) {
+			fprintf(stderr, "Absolute %zu: \"%s\" != \"%s\"\n", i, full_url->ptr, abs);
 			status = 1;
 		}
-		free(full_url);
+		free_string(full_url);
 	}
 
 	return status;

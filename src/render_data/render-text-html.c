@@ -497,7 +497,7 @@ free_abbrs(struct html_render *ctx)
 	for (size_t i = 0; i < ctx->abbrs_len; ++i) {
 		free_string(ctx->abbrs[i]);
 	}
-	free(ctx->abbrs);
+	newsraft_free(ctx->abbrs);
 }
 
 static inline void
@@ -505,13 +505,13 @@ free_html_table(struct html_table *table)
 {
 	for (int i = 0; i < table->rows_count; ++i) {
 		for (int j = 0; j < table->rows[i].cells_count; ++j) {
-			free(table->rows[i].cells[j].line.style_stack);
+			newsraft_free(table->rows[i].cells[j].line.style_stack);
 			free_render_result(&table->rows[i].cells[j].text);
 		}
-		free(table->rows[i].cells);
+		newsraft_free(table->rows[i].cells);
 	}
-	free(table->rows);
-	free(table->column_widths);
+	newsraft_free(table->rows);
+	newsraft_free(table->column_widths);
 	memset(table, 0, sizeof(struct html_table));
 }
 

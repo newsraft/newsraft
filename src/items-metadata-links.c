@@ -1,4 +1,3 @@
-#include <stdlib.h>
 #include <string.h>
 #include <curl/curl.h>
 #include "newsraft.h"
@@ -38,7 +37,7 @@ convert_seconds_to_human_readable_duration_string(char *dest, size_t dest_size, 
 }
 
 // See tests/complete_url.c to understand what it takes in and spews out.
-char *
+struct string *
 complete_url(const char *base, const char *rel)
 {
 	if (base == NULL || rel == NULL) {
@@ -48,20 +47,20 @@ complete_url(const char *base, const char *rel)
 	// Don't complete telephone links
 	// Don't complete email links
 	if (strstr(rel, "://") || strstr(rel, "tel:") == rel || strstr(rel, "mailto:") == rel) {
-		return strdup(rel);
+		return crtas(rel, strlen(rel));
 	}
 	CURLU *link = curl_url();
 	if (!link) {
 		return NULL;
 	}
 	char *new_url = NULL;
-	char *complete = NULL;
+	struct string *complete = NULL;
 	if (curl_url_set(link, CURLUPART_URL, base, 0) == CURLUE_OK
 		&& curl_url_set(link, CURLUPART_URL, rel, 0) == CURLUE_OK
 		&& curl_url_get(link, CURLUPART_URL, &new_url, 0) == CURLUE_OK
 		&& new_url)
 	{
-		complete = strdup(new_url);
+		complete = crtas(new_url, strlen(new_url));
 	}
 	curl_free(new_url);
 	curl_url_cleanup(link);
@@ -72,18 +71,18 @@ complete_url(const char *base, const char *rel)
 int64_t
 add_url_to_links_list(struct links_list *links, const char *url, size_t url_len)
 {
-	char *full_url = NULL;
+	struct string *full_url = NULL;
 	if (links->len > 0) {
 		full_url = complete_url(links->ptr[0].url->ptr, url);
 		if (full_url != NULL) {
-			url = full_url;
-			url_len = strlen(full_url);
+			url = full_url->ptr;
+			url_len = full_url->len;
 		}
 	}
 
 	for (int64_t i = 0; i < (int64_t)links->len; ++i) {
 		if (url_len == links->ptr[i].url->len && strncmp(url, links->ptr[i].url->ptr, url_len) == 0) {
-			free(full_url);
+			free_string(full_url);
 			return i; // Don't add duplicate.
 		}
 	}
@@ -93,7 +92,7 @@ add_url_to_links_list(struct links_list *links, const char *url, size_t url_len)
 	memset(&links->ptr[index], 0, sizeof(struct link));
 	cpyas(&links->ptr[index].url, url, url_len);
 
-	free(full_url);
+	free_string(full_url);
 
 	return index;
 }

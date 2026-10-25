@@ -11,6 +11,9 @@
 #include <sqlite3.h>
 #include <expat.h>
 #include <curl/curl.h>
+#define tb_malloc  newsraft_malloc // Make termbox2 use our allocation functions
+#define tb_realloc newsraft_realloc
+#define tb_free    newsraft_free
 #include "termbox2.h"
 
 #ifndef NEWSRAFT_VERSION
@@ -411,7 +414,7 @@ void get_largest_piece_from_item_content(const char *content, struct string **te
 void get_largest_piece_from_item_attachments(const char *attachments, struct string **text, render_block_format *type);
 
 // See "items-metadata-links.c" file for implementation.
-char *complete_url(const char *base, const char *rel);
+struct string *complete_url(const char *base, const char *rel);
 int64_t add_url_to_links_list(struct links_list *links, const char *url, size_t url_len);
 struct wstring *generate_link_list_wstring_for_pager(struct config_context **ctx, const struct links_list *links);
 void add_item_attachments_to_links_list(struct links_list *links, sqlite3_stmt *res);

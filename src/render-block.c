@@ -1,4 +1,3 @@
-#include <stdlib.h>
 #include "newsraft.h"
 
 bool
@@ -37,12 +36,12 @@ free_render_blocks(struct render_blocks_list *blocks)
 	for (size_t i = 0; i < blocks->len; ++i) {
 		free_wstring(blocks->ptr[i].content);
 	}
-	free(blocks->ptr);
+	newsraft_free(blocks->ptr);
 	if (blocks->links.ptr != NULL) {
 		for (size_t i = 0; i < blocks->links.len; ++i) {
 			free_contents_of_link(&blocks->links.ptr[i]);
 		}
-		free(blocks->links.ptr);
+		newsraft_free(blocks->links.ptr);
 		blocks->links.ptr = NULL;
 		blocks->links.len = 0;
 	}
@@ -54,9 +53,9 @@ free_render_result(struct render_result *render)
 	if (render != NULL) {
 		for (size_t i = 0; i < render->lines_len; ++i) {
 			free_wstring(render->lines[i].ws);
-			free(render->lines[i].hints);
+			newsraft_free(render->lines[i].hints);
 		}
-		free(render->lines);
+		newsraft_free(render->lines);
 		render->lines = NULL;
 		render->lines_len = 0;
 	}

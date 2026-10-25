@@ -25,8 +25,7 @@ queue_pull(bool (*condition)(struct feed_update_state *))
 static void
 queue_destroy_unprotected(void)
 {
-	struct feed_update_state *k = NULL;
-	for (struct feed_update_state *j = update_queue; j != NULL; j = j->next, free(k)) {
+	for (struct feed_update_state *j = update_queue, *k = NULL; j != NULL; j = j->next, newsraft_free(k)) {
 		free_string(j->new_errors);
 		remove_downloader_handle(j);
 		curl_easy_cleanup(j->curl);
@@ -79,7 +78,7 @@ queue_execute_update_notifications_unprotected(size_t max_units_count)
 		run_formatted_command(units[i].notify_cmd, notification_cmd_args, true);
 	}
 
-	free(units);
+	newsraft_free(units);
 }
 
 void

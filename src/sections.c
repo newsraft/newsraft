@@ -215,7 +215,7 @@ purge_abandoned_feeds(void)
 	strcat(query, ")");
 	sqlite3_stmt *res = db_prepare(query, strlen(query) + 1, NULL);
 	if (res == NULL) {
-		free(query);
+		newsraft_free(query);
 		return false;
 	}
 	for (size_t i = 0; i < sections[0].feeds_count; ++i) {
@@ -223,7 +223,7 @@ purge_abandoned_feeds(void)
 	}
 	bool status = sqlite3_step(res) == SQLITE_DONE ? true : false;
 	sqlite3_finalize(res);
-	free(query);
+	newsraft_free(query);
 	return status;
 }
 

@@ -142,25 +142,27 @@ bool
 parse_config_file(void)
 {
 	const char *config_path = get_config_path();
-	if (config_path == NULL) {
+	if (!config_path) {
 		log_config_settings();
 		return true; // Since a config file is optional, don't return the error.
 	}
 	FILE *f = fopen(config_path, "r");
-	if (f == NULL) {
+	if (!f) {
 		write_error("Couldn't open config file!\n");
 		return false;
 	}
-	char *line = NULL;
-	size_t size = 0;
-	for (ssize_t len = getline(&line, &size, f); len >= 0; len = getline(&line, &size, f)) {
-		if (process_config_line(NULL, line, len) == false) {
-			free(line);
+	struct string *line = crtes(200);
+	for (int c = '\n'; c != EOF; empty_string(line)) {
+		for (c = fgetc(f); c != '\n' && c != EOF; c = fgetc(f)) {
+			catcs(line, c);
+		}
+		if (!process_config_line(NULL, line->ptr, line->len)) {
+			free_string(line);
 			fclose(f);
 			return false;
 		}
 	}
-	free(line);
+	free_string(line);
 	fclose(f);
 	log_config_settings();
 	return true;

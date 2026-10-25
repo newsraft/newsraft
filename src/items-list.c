@@ -1,4 +1,3 @@
-#include <stdlib.h>
 #include <string.h>
 #include "newsraft.h"
 
@@ -75,8 +74,8 @@ free_items_list(struct items_list *items)
 		sqlite3_finalize(items->res);
 		free_string(items->query);
 		free_string(items->find_filter);
-		free(items->ptr);
-		free(items);
+		newsraft_free(items->ptr);
+		newsraft_free(items);
 	}
 }
 
@@ -134,7 +133,6 @@ obtain_items_at_least_up_to_the_given_index(struct items_list *items, size_t ind
 		inlinefy_string(items->ptr[items->len].title);
 
 		text = (const char *)sqlite3_column_text(res, 4);
-		items->ptr[items->len].url = crtes(1);
 		// Convert URL to absolute notation in case it's stored relative.
 		//
 		// For example, convert "/index.xml" to "http://example.org/index.xml"
@@ -144,17 +142,14 @@ obtain_items_at_least_up_to_the_given_index(struct items_list *items, size_t ind
 		// 2. feed URL specified by the user
 		//
 		// If the first method doesn't yield a valid absolute notation, we try the second one.
-		char *full_url = NULL;
+		struct string *full_url = NULL;
 		if (!STRING_IS_EMPTY(items->ptr[items->len].feed[0]->link)) {
 			full_url = complete_url(items->ptr[items->len].feed[0]->link->ptr, text);
 		}
-		if (full_url == NULL) {
+		if (!full_url) {
 			full_url = complete_url(items->ptr[items->len].feed[0]->url->ptr, text);
 		}
-		if (full_url) {
-			cpyas(&items->ptr[items->len].url, full_url, strlen(full_url));
-			free(full_url);
-		}
+		items->ptr[items->len].url = full_url ? full_url : crtes(1);
 
 		items->ptr[items->len].pub_date = sqlite3_column_int64(res, 5);
 		items->ptr[items->len].upd_date = sqlite3_column_int64(res, 6);

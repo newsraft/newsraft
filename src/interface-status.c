@@ -150,7 +150,7 @@ get_input(struct input_binding *ctx, uint32_t *count, const struct wstring **p_a
 	static char key[1000];
 	static size_t queued_action_index = 0;
 	if (queued_action_index > 0) {
-		input_id next = get_action_of_bind(ctx, key, queued_action_index, p_arg);
+		input_id next = bind_get_action(ctx, key, queued_action_index, p_arg);
 		if (next != INPUT_ERROR) {
 			queued_action_index += 1;
 			return next;
@@ -204,7 +204,7 @@ get_input(struct input_binding *ctx, uint32_t *count, const struct wstring **p_a
 			count_buf[count_buf_len] = '\0';
 			update_status_window_content();
 		} else {
-			input_id cmd = get_action_of_bind(ctx, key, 0, p_arg);
+			input_id cmd = bind_get_action(ctx, key, 0, p_arg);
 			uint32_t count_value = 1;
 			if (sscanf(count_buf, "%" SCNu32, &count_value) != 1) {
 				count_value = 1;

@@ -219,18 +219,18 @@ exec_database_file_optimization(void)
 	return true;
 }
 
-bool
-db_transaction_begin(void)
+static bool
+db_transaction_exec(const char *statement)
 {
 	if (!get_cfg_bool(NULL, CFG_DATABASE_BATCH_TRANSACTIONS)) {
-		INFO("Not beginning database transaction because it's turned off.");
+		INFO("Not running %s because database transactions are turned off.", statement);
 		return true;
 	}
-	INFO("Starting database transaction.");
+	INFO("Running %s", statement);
 	char *errmsg;
-	sqlite3_exec(db, "BEGIN TRANSACTION;", NULL, NULL, &errmsg);
-	if (errmsg != NULL) {
-		FAIL("Can not begin transaction: %s", errmsg);
+	sqlite3_exec(db, statement, NULL, NULL, &errmsg);
+	if (errmsg) {
+		FAIL("Can't run %s: %s", statement, errmsg);
 		sqlite3_free(errmsg);
 		return false;
 	}
@@ -238,21 +238,15 @@ db_transaction_begin(void)
 }
 
 bool
+db_transaction_begin(void)
+{
+	return db_transaction_exec("BEGIN TRANSACTION;");
+}
+
+bool
 db_transaction_commit(void)
 {
-	if (!get_cfg_bool(NULL, CFG_DATABASE_BATCH_TRANSACTIONS)) {
-		INFO("Not committing database transaction because it's turned off.");
-		return true;
-	}
-	INFO("Committing database transaction.");
-	char *errmsg;
-	sqlite3_exec(db, "COMMIT;", NULL, NULL, &errmsg);
-	if (errmsg != NULL) {
-		FAIL("Can not commit transaction: %s", errmsg);
-		sqlite3_free(errmsg);
-		return false;
-	}
-	return true;
+	return db_transaction_exec("COMMIT;");
 }
 
 void

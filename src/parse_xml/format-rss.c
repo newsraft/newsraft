@@ -67,10 +67,7 @@ rss_enclosure_start(struct feed_update_state *data, const XML_Char **attrs)
 		return;
 	}
 	const char *attr = get_value_of_attribute_key(attrs, "url");
-	if (attr == NULL) {
-		return;
-	}
-	const size_t attr_len = strlen(attr);
+	const size_t attr_len = attr ? strlen(attr) : 0;
 	if (attr_len == 0) {
 		return;
 	}
@@ -129,10 +126,7 @@ rss_source_start(struct feed_update_state *data, const XML_Char **attrs)
 		return;
 	}
 	const char *attr = get_value_of_attribute_key(attrs, "url");
-	if (attr == NULL) {
-		return;
-	}
-	const size_t attr_len = strlen(attr);
+	const size_t attr_len = attr ? strlen(attr) : 0;
 	if (attr_len == 0) {
 		return;
 	}

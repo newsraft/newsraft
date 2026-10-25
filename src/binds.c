@@ -11,19 +11,17 @@ static struct input_binding *binds = NULL;
 static bool was_escape_key_ever_bound = false;
 
 input_id
-get_action_of_bind(struct input_binding *ctx, const char *key, size_t action_index, const struct wstring **p_arg)
+bind_get_action(struct input_binding *ctx, const char *key, size_t action_index, const struct wstring **p_arg)
 {
-	if (key != NULL) {
-		struct input_binding *pool[] = {ctx, binds};
-		for (int p = 0; p < 2; ++p) {
-			for (struct input_binding *i = pool[p]; i != NULL; i = i->next) {
-				if (strcmp(key, i->key->ptr) == 0) {
-					if (action_index < i->actions_count) {
-						*p_arg = i->actions[action_index].arg;
-						return i->actions[action_index].cmd;
-					}
-					return INPUT_ERROR;
+	struct input_binding *pool[] = {ctx, binds};
+	for (size_t p = 0; p < LENGTH(pool); ++p) {
+		for (struct input_binding *i = pool[p]; i != NULL; i = i->next) {
+			if (strcmp(key, i->key->ptr) == 0) {
+				if (action_index < i->actions_count) {
+					*p_arg = i->actions[action_index].arg;
+					return i->actions[action_index].cmd;
 				}
+				return INPUT_ERROR;
 			}
 		}
 	}
@@ -31,7 +29,7 @@ get_action_of_bind(struct input_binding *ctx, const char *key, size_t action_ind
 }
 
 struct input_binding *
-create_or_clean_bind(struct input_binding **target, const char *key)
+bind_reset(struct input_binding **target, const char *key)
 {
 	if (target == NULL) {
 		target = &binds;
@@ -66,20 +64,13 @@ attach_action_to_bind(struct input_binding *bind, input_id cmd, const char *arg,
 	bind->actions[bind->actions_count].arg = NULL;
 	if (arg && arg_len > 0) {
 		bind->actions[bind->actions_count].arg = convert_array_to_wstring(arg, arg_len);
-		if (bind->actions[bind->actions_count].arg == NULL) {
+		if (!bind->actions[bind->actions_count].arg) {
 			return false;
 		}
 	}
 	bind->actions_count += 1;
 	INFO("Attached action: %14s, %zu, %2u, %s", bind->key->ptr, bind->actions_count, cmd, arg ? arg : "(none)");
 	return true;
-}
-
-static bool
-bind_exec(const char *key, const char *cmd)
-{
-	struct input_binding *bind = create_or_clean_bind(NULL, key);
-	return attach_action_to_bind(bind, INPUT_SYSTEM_COMMAND, cmd, strlen(cmd));
 }
 
 bool
@@ -137,7 +128,7 @@ assign_default_binds(void)
 
 	for (size_t i = 0; i < LENGTH(default_binds); ++i) {
 		for (size_t j = 0; default_binds[i].keys[j] != NULL; ++j) {
-			struct input_binding *bind = create_or_clean_bind(NULL, default_binds[i].keys[j]);
+			struct input_binding *bind = bind_reset(NULL, default_binds[i].keys[j]);
 			for (size_t k = 0; default_binds[i].actions[k] != 0; ++k) {
 				if (!attach_action_to_bind(bind, default_binds[i].actions[k], NULL, 0)) {
 					return false;
@@ -146,11 +137,7 @@ assign_default_binds(void)
 		}
 	}
 
-	if (!bind_exec("?", "man newsraft")) {
-		return false;
-	}
-
-	return true;
+	return attach_action_to_bind(bind_reset(NULL, "?"), INPUT_SYSTEM_COMMAND, "man newsraft", 12);
 }
 
 input_id

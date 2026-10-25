@@ -703,7 +703,7 @@ render_html(GumboNode *node, struct html_render *ctx)
 	}
 }
 
-bool
+void
 render_text_html(struct line *line, const struct wstring *source, struct links_list *links)
 {
 	struct html_render html = {
@@ -711,18 +711,17 @@ render_text_html(struct line *line, const struct wstring *source, struct links_l
 		.links = links,
 	};
 	struct string *str = convert_wstring_to_string(source);
-	if (str == NULL) {
-		return false;
+	if (!str) {
+		return;
 	}
 	GumboOutput *output = gumbo_parse(str->ptr);
-	if (output == NULL) {
+	if (!output) {
 		FAIL("Couldn't parse HTML successfully!");
 		free_string(str);
-		return false;
+		return;
 	}
 	render_html(output->root, &html);
 	gumbo_destroy_output(&kGumboDefaultOptions, output);
 	free_string(str);
 	free_abbrs(&html);
-	return true;
 }

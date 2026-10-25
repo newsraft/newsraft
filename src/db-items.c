@@ -1,4 +1,3 @@
-#include <string.h>
 #include "newsraft.h"
 
 sqlite3_stmt *
@@ -88,15 +87,14 @@ db_change_unread_status_of_all_items_in_feeds(struct feed_entry **feeds, size_t 
 	if (feeds_count == 0) {
 		return true;
 	}
-	char *query = newsraft_malloc(sizeof(char) * (46 + feeds_count * 2 + 100));
-	strcpy(query, "UPDATE items SET unread=? WHERE feed_url IN (?");
+	struct string *query = crtas("UPDATE items SET unread=? WHERE feed_url IN (?", 46);
 	for (size_t i = 1; i < feeds_count; ++i) {
-		strcat(query, ",?");
+		catas(query, ",?", 2);
 	}
-	strcat(query, ")");
-	sqlite3_stmt *res = db_prepare(query, strlen(query) + 1, NULL);
-	if (res == NULL) {
-		free(query);
+	catcs(query, ')');
+	sqlite3_stmt *res = db_prepare(query->ptr, query->len + 1, NULL);
+	free_string(query);
+	if (!res) {
 		return false;
 	}
 	sqlite3_bind_int(res, 1, unread);
@@ -105,6 +103,5 @@ db_change_unread_status_of_all_items_in_feeds(struct feed_entry **feeds, size_t 
 	}
 	bool status = sqlite3_step(res) == SQLITE_DONE ? true : false;
 	sqlite3_finalize(res);
-	free(query);
 	return status;
 }

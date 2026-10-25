@@ -8,14 +8,10 @@ extract_token_from_line(struct string *line, struct string *token, bool break_on
 	empty_string(token);
 	size_t to_remove = 0;
 	if (line->ptr[0] == '"' || line->ptr[0] == '\'') {
-		to_remove = 1;
-		for (const char *i = line->ptr + 1; *i != '\0'; ++i) {
-			to_remove += 1;
-			if (*i == line->ptr[0]) {
-				break;
-			}
-			catcs(token, *i);
-		}
+		const char *closing_quote = strchr(line->ptr + 1, line->ptr[0]);
+		size_t token_len = closing_quote ? (size_t)(closing_quote - line->ptr) : strlen(line->ptr);
+		catas(token, line->ptr + 1, token_len - 1);
+		to_remove = token_len + 1;
 	} else {
 		to_remove = strcspn(line->ptr, break_on_whitespace ? "; \n\t\v\f\r" : ";");
 		catas(token, line->ptr, to_remove);
@@ -102,7 +98,7 @@ process_config_line(struct feed_entry *feed, const char *str, size_t len)
 			// bind/unbind <key>
 
 			extract_token_from_line(line, token, true);
-			bind = create_or_clean_bind(binds, token->ptr);
+			bind = bind_reset(binds, token->ptr);
 			continue;
 
 		} else if (find_config_entry_by_name(token->ptr) != CFG_ENTRIES_COUNT) {

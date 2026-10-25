@@ -47,44 +47,36 @@ set_db_path(const char *path)
 	return set_file_path(db_file_path, "database", path);
 }
 
+static inline bool
+check_file_path(char *dest, const char *env_var, const char *file)
+{
+	const char *dir = getenv(env_var);
+	if (!dir || strlen(dir) == 0) {
+		return false;
+	}
+	snprintf(dest, PATH_MAX, "%s/%s", dir, file);
+	FILE *f = fopen(dest, "r");
+	if (!f) {
+		return false;
+	}
+	fclose(f);
+	return true;
+}
+
 const char *
 get_feeds_path(void)
 {
-	if (strlen(feeds_file_path) > 0) {
-		return feeds_file_path;
-	}
-
-	FILE *f;
-	char *env_var = getenv("XDG_CONFIG_HOME");
-
 	// Order in which to look up a feeds file:
 	// 1. $XDG_CONFIG_HOME/newsraft/feeds
 	// 2. $HOME/.config/newsraft/feeds
 	// 3. $HOME/.newsraft/feeds
 
-	if (env_var != NULL && strlen(env_var) > 0) {
-		snprintf(feeds_file_path, PATH_MAX, "%s/newsraft/feeds", env_var);
-		f = fopen(feeds_file_path, "r");
-		if (f != NULL) {
-			fclose(f);
-			return feeds_file_path; // 1
-		}
-	}
-
-	env_var = getenv("HOME");
-	if (env_var != NULL && strlen(env_var) > 0) {
-		snprintf(feeds_file_path, PATH_MAX, "%s/.config/newsraft/feeds", env_var);
-		f = fopen(feeds_file_path, "r");
-		if (f != NULL) {
-			fclose(f);
-			return feeds_file_path; // 2
-		}
-		snprintf(feeds_file_path, PATH_MAX, "%s/.newsraft/feeds", env_var);
-		f = fopen(feeds_file_path, "r");
-		if (f != NULL) {
-			fclose(f);
-			return feeds_file_path; // 3
-		}
+	if (strlen(feeds_file_path) > 0
+		|| check_file_path(feeds_file_path, "XDG_CONFIG_HOME", "newsraft/feeds")
+		|| check_file_path(feeds_file_path, "HOME", ".config/newsraft/feeds")
+		|| check_file_path(feeds_file_path, "HOME", ".newsraft/feeds"))
+	{
+		return feeds_file_path;
 	}
 
 	write_error("Can't find feeds file! Newsraft requires it to function.\n");
@@ -95,41 +87,17 @@ get_feeds_path(void)
 const char *
 get_config_path(void)
 {
-	if (strlen(config_file_path) > 0) {
-		return config_file_path;
-	}
-
-	FILE *f;
-	char *env_var = getenv("XDG_CONFIG_HOME");
-
 	// Order in which to look up a config file:
 	// 1. $XDG_CONFIG_HOME/newsraft/config
 	// 2. $HOME/.config/newsraft/config
 	// 3. $HOME/.newsraft/config
 
-	if (env_var != NULL && strlen(env_var) > 0) {
-		snprintf(config_file_path, PATH_MAX, "%s/newsraft/config", env_var);
-		f = fopen(config_file_path, "r");
-		if (f != NULL) {
-			fclose(f);
-			return config_file_path; // 1
-		}
-	}
-
-	env_var = getenv("HOME");
-	if (env_var != NULL && strlen(env_var) > 0) {
-		snprintf(config_file_path, PATH_MAX, "%s/.config/newsraft/config", env_var);
-		f = fopen(config_file_path, "r");
-		if (f != NULL) {
-			fclose(f);
-			return config_file_path; // 2
-		}
-		snprintf(config_file_path, PATH_MAX, "%s/.newsraft/config", env_var);
-		f = fopen(config_file_path, "r");
-		if (f != NULL) {
-			fclose(f);
-			return config_file_path; // 3
-		}
+	if (strlen(config_file_path) > 0
+		|| check_file_path(config_file_path, "XDG_CONFIG_HOME", "newsraft/config")
+		|| check_file_path(config_file_path, "HOME", ".config/newsraft/config")
+		|| check_file_path(config_file_path, "HOME", ".newsraft/config"))
+	{
+		return config_file_path;
 	}
 
 	// Do not write error message because config file is optional.
@@ -139,56 +107,31 @@ get_config_path(void)
 const char *
 get_db_path(void)
 {
-	if (strlen(db_file_path) > 0) {
-		return db_file_path;
-	}
-
 	// Order in which to look up a database file:
 	// 1. $XDG_DATA_HOME/newsraft/newsraft.sqlite3
 	// 2. $HOME/.local/share/newsraft/newsraft.sqlite3
 	// 3. $HOME/.newsraft/newsraft.sqlite3
 
-	FILE *f;
-
-	char *xdg_data_home_var = getenv("XDG_DATA_HOME");
-	size_t xdg_data_home_var_len = xdg_data_home_var != NULL ? strlen(xdg_data_home_var) : 0;
-	if (xdg_data_home_var != NULL && xdg_data_home_var_len > 0) {
-		snprintf(db_file_path, PATH_MAX, "%s/newsraft/newsraft.sqlite3", xdg_data_home_var);
-		f = fopen(db_file_path, "r");
-		if (f != NULL) {
-			fclose(f);
-			return db_file_path; // 1
-		}
-	}
-
-	char *home_var = getenv("HOME");
-	size_t home_var_len = home_var != NULL ? strlen(home_var) : 0;
-	if (home_var != NULL && home_var_len > 0) {
-		snprintf(db_file_path, PATH_MAX, "%s/.local/share/newsraft/newsraft.sqlite3", home_var);
-		f = fopen(db_file_path, "r");
-		if (f != NULL) {
-			fclose(f);
-			return db_file_path; // 2
-		}
-		snprintf(db_file_path, PATH_MAX, "%s/.newsraft/newsraft.sqlite3", home_var);
-		f = fopen(db_file_path, "r");
-		if (f != NULL) {
-			fclose(f);
-			return db_file_path; // 3
-		}
+	if (strlen(db_file_path) > 0
+		|| check_file_path(db_file_path, "XDG_DATA_HOME", "newsraft/newsraft.sqlite3")
+		|| check_file_path(db_file_path, "HOME", ".local/share/newsraft/newsraft.sqlite3")
+		|| check_file_path(db_file_path, "HOME", ".newsraft/newsraft.sqlite3"))
+	{
+		return db_file_path;
 	}
 
 	// If we got to this point then database file does not exist.
 	// We have to create a new one!
 
-	DIR *d;
+	char *xdg_data_home_var = getenv("XDG_DATA_HOME");
+	char *home_var = getenv("HOME");
 
-	if (xdg_data_home_var != NULL && xdg_data_home_var_len > 0) {
+	if (xdg_data_home_var && strlen(xdg_data_home_var) > 0) {
 		snprintf(db_file_path, PATH_MAX, "%s", xdg_data_home_var);
 		mkdir(db_file_path, 0777);
 		snprintf(db_file_path, PATH_MAX, "%s/newsraft", xdg_data_home_var);
 		mkdir(db_file_path, 0777);
-		d = opendir(db_file_path);
+		DIR *d = opendir(db_file_path);
 		if (d != NULL) {
 			closedir(d);
 			snprintf(db_file_path, PATH_MAX, "%s/newsraft/newsraft.sqlite3", xdg_data_home_var);
@@ -196,7 +139,7 @@ get_db_path(void)
 		} else {
 			write_error("Failed to create \"%s\" directory!\n", db_file_path);
 		}
-	} else if (home_var != NULL && home_var_len > 0) {
+	} else if (home_var && strlen(home_var) > 0) {
 		snprintf(db_file_path, PATH_MAX, "%s", home_var);
 		mkdir(db_file_path, 0777);
 		snprintf(db_file_path, PATH_MAX, "%s/.local", home_var);
@@ -205,7 +148,7 @@ get_db_path(void)
 		mkdir(db_file_path, 0777);
 		snprintf(db_file_path, PATH_MAX, "%s/.local/share/newsraft", home_var);
 		mkdir(db_file_path, 0777);
-		d = opendir(db_file_path);
+		DIR *d = opendir(db_file_path);
 		if (d != NULL) {
 			closedir(d);
 			snprintf(db_file_path, PATH_MAX, "%s/.local/share/newsraft/newsraft.sqlite3", home_var);

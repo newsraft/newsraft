@@ -8,10 +8,7 @@ static void
 atom_link_start(struct feed_update_state *data, const XML_Char **attrs)
 {
 	const char *attr = get_value_of_attribute_key(attrs, "href");
-	if (attr == NULL) {
-		return; // Ignore empty links.
-	}
-	const size_t attr_len = strlen(attr);
+	const size_t attr_len = attr ? strlen(attr) : 0;
 	if (attr_len == 0) {
 		return; // Ignore empty links.
 	}

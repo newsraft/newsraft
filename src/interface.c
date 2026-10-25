@@ -127,11 +127,13 @@ resize_handler(void)
 	tb_clear();
 	tb_present();
 
-	if (obtain_list_menu_size(&list_menu_width, &list_menu_height) == false) {
+	if (!obtain_list_menu_size(&list_menu_width, &list_menu_height)) {
 		// Some really crazy resize happend. It is either a glitch or user
 		// deliberately trying to break something. This state is unusable anyways.
 		write_error("Don't flex around with me, okay?\n");
-		goto error;
+		they_want_us_to_stop = true;
+		pthread_mutex_unlock(&interface_lock);
+		return INPUT_QUIT_HARD;
 	}
 	adjust_list_menu();
 	status_recreate_unprotected();
@@ -141,10 +143,6 @@ resize_handler(void)
 	redraw_list_menu_unprotected();
 	pthread_mutex_unlock(&interface_lock);
 	return INPUT_ERROR;
-error:
-	they_want_us_to_stop = true;
-	pthread_mutex_unlock(&interface_lock);
-	return INPUT_QUIT_HARD;
 }
 
 bool

@@ -20,10 +20,7 @@ static void
 mediarss_content_start(struct feed_update_state *data, const XML_Char **attrs)
 {
 	const char *attr = get_value_of_attribute_key(attrs, "url");
-	if (attr == NULL) {
-		return; // Ignore empty content entries.
-	}
-	const size_t attr_len = strlen(attr);
+	const size_t attr_len = attr ? strlen(attr) : 0;
 	if (attr_len == 0) {
 		return; // Ignore empty content entries.
 	}
@@ -46,10 +43,7 @@ static void
 embed_or_player_start(struct feed_update_state *data, const XML_Char **attrs)
 {
 	const char *attr = get_value_of_attribute_key(attrs, "url");
-	if (attr == NULL) {
-		return; // Ignore empty entries.
-	}
-	const size_t attr_len = strlen(attr);
+	const size_t attr_len = attr ? strlen(attr) : 0;
 	if (attr_len == 0) {
 		return; // Ignore empty entries.
 	}

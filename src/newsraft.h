@@ -490,8 +490,8 @@ struct menu_state *errors_pager_loop(struct menu_state *m);
 
 // Functions responsible for managing of key bindings.
 // See "binds.c" file for implementation.
-input_id get_action_of_bind(struct input_binding *ctx, const char *key, size_t action_index, const struct wstring **p_arg);
-struct input_binding *create_or_clean_bind(struct input_binding **target, const char *key);
+input_id bind_get_action(struct input_binding *ctx, const char *key, size_t action_index, const struct wstring **p_arg);
+struct input_binding *bind_reset(struct input_binding **target, const char *key);
 bool attach_action_to_bind(struct input_binding *bind, input_id cmd, const char *arg, size_t arg_len);
 bool assign_default_binds(void);
 input_id get_input_id_by_name(const char *name);

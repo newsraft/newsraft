@@ -156,7 +156,7 @@ assign_default_binds(void)
 input_id
 get_input_id_by_name(const char *name)
 {
-	for (size_t i = 0; LENGTH(g_actions); ++i) {
+	for (size_t i = 0; i < LENGTH(g_actions); ++i) {
 		for (size_t j = 0; g_actions[i].names[j] != NULL; ++j) {
 			if (strcmp(name, g_actions[i].names[j]) == 0) {
 				return i;

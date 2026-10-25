@@ -151,9 +151,9 @@ run_scenario(const struct newsraft_execution_stage *scenario, size_t scenario_st
 	size_t stage = 0;
 	for (stage = 0; stage < scenario_stages_count; ++stage) {
 		INFO("Trying to %s...", scenario[stage].description);
-		if (scenario[stage].constructor() != true) {
+		if (!scenario[stage].constructor()) {
 			write_error("Failed to %s\n", scenario[stage].description);
-			error = stage;
+			error = stage + 1;
 			break;
 		}
 	}

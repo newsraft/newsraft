@@ -220,6 +220,7 @@ struct menu_state {
 	bool (*unread_state)(struct menu_state *ctx, size_t index);
 	bool (*failed_state)(struct menu_state *ctx, size_t index);
 	void (*age_catch_up)(struct menu_state *m); // Runs when menu's age catches up to the current age
+	void (*hover_action)(struct menu_state *m); // Runs on the selected entry before every input read
 	struct menu_state *prev;
 };
 

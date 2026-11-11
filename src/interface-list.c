@@ -527,6 +527,9 @@ menu_read(struct input_binding *ctx, input_id *cmd, uint32_t *count, const struc
 		menu->age_catch_up(menu);
 	}
 	menu->age = current_menu_age;
+	if (menu->hover_action) {
+		menu->hover_action(menu);
+	}
 	*cmd = get_input(ctx, count, p_arg);
 	return !they_want_us_to_stop;
 }

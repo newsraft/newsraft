@@ -708,6 +708,8 @@ _bold_, _italic_ and _underlined_.
 :[ _q_
 |[ *quit-hard*
 :[ _Q_
+|[ *suspend*
+:[ _^Z_
 |[ *exec man newsraft*
 :[ _?_
 

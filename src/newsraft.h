@@ -464,6 +464,8 @@ bool db_change_unread_status_of_all_items_in_feeds(struct feed_entry **feeds, si
 // See "interface.c" file for implementation.
 bool ui_init(void);
 void ui_term(void);
+void ui_redraw_unprotected(void);
+void ui_suspend(void);
 bool ui_is_running(void);
 bool ui_set_window_title(void);
 bool run_menu_loop(void);
@@ -552,6 +554,10 @@ struct string *convert_warray_to_string(const wchar_t *src_ptr, size_t src_len);
 
 // See "signal.c" file for implementation.
 bool register_signal_handlers(void);
+bool is_suspend_signal_allowed(void);
+void suspend_process(void);
+void enable_suspend_signal_handler(void);
+void disable_suspend_signal_handler(void);
 
 // Parse config file, fill out config_data structure, bind keys to actions.
 // See "load_config" directory for implementation.
@@ -629,6 +635,7 @@ void *newsraft_realloc(void *ptr, size_t size);
 void newsraft_free(void *ptr);
 
 extern volatile bool they_want_us_to_stop;
+extern volatile bool they_want_us_to_suspend;
 extern size_t list_menu_height;
 extern size_t list_menu_width;
 extern pthread_mutex_t interface_lock;

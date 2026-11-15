@@ -121,6 +121,7 @@ assign_default_binds(void)
 		{{"h", "backspace", "KEY_LEFT"}, {INPUT_NAVIGATE_BACK}},
 		{{"q"},                        {INPUT_QUIT_SOFT}},
 		{{"Q"},                        {INPUT_QUIT_HARD}},
+		{{"^Z"},                       {INPUT_SUSPEND}},
 		{{"d"},                        {INPUT_MARK_READ, INPUT_JUMP_TO_NEXT}},
 		{{"D"},                        {INPUT_MARK_UNREAD, INPUT_JUMP_TO_NEXT}},
 	};

@@ -76,6 +76,7 @@ ui_init(void)
 	}
 	adjust_list_menu();
 	status_recreate_unprotected();
+	enable_suspend_signal_handler();
 	newsraft_has_successfully_initialized_ui = true;
 	return true;
 }
@@ -85,9 +86,62 @@ ui_term(void)
 {
 	INFO("Terminating user interface...");
 
+	disable_suspend_signal_handler();
 	status_delete_unprotected();
 	free_list_menu();
 	tb_shutdown();
+}
+
+void
+ui_redraw_unprotected(void)
+{
+	tb_clear();
+	tb_present();
+	status_recreate_unprotected();
+	redraw_list_menu_unprotected();
+}
+
+void
+ui_suspend(void)
+{
+	if (!ui_is_running() || !is_suspend_signal_allowed()) {
+		they_want_us_to_suspend = false;
+		return;
+	}
+	INFO("Suspending user interface...");
+	pthread_mutex_lock(&interface_lock);
+	size_t prev_width = list_menu_width;
+	size_t prev_height = list_menu_height;
+	ui_term();
+	fflush(stdout);
+	fflush(stderr);
+
+	// Here the whole process with all its threads gets stopped.
+	suspend_process();
+	// And here it continues whenever the user sends SIGCONT to it.
+
+	if (they_want_us_to_stop) {
+		pthread_mutex_unlock(&interface_lock);
+		return;
+	}
+
+	INFO("Resuming user interface...");
+	fflush(stdout);
+	fflush(stderr);
+	if (!ui_init()) {
+		newsraft_has_successfully_initialized_ui = false;
+		they_want_us_to_stop = true;
+		pthread_mutex_unlock(&interface_lock);
+		return;
+	}
+	ui_set_window_title();
+	if (list_menu_width != prev_width || list_menu_height != prev_height) {
+		pthread_mutex_unlock(&interface_lock);
+		resize_handler();
+	} else {
+		ui_redraw_unprotected();
+		pthread_mutex_unlock(&interface_lock);
+	}
 }
 
 bool
@@ -121,12 +175,6 @@ input_id
 resize_handler(void)
 {
 	pthread_mutex_lock(&interface_lock);
-
-	// We need to call clear and refresh before all resize actions because
-	// the junk text of previous size may remain in inactive areas.
-	tb_clear();
-	tb_present();
-
 	if (!obtain_list_menu_size(&list_menu_width, &list_menu_height)) {
 		// Some really crazy resize happend. It is either a glitch or user
 		// deliberately trying to break something. This state is unusable anyways.
@@ -136,11 +184,10 @@ resize_handler(void)
 		return INPUT_QUIT_HARD;
 	}
 	adjust_list_menu();
-	status_recreate_unprotected();
-	if (is_current_menu_a_pager() == true) {
+	if (is_current_menu_a_pager()) {
 		refresh_pager_menu();
 	}
-	redraw_list_menu_unprotected();
+	ui_redraw_unprotected();
 	pthread_mutex_unlock(&interface_lock);
 	return INPUT_ERROR;
 }

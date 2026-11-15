@@ -36,10 +36,7 @@ execute_system_command(const char *cmd, bool quiet)
 			resize_handler();
 		} else {
 			pthread_mutex_lock(&interface_lock);
-			tb_clear();
-			tb_present();
-			status_recreate_unprotected();
-			redraw_list_menu_unprotected();
+			ui_redraw_unprotected();
 			pthread_mutex_unlock(&interface_lock);
 		}
 	}

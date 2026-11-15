@@ -143,7 +143,7 @@ get_wch(char *keyname)
 		[TB_KEY_CTRL_W]           = "^W",     // ok
 		[TB_KEY_CTRL_X]           = "^X",     // ok
 		[TB_KEY_CTRL_Y]           = "^Y",     // ok
-		[TB_KEY_CTRL_Z]           = "^Z",
+		[TB_KEY_CTRL_Z]           = "^Z",     // ok
 		[TB_KEY_ESC]              = "escape", // ok
 		[TB_KEY_CTRL_BACKSLASH]   = "^\\",    // ok
 		[TB_KEY_CTRL_RSQ_BRACKET] = "^]",     // ok

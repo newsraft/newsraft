@@ -327,6 +327,10 @@ handle_list_menu_control(struct menu_state *m, input_id cmd, const struct wstrin
 		}
 	} else if (cmd == INPUT_CLEAN_STATUS) {
 		status_clean_unprotected();
+	} else if (cmd == INPUT_SUSPEND) {
+		pthread_mutex_unlock(&interface_lock);
+		ui_suspend();
+		return true;
 	} else if (cmd == INPUT_SYSTEM_COMMAND || cmd == INPUT_SYSTEM_COMMAND_QUIET) {
 		struct format_arg args[100];
 		pthread_mutex_unlock(&interface_lock);
@@ -390,6 +394,10 @@ handle_pager_menu_control(input_id cmd)
 		change_pager_view_unprotected(obtain_list_entries_count_unprotected(menu));
 	} else if (cmd == INPUT_CLEAN_STATUS) {
 		status_clean_unprotected();
+	} else if (cmd == INPUT_SUSPEND) {
+		pthread_mutex_unlock(&interface_lock);
+		ui_suspend();
+		return true;
 	} else {
 		pthread_mutex_unlock(&interface_lock);
 		return false;

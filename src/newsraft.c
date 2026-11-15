@@ -73,6 +73,7 @@ struct newsraft_execution_stage {
 };
 
 volatile bool they_want_us_to_stop = false;
+volatile bool they_want_us_to_suspend = false;
 
 static inline void
 print_usage(void)

@@ -120,12 +120,14 @@ status_write(config_entry_id color, const char *format, ...)
 	va_start(args, format);
 	str_vappendf(new_message, format, args);
 	va_end(args);
-	if (status_window_is_initialized) {
+	if (ui_is_running()) {
 		pthread_mutex_lock(&interface_lock);
-		message_color = color;
-		cpyss(&message_text, new_message);
-		INFO("Printed status message: %s", message_text->ptr);
-		update_status_window_content_unprotected();
+		if (status_window_is_initialized) {
+			message_color = color;
+			cpyss(&message_text, new_message);
+			INFO("Printed status message: %s", message_text->ptr);
+			update_status_window_content_unprotected();
+		}
 		pthread_mutex_unlock(&interface_lock);
 	} else {
 		puts(new_message->ptr);
@@ -158,7 +160,11 @@ get_input(struct input_binding *ctx, uint32_t *count, const struct wstring **p_a
 			queued_action_index = 0;
 		}
 	}
-	while (they_want_us_to_stop == false) {
+	while (!they_want_us_to_stop) {
+		if (they_want_us_to_suspend) {
+			ui_suspend();
+			continue;
+		}
 		// We have to read input from a child window because
 		// reading it from the main window will bring stdscr
 		// on top of other windows and overlap them.
@@ -166,7 +172,11 @@ get_input(struct input_binding *ctx, uint32_t *count, const struct wstring **p_a
 		int status = get_wch(key);
 		pthread_mutex_unlock(&interface_lock);
 		if (status == TB_ERR) {
-			if (they_want_us_to_quit_waiting_for_input == true) {
+			if (they_want_us_to_suspend) {
+				ui_suspend();
+				continue;
+			}
+			if (they_want_us_to_quit_waiting_for_input) {
 				they_want_us_to_quit_waiting_for_input = false;
 				return INPUT_EMPTY;
 			}
@@ -176,7 +186,7 @@ get_input(struct input_binding *ctx, uint32_t *count, const struct wstring **p_a
 			return resize_handler();
 		}
 		INFO("Read key: %s", key);
-		if (search_mode_is_enabled == true) {
+		if (search_mode_is_enabled) {
 			if (strcmp(key, "enter") == 0 || strcmp(key, "^C") == 0 || strcmp(key, "escape") == 0) {
 				search_mode_is_enabled = false;
 				status_clean();

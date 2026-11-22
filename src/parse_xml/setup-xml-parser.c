@@ -48,16 +48,59 @@ end_element_handler(void *userData, const XML_Char *name)
 }
 
 static void
+escape_and_append_html_text_to_string(struct string *dest, const XML_Char *s, int len)
+{
+	int start = 0;
+	for (int i = 0; i < len; ++i) {
+		const char *entity = NULL;
+		switch (s[i]) {
+			// For HTML text, it makes sense to escape just these.
+			// Other special characters don't matter for HTML text.
+			case '&': entity = "&amp;"; break;
+			case '<': entity = "&lt;";  break;
+			case '>': entity = "&gt;";  break;
+		}
+		if (!entity) {
+			continue;
+		}
+		catas(dest, s + start, i - start);
+		catas(dest, entity, strlen(entity));
+		start = i + 1;
+	}
+	catas(dest, s + start, len - start);
+}
+
+static void
+character_data_handler_basic(struct feed_update_state *state, const XML_Char *s, int len)
+{
+	catas(state->text, s, len);
+}
+
+static void
+character_data_handler_xhtml(struct feed_update_state *state, const XML_Char *s, int len)
+{
+	// Since we convert XHTML to HTML here, we need to escape entities back.
+	escape_and_append_html_text_to_string(state->text, s, len);
+}
+
+// Expat hands here text which is already decoded (originally escaped entities
+// are turned into their raw representation, e.g. &amp; -> &).
+static void
 character_data_handler(void *userData, const XML_Char *s, int len)
 {
-	catas(((struct feed_update_state *)userData)->text, s, len);
+	struct feed_update_state *data = userData;
+	if (data->emptying_target != &data->xhtml_content_clear_guard) {
+		character_data_handler_basic(data, s, len);
+	} else {
+		character_data_handler_xhtml(data, s, len);
+	}
 }
 
 static void
 xml_default_handler(void *userData, const XML_Char *s, int len)
 {
 	struct feed_update_state *data = userData;
-	if (data->emptying_target == &data->decoy) {
+	if (data->emptying_target == &data->xhtml_content_clear_guard) {
 		catas(data->text, s, len);
 	}
 }
@@ -71,13 +114,16 @@ xml_cdata_noop(void *userData)
 	// 2) the text inside it
 	// 3) the "]]>" closer
 	//
-	// The text always goes to character_data_handler, but the two markers go to
-	// the default handler unless CDATA section handlers are registered. When
-	// emptying_target is the decoy (XHTML content being copied verbatim into item
-	// description), xml_default_handler would then append "<![CDATA[" and "]]>"
-	// to the content, which is not valid HTML. By registering this no-op for both
-	// the start and end of CDATA sections we swallow the markers while the text
-	// inside still arrives through character_data_handler as usual.
+	// The text (2) always goes to character_data_handler, but the two markers
+	// go to the default handler unless CDATA section handlers are registered.
+	//
+	// When emptying_target is xhtml_content_clear_guard (XHTML content being
+	// copied verbatim into item), xml_default_handler would then append
+	// "<![CDATA[" and "]]>" to the content, which is not valid HTML.
+	//
+	// By registering this no-op for both the start and end of CDATA sections
+	// we swallow the markers while the text inside still arrives through
+	// character_data_handler as usual.
 
 	(void)userData;
 }
@@ -90,7 +136,7 @@ setup_xml_parser(struct feed_update_state *data)
 		return false;
 	}
 	static char ptr_for_decoy[1];
-	data->decoy.ptr = ptr_for_decoy;
+	data->xhtml_content_clear_guard.ptr = ptr_for_decoy;
 	data->emptying_target = data->text;
 	XML_SetUserData(data->xml_parser, data);
 	XML_SetElementHandler(data->xml_parser, &start_element_handler, &end_element_handler);

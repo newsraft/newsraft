@@ -315,7 +315,12 @@ struct feed_update_state {
 	struct string *text;
 	uint8_t path[256];
 	uint8_t depth;
-	struct string decoy;
+
+	// When emptying_target points to this thing, it means that we have to
+	// accumulate text across multiple XML elements into one big piece. Right
+	// now it's used only with one purpose: gather XHTML into item's content.
+	struct string xhtml_content_clear_guard;
+
 	struct string *emptying_target;
 
 	size_t new_items_count;

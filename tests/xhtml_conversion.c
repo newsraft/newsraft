@@ -9,7 +9,7 @@ static const char expected_content[] =
 	"<div xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"en\" lang=\"en\" class=\"h-entry\">\n"
 	"\t\t\t\t<p>Some shell code:</p>\n"
 	"\t\t\t\t<pre><code>for i in `seq 0 10`; do\n"
-	"\techo $((i * i))\n"
+	"\techo \"$((i * i))\" &gt;&amp;2\n"
 	"done</code></pre>"
 	"</div>";
 

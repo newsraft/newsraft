@@ -8,7 +8,7 @@
 			<div xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en" class="h-entry">
 				<p>Some shell code:</p>
 				<pre><code><![CDATA[for i in `seq 0 10`; do
-	echo $((i * i))
+	echo "$((i * i))" >&2
 done]]></code></pre>
 			</div>
 		</content>

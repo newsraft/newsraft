@@ -44,7 +44,7 @@ atom_content_start(struct feed_update_state *data, const XML_Char **attrs)
 		serialize_attribute(&data->feed.item->content, "type=", 5, attrs, "type");
 		const char *type = get_value_of_attribute_key(attrs, "type");
 		if (type != NULL && strstr(type, "xhtml") != NULL) {
-			data->emptying_target = &data->decoy;
+			data->emptying_target = &data->xhtml_content_clear_guard;
 			empty_string(data->text);
 		}
 	}

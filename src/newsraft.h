@@ -4,6 +4,7 @@
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <inttypes.h>
 #include <time.h>
 #include <wchar.h>
@@ -33,6 +34,14 @@
 #define STRING_IS_EMPTY(A) (((A) == NULL) || ((A)->ptr == NULL) || ((A)->len == 0))
 #define NEWSRAFT_ALL_BITS_SET(x, type) ((x) == (type)~(type)0)
 #define NO_PARTICULAR_ROWID_IS_ELIGIBLE_FOR_FOCUS (-1)
+
+#define NEWSRAFT_ASSERT(EXPR)                                                                        \
+    do {                                                                                             \
+        if (!(EXPR)) {                                                                               \
+            fprintf(stderr, "%s:%d: %s: assert(%s) failed!\n", __FILE__, __LINE__, __func__, #EXPR); \
+            abort();                                                                                 \
+        }                                                                                            \
+    } while (0)
 
 typedef uint8_t config_entry_id;
 typedef uint8_t input_id;
@@ -322,6 +331,46 @@ struct feed_update_state {
 	struct feed_update_state *next;
 };
 
+typedef uint8_t config_type_id;
+enum config_type {
+	CFG_BOOL,
+	CFG_UINT,
+	CFG_COLOR,
+	CFG_STRING,
+};
+
+struct config_color {
+	uintattr_t fg;
+	uintattr_t bg;
+	uintattr_t attributes;
+};
+
+struct config_string {
+	const char *const base;
+	struct string *actual;
+	struct wstring *wactual;
+	bool (*auto_set)(struct config_context **, config_type_id);
+};
+
+union config_value {
+	bool b;
+	size_t u;
+	struct config_color c;
+	struct config_string s;
+};
+
+struct config_entry {
+	const char *name;
+	config_type_id type;
+	union config_value value;
+};
+
+struct config_context {
+	config_entry_id id;
+	struct config_entry cfg;
+	struct config_context *next;
+};
+
 // See "sections.c" file for implementation.
 int64_t make_sure_section_exists(const struct string *section_name);
 struct feed_entry *copy_feed_to_section(const struct feed_entry *feed_data, int64_t section_index);
@@ -388,8 +437,6 @@ bool update_menu_item_list(struct menu_state *ctx, int64_t selected_rowid);
 void obtain_items_at_least_up_to_the_given_index(struct items_list *items, size_t index);
 void change_items_list_sorting(struct menu_state *ctx, input_id cmd, int64_t selected_rowid);
 void free_items_list(struct items_list *items);
-extern bool hide_read_feeds;
-extern bool hide_read_items;
 
 // See "items-pager.c" file for implementation.
 struct menu_state *item_pager_loop(struct menu_state *m);
@@ -628,12 +675,33 @@ bool insert_feed(struct feed_entry *feed, struct getfeed_feed *feed_data);
 void prepend_item(struct getfeed_item **head_item_ptr);
 void free_item(struct getfeed_item *item);
 
+// See "load_config.c" file for implementation.
+config_entry_id find_config_entry_by_name(const char *name);
+config_type_id get_cfg_type(config_entry_id id);
+void set_cfg_bool(struct config_context **ctx, config_entry_id id, bool value);
+void set_cfg_uint(struct config_context **ctx, config_entry_id id, size_t value);
+void set_cfg_color(struct config_context **ctx, config_entry_id id, uintattr_t fg, uintattr_t bg, uintattr_t attribute);
+bool set_cfg_string(struct config_context **ctx, config_entry_id id, const char *src_ptr, size_t src_len);
+void log_config_settings(void);
+
+// See "config-auto.c" file for implementation.
+bool obtain_useragent_string(struct config_context **ctx, config_type_id id);
+bool obtain_browser_command(struct config_context **ctx, config_type_id id);
+bool obtain_clipboard_command(struct config_context **ctx, config_type_id id);
+bool obtain_notification_command(struct config_context **ctx, config_type_id id);
+
+// See "config-parse-colors.c" file for implementation.
+bool parse_color_setting(struct config_context **ctx, config_entry_id id, const char *iter);
+
 // See "alloc.c" file for implementation.
 void *newsraft_malloc(size_t size);
 void *newsraft_calloc(size_t n, size_t size);
 void *newsraft_realloc(void *ptr, size_t size);
 void newsraft_free(void *ptr);
 
+extern bool hide_read_feeds;
+extern bool hide_read_items;
+extern bool config_uses_256_colors;
 extern volatile bool they_want_us_to_stop;
 extern volatile bool they_want_us_to_suspend;
 extern size_t list_menu_height;

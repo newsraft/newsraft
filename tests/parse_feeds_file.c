@@ -1,4 +1,3 @@
-#include <locale.h>
 #include <string.h>
 #include "newsraft.h"
 
@@ -77,15 +76,12 @@ struct feed_test feed_tests[] = {
 	{"$( \tcat feed.xml \t| grep '^\\w+$' )",   NULL,   0,   0, ""},
 };
 
-int
-main(void)
+bool
+newsraft_test(void)
 {
-	int status = 0;
-	setlocale(LC_ALL, "");
-	set_db_path("./newsraft-test-database");
-	set_feeds_path("./tests/assets/parse_feeds_file.txt");
-	db_init();
-	parse_feeds_file();
+	NEWSRAFT_ASSERT(set_feeds_path("./tests/assets/parse_feeds_file.txt"));
+	NEWSRAFT_ASSERT(db_init());
+	NEWSRAFT_ASSERT(parse_feeds_file());
 	db_stop();
 
 	size_t feeds_count = 0;
@@ -93,38 +89,40 @@ main(void)
 
 	if (feeds_count != LENGTH(feed_tests)) {
 		fprintf(stderr, "Feeds count %zu != %zu\n", feeds_count, LENGTH(feed_tests));
-		return 1;
+		return false;
 	}
 
+	bool status = true;
+
 	size_t i;
-	for (i = 0; status == 0 && i < feeds_count; ++i) {
+	for (i = 0; status && i < feeds_count; ++i) {
 		size_t reload_period = get_cfg_uint(&feeds[i]->cfg, CFG_RELOAD_PERIOD);
 		size_t item_limit = get_cfg_uint(&feeds[i]->cfg, CFG_ITEM_LIMIT);
 		const char *proxy = get_cfg_string(&feeds[i]->cfg, CFG_PROXY)->ptr;
 
 		if (strcmp(feeds[i]->url->ptr, feed_tests[i].url) != 0) {
 			fprintf(stderr, "URL: %s != %s\n", feeds[i]->url->ptr, feed_tests[i].url);
-			status = 1;
+			status = false;
 		}
 		if (feeds[i]->name != NULL && feed_tests[i].name != NULL && strcmp(feeds[i]->name->ptr, feed_tests[i].name) != 0) {
 			fprintf(stderr, "Name: %s != %s\n", feeds[i]->name->ptr, feed_tests[i].name);
-			status = 1;
+			status = false;
 		}
 		if (reload_period != feed_tests[i].reload_period) {
 			fprintf(stderr, "Reload period: %zu != %zu\n", reload_period, feed_tests[i].reload_period);
-			status = 1;
+			status = false;
 		}
 		if (item_limit != feed_tests[i].item_limit) {
 			fprintf(stderr, "Item limit: %zu != %zu\n", item_limit, feed_tests[i].item_limit);
-			status = 1;
+			status = false;
 		}
 		if (strcmp(proxy, feed_tests[i].proxy) != 0) {
 			fprintf(stderr, "Proxy: %s != %s\n", proxy, feed_tests[i].proxy);
-			status = 1;
+			status = false;
 		}
 	}
 
-	if (status != 0) {
+	if (!status) {
 		fprintf(stderr, "Feed %zu failed!\n", i);
 	}
 

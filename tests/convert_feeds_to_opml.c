@@ -1,28 +1,23 @@
-#include <locale.h>
 #include <string.h>
 #include "newsraft.h"
 
-int
-main(void)
+bool
+newsraft_test(void)
 {
-	setlocale(LC_ALL, "");
-	set_db_path("./newsraft-test-database");
-	set_feeds_path("./tests/assets/convert_opml_to_feeds.txt");
-	db_init();
-	parse_feeds_file();
+	NEWSRAFT_ASSERT(set_feeds_path("./tests/assets/convert_opml_to_feeds.txt"));
+	NEWSRAFT_ASSERT(db_init());
+	NEWSRAFT_ASSERT(parse_feeds_file());
 	db_stop();
 
-	if (freopen("newsraft-test-feeds", "w", stdout) == NULL) {
-		return 1;
-	}
+	NEWSRAFT_ASSERT(freopen("newsraft-test-feeds", "w", stdout));
 
 	convert_feeds_to_opml();
 
 	FILE *example_stream = fopen("tests/assets/convert_feeds_to_opml.xml", "r");
 	FILE *generated_stream = fopen("newsraft-test-feeds", "r");
-	if (example_stream == NULL || generated_stream == NULL) {
-		return 1;
-	}
+	NEWSRAFT_ASSERT(example_stream);
+	NEWSRAFT_ASSERT(generated_stream);
+
 	char example[10000];
 	char generated[10000];
 	size_t example_len = fread(example, 1, sizeof(example), example_stream);
@@ -34,8 +29,8 @@ main(void)
 
 	if (strcmp(example, generated) != 0) {
 		fprintf(stderr, "Generated OPML file:\n%s\n", generated);
-		return 1;
+		return false;
 	}
 
-	return 0;
+	return true;
 }

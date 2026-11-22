@@ -76,7 +76,7 @@ libnewsraft.so:
 	$(CC) -std=c99 -shared $(CFLAGS) $(AUXCFLAGS) $(FEATURECFLAGS) -Isrc $(LDFLAGS) -o $@ src/newsraft.c $(LDLIBS)
 
 test-program:
-	$(CC) -std=c99 $(CFLAGS) $(AUXCFLAGS) $(FEATURECFLAGS) -Isrc -o newsraft-test $(TEST_FILE) -L. -lnewsraft
+	$(CC) -std=c99 $(CFLAGS) $(AUXCFLAGS) $(FEATURECFLAGS) -Isrc -o newsraft-test tests/main.c $(TEST_FILE) -L. -lnewsraft $(SQLITE_LIBS)
 
 gperf:
 	gperf -m 1000 -I -t -F ,0,NULL,NULL < src/parse_xml/gperf-data.in > src/parse_xml/gperf-data.c
@@ -92,7 +92,7 @@ check:
 	./tests/run-check.sh
 
 clean:
-	rm -rf newsraft newsraft-test newsraft-test-log newsraft-test-feeds newsraft-test-database* libnewsraft.so flog vlog
+	rm -rf newsraft newsraft-test newsraft-test-log newsraft-test-feeds libnewsraft.so flog vlog
 
 cppcheck:
 	find src -name "*.c" -exec cppcheck -q --enable=warning,performance,portability '{}' ';'

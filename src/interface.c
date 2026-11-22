@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include "load_config/load_config.h"
+
 #include "newsraft.h"
 
 static bool paint_it_black = true;

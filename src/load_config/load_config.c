@@ -1,5 +1,6 @@
 #include <string.h>
-#include "load_config/load_config.h"
+
+#include "newsraft.h"
 
 #define CONFIG_ARRAY
 #include "config.h"

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="atom.xsl"?>
+<feed xmlns="http://www.w3.org/2005/Atom" xmlns:xi="http://www.w3.org/2001/XInclude">
+	<id>https://example.org</id>
+	<entry>
+		<id>https://example.org/shell-programming</id>
+		<content type="xhtml">
+			<div xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en" class="h-entry">
+				<p>Some shell code:</p>
+				<pre><code><![CDATA[for i in `seq 0 10`; do
+	echo $((i * i))
+done]]></code></pre>
+			</div>
+		</content>
+	</entry>
+</feed>

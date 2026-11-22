@@ -1,4 +1,3 @@
-#include <locale.h>
 #include "newsraft.h"
 
 static bool
@@ -12,10 +11,9 @@ fmt_fails(struct wstring *out, const wchar_t *fmt, struct format_arg *args, cons
 	return false;
 }
 
-int
-main(void)
+bool
+newsraft_test(void)
 {
-	setlocale(LC_ALL, "");
 	struct wstring *w = wcrtes(200);
 	struct format_arg args[] = {
 		{L'n',  L'd',  {.i = 567                           }},
@@ -74,8 +72,8 @@ main(void)
 	if (fmt_fails(w, L"%-2h",      args, L"英"))                         goto error;
 
 	free_wstring(w);
-	return 0;
+	return true;
 error:
 	free_wstring(w);
-	return 1;
+	return false;
 }

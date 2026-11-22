@@ -11,8 +11,8 @@ static const char *test_cases[][2] = {
 	{NULL,                      NULL},
 };
 
-int
-main(void)
+bool
+newsraft_test(void)
 {
 	struct string *str = crtes(100);
 	for (size_t i = 0; test_cases[i][0] != NULL; ++i) {
@@ -20,9 +20,9 @@ main(void)
 		inlinefy_string(str);
 		if (strcmp(str->ptr, test_cases[i][1]) != 0) {
 			free_string(str);
-			return 1;
+			return false;
 		}
 	}
 	free_string(str);
-	return 0;
+	return true;
 }

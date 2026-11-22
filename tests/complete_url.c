@@ -78,16 +78,16 @@ static const char *test_cases[][3] = {
 	{NULL,                             NULL,               NULL},
 };
 
-int
-main(void)
+bool
+newsraft_test(void)
 {
-	int status = 0;
+	bool status = true;
 
 	for (size_t i = 0; test_cases[i][0] != NULL; ++i) {
 		struct string *full_url = complete_url(test_cases[i][0], test_cases[i][1]);
 		if (strcmp(full_url->ptr, test_cases[i][2]) != 0) {
 			fprintf(stderr, "Relative %zu: \"%s\" != \"%s\"\n", i, full_url->ptr, test_cases[i][2]);
-			status = 1;
+			status = false;
 		}
 		free_string(full_url);
 	}
@@ -97,7 +97,7 @@ main(void)
 		struct string *full_url = complete_url(test_cases[i][0], abs);
 		if (strcmp(full_url->ptr, abs) != 0) {
 			fprintf(stderr, "Absolute %zu: \"%s\" != \"%s\"\n", i, full_url->ptr, abs);
-			status = 1;
+			status = false;
 		}
 		free_string(full_url);
 	}

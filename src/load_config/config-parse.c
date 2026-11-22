@@ -1,5 +1,6 @@
 #include <string.h>
-#include "load_config/load_config.h"
+
+#include "newsraft.h"
 
 static inline void
 extract_token_from_line(struct string *line, struct string *token, bool break_on_whitespace)

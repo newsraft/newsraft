@@ -1,47 +1,7 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-typedef uint8_t config_type_id;
-enum config_type {
-	CFG_BOOL,
-	CFG_UINT,
-	CFG_COLOR,
-	CFG_STRING,
-};
-
-struct config_color {
-	uintattr_t fg;
-	uintattr_t bg;
-	uintattr_t attributes;
-};
-
-struct config_string {
-	const char *const base;
-	struct string *actual;
-	struct wstring *wactual;
-	bool (*auto_set)(struct config_context **, config_type_id);
-};
-
-union config_value {
-	bool b;
-	size_t u;
-	struct config_color c;
-	struct config_string s;
-};
-
-struct config_entry {
-	const char *name;
-	config_type_id type;
-	union config_value value;
-};
-
-struct config_context {
-	config_entry_id id;
-	struct config_entry cfg;
-	struct config_context *next;
-};
-
-#define CFG(NAME, ...)  NAME,
+#define CFG(NAME, ...) NAME,
 enum {
 
 #endif // CONFIG_H

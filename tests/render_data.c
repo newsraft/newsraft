@@ -33,8 +33,8 @@ const struct render_data_test render_tests[] = {
 	/* 14 */ {{ {"A\nB\n\nD\n",     TEXT_PLAIN, 0}                             }, 1, {L"A",                  L"B",     L"",      L"D"    }, 4},
 };
 
-int
-main(void)
+bool
+newsraft_test(void)
 {
 	struct render_blocks_list blocks = {0};
 	struct render_result result = {0};
@@ -53,14 +53,14 @@ main(void)
 		render_data(NULL, &result, &blocks, 80);
 		if (result.lines_len != render_tests[i].lines_count) {
 			fprintf(stderr, "%s: test %zu fails (invalid number of lines)!\n", __FILE__, i);
-			return 1;
+			return false;
 		}
 		for (size_t k = 0; k < result.lines_len; ++k) {
 			if (wcscmp(result.lines[k].ws->ptr, render_tests[i].lines[k]) != 0) {
 				fprintf(stderr, "%s: test %zu fails (invalid lines content)!\n", __FILE__, i);
-				return 1;
+				return false;
 			}
 		}
 	}
-	return 0;
+	return true;
 }

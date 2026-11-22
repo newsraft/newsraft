@@ -22,8 +22,8 @@ static const char *test_cases[][2] = {
 	{NULL,                            NULL},
 };
 
-int
-main(void)
+bool
+newsraft_test(void)
 {
 	size_t errors = 0;
 	for (size_t i = 0; test_cases[i][0] != NULL; ++i) {
@@ -34,5 +34,5 @@ main(void)
 		}
 		free_string(out);
 	}
-	return errors ? 1 : 0;
+	return errors ? false : true;
 }

@@ -10,8 +10,8 @@ newsraft_json_parse(struct feed_update_state *data, const char *content, size_t 
 		return false;
 	}
 	sqlite3_stmt *stmt;
-	const char *sql = "SELECT key, path, value FROM json_tree(?) WHERE type != 'object' AND type != 'array';";
-	if (sqlite3_prepare_v2(db, sql, strlen(sql) + 1, &stmt, 0) != SQLITE_OK) {
+	const char sql[] = "SELECT key, path, value FROM json_tree(?) WHERE type != 'object' AND type != 'array';";
+	if (sqlite3_prepare_v2(db, sql, sizeof(sql), &stmt, NULL) != SQLITE_OK) {
 		str_appendf(data->new_errors, "JSON parser failed: %s\n", sqlite3_errmsg(db));
 		sqlite3_close(db);
 		return false;
@@ -28,11 +28,8 @@ newsraft_json_parse(struct feed_update_state *data, const char *content, size_t 
 	int64_t current_attachment_index = -1;
 	long long dummy = -1;
 
-	while (true) {
-		int res = sqlite3_step(stmt);
-		if (res == SQLITE_DONE) {
-			break;
-		} else if (res != SQLITE_ROW) {
+	for (int res = sqlite3_step(stmt); res != SQLITE_DONE; res = sqlite3_step(stmt)) {
+		if (res != SQLITE_ROW) {
 			str_appendf(data->new_errors, "JSON parser failed: %s\n", sqlite3_errmsg(db));
 			sqlite3_finalize(stmt);
 			sqlite3_close(db);

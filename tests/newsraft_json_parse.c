@@ -102,8 +102,8 @@ test3(const char *content, size_t size)
 	return 0;
 }
 
-int
-main(void)
+bool
+newsraft_test(void)
 {
 	const char *files[] = {
 		"tests/assets/newsraft_json_parse_1.json",
@@ -115,16 +115,16 @@ main(void)
 	for (size_t i = 0; i < 3; ++i) {
 		FILE *f = fopen(files[i], "r");
 		if (f == NULL) {
-			return 1;
+			return false;
 		}
 		lens[i] = fread(jsons[i], 1, sizeof(jsons[i]), f);
 		jsons[i][lens[i]] = '\0';
 		fclose(f);
 	}
 
-	if (test1(jsons[0], lens[0])) return 1;
-	if (test2(jsons[1], lens[1])) return 1;
-	if (test3(jsons[2], lens[2])) return 1;
+	if (test1(jsons[0], lens[0])) return false;
+	if (test2(jsons[1], lens[1])) return false;
+	if (test3(jsons[2], lens[2])) return false;
 
-	return 0;
+	return true;
 }

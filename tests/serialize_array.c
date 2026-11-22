@@ -25,17 +25,17 @@ static const struct serialize_test tests[] = {
 	{"m=", 2, "\x1F" "t" "\x1F" "e" "\x1F" "s" "\x1F" "t" "\x1F" "A" "\x1F", 11, "\x1F" "m=testA"},
 };
 
-int
-main(void)
+bool
+newsraft_test(void)
 {
 	struct string *out = crtes(100);
 	for (size_t i = 0; i < sizeof(tests) / sizeof(*tests); ++i) {
 		serialize_array(&out, tests[i].key, tests[i].key_len, tests[i].value, tests[i].value_len);
 		if (strcmp(out->ptr, tests[i].result) != 0) {
 			fprintf(stderr, "Test %zu failed!\n", i);
-			return 1;
+			return false;
 		}
 		empty_string(out);
 	}
-	return 0;
+	return true;
 }

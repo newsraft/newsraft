@@ -1,23 +1,19 @@
 #include <string.h>
 #include "newsraft.h"
 
-int
-main(void)
+bool
+newsraft_test(void)
 {
-	if (freopen("tests/assets/convert_opml_to_feeds.xml", "r", stdin) == NULL) {
-		return 1;
-	}
-	if (freopen("newsraft-test-feeds", "w", stdout) == NULL) {
-		return 1;
-	}
+	NEWSRAFT_ASSERT(freopen("tests/assets/convert_opml_to_feeds.xml", "r", stdin));
+	NEWSRAFT_ASSERT(freopen("newsraft-test-feeds", "w", stdout));
 
 	convert_opml_to_feeds();
 
 	FILE *example_stream = fopen("tests/assets/convert_opml_to_feeds.txt", "r");
 	FILE *generated_stream = fopen("newsraft-test-feeds", "r");
-	if (example_stream == NULL || generated_stream == NULL) {
-		return 1;
-	}
+	NEWSRAFT_ASSERT(example_stream);
+	NEWSRAFT_ASSERT(generated_stream);
+
 	char example[10000];
 	char generated[10000];
 	size_t example_len = fread(example, 1, sizeof(example), example_stream);
@@ -29,8 +25,8 @@ main(void)
 
 	if (strcmp(example, generated) != 0) {
 		fprintf(stderr, "Generated feeds file:\n%s\n", generated);
-		return 1;
+		return false;
 	}
 
-	return 0;
+	return true;
 }

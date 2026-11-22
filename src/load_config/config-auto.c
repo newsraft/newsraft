@@ -1,7 +1,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/utsname.h>
-#include "load_config/load_config.h"
+
+#include "newsraft.h"
 
 bool
 obtain_useragent_string(struct config_context **ctx, config_type_id id)

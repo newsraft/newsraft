@@ -1,5 +1,6 @@
 #include <string.h>
-#include "load_config/load_config.h"
+
+#include "newsraft.h"
 
 bool config_uses_256_colors = false;
 

@@ -62,6 +62,26 @@ xml_default_handler(void *userData, const XML_Char *s, int len)
 	}
 }
 
+static void
+xml_cdata_noop(void *userData)
+{
+	// Expat splits CDATA section into three events:
+	//
+	// 1) the "<![CDATA[" opener
+	// 2) the text inside it
+	// 3) the "]]>" closer
+	//
+	// The text always goes to character_data_handler, but the two markers go to
+	// the default handler unless CDATA section handlers are registered. When
+	// emptying_target is the decoy (XHTML content being copied verbatim into item
+	// description), xml_default_handler would then append "<![CDATA[" and "]]>"
+	// to the content, which is not valid HTML. By registering this no-op for both
+	// the start and end of CDATA sections we swallow the markers while the text
+	// inside still arrives through character_data_handler as usual.
+
+	(void)userData;
+}
+
 bool
 setup_xml_parser(struct feed_update_state *data)
 {
@@ -76,5 +96,6 @@ setup_xml_parser(struct feed_update_state *data)
 	XML_SetElementHandler(data->xml_parser, &start_element_handler, &end_element_handler);
 	XML_SetCharacterDataHandler(data->xml_parser, &character_data_handler);
 	XML_SetDefaultHandler(data->xml_parser, &xml_default_handler);
+	XML_SetCdataSectionHandler(data->xml_parser, xml_cdata_noop, xml_cdata_noop);
 	return true;
 }

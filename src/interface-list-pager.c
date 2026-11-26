@@ -29,13 +29,19 @@ pager_menu_writer(size_t index, WINDOW *w)
 bool
 start_pager_menu(struct config_context **new_ctx, struct render_blocks_list *new_blocks)
 {
+	struct render_result new_content = {0};
+	bool status = render_data(new_ctx, &new_content, new_blocks, list_menu_width);
+	pthread_mutex_lock(&interface_lock);
 	pager_context = new_ctx;
 	pager_blocks = new_blocks;
-	return refresh_pager_menu();
+	free_render_result(&content);
+	content = new_content;
+	pthread_mutex_unlock(&interface_lock);
+	return status;
 }
 
 bool
-refresh_pager_menu(void)
+refresh_pager_menu_unprotected(void)
 {
 	free_render_result(&content);
 	return render_data(pager_context, &content, pager_blocks, list_menu_width);

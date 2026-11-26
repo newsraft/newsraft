@@ -185,7 +185,7 @@ resize_handler(void)
 	}
 	adjust_list_menu();
 	if (is_current_menu_a_pager()) {
-		refresh_pager_menu();
+		refresh_pager_menu_unprotected();
 	}
 	ui_redraw_unprotected();
 	pthread_mutex_unlock(&interface_lock);

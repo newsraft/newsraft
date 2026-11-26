@@ -422,7 +422,7 @@ void raise_menu_age(void);
 bool is_pager_pos_valid(struct menu_state *ctx, size_t index);
 void pager_menu_writer(size_t index, WINDOW *w);
 bool start_pager_menu(struct config_context **new_ctx, struct render_blocks_list *new_blocks);
-bool refresh_pager_menu(void);
+bool refresh_pager_menu_unprotected(void);
 
 // See "wstring-format.c" file for implementation.
 void do_format(struct wstring *dest, const wchar_t *fmt, const struct format_arg *args);

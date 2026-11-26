@@ -139,6 +139,12 @@ line_char(struct line *line, wchar_t c)
 		line_append(line, c);
 	} else if (c == L' ') {
 		return true; // Ignore spaces when we are in the end of line
+	} else if (line->head->ws->len == 0) {
+		// The line is empty and the character still doesn't fit: it is a
+		// double-width character and indentation left only one free column.
+		// Bumping the line can't help here (the next line is just as narrow),
+		// so accept the overflow instead of recursing until the stack is gone.
+		line_append(line, c);
 	} else if (line->end == SIZE_MAX) {
 		line_bump(line);
 		line_char(line, c);

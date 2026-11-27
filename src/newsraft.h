@@ -12,6 +12,7 @@
 #include <sqlite3.h>
 #include <expat.h>
 #include <curl/curl.h>
+#define TB_OPT_LIBC_WCHAR
 #define tb_malloc  newsraft_malloc // Make termbox2 use our allocation functions
 #define tb_realloc newsraft_realloc
 #define tb_free    newsraft_free

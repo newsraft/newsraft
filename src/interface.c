@@ -34,11 +34,19 @@ obtain_list_menu_size(size_t *width, size_t *height)
 }
 
 static int
-ui_log_function(const char *fmt, ...)
+ui_log_function(tb_log_priority_t priority, const char *fmt, ...)
 {
 	va_list args;
 	va_start(args, fmt);
-	int len = log_vprint("TERMBOX", fmt, args);
+	const char *prefix = "TERMBOX";
+	switch (priority) {
+		case TB_LOG_PRIORITY_TRACE: prefix = "TERMBOX-TRACE"; break;
+		case TB_LOG_PRIORITY_DEBUG: prefix = "TERMBOX-DEBUG"; break;
+		case TB_LOG_PRIORITY_ALERT: prefix = "TERMBOX-ALERT"; break;
+		case TB_LOG_PRIORITY_ERROR: prefix = "TERMBOX-ERROR"; break;
+		default: break;
+	}
+	int len = log_vprint(prefix, fmt, args);
 	va_end(args);
 	return len;
 }
@@ -48,9 +56,10 @@ ui_init(void)
 {
 	INFO("Initializing user interface...");
 
-	tb_set_log_function(ui_log_function);
+	struct tb_init_opts opts = TB_INIT_OPTS_DEFAULT;
+	opts.fn_print_log = ui_log_function;
 	// Please, note that tb_init() hides the cursor automatically for us.
-	int status = tb_init();
+	int status = tb_init_ex(&opts);
 	if (status != TB_OK) {
 		write_error("Initialization of user interface failed: %s.\n", tb_strerror(status));
 		return false;

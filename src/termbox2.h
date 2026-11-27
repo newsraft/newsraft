@@ -33,11 +33,13 @@ SOFTWARE.
 #define _DEFAULT_SOURCE
 #endif
 
+#include <assert.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <limits.h>
 #include <signal.h>
 #include <stdarg.h>
+#include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -49,14 +51,6 @@ SOFTWARE.
 #include <sys/types.h>
 #include <termios.h>
 #include <unistd.h>
-#include <wchar.h>
-#include <wctype.h>
-
-#ifdef PATH_MAX
-#define TB_PATH_MAX PATH_MAX
-#else
-#define TB_PATH_MAX 4096
-#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -64,30 +58,40 @@ extern "C" {
 
 // __ffi_start
 
-#define TB_VERSION_STR "2.7.0"
+#define TB_VERSION_STR "3.0.0-dev"
 
 /* The following compile-time options are supported:
  *
- *     `TB_OPT_ATTR_W`: Integer width of `fg` and `bg` attributes. Valid values
- *                      (assuming system support) are 16, 32, and 64. (See
- *                      `uintattr_t`). 32 or 64 enables output mode
- *                      `TB_OUTPUT_TRUECOLOR`. 64 enables additional style
- *                      attributes. (See `tb_set_output_mode`.) Larger values
- *                      consume more memory in exchange for more features.
- *                      Defaults to 16.
+ * - `TB_OPT_ATTR_W`
+ *   Integer width of `fg` and `bg` attributes. Valid values (assuming system
+ *   support) are 16, 32, and 64. (See `uintattr_t`). 32 or 64 enables output
+ *   mode `TB_OUTPUT_TRUECOLOR`. 64 enables additional style attributes. (See
+ *   `tb_set_output_mode`.) Larger values consume more memory in exchange for
+ *   more features. Defaults to 16.
  *
- *        `TB_OPT_EGC`: If set, enable extended grapheme cluster support
- *                      (`tb_extend_cell`, `tb_set_cell_ex`). Consumes more
- *                      memory. Defaults off.
+ * - `TB_OPT_EGC`
+ *   If set, enable extended grapheme cluster support (`tb_extend_cell`,
+ *   `tb_set_cell_ex`). Consumes more memory. Defaults off.
  *
- * `TB_OPT_PRINTF_BUF`: Write buffer size for printf operations. Represents the
- *                      largest string that can be sent in one call to
- *                      `tb_print*` and `tb_send*` functions. Defaults to 4096.
+ * - `TB_OPT_PRINTF_BUF`
+ *   Write buffer size for printf operations. Represents the largest string
+ *   that can be sent in one call to `tb_print*` and `tb_send*` functions.
+ *   Defaults to 4096.
  *
- *   `TB_OPT_READ_BUF`: Read buffer size for tty reads. Defaults to 64.
+ * - `TB_OPT_READ_BUF`
+ *   Read buffer size for tty reads. Defaults to 64.
  *
- *  `TB_OPT_TRUECOLOR`: Deprecated. Sets `TB_OPT_ATTR_W` to 32 if not already
- *                      set.
+ * - `TB_OPT_LIBC_WCHAR`
+ *   If set, use libc's `wcwidth(3)`, `iswprint(3)`, etc instead of the
+ *   built-in Unicode-aware versions. Note, libc's are locale-dependent and
+ *   the caller must `setlocale(3)` `LC_CTYPE` to UTF-8. Defaults to built-in.
+ *
+ * - `TB_OPT_SKIP_INIT_OPTS_CHECK`
+ *   If set, skip statically asserting no trailing padding bytes at the end of
+ *   the `tb_init_opts` struct, which could harm ABI compat logic in
+ *   `tb_init_ex` when termbox is used as a shared library. In other cases
+ *   (using termbox as a compiled-in header library, or not using `tb_init_ex`)
+ *   this check has no utility. Defaults to performing the assertion.
  */
 
 #if defined(TB_LIB_OPTS) || 0 // __tb_lib_opts
@@ -96,6 +100,8 @@ extern "C" {
 #undef TB_OPT_EGC
 #undef TB_OPT_PRINTF_BUF
 #undef TB_OPT_READ_BUF
+#undef TB_OPT_LIBC_WCHAR
+#undef TB_OPT_SKIP_INIT_OPTS_CHECK
 #define TB_OPT_ATTR_W 64
 #define TB_OPT_EGC
 #endif
@@ -106,11 +112,20 @@ extern "C" {
 #elif defined TB_OPT_ATTR_W && TB_OPT_ATTR_W == 64
 #else
 #undef TB_OPT_ATTR_W
-#if defined TB_OPT_TRUECOLOR // Deprecated. Back-compat for old flag.
-#define TB_OPT_ATTR_W 32
-#else
 #define TB_OPT_ATTR_W 16
 #endif
+
+/* Include wchar if opting libc */
+#ifdef TB_OPT_LIBC_WCHAR
+#include <wchar.h>
+#include <wctype.h>
+#endif
+
+/* Set `TB_PATH_MAX` */
+#ifdef PATH_MAX
+#define TB_PATH_MAX PATH_MAX
+#else
+#define TB_PATH_MAX 4096
 #endif
 
 /* ASCII key constants (`tb_event.key`) */
@@ -163,7 +178,7 @@ extern "C" {
 #define tb_key_i(i)             0xffff - (i)
 /* Terminal-dependent key constants (`tb_event.key`) and terminfo caps */
 /* BEGIN codegen h */
-/* Produced by ./codegen.sh on Tue, 03 Sep 2024 04:17:47 +0000 */
+/* Produced by codegen.php on Sun, 08 Nov 2026 23:52:42 +0000 */
 #define TB_KEY_F1               (0xffff - 0)
 #define TB_KEY_F2               (0xffff - 1)
 #define TB_KEY_F3               (0xffff - 2)
@@ -263,23 +278,16 @@ extern "C" {
 #define TB_HI_BLACK  0x2000
 #define TB_BRIGHT    0x4000
 #define TB_DIM       0x8000
-#define TB_256_BLACK TB_HI_BLACK // `TB_256_BLACK` is deprecated
 #else
 // `TB_OPT_ATTR_W` is 32 or 64
-#define TB_BOLD                0x01000000
-#define TB_UNDERLINE           0x02000000
-#define TB_REVERSE             0x04000000
-#define TB_ITALIC              0x08000000
-#define TB_BLINK               0x10000000
-#define TB_HI_BLACK            0x20000000
-#define TB_BRIGHT              0x40000000
-#define TB_DIM                 0x80000000
-#define TB_TRUECOLOR_BOLD      TB_BOLD // `TB_TRUECOLOR_*` is deprecated
-#define TB_TRUECOLOR_UNDERLINE TB_UNDERLINE
-#define TB_TRUECOLOR_REVERSE   TB_REVERSE
-#define TB_TRUECOLOR_ITALIC    TB_ITALIC
-#define TB_TRUECOLOR_BLINK     TB_BLINK
-#define TB_TRUECOLOR_BLACK     TB_HI_BLACK
+#define TB_BOLD      0x01000000
+#define TB_UNDERLINE 0x02000000
+#define TB_REVERSE   0x04000000
+#define TB_ITALIC    0x08000000
+#define TB_BLINK     0x10000000
+#define TB_HI_BLACK  0x20000000
+#define TB_BRIGHT    0x40000000
+#define TB_DIM       0x80000000
 #endif
 
 #if TB_OPT_ATTR_W == 64
@@ -349,10 +357,6 @@ extern "C" {
 #define TB_ERR_SELECT           TB_ERR_POLL
 #define TB_ERR_RESIZE_SELECT    TB_ERR_RESIZE_POLL
 
-/* Deprecated. Function types to be used with `tb_set_func`. */
-#define TB_FUNC_EXTRACT_PRE     0
-#define TB_FUNC_EXTRACT_POST    1
-
 /* Define this to set the size of the buffer used in `tb_printf` and
  * `tb_sendf`.
  */
@@ -381,7 +385,28 @@ extern "C" {
 #define tb_free    free
 #endif
 
-#define tb_log(...) if (global.fn_print_log_msg) global.fn_print_log_msg(__VA_ARGS__)
+typedef enum {
+    TB_LOG_PRIORITY_INVALID,
+    TB_LOG_PRIORITY_TRACE,
+    TB_LOG_PRIORITY_DEBUG,
+    TB_LOG_PRIORITY_ALERT,
+    TB_LOG_PRIORITY_ERROR,
+    TB_LOG_PRIORITY_COUNT,
+} tb_log_priority_t;
+
+// clang-format off
+#define tb_log(priority, ...)                           \
+    do {                                                \
+        if (global.fn_print_log) {                      \
+            global.fn_print_log(priority, __VA_ARGS__); \
+        }                                               \
+    } while (0)
+
+#define tb_trace(...) tb_log(TB_LOG_PRIORITY_TRACE, __VA_ARGS__)
+#define tb_debug(...) tb_log(TB_LOG_PRIORITY_DEBUG, __VA_ARGS__)
+#define tb_alert(...) tb_log(TB_LOG_PRIORITY_ALERT, __VA_ARGS__)
+#define tb_error(...) tb_log(TB_LOG_PRIORITY_ERROR, __VA_ARGS__)
+// clang-format on
 
 #if TB_OPT_ATTR_W == 64
 typedef uint64_t uintattr_t;
@@ -452,6 +477,78 @@ struct tb_event {
     int32_t y;    // mouse y
 };
 
+/* Library init options for use with `tb_init_ex`.
+ *
+ * - `size`
+ *   Set to `sizeof(struct tb_init_opts)`. Aids in ABI compat when termbox
+ *   is used as a shared library.
+ *
+ * - `ttypath`
+ *   If not NULL, use tty at this path (like `tb_init_file`). The caller owns
+ *   the string memory, and the library reads it during `tb_init_ex`. If the
+ *   file is not a tty, termbox will continue on and skip tty-specific
+ *   operations.
+ *
+ * - `ttyfd`
+ *   If >= 0, use tty at this fd (like `tb_init_fd`). If the fd is not a tty,
+ *   termbox will continue on and skip tty-specific operations. Takes
+ *   precedence over `ttypath`.
+ *
+ * - `rfd`, `wfd`
+ *   If >= 0, read from and write to these fds (like `tb_init_rwfd`). These
+ *   fields must be set together. They are otherwise ignored. Termbox checks if
+ *   `rfd` is a tty, then `wfd`. If neither are ttys, termbox will continue on
+ *   and skip tty-specific operations. Takes precedence over `ttyfd` and
+ *   `ttypath`.
+ *
+ * - `fn_print_log`
+ *   If not NULL, termbox will call this function to print diagnostic log,
+ *   messages. The callback must be compatible with printf. If NULL, logging
+ *   is disabled.
+ *
+ * - `reserved`
+ *   Ignored. Must be the last field in the struct. Prevents padding bytes on
+ *   many systems.
+ *
+ * Initialize this struct with the macro `TB_INIT_OPTS_DEFAULT` for safe
+ * defaults.
+ */
+struct tb_init_opts {
+    size_t size;
+    const char *ttypath;
+    int ttyfd;
+    int rfd, wfd;
+    int (*fn_print_log)(tb_log_priority_t priority, const char *fmt, ...);
+    uintmax_t reserved;
+};
+
+/* A macro containing defaults for `tb_init_opts`. Intended as an initializer:
+ *
+ *   ```c
+ *   struct tb_init_opts o = TB_INIT_OPTS_DEFAULT;
+ *   o.ttyfd = ...;
+ *   tb_init_ex(&o);
+ *   ```
+ */
+#define TB_INIT_OPTS_DEFAULT                                                  \
+    {sizeof(struct tb_init_opts), NULL, -1, -1, -1, NULL, 0}
+
+#ifndef TB_FFI_GEN
+#ifndef TB_OPT_SKIP_INIT_OPTS_CHECK
+/* Assert no padding bytes at the end of the `tb_init_opts` struct. This is to
+ * catch potential ABI compat issues with `tb_init_ex` when using termbox as a
+ * shared library.
+ */
+// clang-format off
+typedef char tb_assert_init_opts[(
+       offsetof(struct tb_init_opts, reserved)
+    +  sizeof(((struct tb_init_opts *)0)->reserved)
+    == sizeof(struct tb_init_opts)
+) ? 1 : -1];
+// clang-format on
+#endif
+#endif
+
 /* Initialize the termbox library. This function should be called before any
  * other functions. `tb_init` is equivalent to `tb_init_file("/dev/tty")`.
  * After successful initialization, the library must be finalized using
@@ -461,6 +558,7 @@ int tb_init(void);
 int tb_init_file(const char *path);
 int tb_init_fd(int ttyfd);
 int tb_init_rwfd(int rfd, int wfd);
+int tb_init_ex(const struct tb_init_opts *o);
 int tb_shutdown(void);
 
 /* Return the size of the internal back buffer (which is the same as terminal's
@@ -682,7 +780,8 @@ int tb_get_fds(int *ttyfd, int *resizefd);
  * For finer control, use `tb_set_cell`.
  */
 int tb_print(int x, int y, uintattr_t fg, uintattr_t bg, const char *str);
-int tb_printf(int x, int y, uintattr_t fg, uintattr_t bg, const char *fmt, ...);
+int tb_printf(int x, int y, uintattr_t fg, uintattr_t bg, const char *fmt,
+    ...);
 int tb_print_ex(int x, int y, uintattr_t fg, uintattr_t bg, size_t *out_w,
     const char *str);
 int tb_printf_ex(int x, int y, uintattr_t fg, uintattr_t bg, size_t *out_w,
@@ -691,19 +790,6 @@ int tb_printf_ex(int x, int y, uintattr_t fg, uintattr_t bg, size_t *out_w,
 /* Send raw bytes to terminal. */
 int tb_send(const char *buf, size_t nbuf);
 int tb_sendf(const char *fmt, ...);
-
-/* Deprecated. Set custom callbacks. `fn_type` is one of `TB_FUNC_*` constants,
- * `fn` is a compatible function pointer, or NULL to clear.
- *
- * `TB_FUNC_EXTRACT_PRE`:
- *   If specified, invoke this function BEFORE termbox tries to extract any
- *   escape sequences from the input buffer.
- *
- * `TB_FUNC_EXTRACT_POST`:
- *   If specified, invoke this function AFTER termbox tries (and fails) to
- *   extract any escape sequences from the input buffer.
- */
-int tb_set_func(int fn_type, int (*fn)(struct tb_event *, size_t *));
 
 /* Return byte length of codepoint given first byte of UTF-8 sequence (1-6). */
 int tb_utf8_char_length(char c);
@@ -729,32 +815,12 @@ int tb_utf8_unicode_to_char(char *out, uint32_t c);
 /* Library utility functions */
 int tb_last_errno(void);
 const char *tb_strerror(int err);
-struct tb_cell *tb_cell_buffer(void); // Deprecated
 int tb_has_truecolor(void);
 int tb_has_egc(void);
 int tb_attr_width(void);
 const char *tb_version(void);
 int tb_iswprint(uint32_t ch);
 int tb_wcwidth(uint32_t ch);
-void tb_set_log_function(int (*fn)(const char *fmt, ...));
-
-/* Deprecation notice!
- *
- * The following will be removed in version 3.x (ABI version 3):
- *
- *   `TB_256_BLACK`           (use `TB_HI_BLACK`)
- *   `TB_OPT_TRUECOLOR`       (use `TB_OPT_ATTR_W`)
- *   `TB_TRUECOLOR_BOLD`      (use `TB_BOLD`)
- *   `TB_TRUECOLOR_UNDERLINE` (use `TB_UNDERLINE`)
- *   `TB_TRUECOLOR_REVERSE`   (use `TB_REVERSE`)
- *   `TB_TRUECOLOR_ITALIC`    (use `TB_ITALIC`)
- *   `TB_TRUECOLOR_BLINK`     (use `TB_BLINK`)
- *   `TB_TRUECOLOR_BLACK`     (use `TB_HI_BLACK`)
- *   `tb_cell_buffer`
- *   `tb_set_func`
- *   `TB_FUNC_EXTRACT_PRE`
- *   `TB_FUNC_EXTRACT_POST`
- */
 
 #ifdef __cplusplus
 }
@@ -788,6 +854,9 @@ void tb_set_log_function(int (*fn)(const char *fmt, ...));
 
 #define if_not_init_return()                                                  \
     if (!global.initialized) return TB_ERR_NOT_INIT
+
+#define tb_has_init_opts_field(o, f)                                          \
+    (o)->size >= (offsetof(struct tb_init_opts, f) + sizeof((o)->f))
 
 struct bytebuf {
     char *buf;
@@ -842,14 +911,14 @@ struct tb_global {
     int initialized;
     int (*fn_extract_esc_pre)(struct tb_event *, size_t *);
     int (*fn_extract_esc_post)(struct tb_event *, size_t *);
-    int (*fn_print_log_msg)(const char *fmt, ...);
+    int (*fn_print_log)(tb_log_priority_t priority, const char *fmt, ...);
     char errbuf[1024];
 };
 
 static struct tb_global global = {0};
 
 /* BEGIN codegen c */
-/* Produced by ./codegen.sh on Tue, 03 Sep 2024 04:17:48 +0000 */
+/* Produced by codegen.php on Sun, 08 Nov 2026 23:52:42 +0000 */
 
 static const int16_t terminfo_cap_indexes[] = {
     66,  // kf1 (TB_CAP_F1)
@@ -1549,6 +1618,7 @@ static const unsigned char utf8_mask[6] = {0x7f, 0x1f, 0x0f, 0x07, 0x03, 0x01};
 static int tb_reset(void);
 static int tb_printf_inner(int x, int y, uintattr_t fg, uintattr_t bg,
     size_t *out_w, const char *fmt, va_list vl);
+static int init_fds(const struct tb_init_opts *o);
 static int init_term_attrs(void);
 static int init_term_caps(void);
 static int init_cap_trie(void);
@@ -1568,8 +1638,8 @@ static int load_terminfo_from_path(const char *path, const char *term);
 static int read_terminfo_path(const char *path);
 static int parse_terminfo_caps(void);
 static int load_builtin_caps(void);
-static const char *get_terminfo_string(int16_t offsets_pos, int16_t offsets_len,
-    int16_t table_pos, int16_t table_size, int16_t index);
+static const char *get_terminfo_string(int16_t offsets_pos,
+    int16_t offsets_len, int16_t table_pos, int16_t table_size, int16_t index);
 static int get_terminfo_int16(int offset, int16_t *val);
 static int wait_event(struct tb_event *event, int timeout);
 static int extract_event(struct tb_event *event);
@@ -1613,14 +1683,9 @@ int tb_init(void) {
 }
 
 int tb_init_file(const char *path) {
-    if (global.initialized) return TB_ERR_INIT_ALREADY;
-    int ttyfd = open(path, O_RDWR);
-    if (ttyfd < 0) {
-        global.last_errno = errno;
-        return TB_ERR_INIT_OPEN;
-    }
-    global.ttyfd_open = 1;
-    return tb_init_fd(ttyfd);
+    struct tb_init_opts o = TB_INIT_OPTS_DEFAULT;
+    o.ttypath = path;
+    return tb_init_ex(&o);
 }
 
 int tb_init_fd(int ttyfd) {
@@ -1628,14 +1693,24 @@ int tb_init_fd(int ttyfd) {
 }
 
 int tb_init_rwfd(int rfd, int wfd) {
-    int rv;
+    struct tb_init_opts o = TB_INIT_OPTS_DEFAULT;
+    o.rfd = rfd;
+    o.wfd = wfd;
+    return tb_init_ex(&o);
+}
+
+int tb_init_ex(const struct tb_init_opts *o) {
+    if (global.initialized) return TB_ERR_INIT_ALREADY;
 
     tb_reset();
-    global.ttyfd = isatty(rfd) ? rfd : (wfd != rfd && isatty(wfd) ? wfd : -1);
-    global.rfd = rfd;
-    global.wfd = wfd;
 
+    if (tb_has_init_opts_field(o, fn_print_log)) {
+        global.fn_print_log = o->fn_print_log;
+    }
+
+    int rv;
     do {
+        if_err_break(rv, init_fds(o));
         if_err_break(rv, init_term_attrs());
         if_err_break(rv, init_term_caps());
         if_err_break(rv, init_cap_trie());
@@ -1866,8 +1941,7 @@ int tb_set_input_mode(int mode) {
 int tb_set_output_mode(int mode) {
     if_not_init_return();
     switch (mode) {
-        case TB_OUTPUT_CURRENT:
-            return global.output_mode;
+        case TB_OUTPUT_CURRENT: return global.output_mode;
         case TB_OUTPUT_NORMAL:
         case TB_OUTPUT_256:
         case TB_OUTPUT_216:
@@ -1998,27 +2072,8 @@ int tb_sendf(const char *fmt, ...) {
     va_start(vl, fmt);
     rv = vsnprintf(buf, sizeof(buf), fmt, vl);
     va_end(vl);
-    if (rv < 0 || rv >= (int)sizeof(buf)) {
-        return TB_ERR;
-    }
+    if (rv < 0 || rv >= (int)sizeof(buf)) { return TB_ERR; }
     return tb_send(buf, (size_t)rv);
-}
-
-int tb_set_func(int fn_type, int (*fn)(struct tb_event *, size_t *)) {
-    switch (fn_type) {
-        case TB_FUNC_EXTRACT_PRE:
-            global.fn_extract_esc_pre = fn;
-            return TB_OK;
-        case TB_FUNC_EXTRACT_POST:
-            global.fn_extract_esc_post = fn;
-            return TB_OK;
-    }
-    return TB_ERR;
-}
-
-struct tb_cell *tb_cell_buffer(void) {
-    if (!global.initialized) return NULL;
-    return global.back.cells;
 }
 
 int tb_utf8_char_length(char c) {
@@ -2084,26 +2139,16 @@ int tb_last_errno(void) {
 
 const char *tb_strerror(int err) {
     switch (err) {
-        case TB_OK:
-            return "Success";
-        case TB_ERR_NEED_MORE:
-            return "Not enough input";
-        case TB_ERR_INIT_ALREADY:
-            return "Termbox initialized already";
-        case TB_ERR_MEM:
-            return "Out of memory";
-        case TB_ERR_NO_EVENT:
-            return "No event";
-        case TB_ERR_NO_TERM:
-            return "No TERM in environment";
-        case TB_ERR_NOT_INIT:
-            return "Termbox not initialized";
-        case TB_ERR_OUT_OF_BOUNDS:
-            return "Out of bounds";
-        case TB_ERR_UNSUPPORTED_TERM:
-            return "Unsupported terminal";
-        case TB_ERR_CAP_COLLISION:
-            return "Termcaps collision";
+        case TB_OK:                   return "Success";
+        case TB_ERR_NEED_MORE:        return "Not enough input";
+        case TB_ERR_INIT_ALREADY:     return "Termbox initialized already";
+        case TB_ERR_MEM:              return "Out of memory";
+        case TB_ERR_NO_EVENT:         return "No event";
+        case TB_ERR_NO_TERM:          return "No TERM in environment";
+        case TB_ERR_NOT_INIT:         return "Termbox not initialized";
+        case TB_ERR_OUT_OF_BOUNDS:    return "Out of bounds";
+        case TB_ERR_UNSUPPORTED_TERM: return "Unsupported terminal";
+        case TB_ERR_CAP_COLLISION:    return "Termcaps collision";
         case TB_ERR_RESIZE_SSCANF:
             return "Terminal width/height not received by sscanf() after "
                    "resize";
@@ -2120,8 +2165,12 @@ const char *tb_strerror(int err) {
         case TB_ERR_RESIZE_POLL:
         case TB_ERR_RESIZE_READ:
         default:
-            if (strerror_r(global.last_errno, global.errbuf, sizeof(global.errbuf)) != 0) {
-                return "(strerror_r failed to store error description)";
+            if (strerror_r(global.last_errno, global.errbuf,
+                    sizeof(global.errbuf)))
+            {
+                snprintf(global.errbuf, sizeof(global.errbuf),
+                    "Couldn't get error description for errno %d",
+                    global.last_errno);
             }
             return (const char *)global.errbuf;
     }
@@ -2153,7 +2202,8 @@ const char *tb_version(void) {
 
 static int tb_reset(void) {
     int ttyfd_open = global.ttyfd_open;
-    int (*fn_print_log_msg)(const char *fmt, ...) = global.fn_print_log_msg;
+    int (*fn_print_log)(tb_log_priority_t priority, const char *fmt, ...) =
+        global.fn_print_log;
     memset(&global, 0, sizeof(global));
     global.ttyfd = -1;
     global.rfd = -1;
@@ -2173,7 +2223,31 @@ static int tb_reset(void) {
     global.last_bg = ~global.bg;
     global.input_mode = TB_INPUT_ESC;
     global.output_mode = TB_OUTPUT_NORMAL;
-    global.fn_print_log_msg = fn_print_log_msg;
+    global.fn_print_log = fn_print_log;
+    return TB_OK;
+}
+
+static int init_fds(const struct tb_init_opts *o) {
+    int rfd, wfd;
+    if (o->rfd >= 0 && o->wfd >= 0) {
+        rfd = o->rfd;
+        wfd = o->wfd;
+    } else if (o->ttyfd >= 0) {
+        rfd = o->ttyfd;
+        wfd = o->ttyfd;
+    } else {
+        int ttyfd = open(o->ttypath ? o->ttypath : "/dev/tty", O_RDWR);
+        if (ttyfd < 0) {
+            global.last_errno = errno;
+            return TB_ERR_INIT_OPEN;
+        }
+        global.ttyfd_open = 1;
+        rfd = ttyfd;
+        wfd = ttyfd;
+    }
+    global.ttyfd = isatty(rfd) ? rfd : (wfd != rfd && isatty(wfd) ? wfd : -1);
+    global.rfd = rfd;
+    global.wfd = wfd;
     return TB_OK;
 }
 
@@ -2206,16 +2280,12 @@ int tb_printf_inner(int x, int y, uintattr_t fg, uintattr_t bg, size_t *out_w,
     int rv;
     char buf[TB_OPT_PRINTF_BUF];
     rv = vsnprintf(buf, sizeof(buf), fmt, vl);
-    if (rv < 0 || rv >= (int)sizeof(buf)) {
-        return TB_ERR;
-    }
+    if (rv < 0 || rv >= (int)sizeof(buf)) { return TB_ERR; }
     return tb_print_ex(x, y, fg, bg, out_w, buf);
 }
 
 static int init_term_caps(void) {
-    if (load_terminfo() == TB_OK) {
-        return parse_terminfo_caps();
-    }
+    if (load_terminfo() == TB_OK) { return parse_terminfo_caps(); }
     return load_builtin_caps();
 }
 
@@ -2270,9 +2340,7 @@ static int cap_trie_add(const char *cap, uint16_t key, uint8_t mod) {
             node->nchildren += 1;
             node->children = (struct cap_trie *)tb_realloc(node->children,
                 sizeof(*node) * node->nchildren);
-            if (!node->children) {
-                return TB_ERR_MEM;
-            }
+            if (!node->children) { return TB_ERR_MEM; }
             next = &node->children[node->nchildren - 1];
             memset(next, 0, sizeof(*next));
             next->c = c;
@@ -2317,9 +2385,7 @@ static int cap_trie_find(const char *buf, size_t nbuf, struct cap_trie **last,
         node = next;
         *last = node;
         *depth += 1;
-        if (node->is_leaf && node->nchildren < 1) {
-            break;
-        }
+        if (node->is_leaf && node->nchildren < 1) { break; }
     }
     return TB_OK;
 }
@@ -2387,7 +2453,8 @@ static int update_term_size(void) {
 
     // Try ioctl TIOCGWINSZ
     if (ioctl(global.ttyfd, TIOCGWINSZ, &sz) == 0) {
-        tb_log("TIOCGWINSZ operation yielded %hu cols, %hu rows.", sz.ws_col, sz.ws_row);
+        tb_debug("TIOCGWINSZ operation yielded %hu cols, %hu rows.", sz.ws_col,
+            sz.ws_row);
         global.width = sz.ws_col;
         global.height = sz.ws_row;
         return TB_OK;
@@ -2441,7 +2508,7 @@ static int update_term_size_via_esc(void) {
         return TB_ERR_RESIZE_SSCANF;
     }
 
-    tb_log("Cursor boundary check yielded %d cols, %d rows.", rw, rh);
+    tb_trace("Cursor boundary check yielded %d cols, %d rows.", rw, rh);
     global.width = rw;
     global.height = rh;
     return TB_OK;
@@ -2450,7 +2517,8 @@ static int update_term_size_via_esc(void) {
 static int init_cellbuf(void) {
     int rv;
     if_err_return(rv, cellbuf_init(&global.back, global.width, global.height));
-    if_err_return(rv, cellbuf_init(&global.front, global.width, global.height));
+    if_err_return(rv,
+        cellbuf_init(&global.front, global.width, global.height));
     if_err_return(rv, cellbuf_clear(&global.back));
     if_err_return(rv, cellbuf_clear(&global.front));
     return TB_OK;
@@ -2470,7 +2538,7 @@ static int tb_deinit(void) {
         tcsetattr(global.ttyfd, TCSAFLUSH, &global.orig_tios);
     }
     if (global.ttyfd_open) {
-        close(global.ttyfd >= 0 ? global.ttyfd : global.rfd);
+        close(global.rfd);
         global.ttyfd_open = 0;
     }
 
@@ -2564,7 +2632,7 @@ static int load_terminfo_from_path(const char *path, const char *term) {
     if_ok_return(rv, read_terminfo_path(tmp));
 #endif
 
-    tb_log("Couldn't find term %s in terminfo database %s", term, path);
+    tb_alert("Couldn't find term %s in terminfo database %s", term, path);
     return TB_ERR;
 }
 
@@ -2594,7 +2662,7 @@ static int read_terminfo_path(const char *path) {
 
     global.terminfo = data;
     global.nterminfo = fsize;
-    tb_log("Successfully read terminfo from %s (%zu bytes)", path, fsize);
+    tb_debug("Successfully read terminfo from %s (%zu bytes)", path, fsize);
 
     fclose(fp);
     return TB_OK;
@@ -2690,8 +2758,9 @@ static int load_builtin_caps(void) {
     return TB_ERR_UNSUPPORTED_TERM;
 }
 
-static const char *get_terminfo_string(int16_t offsets_pos, int16_t offsets_len,
-    int16_t table_pos, int16_t table_size, int16_t index) {
+static const char *get_terminfo_string(int16_t offsets_pos,
+    int16_t offsets_len, int16_t table_pos, int16_t table_size,
+    int16_t index) {
     if (index >= offsets_len) {
         // An index beyond the offset table indicates absent
         // See `convert_strings` in tinfo `read_entry.c`
@@ -2699,7 +2768,8 @@ static const char *get_terminfo_string(int16_t offsets_pos, int16_t offsets_len,
     }
 
     int16_t table_offset;
-    int table_offset_offset = (int)offsets_pos + (index * (int)sizeof(int16_t));
+    int table_offset_offset =
+        (int)offsets_pos + (index * (int)sizeof(int16_t));
     if (get_terminfo_int16(table_offset_offset, &table_offset) != TB_OK) {
         // offset beyond end of terminfo entry
         // Truncated/corrupt terminfo entry?
@@ -2715,7 +2785,9 @@ static const char *get_terminfo_string(int16_t offsets_pos, int16_t offsets_len,
 
     int str_offset = (int)table_pos + (int)table_offset;
     if (str_offset >= (int)global.nterminfo) {
-        tb_log("Offset %d is beyond end of terminfo data. Is terminfo corrupted?", str_offset);
+        tb_error(
+            "Offset %d is beyond end of terminfo data. Is terminfo corrupted?",
+            str_offset);
         return NULL;
     }
 
@@ -2724,7 +2796,7 @@ static const char *get_terminfo_string(int16_t offsets_pos, int16_t offsets_len,
 
 static int get_terminfo_int16(int offset, int16_t *val) {
     if (offset < 0 || offset + sizeof(int16_t) > global.nterminfo) {
-        tb_log("Invalid offset %d for reading int16 from terminfo", offset);
+        tb_error("Invalid offset %d for reading int16 from terminfo", offset);
         *val = -1;
         return TB_ERR;
     }
@@ -2780,7 +2852,9 @@ static int wait_event(struct tb_event *event, int timeout) {
         if (resize_has_events) {
             int ignore = 0;
             if (read(global.resize_pipefd[0], &ignore, sizeof(ignore)) < 0) {
-                tb_log("Couldn't read data from resize pipe even though file descriptor was set!");
+                tb_error(
+                    "Couldn't read data from resize pipe even though file "
+                    "descriptor was set!");
             }
             // TODO: Harden against errors encountered mid-resize
             if_err_return(rv, update_term_size());
@@ -3017,26 +3091,23 @@ static int extract_esc_mouse(struct tb_event *event) {
 static void extract_esc_mouse_key_mod(struct tb_event *event, int b) {
     switch (b & 3) {
         case 0:
-            event->key = ((b & 64) != 0) ? TB_KEY_MOUSE_WHEEL_UP
-                                         : TB_KEY_MOUSE_LEFT;
+            event->key =
+                ((b & 64) != 0) ? TB_KEY_MOUSE_WHEEL_UP : TB_KEY_MOUSE_LEFT;
             break;
         case 1:
             event->key = ((b & 64) != 0) ? TB_KEY_MOUSE_WHEEL_DOWN
                                          : TB_KEY_MOUSE_MIDDLE;
             break;
-        case 2:
-            event->key = TB_KEY_MOUSE_RIGHT;
-            break;
-        case 3:
-            event->key = TB_KEY_MOUSE_RELEASE;
-            break;
+        case 2: event->key = TB_KEY_MOUSE_RIGHT; break;
+        case 3: event->key = TB_KEY_MOUSE_RELEASE; break;
     }
-
+    // clang-format off
     event->mod |=
           ((b & 0x04) >> 0)  // TB_MOD_SHIFT
         | ((b & 0x08) >> 3)  // TB_MOD_ALT
         | ((b & 0x10) >> 3)  // TB_MOD_CTRL
         | ((b & 0x20) >> 2); // TB_MOD_MOTION
+    // clang-format on
 }
 
 static int resize_cellbufs(void) {
@@ -3053,7 +3124,8 @@ static int resize_cellbufs(void) {
 static void handle_resize(int sig) {
     int errno_copy = errno;
     if (write(global.resize_pipefd[1], &sig, sizeof(sig)) < 0) {
-        tb_log("Couldn't write to resize pipe to notify about resize signal!");
+        tb_error(
+            "Couldn't write to resize pipe to notify about resize signal!");
     }
     errno = errno_copy;
 }
@@ -3061,9 +3133,7 @@ static void handle_resize(int sig) {
 static int send_attr(uintattr_t fg, uintattr_t bg) {
     int rv;
 
-    if (fg == global.last_fg && bg == global.last_bg) {
-        return TB_OK;
-    }
+    if (fg == global.last_fg && bg == global.last_bg) { return TB_OK; }
 
     if_err_return(rv, bytebuf_puts(&global.out, global.caps[TB_CAP_SGR0]));
 
@@ -3118,7 +3188,8 @@ static int send_attr(uintattr_t fg, uintattr_t bg) {
         if_err_return(rv, bytebuf_puts(&global.out, global.caps[TB_CAP_BOLD]));
 
     if (fg & TB_BLINK)
-        if_err_return(rv, bytebuf_puts(&global.out, global.caps[TB_CAP_BLINK]));
+        if_err_return(rv,
+            bytebuf_puts(&global.out, global.caps[TB_CAP_BLINK]));
 
     if (fg & TB_UNDERLINE)
         if_err_return(rv,
@@ -3176,9 +3247,7 @@ static int send_sgr(uint32_t cfg, uint32_t cbg, int fg_is_default,
     int rv;
     char nbuf[32];
 
-    if (fg_is_default && bg_is_default) {
-        return TB_OK;
-    }
+    if (fg_is_default && bg_is_default) { return TB_OK; }
 
     switch (global.output_mode) {
         default:
@@ -3186,13 +3255,9 @@ static int send_sgr(uint32_t cfg, uint32_t cbg, int fg_is_default,
             send_literal(rv, "\x1b[");
             if (!fg_is_default) {
                 send_num(rv, nbuf, cfg);
-                if (!bg_is_default) {
-                    send_literal(rv, ";");
-                }
+                if (!bg_is_default) { send_literal(rv, ";"); }
             }
-            if (!bg_is_default) {
-                send_num(rv, nbuf, cbg);
-            }
+            if (!bg_is_default) { send_num(rv, nbuf, cbg); }
             send_literal(rv, "m");
             break;
 
@@ -3203,9 +3268,7 @@ static int send_sgr(uint32_t cfg, uint32_t cbg, int fg_is_default,
             if (!fg_is_default) {
                 send_literal(rv, "38;5;");
                 send_num(rv, nbuf, cfg);
-                if (!bg_is_default) {
-                    send_literal(rv, ";");
-                }
+                if (!bg_is_default) { send_literal(rv, ";"); }
             }
             if (!bg_is_default) {
                 send_literal(rv, "48;5;");
@@ -3224,9 +3287,7 @@ static int send_sgr(uint32_t cfg, uint32_t cbg, int fg_is_default,
                 send_num(rv, nbuf, (cfg >> 8) & 0xff);
                 send_literal(rv, ";");
                 send_num(rv, nbuf, cfg & 0xff);
-                if (!bg_is_default) {
-                    send_literal(rv, ";");
-                }
+                if (!bg_is_default) { send_literal(rv, ";"); }
             }
             if (!bg_is_default) {
                 send_literal(rv, "48;2;");
@@ -3246,9 +3307,7 @@ static int send_sgr(uint32_t cfg, uint32_t cbg, int fg_is_default,
 static int send_cursor_if(int x, int y) {
     int rv;
     char nbuf[32];
-    if (x < 0 || y < 0) {
-        return TB_OK;
-    }
+    if (x < 0 || y < 0) { return TB_OK; }
     send_literal(rv, "\x1b[");
     send_num(rv, nbuf, y + 1);
     send_literal(rv, ";");
@@ -3300,9 +3359,7 @@ static int convert_num(uint32_t num, char *buf) {
 }
 
 static int cell_cmp(struct tb_cell *a, struct tb_cell *b) {
-    if (a->ch != b->ch || a->fg != b->fg || a->bg != b->bg) {
-        return 1;
-    }
+    if (a->ch != b->ch || a->fg != b->fg || a->bg != b->bg) { return 1; }
 #ifdef TB_OPT_EGC
     if (a->nech != b->nech) {
         return 1;
@@ -3379,9 +3436,7 @@ static int cellbuf_init(struct cellbuf *c, int w, int h) {
 static int cellbuf_free(struct cellbuf *c) {
     if (c->cells) {
         int i;
-        for (i = 0; i < c->width * c->height; i++) {
-            cell_free(&c->cells[i]);
-        }
+        for (i = 0; i < c->width * c->height; i++) { cell_free(&c->cells[i]); }
         tb_free(c->cells);
     }
     memset(c, 0, sizeof(*c));
@@ -3398,8 +3453,7 @@ static int cellbuf_clear(struct cellbuf *c) {
     return TB_OK;
 }
 
-static int cellbuf_get(struct cellbuf *c, int x, int y,
-    struct tb_cell **out) {
+static int cellbuf_get(struct cellbuf *c, int x, int y, struct tb_cell **out) {
     if (!cellbuf_in_bounds(c, x, y)) {
         *out = NULL;
         return TB_ERR_OUT_OF_BOUNDS;
@@ -3409,9 +3463,7 @@ static int cellbuf_get(struct cellbuf *c, int x, int y,
 }
 
 static int cellbuf_in_bounds(struct cellbuf *c, int x, int y) {
-    if (x < 0 || x >= c->width || y < 0 || y >= c->height) {
-        return 0;
-    }
+    if (x < 0 || x >= c->width || y < 0 || y >= c->height) { return 0; }
     return 1;
 }
 
@@ -3421,9 +3473,7 @@ static int cellbuf_resize(struct cellbuf *c, int w, int h) {
     int ow = c->width;
     int oh = c->height;
 
-    if (ow == w && oh == h) {
-        return TB_OK;
-    }
+    if (ow == w && oh == h) { return TB_OK; }
 
     w = w < 1 ? 1 : w;
     h = h < 1 ? 1 : h;
@@ -3493,9 +3543,7 @@ static int bytebuf_reserve(struct bytebuf *b, size_t sz) {
     if (b->cap >= sz) return TB_OK;
 
     size_t newcap = b->cap > 0 ? b->cap : 1;
-    while (newcap < sz) {
-        newcap *= 2;
-    }
+    while (newcap < sz) { newcap *= 2; }
 
     char *newbuf;
     if (b->buf) {
@@ -3517,17 +3565,28 @@ static int bytebuf_free(struct bytebuf *b) {
 }
 
 int tb_iswprint(uint32_t ch) {
+#ifdef TB_OPT_LIBC_WCHAR
     return iswprint((wint_t)ch);
+#else
+    return tb_iswprint_ex(ch, NULL);
+#endif
 }
 
 int tb_wcwidth(uint32_t ch) {
-    return wcwidth((wchar_t)ch);
+    int w;
+#ifdef TB_OPT_LIBC_WCHAR
+    w = wcwidth((wchar_t)ch);
+#else
+    tb_iswprint_ex(ch, &w);
+#endif
+    return w;
 }
 
 static int tb_cluster_width(uint32_t *ch, size_t nch) {
     int wmax = -1;
     int vs15 = 0, vs16 = 0, ri = 0, zwj = 0;
     size_t i = 0;
+    // clang-format off
     for (i = 0; i < nch; i++) {
         uint32_t c = ch[i];
         switch (c) {
@@ -3543,16 +3602,39 @@ static int tb_cluster_width(uint32_t *ch, size_t nch) {
         if (vs15) return 1;
         else if (vs16 || zwj || ri >= 2) return 2;
     }
+    // clang-format on
     return wmax;
 }
 
 static int tb_iswprint_ex(uint32_t ch, int *w) {
+#ifdef TB_OPT_LIBC_WCHAR
     if (w) *w = wcwidth((wint_t)ch);
     return iswprint(ch);
-}
+#else
+    // Fast path for 1-byte codepoints
+    if ((ch >= 0x20 && ch <= 0x7e) || (ch >= 0xa0 && ch <= 0xff)) {
+        if (w) *w = 1;
+        return 1;
+    } else if (ch <= 0xff) {
+        if (w) *w = ch == 0 ? 0 : -1;
+        return 0;
+    }
 
-void tb_set_log_function(int (*fn)(const char *fmt, ...)) {
-    global.fn_print_log_msg = fn;
+    int lo = 0, hi = WCWIDTH_TABLE_LENGTH - 1;
+    while (lo <= hi) {
+        int i = (lo + hi) / 2;
+        if (ch < wcwidth_table[i].range_start) {
+            hi = i - 1;
+        } else if (ch > wcwidth_table[i].range_end) {
+            lo = i + 1;
+        } else {
+            if (w) *w = wcwidth_table[i].width;
+            return wcwidth_table[i].width >= 0 ? 1 : 0;
+        }
+    }
+    if (w) *w = -1; // Invalid codepoint
+    return 0;
+#endif
 }
 
 #endif // TB_IMPL
